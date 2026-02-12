@@ -1,15 +1,18 @@
 ---
-layout: default
 title: BTS MEC1
 permalink: /classes/bts-mec1/
+hero_title: "BTS MEC1"
+hero_subtitle: "Cours • TD • Devoirs • Ressources"
 ---
 
-# BTS MEC1
+## Cours / TD
+- [Séance 1 — (à compléter).pdf](#)
+- [Séance 2 — (à compléter).pdf](#)
 
-## Documents
-- Document 1
-- Document 2
+## Devoirs
+- [Devoir 1 — Sujet](#) • [Correction](#)
 
-## Évaluations
-- DS1
-- DS2
+## Ressources
+- [Formulaire](#)
+- [Méthodes](#)
+- [Banque d’exercices](#)
