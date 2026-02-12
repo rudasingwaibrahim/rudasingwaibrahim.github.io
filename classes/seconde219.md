@@ -1,23 +1,23 @@
 ---
-layout: default
 title: Seconde 219
 permalink: /classes/seconde219/
+hero_title: "Seconde 219"
+hero_subtitle: "Cours • Devoirs • Évaluations • Ressources"
 ---
 
-# Seconde 219
-
 ## Cours
-- [Chapitre 1 — (à compléter)](#)
-- [Chapitre 2 — (à compléter)](#)
+- [Chapitre 1 — (à compléter).pdf](#)
+- [Chapitre 2 — (à compléter).pdf](#)
 
 ## Devoirs maison
-- [DM1 — Sujet](#)
-- [DM2 — Sujet](#)
+- [DM1 — Sujet](#) • [Correction](#)
+- [DM2 — Sujet](#) • [Correction](#)
 
 ## Évaluations
-- [DS1 — Corrigé](#)
-- [DS2 — Corrigé](#)
+- [DS1 — Sujet](#) • [Correction](#)
+- [DS2 — Sujet](#) • [Correction](#)
 
 ## Ressources
-- [Formulaire / liens utiles](#)
-- [Fiches méthodes](#)
+- [Formulaire / Rappels](#)
+- [Fiches méthode](#)
+- [Liens utiles](#)
