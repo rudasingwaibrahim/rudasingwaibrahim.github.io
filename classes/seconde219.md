@@ -1,21 +1,23 @@
 ---
 layout: default
 title: Seconde 219
+permalink: /classes/seconde219/
 ---
 
 # Seconde 219
 
 ## Cours
-
-- Chapitre 1
-- Chapitre 2
+- [Chapitre 1 — (à compléter)](#)
+- [Chapitre 2 — (à compléter)](#)
 
 ## Devoirs maison
+- [DM1 — Sujet](#)
+- [DM2 — Sujet](#)
 
-- DM1
-- DM2
+## Évaluations
+- [DS1 — Corrigé](#)
+- [DS2 — Corrigé](#)
 
-## Devoirs surveillés
-
-- DS1
-- DS2
+## Ressources
+- [Formulaire / liens utiles](#)
+- [Fiches méthodes](#)
