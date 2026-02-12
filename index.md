@@ -1,16 +1,29 @@
 ---
-layout: default
 title: Accueil
-permalink: /
+hero_title: "Mathématiques"
+hero_subtitle: "Cours • Devoirs • Évaluations • Ressources"
 ---
 
-# Bienvenue
+Bienvenue ! Choisis ta classe :
 
-Ici : cours, devoirs, évaluations et ressources par classe.
+<div class="cards">
+  <div class="card">
+    <div class="card__title">Seconde 205 <span class="badge">Classe</span></div>
+    <a href="/classes/seconde205/">Accéder</a>
+  </div>
 
-- **Seconde 205** : documents et évaluations
-- **Seconde 219** : documents et évaluations
-- **Terminale STMG RH T19**
-- **BTS MEC1**
+  <div class="card">
+    <div class="card__title">Seconde 219 <span class="badge">Classe</span></div>
+    <a href="/classes/seconde219/">Accéder</a>
+  </div>
 
-<div class="badge">Astuce : mets tes PDF dans un dossier /docs/ et fais des liens vers eux.</div>
+  <div class="card">
+    <div class="card__title">Terminale STMG RH T19 <span class="badge">Classe</span></div>
+    <a href="/classes/tstmg-t19/">Accéder</a>
+  </div>
+
+  <div class="card">
+    <div class="card__title">BTS MEC1 <span class="badge">Classe</span></div>
+    <a href="/classes/bts-mec1/">Accéder</a>
+  </div>
+</div>
