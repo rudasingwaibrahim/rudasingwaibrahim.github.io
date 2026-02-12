@@ -3,12 +3,19 @@ layout: default
 title: Seconde 219
 ---
 
-<h2>Seconde 219</h2>
+# Seconde 219
 
-<p>Cours, devoirs maison et devoirs sur table.</p>
+## Cours
 
-<ul>
-  <li>Chapitre 1</li>
-  <li>Chapitre 2</li>
-  <li>Devoir maison</li>
-</ul>
+- Chapitre 1
+- Chapitre 2
+
+## Devoirs maison
+
+- DM1
+- DM2
+
+## Devoirs surveillés
+
+- DS1
+- DS2
