@@ -1,14 +1,15 @@
 ---
 layout: default
 title: BTS MEC1
+permalink: /classes/bts-mec1/
 ---
 
-<h2>BTS MEC1</h2>
+# BTS MEC1
 
-<p>Documents et évaluations.</p>
+## Documents
+- Document 1
+- Document 2
 
-<ul>
-  <li>Chapitre 1</li>
-  <li>Projet 1</li>
-  <li>Évaluation</li>
-</ul>
+## Évaluations
+- DS1
+- DS2
