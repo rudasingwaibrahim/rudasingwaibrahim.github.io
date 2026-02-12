@@ -1,14 +1,19 @@
 ---
 layout: default
 title: Terminale STMG RH T19
+permalink: /classes/tstmg-t19/
 ---
 
-<h2>Terminale STMG RH T19</h2>
+# Terminale STMG RH T19
 
-<p>Supports et évaluations.</p>
+## Cours
+- Chapitre 1
+- Chapitre 2
 
-<ul>
-  <li>Chapitre 1</li>
-  <li>Chapitre 2</li>
-  <li>DS 1</li>
-</ul>
+## Devoirs maison
+- DM1
+- DM2
+
+## Évaluations
+- DS1
+- DS2
