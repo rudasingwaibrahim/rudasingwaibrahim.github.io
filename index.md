@@ -1,15 +1,16 @@
 ---
 layout: default
 title: Accueil
+permalink: /
 ---
 
-<h1>Mes classes</h1>
+# Bienvenue
 
-<ul>
-  {% for classe in site.data.classes %}
-    <li>
-      <a href="{{ classe.url }}">{{ classe.name }}</a>
-      <p>{{ classe.description }}</p>
-    </li>
-  {% endfor %}
-</ul>
+Ici : cours, devoirs, évaluations et ressources par classe.
+
+- **Seconde 205** : documents et évaluations
+- **Seconde 219** : documents et évaluations
+- **Terminale STMG RH T19**
+- **BTS MEC1**
+
+<div class="badge">Astuce : mets tes PDF dans un dossier /docs/ et fais des liens vers eux.</div>
