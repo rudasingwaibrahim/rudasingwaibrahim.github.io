@@ -7,13 +7,17 @@ permalink: /classes/seconde205/
 # Seconde 205
 
 ## Cours
-- Chapitre 1
-- Chapitre 2
+- [Chapitre 1 — (à compléter)](#)
+- [Chapitre 2 — (à compléter)](#)
 
 ## Devoirs maison
-- DM1
-- DM2
+- [DM1 — Sujet](#)
+- [DM2 — Sujet](#)
 
-## Devoirs surveillés
-- DS1
-- DS2
+## Évaluations
+- [DS1 — Corrigé](#)
+- [DS2 — Corrigé](#)
+
+## Ressources
+- [Formulaire / liens utiles](#)
+- [Fiches méthodes](#)
