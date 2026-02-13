@@ -1,25 +1,47 @@
 ---
 title: "Chapitre 1 — Calcul algébrique"
 permalink: /classes/seconde205/chapitre1/
+hero_title: "Chapitre 1"
+hero_subtitle: "Calcul algébrique"
 ---
 
 # Chapitre 1 — Calcul algébrique
 
+---
+
 ## 🔎 Activités
-- Activité 1
-- Activité 2
+- Activité 1 — Découverte
+- Activité 2 — Approfondissement
+
+---
 
 ## 📘 Cours
-- Cours — LaTeX • PDF
+- Cours complet — LaTeX
+- Cours complet — PDF
+- Trace écrite — PDF
+
+---
 
 ## 🧠 Carte mentale
-- Carte mentale
+- Carte mentale du chapitre — PDF
+
+---
 
 ## ⚡ QCM et automatismes
 - [QCM 1 — En ligne](/classes/seconde205/chapitre1/qcm1/)
 - [QCM 2 — En ligne](/classes/seconde205/chapitre1/qcm2/)
+- Automatismes — Série 1
+- Automatismes — Série 2
 
-## 📝 Planches d'exercices
+---
+
+## 🚀 Pour aller plus loin
+- Exercices d'approfondissement
+- Problèmes ouverts
+
+---
+
+## 📝 6 Planches d'exercices
 - Planche 1
 - Planche 2
 - Planche 3
@@ -27,24 +49,34 @@ permalink: /classes/seconde205/chapitre1/
 - Planche 5
 - Planche 6
 
-## 🏠 Devoirs maison
-- DM1 • Correction
-- DM2 • Correction
-- DM3 • Correction
-- DM4 • Correction
-- DM5 • Correction
-- DM6 • Correction
+---
 
-## 🧪 Devoirs blancs
-- DS blanc 1 • Correction
-- DS blanc 2 • Correction
-- DS blanc 3 • Correction
+## 🏠 6 Devoirs maison
+- DM1 — Sujet • Correction
+- DM2 — Sujet • Correction
+- DM3 — Sujet • Correction
+- DM4 — Sujet • Correction
+- DM5 — Sujet • Correction
+- DM6 — Sujet • Correction
 
-## 📊 Devoirs sur table
-- DS 1 • Correction
-- DS 2 • Correction
-- DS 3 • Correction
+---
+
+## 🧪 3 Devoirs blancs
+- DS blanc 1 — Sujet • Correction
+- DS blanc 2 — Sujet • Correction
+- DS blanc 3 — Sujet • Correction
+
+---
+
+## 📊 3 Devoirs sur table
+- DS 1 — Sujet • Correction
+- DS 2 — Sujet • Correction
+- DS 3 — Sujet • Correction
+
+---
 
 ## 📂 Divers
-- Méthode
+- Fiche méthode
+- Formulaire
 - Erreurs fréquentes
+- Liens utiles
