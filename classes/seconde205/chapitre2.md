@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 2 — Puissances et racines carrées"
-permalink: /classes/seconde205/chapitreX/
+permalink: /classes/seconde205/chapitre2/
 hero_title: "Chapitre 2"
 hero_subtitle: "Puissances et racines carrées"
 ---
