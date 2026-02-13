@@ -23,7 +23,7 @@ Bienvenue ! Choisis ta classe :
   </div>
 
 <div class="card">
-  <div class="card__title">Tale Techno Spé <span class="badge">Spécialité</span></div>
+  <div class="card__title">Tale Techno Spé <span class="badge">Classe</span></div>
   <a href="/classes/tale-techno-spe/">Accéder</a>
 </div>
 
