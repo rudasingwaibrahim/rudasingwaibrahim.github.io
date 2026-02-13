@@ -22,6 +22,11 @@ Bienvenue ! Choisis ta classe :
     <a href="/classes/tstmg-t19/">Accéder</a>
   </div>
 
+<div class="card">
+  <div class="card__title">Tale Techno Spé <span class="badge">Spécialité</span></div>
+  <a href="/classes/tale-techno-spe/">Accéder</a>
+</div>
+
   <div class="card">
     <div class="card__title">BTS MEC1 <span class="badge">Classe</span></div>
     <a href="/classes/bts-mec1/">Accéder</a>
