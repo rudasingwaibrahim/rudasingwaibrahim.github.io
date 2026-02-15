@@ -17,7 +17,10 @@ hero_subtitle: "Statistiques descriptives"
 
 ## 📘 Cours
 - Cours complet — LaTeX
-- [Cours complet — PDF](chapitre-statistiques.pdf)
+## 📘 Cours
+
+- [Cours complet — PDF](/assets/pdf/seconde205-ch13-cours.pdf)
+
 - Trace écrite — PDF
 
 ---
