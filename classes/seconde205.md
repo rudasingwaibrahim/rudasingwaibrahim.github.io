@@ -17,7 +17,7 @@ hero_subtitle: "Activités • Cours • QCM • Exercices • Devoirs • Corri
 8. [Nombres réels (Partie 2)](/classes/seconde205/chapitre8/)
 9. [Vecteurs et repérage](/classes/seconde205/chapitre9/)
 10. [Équations et inéquations](/classes/seconde205/chapitre10/)
-11. [Information chiffrée](/classes/seconde205/chapitre11/)
+11. [Information chiffrée](/classes/seconde/chapitre11/)
 12. [Les fonctions de référence](/classes/seconde205/chapitre12/)
 13. [Statistiques descriptives](/classes/seconde205/chapitre13/)
 14. [Variations d'une fonction](/classes/seconde205/chapitre14/)
