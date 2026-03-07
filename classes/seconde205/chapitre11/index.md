@@ -58,7 +58,18 @@ Les sujets et corrections des DS sont publiés après l’évaluation.
 
 ## 📁 Divers
 
-- Fiche méthode (à venir)
-- Formulaire (à venir)
-- Erreurs fréquentes (à venir)
-- Liens utiles (à venir)
+- 📄 **Fiche méthode** — [PDF](/assets/pdf/seconde-ch11-fiche-methode.pdf)
+
+- 📘 **Formulaire du chapitre** — (à venir)
+
+- ⚠️ **Erreurs fréquentes**
+  - Confondre **pourcentage** et **coefficient multiplicateur**
+  - Additionner les pourcentages lors d’évolutions successives
+  - Oublier de diviser par la valeur initiale dans un taux d’évolution
+  - Confondre **proportion** et **effectif**
+
+- 🔗 **Liens utiles**
+  - Vidéo — Proportion (à venir)
+  - Vidéo — Pourcentage de pourcentage (à venir)
+  - Vidéo — Taux d’évolution (à venir)
+  - Vidéo — Évolution globale (à venir)
