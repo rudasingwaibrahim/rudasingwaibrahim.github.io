@@ -2,7 +2,7 @@
 layout: default
 title: Contact
 permalink: /contact/
-
+hero_title: "Contact"
 hero_subtitle: "Me joindre pour toute question liée aux cours et évaluations"
 ---
 
