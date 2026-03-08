@@ -60,8 +60,6 @@ Les sujets et corrections des DS sont publiés après l’évaluation.
 
 - 📄 **Fiche méthode** — [PDF](/assets/pdf/seconde-ch11-fiche-methode.pdf)
 
-- 📘 **Formulaire du chapitre** — (à venir)
-
 - ⚠️ **Erreurs fréquentes**
   - Confondre **pourcentage** et **coefficient multiplicateur**
   - Additionner les pourcentages lors d’évolutions successives
