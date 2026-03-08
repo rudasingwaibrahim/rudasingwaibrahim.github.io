@@ -60,15 +60,12 @@ Les sujets et corrections des DS sont publiés après l’évaluation.
 
 - 📄 **Fiche méthode** — [PDF](/assets/pdf/seconde-ch11-fiche-methode.pdf)
 
-- 📘 **Formulaire du chapitre** — (à venir)
-
 - ⚠️ **Erreurs fréquentes**
   - Confondre **pourcentage** et **coefficient multiplicateur**
   - Additionner les pourcentages lors d’évolutions successives
   - Oublier de diviser par la valeur initiale dans un taux d’évolution
   - Confondre **proportion** et **effectif**
 
-- 🔗 **Liens utiles**
 - 🔗 **Liens utiles**
   - 🌐 Exercices interactifs – Taux d’évolution : [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-tauxdevolution.html)
   - 📄 Exercices supplémentaires – Taux d’évolution : [PDF](/assets/pdf/pourc-qr.pdf)
