@@ -1,10 +1,13 @@
 ---
 title: Accueil
-hero_title: "Mathématiques"
-hero_subtitle: "Cours • Devoirs • Évaluations • Ressources"
+layout: default
+hero_title: "Σ Sigma"
+hero_subtitle: "Cours • Exercices • Devoirs • Ressources"
 ---
 
-Bienvenue ! Choisis ta classe :
+## Bienvenue
+
+Choisis ta classe pour accéder aux cours, exercices, devoirs et corrigés.
 
 <div class="cards">
   <div class="card">
@@ -22,10 +25,10 @@ Bienvenue ! Choisis ta classe :
     <a href="/classes/tstmg-t19/">Accéder</a>
   </div>
 
-<div class="card">
-  <div class="card__title">Tale Techno Spé <span class="badge">Classe</span></div>
-  <a href="/classes/tale-techno-spe/">Accéder</a>
-</div>
+  <div class="card">
+    <div class="card__title">Tale Techno Spé <span class="badge">Classe</span></div>
+    <a href="/classes/tale-techno-spe/">Accéder</a>
+  </div>
 
   <div class="card">
     <div class="card__title">BTS MEC1 <span class="badge">Classe</span></div>
