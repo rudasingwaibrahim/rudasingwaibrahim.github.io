@@ -1,7 +1,7 @@
 ---
 title: Accueil
 layout: default
-hero_title: "Σ Sigma"
+hero_title: "Sigma"
 hero_subtitle: "Cours • Exercices • Devoirs • Ressources"
 ---
 
