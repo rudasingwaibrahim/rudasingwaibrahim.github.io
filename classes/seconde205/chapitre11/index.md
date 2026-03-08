@@ -69,7 +69,6 @@ Les sujets et corrections des DS sont publiés après l’évaluation.
   - Confondre **proportion** et **effectif**
 
 - 🔗 **Liens utiles**
-  - Vidéo — Proportion (à venir)
-  - Vidéo — Pourcentage de pourcentage (à venir)
-  - Vidéo — Taux d’évolution (à venir)
-  - Vidéo — Évolution globale (à venir)
+- 🔗 **Liens utiles**
+  - 🌐 Exercices interactifs – Taux d’évolution : [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-tauxdevolution.html)
+  - 📄 Exercices supplémentaires – Taux d’évolution : [PDF](/assets/pdf/pourc-qr.pdf)
