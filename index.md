@@ -10,6 +10,7 @@ hero_subtitle: "Cours • Exercices • Devoirs • Ressources"
 Choisis ta classe pour accéder aux cours, exercices, devoirs et corrigés.
 
 <div class="cards">
+
   <div class="card">
     <div class="card__title">Seconde 205 <span class="badge">Classe</span></div>
     <a href="/classes/seconde205/">Accéder</a>
@@ -21,7 +22,7 @@ Choisis ta classe pour accéder aux cours, exercices, devoirs et corrigés.
   </div>
 
   <div class="card">
-    <div class="card__title">Terminale STMG RH T19 <span class="badge">Classe</span></div>
+    <div class="card__title">TSTMG RH T19 <span class="badge">Classe</span></div>
     <a href="/classes/tstmg-t19/">Accéder</a>
   </div>
 
@@ -34,4 +35,5 @@ Choisis ta classe pour accéder aux cours, exercices, devoirs et corrigés.
     <div class="card__title">BTS MEC1 <span class="badge">Classe</span></div>
     <a href="/classes/bts-mec1/">Accéder</a>
   </div>
+
 </div>
