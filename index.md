@@ -42,32 +42,41 @@ hero_subtitle: "Cours • Exercices • Devoirs • Ressources"
   <aside class="spotlight">
     <h2>Mathématicien de la semaine</h2>
 
-    <div class="spotlight-card">
-      <img src="/assets/images/fermat.jpg" alt="Portrait de Pierre de Fermat" class="spotlight-image">
+    <div class="math-spotlight" id="math-spotlight">
+      <div class="math-spotlight-card">
+        <img id="math-image" class="math-image" src="" alt="">
+        <h3 id="math-name"></h3>
+        <p id="math-dates" class="math-dates"></p>
+        <p id="math-resume"></p>
 
-      <h3>Pierre de Fermat</h3>
-      <p class="spotlight-dates">1607 – 1665</p>
+        <div class="math-box">
+          <strong>Apport essentiel</strong><br>
+          <span id="math-apport"></span>
+        </div>
 
-      <p>
-        Magistrat et mathématicien français, Fermat a contribué à la théorie des nombres,
-        à la géométrie analytique et au calcul des variations.
-      </p>
+        <p id="math-citation" class="math-citation"></p>
 
-      <p>
-        Il est surtout célèbre pour le <strong>dernier théorème de Fermat</strong>, énoncé resté
-        sans démonstration pendant plus de trois siècles.
-      </p>
-
-      <div class="spotlight-box">
-        <strong>Apport essentiel</strong><br>
-        Développement d’idées fondamentales en théorie des nombres et travail pionnier
-        sur les maxima, minima et les tangentes.
+        <div class="math-controls">
+          <button type="button" id="math-prev">◀ Précédent</button>
+          <button type="button" id="math-next">Suivant ▶</button>
+        </div>
       </div>
-
-      <p class="spotlight-quote">
-        « Je tiens une merveilleuse démonstration, mais cette marge est trop étroite pour la contenir. »
-      </p>
     </div>
+
+    <script>
+      window.mathData = [
+        {% for m in site.data.mathematiciens %}
+        {
+          nom: {{ m.nom | jsonify }},
+          dates: {{ m.dates | jsonify }},
+          image: {{ m.image | jsonify }},
+          resume: {{ m.resume | jsonify }},
+          apport: {{ m.apport | jsonify }},
+          citation: {{ m.citation | jsonify }}
+        }{% unless forloop.last %},{% endunless %}
+        {% endfor %}
+      ];
+    </script>
   </aside>
 
 </div>
