@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 12 - Fonctions de référence"
-permalink: /classes/seconde205/chapitre12/
+permalink: /classes/seconde219/chapitre12/
 hero_title: "Chapitre 12"
 hero_subtitle: "Fonctions de référence"
 ---
