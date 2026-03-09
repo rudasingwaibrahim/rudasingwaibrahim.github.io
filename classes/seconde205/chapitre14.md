@@ -1,74 +1,70 @@
 ---
-title: "Chapitre 14 — Variations d'une fonction"
+title: "Chapitre 14 - Variations d’une fonction"
 permalink: /classes/seconde205/chapitre14/
 hero_title: "Chapitre 14"
-hero_subtitle: "Variations d'une fonction"
+hero_subtitle: "Variations d’une fonction"
 ---
 
-# Chapitre 14 — Variations d'une fonction
+## 📘  Cours
 
----
-
-## 🔎 Activités
-- Activité 1
-- Activité 2
+- [Cours complet — PDF](/assets/pdf/seconde-ch14-cours.pdf)
 
 ---
 
-## 📘 Cours
-- Cours complet — LaTeX
-- Cours complet — PDF
-- Trace écrite — PDF
+## 📝  6 Planches d’exercices (corrigés visibles)
+
+- Planche 1 — [Sujet](/assets/pdf/seconde-ch14-planche-01.pdf) • [Correction](/assets/pdf/seconde-ch14-planche-01-correction.pdf)
+- Planche 2 — [Sujet](/assets/pdf/seconde-ch14-planche-02.pdf) • [Correction](/assets/pdf/seconde-ch14-planche-02-correction.pdf)
+- Planche 3 — [Sujet](/assets/pdf/seconde-ch14-planche-03.pdf) • [Correction](/assets/pdf/seconde-ch14-planche-03-correction.pdf)
+- Planche 4 — [Sujet](/assets/pdf/seconde-ch14-planche-04.pdf) • [Correction](/assets/pdf/seconde-ch14-planche-04-correction.pdf)
+- Planche 5 — [Sujet](/assets/pdf/seconde-ch14-planche-05.pdf) • [Correction](/assets/pdf/seconde-ch14-planche-05-correction.pdf)
+- Planche 6 — [Sujet](/assets/pdf/seconde-ch14-planche-06.pdf) • [Correction](/assets/pdf/seconde-ch14-planche-06-correction.pdf)
 
 ---
 
-## 🧠 Carte mentale
-- Carte mentale du chapitre — PDF
+## 🏠  6 Devoirs maison (sujets visibles)
+
+- [DM1 — Sujet](/assets/pdf/seconde-ch14-dm-01-sujet.pdf)
+- [DM2 — Sujet](/assets/pdf/seconde-ch14-dm-02-sujet.pdf)
+- [DM3 — Sujet](/assets/pdf/seconde-ch14-dm-03-sujet.pdf)
+- [DM4 — Sujet](/assets/pdf/seconde-ch14-dm-04-sujet.pdf)
+- [DM5 — Sujet](/assets/pdf/seconde-ch14-dm-05-sujet.pdf)
+- [DM6 — Sujet](/assets/pdf/seconde-ch14-dm-06-sujet.pdf)
+
+> Les corrections des DM sont publiées après le rendu.
 
 ---
 
-## 🚀 Pour aller plus loin
-- Exercices d'approfondissement
-- Problèmes ouverts
+## ✍️  3 Devoirs blancs (sujets + corrigés visibles)
+
+- DS Blanc 1 — [Sujet](/assets/pdf/seconde-ch14-dsblanc-01-sujet.pdf) • [Correction](/assets/pdf/seconde-ch14-dsblanc-01-correction.pdf)
+- DS Blanc 2 — [Sujet](/assets/pdf/seconde-ch14-dsblanc-02-sujet.pdf) • [Correction](/assets/pdf/seconde-ch14-dsblanc-02-correction.pdf)
+- DS Blanc 3 — [Sujet](/assets/pdf/seconde-ch14-dsblanc-03-sujet.pdf) • [Correction](/assets/pdf/seconde-ch14-dsblanc-03-correction.pdf)
 
 ---
 
-## 📝 6 Planches d'exercices
-- Planche 1
-- Planche 2
-- Planche 3
-- Planche 4
-- Planche 5
-- Planche 6
+## 🧪  Devoirs surveillés (confidentiel avant l’évaluation)
+
+- DS 1 — [Sujet](/assets/pdf/seconde-ch14-ds-01-sujet.pdf)
+- DS 1 — [Correction](/assets/pdf/seconde-ch14-ds-01-correction.pdf)
 
 ---
 
-## 🏠 6 Devoirs maison
-- DM1 — Sujet • Correction
-- DM2 — Sujet • Correction
-- DM3 — Sujet • Correction
-- DM4 — Sujet • Correction
-- DM5 — Sujet • Correction
-- DM6 — Sujet • Correction
+## 🧪 Devoirs surveillés (confidentiel avant l’évaluation)
+
+Les sujets et corrections des DS sont publiés après l’évaluation.
 
 ---
 
-## 🧪 3 Devoirs blancs
-- DS blanc 1 — Sujet • Correction
-- DS blanc 2 — Sujet • Correction
-- DS blanc 3 — Sujet • Correction
+## 📁 Divers
 
----
+- 📄 **Fiche méthode** — [PDF](/assets/pdf/seconde-ch14-fiche-methode.pdf)
 
-## 📊 3 Devoirs sur table
-- DS 1 — Sujet • Correction
-- DS 2 — Sujet • Correction
-- DS 3 — Sujet • Correction
+- ⚠️ **Erreurs fréquentes**
+  - Confondre **croissance** et **variation**
+  - Lire incorrectement un **tableau de variation**
+  - Oublier de préciser **l’intervalle de variation**
+  - Confondre **maximum/minimum** et **valeur aux bornes**
 
----
-
-## 📂 Divers
-- Fiche méthode
-- Formulaire
-- Erreurs fréquentes
-- Liens utiles
+- 🔗 **Liens utiles**
+  - 🌐 Exercices interactifs – Variations d’une fonction : [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-fonctions.html)
