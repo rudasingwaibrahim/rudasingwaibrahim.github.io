@@ -68,5 +68,5 @@ Les sujets et corrections des DS sont publiés après l’évaluation.
 
 
 - 🔗 **Liens utiles**
-  - 🌐 Exercices interactifs – Taux d’évolution : [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-tauxdevolution.html)
-  - 📄 Exercices supplémentaires – Taux d’évolution : [PDF](/assets/pdf/pourc-qr.pdf)
+  - 🌐<a href="https://www.jeuxmaths.fr/exercices-de-maths-tauxdevolution.html" target="_blank">JeuxMaths</a>
+  - 📄 Découverte – Taux d’évolution : [PDF](/assets/pdf/pourc-qr.pdf)
