@@ -67,5 +67,5 @@ Les sujets et corrections des DS sont publiés après l’évaluation.
   - Confondre **proportion** et **effectif**
 
 - 🔗 **Liens utiles**
-  - 🌐 Exercices interactifs – Taux d’évolution : [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-tauxdevolution.html)
+  - 🌐<a href="https://www.jeuxmaths.fr/exercices-de-maths-tauxdevolution.html" target="_blank">JeuxMaths</a>
   - 📄 Exercices supplémentaires – Taux d’évolution : [PDF](/assets/pdf/pourc-qr.pdf)
