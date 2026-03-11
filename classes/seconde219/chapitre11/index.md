@@ -24,8 +24,8 @@ hero_subtitle: "Évolutions et pourcentages"
 
 ## 🏠  6 Devoirs maison (sujets visibles)
 
-- [DM1 — Sujet](/assets/pdf/seconde-ch11-dm-01-sujet.pdf)
-- [DM2 — Sujet](/assets/pdf/seconde-ch11-dm-02-sujet.pdf)
+- [DM1 — Sujet](/assets/pdf/seconde-ch11-dm-01-sujet.pdf)• [Correction](/assets/pdf/seconde-ch11-dm-01-correction.pdf)
+- [DM2 — Sujet](/assets/pdf/seconde-ch11-dm-02-sujet.pdf)• [Correction](/assets/pdf/seconde-ch11-dm-02-correction.pdf)
 - [DM3 — Sujet](/assets/pdf/seconde-ch11-dm-03-sujet.pdf)
 - [DM4 — Sujet](/assets/pdf/seconde-ch11-dm-04-sujet.pdf)
 - [DM5 — Sujet](/assets/pdf/seconde-ch11-dm-05-sujet.pdf)
