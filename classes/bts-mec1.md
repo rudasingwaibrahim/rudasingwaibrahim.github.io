@@ -2,60 +2,52 @@
 title: BTS MEC1
 permalink: /classes/bts-mec1/
 hero_title: "BTS MEC1"
-hero_subtitle: "Cours • TD • Devoirs • Devoirs surveillés • Corrigés"
+hero_subtitle: "Cours • TD • Devoirs • DS • Devoirs blancs • Corrigés"
 ---
 
 # 📘 Programme et ressources
 
 ## 🔢 Chapitres
 
-1. [Suites numériques](/classes/bts-mec1/chapitre1/)
-2. [Fonctions d’une variable réelle](/classes/bts-mec1/chapitre2/)
-3. [Calcul intégral](/classes/bts-mec1/chapitre3/)
-4. [Équations différentielles](/classes/bts-mec1/chapitre4/)
-5. [Statistique descriptive](/classes/bts-mec1/chapitre5/)
-6. [Probabilités 1 – Variables aléatoires discrètes](/classes/bts-mec1/chapitre6/)
-7. [Probabilités 2 – Lois usuelles](/classes/bts-mec1/chapitre7/)
-8. [Statistique inférentielle](/classes/bts-mec1/chapitre8/)
-9. [Configurations géométriques](/classes/bts-mec1/chapitre9/)
-10. [Calcul vectoriel](/classes/bts-mec1/chapitre10/)
+0. [Rappels – Suites numériques](/classes/bts-mec1/chapitre0/)
+1. [Fonctions d’une variable réelle](/classes/bts-mec1/chapitre1/)
+2. [Calcul intégral](/classes/bts-mec1/chapitre2/)
+3. [Équations différentielles](/classes/bts-mec1/chapitre3/)
+4. [Statistique descriptive](/classes/bts-mec1/chapitre4/)
+5. [Probabilités 1 – Variables aléatoires discrètes](/classes/bts-mec1/chapitre5/)
 
 ---
 
-## 📝 Devoirs Maison
+## 📑 Travaux dirigés
 
-- [DM1 – Suites numériques](/classes/bts-mec1/dm1/)
-- [DM2 – Fonctions](/classes/bts-mec1/dm2/)
-- [DM3 – Intégrales](/classes/bts-mec1/dm3/)
-- [DM4 – Équations différentielles](/classes/bts-mec1/dm4/)
-- [DM5 – Probabilités](/classes/bts-mec1/dm5/)
-- [DM6 – Statistiques](/classes/bts-mec1/dm6/)
+- [TD1 – Analyse (suites et fonctions)](/classes/bts-mec1/td1/)
+- [TD2 – Intégrales et équations différentielles](/classes/bts-mec1/td2/)
+- [TD3 – Statistiques et probabilités](/classes/bts-mec1/td3/)
+
+---
+
+## 📝 Devoirs maison
+
+- [DM1 – Analyse](/classes/bts-mec1/dm1/)
+- [DM2 – Équations différentielles](/classes/bts-mec1/dm2/)
+- [DM3 – Probabilités et statistiques](/classes/bts-mec1/dm3/)
 
 ---
 
 ## 📊 Devoirs surveillés
 
-- [DS1](/classes/bts-mec1/ds1/)
-- [DS2](/classes/bts-mec1/ds2/)
-- [DS3](/classes/bts-mec1/ds3/)
-- [DS4](/classes/bts-mec1/ds4/)
-- [DS5](/classes/bts-mec1/ds5/)
-- [DS6](/classes/bts-mec1/ds6/)
+- [DS1 – Analyse](/classes/bts-mec1/ds1/)
+- [DS2 – Probabilités et statistiques](/classes/bts-mec1/ds2/)
 
 ---
 
 ## 📘 Devoirs blancs
 
-- [DB1](/classes/bts-mec1/db1/)
-- [DB2](/classes/bts-mec1/db2/)
-- [DB3](/classes/bts-mec1/db3/)
-- [DB4](/classes/bts-mec1/db4/)
-- [DB5](/classes/bts-mec1/db5/)
-- [DB6](/classes/bts-mec1/db6/)
+- [DB1 – Sujet type BTS](/classes/bts-mec1/db1/)
+- [DB2 – Sujet type BTS](/classes/bts-mec1/db2/)
 
 ---
 
 ## ✅ Corrigés
 
 Tous les corrigés sont accessibles dans chaque rubrique correspondante.
-
