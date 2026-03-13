@@ -15,4 +15,4 @@ hero_subtitle: "Enseignement commun — Cours • Exercices • Devoirs • Corr
 6. [Fonction logarithme décimal](/classes/tstmg-t19/chapitre6/)
 7. [Fonction inverse](/classes/tstmg-t19/chapitre7/)
 8. [Variables aléatoires (Partie 2)](/classes/tstmg-t19/chapitre8/)
-9. [Statistique](/classes/tstmg-t19/chapitre9/)
+9. [Statistique à deux variables](/classes/tstmg-t19/chapitre9/)
