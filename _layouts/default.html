@@ -7,6 +7,8 @@
   <meta name="description" content="{{ site.description }}">
   <link rel="stylesheet" href="/assets/css/style.css">
 </head>
+  
+<div id="search-results" class="search-results"></div>
 
 <body>
 
@@ -103,9 +105,17 @@
           <a class="nav-item" href="/">Accueil</a>
         </div>
 
-        <div class="topbar-right">
-          <a class="nav-item" href="/contact/">Contact</a>
-        </div>
+      <div class="topbar-right">
+
+<input
+type="search"
+id="site-search"
+class="site-search"
+placeholder="Rechercher..."
+>
+
+<a class="nav-item" href="/contact/">Contact</a>
+
       </div>
 
       <div class="hero-content">
@@ -236,6 +246,62 @@
       link.setAttribute("rel","noopener");
     });
   </script>
+<script>
+
+const pages = [
+
+{% for page in site.pages %}
+
+{
+title: "{{ page.title | escape }}",
+url: "{{ page.url }}",
+content: "{{ page.content | strip_html | strip_newlines | escape }}"
+},
+
+{% endfor %}
+
+];
+
+const searchInput = document.getElementById("site-search");
+const resultsBox = document.getElementById("search-results");
+
+if(searchInput){
+
+searchInput.addEventListener("input", function(){
+
+const query = this.value.toLowerCase();
+
+resultsBox.innerHTML = "";
+
+if(query.length < 2){
+resultsBox.style.display = "none";
+return;
+}
+
+pages
+.filter(p =>
+p.title.toLowerCase().includes(query) ||
+p.content.toLowerCase().includes(query)
+)
+.slice(0,8)
+.forEach(p => {
+
+const a = document.createElement("a");
+
+a.href = p.url;
+a.textContent = p.title;
+
+resultsBox.appendChild(a);
+
+});
+
+resultsBox.style.display = "block";
+
+});
+
+}
+
+</script>
 
 </body>
 </html>
