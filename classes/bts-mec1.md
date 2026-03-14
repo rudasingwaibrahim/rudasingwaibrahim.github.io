@@ -1,6 +1,11 @@
-## 📘 Programme et ressources
+---
+title: BTS MEC1
+permalink: /classes/bts-mec1/
+hero_title: "BTS MEC1"
+hero_subtitle: "Cours • TD • Devoirs • DS • Devoirs blancs • Corrigés"
+---
 
-## 🔢 Chapitres
+## 📚 Chapitres
 
 1. [Rappels – Suites numériques](/classes/bts-mec1/chapitre1/)
 2. [Fonctions d’une variable réelle](/classes/bts-mec1/chapitre2/)
