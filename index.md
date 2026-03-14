@@ -1,10 +1,3 @@
----
-title: Accueil
-layout: default
-hero_title: "Sigma"
-hero_subtitle: "Cours • Exercices • Devoirs • Ressources"
----
-
 ## Mathématicien de la semaine
 
 <div class="math-spotlight" id="math-spotlight">
@@ -15,8 +8,8 @@ hero_subtitle: "Cours • Exercices • Devoirs • Ressources"
     <p id="math-resume"></p>
 
     <div class="math-box">
-      <strong>Apport essentiel</strong><br>
-      <span id="math-apport"></span>
+      <strong>Apport essentiel</strong>
+      <p id="math-apport"></p>
     </div>
 
     <p id="math-citation" class="math-citation"></p>
