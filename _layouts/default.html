@@ -7,8 +7,6 @@
   <meta name="description" content="{{ site.description }}">
   <link rel="stylesheet" href="/assets/css/style.css">
 </head>
-  
-<div id="search-results" class="search-results"></div>
 
 <body>
 
@@ -105,17 +103,16 @@
           <a class="nav-item" href="/">Accueil</a>
         </div>
 
-      <div class="topbar-right">
-
-<input
-type="search"
-id="site-search"
-class="site-search"
-placeholder="Rechercher..."
->
-
-<a class="nav-item" href="/contact/">Contact</a>
-
+        <div class="topbar-right">
+          <input
+            type="search"
+            id="site-search"
+            class="site-search"
+            placeholder="Rechercher..."
+            aria-label="Rechercher dans le site"
+          >
+          <a class="nav-item" href="/contact/">Contact</a>
+        </div>
       </div>
 
       <div class="hero-content">
@@ -135,6 +132,8 @@ placeholder="Rechercher..."
 
     </div>
   </header>
+
+  <div id="search-results" class="search-results"></div>
 
   <main class="container">
     {{ content }}
@@ -246,62 +245,55 @@ placeholder="Rechercher..."
       link.setAttribute("rel","noopener");
     });
   </script>
-<script>
 
-const pages = [
+  <script>
+    const pages = [
+      {% for page in site.pages %}
+      {
+        title: "{{ page.title | escape }}",
+        url: "{{ page.url }}",
+        content: "{{ page.content | strip_html | strip_newlines | escape }}"
+      }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+    ];
 
-{% for page in site.pages %}
+    const searchInput = document.getElementById("site-search");
+    const resultsBox = document.getElementById("search-results");
 
-{
-title: "{{ page.title | escape }}",
-url: "{{ page.url }}",
-content: "{{ page.content | strip_html | strip_newlines | escape }}"
-},
+    if (searchInput && resultsBox) {
+      searchInput.addEventListener("input", function () {
+        const query = this.value.toLowerCase().trim();
 
-{% endfor %}
+        resultsBox.innerHTML = "";
 
-];
+        if (query.length < 2) {
+          resultsBox.style.display = "none";
+          return;
+        }
 
-const searchInput = document.getElementById("site-search");
-const resultsBox = document.getElementById("search-results");
+        pages
+          .filter((p, i, arr) =>
+            (p.title.toLowerCase().includes(query) || p.content.toLowerCase().includes(query)) &&
+            arr.findIndex(x => x.url === p.url) === i
+          )
+          .slice(0, 8)
+          .forEach(p => {
+            const a = document.createElement("a");
+            a.href = p.url;
+            a.textContent = p.title;
+            resultsBox.appendChild(a);
+          });
 
-if(searchInput){
+        resultsBox.style.display = resultsBox.children.length ? "block" : "none";
+      });
 
-searchInput.addEventListener("input", function(){
-
-const query = this.value.toLowerCase();
-
-resultsBox.innerHTML = "";
-
-if(query.length < 2){
-resultsBox.style.display = "none";
-return;
-}
-
-pages
-.filter(p =>
-p.title.toLowerCase().includes(query) ||
-p.content.toLowerCase().includes(query)
-)
-.slice(0,8)
-.forEach(p => {
-
-const a = document.createElement("a");
-
-a.href = p.url;
-a.textContent = p.title;
-
-resultsBox.appendChild(a);
-
-});
-
-resultsBox.style.display = "block";
-
-});
-
-}
-
-</script>
+      document.addEventListener("click", function (e) {
+        if (!resultsBox.contains(e.target) && e.target !== searchInput) {
+          resultsBox.style.display = "none";
+        }
+      });
+    }
+  </script>
 
 </body>
 </html>
