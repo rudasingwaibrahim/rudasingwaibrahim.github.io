@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 4 - Équations différentielles"
-permalink: /classes/bts-mec1/chapitre04/
+permalink: /classes/bts-mec1/chapitre4/
 hero_title: "Chapitre 4"
 hero_subtitle: "Équations différentielles"
 ---
