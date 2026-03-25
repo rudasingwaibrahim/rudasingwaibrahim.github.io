@@ -67,4 +67,7 @@ Les sujets et corrections des DS sont publiés après l’évaluation.
   - Confondre les comportements de $x$, $x^2$ et $x^3$
 
 - 🔗 **Liens utiles**
-  - 🌐 Exercices interactifs – Fonctions : [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-fonctions.html)
+  - 🌐 Exercices interactifs – Parité : [JeuxMaths](https://www.jeuxmaths.fr/exercice-de-math-parite-courbe-representative.html)
+  - 🌐 Exercices interactifs – Fonction Carré: [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-fonctioncarre.html)
+  - 🌐 Exercices interactifs – Fonction Inverse : [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-fonctioninverse.html)
+  - 🌐 Exercices interactifs – Équations Inéquations : [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-inequations.html) 
