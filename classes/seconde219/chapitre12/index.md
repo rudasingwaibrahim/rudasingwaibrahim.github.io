@@ -47,13 +47,8 @@ hero_subtitle: "Fonctions de référence"
 
 - DS 1 — [Sujet](/assets/pdf/seconde-ch12-ds-01-sujet.pdf)
 - DS 1 — [Correction](/assets/pdf/seconde-ch12-ds-01-correction.pdf)
-
----
-
-## 🧪 Devoirs surveillés (confidentiel avant l’évaluation)
-
-Les sujets et corrections des DS sont publiés après l’évaluation.
-
+- DS 2 — [Sujet](/assets/pdf/seconde-ch12-ds-02-sujet.pdf)
+- DS 2 — [Correction](/assets/pdf/seconde-ch12-ds-02-correction.pdf)
 ---
 
 ## 📁 Divers
