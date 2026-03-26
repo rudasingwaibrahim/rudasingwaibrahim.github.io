@@ -6,8 +6,8 @@ hero_subtitle: "Statistiques à deux variables"
 ---
 
 ## 📘 Cours
-
-- [Cours complet — PDF](/assets/pdf/tale-techno-commun-ch7-cours.pdf)
+- [Cours élève — PDF](/assets/pdf/tale-techno-commun-ch7-cours.pdf)
+- [Cours professeur (corrigé détaillé) — PDF](/assets/pdf/tale-techno-commun-ch7-cours-correction.pdf)
 
 ---
 
