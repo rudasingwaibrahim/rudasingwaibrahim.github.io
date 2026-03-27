@@ -13,7 +13,7 @@ hero_subtitle: "Fonctions de référence"
 
 ## 📝  6 Planches d’exercices (corrigés visibles)
 
-- Planche 1 — [Sujet](/assets/pdf/seconde-ch12-planche-01.pdf) • [Correction](/assets/pdf/seconde-ch12-planche-01-correction.pdf)
+- Planche 1 — [Sujet](/assets/pdf/seconde-ch12-planche-01.pdf) • [Correction](/assets/pdf/seconde/chapitre12/planche/seconde-ch12-planche-01-correction.pdf)
 - Planche 2 — [Sujet](/assets/pdf/seconde-ch12-planche-02.pdf) • [Correction](/assets/pdf/seconde-ch12-planche-02-correction.pdf)
 - Planche 3 — [Sujet](/assets/pdf/seconde-ch12-planche-03.pdf) • [Correction](/assets/pdf/seconde-ch12-planche-03-correction.pdf)
 - Planche 4 — [Sujet](/assets/pdf/seconde-ch12-planche-04.pdf) • [Correction](/assets/pdf/seconde-ch12-planche-04-correction.pdf)
