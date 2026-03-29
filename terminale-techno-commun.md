@@ -1,8 +1,8 @@
 ---
 title: Tale Techno Commun
 permalink: /classes/terminale-techno-commun/
-hero_title: "Tale Techno Commun"
-hero_subtitle: "Activités • Cours • QCM • Exercices • Devoirs • Corrigés"
+hero_title: "Terminale Technologique"
+hero_subtitle: "Tronc commun"
 ---
 
 # 📚 Chapitres
