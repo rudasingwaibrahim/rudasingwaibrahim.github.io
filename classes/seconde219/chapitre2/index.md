@@ -1,52 +1,52 @@
 ---
 layout: default
 title: "Chapitre 2 - Puissances et racines carrées"
-permalink: /classes/seconde219/chapitre02/
+permalink: /classes/seconde219/chapitre2/
 hero_title: "Chapitre 2"
 hero_subtitle: "Puissances et racines carrées"
 ---
 
 ## 📘 Cours
-- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/chapitre02/cours/seconde-ch02-cours.pdf)
+- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/chapitre2/cours/seconde-ch02-cours.pdf)
 
 ---
 
 ## 📝 Planches
-- Planche 1 — [Sujet](/assets/pdf/seconde/commun/chapitre02/planches/planche01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre02/planches/planche01-correction.pdf)
-- Planche 2 — [Sujet](/assets/pdf/seconde/commun/chapitre02/planches/planche02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre02/planches/planche02-correction.pdf)
-- Planche 3 — [Sujet](/assets/pdf/seconde/commun/chapitre02/planches/planche03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre02/planches/planche03-correction.pdf)
-- Planche 4 — [Sujet](/assets/pdf/seconde/commun/chapitre02/planches/planche04-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre02/planches/planche04-correction.pdf)
-- Planche 5 — [Sujet](/assets/pdf/seconde/commun/chapitre02/planches/planche05-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre02/planches/planche05-correction.pdf)
-- Planche 6 — [Sujet](/assets/pdf/seconde/commun/chapitre02/planches/planche06-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre02/planches/planche06-correction.pdf)
+- Planche 1 — [Sujet](/assets/pdf/seconde/commun/chapitre2/planches/planche01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre2/planches/planche01-correction.pdf)
+- Planche 2 — [Sujet](/assets/pdf/seconde/commun/chapitre2/planches/planche02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre2/planches/planche02-correction.pdf)
+- Planche 3 — [Sujet](/assets/pdf/seconde/commun/chapitre2/planches/planche03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre2/planches/planche03-correction.pdf)
+- Planche 4 — [Sujet](/assets/pdf/seconde/commun/chapitre2/planches/planche04-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre2/planches/planche04-correction.pdf)
+- Planche 5 — [Sujet](/assets/pdf/seconde/commun/chapitre2/planches/planche05-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre2/planches/planche05-correction.pdf)
+- Planche 6 — [Sujet](/assets/pdf/seconde/commun/chapitre2/planches/planche06-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre2/planches/planche06-correction.pdf)
 
 ---
 
 ## 🏠 Devoirs maison
-- DM1 — [Sujet](/assets/pdf/seconde/commun/chapitre02/dm/dm01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre02/dm/dm01-correction.pdf)
-- DM2 — [Sujet](/assets/pdf/seconde/commun/chapitre02/dm/dm02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre02/dm/dm02-correction.pdf)
-- DM3 — [Sujet](/assets/pdf/seconde/commun/chapitre02/dm/dm03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre02/dm/dm03-correction.pdf)
-- DM4 — [Sujet](/assets/pdf/seconde/commun/chapitre02/dm/dm04-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre02/dm/dm04-correction.pdf)
-- DM5 — [Sujet](/assets/pdf/seconde/commun/chapitre02/dm/dm05-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre02/dm/dm05-correction.pdf)
-- DM6 — [Sujet](/assets/pdf/seconde/commun/chapitre02/dm/dm06-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre02/dm/dm06-correction.pdf)
+- DM1 — [Sujet](/assets/pdf/seconde/commun/chapitre2/dm/dm01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre2/dm/dm01-correction.pdf)
+- DM2 — [Sujet](/assets/pdf/seconde/commun/chapitre2/dm/dm02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre2/dm/dm02-correction.pdf)
+- DM3 — [Sujet](/assets/pdf/seconde/commun/chapitre2/dm/dm03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre2/dm/dm03-correction.pdf)
+- DM4 — [Sujet](/assets/pdf/seconde/commun/chapitre2/dm/dm04-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre2/dm/dm04-correction.pdf)
+- DM5 — [Sujet](/assets/pdf/seconde/commun/chapitre2/dm/dm05-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre2/dm/dm05-correction.pdf)
+- DM6 — [Sujet](/assets/pdf/seconde/commun/chapitre2/dm/dm06-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre2/dm/dm06-correction.pdf)
 
 ---
 
 ## ✍️ Devoirs blancs
-- DS Blanc 1 — [Sujet](/assets/pdf/seconde/commun/chapitre02/dsblanc/ds01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre02/dsblanc/ds01-correction.pdf)
-- DS Blanc 2 — [Sujet](/assets/pdf/seconde/commun/chapitre02/dsblanc/ds02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre02/dsblanc/ds02-correction.pdf)
-- DS Blanc 3 — [Sujet](/assets/pdf/seconde/commun/chapitre02/dsblanc/ds03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre02/dsblanc/ds03-correction.pdf)
+- DS Blanc 1 — [Sujet](/assets/pdf/seconde/commun/chapitre2/dsblanc/ds01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre2/dsblanc/ds01-correction.pdf)
+- DS Blanc 2 — [Sujet](/assets/pdf/seconde/commun/chapitre2/dsblanc/ds02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre2/dsblanc/ds02-correction.pdf)
+- DS Blanc 3 — [Sujet](/assets/pdf/seconde/commun/chapitre2/dsblanc/ds03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre2/dsblanc/ds03-correction.pdf)
 
 ---
 
 ## 🧪 Devoirs surveillés
-- DS 1 — [Sujet](/assets/pdf/seconde219/chapitre02/ds/ds01-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre02/ds/ds01-correction.pdf)
-- DS 2 — [Sujet](/assets/pdf/seconde219/chapitre02/ds/ds02-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre02/ds/ds02-correction.pdf)
-- DS 3 — [Sujet](/assets/pdf/seconde219/chapitre02/ds/ds03-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre02/ds/ds03-correction.pdf)
+- DS 1 — [Sujet](/assets/pdf/seconde219/chapitre2/ds/ds01-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre2/ds/ds01-correction.pdf)
+- DS 2 — [Sujet](/assets/pdf/seconde219/chapitre2/ds/ds02-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre2/ds/ds02-correction.pdf)
+- DS 3 — [Sujet](/assets/pdf/seconde219/chapitre2/ds/ds03-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre2/ds/ds03-correction.pdf)
 
 ---
 
 ## 📁 Divers
-- 📄 Fiche méthode — [PDF](/assets/pdf/seconde/commun/chapitre02/fiche-methode/fiche-methode.pdf)
+- 📄 Fiche méthode — [PDF](/assets/pdf/seconde/commun/chapitre2/fiche-methode/fiche-methode.pdf)
 
 ---
 
