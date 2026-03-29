@@ -1,25 +1,59 @@
 ---
+title: Accueil
 layout: default
-title: "Première — Spécialité maths"
-permalink: /classes/premiere-spe-maths/
-hero_title: "Première"
-hero_subtitle: "Spécialité maths"
+hero_title: "Sigma"
+hero_subtitle: "Cours • Exercices • Devoirs • Ressources"
 ---
 
-## 📚 Chapitres
+## Mathématicien de la semaine
 
-- [Chapitre 1](chapitre1/)
-- [Chapitre 2](chapitre2/)
-- [Chapitre 3](chapitre3/)
-- [Chapitre 4](chapitre4/)
-- [Chapitre 5](chapitre5/)
-- [Chapitre 6](chapitre6/)
-- [Chapitre 7](chapitre7/)
-- [Chapitre 8](chapitre8/)
-- [Chapitre 9](chapitre9/)
-- [Chapitre 10](chapitre10/)
-- [Chapitre 11](chapitre11/)
-- [Chapitre 12](chapitre12/)
-- [Chapitre 13](chapitre13/)
-- [Chapitre 14](chapitre14/)
-- [Chapitre 15](chapitre15/)
+<div class="math-spotlight" id="math-spotlight">
+
+  <div class="math-spotlight-card">
+
+    <img id="math-image" class="math-image" src="" alt="">
+
+    <h3 id="math-name"></h3>
+
+    <p id="math-dates" class="math-dates"></p>
+
+    <p id="math-resume"></p>
+
+    <div class="math-box">
+      <strong>Apport essentiel</strong>
+      <p id="math-apport"></p>
+    </div>
+
+    <p id="math-citation" class="math-citation"></p>
+
+    <div class="math-controls">
+      <button type="button" id="math-prev">◀ Précédent</button>
+      <button type="button" id="math-next">Suivant ▶</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+window.mathData = [
+
+{% for m in site.data.mathematiciens %}
+
+{
+nom: {{ m.nom | jsonify }},
+dates: {{ m.dates | jsonify }},
+image: {{ m.image | jsonify }},
+resume: {{ m.resume | jsonify }},
+apport: {{ m.apport | jsonify }},
+citation: {{ m.citation | jsonify }}
+}
+
+{% unless forloop.last %},{% endunless %}
+
+{% endfor %}
+
+];
+
+</script>
