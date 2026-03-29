@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 7 - Statistiques à deux variables"
-permalink: /classes/tale-techno-commun/chapitre7/
+permalink: /classes/terminale-techno-commun/chapitre7/
 hero_title: "Chapitre 7"
 hero_subtitle: "Statistiques à deux variables"
 ---
