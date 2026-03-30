@@ -12,5 +12,5 @@ hero_subtitle: "Chapitres"
 - [Chapitre 2 — Fonctions d’une variable réelle](chapitre2/)
 - [Chapitre 3 — Calcul intégral](chapitre3/)
 - [Chapitre 4 — Équations différentielles](chapitre4/)
-- [Chapitre 5 — Statistique descriptive](chapitre5/)
+- [Chapitre 5 — Statistiques à une variable](chapitre5/)
 - [Chapitre 6 — Probabilités – Variables aléatoires discrètes](chapitre6/)
