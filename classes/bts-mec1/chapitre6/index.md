@@ -1,13 +1,14 @@
 ---
-title: "Chapitre 6 - Probabilités : Variables aléatoires discrètes"
+title: "Chapitre 6 - Probabilités & Variables aléatoires discrètes"
 permalink: /classes/bts-mec1/chapitre6/
 hero_title: "Chapitre 6"
-hero_subtitle: "Probabilités : Variables aléatoires discrètes"
+hero_subtitle: "Probabilités & Variables aléatoires discrètes"
 ---
 
 ## 📘 Cours
 
-- [Cours complet — PDF](/assets/pdf/statistiques_variables_discretes.pdf)
+- [Cours 1 — PDF](/assets/pdf/statistiques_variables_discretes.pdf)
+- [Cours 2 — PDF](/assets/pdf/var_alea_discret.pdf)
 
 ---
 
