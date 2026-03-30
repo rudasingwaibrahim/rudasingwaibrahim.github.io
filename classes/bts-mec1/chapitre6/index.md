@@ -53,14 +53,18 @@ hero_subtitle: "Probabilités & Variables aléatoires discrètes"
 
 ## 📁 Divers
 
-- 📄 **Fiche méthode — Probabilités**  
+- 📄 **Fiche méthode — Variables aléatoires discrètes**  
   [PDF](/assets/pdf/bts-mec1-ch06-fiche-methode.pdf)
 
 - ⚠️ **Erreurs fréquentes**
   - Confondre variable aléatoire et événement
-  - Mauvais calcul d’espérance
-  - Mauvaise utilisation des lois de probabilité
-  - Somme des probabilités différente de 1
+  - Oublier que la somme des probabilités vaut 1
+  - Mauvais calcul d’espérance (oubli des coefficients)
+  - Confusion entre variance et écart-type
+  - Mauvaise utilisation des lois (Bernoulli, binomiale, Poisson)
+  - Confondre indépendance et incompatibilité
+  - Mauvaise interprétation d’une loi de probabilité
 
 - 🔗 **Liens utiles**
   - 🌐 <a href="https://www.maths-et-tiques.fr/" target="_blank">Probabilités — exercices</a>
+  - 🌐 <a href="https://fr.khanacademy.org/math/statistics-probability" target="_blank">Variables aléatoires — cours</a>
