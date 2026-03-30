@@ -7,7 +7,7 @@ hero_subtitle: "Probabilités : Variables aléatoires discrètes"
 
 ## 📘 Cours
 
-- [Cours complet — PDF](/assets/pdf/bts-mec1-ch06-cours.pdf)
+- [Cours complet — PDF](/assets/pdf/statistiques_variables_discretes.pdf)
 
 ---
 
