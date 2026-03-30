@@ -1,5 +1,5 @@
 ---
-title: "Chapitre 2 - Fonctions"
+title: "Chapitre 2 - Rappels sur les fonctions"
 permalink: /classes/bts-mec1/chapitre2/
 hero_title: "Chapitre 2"
 hero_subtitle: "Fonctions"
