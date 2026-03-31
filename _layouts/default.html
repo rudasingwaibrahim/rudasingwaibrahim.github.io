@@ -348,8 +348,8 @@
   const canvas = document.getElementById("julia-canvas");
   if (!canvas) return;
 
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (prefersReducedMotion) return;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduced) return;
 
   const ctx = canvas.getContext("2d", { alpha: true });
   if (!ctx) return;
@@ -360,9 +360,8 @@
   let renderHeight = 0;
   let imageData = null;
   let animationId = null;
-
-  const maxIterDesktop = 90;
-  const maxIterMobile = 55;
+  let offscreen = null;
+  let offctx = null;
 
   function isMobile() {
     return window.innerWidth <= 768;
@@ -372,65 +371,94 @@
     width = canvas.clientWidth;
     height = canvas.clientHeight;
 
-    const scale = isMobile() ? 0.28 : 0.38;
-    renderWidth = Math.max(220, Math.floor(width * scale));
-    renderHeight = Math.max(140, Math.floor(height * scale));
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(width * ratio);
+    canvas.height = Math.floor(height * ratio);
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-    canvas.width = width;
-    canvas.height = height;
+    const scale = isMobile() ? 0.34 : 0.46;
+    renderWidth = Math.max(260, Math.floor(width * scale));
+    renderHeight = Math.max(160, Math.floor(height * scale));
 
-    imageData = ctx.createImageData(renderWidth, renderHeight);
+    offscreen = document.createElement("canvas");
+    offscreen.width = renderWidth;
+    offscreen.height = renderHeight;
+    offctx = offscreen.getContext("2d", { alpha: true });
+    imageData = offctx.createImageData(renderWidth, renderHeight);
   }
 
   function lerp(a, b, t) {
     return a + (b - a) * t;
   }
 
-  function palette(t) {
-    const stops = [
-      [8, 12, 20],
-      [28, 58, 110],
-      [90, 140, 220],
-      [180, 210, 255],
-      [255, 220, 140],
-      [255, 120, 80]
-    ];
+  function palette(t, phase) {
+    const a = [12, 18, 34];
+    const b = [70, 110, 210];
+    const c = [120, 210, 255];
+    const d = [255, 205, 120];
+    const e = [255, 120, 90];
 
-    const n = stops.length - 1;
-    const x = Math.max(0, Math.min(0.9999, t)) * n;
-    const i = Math.floor(x);
-    const f = x - i;
+    let col;
+    if (t < 0.25) {
+      const u = t / 0.25;
+      col = [
+        lerp(a[0], b[0], u),
+        lerp(a[1], b[1], u),
+        lerp(a[2], b[2], u)
+      ];
+    } else if (t < 0.5) {
+      const u = (t - 0.25) / 0.25;
+      col = [
+        lerp(b[0], c[0], u),
+        lerp(b[1], c[1], u),
+        lerp(b[2], c[2], u)
+      ];
+    } else if (t < 0.75) {
+      const u = (t - 0.5) / 0.25;
+      col = [
+        lerp(c[0], d[0], u),
+        lerp(c[1], d[1], u),
+        lerp(c[2], d[2], u)
+      ];
+    } else {
+      const u = (t - 0.75) / 0.25;
+      col = [
+        lerp(d[0], e[0], u),
+        lerp(d[1], e[1], u),
+        lerp(d[2], e[2], u)
+      ];
+    }
 
-    const c0 = stops[i];
-    const c1 = stops[i + 1];
-
+    const boost = 1.0 + 0.12 * Math.sin(phase);
     return [
-      Math.round(lerp(c0[0], c1[0], f)),
-      Math.round(lerp(c0[1], c1[1], f)),
-      Math.round(lerp(c0[2], c1[2], f))
+      Math.min(255, Math.round(col[0] * boost)),
+      Math.min(255, Math.round(col[1] * boost)),
+      Math.min(255, Math.round(col[2] * boost))
     ];
   }
 
-  function renderFrame(time) {
-    const t = time * 0.00018;
+  function renderFrame(ms) {
+    const time = ms * 0.00022;
 
-    const cRe = -0.78 + 0.22 * Math.cos(t * 1.7);
-    const cIm =  0.16 + 0.22 * Math.sin(t * 1.13);
+    const cRe = -0.79 + 0.18 * Math.cos(time * 1.1) + 0.05 * Math.sin(time * 2.7);
+    const cIm =  0.17 + 0.18 * Math.sin(time * 0.9) + 0.03 * Math.cos(time * 1.9);
 
-    const zoom = 1.0 + 0.18 * Math.sin(t * 0.7);
-    const moveX = 0.18 * Math.cos(t * 0.31);
-    const moveY = 0.12 * Math.sin(t * 0.27);
+    const zoom = 1.18 + 0.16 * Math.sin(time * 0.55);
+    const moveX = 0.12 * Math.cos(time * 0.27);
+    const moveY = 0.08 * Math.sin(time * 0.23);
 
-    const maxIter = isMobile() ? maxIterMobile : maxIterDesktop;
+    const maxIter = isMobile() ? 70 : 105;
 
-    const xmin = -1.9 / zoom + moveX;
-    const xmax =  1.9 / zoom + moveX;
-    const ymin = -1.2 / zoom + moveY;
-    const ymax =  1.2 / zoom + moveY;
+    const xmin = -1.8 / zoom + moveX;
+    const xmax =  1.8 / zoom + moveX;
+    const ymin = -1.15 / zoom + moveY;
+    const ymax =  1.15 / zoom + moveY;
 
     const data = imageData.data;
-
     let ptr = 0;
+
     for (let y = 0; y < renderHeight; y++) {
       const zy0 = ymin + (y / (renderHeight - 1)) * (ymax - ymin);
 
@@ -440,22 +468,25 @@
 
         let iter = 0;
         while (zx * zx + zy * zy < 4 && iter < maxIter) {
-          const xtemp = zx * zx - zy * zy + cRe;
+          const xt = zx * zx - zy * zy + cRe;
           zy = 2 * zx * zy + cIm;
-          zx = xtemp;
+          zx = xt;
           iter++;
         }
 
-        let r, g, b;
+        let r = 0, g = 0, b = 0;
+
         if (iter === maxIter) {
-          r = 5; g = 8; b = 16;
+          r = 7; g = 10; b = 18;
         } else {
           const mag = Math.sqrt(zx * zx + zy * zy);
           const mu = iter + 1 - Math.log(Math.log(mag)) / Math.log(2);
-          const tt = mu / maxIter;
-          [r, g, b] = palette(tt);
+          const t = Math.max(0, Math.min(1, mu / maxIter));
 
-          const glow = 0.18 + 0.82 * Math.pow(tt, 0.65);
+          const phase = time * 2.0 + x * 0.01 + y * 0.01;
+          [r, g, b] = palette(Math.pow(t, 0.84), phase);
+
+          const glow = 0.88 + 0.55 * Math.pow(t, 0.70);
           r = Math.min(255, Math.round(r * glow));
           g = Math.min(255, Math.round(g * glow));
           b = Math.min(255, Math.round(b * glow));
@@ -468,14 +499,11 @@
       }
     }
 
-    const offscreen = document.createElement("canvas");
-    offscreen.width = renderWidth;
-    offscreen.height = renderHeight;
-    const offctx = offscreen.getContext("2d");
     offctx.putImageData(imageData, 0, 0);
 
     ctx.clearRect(0, 0, width, height);
     ctx.imageSmoothingEnabled = true;
+    ctx.filter = "blur(0px)";
     ctx.drawImage(offscreen, 0, 0, width, height);
 
     animationId = requestAnimationFrame(renderFrame);
@@ -484,18 +512,13 @@
   let resizeTimer = null;
   function onResize() {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      resizeCanvas();
-    }, 120);
+    resizeTimer = setTimeout(resizeCanvas, 120);
   }
 
   resizeCanvas();
   animationId = requestAnimationFrame(renderFrame);
-
   window.addEventListener("resize", onResize);
 })();
 </script>
-
-  
 </body>
 </html>
