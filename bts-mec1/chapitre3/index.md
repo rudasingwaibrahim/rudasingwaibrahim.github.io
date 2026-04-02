@@ -45,8 +45,11 @@ hero_subtitle: "Calcul intégral"
 
 ## 🧪 Devoirs surveillés (confidentiel avant l’évaluation)
 
-- DS 1 — [Sujet](/assets/pdf/bts-mec1-ch03-ds-01-sujet.pdf)
-- DS 1 — [Correction](/assets/pdf/bts-mec1-ch03-ds-01-correction.pdf)
+## 🧪 3 Devoirs surveillés (confidentiel avant l’évaluation)
+
+- [DS1 — Sujet](/assets/pdf/bts-mec1-ch03-ds-01-sujet.pdf) • [Correction](/assets/pdf/bts-mec1-ch03-ds-01-correction.pdf)
+- [DS2 — Sujet](/assets/pdf/bts-mec1-ch03-ds-02-sujet.pdf) • [Correction](/assets/pdf/bts-mec1-ch03-ds-02-correction.pdf)
+- [DS3 — Sujet](/assets/pdf/bts-mec1-ch03-ds-03-sujet.pdf) • [Correction](/assets/pdf/bts-mec1-ch03-ds-03-correction.pdf)
 
 ---
 
