@@ -7,7 +7,7 @@ hero_subtitle: "Calcul intégral"
 
 ## 📘 Cours
 
-- [Cours complet — PDF](/assets/pdf/bts-mec1-ch03-cours.pdf)
+- [Cours complet — PDF](/assets/pdf/calcul_integral.pdf)
 
 ---
 
