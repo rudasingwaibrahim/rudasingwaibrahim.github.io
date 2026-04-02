@@ -34,8 +34,6 @@ hero_subtitle: "Équations différentielles"
 
 > Les sujets sont confidentiels avant l’évaluation.
 
-- **DS 1** — [Sujet](/assets/pdf/bts-mec1-ch04-ds-01.pdf) • [Correction](/assets/pdf/bts-mec1-ch04-ds-01-correction.pdf)
-- **DS 2** — [Sujet](/assets/pdf/bts-mec1-ch04-ds-02.pdf) • [Correction](/assets/pdf/bts-mec1-ch04-ds-02-correction.pdf)
 
 ---
 
