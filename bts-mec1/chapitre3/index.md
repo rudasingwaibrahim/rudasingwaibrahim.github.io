@@ -22,9 +22,44 @@ hero_subtitle: "Calcul intégral"
 
 ---
 
-## 🏠 6 Devoirs maison
+## 🏠 6 Devoirs maison (sujets visibles)
 
-- DM1 — [Sujet](/assets/pdf/bts-mec1-ch03-dm-01-sujet.pdf) • [Correction](/assets/pdf/bts-mec1-ch03-dm-01-correction.pdf)
-- DM2 — [Sujet](/assets/pdf/bts-mec1-ch03-dm-02-sujet.pdf) • [Correction](/assets/pdf/bts-mec1-ch03-dm-02-correction.pdf)
-- DM3 — [Sujet](/assets/pdf/bts-mec1-ch03-dm-03-sujet.pdf) • [Correction](/assets/pdf/bts-mec1-ch03-dm-03-correction.pdf)
-- DM4 — [Sujet](/assets/pdf/bts-mec1-ch03-dm-04-sujet.pdf) • [Correction](/assets/pdf/bts-mec1-ch03-dm-04-correc)
+- [DM1 — Sujet](/assets/pdf/bts-mec1-ch03-dm-01-sujet.pdf) • [Correction](/assets/pdf/bts-mec1-ch03-dm-01-correction.pdf)
+- [DM2 — Sujet](/assets/pdf/bts-mec1-ch03-dm-02-sujet.pdf) • [Correction](/assets/pdf/bts-mec1-ch03-dm-02-correction.pdf)
+- [DM3 — Sujet](/assets/pdf/bts-mec1-ch03-dm-03-sujet.pdf) • [Correction](/assets/pdf/bts-mec1-ch03-dm-03-correction.pdf)
+- [DM4 — Sujet](/assets/pdf/bts-mec1-ch03-dm-04-sujet.pdf) • [Correction](/assets/pdf/bts-mec1-ch03-dm-04-correction.pdf)
+- [DM5 — Sujet](/assets/pdf/bts-mec1-ch03-dm-05-sujet.pdf) • [Correction](/assets/pdf/bts-mec1-ch03-dm-05-correction.pdf)
+- [DM6 — Sujet](/assets/pdf/bts-mec1-ch03-dm-06-sujet.pdf) • [Correction](/assets/pdf/bts-mec1-ch03-dm-06-correction.pdf)
+
+> Les corrections des DM peuvent être publiées après le rendu.
+
+---
+
+## ✍️ 3 Devoirs blancs (sujets + corrigés visibles)
+
+- DS Blanc 1 — [Sujet](/assets/pdf/bts-mec1-ch03-dsblanc-01-sujet.pdf) • [Correction](/assets/pdf/bts-mec1-ch03-dsblanc-01-correction.pdf)
+- DS Blanc 2 — [Sujet](/assets/pdf/bts-mec1-ch03-dsblanc-02-sujet.pdf) • [Correction](/assets/pdf/bts-mec1-ch03-dsblanc-02-correction.pdf)
+- DS Blanc 3 — [Sujet](/assets/pdf/bts-mec1-ch03-dsblanc-03-sujet.pdf) • [Correction](/assets/pdf/bts-mec1-ch03-dsblanc-03-correction.pdf)
+
+---
+
+## 🧪 Devoirs surveillés (confidentiel avant l’évaluation)
+
+- DS 1 — [Sujet](/assets/pdf/bts-mec1-ch03-ds-01-sujet.pdf)
+- DS 1 — [Correction](/assets/pdf/bts-mec1-ch03-ds-01-correction.pdf)
+
+---
+
+## 📁 Divers
+
+- 📄 **Fiche méthode** — [PDF](/assets/pdf/bts-mec1-ch03-fiche-methode.pdf)
+
+- ⚠️ **Erreurs fréquentes**
+  - Oublier la constante dans une primitive
+  - Mauvaise utilisation du changement de variable
+  - Confusion entre aire et intégrale (fonction négative)
+  - Mauvais encadrement des intégrales
+  - Erreurs dans les bornes après changement de variable
+
+- 🔗 **Liens utiles**
+  - 🌐 <a href="https://www.jeuxmaths.fr/exercices-de-maths-integrales.html" target="_blank">JeuxMaths</a>
