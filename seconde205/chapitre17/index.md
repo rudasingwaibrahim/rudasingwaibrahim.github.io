@@ -7,7 +7,7 @@ hero_subtitle: "Systèmes d’équations et droites"
 ---
 
 ## 📘 Cours
-- 📄 [Cours complet — PDF](/assets/pdf/seconde/seconde-ch17-cours.pdf)
+- 📄 [Cours complet — PDF](/assets/pdf/seconde-ch17-cours.pdf)
 
 ---
 
