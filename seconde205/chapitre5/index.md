@@ -7,7 +7,7 @@ hero_subtitle: "Les vecteurs (Partie 2)"
 ---
 
 ## 📘 Cours
-- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/chapitre5/cours/seconde-ch5-cours.pdf)
+- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/seconde-ch5-cours.pdf)
 
 ---
 
