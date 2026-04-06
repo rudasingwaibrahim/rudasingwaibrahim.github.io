@@ -7,7 +7,7 @@ hero_subtitle: "Échantillonnage"
 ---
 
 ## 📘 Cours
-- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/chapitre18/cours/seconde-ch18-cours.pdf)
+- 📄 [Cours complet — PDF](/assets/pdf/seconde-ch18-cours.pdf)
 
 ---
 
