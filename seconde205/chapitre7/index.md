@@ -7,7 +7,7 @@ hero_subtitle: "Notion de fonction"
 ---
 
 ## 📘 Cours
-- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/chapitre7/cours/seconde-ch7-cours.pdf)
+- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/seconde-ch7-cours.pdf)
 
 ---
 
