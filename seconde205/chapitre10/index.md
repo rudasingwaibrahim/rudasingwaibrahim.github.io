@@ -7,7 +7,7 @@ hero_subtitle: "Équations et inéquations"
 ---
 
 ## 📘 Cours
-- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/chapitre10/cours/seconde-ch10-cours.pdf)
+- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/seconde-ch10-cours.pdf)
 
 ---
 
