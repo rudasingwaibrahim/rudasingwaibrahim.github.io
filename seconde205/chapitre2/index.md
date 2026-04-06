@@ -7,7 +7,7 @@ hero_subtitle: "Puissances et racines carrées"
 ---
 
 ## 📘 Cours
-- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/chapitre2/cours/seconde-ch2-cours.pdf)
+- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/seconde-ch2-cours.pdf)
 
 ---
 
