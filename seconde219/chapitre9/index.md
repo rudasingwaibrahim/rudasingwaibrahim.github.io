@@ -7,7 +7,7 @@ hero_subtitle: "Vecteurs et repérage"
 ---
 
 ## 📘 Cours
-- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/chapitre9/cours/seconde-ch09-cours.pdf)
+- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/seconde-ch09-cours.pdf)
 
 ---
 
