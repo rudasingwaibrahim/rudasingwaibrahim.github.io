@@ -1,80 +1,68 @@
 ---
-title: "Suites — Limites et récurrence"
-permalink: /classes/bts-mec1/suites-limites-recurrence/
+title: "Suites numériques"
+permalink: /classes/terminale/suites/
 hero_title: "Suites"
-hero_subtitle: "Limites et récurrence"
+hero_subtitle: "Suites arithmétiques et géométriques"
 ---
 
 ## 📘 Cours
 
-- [Cours complet — PDF](/assets/pdf/suites_limites.pdf)
+- [Cours complet — PDF](/assets/pdf/suites.pdf)
 
 ---
 
 ## 📝 Planches d'exercices
 
-- **Planche 1** — [Sujet](/assets/pdf/terminale-suites-planche-01.pdf) • [Correction](/assets/pdf/terminale-suites-planche-01-correction.pdf)
+- **Planche 1** — [Sujet](/assets/pdf/terminale-suites-arith-planche-01.pdf) • [Correction](/assets/pdf/terminale-suites-arith-planche-01-correction.pdf)
 
 ---
 
 ## 🏠 Devoir maison
 
-- **DM 1** — [Sujet](/assets/pdf/terminale-suites-dm-01.pdf) • [Correction](/assets/pdf/terminale-suites-dm-01-correction.pdf)
+- **DM 1** — [Sujet](/assets/pdf/terminale-suites-arith-dm-01.pdf) • [Correction](/assets/pdf/terminale-suites-arith-dm-01-correction.pdf)
 
 ---
 
 ## ✍️ Devoirs blancs
 
-- **DS blanc 1** — [Sujet](/assets/pdf/terminale-suites-dsblanc-01.pdf) • [Correction](/assets/pdf/terminale-suites-dsblanc-01-correction.pdf)
-- **DS blanc 2** — [Sujet](/assets/pdf/terminale-suites-dsblanc-02.pdf) • [Correction](/assets/pdf/terminale-suites-dsblanc-02-correction.pdf)
+- **DS blanc 1** — [Sujet](/assets/pdf/terminale-suites-arith-dsblanc-01.pdf) • [Correction](/assets/pdf/terminale-suites-arith-dsblanc-01-correction.pdf)
+- **DS blanc 2** — [Sujet](/assets/pdf/terminale-suites-arith-dsblanc-02.pdf) • [Correction](/assets/pdf/terminale-suites-arith-dsblanc-02-correction.pdf)
 
 ---
 
 ## 🧪 Devoirs surveillés
 
-> Les sujets sont confidentiels avant l'évaluation.
+- **DS 1** — [Sujet](/assets/pdf/terminale-suites-arith-ds-01.pdf) • [Correction](/assets/pdf/terminale-suites-arith-ds-01-correction.pdf)
+- **DS 2** — [Sujet](/assets/pdf/terminale-suites-arith-ds-02.pdf) • [Correction](/assets/pdf/terminale-suites-arith-ds-02-correction.pdf)
 
 ---
 
 ## 📁 Ressources complémentaires
 
-### 📄 Fiches méthode
-
-- **Raisonnement par récurrence**  
-  👉 [https://www.bibmath.net/ressources/index.php?action=affiche&quoi=lycee/recurrence.html](https://www.bibmath.net/ressources/index.php?action=affiche&quoi=lycee/recurrence.html)
-
-- **Limites de suites**  
-  👉 [https://www.bibmath.net/ressources/index.php?action=affiche&quoi=lycee/suites.html](https://www.bibmath.net/ressources/index.php?action=affiche&quoi=lycee/suites.html)
-
----
-
 ### ⚠️ Erreurs fréquentes
 
-- Oublier l'**initialisation** dans une démonstration par récurrence  
-- Confondre **suite convergente** et suite bornée (bornée ≠ convergente sans monotonie)  
-- Mal appliquer le **théorème des gendarmes** (oublier de vérifier les deux minorants/majorants)  
-- Conclure sur une **forme indéterminée** sans lever l'indétermination  
-- Oublier de vérifier la **borne** pour appliquer le théorème de convergence monotone  
-- Confondre **limite** d'une suite géométrique selon le signe de \( q \)
+- Confondre **raison arithmétique** \( r \) et **raison géométrique** \( q \)
+- Oublier de distinguer \( u_0 \) et \( u_1 \) dans la formule du terme général
+- Appliquer la formule de somme géométrique avec \( q = 1 \) (cas à traiter séparément)
+- Confondre le **nombre de termes** et le dernier indice dans \( \sum_{k=p}^{n} \)
+- Oublier de vérifier la nature d'une suite avant d'appliquer une formule
 
 ---
 
 ### 🎯 À maîtriser
 
-- Raisonnement par récurrence :
-  - Structure **Initialisation / Hérédité / Conclusion**
-  - Inégalité de Bernoulli : \( (1+a)^n \geq 1 + na \)
-- Limites usuelles : \( \dfrac{1}{n} \to 0 \), \( n^k \to +\infty \), \( q^n \to 0 \) si \( |q| < 1 \)
-- Lever les formes indéterminées \( \infty - \infty \), \( \dfrac{\infty}{\infty} \), \( 0 \times \infty \)
-- Théorèmes de **comparaison** et des **gendarmes**
-- **Théorème de convergence monotone** (TCM) et recherche de la limite via \( L = f(L) \)
-- Comportement de \( q^n \) selon les valeurs de \( q \)
-
----
+- Terme général :
+  - Suite arithmétique : \( u_n = u_0 + nr \)
+  - Suite géométrique : \( u_n = u_0 \times q^n \)
+- Somme de termes consécutifs :
+  - Arithmétique : \( \sum_{k=p}^{n} u_k = (n-p+1) \times \dfrac{u_p + u_n}{2} \)
+  - Géométrique : \( \sum_{k=p}^{n} u_k = u_p \times \dfrac{1 - q^{n-p+1}}{1-q} \)
+- Moyennes arithmétique et géométrique
+- Lien avec croissance linéaire / exponentielle
+- Algorithmes Python : somme des carrés, cubes, inverses
 
 ---
 
 ### 🔗 Liens utiles
 
 - [Bibmath – Suites numériques](https://www.bibmath.net/ressources/index.php?action=affiche&quoi=lycee/suites.html){:target="_blank"}
-- [Bibmath – Raisonnement par récurrence](https://www.bibmath.net/ressources/index.php?action=affiche&quoi=lycee/recurrence.html){:target="_blank"}
