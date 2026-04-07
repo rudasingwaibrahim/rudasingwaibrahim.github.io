@@ -7,7 +7,7 @@ hero_subtitle: "Suites arithmétiques et géométriques"
 
 ## 📘 Cours
 
-- [Cours complet — PDF](/assets/pdf/suites.pdf)
+- [Cours complet — PDF](/assets/pdf/tale-suites.pdf)
 
 ---
 
