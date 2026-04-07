@@ -6,7 +6,7 @@ hero_subtitle: "Suites numériques"
 ---
 
 ## 📘 Cours
-- [Cours — PDF](/assets/pdf/tale-techno/suites-cours.pdf)
+- [Cours — PDF](/assets/pdf/tale-techno/tale-techno-commun-ch1-cours.pdf)
 
 ---
 
