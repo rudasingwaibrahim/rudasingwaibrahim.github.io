@@ -7,7 +7,7 @@ hero_subtitle: "Calcul algébrique"
 ---
 
 ## 📘 Cours
-- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/chapitre1/cours/seconde-ch01-cours.pdf)
+- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/seconde-ch01-cours.pdf)
 
 ---
 
