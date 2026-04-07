@@ -7,7 +7,7 @@ hero_subtitle: "Nombres réels (Partie 1)"
 ---
 
 ## 📘 Cours
-- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/seconde-ch06-cours.pdf)
+- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/seconde-ch6-cours.pdf)
 
 ---
 
