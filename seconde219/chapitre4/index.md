@@ -7,7 +7,7 @@ hero_subtitle: "Notion de multiple, diviseur et nombre premier"
 ---
 
 ## 📘 Cours
-- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/seconde-ch04-cours.pdf)
+- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/seconde-ch4-cours.pdf)
 
 ---
 
