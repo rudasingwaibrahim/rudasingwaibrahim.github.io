@@ -38,6 +38,8 @@ hero_subtitle: "Variations d’une fonction"
 
 - DS 1 — [Sujet](/assets/pdf/seconde-ch14-ds-01-sujet.pdf)
 - DS 2 — [Sujet](/assets/pdf/seconde-ch14-ds-02-sujet.pdf)
+
+  
 ---
 
 ## 📁 Divers
