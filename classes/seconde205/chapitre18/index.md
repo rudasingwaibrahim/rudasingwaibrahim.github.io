@@ -10,6 +10,7 @@ hero_subtitle: "Échantillonnage"
 
 - [Cours complet — PDF](/assets/pdf/seconde-ch18-cours-eleve.pdf)
 - [Cours complet — PDF](/assets/pdf/seconde-ch18-cours-prof.pdf)
+
 ---
 
 ## 📝  2 Planches d’exercices
