@@ -1,55 +1,60 @@
 ---
-layout: default
-title: "Chapitre 17 - Systèmes d’équations et droites"
-permalink: /classes/seconde219/chapitre17/
+title: "Chapitre 17 - Systèmes d'équations et droites"
+permalink: /classes/seconde205/chapitre17/
 hero_title: "Chapitre 17"
-hero_subtitle: "Systèmes d’équations et droites"
+hero_subtitle: "Systèmes d'équations et droites"
 ---
 
-## 📘 Cours
-- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/chapitre17/cours/seconde-ch17-cours.pdf)
 
+## 📘  Cours
+
+- [Cours complet — PDF](/assets/pdf/seconde-ch17-cours-eleve.pdf)
+- [Cours complet — PDF](/assets/pdf/seconde-ch17-cours-prof.pdf)
 ---
 
-## 📝 Planches
-- Planche 1 — [Sujet](/assets/pdf/seconde/commun/chapitre17/planches/planche01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre17/planches/planche01-correction.pdf)
-- Planche 2 — [Sujet](/assets/pdf/seconde/commun/chapitre17/planches/planche02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre17/planches/planche02-correction.pdf)
-- Planche 3 — [Sujet](/assets/pdf/seconde/commun/chapitre17/planches/planche03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre17/planches/planche03-correction.pdf)
-- Planche 4 — [Sujet](/assets/pdf/seconde/commun/chapitre17/planches/planche04-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre17/planches/planche04-correction.pdf)
-- Planche 5 — [Sujet](/assets/pdf/seconde/commun/chapitre17/planches/planche05-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre17/planches/planche05-correction.pdf)
-- Planche 6 — [Sujet](/assets/pdf/seconde/commun/chapitre17/planches/planche06-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre17/planches/planche06-correction.pdf)
+## 📝  2 Planches d’exercices
 
----
+- Planche 1 — [Sujet](/assets/pdf/seconde-ch17-planche-01.pdf) 
+- Planche 2 — [Sujet](/assets/pdf/seconde-ch17-planche-02.pdf) 
 
-## 🏠 Devoirs maison
-- DM1 — [Sujet](/assets/pdf/seconde/commun/chapitre17/dm/dm01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre17/dm/dm01-correction.pdf)
-- DM2 — [Sujet](/assets/pdf/seconde/commun/chapitre17/dm/dm02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre17/dm/dm02-correction.pdf)
-- DM3 — [Sujet](/assets/pdf/seconde/commun/chapitre17/dm/dm03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre17/dm/dm03-correction.pdf)
-- DM4 — [Sujet](/assets/pdf/seconde/commun/chapitre17/dm/dm04-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre17/dm/dm04-correction.pdf)
-- DM5 — [Sujet](/assets/pdf/seconde/commun/chapitre17/dm/dm05-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre17/dm/dm05-correction.pdf)
-- DM6 — [Sujet](/assets/pdf/seconde/commun/chapitre17/dm/dm06-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre17/dm/dm06-correction.pdf)
 
 ---
 
-## ✍️ Devoirs blancs
-- DS Blanc 1 — [Sujet](/assets/pdf/seconde/commun/chapitre17/dsblanc/ds01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre17/dsblanc/ds01-correction.pdf)
-- DS Blanc 2 — [Sujet](/assets/pdf/seconde/commun/chapitre17/dsblanc/ds02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre17/dsblanc/ds02-correction.pdf)
-- DS Blanc 3 — [Sujet](/assets/pdf/seconde/commun/chapitre17/dsblanc/ds03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre17/dsblanc/ds03-correction.pdf)
+## 🏠  2 Devoirs maison
+
+- [DM1 — Sujet](/assets/pdf/seconde-ch17-dm-01-sujet.pdf)
+- [DM2 — Sujet](/assets/pdf/seconde-ch17-dm-02-sujet.pdf) 
 
 ---
 
-## 🧪 Devoirs surveillés
-- DS 1 — [Sujet](/assets/pdf/seconde219/chapitre17/ds/ds01-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre17/ds/ds01-correction.pdf)
-- DS 2 — [Sujet](/assets/pdf/seconde219/chapitre17/ds/ds02-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre17/ds/ds02-correction.pdf)
-- DS 3 — [Sujet](/assets/pdf/seconde219/chapitre17/ds/ds03-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre17/ds/ds03-correction.pdf)
+## ✍️  2 Devoirs blancs
+
+- DS Blanc 1 — [Sujet](/assets/pdf/seconde-ch17-dsblanc-01-sujet.pdf) 
+- DS Blanc 2 — [Sujet](/assets/pdf/seconde-ch17-dsblanc-02-sujet.pdf) 
+
+
+---
+
+## 🧪  Devoirs surveillés
+
+- DS 1 — [Sujet](/assets/pdf/seconde-ch17-ds-01-sujet.pdf)
+- DS 2 — [Sujet](/assets/pdf/seconde-ch17-ds-02-sujet.pdf)
 
 ---
 
 ## 📁 Divers
-- 📄 Fiche méthode — [PDF](/assets/pdf/seconde/commun/chapitre17/fiche-methode/fiche-methode.pdf)
 
----
+- 📄 **Fiche méthode** — [PDF](/assets/pdf/seconde-ch17-fiche-methode.pdf)
 
-## 🔗 Liens utiles
-- https://www.jeuxmaths.fr/
-- https://www.geogebra.org/
+- ⚠️ **Erreurs fréquentes**
+  - Confondre **système d’équations** et **équation simple**
+  - Oublier de vérifier les solutions trouvées dans les deux équations
+  - Faire des erreurs de calcul dans la **méthode de substitution** ou d’**élimination**
+  - Confondre les rôles de \(x\) et \(y\)
+  - Mal interpréter graphiquement une solution de système
+  - Oublier qu’un système peut avoir **0, 1 ou une infinité de solutions**
+  - Confondre **coefficient directeur** et **ordonnée à l’origine**
+  - Mal tracer une droite à partir de son équation
+
+- 🔗 **Liens utiles**
+  - 🌐 Exercices interactifs – Systèmes et droites : [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-equations.html)
