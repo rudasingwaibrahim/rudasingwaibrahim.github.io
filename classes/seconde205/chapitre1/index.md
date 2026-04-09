@@ -5,13 +5,9 @@ hero_title: "Chapitre 1"
 hero_subtitle: "Calcul algébrique"
 ---
 
-
 ## 📘  Cours
-
-- [Cours complet — PDF](/assets/pdf/seconde-ch01-cours-eleve.pdf)
-- [Cours complet — PDF](/assets/pdf/seconde-ch01-cours-prof.pdf)
-
-
+- [Cours complet — PDF élève](/assets/pdf/seconde-ch17-cours-eleve.pdf)
+- [Cours complet — PDF prof](/assets/pdf/seconde-ch17-cours-prof.pdf)
 ---
 ## 📝  2 Planches d’exercices
 
