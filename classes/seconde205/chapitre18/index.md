@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 18 - Échantillonnage"
-permalink: /classes/seconde219/chapitre18/
+permalink: /classes/seconde205/chapitre18/
 hero_title: "Chapitre 18"
 hero_subtitle: "Échantillonnage"
 ---
