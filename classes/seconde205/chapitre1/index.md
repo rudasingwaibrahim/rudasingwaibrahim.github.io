@@ -10,8 +10,9 @@ hero_subtitle: "Calcul algébrique"
 
 - [Cours complet — PDF](/assets/pdf/seconde-ch01-cours-eleve.pdf)
 - [Cours complet — PDF](/assets/pdf/seconde-ch01-cours-prof.pdf)
----
 
+
+---
 ## 📝  2 Planches d’exercices
 
 - Planche 1 — [Sujet](/assets/pdf/seconde-ch01-planche-01.pdf) 
