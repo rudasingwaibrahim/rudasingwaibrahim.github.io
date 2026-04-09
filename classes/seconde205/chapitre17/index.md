@@ -59,4 +59,4 @@ hero_subtitle: "Systèmes d'équations et droites"
   - Mal tracer une droite à partir de son équation
 
 - 🔗 **Liens utiles**
-  - 🌐 Exercices interactifs – Systèmes et droites : [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-equations.html)
+- 🌐 Exercices interactifs – Systèmes et droites : [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-equations.html)
