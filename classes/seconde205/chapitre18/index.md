@@ -5,10 +5,10 @@ hero_title: "Chapitre 18"
 hero_subtitle: "Échantillonnage"
 ---
 
+
 ## 📘  Cours
 - [Cours complet — PDF élève](/assets/pdf/seconde-ch18-cours-eleve.pdf)
 - [Cours complet — PDF prof](/assets/pdf/seconde-ch18-cours-prof.pdf)
----
 
 ## 📝  2 Planches d’exercices
 
