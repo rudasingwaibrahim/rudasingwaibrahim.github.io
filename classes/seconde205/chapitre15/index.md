@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 15 - Droites du plan"
-permalink: /classes/seconde205/chapitre15/
+permalink: /classes/seconde219/chapitre15/
 hero_title: "Chapitre 15"
 hero_subtitle: "Droites du plan"
 ---
@@ -8,10 +8,8 @@ hero_subtitle: "Droites du plan"
 
 ## 📘  Cours
 
-- [Cours complet — PDF](/assets/pdf/seconde-ch15-cours-eleve.pdf)
-- [Cours complet — PDF](/assets/pdf/seconde-ch15-cours-prof.pdf)
-
-
+- [Cours complet — PDF élève](/assets/pdf/seconde-ch15-cours-eleve.pdf)
+- [Cours complet — PDF prof](/assets/pdf/seconde-ch15-cours-prof.pdf)
 ---
 
 ## 📝  2 Planches d’exercices
