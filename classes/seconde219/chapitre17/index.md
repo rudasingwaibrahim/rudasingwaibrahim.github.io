@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 17 - Systèmes d'équations et droites"
-permalink: /classes/seconde205/chapitre17/
+permalink: /classes/seconde219/chapitre17/
 hero_title: "Chapitre 17"
 hero_subtitle: "Systèmes d'équations et droites"
 ---
