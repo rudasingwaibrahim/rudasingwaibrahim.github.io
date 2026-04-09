@@ -1,74 +1,60 @@
 ---
-title: "Chapitre 16 — Probabilités"
+title: "Chapitre 16 - Probabilités"
 permalink: /classes/seconde219/chapitre16/
 hero_title: "Chapitre 16"
 hero_subtitle: "Probabilités"
 ---
 
-# Chapitre 16 — Probabilités
+
+## 📘  Cours
+
+- [Cours complet — PDF élève](/assets/pdf/seconde-ch16-cours-eleve.pdf)
+- [Cours complet — PDF prof](/assets/pdf/seconde-ch16-cours-prof.pdf)
+---
+
+## 📝  2 Planches d’exercices
+
+- Planche 1 — [Sujet](/assets/pdf/seconde-ch16-planche-01.pdf) 
+- Planche 2 — [Sujet](/assets/pdf/seconde-ch16-planche-02.pdf) 
+
 
 ---
 
-## 🔎 Activités
-- Activité 1
-- Activité 2
+## 🏠  2 Devoirs maison
+
+- [DM1 — Sujet](/assets/pdf/seconde-ch16-dm-01-sujet.pdf)
+- [DM2 — Sujet](/assets/pdf/seconde-ch16-dm-02-sujet.pdf) 
 
 ---
 
-## 📘 Cours
-- Cours complet — LaTeX
-- Cours complet — PDF
-- Trace écrite — PDF
+## ✍️  2 Devoirs blancs
+
+- DS Blanc 1 — [Sujet](/assets/pdf/seconde-ch16-dsblanc-01-sujet.pdf) 
+- DS Blanc 2 — [Sujet](/assets/pdf/seconde-ch16-dsblanc-02-sujet.pdf) 
+
 
 ---
 
-## 🧠 Carte mentale
-- Carte mentale du chapitre — PDF
+## 🧪  Devoirs surveillés
+
+- DS 1 — [Sujet](/assets/pdf/seconde-ch16-ds-01-sujet.pdf)
+- DS 2 — [Sujet](/assets/pdf/seconde-ch16-ds-02-sujet.pdf)
 
 ---
 
-## 🚀 Pour aller plus loin
-- Exercices d'approfondissement
-- Problèmes ouverts
+## 📁 Divers
 
----
+- 📄 **Fiche méthode** — [PDF](/assets/pdf/seconde-ch16-fiche-methode.pdf)
 
-## 📝 6 Planches d'exercices
-- Planche 1
-- Planche 2
-- Planche 3
-- Planche 4
-- Planche 5
-- Planche 6
+- ⚠️ **Erreurs fréquentes**
+  - Confondre **issue**, **événement** et **univers**
+  - Oublier qu’en **équiprobabilité**, toutes les issues ont la même chance de se produire
+  - Mal compter les **issues favorables** ou le **nombre total d’issues**
+  - Oublier d’utiliser l’**événement contraire** pour simplifier un calcul
+  - Confondre **intersection** \(A \cap B\) et **réunion** \(A \cup B\)
+  - Oublier de retirer l’**intersection** dans la formule de la réunion
+  - Ne pas vérifier que, dans une **loi de probabilité**, la somme vaut **1**
+  - Oublier une branche dans un **arbre des possibles**
 
----
-
-## 🏠 6 Devoirs maison
-- DM1 — Sujet • Correction
-- DM2 — Sujet • Correction
-- DM3 — Sujet • Correction
-- DM4 — Sujet • Correction
-- DM5 — Sujet • Correction
-- DM6 — Sujet • Correction
-
----
-
-## 🧪 3 Devoirs blancs
-- DS blanc 1 — Sujet • Correction
-- DS blanc 2 — Sujet • Correction
-- DS blanc 3 — Sujet • Correction
-
----
-
-## 📊 3 Devoirs sur table
-- DS 1 — Sujet • Correction
-- DS 2 — Sujet • Correction
-- DS 3 — Sujet • Correction
-
----
-
-## 📂 Divers
-- Fiche méthode
-- Formulaire
-- Erreurs fréquentes
-- Liens utiles
+- 🔗 **Liens utiles**
+  - 🌐 Exercices interactifs – Probabilités : [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-probabilites.html)
