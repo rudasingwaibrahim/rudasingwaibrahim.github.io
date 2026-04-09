@@ -1,55 +1,60 @@
 ---
-layout: default
 title: "Chapitre 1 - Calcul algébrique"
-permalink: /classes/seconde219/chapitre1/
+permalink: /classes/seconde205/chapitre1/
 hero_title: "Chapitre 1"
 hero_subtitle: "Calcul algébrique"
 ---
 
-## 📘 Cours
-- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/chapitre1/cours/seconde-ch01-cours.pdf)
+
+## 📘  Cours
+
+- [Cours complet — PDF](/assets/pdf/seconde-ch01-cours-eleve.pdf)
+- [Cours complet — PDF](/assets/pdf/seconde-ch01-cours-prof.pdf)
+---
+
+## 📝  2 Planches d’exercices
+
+- Planche 1 — [Sujet](/assets/pdf/seconde-ch01-planche-01.pdf) 
+- Planche 2 — [Sujet](/assets/pdf/seconde-ch01-planche-02.pdf) 
+
 
 ---
 
-## 📝 Planches
-- Planche 1 — [Sujet](/assets/pdf/seconde/commun/chapitre1/planches/planche01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre1/planches/planche01-correction.pdf)
-- Planche 2 — [Sujet](/assets/pdf/seconde/commun/chapitre1/planches/planche02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre1/planches/planche02-correction.pdf)
-- Planche 3 — [Sujet](/assets/pdf/seconde/commun/chapitre1/planches/planche03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre1/planches/planche03-correction.pdf)
-- Planche 4 — [Sujet](/assets/pdf/seconde/commun/chapitre1/planches/planche04-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre1/planches/planche04-correction.pdf)
-- Planche 5 — [Sujet](/assets/pdf/seconde/commun/chapitre1/planches/planche05-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre1/planches/planche05-correction.pdf)
-- Planche 6 — [Sujet](/assets/pdf/seconde/commun/chapitre1/planches/planche06-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre1/planches/planche06-correction.pdf)
+## 🏠  2 Devoirs maison
+
+- [DM1 — Sujet](/assets/pdf/seconde-ch01-dm-01-sujet.pdf)
+- [DM2 — Sujet](/assets/pdf/seconde-ch01-dm-02-sujet.pdf) 
 
 ---
 
-## 🏠 Devoirs maison
-- DM1 — [Sujet](/assets/pdf/seconde/commun/chapitre1/dm/dm01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre1/dm/dm01-correction.pdf)
-- DM2 — [Sujet](/assets/pdf/seconde/commun/chapitre1/dm/dm02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre1/dm/dm02-correction.pdf)
-- DM3 — [Sujet](/assets/pdf/seconde/commun/chapitre1/dm/dm03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre1/dm/dm03-correction.pdf)
-- DM4 — [Sujet](/assets/pdf/seconde/commun/chapitre1/dm/dm04-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre1/dm/dm04-correction.pdf)
-- DM5 — [Sujet](/assets/pdf/seconde/commun/chapitre1/dm/dm05-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre1/dm/dm05-correction.pdf)
-- DM6 — [Sujet](/assets/pdf/seconde/commun/chapitre1/dm/dm06-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre1/dm/dm06-correction.pdf)
+## ✍️  2 Devoirs blancs
+
+- DS Blanc 1 — [Sujet](/assets/pdf/seconde-ch01-dsblanc-01-sujet.pdf) 
+- DS Blanc 2 — [Sujet](/assets/pdf/seconde-ch01-dsblanc-02-sujet.pdf) 
+
 
 ---
 
-## ✍️ Devoirs blancs
-- DS Blanc 1 — [Sujet](/assets/pdf/seconde/commun/chapitre1/dsblanc/ds01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre1/dsblanc/ds01-correction.pdf)
-- DS Blanc 2 — [Sujet](/assets/pdf/seconde/commun/chapitre1/dsblanc/ds02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre1/dsblanc/ds02-correction.pdf)
-- DS Blanc 3 — [Sujet](/assets/pdf/seconde/commun/chapitre1/dsblanc/ds03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre1/dsblanc/ds03-correction.pdf)
+## 🧪  Devoirs surveillés
 
----
-
-## 🧪 Devoirs surveillés
-- DS 1 — [Sujet](/assets/pdf/seconde219/chapitre1/ds/ds01-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre1/ds/ds01-correction.pdf)
-- DS 2 — [Sujet](/assets/pdf/seconde219/chapitre1/ds/ds02-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre1/ds/ds02-correction.pdf)
-- DS 3 — [Sujet](/assets/pdf/seconde219/chapitre1/ds/ds03-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre1/ds/ds03-correction.pdf)
+- DS 1 — [Sujet](/assets/pdf/seconde-ch01-ds-01-sujet.pdf)
+- DS 2 — [Sujet](/assets/pdf/seconde-ch01-ds-02-sujet.pdf)
 
 ---
 
 ## 📁 Divers
-- 📄 Fiche méthode — [PDF](/assets/pdf/seconde/commun/chapitre1/fiche-methode/fiche-methode.pdf)
 
----
+- 📄 **Fiche méthode** — [PDF](/assets/pdf/seconde-ch01-fiche-methode.pdf)
 
-## 🔗 Liens utiles
-- https://www.jeuxmaths.fr/
-- https://www.geogebra.org/
+- ⚠️ **Erreurs fréquentes**
+  - Oublier les règles de priorité des opérations
+  - Faire des erreurs de signe lors des développements
+  - Confondre **développement** et **factorisation**
+  - Mal utiliser les identités remarquables
+  - Oublier de simplifier une expression
+  - Faire des erreurs dans la réduction de termes semblables
+  - Oublier les parenthèses dans un calcul
+  - Mal gérer les fractions algébriques
+
+- 🔗 **Liens utiles**
+  - 🌐 Exercices interactifs – Calcul algébrique : [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-calcul.html)
