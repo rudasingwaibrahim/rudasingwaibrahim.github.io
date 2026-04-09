@@ -10,8 +10,9 @@ hero_subtitle: "Probabilités"
 
 - [Cours complet — PDF](/assets/pdf/seconde-ch16-cours-eleve.pdf)
 - [Cours complet — PDF](/assets/pdf/seconde-ch16-cours-prof.pdf)
----
 
+
+---
 ## 📝  2 Planches d’exercices
 
 - Planche 1 — [Sujet](/assets/pdf/seconde-ch16-planche-01.pdf) 
