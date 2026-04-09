@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 1 - Calcul algébrique"
-permalink: /classes/seconde205/chapitre1/
+permalink: /classes/seconde219/chapitre1/
 hero_title: "Chapitre 1"
 hero_subtitle: "Calcul algébrique"
 ---
