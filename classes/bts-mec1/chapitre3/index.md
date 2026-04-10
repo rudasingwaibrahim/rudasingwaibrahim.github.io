@@ -9,27 +9,27 @@ hero_subtitle: "Calcul intégral"
 
 ---
 ## 📝  2 Planches d'exercices
-- Planche 1 — [Sujet](/assets/pdf/bts-mec1-ch03-planche-01.pdf)
-- Planche 2 — [Sujet](/assets/pdf/bts-mec1-ch03-planche-02.pdf)
+- Planche 1 — [Sujet](/assets/pdf/bts-calcul-integral-planche-01.pdf)
+- Planche 2 — [Sujet](/assets/pdf/bts-calcul-integral-planche-02.pdf)
 
 ---
 ## 🏠  2 Devoirs maison
-- [DM1 — Sujet](/assets/pdf/bts-mec1-ch03-dm-01.pdf)
-- [DM2 — Sujet](/assets/pdf/bts-mec1-ch03-dm-02.pdf)
+- [DM1 — Sujet](/assets/pdf/bts-calcul-integral-dm-01-sujet.pdf)
+- [DM2 — Sujet](/assets/pdf/bts-calcul-integral-dm-02-sujet.pdf)
 
 ---
 ## ✍️  2 Devoirs blancs
-- DS Blanc 1 — [Sujet](/assets/pdf/bts-mec1-ch03-dsblanc-01.pdf)
-- DS Blanc 2 — [Sujet](/assets/pdf/bts-mec1-ch03-dsblanc-02.pdf)
+- DS Blanc 1 — [Sujet](/assets/pdf/bts-calcul-integral-dsblanc-01.pdf)
+- DS Blanc 2 — [Sujet](/assets/pdf/bts-calcul-integral-dsblanc-02.pdf)
 
 ---
 ## 🧪  Devoirs surveillés
-- DS 1 — [Sujet](/assets/pdf/bts-mec1-ch03-ds-01.pdf)
-- DS 2 — [Sujet](/assets/pdf/bts-mec1-ch03-ds-02.pdf)
+- DS 1 — [Sujet](/assets/pdf/bts-calcul-integral-ds-01.pdf)
+- DS 2 — [Sujet](/assets/pdf/bts-calcul-integral-ds-02.pdf)
 
 ---
 ## 📁 Divers
-- 📄 **Fiche méthode** — [PDF](/assets/pdf/bts-mec1-ch03-fiche-methode.pdf)
+- 📄 **Fiche méthode** — [PDF](/assets/pdf/bts-calcul-integral-fiche-methode.pdf)
 - ⚠️ **Erreurs fréquentes**
   - Oublier la constante d'intégration \(+C\) dans les primitives
   - Confondre **dérivée** et **primitive** d'une fonction
