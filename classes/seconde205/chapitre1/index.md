@@ -10,27 +10,27 @@ hero_subtitle: "Calcul algébrique"
 
 ---
 ## 📝  2 Planches d'exercices
-- Planche 1 — [Sujet](/assets/pdf/seconde-ch01-planche-01.pdf) 
-- Planche 2 — [Sujet](/assets/pdf/seconde-ch01-planche-02.pdf) 
+- Planche 1 — [Sujet](/assets/pdf/seconde-ch1-planche-01.pdf) 
+- Planche 2 — [Sujet](/assets/pdf/seconde-ch1-planche-02.pdf) 
 
 ---
 ## 🏠  2 Devoirs maison
-- [DM1 — Sujet](/assets/pdf/seconde-ch01-dm-01-sujet.pdf)
-- [DM2 — Sujet](/assets/pdf/seconde-ch01-dm-02-sujet.pdf) 
+- [DM1 — Sujet](/assets/pdf/seconde-ch1-dm-01-sujet.pdf)
+- [DM2 — Sujet](/assets/pdf/seconde-ch1-dm-02-sujet.pdf) 
 
 ---
 ## ✍️  2 Devoirs blancs
-- DS Blanc 1 — [Sujet](/assets/pdf/seconde-ch01-dsblanc-01-sujet.pdf) 
-- DS Blanc 2 — [Sujet](/assets/pdf/seconde-ch01-dsblanc-02-sujet.pdf) 
+- DS Blanc 1 — [Sujet](/assets/pdf/seconde-ch1-dsblanc-01-sujet.pdf) 
+- DS Blanc 2 — [Sujet](/assets/pdf/seconde-ch1-dsblanc-02-sujet.pdf) 
 
 ---
 ## 🧪  Devoirs surveillés
-- DS 1 — [Sujet](/assets/pdf/seconde-ch01-ds-01-sujet.pdf)
-- DS 2 — [Sujet](/assets/pdf/seconde-ch01-ds-02-sujet.pdf)
+- DS 1 — [Sujet](/assets/pdf/seconde-ch1-ds-01-sujet.pdf)
+- DS 2 — [Sujet](/assets/pdf/seconde-ch1-ds-02-sujet.pdf)
 
 ---
 ## 📁 Divers
-- 📄 **Fiche méthode** — [PDF](/assets/pdf/seconde-ch01-fiche-methode.pdf)
+- 📄 **Fiche méthode** — [PDF](/assets/pdf/seconde-ch1-fiche-methode.pdf)
 - ⚠️ **Erreurs fréquentes**
   - Oublier les règles de priorité des opérations
   - Faire des erreurs de signe lors des développements
