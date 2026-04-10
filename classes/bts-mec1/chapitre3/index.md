@@ -14,18 +14,18 @@ hero_subtitle: "Calcul intégral"
 
 ---
 ## 🏠  2 Devoirs maison
-- [DM1 — Sujet](/assets/pdf/bts-mec1-ch03-dm-01-sujet.pdf)
-- [DM2 — Sujet](/assets/pdf/bts-mec1-ch03-dm-02-sujet.pdf)
+- [DM1 — Sujet](/assets/pdf/bts-mec1-ch03-dm-01.pdf)
+- [DM2 — Sujet](/assets/pdf/bts-mec1-ch03-dm-02.pdf)
 
 ---
 ## ✍️  2 Devoirs blancs
-- DS Blanc 1 — [Sujet](/assets/pdf/bts-mec1-ch03-dsblanc-01-sujet.pdf)
-- DS Blanc 2 — [Sujet](/assets/pdf/bts-mec1-ch03-dsblanc-02-sujet.pdf)
+- DS Blanc 1 — [Sujet](/assets/pdf/bts-mec1-ch03-dsblanc-01.pdf)
+- DS Blanc 2 — [Sujet](/assets/pdf/bts-mec1-ch03-dsblanc-02.pdf)
 
 ---
 ## 🧪  Devoirs surveillés
-- DS 1 — [Sujet](/assets/pdf/bts-mec1-ch03-ds-01-sujet.pdf)
-- DS 2 — [Sujet](/assets/pdf/bts-mec1-ch03-ds-02-sujet.pdf)
+- DS 1 — [Sujet](/assets/pdf/bts-mec1-ch03-ds-01.pdf)
+- DS 2 — [Sujet](/assets/pdf/bts-mec1-ch03-ds-02.pdf)
 
 ---
 ## 📁 Divers
