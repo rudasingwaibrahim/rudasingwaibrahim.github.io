@@ -1,55 +1,39 @@
 ---
-layout: default
-title: "Chapitre 3 - Les vecteurs (Partie 1)"
+title: "Chapitre 3 - Les vecteurs (1/2)"
 permalink: /classes/seconde219/chapitre3/
 hero_title: "Chapitre 3"
-hero_subtitle: "Les vecteurs (Partie 1)"
+hero_subtitle: "Les vecteurs (1/2)"
 ---
-
-## 📘 Cours
-- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/chapitre3/cours/seconde-ch03-cours.pdf)
-
+## 📘  Cours
+- [Cours complet — PDF élève](/assets/pdf/seconde-ch3-cours-eleve.pdf)
+- [Cours complet — PDF prof](/assets/pdf/seconde-ch3-cours-prof.pdf)
 ---
-
-## 📝 Planches
-- Planche 1 — [Sujet](/assets/pdf/seconde/commun/chapitre3/planches/planche01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre3/planches/planche01-correction.pdf)
-- Planche 2 — [Sujet](/assets/pdf/seconde/commun/chapitre3/planches/planche02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre3/planches/planche02-correction.pdf)
-- Planche 3 — [Sujet](/assets/pdf/seconde/commun/chapitre3/planches/planche03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre3/planches/planche03-correction.pdf)
-- Planche 4 — [Sujet](/assets/pdf/seconde/commun/chapitre3/planches/planche04-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre3/planches/planche04-correction.pdf)
-- Planche 5 — [Sujet](/assets/pdf/seconde/commun/chapitre3/planches/planche05-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre3/planches/planche05-correction.pdf)
-- Planche 6 — [Sujet](/assets/pdf/seconde/commun/chapitre3/planches/planche06-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre3/planches/planche06-correction.pdf)
-
+## 📝  2 Planches d'exercices
+- Planche 1 — [Sujet](/assets/pdf/seconde-ch3-planche-01.pdf)
+- Planche 2 — [Sujet](/assets/pdf/seconde-ch3-planche-02.pdf)
 ---
-
-## 🏠 Devoirs maison
-- DM1 — [Sujet](/assets/pdf/seconde/commun/chapitre3/dm/dm01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre3/dm/dm01-correction.pdf)
-- DM2 — [Sujet](/assets/pdf/seconde/commun/chapitre3/dm/dm02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre3/dm/dm02-correction.pdf)
-- DM3 — [Sujet](/assets/pdf/seconde/commun/chapitre3/dm/dm03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre3/dm/dm03-correction.pdf)
-- DM4 — [Sujet](/assets/pdf/seconde/commun/chapitre3/dm/dm04-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre3/dm/dm04-correction.pdf)
-- DM5 — [Sujet](/assets/pdf/seconde/commun/chapitre3/dm/dm05-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre3/dm/dm05-correction.pdf)
-- DM6 — [Sujet](/assets/pdf/seconde/commun/chapitre3/dm/dm06-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre3/dm/dm06-correction.pdf)
-
+## 🏠  2 Devoirs maison
+- [DM1 — Sujet](/assets/pdf/seconde-ch3-dm-01-sujet.pdf)
+- [DM2 — Sujet](/assets/pdf/seconde-ch3-dm-02-sujet.pdf)
 ---
-
-## ✍️ Devoirs blancs
-- DS Blanc 1 — [Sujet](/assets/pdf/seconde/commun/chapitre3/dsblanc/ds01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre3/dsblanc/ds01-correction.pdf)
-- DS Blanc 2 — [Sujet](/assets/pdf/seconde/commun/chapitre3/dsblanc/ds02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre3/dsblanc/ds02-correction.pdf)
-- DS Blanc 3 — [Sujet](/assets/pdf/seconde/commun/chapitre3/dsblanc/ds03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre3/dsblanc/ds03-correction.pdf)
-
+## ✍️  2 Devoirs blancs
+- DS Blanc 1 — [Sujet](/assets/pdf/seconde-ch3-dsblanc-01-sujet.pdf)
+- DS Blanc 2 — [Sujet](/assets/pdf/seconde-ch3-dsblanc-02-sujet.pdf)
 ---
-
-## 🧪 Devoirs surveillés
-- DS 1 — [Sujet](/assets/pdf/seconde219/chapitre3/ds/ds01-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre3/ds/ds01-correction.pdf)
-- DS 2 — [Sujet](/assets/pdf/seconde219/chapitre3/ds/ds02-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre3/ds/ds02-correction.pdf)
-- DS 3 — [Sujet](/assets/pdf/seconde219/chapitre3/ds/ds03-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre3/ds/ds03-correction.pdf)
-
+## 🧪  Devoirs surveillés
+- DS 1 — [Sujet](/assets/pdf/seconde-ch3-ds-01-sujet.pdf)
+- DS 2 — [Sujet](/assets/pdf/seconde-ch3-ds-02-sujet.pdf)
+- DS 3 — [Sujet](/assets/pdf/seconde-ch3-ds-03-sujet.pdf)
 ---
-
 ## 📁 Divers
-- 📄 Fiche méthode — [PDF](/assets/pdf/seconde/commun/chapitre3/fiche-methode/fiche-methode.pdf)
-
----
-
-## 🔗 Liens utiles
-- https://www.jeuxmaths.fr/
-- https://www.geogebra.org/
+- ⚠️ **Erreurs fréquentes**
+  - Confondre $\overrightarrow{AB}$ et $\overrightarrow{BA}$ — le sens compte !
+  - Oublier que $\overrightarrow{BA}=-\overrightarrow{AB}$
+  - Mal appliquer la relation de Chasles : vérifier l'ordre des points
+  - Confondre vecteurs égaux et points confondus
+  - Oublier que $\overrightarrow{AA}=\vec{0}$ (vecteur nul, pas zéro !)
+  - Erreur de construction graphique : direction, sens ET norme doivent être respectés
+  - Mal démontrer qu'un quadrilatère est un parallélogramme (traduire en égalité vectorielle)
+- 🔗 **Liens utiles**
+  - 🌐 [GeoGebra — Vecteurs interactifs](https://www.geogebra.org/t/vectors)
+  - 🌐 [Khan Academy — Introduction aux vecteurs](https://fr.khanacademy.org/math/precalculus/x9e81a4f98389efdf:vectors)
