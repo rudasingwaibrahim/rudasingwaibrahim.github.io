@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 7 - Notion de fonction"
-permalink: /classes/seconde205/chapitre7/
+permalink: /classes/seconde219/chapitre7/
 hero_title: "Chapitre 7"
 hero_subtitle: "Notion de fonction"
 ---
