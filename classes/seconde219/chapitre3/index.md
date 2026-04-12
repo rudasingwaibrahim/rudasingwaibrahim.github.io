@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 3 - Les vecteurs (1/2)"
-permalink: /classes/seconde205/chapitre3/
+permalink: /classes/seconde219/chapitre3/
 hero_title: "Chapitre 3"
 hero_subtitle: "Les vecteurs (1/2)"
 ---
