@@ -1,55 +1,34 @@
 ---
-layout: default
-title: "Chapitre 6 - Nombres réels (Partie 1)"
+title: "Chapitre 6 - Ensembles de nombres"
 permalink: /classes/seconde219/chapitre6/
 hero_title: "Chapitre 6"
-hero_subtitle: "Nombres réels (Partie 1)"
+hero_subtitle: "Ensembles de nombres"
 ---
-
-## 📘 Cours
-- 📄 [Cours complet — PDF](/assets/pdf/seconde/commun/chapitre6/cours/seconde-ch06-cours.pdf)
-
----
-
-## 📝 Planches
-- Planche 1 — [Sujet](/assets/pdf/seconde/commun/chapitre6/planches/planche01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre6/planches/planche01-correction.pdf)
-- Planche 2 — [Sujet](/assets/pdf/seconde/commun/chapitre6/planches/planche02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre6/planches/planche02-correction.pdf)
-- Planche 3 — [Sujet](/assets/pdf/seconde/commun/chapitre6/planches/planche03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre6/planches/planche03-correction.pdf)
-- Planche 4 — [Sujet](/assets/pdf/seconde/commun/chapitre6/planches/planche04-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre6/planches/planche04-correction.pdf)
-- Planche 5 — [Sujet](/assets/pdf/seconde/commun/chapitre6/planches/planche05-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre6/planches/planche05-correction.pdf)
-- Planche 6 — [Sujet](/assets/pdf/seconde/commun/chapitre6/planches/planche06-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre6/planches/planche06-correction.pdf)
-
----
-
-## 🏠 Devoirs maison
-- DM1 — [Sujet](/assets/pdf/seconde/commun/chapitre6/dm/dm01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre6/dm/dm01-correction.pdf)
-- DM2 — [Sujet](/assets/pdf/seconde/commun/chapitre6/dm/dm02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre6/dm/dm02-correction.pdf)
-- DM3 — [Sujet](/assets/pdf/seconde/commun/chapitre6/dm/dm03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre6/dm/dm03-correction.pdf)
-- DM4 — [Sujet](/assets/pdf/seconde/commun/chapitre6/dm/dm04-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre6/dm/dm04-correction.pdf)
-- DM5 — [Sujet](/assets/pdf/seconde/commun/chapitre6/dm/dm05-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre6/dm/dm05-correction.pdf)
-- DM6 — [Sujet](/assets/pdf/seconde/commun/chapitre6/dm/dm06-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre6/dm/dm06-correction.pdf)
-
----
-
-## ✍️ Devoirs blancs
-- DS Blanc 1 — [Sujet](/assets/pdf/seconde/commun/chapitre6/dsblanc/ds01-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre6/dsblanc/ds01-correction.pdf)
-- DS Blanc 2 — [Sujet](/assets/pdf/seconde/commun/chapitre6/dsblanc/ds02-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre6/dsblanc/ds02-correction.pdf)
-- DS Blanc 3 — [Sujet](/assets/pdf/seconde/commun/chapitre6/dsblanc/ds03-sujet.pdf) • [Correction](/assets/pdf/seconde/commun/chapitre6/dsblanc/ds03-correction.pdf)
-
----
-
-## 🧪 Devoirs surveillés
-- DS 1 — [Sujet](/assets/pdf/seconde219/chapitre6/ds/ds01-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre6/ds/ds01-correction.pdf)
-- DS 2 — [Sujet](/assets/pdf/seconde219/chapitre6/ds/ds02-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre6/ds/ds02-correction.pdf)
-- DS 3 — [Sujet](/assets/pdf/seconde219/chapitre6/ds/ds03-sujet.pdf) • [Correction](/assets/pdf/seconde219/chapitre6/ds/ds03-correction.pdf)
-
----
-
+## 📘  Cours
+- [Cours complet — PDF élève](/assets/pdf/seconde-ch6-cours-eleve.pdf)
+- [Cours complet — PDF prof](/assets/pdf/seconde-ch6-cours-prof.pdf)
+## 📝  2 Planches d'exercices
+- Planche 1 — [Sujet](/assets/pdf/seconde-ch6-planche-01.pdf)
+- Planche 2 — [Sujet](/assets/pdf/seconde-ch6-planche-02.pdf)
+## 🏠  2 Devoirs maison
+- [DM1 — Sujet](/assets/pdf/seconde-ch6-dm-01-sujet.pdf)
+- [DM2 — Sujet](/assets/pdf/seconde-ch6-dm-02-sujet.pdf)
+## ✍️  2 Devoirs blancs
+- DS Blanc 1 — [Sujet](/assets/pdf/seconde-ch6-dsblanc-01-sujet.pdf)
+- DS Blanc 2 — [Sujet](/assets/pdf/seconde-ch6-dsblanc-02-sujet.pdf)
+## 🧪  Devoirs surveillés
+- DS 1 — [Sujet](/assets/pdf/seconde-ch6-ds-01-sujet.pdf)
+- DS 2 — [Sujet](/assets/pdf/seconde-ch6-ds-02-sujet.pdf)
+- DS 3 — [Sujet](/assets/pdf/seconde-ch6-ds-03-sujet.pdf)
 ## 📁 Divers
-- 📄 Fiche méthode — [PDF](/assets/pdf/seconde/commun/chapitre6/fiche-methode/fiche-methode.pdf)
-
----
-
-## 🔗 Liens utiles
-- https://www.jeuxmaths.fr/
-- https://www.geogebra.org/
+- ⚠️ **Erreurs fréquentes**
+  - Confondre $\in$ (appartient à) et $\subset$ (inclus dans) : $5\in\mathbb{Z}$ mais $\mathbb{N}\subset\mathbb{Z}$
+  - Oublier que $\mathbb{D}\subset\mathbb{Q}$ : tout décimal est rationnel
+  - Croire que $\mathbb{Z}\subset\mathbb{D}$ est faux — c'est **vrai** : $-3=\frac{-30}{10}\in\mathbb{D}$
+  - Mal conclure dans la démonstration par l'absurde : bien énoncer la contradiction
+  - Oublier que la fraction doit être **irréductible** dans la démo de $\sqrt{2}\notin\mathbb{Q}$
+  - Confondre arrondi et troncage
+  - Croire que le produit de deux irrationnels est toujours irrationnel (faux : $\sqrt{2}\times\sqrt{2}=2$)
+- 🔗 **Liens utiles**
+  - 🌐 [Khan Academy — Nombres irrationnels](https://fr.khanacademy.org/math/algebra/x2f8bb11595b61c86:irrational-numbers)
+  - 🌐 [Démonstration $\sqrt{2}$ irrationnel](https://www.youtube.com/watch?v=oRcTlNh1Sjc)
