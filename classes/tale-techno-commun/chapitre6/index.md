@@ -4,40 +4,32 @@ permalink: /classes/tale-techno-commun/chapitre6/
 hero_title: "Chapitre 6"
 hero_subtitle: "Loi binomiale et espérance"
 ---
-
-## 📘 Cours
-- [Cours — PDF](/assets/pdf/tale-techno/tale-techno-commun-ch6-cours.pdf)
-
----
-
-## 📝 2 planches d’exercices
-
-- Planche 1 — [Sujet](/assets/pdf/tale-techno/tale-techno-commun-ch6-planche-01.pdf) • [Correction](/assets/pdf/tale-techno/tale-techno-commun-ch6-planche-01-correction.pdf)
-- Planche 2 — [Sujet](/assets/pdf/tale-techno/tale-techno-commun-ch6-planche-02.pdf) • [Correction](/assets/pdf/tale-techno/tale-techno-commun-ch6-planche-02-correction.pdf)
-
----
-
-## 🏠 2 devoirs maison
-
-- DM 1 — [Sujet](/assets/pdf/tale-techno/tale-techno-commun-ch6-dm-01-sujet.pdf) • [Correction](/assets/pdf/tale-techno/tale-techno-commun-ch6-dm-01-correction.pdf)
-- DM 2 — [Sujet](/assets/pdf/tale-techno/tale-techno-commun-ch6-dm-02-sujet.pdf) • [Correction](/assets/pdf/tale-techno/tale-techno-commun-ch6-dm-02-correction.pdf)
-
----
-
-## ✍️ 2 devoirs blancs
-
-- DS Blanc 1 — [Sujet](/assets/pdf/tale-techno/tale-techno-commun-ch6-dsblanc-01-sujet.pdf) • [Correction](/assets/pdf/tale-techno/tale-techno-commun-ch6-dsblanc-01-correction.pdf)
-- DS Blanc 2 — [Sujet](/assets/pdf/tale-techno/tale-techno-commun-ch6-dsblanc-02-sujet.pdf) • [Correction](/assets/pdf/tale-techno/tale-techno-commun-ch6-dsblanc-02-correction.pdf)
-
----
-
-## 🧪 2 devoirs surveillés
-
-- DS 1 — [Sujet](/assets/pdf/tale-techno/tale-techno-commun-ch6-ds-01-sujet.pdf) • [Correction](/assets/pdf/tale-techno/tale-techno-commun-ch6-ds-01-correction.pdf)
-- DS 2 — [Sujet](/assets/pdf/tale-techno/tale-techno-commun-ch6-ds-02-sujet.pdf) • [Correction](/assets/pdf/tale-techno/tale-techno-commun-ch6-ds-02-correction.pdf)
-
----
-
+## 📘  Cours
+- [Cours complet — PDF élève](/assets/pdf/tale-techno/tale-techno-commun-ch6-cours-eleve.pdf)
+- [Cours complet — PDF prof](/assets/pdf/tale-techno/tale-techno-commun-ch6-cours-prof.pdf)
+## 📝  2 Planches d'exercices
+- Planche 1 — [Sujet et corrigé](/assets/pdf/tale-techno/tale-techno-commun-ch6-planche-01.pdf)
+- Planche 2 — [Sujet et corrigé](/assets/pdf/tale-techno/tale-techno-commun-ch6-planche-02.pdf)
+## 🏠  2 Devoirs maison
+- DM 1 — *document à venir*
+- DM 2 — *document à venir*
+## ✍️  2 Devoirs blancs
+- DS Blanc 1 — [Sujet et corrigé](/assets/pdf/tale-techno/tale-techno-commun-ch6-dsblanc-01-sujet.pdf)
+- DS Blanc 2 — [Sujet et corrigé](/assets/pdf/tale-techno/tale-techno-commun-ch6-dsblanc-02-sujet.pdf)
+## 🧪  Devoirs surveillés
+- DS 1 — *document à venir*
+- DS 2 — *document à venir*
+- DS 3 — *document à venir*
 ## 📁 Divers
-
-- 📄 **Fiche méthode** — [PDF](/assets/pdf/tale-techno/tale-techno-commun-ch6-fiche-methode.pdf)
+- ⚠️ **Erreurs fréquentes**
+  - Confondre espérance et probabilité : $E(X)=np$ est une **moyenne**, pas une probabilité
+  - Oublier de vérifier $\sum p_i=1$ avant de calculer $E(X)$
+  - Appliquer la loi binomiale sans remise : $B(n,p)$ exige des épreuves **indépendantes**
+  - Calculer $P(X\geq k)$ directement au lieu d'utiliser $P(X\geq k)=1-P(X\leq k-1)$
+  - Confondre $P(X=k)$ (exact) et $P(X\leq k)$ (cumulé) : **binompdf** vs **binomcdf**
+  - Oublier que $\binom{n}{k}=\binom{n}{n-k}$ : la symétrie simplifie les calculs
+  - Écrire $E(X)=np$ sans avoir identifié la loi $B(n,p)$ au préalable
+- 🔗 **Liens utiles**
+  - 🌐 [Khan Academy — Loi binomiale](https://fr.khanacademy.org/math/statistics-probability/random-variables-stats-library/binomial-random-variables/v/binomial-distribution)
+  - 🌐 [Khan Academy — Espérance](https://fr.khanacademy.org/math/statistics-probability/random-variables-stats-library/expected-value-lib/v/expected-value-of-a-discrete-random-variable)
+  - 🌐 [Mathrix — Loi binomiale Terminale](https://www.mathrix.fr/loi-binomiale-terminale/)
