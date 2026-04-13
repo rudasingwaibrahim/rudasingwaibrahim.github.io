@@ -32,4 +32,4 @@ hero_subtitle: "Loi binomiale et espérance"
 - 🔗 **Liens utiles**
   - 🌐 <a href="https://fr.khanacademy.org/math/statistics-probability/random-variables-stats-library/binomial-random-variables/v/binomial-distribution" target="_blank">Khan Academy — Loi binomiale</a>
   - 🌐 <a href="https://fr.khanacademy.org/math/statistics-probability/random-variables-stats-library/expected-value-lib/v/expected-value-of-a-discrete-random-variable" target="_blank">Khan Academy — Espérance</a>
-  - 🌐 <a href="https://www.mathrix.fr/loi-binomiale-terminale/" target="_blank">Mathrix — Loi binomiale Terminale</a>
+  - 🌐 <a href="https://www.geogebra.org/m/nvzawmvd" target="_blank">GeoGebra — Loi binomiale interactive</a>
