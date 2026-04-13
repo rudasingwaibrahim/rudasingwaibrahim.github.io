@@ -25,9 +25,9 @@ hero_subtitle: "Loi binomiale et espérance"
   - Confondre espérance et probabilité : $E(X)=np$ est une **moyenne**, pas une probabilité
   - Oublier de vérifier $\sum p_i=1$ avant de calculer $E(X)$
   - Appliquer la loi binomiale sans remise : $B(n,p)$ exige des épreuves **indépendantes**
-  - Calculer $P(X\geq k)$ directement au lieu d'utiliser $P(X\geq k)=1-P(X\leq k-1)$
-  - Confondre $P(X=k)$ (exact) et $P(X\leq k)$ (cumulé) : **binompdf** vs **binomcdf**
-  - Oublier que $\binom{n}{k}=\binom{n}{n-k}$ : la symétrie simplifie les calculs
+  - Calculer $P(X \geq k)$ directement au lieu d'utiliser $P(X \geq k) = 1 - P(X \leq k-1)$
+  - Confondre $P(X = k)$ (exact) et $P(X \leq k)$ (cumulé) : **binompdf** vs **binomcdf**
+  - Oublier que $\binom{n}{k} = \binom{n}{n-k}$ : la symétrie simplifie les calculs
   - Écrire $E(X)=np$ sans avoir identifié la loi $B(n,p)$ au préalable
 - 🔗 **Liens utiles**
   - 🌐 <a href="https://fr.khanacademy.org/math/statistics-probability/random-variables-stats-library/binomial-random-variables/v/binomial-distribution" target="_blank">Khan Academy — Loi binomiale</a>
