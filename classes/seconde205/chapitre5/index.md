@@ -4,15 +4,12 @@ permalink: /classes/seconde205/chapitre5/
 hero_title: "Chapitre 5"
 hero_subtitle: "Les vecteurs (Partie 2)"
 
-dossier_pdf: ""
 
 cours:
   - titre: "Cours — Version élève"
     pdf: seconde-ch5-cours-eleve.pdf
-    dossier: ""
   - titre: "Cours — Version professeur"
     pdf: seconde-ch5-cours-prof.pdf
-    dossier: ""
 
 planches:
   - num: 1
