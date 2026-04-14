@@ -1,44 +1,66 @@
 ---
-title: "Chapitre 18 - Échantillonnage"
+title: "Chapitre 18 — Échantillonnage"
 permalink: /classes/seconde205/chapitre18/
 hero_title: "Chapitre 18"
 hero_subtitle: "Échantillonnage"
----
-## 📘  Cours
-- [Cours complet — PDF élève](/assets/pdf/seconde-ch18-cours-eleve.pdf)
-- [Cours complet — PDF prof](/assets/pdf/seconde-ch18-cours-prof.pdf)
+
+dossier_pdf: ""
+
+cours:
+  - titre: "Cours — Version élève"
+    pdf: seconde-ch18-cours-eleve.pdf
+    dossier: ""
+  - titre: "Cours — Version professeur"
+    pdf: seconde-ch18-cours-prof.pdf
+    dossier: ""
+
+planches:
+  - num: 1
+    pdf: seconde-ch18-planche-01.pdf
+  - num: 2
+    pdf: seconde-ch18-planche-02.pdf
+
+dm:
+  - num: 1
+    pdf: seconde-ch18-dm-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch18-dm-02-sujet.pdf
+
+ds_blancs:
+  - num: 1
+    pdf: seconde-ch18-dsblanc-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch18-dsblanc-02-sujet.pdf
+
+ds_published: true
+ds:
+  - num: 1
+    pdf: seconde-ch18-ds-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch18-ds-02-sujet.pdf
+  - num: 3
+    pdf: seconde-ch18-ds-03-sujet.pdf
+
+erreurs:
+  - "Confondre population, échantillon et individu"
+  - "Oublier que la fréquence observée dans un échantillon est différente de la probabilité réelle"
+  - "Mal appliquer l'intervalle de fluctuation : centré en p, de demi-longueur 1/sqrt(n)"
+  - "Oublier que l'intervalle de fluctuation dépend de la taille n de l'échantillon"
+  - "Confondre intervalle de fluctuation et intervalle de confiance"
+  - "Conclure trop vite qu'un résultat est anormal sans utiliser l'intervalle de fluctuation"
+
+liens:
+  - nom: "Mathrix — Échantillonnage Seconde"
+    desc: "Cours vidéo sur l'intervalle de fluctuation"
+    url: "https://www.mathrix.fr/echantillonnage-seconde/"
+    ico: "🎬"
+    cat: cours
+  - nom: "Khan Academy — Statistiques inférentielles"
+    desc: "Exercices sur l'échantillonnage et les intervalles"
+    url: "https://fr.khanacademy.org/math/statistics-probability/sampling-distributions-library"
+    ico: "📚"
+    cat: cours
 
 ---
-## 📝  2 Planches d'exercices
-- Planche 1 — [Sujet](/assets/pdf/seconde-ch18-planche-01.pdf) 
-- Planche 2 — [Sujet](/assets/pdf/seconde-ch18-planche-02.pdf) 
 
----
-## 🏠  2 Devoirs maison
-- [DM1 — Sujet](/assets/pdf/seconde-ch18-dm-01-sujet.pdf)
-- [DM2 — Sujet](/assets/pdf/seconde-ch18-dm-02-sujet.pdf) 
-
----
-## ✍️  2 Devoirs blancs
-- DS Blanc 1 — [Sujet](/assets/pdf/seconde-ch18-dsblanc-01-sujet.pdf) 
-- DS Blanc 2 — [Sujet](/assets/pdf/seconde-ch18-dsblanc-02-sujet.pdf) 
-
----
-## 🧪  Devoirs surveillés
-- DS 1 — [Sujet](/assets/pdf/seconde-ch18-ds-01-sujet.pdf)
-- DS 2 — [Sujet](/assets/pdf/seconde-ch18-ds-02-sujet.pdf)
-
----
-## 📁 Divers
-- 📄 **Fiche méthode** — [PDF](/assets/pdf/seconde-ch18-fiche-methode.pdf)
-- ⚠️ **Erreurs fréquentes**
-  - Confondre **population** et **échantillon**
-  - Penser qu'un échantillon est toujours représentatif
-  - Mal interpréter une **fréquence observée**
-  - Oublier la notion d'**intervalle de fluctuation**
-  - Croire qu'un résultat sur un échantillon est exact pour toute la population
-  - Ne pas tenir compte de la **taille de l'échantillon**
-  - Confondre proportion et pourcentage
-  - Mauvaise lecture d'un graphique statistique
-- 🔗 **Liens utiles**
-  - 🌐 Exercices interactifs – Statistiques : [JeuxMaths](https://www.jeuxmaths.fr/)
+{{% include cours-cards.html %}}
