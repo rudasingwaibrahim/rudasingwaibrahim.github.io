@@ -41,11 +41,7 @@ hero_subtitle: "Calcul intégral"
 
 ## 🧪 Devoirs surveillés
 
-| DS | Durée | Contenu | Sujet |
-|----|-------|---------|-------|
-| DS 1 | 55 min | Primitives composées, intégrales, section de passerelle | [PDF](/assets/pdf/bts-mec1/bts-calcul-integral-ds-01-sujet.pdf) |
-| DS 2 | 55 min | IPP, changement de variable, déblai entre profils | [PDF](/assets/pdf/bts-mec1/bts-calcul-integral-ds-02-sujet.pdf) |
-| DS 3 | 55 min | Valeur moyenne, linéarité, charpente de toit | [PDF](/assets/pdf/bts-mec1/bts-calcul-integral-ds-03-sujet.pdf) |
+Les sujets sont publiés après le passage du contrôle.
 
 ---
 
@@ -85,7 +81,7 @@ hero_subtitle: "Calcul intégral"
 - 📝 **Math'O karé — TC Calcul intégral** (cours détaillé avec applets GeoGebra)
   [TC Calcul intégral — Math'O karé](https://mathokare.re/2021/06/07/tc-calcul-integral/)
 
-- 🎓 **Calcul intégral — Mon lycée numérique** (avec Xcas et Python en ligne)
+- 🎓 **Mon lycée numérique — Calcul intégral** (avec Xcas et Python en ligne)
   [Calcul intégral — monlyceenumerique.fr](http://www.monlyceenumerique.fr/maths_en1/integrale/integrale.html)
 
 #### Outils de calcul formel
