@@ -4,15 +4,12 @@ permalink: /classes/seconde205/chapitre13/
 hero_title: "Chapitre 13"
 hero_subtitle: "Statistiques descriptives"
 
-dossier_pdf: ""
 
 cours:
   - titre: "Cours — Version élève"
     pdf: seconde-ch13-cours-eleve.pdf
-    dossier: ""
   - titre: "Cours — Version professeur"
     pdf: seconde-ch13-cours-prof.pdf
-    dossier: ""
 
 planches:
   - num: 1
