@@ -1,34 +1,66 @@
 ---
-title: "Chapitre 3 - Les vecteurs (1/2)"
+title: "Chapitre 3 — Les vecteurs (Partie 1)"
 permalink: /classes/seconde219/chapitre3/
 hero_title: "Chapitre 3"
-hero_subtitle: "Les vecteurs (1/2)"
+hero_subtitle: "Les vecteurs (Partie 1)"
+
+dossier_pdf: ""
+
+cours:
+  - titre: "Cours — Version élève"
+    pdf: seconde-ch3-cours-eleve.pdf
+    dossier: ""
+  - titre: "Cours — Version professeur"
+    pdf: seconde-ch3-cours-prof.pdf
+    dossier: ""
+
+planches:
+  - num: 1
+    pdf: seconde-ch3-planche-01.pdf
+  - num: 2
+    pdf: seconde-ch3-planche-02.pdf
+
+dm:
+  - num: 1
+    pdf: seconde-ch3-dm-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch3-dm-02-sujet.pdf
+
+ds_blancs:
+  - num: 1
+    pdf: seconde-ch3-dsblanc-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch3-dsblanc-02-sujet.pdf
+
+ds_published: true
+ds:
+  - num: 1
+    pdf: seconde-ch3-ds-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch3-ds-02-sujet.pdf
+  - num: 3
+    pdf: seconde-ch3-ds-03-sujet.pdf
+
+erreurs:
+  - "Confondre vecteur et point : un vecteur a une direction et une norme, pas une position"
+  - "Oublier que AB et BA sont opposés : BA = -AB"
+  - "Mal appliquer la relation de Chasles : AC = AB + BC"
+  - "Confondre coordonnées d'un point et composantes d'un vecteur"
+  - "Oublier que deux vecteurs égaux ont même direction, même sens et même norme"
+  - "Additionner les normes au lieu des vecteurs : ||u+v|| ≠ ||u|| + ||v||"
+
+liens:
+  - nom: "Mathrix — Vecteurs Seconde"
+    desc: "Cours vidéo sur les vecteurs et la relation de Chasles"
+    url: "https://www.mathrix.fr/vecteurs-seconde/"
+    ico: "🎬"
+    cat: cours
+  - nom: "Khan Academy — Vecteurs"
+    desc: "Introduction aux vecteurs avec exercices"
+    url: "https://fr.khanacademy.org/math/precalculus/x9e81a4f98389efdf:vectors"
+    ico: "📚"
+    cat: cours
+
 ---
-## 📘  Cours
-- [Cours complet — PDF élève](/assets/pdf/seconde-ch3-cours-eleve.pdf)
-- [Cours complet — PDF prof](/assets/pdf/seconde-ch3-cours-prof.pdf)
-## 📝  2 Planches d'exercices
-- Planche 1 — [Sujet](/assets/pdf/seconde-ch3-planche-01.pdf)
-- Planche 2 — [Sujet](/assets/pdf/seconde-ch3-planche-02.pdf)
-## 🏠  2 Devoirs maison
-- [DM1 — Sujet](/assets/pdf/seconde-ch3-dm-01-sujet.pdf)
-- [DM2 — Sujet](/assets/pdf/seconde-ch3-dm-02-sujet.pdf)
-## ✍️  2 Devoirs blancs
-- DS Blanc 1 — [Sujet](/assets/pdf/seconde-ch3-dsblanc-01-sujet.pdf)
-- DS Blanc 2 — [Sujet](/assets/pdf/seconde-ch3-dsblanc-02-sujet.pdf)
-## 🧪  Devoirs surveillés
-- DS 1 — [Sujet](/assets/pdf/seconde-ch3-ds-01-sujet.pdf)
-- DS 2 — [Sujet](/assets/pdf/seconde-ch3-ds-02-sujet.pdf)
-- DS 3 — [Sujet](/assets/pdf/seconde-ch3-ds-03-sujet.pdf)
-## 📁 Divers
-- ⚠️ **Erreurs fréquentes**
-  - Confondre $\overrightarrow{AB}$ et $\overrightarrow{BA}$ — le sens compte !
-  - Oublier que $\overrightarrow{BA}=-\overrightarrow{AB}$
-  - Mal appliquer la relation de Chasles : vérifier l'ordre des points
-  - Confondre vecteurs égaux et points confondus
-  - Oublier que $\overrightarrow{AA}=\vec{0}$ (vecteur nul, pas zéro !)
-  - Erreur de construction graphique : direction, sens ET norme doivent être respectés
-  - Mal démontrer qu'un quadrilatère est un parallélogramme (traduire en égalité vectorielle)
-- 🔗 **Liens utiles**
-  - 🌐 [GeoGebra — Vecteurs interactifs](https://www.geogebra.org/t/vectors)
-  - 🌐 [Khan Academy — Introduction aux vecteurs](https://fr.khanacademy.org/math/precalculus/x9e81a4f98389efdf:vectors)
+
+{{% include cours-cards.html %}}
