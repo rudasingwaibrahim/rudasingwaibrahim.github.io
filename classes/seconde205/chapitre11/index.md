@@ -1,71 +1,66 @@
 ---
-title: "Chapitre 11 - Évolutions et pourcentages"
+title: "Chapitre 11 — Information chiffrée"
 permalink: /classes/seconde205/chapitre11/
 hero_title: "Chapitre 11"
-hero_subtitle: "Évolutions et pourcentages"
+hero_subtitle: "Information chiffrée"
+
+dossier_pdf: ""
+
+cours:
+  - titre: "Cours — Version élève"
+    pdf: seconde-ch11-cours-eleve.pdf
+    dossier: ""
+  - titre: "Cours — Version professeur"
+    pdf: seconde-ch11-cours-prof.pdf
+    dossier: ""
+
+planches:
+  - num: 1
+    pdf: seconde-ch11-planche-01.pdf
+  - num: 2
+    pdf: seconde-ch11-planche-02.pdf
+
+dm:
+  - num: 1
+    pdf: seconde-ch11-dm-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch11-dm-02-sujet.pdf
+
+ds_blancs:
+  - num: 1
+    pdf: seconde-ch11-dsblanc-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch11-dsblanc-02-sujet.pdf
+
+ds_published: true
+ds:
+  - num: 1
+    pdf: seconde-ch11-ds-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch11-ds-02-sujet.pdf
+  - num: 3
+    pdf: seconde-ch11-ds-03-sujet.pdf
+
+erreurs:
+  - "Confondre taux d'évolution et coefficient multiplicateur : CM = 1 + t"
+  - "Oublier que le taux global n'est pas la somme des taux successifs"
+  - "Mal calculer un taux de variation : (f(b)-f(a))/f(a) et non (f(b)-f(a))/b"
+  - "Confondre hausse de 20% puis baisse de 20% : on ne revient pas au départ"
+  - "Oublier de convertir le taux en décimal avant de calculer"
+  - "Confondre valeur absolue d'une variation et taux de variation"
+
+liens:
+  - nom: "Mathrix — Information chiffrée"
+    desc: "Cours vidéo sur les pourcentages et évolutions"
+    url: "https://www.mathrix.fr/information-chiffree-seconde/"
+    ico: "🎬"
+    cat: cours
+  - nom: "Khan Academy — Pourcentages"
+    desc: "Exercices interactifs sur les pourcentages"
+    url: "https://fr.khanacademy.org/math/pre-algebra/pre-algebra-ratios-rates/pre-algebra-percent-word-problems/e/percent_word_problems"
+    ico: "📚"
+    cat: cours
+
 ---
 
-## 📘  Cours
-
-- [Cours complet — PDF](/assets/pdf/seconde-ch11-cours.pdf)
-
----
-
-## 📝  6 Planches d’exercices (corrigés visibles)
-
-- Planche 1 — [Sujet](/assets/pdf/seconde-ch11-planche-01.pdf) • [Correction](/assets/pdf/seconde-ch11-planche-01-correction.pdf)
-- Planche 2 — [Sujet](/assets/pdf/seconde-ch11-planche-02.pdf) • [Correction](/assets/pdf/seconde-ch11-planche-02-correction.pdf)
-- Planche 3 — [Sujet](/assets/pdf/seconde-ch11-planche-03.pdf) • [Correction](/assets/pdf/seconde-ch11-planche-03-correction.pdf)
-- Planche 4 — [Sujet](/assets/pdf/seconde-ch11-planche-04.pdf) • [Correction](/assets/pdf/seconde-ch11-planche-04-correction.pdf)
-- Planche 5 — [Sujet](/assets/pdf/seconde-ch11-planche-05.pdf) • [Correction](/assets/pdf/seconde-ch11-planche-05-correction.pdf)
-- Planche 6 — [Sujet](/assets/pdf/seconde-ch11-planche-06.pdf) • [Correction](/assets/pdf/seconde-ch11-planche-06-correction.pdf)
-
----
-
-## 🏠  6 Devoirs maison (sujets visibles)
-
-- [DM1 — Sujet](/assets/pdf/seconde-ch11-dm-01-sujet.pdf)• [Correction](/assets/pdf/seconde-ch11-dm-01-correction.pdf)
-- [DM2 — Sujet](/assets/pdf/seconde-ch11-dm-02-sujet.pdf)• [Correction](/assets/pdf/seconde-ch11-dm-02-correction.pdf)
-- [DM3 — Sujet](/assets/pdf/seconde-ch11-dm-03-sujet.pdf)
-- [DM4 — Sujet](/assets/pdf/seconde-ch11-dm-04-sujet.pdf)
-- [DM5 — Sujet](/assets/pdf/seconde-ch11-dm-05-sujet.pdf)
-- [DM6 — Sujet](/assets/pdf/seconde-ch11-dm-06-sujet.pdf)
-
-> Les corrections des DM sont publiées après le rendu.
-
----
-
-## ✍️  3 Devoirs blancs (sujets + corrigés visibles)
-
-- DS Blanc 1 — [Sujet](/assets/pdf/seconde-ch11-dsblanc-01-sujet.pdf) • [Correction](/assets/pdf/seconde-ch11-dsblanc-01-correction.pdf)
-- DS Blanc 2 — [Sujet](/assets/pdf/seconde-ch11-dsblanc-02-sujet.pdf) • [Correction](/assets/pdf/seconde-ch11-dsblanc-02-correction.pdf)
-- DS Blanc 3 — [Sujet](/assets/pdf/seconde-ch11-dsblanc-03-sujet.pdf) • [Correction](/assets/pdf/seconde-ch11-dsblanc-03-correction.pdf)
-
----
-
-## 🧪  Devoirs surveillés (confidentiel avant l’évaluation)
-
-- DS 1 — [Sujet](/assets/pdf/seconde-ch11-ds-01-sujet.pdf)
-- DS 1 — [Correction](/assets/pdf/seconde-ch11-ds-01-correction.pdf)
-
-  ---
-
-## 🧪 Devoirs surveillés (confidentiel avant l’évaluation)
-
-Les sujets et corrections des DS sont publiés après l’évaluation.
-
----
-
-## 📁 Divers
-
-- 📄 **Fiche méthode** — [PDF](/assets/pdf/seconde-ch11-fiche-methode.pdf)
-
-- ⚠️ **Erreurs fréquentes**
-  - Confondre **pourcentage** et **coefficient multiplicateur**
-  - Additionner les pourcentages lors d’évolutions successives
-  - Oublier de diviser par la valeur initiale dans un taux d’évolution
-  - Confondre **proportion** et **effectif**
-
-- 🔗 **Liens utiles**
-  - 🌐<a href="https://www.jeuxmaths.fr/exercices-de-maths-tauxdevolution.html" target="_blank">JeuxMaths</a>
-  - 📄 Découverte – Taux d’évolution : [PDF](/assets/pdf/pourc-qr.pdf)
+{{% include cours-cards.html %}}
