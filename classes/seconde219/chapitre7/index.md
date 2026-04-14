@@ -4,15 +4,12 @@ permalink: /classes/seconde219/chapitre7/
 hero_title: "Chapitre 7"
 hero_subtitle: "Notion de fonction"
 
-dossier_pdf: ""
 
 cours:
   - titre: "Cours — Version élève"
     pdf: seconde-ch7-cours-eleve.pdf
-    dossier: ""
   - titre: "Cours — Version professeur"
     pdf: seconde-ch7-cours-prof.pdf
-    dossier: ""
 
 planches:
   - num: 1
