@@ -269,6 +269,7 @@
 
   <!-- ═══════════════════════════════════════════════════════════
        FRACTALE QUATERNION 3D — WebGL (page d'accueil uniquement)
+       Palette : beige nacré / ivoire / fond bleu-gris ciel
        ═══════════════════════════════════════════════════════════ -->
   <script>
   (function () {
@@ -289,12 +290,14 @@ precision highp float;
 uniform vec2  u_res;
 uniform float u_time;
 
-vec3 PAL_BG    = vec3(0.043, 0.122, 0.227);
-vec3 PAL_DEEP  = vec3(0.055, 0.180, 0.320);
-vec3 PAL_GOLD  = vec3(0.820, 0.650, 0.220);
-vec3 PAL_CORAL = vec3(0.920, 0.380, 0.240);
-vec3 PAL_TEAL  = vec3(0.100, 0.620, 0.720);
-vec3 PAL_WHITE = vec3(0.92,  0.96,  1.00);
+/* ── Palette "beige nacré / ivoire / bleu-gris ciel" ── */
+vec3 PAL_BG     = vec3(0.58, 0.68, 0.76);   /* fond : bleu-gris ciel clair    */
+vec3 PAL_SKY    = vec3(0.70, 0.80, 0.88);   /* horizon : bleu pâle            */
+vec3 PAL_IVORY  = vec3(0.96, 0.93, 0.86);   /* ivoire chaud                   */
+vec3 PAL_BEIGE  = vec3(0.88, 0.80, 0.68);   /* beige sable                    */
+vec3 PAL_DARK   = vec3(0.18, 0.14, 0.10);   /* ombre sombre — reflets noirs   */
+vec3 PAL_WARM   = vec3(0.82, 0.72, 0.55);   /* beige doré chaud               */
+vec3 PAL_WHITE  = vec3(0.98, 0.97, 0.94);   /* blanc cassé lustré             */
 
 vec4 qCube(vec4 a) {
   return a * (4.0*a.x*a.x - dot(a,a)*vec4(3.0,1.0,1.0,1.0));
@@ -342,10 +345,12 @@ vec3 calcNormal(vec3 pos, float e, vec4 c) {
 }
 
 vec3 envLight(vec3 dir) {
+  /* ciel bleu-gris clair avec lumière chaude haute */
   float up  = clamp(dir.y * 0.5 + 0.5, 0.0, 1.0);
-  vec3  sky = mix(PAL_DEEP, PAL_TEAL*0.4, up);
-  vec3  glow = PAL_GOLD * pow(max(0.0, dot(dir, normalize(vec3(1.0,0.6,0.4)))), 6.0);
-  return sky + glow * 0.6;
+  vec3  sky = mix(PAL_SKY * 0.85, PAL_BG, up);
+  /* soleil haut et chaud */
+  vec3  sun = PAL_IVORY * pow(max(0.0, dot(dir, normalize(vec3(0.8, 0.9, 0.3)))), 10.0);
+  return sky + sun * 0.5;
 }
 
 void main() {
@@ -374,40 +379,51 @@ void main() {
     vec3  sor  = calcNormal(pos, 0.012, c);
     vec3  ref  = reflect(rd, nor);
 
+    /* Couleur de surface : ivoire → beige → beige doré selon trap */
     float tt   = clamp(tmat.z * 3.5, 0.0, 1.0);
     float tt2  = clamp(tmat.y * 0.4, 0.0, 1.0);
     vec3  mate;
-    if (tt < 0.33)      mate = mix(PAL_DEEP,  PAL_TEAL,  tt * 3.0);
-    else if (tt < 0.66) mate = mix(PAL_TEAL,  PAL_GOLD,  (tt-0.33)*3.0);
-    else                mate = mix(PAL_GOLD,  PAL_CORAL, (tt-0.66)*3.0);
-    mate = mix(mate, PAL_WHITE, tt2 * 0.25);
+    if (tt < 0.33)      mate = mix(PAL_BEIGE, PAL_IVORY, tt * 3.0);
+    else if (tt < 0.66) mate = mix(PAL_IVORY, PAL_WARM,  (tt-0.33)*3.0);
+    else                mate = mix(PAL_WARM,  PAL_WHITE,  (tt-0.66)*3.0);
+    /* Zones lumineuses : blanc lustré */
+    mate = mix(mate, PAL_WHITE, tt2 * 0.35);
 
     float occ   = clamp(tmat.y*0.5 + 0.5*(tmat.y*tmat.y), 0.0, 1.0);
-    float diff  = max(0.0, dot(nor, normalize(vec3(1.0,0.8,0.5))));
-    float diff2 = max(0.0, dot(nor, normalize(vec3(-0.6,0.4,-0.5))));
+    /* Lumière principale : chaude et haute */
+    float diff  = max(0.0, dot(nor, normalize(vec3(0.8, 1.0, 0.4))));
+    /* Lumière de remplissage : froide et latérale */
+    float diff2 = max(0.0, dot(nor, normalize(vec3(-0.5, 0.3, -0.6))));
     vec3  env   = envLight(ref);
 
-    col  = mate * (0.18 + 0.65*diff*PAL_GOLD + 0.20*diff2*PAL_TEAL) * occ;
+    /* Éclairage : ivoire chaud dominant + reflet bleu-gris froid */
+    col  = mate * (0.22 + 0.70*diff*PAL_IVORY + 0.15*diff2*PAL_SKY) * occ;
 
+    /* Rim light : sombre sur les bords (reflets noirs de la vidéo) */
     float rim = pow(clamp(1.0 + dot(rd, sor), 0.0, 1.0), 1.5);
-    col += PAL_CORAL * rim * 0.55 * occ;
+    col += PAL_DARK * rim * 0.60 * occ;
 
+    /* Fresnel : reflet environnement bleu-gris */
     float fre = pow(clamp(1.0 + dot(rd, sor), 0.0, 1.0), 5.0);
-    col  = col * (1.0 - 0.4*fre);
-    col += env * (0.4 + 0.5*fre) * occ * 0.8;
+    col  = col * (1.0 - 0.35*fre);
+    col += env * (0.30 + 0.55*fre) * occ * 0.75;
     col *= mate;
 
   } else {
+    /* Fond : dégradé bleu-gris ciel */
     float fy = uv.y;
-    col = mix(PAL_BG * 0.6, PAL_DEEP, fy * fy);
-    col += PAL_GOLD * exp(-length(p) * 1.4) * 0.08;
+    col = mix(PAL_SKY * 0.80, PAL_BG, fy * fy);
+    col += PAL_IVORY * exp(-length(p) * 2.0) * 0.05;
   }
 
-  float vig = 1.0 - 0.35 * dot(p*0.5, p*0.5);
+  /* Vignette légère */
+  float vig = 1.0 - 0.28 * dot(p*0.5, p*0.5);
   col *= vig;
   col  = pow(clamp(col, 0.0, 1.0), vec3(0.45));
+
+  /* Fondu bas vers le fond de page */
   float fade = 1.0 - smoothstep(0.72, 1.0, 1.0 - uv.y);
-  col  = mix(vec3(0.043, 0.122, 0.227), col, fade);
+  col  = mix(vec3(0.58, 0.68, 0.76), col, fade);
 
   gl_FragColor = vec4(col, 1.0);
 }
