@@ -1,57 +1,66 @@
 ---
-title: "Chapitre 13 – Statistiques descriptives"
+title: "Chapitre 13 — Statistiques descriptives"
 permalink: /classes/seconde205/chapitre13/
 hero_title: "Chapitre 13"
 hero_subtitle: "Statistiques descriptives"
+
+dossier_pdf: ""
+
+cours:
+  - titre: "Cours — Version élève"
+    pdf: seconde-ch13-cours-eleve.pdf
+    dossier: ""
+  - titre: "Cours — Version professeur"
+    pdf: seconde-ch13-cours-prof.pdf
+    dossier: ""
+
+planches:
+  - num: 1
+    pdf: seconde-ch13-planche-01.pdf
+  - num: 2
+    pdf: seconde-ch13-planche-02.pdf
+
+dm:
+  - num: 1
+    pdf: seconde-ch13-dm-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch13-dm-02-sujet.pdf
+
+ds_blancs:
+  - num: 1
+    pdf: seconde-ch13-dsblanc-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch13-dsblanc-02-sujet.pdf
+
+ds_published: true
+ds:
+  - num: 1
+    pdf: seconde-ch13-ds-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch13-ds-02-sujet.pdf
+  - num: 3
+    pdf: seconde-ch13-ds-03-sujet.pdf
+
+erreurs:
+  - "Confondre moyenne, médiane et mode"
+  - "Oublier de pondérer chaque valeur par son effectif dans le calcul de la moyenne"
+  - "Mal déterminer la médiane quand l'effectif total est pair"
+  - "Confondre quartile Q1, médiane Q2 et quartile Q3"
+  - "Oublier que l'écart interquartile = Q3 - Q1 (et non Q3 seul)"
+  - "Mal lire un histogramme : l'aire représente l'effectif, pas la hauteur seule"
+
+liens:
+  - nom: "Mathrix — Statistiques Seconde"
+    desc: "Cours vidéo sur la moyenne, médiane et quartiles"
+    url: "https://www.mathrix.fr/statistiques-seconde/"
+    ico: "🎬"
+    cat: cours
+  - nom: "Khan Academy — Statistiques"
+    desc: "Exercices interactifs sur les statistiques descriptives"
+    url: "https://fr.khanacademy.org/math/statistics-probability"
+    ico: "📚"
+    cat: cours
+
 ---
 
-## 📘 Cours
-
-- [Cours complet — PDF](/assets/pdf/seconde-ch13-cours.pdf)
-
----
-
-## 📝 6 Planches d’exercices (corrigés visibles)
-
-- Planche 1 — [Sujet](/assets/pdf/seconde-ch13-planche-01.pdf) • [Correction](/assets/pdf/seconde-ch13-planche-01-correction.pdf)
-- Planche 2 — [Sujet](/assets/pdf/seconde-ch13-planche-02.pdf) • [Correction](/assets/pdf/seconde-ch13-planche-02-correction.pdf)
-- Planche 3 — [Sujet](/assets/pdf/seconde-ch13-planche-03.pdf) • [Correction](/assets/pdf/seconde-ch13-planche-03-correction.pdf)
-- Planche 4 — [Sujet](/assets/pdf/seconde-ch13-planche-04.pdf) • [Correction](/assets/pdf/seconde-ch13-planche-04-correction.pdf)
-- Planche 5 — [Sujet](/assets/pdf/seconde-ch13-planche-05.pdf) • [Correction](/assets/pdf/seconde-ch13-planche-05-correction.pdf)
-- Planche 6 — [Sujet](/assets/pdf/seconde-ch13-planche-06.pdf) • [Correction](/assets/pdf/seconde-ch13-planche-06-correction.pdf)
-
----
-
-## 🏠 6 Devoirs maison (sujets visibles)
-
-- [DM1 – Sujet](/assets/pdf/seconde-ch13-dm-01-sujet.pdf)
-- [DM2 – Sujet](/assets/pdf/seconde-ch13-dm-02-sujet.pdf)
-- [DM3 – Sujet](/assets/pdf/seconde-ch13-dm-03-sujet.pdf)
-- [DM4 – Sujet](/assets/pdf/seconde-ch13-dm-04-sujet.pdf)
-- [DM5 – Sujet](/assets/pdf/seconde-ch13-dm-05-sujet.pdf)
-- [DM6 – Sujet](/assets/pdf/seconde-ch13-dm-06-sujet.pdf)
-
-> Les corrections des DM sont publiées après le rendu.
-
----
-
-## 🧪 3 Devoirs blancs (sujets + corrigés visibles)
-
-- DS Blanc 1 — [Sujet](/assets/pdf/seconde-ch13-dsblanc-01-sujet.pdf) • [Correction](/assets/pdf/seconde-ch13-dsblanc-01-correction.pdf)
-- DS Blanc 2 — [Sujet](/assets/pdf/seconde-ch13-dsblanc-02-sujet.pdf) • [Correction](/assets/pdf/seconde-ch13-dsblanc-02-correction.pdf)
-- DS Blanc 3 — [Sujet](/assets/pdf/seconde-ch13-dsblanc-03-sujet.pdf) • [Correction](/assets/pdf/seconde-ch13-dsblanc-03-correction.pdf)
-
----
-
-## 🧪 Devoirs surveillés (confidentiel avant l’évaluation)
-
-Les sujets et corrections des DS sont publiés après l’évaluation.
-
----
-
-## 📁 Divers
-
-- Fiche méthode (à venir)
-- Formulaire (à venir)
-- Erreurs fréquentes (à venir)
-- Liens utiles (à venir)
+{{% include cours-cards.html %}}
