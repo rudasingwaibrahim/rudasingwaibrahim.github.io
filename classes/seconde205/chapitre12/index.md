@@ -4,15 +4,12 @@ permalink: /classes/seconde205/chapitre12/
 hero_title: "Chapitre 12"
 hero_subtitle: "Les fonctions de référence"
 
-dossier_pdf: ""
 
 cours:
   - titre: "Cours — Version élève"
     pdf: seconde-ch12-cours-eleve.pdf
-    dossier: ""
   - titre: "Cours — Version professeur"
     pdf: seconde-ch12-cours-prof.pdf
-    dossier: ""
 
 planches:
   - num: 1
