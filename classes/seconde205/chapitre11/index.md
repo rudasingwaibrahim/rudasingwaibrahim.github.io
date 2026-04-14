@@ -4,15 +4,12 @@ permalink: /classes/seconde205/chapitre11/
 hero_title: "Chapitre 11"
 hero_subtitle: "Information chiffrée"
 
-dossier_pdf: ""
 
 cours:
   - titre: "Cours — Version élève"
     pdf: seconde-ch11-cours-eleve.pdf
-    dossier: ""
   - titre: "Cours — Version professeur"
     pdf: seconde-ch11-cours-prof.pdf
-    dossier: ""
 
 planches:
   - num: 1
