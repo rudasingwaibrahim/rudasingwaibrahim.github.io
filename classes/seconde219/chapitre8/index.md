@@ -4,15 +4,12 @@ permalink: /classes/seconde219/chapitre8/
 hero_title: "Chapitre 8"
 hero_subtitle: "Nombres réels (Partie 2)"
 
-dossier_pdf: ""
 
 cours:
   - titre: "Cours — Version élève"
     pdf: seconde-ch8-cours-eleve.pdf
-    dossier: ""
   - titre: "Cours — Version professeur"
     pdf: seconde-ch8-cours-prof.pdf
-    dossier: ""
 
 planches:
   - num: 1
