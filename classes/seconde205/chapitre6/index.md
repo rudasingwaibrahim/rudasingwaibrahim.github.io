@@ -4,15 +4,12 @@ permalink: /classes/seconde205/chapitre6/
 hero_title: "Chapitre 6"
 hero_subtitle: "Nombres réels (Partie 1)"
 
-dossier_pdf: ""
 
 cours:
   - titre: "Cours — Version élève"
     pdf: seconde-ch6-cours-eleve.pdf
-    dossier: ""
   - titre: "Cours — Version professeur"
     pdf: seconde-ch6-cours-prof.pdf
-    dossier: ""
 
 planches:
   - num: 1
