@@ -91,4 +91,4 @@ liens:
 
 ---
 
-{{% include cours-cards.html %}}
+{% include cours-cards.html %}
