@@ -1,32 +1,66 @@
 ---
-title: "Chapitre 14 - Variations d'une fonction"
+title: "Chapitre 14 — Variations d'une fonction"
 permalink: /classes/seconde205/chapitre14/
 hero_title: "Chapitre 14"
 hero_subtitle: "Variations d'une fonction"
+
+dossier_pdf: ""
+
+cours:
+  - titre: "Cours — Version élève"
+    pdf: seconde-ch14-cours-eleve.pdf
+    dossier: ""
+  - titre: "Cours — Version professeur"
+    pdf: seconde-ch14-cours-prof.pdf
+    dossier: ""
+
+planches:
+  - num: 1
+    pdf: seconde-ch14-planche-01.pdf
+  - num: 2
+    pdf: seconde-ch14-planche-02.pdf
+
+dm:
+  - num: 1
+    pdf: seconde-ch14-dm-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch14-dm-02-sujet.pdf
+
+ds_blancs:
+  - num: 1
+    pdf: seconde-ch14-dsblanc-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch14-dsblanc-02-sujet.pdf
+
+ds_published: true
+ds:
+  - num: 1
+    pdf: seconde-ch14-ds-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch14-ds-02-sujet.pdf
+  - num: 3
+    pdf: seconde-ch14-ds-03-sujet.pdf
+
+erreurs:
+  - "Confondre croissante et positive : une fonction peut être croissante et négative"
+  - "Mal lire un tableau de variations : les flèches indiquent le sens de variation"
+  - "Confondre maximum local et maximum global"
+  - "Oublier que le maximum d'une fonction est une valeur de f (et non un x)"
+  - "Mal déterminer les extrema à partir d'un tableau de variations"
+  - "Confondre f(x) > 0 (signe) et f croissante (variation)"
+
+liens:
+  - nom: "Mathrix — Variations d'une fonction"
+    desc: "Cours vidéo sur les tableaux de variations"
+    url: "https://www.mathrix.fr/variations-fonction-seconde/"
+    ico: "🎬"
+    cat: cours
+  - nom: "GeoGebra — Visualiser les variations"
+    desc: "Explorer les variations d'une fonction graphiquement"
+    url: "https://www.geogebra.org/calculator"
+    ico: "📐"
+    cat: calcul
+
 ---
-## 📘  Cours
-- [Cours complet — PDF élève](/assets/pdf/seconde/seconde-ch14-cours-eleve.pdf)
-- [Cours complet — PDF prof](/assets/pdf/seconde/seconde-ch14-cours-prof.pdf)
-## 📝  2 Planches d'exercices
-- Planche 1 — [Sujet et corrigé](/assets/pdf/seconde/seconde-ch14-planche-01.pdf)
-- Planche 2 — [Sujet et corrigé](/assets/pdf/seconde/seconde-ch14-planche-02.pdf)
-## ✍️  2 Devoirs blancs
-- DS Blanc 1 — [Sujet et corrigé](/assets/pdf/seconde/seconde-ch14-dsblanc-01-sujet.pdf)
-- DS Blanc 2 — [Sujet et corrigé](/assets/pdf/seconde/seconde-ch14-dsblanc-02-sujet.pdf)
-## 🏠  2 Devoirs maison
-- DM 1 — *document à venir*
-- DM 2 — *document à venir*
-## 🧪  Devoirs surveillés
-- DS 1 — *document à venir*
-- DS 2 — *document à venir*
-- DS 3 — *document à venir*
-## 📁 Divers
-- ⚠️ **Erreurs fréquentes**
-  - Confondre **maximum absolu** et **maximum relatif**
-  - Lire incorrectement un **tableau de variations**
-  - Oublier de préciser **l'intervalle** sur lequel on raisonne
-  - Utiliser la croissance de x au lieu des variations de x² pour comparer (-3)² et 1²
-  - Conclure qu'une fonction est croissante à partir de **deux valeurs seulement**
-  - Confondre **extremum aux bornes** et **extremum relatif**
-- 🔗 **Liens utiles**
-  - 🌐 <a href="https://www.jeuxmaths.fr/exercices-de-maths-fonctions.html" target="_blank">JeuxMaths — Exercices interactifs sur les fonctions</a>
+
+{{% include cours-cards.html %}}
