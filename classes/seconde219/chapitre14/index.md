@@ -4,15 +4,12 @@ permalink: /classes/seconde219/chapitre14/
 hero_title: "Chapitre 14"
 hero_subtitle: "Variations d'une fonction"
 
-dossier_pdf: ""
 
 cours:
   - titre: "Cours — Version élève"
     pdf: seconde-ch14-cours-eleve.pdf
-    dossier: ""
   - titre: "Cours — Version professeur"
     pdf: seconde-ch14-cours-prof.pdf
-    dossier: ""
 
 planches:
   - num: 1
