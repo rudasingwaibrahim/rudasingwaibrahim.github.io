@@ -47,47 +47,66 @@ Les sujets sont publiés après le passage du contrôle.
 
 ## 📁 Divers
 
-### Erreurs fréquentes à éviter
+### ⚠️ Erreurs fréquentes à éviter
 
-- Oublier la constante d'intégration `+ C` dans les primitives indéfinies
-- Confondre la dérivée et la primitive d'une fonction
+- Oublier la constante `+ C` dans les primitives indéfinies
+- Confondre dérivée et primitive d'une fonction
 - Mal appliquer la linéarité de l'intégrale
 - Inverser les bornes sans changer le signe
-- Oublier que l'intégrale de `a` à `b` est l'opposée de celle de `b` à `a`
 - Oublier la valeur absolue pour l'aire entre deux courbes
 - Confondre aire algébrique et aire géométrique
-- Erreurs dans les primitives usuelles : sinus, cosinus, exponentielle, puissances
+- Erreurs dans les primitives usuelles : sin, cos, exp, puissances
 
 ---
 
 ### 🔗 Liens utiles
 
-#### Calculer et vérifier
+#### 🧮 Calculer et vérifier en ligne
 
-- 🧮 **Wolfram Alpha — Calculatrice d'intégrales** (avec détail des étapes)
-  [integral-calculator — WolframAlpha](https://www.wolframalpha.com/calculators/integral-calculator/)
+**Wolfram Alpha** — calculatrice d'intégrales avec détail complet des étapes
 
-- 📐 **GeoGebra — Visualiser l'intégrale et l'aire** (applet interactif, bornes réglables)
-  [Applet intégrale interactive — GeoGebra](https://www.geogebra.org/m/ACVXrSjF)
+→ <a href="https://www.wolframalpha.com/calculators/integral-calculator/" target="_blank" rel="noopener">Ouvrir Wolfram Alpha</a>
 
-- 📊 **GeoGebra — Méthode des rectangles** (comprendre la définition de l'intégrale)
-  [Méthode des rectangles — GeoGebra](https://www.geogebra.org/m/hwdV4TyX)
+---
 
-#### Cours et exercices en ligne
+**GeoGebra** — visualiser l'aire sous une courbe, bornes réglables en direct
 
-- 📖 **Bibm@th — Cours et exercices BTS analyse**
-  [Calcul intégral — Bibm@th](https://www.bibmath.net/ressources/index.php?action=affiche&quoi=bts/analyse/integration.html)
+→ <a href="https://www.geogebra.org/m/ACVXrSjF" target="_blank" rel="noopener">Ouvrir l'applet GeoGebra — Intégrale</a>
 
-- 📝 **Math'O karé — TC Calcul intégral** (cours détaillé avec applets GeoGebra)
-  [TC Calcul intégral — Math'O karé](https://mathokare.re/2021/06/07/tc-calcul-integral/)
+---
 
-- 🎓 **Mon lycée numérique — Calcul intégral** (avec Xcas et Python en ligne)
-  [Calcul intégral — monlyceenumerique.fr](http://www.monlyceenumerique.fr/maths_en1/integrale/integrale.html)
+**GeoGebra** — comprendre la définition de l'intégrale par la méthode des rectangles
 
-#### Outils de calcul formel
+→ <a href="https://www.geogebra.org/m/hwdV4TyX" target="_blank" rel="noopener">Ouvrir l'applet GeoGebra — Méthode des rectangles</a>
 
-- ⚙️ **GeoGebra Calculatrice** — taper `Integrale(f(x), a, b)` pour calculer directement
-  [GeoGebra en ligne](https://www.geogebra.org/calculator)
+---
 
-- ⚙️ **Symbolab** — calcul de primitives et intégrales avec étapes détaillées en français
-  [symbolab.com/solver/integral-calculator](https://www.symbolab.com/solver/integral-calculator)
+**GeoGebra Calculatrice** — taper `Integrale(f(x), a, b)` pour calculer directement
+
+→ <a href="https://www.geogebra.org/calculator" target="_blank" rel="noopener">Ouvrir GeoGebra Calculatrice</a>
+
+---
+
+**Symbolab** — primitives et intégrales avec étapes détaillées en français
+
+→ <a href="https://www.symbolab.com/solver/integral-calculator" target="_blank" rel="noopener">Ouvrir Symbolab</a>
+
+---
+
+#### 📖 Cours et exercices
+
+**Bibm@th** — cours et exercices BTS analyse
+
+→ <a href="https://www.bibmath.net/ressources/index.php?action=affiche&quoi=bts/analyse/integration.html" target="_blank" rel="noopener">Ouvrir Bibm@th</a>
+
+---
+
+**Math'O karé** — cours complet avec applets GeoGebra intégrés
+
+→ <a href="https://mathokare.re/2021/06/07/tc-calcul-integral/" target="_blank" rel="noopener">Ouvrir Math'O karé</a>
+
+---
+
+**Mon lycée numérique** — cours avec outils Xcas et Python en ligne
+
+→ <a href="http://www.monlyceenumerique.fr/maths_en1/integrale/integrale.html" target="_blank" rel="noopener">Ouvrir Mon lycée numérique</a>
