@@ -1,73 +1,66 @@
 ---
-title: "Chapitre 12 - Fonctions de référence"
+title: "Chapitre 12 — Les fonctions de référence"
 permalink: /classes/seconde205/chapitre12/
 hero_title: "Chapitre 12"
-hero_subtitle: "Fonctions de référence"
+hero_subtitle: "Les fonctions de référence"
+
+dossier_pdf: ""
+
+cours:
+  - titre: "Cours — Version élève"
+    pdf: seconde-ch12-cours-eleve.pdf
+    dossier: ""
+  - titre: "Cours — Version professeur"
+    pdf: seconde-ch12-cours-prof.pdf
+    dossier: ""
+
+planches:
+  - num: 1
+    pdf: seconde-ch12-planche-01.pdf
+  - num: 2
+    pdf: seconde-ch12-planche-02.pdf
+
+dm:
+  - num: 1
+    pdf: seconde-ch12-dm-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch12-dm-02-sujet.pdf
+
+ds_blancs:
+  - num: 1
+    pdf: seconde-ch12-dsblanc-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch12-dsblanc-02-sujet.pdf
+
+ds_published: true
+ds:
+  - num: 1
+    pdf: seconde-ch12-ds-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch12-ds-02-sujet.pdf
+  - num: 3
+    pdf: seconde-ch12-ds-03-sujet.pdf
+
+erreurs:
+  - "Confondre les courbes de x², x³, 1/x et sqrt(x)"
+  - "Oublier le domaine de définition : sqrt(x) définie sur [0;+infini[, 1/x sur R*"
+  - "Oublier que x² est décroissante sur ]-infini;0] et croissante sur [0;+infini["
+  - "Confondre la parité : x² est paire, x³ est impaire"
+  - "Mal lire les variations d'une fonction sur un graphique"
+  - "Oublier que 1/x est décroissante sur chacun des intervalles ]-infini;0[ et ]0;+infini["
+
+liens:
+  - nom: "Mathrix — Fonctions de référence"
+    desc: "Cours vidéo sur les fonctions usuelles"
+    url: "https://www.mathrix.fr/fonctions-references-seconde/"
+    ico: "🎬"
+    cat: cours
+  - nom: "GeoGebra — Traceur de fonctions"
+    desc: "Visualiser et comparer les fonctions de référence"
+    url: "https://www.geogebra.org/calculator"
+    ico: "📐"
+    cat: calcul
+
 ---
 
-## 📘  Cours
-
-- [Cours complet — PDF](/assets/pdf/seconde-ch12-cours.pdf)
-
----
-
-## 📝  6 Planches d’exercices (corrigés visibles)
-
-- Planche 1 — [Sujet](/assets/pdf/seconde-ch12-planche-01.pdf) • [Correction](/assets/pdf/seconde/chapitre12/planche/seconde-ch12-planche-01-correction.pdf)
-- Planche 2 — [Sujet](/assets/pdf/seconde-ch12-planche-02.pdf) • [Correction](/assets/pdf/seconde-ch12-planche-02-correction.pdf)
-- Planche 3 — [Sujet](/assets/pdf/seconde-ch12-planche-03.pdf) • [Correction](/assets/pdf/seconde-ch12-planche-03-correction.pdf)
-- Planche 4 — [Sujet](/assets/pdf/seconde-ch12-planche-04.pdf) • [Correction](/assets/pdf/seconde-ch12-planche-04-correction.pdf)
-- Planche 5 — [Sujet](/assets/pdf/seconde-ch12-planche-05.pdf) • [Correction](/assets/pdf/seconde-ch12-planche-05-correction.pdf)
-- Planche 6 — [Sujet](/assets/pdf/seconde-ch12-planche-06.pdf) • [Correction](/assets/pdf/seconde-ch12-planche-06-correction.pdf)
-
----
-
-## 🏠  6 Devoirs maison (sujets visibles)
-
-- [DM1 — Sujet](/assets/pdf/seconde-ch12-dm-01-sujet.pdf)
-- [DM2 — Sujet](/assets/pdf/seconde-ch12-dm-02-sujet.pdf)
-- [DM3 — Sujet](/assets/pdf/seconde-ch12-dm-03-sujet.pdf)
-- [DM4 — Sujet](/assets/pdf/seconde-ch12-dm-04-sujet.pdf)
-- [DM5 — Sujet](/assets/pdf/seconde-ch12-dm-05-sujet.pdf)
-- [DM6 — Sujet](/assets/pdf/seconde-ch12-dm-06-sujet.pdf)
-
-> Les corrections des DM sont publiées après le rendu.
-
----
-
-## ✍️  3 Devoirs blancs (sujets + corrigés visibles)
-
-- DS Blanc 1 — [Sujet](/assets/pdf/seconde-ch12-dsblanc-01-sujet.pdf) • [Correction](/assets/pdf/seconde-ch12-dsblanc-01-correction.pdf)
-- DS Blanc 2 — [Sujet](/assets/pdf/seconde-ch12-dsblanc-02-sujet.pdf) • [Correction](/assets/pdf/seconde-ch12-dsblanc-02-correction.pdf)
-- DS Blanc 3 — [Sujet](/assets/pdf/seconde-ch12-dsblanc-03-sujet.pdf) • [Correction](/assets/pdf/seconde-ch12-dsblanc-03-correction.pdf)
-
----
-
-## 🧪  Devoirs surveillés (confidentiel avant l’évaluation)
-
-- DS 1 — [Sujet](/assets/pdf/seconde-ch12-ds-01-sujet.pdf)
-- DS 1 — [Correction](/assets/pdf/seconde-ch12-ds-01-correction.pdf)
-
----
-
-## 🧪 Devoirs surveillés (confidentiel avant l’évaluation)
-
-Les sujets et corrections des DS sont publiés après l’évaluation.
-
----
-
-## 📁 Divers
-
-- 📄 **Fiche méthode** — [PDF](/assets/pdf/seconde-ch12-fiche-methode.pdf)
-
-- ⚠️ **Erreurs fréquentes**
-  - Confondre **fonction paire** et **fonction impaire**
-  - Oublier que $\sqrt{x}$ n’est définie que pour $x \ge 0$
-  - Oublier que $\dfrac{1}{x}$ n’est pas définie en $0$
-  - Confondre les comportements de $x$, $x^2$ et $x^3$
-
-- 🔗 **Liens utiles**
-  - 🌐 Exercices interactifs – Parité : [JeuxMaths](https://www.jeuxmaths.fr/exercice-de-math-parite-courbe-representative.html)
-  - 🌐 Exercices interactifs – Fonction Carré: [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-fonctioncarre.html)
-  - 🌐 Exercices interactifs – Fonction Inverse : [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-fonctioninverse.html)
-  - 🌐 Exercices interactifs – Équations Inéquations : [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-inequations.html) 
+{{% include cours-cards.html %}}
