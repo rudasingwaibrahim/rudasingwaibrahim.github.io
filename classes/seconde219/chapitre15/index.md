@@ -4,15 +4,12 @@ permalink: /classes/seconde219/chapitre15/
 hero_title: "Chapitre 15"
 hero_subtitle: "Droites du plan"
 
-dossier_pdf: ""
 
 cours:
   - titre: "Cours — Version élève"
     pdf: seconde-ch15-cours-eleve.pdf
-    dossier: ""
   - titre: "Cours — Version professeur"
     pdf: seconde-ch15-cours-prof.pdf
-    dossier: ""
 
 planches:
   - num: 1
