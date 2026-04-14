@@ -4,15 +4,12 @@ permalink: /classes/seconde205/chapitre10/
 hero_title: "Chapitre 10"
 hero_subtitle: "Équations et inéquations"
 
-dossier_pdf: ""
 
 cours:
   - titre: "Cours — Version élève"
     pdf: seconde-ch10-cours-eleve.pdf
-    dossier: ""
   - titre: "Cours — Version professeur"
     pdf: seconde-ch10-cours-prof.pdf
-    dossier: ""
 
 planches:
   - num: 1
