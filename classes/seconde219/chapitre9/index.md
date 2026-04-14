@@ -4,15 +4,12 @@ permalink: /classes/seconde219/chapitre9/
 hero_title: "Chapitre 9"
 hero_subtitle: "Vecteurs et repérage"
 
-dossier_pdf: ""
 
 cours:
   - titre: "Cours — Version élève"
     pdf: seconde-ch9-cours-eleve.pdf
-    dossier: ""
   - titre: "Cours — Version professeur"
     pdf: seconde-ch9-cours-prof.pdf
-    dossier: ""
 
 planches:
   - num: 1
