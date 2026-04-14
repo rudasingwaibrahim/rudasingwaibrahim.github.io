@@ -4,15 +4,12 @@ permalink: /classes/seconde205/chapitre2/
 hero_title: "Chapitre 2"
 hero_subtitle: "Puissances et racines carrées"
 
-dossier_pdf: ""
 
 cours:
   - titre: "Cours — Version élève"
     pdf: seconde-ch2-cours-eleve.pdf
-    dossier: ""
   - titre: "Cours — Version professeur"
     pdf: seconde-ch2-cours-prof.pdf
-    dossier: ""
 
 planches:
   - num: 1
