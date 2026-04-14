@@ -4,15 +4,12 @@ permalink: /classes/seconde219/chapitre1/
 hero_title: "Chapitre 1"
 hero_subtitle: "Calcul algébrique"
 
-dossier_pdf: ""
 
 cours:
   - titre: "Cours — Version élève"
     pdf: seconde-ch1-cours-eleve.pdf
-    dossier: ""
   - titre: "Cours — Version professeur"
     pdf: seconde-ch1-cours-prof.pdf
-    dossier: ""
 
 planches:
   - num: 1
