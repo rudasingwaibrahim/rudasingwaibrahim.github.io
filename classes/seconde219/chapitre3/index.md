@@ -4,15 +4,12 @@ permalink: /classes/seconde219/chapitre3/
 hero_title: "Chapitre 3"
 hero_subtitle: "Les vecteurs (Partie 1)"
 
-dossier_pdf: ""
 
 cours:
   - titre: "Cours — Version élève"
     pdf: seconde-ch3-cours-eleve.pdf
-    dossier: ""
   - titre: "Cours — Version professeur"
     pdf: seconde-ch3-cours-prof.pdf
-    dossier: ""
 
 planches:
   - num: 1
