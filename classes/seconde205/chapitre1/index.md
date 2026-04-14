@@ -8,8 +8,7 @@ cours:
     fichier: /assets/pdf/seconde205/ch1/cours-eleve.pdf
   - titre: "Cours — Version professeur"
     fichier: /assets/pdf/seconde205/ch1/cours-prof.pdf
-exercices: []
-devoirs: []
+ds_published: false
 liens:
   - nom: "Lumni — Développer et réduire"
     desc: "Vidéo sur le développement et la réduction d'expressions algébriques"
