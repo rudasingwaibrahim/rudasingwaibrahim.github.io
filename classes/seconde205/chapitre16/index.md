@@ -4,15 +4,12 @@ permalink: /classes/seconde205/chapitre16/
 hero_title: "Chapitre 16"
 hero_subtitle: "Probabilités"
 
-dossier_pdf: ""
 
 cours:
   - titre: "Cours — Version élève"
     pdf: seconde-ch16-cours-eleve.pdf
-    dossier: ""
   - titre: "Cours — Version professeur"
     pdf: seconde-ch16-cours-prof.pdf
-    dossier: ""
 
 planches:
   - num: 1
