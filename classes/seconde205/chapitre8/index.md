@@ -1,8 +1,8 @@
 ---
-title: "Chapitre 8 — Intervalles et valeur absolue"
+title: "Chapitre 8 — Nombres réels (Partie 2)"
 permalink: /classes/seconde205/chapitre8/
 hero_title: "Chapitre 8"
-hero_subtitle: "Intervalles et valeur absolue"
+hero_subtitle: "Nombres réels (Partie 2)"
 
 dossier_pdf: ""
 
@@ -42,34 +42,35 @@ ds:
     pdf: seconde-ch8-ds-03-sujet.pdf
 
 erreurs:
-  - "Confondre crochet ouvert et fermé : 5 appartient à [2 ; 5] mais pas à [2 ; 5["
+  - "Confondre crochet ouvert et fermé : 5 appartient à [2;5] mais pas à [2;5["
   - "Multiplier ou diviser par un négatif inverse le sens de l'inégalité"
   - "Oublier les deux solutions de |x-a| = r : x = a-r ET x = a+r"
-  - "Confondre l'intersection (ET, zone commune) et la réunion (OU, zone totale)"
+  - "Confondre intersection (ET) et réunion (OU) d'intervalles"
   - "Écrire [-infini ; a] : l'infini n'est pas un réel, toujours ]-infini ; a]"
-  - "Oublier que |x-a| inférieur ou égal à r donne un intervalle centré en a d'amplitude 2r"
+  - "Oublier que |x-a| inférieur ou égal à r donne un intervalle centré en a de demi-longueur r"
 
 liens:
-  - nom: "Intervalles — cours vidéo"
-    desc: "Vidéo explicative sur les intervalles"
-    url: "https://youtu.be/mvJy4LVCmRI"
+  - nom: "Mathrix — Intervalles Seconde"
+    desc: "Cours vidéo sur les intervalles et la valeur absolue"
+    url: "https://www.mathrix.fr/intervalles-seconde/"
     ico: "🎬"
-  - nom: "Valeur absolue — cours vidéo"
-    desc: "Vidéo explicative sur la valeur absolue"
-    url: "https://youtu.be/5-rUuceEgAE"
-    ico: "🎬"
-  - nom: "Résoudre |x-a| inférieur ou égal à r"
-    desc: "Méthode de résolution en vidéo"
-    url: "https://youtu.be/kTJ09D1Bzs0"
-    ico: "🎬"
+    cat: cours
   - nom: "Khan Academy — Valeur absolue"
-    desc: "Exercices interactifs en français"
+    desc: "Exercices interactifs sur la valeur absolue"
     url: "https://fr.khanacademy.org/math/algebra/absolute-value"
     ico: "📚"
-  - nom: "Mathrix — Intervalles Seconde"
-    desc: "Cours et exercices corrigés"
-    url: "https://www.mathrix.fr/intervalles-seconde/"
-    ico: "📝"
+    cat: cours
+  - nom: "Intervalles — cours vidéo"
+    desc: "Cours vidéo complémentaire"
+    url: "https://youtu.be/mvJy4LVCmRI"
+    ico: "🎬"
+    cat: cours
+  - nom: "Valeur absolue — cours vidéo"
+    desc: "Méthode de résolution en vidéo"
+    url: "https://youtu.be/5-rUuceEgAE"
+    ico: "🎬"
+    cat: cours
+
 ---
 
-{% include cours-cards.html %}
+{{% include cours-cards.html %}}
