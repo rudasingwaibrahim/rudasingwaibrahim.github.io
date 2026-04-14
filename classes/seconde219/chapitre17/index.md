@@ -4,15 +4,12 @@ permalink: /classes/seconde219/chapitre17/
 hero_title: "Chapitre 17"
 hero_subtitle: "Systèmes d'équations et droites"
 
-dossier_pdf: ""
 
 cours:
   - titre: "Cours — Version élève"
     pdf: seconde-ch17-cours-eleve.pdf
-    dossier: ""
   - titre: "Cours — Version professeur"
     pdf: seconde-ch17-cours-prof.pdf
-    dossier: ""
 
 planches:
   - num: 1
