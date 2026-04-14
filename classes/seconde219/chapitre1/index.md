@@ -1,44 +1,66 @@
 ---
-title: "Chapitre 1 - Calcul algébrique"
+title: "Chapitre 1 — Calcul algébrique"
 permalink: /classes/seconde219/chapitre1/
 hero_title: "Chapitre 1"
 hero_subtitle: "Calcul algébrique"
----
-## 📘  Cours
-- [Cours complet — PDF élève](/assets/pdf/seconde-ch1-cours-eleve.pdf)
-- [Cours complet — PDF prof](/assets/pdf/seconde-ch1-cours-prof.pdf)
+
+dossier_pdf: ""
+
+cours:
+  - titre: "Cours — Version élève"
+    pdf: seconde-ch1-cours-eleve.pdf
+    dossier: ""
+  - titre: "Cours — Version professeur"
+    pdf: seconde-ch1-cours-prof.pdf
+    dossier: ""
+
+planches:
+  - num: 1
+    pdf: seconde-ch1-planche-01.pdf
+  - num: 2
+    pdf: seconde-ch1-planche-02.pdf
+
+dm:
+  - num: 1
+    pdf: seconde-ch1-dm-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch1-dm-02-sujet.pdf
+
+ds_blancs:
+  - num: 1
+    pdf: seconde-ch1-dsblanc-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch1-dsblanc-02-sujet.pdf
+
+ds_published: true
+ds:
+  - num: 1
+    pdf: seconde-ch1-ds-01-sujet.pdf
+  - num: 2
+    pdf: seconde-ch1-ds-02-sujet.pdf
+  - num: 3
+    pdf: seconde-ch1-ds-03-sujet.pdf
+
+erreurs:
+  - "Oublier de distribuer le signe moins : -(a-b) = -a+b et non -a-b"
+  - "Confondre réduire (developper) et factoriser : ce sont des opérations opposées"
+  - "Erreur dans (a-b)² = a² - 2ab + b² (pas a² + b²)"
+  - "Oublier les identités remarquables : (a+b)², (a-b)², (a+b)(a-b)"
+  - "Annuler un facteur commun sans vérifier qu'il est non nul"
+  - "Confondre le carré d'une somme et la somme des carrés : (a+b)² ≠ a²+b²"
+
+liens:
+  - nom: "Mathrix — Calcul algébrique"
+    desc: "Cours vidéo complet avec exercices corrigés"
+    url: "https://www.mathrix.fr/calcul-algebrique-seconde/"
+    ico: "🎬"
+    cat: cours
+  - nom: "Khan Academy — Algèbre"
+    desc: "Exercices interactifs progressifs en français"
+    url: "https://fr.khanacademy.org/math/algebra"
+    ico: "📚"
+    cat: cours
 
 ---
-## 📝  2 Planches d'exercices
-- Planche 1 — [Sujet](/assets/pdf/seconde-ch1-planche-01.pdf) 
-- Planche 2 — [Sujet](/assets/pdf/seconde-ch1-planche-02.pdf) 
 
----
-## 🏠  2 Devoirs maison
-- [DM1 — Sujet](/assets/pdf/seconde-ch1-dm-01-sujet.pdf)
-- [DM2 — Sujet](/assets/pdf/seconde-ch1-dm-02-sujet.pdf) 
-
----
-## ✍️  2 Devoirs blancs
-- DS Blanc 1 — [Sujet](/assets/pdf/seconde-ch1-dsblanc-01-sujet.pdf) 
-- DS Blanc 2 — [Sujet](/assets/pdf/seconde-ch1-dsblanc-02-sujet.pdf) 
-
----
-## 🧪  Devoirs surveillés
-- DS 1 — [Sujet](/assets/pdf/seconde-ch1-ds-01-sujet.pdf)
-- DS 2 — [Sujet](/assets/pdf/seconde-ch1-ds-02-sujet.pdf)
-
----
-## 📁 Divers
-- 📄 **Fiche méthode** — [PDF](/assets/pdf/seconde-ch1-fiche-methode.pdf)
-- ⚠️ **Erreurs fréquentes**
-  - Oublier les règles de priorité des opérations
-  - Faire des erreurs de signe lors des développements
-  - Confondre **développement** et **factorisation**
-  - Mal utiliser les identités remarquables
-  - Oublier de simplifier une expression
-  - Faire des erreurs dans la réduction de termes semblables
-  - Oublier les parenthèses dans un calcul
-  - Mal gérer les fractions algébriques
-- 🔗 **Liens utiles**
-  - 🌐 Exercices interactifs – Calcul algébrique : [JeuxMaths](https://www.jeuxmaths.fr/exercices-de-maths-calcul.html)
+{{% include cours-cards.html %}}
