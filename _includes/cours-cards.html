@@ -1,102 +1,354 @@
-{% comment %} _includes/cours-cards.html Supporte : - cours, planches, dm, ds_blancs, ds (avec correction optionnelle) - ds_published: true/false - erreurs, liens (cat: calcul / cours) - dossier_pdf : chemin relatif sous /assets/pdf/ {% endcomment %}
-{% comment %}── COURS ──{% endcomment %} {% if page.cours %}
-📘 Cours
+{% comment %}
+  _includes/cours-cards.html
+  Supporte :
+    - cours, planches, dm, ds_blancs, ds (avec correction optionnelle)
+    - ds_published: true/false
+    - erreurs, liens (cat: calcul / cours)
+    - dossier_pdf : chemin relatif sous /assets/pdf/
+{% endcomment %}
+
+<style>
+.cc a { text-decoration: none; color: inherit; }
+.cc a:hover { text-decoration: none; }
+
+.cc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 12px;
+  margin: 1rem 0 2rem;
+}
+
+.cc-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.11);
+  color: inherit;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.cc-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
+  pointer-events: none;
+}
+.cc-card:hover {
+  background: rgba(255,255,255,0.09);
+  border-color: rgba(99,179,255,0.38);
+  transform: translateY(-2px);
+}
+.cc-card.locked {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
+
+.cc-ico { font-size: 24px; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+
+.cc-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.cc-title { font-weight: 600; font-size: 0.92rem; line-height: 1.25; }
+.cc-sub { font-size: 0.75rem; opacity: 0.58; line-height: 1.3; }
+
+.cc-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 6px;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  width: fit-content;
+  background: rgba(99,179,255,0.18);
+  color: #63b3ff;
+  border: 1px solid rgba(99,179,255,0.28);
+}
+.cc-badge.dm   { background: rgba(110,220,140,0.14); color: #68d391; border-color: rgba(110,220,140,0.28); }
+.cc-badge.dsb  { background: rgba(246,173,85,0.14);  color: #f6ad55; border-color: rgba(246,173,85,0.28); }
+.cc-badge.soon { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.28); border-color: rgba(255,255,255,0.10); }
+
+/* Boutons sujet / correction dans une carte */
+.cc-btns {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.cc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 7px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s;
+  border: 1px solid;
+}
+.cc-btn.sujet {
+  background: rgba(99,179,255,0.14);
+  color: #63b3ff;
+  border-color: rgba(99,179,255,0.28);
+}
+.cc-btn.sujet:hover { background: rgba(99,179,255,0.28); }
+.cc-btn.corr {
+  background: rgba(110,220,140,0.12);
+  color: #68d391;
+  border-color: rgba(110,220,140,0.26);
+}
+.cc-btn.corr:hover { background: rgba(110,220,140,0.24); }
+
+.cc-sep { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 2rem 0; }
+
+.cc-section {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cc-errors {
+  background: rgba(229,62,62,0.07);
+  border: 1px solid rgba(229,62,62,0.20);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 2rem;
+}
+.cc-errors ul { margin: 0; padding-left: 18px; }
+.cc-errors li { font-size: 0.86rem; opacity: 0.85; margin-bottom: 6px; line-height: 1.45; }
+.cc-errors li:last-child { margin-bottom: 0; }
+
+.cc-link-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 13px 16px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 10px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.cc-link-row:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.14); }
+.cc-link-ico { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+.cc-link-body { display: flex; flex-direction: column; gap: 3px; }
+.cc-link-name { font-weight: 600; font-size: 0.90rem; }
+.cc-link-desc { font-size: 0.75rem; opacity: 0.55; line-height: 1.35; }
+.cc-link-btn {
+  display: inline-block;
+  margin-top: 7px;
+  padding: 4px 14px;
+  border-radius: 7px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  background: rgba(99,179,255,0.15);
+  color: #63b3ff;
+  border: 1px solid rgba(99,179,255,0.28);
+  text-decoration: none;
+  width: fit-content;
+  transition: background 0.15s;
+}
+.cc-link-btn:hover { background: rgba(99,179,255,0.28); text-decoration: none; }
+.cc-links-label {
+  font-size: 0.70rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.32);
+  margin: 1.4rem 0 0.6rem;
+}
+</style>
+
+<div class="cc">
+
+{% comment %}── COURS ──{% endcomment %}
+{% if page.cours %}
+<div class="cc-section">📘 Cours</div>
+<div class="cc-grid">
 {% for item in page.cours %}
-📄
-{{ item.titre }}
-{% if item.sub %}
-{{ item.sub }}
-{% endif %}
-PDF
+  <a class="cc-card" href="/assets/pdf/{{ item.dossier }}/{{ item.pdf }}">
+    <span class="cc-ico">📄</span>
+    <div class="cc-info">
+      <span class="cc-title">{{ item.titre }}</span>
+      {% if item.sub %}<span class="cc-sub">{{ item.sub }}</span>{% endif %}
+      <span class="cc-badge">PDF</span>
+    </div>
+  </a>
 {% endfor %}
-{% endif %} {% comment %}── PLANCHES ──{% endcomment %} {% if page.planches %}
-📝 Planches d'exercices
+</div>
+<hr class="cc-sep">
+{% endif %}
+
+{% comment %}── PLANCHES ──{% endcomment %}
+{% if page.planches %}
+<div class="cc-section">📝 Planches d'exercices</div>
+<div class="cc-grid">
 {% for item in page.planches %}
-🗒️
-Planche {{ item.num }}
-{% if item.themes %}
-{{ item.themes }}
-{% endif %}
-📄 Sujet
-{% if item.correction %}
-✓ Correction
-{% endif %}
+  <div class="cc-card">
+    <span class="cc-ico">🗒️</span>
+    <div class="cc-info">
+      <span class="cc-title">Planche {{ item.num }}</span>
+      {% if item.themes %}<span class="cc-sub">{{ item.themes }}</span>{% endif %}
+      <div class="cc-btns">
+        <a class="cc-btn sujet" href="/assets/pdf/{{ page.dossier_pdf }}/{{ item.pdf }}" target="_blank" rel="noopener">📄 Sujet</a>
+        {% if item.correction %}
+        <a class="cc-btn corr" href="/assets/pdf/{{ page.dossier_pdf }}/{{ item.correction }}" target="_blank" rel="noopener">✓ Correction</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 {% endfor %}
-{% endif %} {% comment %}── DM ──{% endcomment %} {% if page.dm %}
-🏠 Devoirs maison
+</div>
+<hr class="cc-sep">
+{% endif %}
+
+{% comment %}── DM ──{% endcomment %}
+{% if page.dm %}
+<div class="cc-section">🏠 Devoirs maison</div>
+<div class="cc-grid">
 {% for item in page.dm %}
-🏠
-DM {{ item.num }}
-{% if item.contenu %}
-{{ item.contenu }}
-{% endif %} {% if item.duree %}
-{{ item.duree }}
-{% endif %}
-📄 Sujet
-{% if item.correction %}
-✓ Correction
-{% endif %}
+  <div class="cc-card">
+    <span class="cc-ico">🏠</span>
+    <div class="cc-info">
+      <span class="cc-title">DM {{ item.num }}</span>
+      {% if item.contenu %}<span class="cc-sub">{{ item.contenu }}</span>{% endif %}
+      {% if item.duree %}<span class="cc-badge dm">{{ item.duree }}</span>{% endif %}
+      <div class="cc-btns">
+        <a class="cc-btn sujet" href="/assets/pdf/{{ page.dossier_pdf }}/{{ item.pdf }}" target="_blank" rel="noopener">📄 Sujet</a>
+        {% if item.correction %}
+        <a class="cc-btn corr" href="/assets/pdf/{{ page.dossier_pdf }}/{{ item.correction }}" target="_blank" rel="noopener">✓ Correction</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 {% endfor %}
-{% endif %} {% comment %}── DS BLANCS ──{% endcomment %} {% if page.ds_blancs %}
-✍️ Devoirs surveillés blancs
+</div>
+<hr class="cc-sep">
+{% endif %}
+
+{% comment %}── DS BLANCS ──{% endcomment %}
+{% if page.ds_blancs %}
+<div class="cc-section">✍️ Devoirs surveillés blancs</div>
+<div class="cc-grid">
 {% for item in page.ds_blancs %}
-✍️
-DS Blanc {{ item.num }}
-{% if item.contenu %}
-{{ item.contenu }}
-{% endif %} {% if item.duree %}
-{{ item.duree }}
-{% endif %}
-📄 Sujet
-{% if item.correction %}
-✓ Correction
-{% endif %}
+  <div class="cc-card">
+    <span class="cc-ico">✍️</span>
+    <div class="cc-info">
+      <span class="cc-title">DS Blanc {{ item.num }}</span>
+      {% if item.contenu %}<span class="cc-sub">{{ item.contenu }}</span>{% endif %}
+      {% if item.duree %}<span class="cc-badge dsb">{{ item.duree }}</span>{% endif %}
+      <div class="cc-btns">
+        <a class="cc-btn sujet" href="/assets/pdf/{{ page.dossier_pdf }}/{{ item.pdf }}" target="_blank" rel="noopener">📄 Sujet</a>
+        {% if item.correction %}
+        <a class="cc-btn corr" href="/assets/pdf/{{ page.dossier_pdf }}/{{ item.correction }}" target="_blank" rel="noopener">✓ Correction</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 {% endfor %}
-{% endif %} {% comment %}── DS ──{% endcomment %}
-🧪 Devoirs surveillés
+</div>
+<hr class="cc-sep">
+{% endif %}
+
+{% comment %}── DS ──{% endcomment %}
+<div class="cc-section">🧪 Devoirs surveillés</div>
 {% if page.ds_published and page.ds %}
+<div class="cc-grid">
 {% for item in page.ds %}
-🧪
-DS {{ item.num }}
-{% if item.contenu %}
-{{ item.contenu }}
-{% endif %} {% if item.duree %}
-{{ item.duree }}
-{% endif %}
-📄 Sujet
-{% if item.correction %}
-✓ Correction
-{% endif %}
+  <div class="cc-card">
+    <span class="cc-ico">🧪</span>
+    <div class="cc-info">
+      <span class="cc-title">DS {{ item.num }}</span>
+      {% if item.contenu %}<span class="cc-sub">{{ item.contenu }}</span>{% endif %}
+      {% if item.duree %}<span class="cc-badge dsb">{{ item.duree }}</span>{% endif %}
+      <div class="cc-btns">
+        <a class="cc-btn sujet" href="/assets/pdf/{{ page.dossier_pdf }}/{{ item.pdf }}" target="_blank" rel="noopener">📄 Sujet</a>
+        {% if item.correction %}
+        <a class="cc-btn corr" href="/assets/pdf/{{ page.dossier_pdf }}/{{ item.correction }}" target="_blank" rel="noopener">✓ Correction</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 {% endfor %}
+</div>
 {% else %}
-🔒
-DS à venir
-Publiés après le passage du contrôle
-À venir
-{% endif %} {% comment %}── ERREURS ──{% endcomment %} {% if page.erreurs %}
-⚠️ Erreurs fréquentes
-{% for e in page.erreurs %}
-{{ e }}
-{% endfor %}
-{% endif %} {% comment %}── LIENS ──{% endcomment %} {% if page.liens %}
-🔗 Liens utiles
-{% assign liens_calcul = page.liens | where: "cat", "calcul" %} {% assign liens_cours = page.liens | where: "cat", "cours" %} {% if liens_calcul.size > 0 %}
-Calculer et vérifier
+<div class="cc-grid">
+  <div class="cc-card locked">
+    <span class="cc-ico">🔒</span>
+    <div class="cc-info">
+      <span class="cc-title">DS à venir</span>
+      <span class="cc-sub">Publiés après le passage du contrôle</span>
+      <span class="cc-badge soon">À venir</span>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% comment %}── ERREURS ──{% endcomment %}
+{% if page.erreurs %}
+<hr class="cc-sep">
+<div class="cc-section">⚠️ Erreurs fréquentes</div>
+<div class="cc-errors">
+  <ul>
+  {% for e in page.erreurs %}
+    <li>{{ e }}</li>
+  {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% comment %}── LIENS ──{% endcomment %}
+{% if page.liens %}
+<hr class="cc-sep">
+<div class="cc-section">🔗 Liens utiles</div>
+{% assign liens_calcul = page.liens | where: "cat", "calcul" %}
+{% assign liens_cours  = page.liens | where: "cat", "cours" %}
+{% if liens_calcul.size > 0 %}
+<div class="cc-links-label">Calculer et vérifier</div>
 {% for lien in liens_calcul %}
-{{ lien.ico }}
-{{ lien.nom }}
-{{ lien.desc }}
-→ Ouvrir
-{% endfor %} {% endif %} {% if liens_cours.size > 0 %}
-Cours et exercices
+<div class="cc-link-row">
+  <span class="cc-link-ico">{{ lien.ico }}</span>
+  <div class="cc-link-body">
+    <span class="cc-link-name">{{ lien.nom }}</span>
+    <span class="cc-link-desc">{{ lien.desc }}</span>
+    <a class="cc-link-btn" href="{{ lien.url }}" target="_blank" rel="noopener">→ Ouvrir</a>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+{% if liens_cours.size > 0 %}
+<div class="cc-links-label">Cours et exercices</div>
 {% for lien in liens_cours %}
-{{ lien.ico }}
-{{ lien.nom }}
-{{ lien.desc }}
-→ Ouvrir
-{% endfor %} {% endif %} {% for lien in page.liens %} {% unless lien.cat %}
-{{ lien.ico }}
-{{ lien.nom }}
-{{ lien.desc }}
-→ Ouvrir
-{% endunless %} {% endfor %} {% endif %}
+<div class="cc-link-row">
+  <span class="cc-link-ico">{{ lien.ico }}</span>
+  <div class="cc-link-body">
+    <span class="cc-link-name">{{ lien.nom }}</span>
+    <span class="cc-link-desc">{{ lien.desc }}</span>
+    <a class="cc-link-btn" href="{{ lien.url }}" target="_blank" rel="noopener">→ Ouvrir</a>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+{% for lien in page.liens %}
+  {% unless lien.cat %}
+<div class="cc-link-row">
+  <span class="cc-link-ico">{{ lien.ico }}</span>
+  <div class="cc-link-body">
+    <span class="cc-link-name">{{ lien.nom }}</span>
+    <span class="cc-link-desc">{{ lien.desc }}</span>
+    <a class="cc-link-btn" href="{{ lien.url }}" target="_blank" rel="noopener">→ Ouvrir</a>
+  </div>
+</div>
+  {% endunless %}
+{% endfor %}
+{% endif %}
+
+</div>
