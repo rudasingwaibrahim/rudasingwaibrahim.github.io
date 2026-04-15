@@ -3,27 +3,42 @@ title: "Chapitre 3 — Logarithme décimal"
 permalink: /classes/tale-techno-commun/chapitre3/
 hero_title: "Chapitre 3"
 hero_subtitle: "Logarithme décimal"
-dossier_pdf: tale-techno
 cours:
   - titre: "Cours — Version élève"
     pdf: tale-techno-commun-ch3-cours-eleve.pdf
-    dossier: tale-techno
   - titre: "Cours — Version professeur"
     pdf: tale-techno-commun-ch3-cours-prof.pdf
-    dossier: tale-techno
 planches:
   - num: 1
-    themes: "Sujet et corrigé inclus"
     pdf: tale-techno-commun-ch3-planche-01.pdf
   - num: 2
-    themes: "Sujet et corrigé inclus"
     pdf: tale-techno-commun-ch3-planche-02.pdf
+dm:
+  - num: 1
+    contenu: "Propriétés du log · Équations logarithmiques · Décibels"
+    duree: "1 semaine"
+    pdf: tale-techno-commun-ch3-dm-01-sujet.pdf
+  - num: 2
+    contenu: "Échelle de Richter · pH · Problèmes appliqués"
+    duree: "1 semaine"
+    pdf: tale-techno-commun-ch3-dm-02-sujet.pdf
 ds_blancs:
   - num: 1
+    contenu: "Calculs avec log · Équations · Inéquations"
+    duree: "2 h"
     pdf: tale-techno-commun-ch3-dsblanc-01-sujet.pdf
   - num: 2
+    contenu: "Applications · Modélisation type BAC"
+    duree: "2 h"
     pdf: tale-techno-commun-ch3-dsblanc-02-sujet.pdf
-ds_published: false
+ds_published: true
+ds:
+  - num: 1
+    pdf: tale-techno-commun-ch3-ds-01-sujet.pdf
+  - num: 2
+    pdf: tale-techno-commun-ch3-ds-02-sujet.pdf
+  - num: 3
+    pdf: tale-techno-commun-ch3-ds-03-sujet.pdf
 erreurs:
   - "Confondre log(a*b) = log(a) + log(b) avec log(a+b) : le logarithme transforme les produits en sommes, pas les sommes"
   - "Écrire log(0) ou log d'un nombre négatif : le logarithme n'est défini que pour les nombres strictement positifs"
