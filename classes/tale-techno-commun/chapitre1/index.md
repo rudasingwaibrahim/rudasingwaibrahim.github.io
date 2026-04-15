@@ -5,40 +5,40 @@ hero_title: "Chapitre 1"
 hero_subtitle: "Suites numériques"
 cours:
   - titre: "Cours — Version élève"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch1-cours-eleve.pdf
+    pdf: tale-techno/tale-techno-commun-ch1-cours-eleve.pdf
   - titre: "Cours — Version professeur"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch1-cours-prof.pdf
+    pdf: tale-techno/tale-techno-commun-ch1-cours-prof.pdf
 planches:
   - num: 1
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch1-planche-01.pdf
+    pdf: tale-techno/tale-techno-commun-ch1-planche-01.pdf
   - num: 2
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch1-planche-02.pdf
+    pdf: tale-techno/tale-techno-commun-ch1-planche-02.pdf
 dm:
   - num: 1
     contenu: "Suite arithmétique · Somme de termes · Modélisation"
     duree: "1 semaine"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch1-dm-01-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch1-dm-01-sujet.pdf
   - num: 2
     contenu: "Suite géométrique · Convergence · Problème ouvert"
     duree: "1 semaine"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch1-dm-02-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch1-dm-02-sujet.pdf
 ds_blancs:
   - num: 1
     contenu: "Suites arithmétiques · Suites géométriques · Sens de variation"
     duree: "2 h"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch1-dsblanc-01-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch1-dsblanc-01-sujet.pdf
   - num: 2
     contenu: "Sommes · Convergence · Modélisation type BAC"
     duree: "2 h"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch1-dsblanc-02-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch1-dsblanc-02-sujet.pdf
 ds_published: true
 ds:
   - num: 1
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch1-ds-01-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch1-ds-01-sujet.pdf
   - num: 2
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch1-ds-02-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch1-ds-02-sujet.pdf
   - num: 3
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch1-ds-03-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch1-ds-03-sujet.pdf
 erreurs:
   - "Confondre suite arithmétique et suite géométrique : additionner au lieu de multiplier (ou inversement)"
   - "Oublier que la raison d'une suite géométrique doit être non nulle et que les termes doivent rester de même signe"
