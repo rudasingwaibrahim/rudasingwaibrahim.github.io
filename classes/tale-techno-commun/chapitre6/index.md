@@ -5,40 +5,40 @@ hero_title: "Chapitre 6"
 hero_subtitle: "Loi binomiale et espérance"
 cours:
   - titre: "Cours — Version élève"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch6-cours-eleve.pdf
+    pdf: tale-techno/tale-techno-commun-ch6-cours-eleve.pdf
   - titre: "Cours — Version professeur"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch6-cours-prof.pdf
+    pdf: tale-techno/tale-techno-commun-ch6-cours-prof.pdf
 planches:
   - num: 1
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch6-planche-01.pdf
+    pdf: tale-techno/tale-techno-commun-ch6-planche-01.pdf
   - num: 2
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch6-planche-02.pdf
+    pdf: tale-techno/tale-techno-commun-ch6-planche-02.pdf
 dm:
   - num: 1
     contenu: "Loi binomiale · Espérance · Problème contextualisé"
     duree: "1 semaine"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch6-dm-01-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch6-dm-01-sujet.pdf
   - num: 2
     contenu: "Arbre · Schéma de Bernoulli · Modélisation"
     duree: "1 semaine"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch6-dm-02-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch6-dm-02-sujet.pdf
 ds_blancs:
   - num: 1
     contenu: "Loi binomiale · Calcul de probabilités · Espérance"
     duree: "2 h"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch6-dsblanc-01-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch6-dsblanc-01-sujet.pdf
   - num: 2
     contenu: "Schéma de Bernoulli · Coefficients binomiaux · Synthèse type BAC"
     duree: "2 h"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch6-dsblanc-02-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch6-dsblanc-02-sujet.pdf
 ds_published: true
 ds:
   - num: 1
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch6-ds-01-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch6-ds-01-sujet.pdf
   - num: 2
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch6-ds-02-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch6-ds-02-sujet.pdf
   - num: 3
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch6-ds-03-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch6-ds-03-sujet.pdf
 erreurs:
   - "Confondre espérance et probabilité : E(X) = np est une moyenne, pas une probabilité"
   - "Oublier de vérifier que la somme des probabilités vaut 1 avant de calculer E(X)"
