@@ -3,27 +3,42 @@ title: "Chapitre 7 — Statistiques à deux variables"
 permalink: /classes/tale-techno-commun/chapitre7/
 hero_title: "Chapitre 7"
 hero_subtitle: "Statistiques à deux variables"
-dossier_pdf: tale-techno
 cours:
   - titre: "Cours — Version élève"
     pdf: tale-techno-commun-ch7-cours-eleve.pdf
-    dossier: tale-techno
   - titre: "Cours — Version professeur"
     pdf: tale-techno-commun-ch7-cours-prof.pdf
-    dossier: tale-techno
 planches:
   - num: 1
-    themes: "Sujet et corrigé inclus"
     pdf: tale-techno-commun-ch7-planche-01.pdf
   - num: 2
-    themes: "Sujet et corrigé inclus"
     pdf: tale-techno-commun-ch7-planche-02.pdf
+dm:
+  - num: 1
+    contenu: "Régression linéaire · Méthode des moindres carrés · Prévision"
+    duree: "1 semaine"
+    pdf: tale-techno-commun-ch7-dm-01-sujet.pdf
+  - num: 2
+    contenu: "Changement de variable · Modèle exponentiel · Esprit critique"
+    duree: "1 semaine"
+    pdf: tale-techno-commun-ch7-dm-02-sujet.pdf
 ds_blancs:
   - num: 1
+    contenu: "Nuage de points · Droite de régression · Point moyen"
+    duree: "2 h"
     pdf: tale-techno-commun-ch7-dsblanc-01-sujet.pdf
   - num: 2
+    contenu: "Changement de variable · Interpolation · Extrapolation type BAC"
+    duree: "2 h"
     pdf: tale-techno-commun-ch7-dsblanc-02-sujet.pdf
-ds_published: false
+ds_published: true
+ds:
+  - num: 1
+    pdf: tale-techno-commun-ch7-ds-01-sujet.pdf
+  - num: 2
+    pdf: tale-techno-commun-ch7-ds-02-sujet.pdf
+  - num: 3
+    pdf: tale-techno-commun-ch7-ds-03-sujet.pdf
 erreurs:
   - "Confondre les coordonnées du point moyen G : x barre est la moyenne des x, y barre est la moyenne des y"
   - "Oublier de vérifier que la droite de régression passe par le point moyen G"
