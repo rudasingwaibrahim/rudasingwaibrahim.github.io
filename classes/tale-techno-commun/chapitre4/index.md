@@ -3,27 +3,42 @@ title: "Chapitre 4 — Fonction inverse"
 permalink: /classes/tale-techno-commun/chapitre4/
 hero_title: "Chapitre 4"
 hero_subtitle: "Fonction inverse"
-dossier_pdf: tale-techno
 cours:
   - titre: "Cours — Version élève"
     pdf: tale-techno-commun-ch4-cours-eleve.pdf
-    dossier: tale-techno
   - titre: "Cours — Version professeur"
     pdf: tale-techno-commun-ch4-cours-prof.pdf
-    dossier: tale-techno
 planches:
   - num: 1
-    themes: "Sujet et corrigé inclus"
     pdf: tale-techno-commun-ch4-planche-01.pdf
   - num: 2
-    themes: "Sujet et corrigé inclus"
     pdf: tale-techno-commun-ch4-planche-02.pdf
+dm:
+  - num: 1
+    contenu: "Hyperbole · Asymptotes · Inéquations avec 1/x"
+    duree: "1 semaine"
+    pdf: tale-techno-commun-ch4-dm-01-sujet.pdf
+  - num: 2
+    contenu: "Fonctions homographiques · Étude complète · Problème ouvert"
+    duree: "1 semaine"
+    pdf: tale-techno-commun-ch4-dm-02-sujet.pdf
 ds_blancs:
   - num: 1
+    contenu: "Fonction inverse · Sens de variation · Asymptotes"
+    duree: "2 h"
     pdf: tale-techno-commun-ch4-dsblanc-01-sujet.pdf
   - num: 2
+    contenu: "Étude de fonctions · Inéquations · Modélisation type BAC"
+    duree: "2 h"
     pdf: tale-techno-commun-ch4-dsblanc-02-sujet.pdf
-ds_published: false
+ds_published: true
+ds:
+  - num: 1
+    pdf: tale-techno-commun-ch4-ds-01-sujet.pdf
+  - num: 2
+    pdf: tale-techno-commun-ch4-ds-02-sujet.pdf
+  - num: 3
+    pdf: tale-techno-commun-ch4-ds-03-sujet.pdf
 erreurs:
   - "Oublier que la fonction inverse n'est pas définie en 0 : toujours exclure 0 du domaine"
   - "Se tromper dans le sens de variation : la fonction inverse est décroissante sur chaque intervalle de son domaine"
