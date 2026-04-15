@@ -5,40 +5,40 @@ hero_title: "Chapitre 5"
 hero_subtitle: "Probabilités conditionnelles"
 cours:
   - titre: "Cours — Version élève"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch5-cours-eleve.pdf
+    pdf: tale-techno/tale-techno-commun-ch5-cours-eleve.pdf
   - titre: "Cours — Version professeur"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch5-cours-prof.pdf
+    pdf: tale-techno/tale-techno-commun-ch5-cours-prof.pdf
 planches:
   - num: 1
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch5-planche-01.pdf
+    pdf: tale-techno/tale-techno-commun-ch5-planche-01.pdf
   - num: 2
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch5-planche-02.pdf
+    pdf: tale-techno/tale-techno-commun-ch5-planche-02.pdf
 dm:
   - num: 1
     contenu: "Arbre pondéré · Probabilités totales · Problème médical"
     duree: "1 semaine"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch5-dm-01-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch5-dm-01-sujet.pdf
   - num: 2
     contenu: "Indépendance · Bayes · Problème appliqué"
     duree: "1 semaine"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch5-dm-02-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch5-dm-02-sujet.pdf
 ds_blancs:
   - num: 1
     contenu: "Probabilité conditionnelle · Arbre pondéré · Indépendance"
     duree: "2 h"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch5-dsblanc-01-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch5-dsblanc-01-sujet.pdf
   - num: 2
     contenu: "Probabilités totales · Test médical · Synthèse type BAC"
     duree: "2 h"
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch5-dsblanc-02-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch5-dsblanc-02-sujet.pdf
 ds_published: true
 ds:
   - num: 1
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch5-ds-01-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch5-ds-01-sujet.pdf
   - num: 2
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch5-ds-02-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch5-ds-02-sujet.pdf
   - num: 3
-    pdf: /assets/pdf/tale-techno/tale-techno-commun-ch5-ds-03-sujet.pdf
+    pdf: tale-techno/tale-techno-commun-ch5-ds-03-sujet.pdf
 erreurs:
   - "Confondre P(A inter B) et P_A(B) : l'intersection est une probabilité absolue, la conditionnelle restreint l'univers"
   - "Oublier de vérifier que P(A) est non nul avant de calculer P_A(B) = P(A inter B) / P(A)"
