@@ -20,15 +20,7 @@ planches:
   - num: 2
     themes: "Tests bilatéraux & unilatéraux · Comparaison d'échantillons"
     pdf: bts-mec2-ch3-planche-02.pdf
-dm:
-  - num: 1
-    contenu: "Axes mécaniques (Gr.C 2005) · Sondage (Gr.B 2002) · IC & estimation"
-    duree: "15 jours"
-    pdf: bts-mec2-ch3-dm-01-sujet.pdf
-  - num: 2
-    contenu: "Biscuits (Gr.D 2008) · Puissance · Procédés A/B — tests et comparaison"
-    duree: "15 jours"
-    pdf: bts-mec2-ch3-dm-02-sujet.pdf
+dm: []
 ds_blancs:
   - num: 1
     contenu: "Pots de confiture (Gr.B 2010) · Étiquetage (Gr.B 2006) · Équipes"
@@ -38,20 +30,8 @@ ds_blancs:
     contenu: "Nouveau produit (Gr.B 2002) · Volume flacon (Gr.B 2010) · Procédés A/B"
     duree: "3 h"
     pdf: bts-mec2-ch3-dsblanc-02-sujet.pdf
-ds_published: true
-ds:
-  - num: 1
-    contenu: "Tiges (Gr.B 2004) · Sinistres (Gr.B 2002) · Bouteilles"
-    duree: "2 h"
-    pdf: bts-mec2-ch3-ds-01-sujet.pdf
-  - num: 2
-    contenu: "Bouteilles 1,5 L (Gr.B 2003) · Piles · Défauts"
-    duree: "2 h"
-    pdf: bts-mec2-ch3-ds-02-sujet.pdf
-  - num: 3
-    contenu: "Fournisseurs · Lignes A/B · Formation qualité — synthèse"
-    duree: "2 h"
-    pdf: bts-mec2-ch3-ds-03-sujet.pdf
+ds_published: false
+ds: []
 erreurs:
   - "Confondre intervalle de confiance et intervalle de fluctuation"
   - "Oublier les conditions de validité : n ≥ 30, nf ≥ 5, n(1−f) ≥ 5"
