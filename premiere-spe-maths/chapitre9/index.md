@@ -5,40 +5,42 @@ hero_title: "Chapitre 9"
 hero_subtitle: "Produit scalaire — Définitions et propriétés"
 cours:
   - titre: "Cours — Version élève"
-    pdf: premiere-spe-ch9-cours-eleve.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch9-cours-eleve.pdf
   - titre: "Cours — Version professeur"
-    pdf: premiere-spe-ch9-cours-prof.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch9-cours-prof.pdf
 planches:
   - num: 1
-    pdf: premiere-spe-ch9-planche-01.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch9-planche-01.pdf
   - num: 2
-    pdf: premiere-spe-ch9-planche-02.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch9-planche-02.pdf
+dm_published: false
 dm:
   - num: 1
     contenu: "Définition · Norme et angle · Projeté orthogonal"
     duree: "1 semaine"
-    pdf: premiere-spe-ch9-dm-01-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch9-dm-01-sujet.pdf
   - num: 2
     contenu: "Expression analytique · Bilinéarité · Symétrie"
     duree: "1 semaine"
-    pdf: premiere-spe-ch9-dm-02-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch9-dm-02-sujet.pdf
+dsblancs_published: true
 ds_blancs:
   - num: 1
     contenu: "Calcul de produits scalaires · Orthogonalité"
     duree: "55 min"
-    pdf: premiere-spe-ch9-dsblanc-01-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch9-dsblanc-01-sujet.pdf
   - num: 2
     contenu: "Coordonnées · Norme · Distance"
     duree: "55 min"
-    pdf: premiere-spe-ch9-dsblanc-02-sujet.pdf
-ds_published: true
+    pdf: premiere-spe-maths/premiere-spe-ch9-dsblanc-02-sujet.pdf
+ds_published: false
 ds:
   - num: 1
-    pdf: premiere-spe-ch9-ds-01-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch9-ds-01-sujet.pdf
   - num: 2
-    pdf: premiere-spe-ch9-ds-02-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch9-ds-02-sujet.pdf
   - num: 3
-    pdf: premiere-spe-ch9-ds-03-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch9-ds-03-sujet.pdf
 erreurs:
   - "Oublier le cosinus dans la définition : u·v = ‖u‖·‖v‖·cos(u,v), pas ‖u‖·‖v‖"
   - "Confondre orthogonal (u·v = 0) et colinéaire (u·v = ±‖u‖·‖v‖)"
