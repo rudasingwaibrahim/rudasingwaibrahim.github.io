@@ -5,40 +5,42 @@ hero_title: "Chapitre 10"
 hero_subtitle: "Suites arithmétiques et géométriques"
 cours:
   - titre: "Cours — Version élève"
-    pdf: premiere-spe-ch10-cours-eleve.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch10-cours-eleve.pdf
   - titre: "Cours — Version professeur"
-    pdf: premiere-spe-ch10-cours-prof.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch10-cours-prof.pdf
 planches:
   - num: 1
-    pdf: premiere-spe-ch10-planche-01.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch10-planche-01.pdf
   - num: 2
-    pdf: premiere-spe-ch10-planche-02.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch10-planche-02.pdf
+dm_published: false
 dm:
   - num: 1
     contenu: "Suites arithmétiques · Formule explicite · Somme"
     duree: "1 semaine"
-    pdf: premiere-spe-ch10-dm-01-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch10-dm-01-sujet.pdf
   - num: 2
     contenu: "Suites géométriques · Évolutions · Somme"
     duree: "1 semaine"
-    pdf: premiere-spe-ch10-dm-02-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch10-dm-02-sujet.pdf
+dsblancs_published: true
 ds_blancs:
   - num: 1
     contenu: "Suites arithmétiques · Reconnaissance · Calcul"
     duree: "55 min"
-    pdf: premiere-spe-ch10-dsblanc-01-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch10-dsblanc-01-sujet.pdf
   - num: 2
     contenu: "Suites géométriques · Application financière"
     duree: "55 min"
-    pdf: premiere-spe-ch10-dsblanc-02-sujet.pdf
-ds_published: true
+    pdf: premiere-spe-maths/premiere-spe-ch10-dsblanc-02-sujet.pdf
+ds_published: false
 ds:
   - num: 1
-    pdf: premiere-spe-ch10-ds-01-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch10-ds-01-sujet.pdf
   - num: 2
-    pdf: premiere-spe-ch10-ds-02-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch10-ds-02-sujet.pdf
   - num: 3
-    pdf: premiere-spe-ch10-ds-03-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch10-ds-03-sujet.pdf
 erreurs:
   - "Confondre suite arithmétique (uₙ₊₁ = uₙ + r) et géométrique (uₙ₊₁ = q · uₙ)"
   - "Mauvaise formule explicite : pour arithmétique uₙ = u₀ + nr (et non u₀ + r), pour géométrique uₙ = u₀ · qⁿ"
