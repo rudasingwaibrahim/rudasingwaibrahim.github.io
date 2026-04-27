@@ -5,40 +5,42 @@ hero_title: "Chapitre 12"
 hero_subtitle: "Produit scalaire — Applications géométriques"
 cours:
   - titre: "Cours — Version élève"
-    pdf: premiere-spe-ch12-cours-eleve.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch12-cours-eleve.pdf
   - titre: "Cours — Version professeur"
-    pdf: premiere-spe-ch12-cours-prof.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch12-cours-prof.pdf
 planches:
   - num: 1
-    pdf: premiere-spe-ch12-planche-01.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch12-planche-01.pdf
   - num: 2
-    pdf: premiere-spe-ch12-planche-02.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch12-planche-02.pdf
+dm_published: false
 dm:
   - num: 1
     contenu: "Théorème d'Al-Kashi · Loi des sinus · Aire d'un triangle"
     duree: "1 semaine"
-    pdf: premiere-spe-ch12-dm-01-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch12-dm-01-sujet.pdf
   - num: 2
     contenu: "Formules d'addition · Duplication · Démonstrations"
     duree: "1 semaine"
-    pdf: premiere-spe-ch12-dm-02-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch12-dm-02-sujet.pdf
+dsblancs_published: true
 ds_blancs:
   - num: 1
     contenu: "Al-Kashi · Calcul de longueurs et angles"
     duree: "55 min"
-    pdf: premiere-spe-ch12-dsblanc-01-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch12-dsblanc-01-sujet.pdf
   - num: 2
     contenu: "Formules trigo · Démonstration · Application"
     duree: "55 min"
-    pdf: premiere-spe-ch12-dsblanc-02-sujet.pdf
-ds_published: true
+    pdf: premiere-spe-maths/premiere-spe-ch12-dsblanc-02-sujet.pdf
+ds_published: false
 ds:
   - num: 1
-    pdf: premiere-spe-ch12-ds-01-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch12-ds-01-sujet.pdf
   - num: 2
-    pdf: premiere-spe-ch12-ds-02-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch12-ds-02-sujet.pdf
   - num: 3
-    pdf: premiere-spe-ch12-ds-03-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch12-ds-03-sujet.pdf
 erreurs:
   - "Mauvais angle dans Al-Kashi : a² = b² + c² − 2bc·cos(Â) (Â est l'angle OPPOSÉ à a)"
   - "Confondre Al-Kashi et théorème de Pythagore : Pythagore n'est qu'un cas particulier (Â = 90°)"
