@@ -5,40 +5,42 @@ hero_title: "Chapitre 1"
 hero_subtitle: "Second degré — Forme canonique, racines, factorisation"
 cours:
   - titre: "Cours — Version élève"
-    pdf: premiere-spe-ch1-cours-eleve.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch1-cours-eleve.pdf
   - titre: "Cours — Version professeur"
-    pdf: premiere-spe-ch1-cours-prof.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch1-cours-prof.pdf
 planches:
   - num: 1
-    pdf: premiere-spe-ch1-planche-01.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch1-planche-01.pdf
   - num: 2
-    pdf: premiere-spe-ch1-planche-02.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch1-planche-02.pdf
+dm_published: false
 dm:
   - num: 1
     contenu: "Forme canonique · Sommet de la parabole"
     duree: "1 semaine"
-    pdf: premiere-spe-ch1-dm-01-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch1-dm-01-sujet.pdf
   - num: 2
     contenu: "Discriminant · Racines · Factorisation"
     duree: "1 semaine"
-    pdf: premiere-spe-ch1-dm-02-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch1-dm-02-sujet.pdf
+dsblancs_published: true
 ds_blancs:
   - num: 1
     contenu: "Forme canonique · Variation · Extremum"
     duree: "55 min"
-    pdf: premiere-spe-ch1-dsblanc-01-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch1-dsblanc-01-sujet.pdf
   - num: 2
     contenu: "Discriminant · Racines · Factorisation"
     duree: "55 min"
-    pdf: premiere-spe-ch1-dsblanc-02-sujet.pdf
-ds_published: true
+    pdf: premiere-spe-maths/premiere-spe-ch1-dsblanc-02-sujet.pdf
+ds_published: false
 ds:
   - num: 1
-    pdf: premiere-spe-ch1-ds-01-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch1-ds-01-sujet.pdf
   - num: 2
-    pdf: premiere-spe-ch1-ds-02-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch1-ds-02-sujet.pdf
   - num: 3
-    pdf: premiere-spe-ch1-ds-03-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch1-ds-03-sujet.pdf
 erreurs:
   - "Confondre forme développée (ax² + bx + c) et forme canonique (a(x − α)² + β)"
   - "Mauvais signe de α dans la forme canonique : α = −b/(2a), pas b/(2a)"
