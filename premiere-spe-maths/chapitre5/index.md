@@ -5,40 +5,42 @@ hero_title: "Chapitre 5"
 hero_subtitle: "Probabilités conditionnelles — Arbre pondéré et indépendance"
 cours:
   - titre: "Cours — Version élève"
-    pdf: premiere-spe-ch5-cours-eleve.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch5-cours-eleve.pdf
   - titre: "Cours — Version professeur"
-    pdf: premiere-spe-ch5-cours-prof.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch5-cours-prof.pdf
 planches:
   - num: 1
-    pdf: premiere-spe-ch5-planche-01.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch5-planche-01.pdf
   - num: 2
-    pdf: premiere-spe-ch5-planche-02.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch5-planche-02.pdf
+dm_published: false
 dm:
   - num: 1
     contenu: "Arbre pondéré · Probabilités conditionnelles"
     duree: "1 semaine"
-    pdf: premiere-spe-ch5-dm-01-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch5-dm-01-sujet.pdf
   - num: 2
     contenu: "Formule des probabilités totales · Indépendance"
     duree: "1 semaine"
-    pdf: premiere-spe-ch5-dm-02-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch5-dm-02-sujet.pdf
+dsblancs_published: true
 ds_blancs:
   - num: 1
     contenu: "Arbre · Probabilités conditionnelles"
     duree: "55 min"
-    pdf: premiere-spe-ch5-dsblanc-01-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch5-dsblanc-01-sujet.pdf
   - num: 2
     contenu: "Probas totales · Indépendance"
     duree: "55 min"
-    pdf: premiere-spe-ch5-dsblanc-02-sujet.pdf
-ds_published: true
+    pdf: premiere-spe-maths/premiere-spe-ch5-dsblanc-02-sujet.pdf
+ds_published: false
 ds:
   - num: 1
-    pdf: premiere-spe-ch5-ds-01-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch5-ds-01-sujet.pdf
   - num: 2
-    pdf: premiere-spe-ch5-ds-02-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch5-ds-02-sujet.pdf
   - num: 3
-    pdf: premiere-spe-ch5-ds-03-sujet.pdf
+    pdf: premiere-spe-maths/premiere-spe-ch5-ds-03-sujet.pdf
 erreurs:
   - "Confondre P(A∩B) et P(A|B) : sur un arbre, intersection = produit le long d'un chemin, conditionnelle = poids d'une branche"
   - "Oublier P(A|B) = P(A∩B) / P(B) (avec P(B) ≠ 0)"
