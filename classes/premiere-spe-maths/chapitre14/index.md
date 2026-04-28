@@ -1,6 +1,7 @@
 ---
 title: "Chapitre 14 — Géométrie repérée"
 permalink: /classes/premiere-spe-maths/chapitre14/
+dossier_pdf: premiere-spe-maths
 hero_title: "Chapitre 14"
 hero_subtitle: "Géométrie repérée — Droites, vecteurs et cercles"
 cours:
@@ -13,6 +14,7 @@ planches:
     pdf: premiere-spe-ch14-planche-01.pdf
   - num: 2
     pdf: premiere-spe-ch14-planche-02.pdf
+dm_published: false
 dm:
   - num: 1
     contenu: "Vecteurs · Équations cartésienne et paramétrique"
@@ -22,6 +24,7 @@ dm:
     contenu: "Équation de cercle · Tangente · Configurations"
     duree: "1 semaine"
     pdf: premiere-spe-ch14-dm-02-sujet.pdf
+dsblancs_published: true
 ds_blancs:
   - num: 1
     contenu: "Droites · Vecteurs directeurs et normaux"
@@ -31,7 +34,7 @@ ds_blancs:
     contenu: "Cercle · Équation · Position relative"
     duree: "55 min"
     pdf: premiere-spe-ch14-dsblanc-02-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
   - num: 1
     pdf: premiere-spe-ch14-ds-01-sujet.pdf
