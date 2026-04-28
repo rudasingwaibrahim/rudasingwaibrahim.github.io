@@ -1,46 +1,47 @@
 ---
 title: "Chapitre 4 — Dérivation (Partie 2)"
 permalink: /classes/premiere-spe-maths/chapitre4/
+dossier_pdf: premiere-spe-maths
 hero_title: "Chapitre 4"
 hero_subtitle: "Dérivation — Variations et extrema"
 cours:
   - titre: "Cours — Version élève"
-    pdf: premiere-spe-maths/premiere-spe-ch4-cours-eleve.pdf
+    pdf: premiere-spe-ch4-cours-eleve.pdf
   - titre: "Cours — Version professeur"
-    pdf: premiere-spe-maths/premiere-spe-ch4-cours-prof.pdf
+    pdf: premiere-spe-ch4-cours-prof.pdf
 planches:
   - num: 1
-    pdf: premiere-spe-maths/premiere-spe-ch4-planche-01.pdf
+    pdf: premiere-spe-ch4-planche-01.pdf
   - num: 2
-    pdf: premiere-spe-maths/premiere-spe-ch4-planche-02.pdf
+    pdf: premiere-spe-ch4-planche-02.pdf
 dm_published: false
 dm:
   - num: 1
     contenu: "Signe de la dérivée · Sens de variation"
     duree: "1 semaine"
-    pdf: premiere-spe-maths/premiere-spe-ch4-dm-01-sujet.pdf
+    pdf: premiere-spe-ch4-dm-01-sujet.pdf
   - num: 2
     contenu: "Extrema · Tableau de variations"
     duree: "1 semaine"
-    pdf: premiere-spe-maths/premiere-spe-ch4-dm-02-sujet.pdf
+    pdf: premiere-spe-ch4-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
   - num: 1
     contenu: "Tableau de signes f' · Variations"
     duree: "55 min"
-    pdf: premiere-spe-maths/premiere-spe-ch4-dsblanc-01-sujet.pdf
+    pdf: premiere-spe-ch4-dsblanc-01-sujet.pdf
   - num: 2
     contenu: "Extrema locaux · Étude complète"
     duree: "55 min"
-    pdf: premiere-spe-maths/premiere-spe-ch4-dsblanc-02-sujet.pdf
+    pdf: premiere-spe-ch4-dsblanc-02-sujet.pdf
 ds_published: false
 ds:
   - num: 1
-    pdf: premiere-spe-maths/premiere-spe-ch4-ds-01-sujet.pdf
+    pdf: premiere-spe-ch4-ds-01-sujet.pdf
   - num: 2
-    pdf: premiere-spe-maths/premiere-spe-ch4-ds-02-sujet.pdf
+    pdf: premiere-spe-ch4-ds-02-sujet.pdf
   - num: 3
-    pdf: premiere-spe-maths/premiere-spe-ch4-ds-03-sujet.pdf
+    pdf: premiere-spe-ch4-ds-03-sujet.pdf
 erreurs:
   - "Confondre f' > 0 (signe de la dérivée) et f croissante (sens de variation) — c'est lié, mais ne pas mélanger"
   - "Oublier que f'(a) = 0 ne suffit pas pour un extremum : il faut un changement de signe de f'"
