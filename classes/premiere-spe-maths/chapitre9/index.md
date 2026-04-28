@@ -1,6 +1,7 @@
 ---
 title: "Chapitre 9 — Produit scalaire (Partie 1)"
 permalink: /classes/premiere-spe-maths/chapitre9/
+dossier_pdf: premiere-spe-maths
 hero_title: "Chapitre 9"
 hero_subtitle: "Produit scalaire — Définitions et propriétés"
 cours:
@@ -13,6 +14,7 @@ planches:
     pdf: premiere-spe-ch9-planche-01.pdf
   - num: 2
     pdf: premiere-spe-ch9-planche-02.pdf
+dm_published: false
 dm:
   - num: 1
     contenu: "Définition · Norme et angle · Projeté orthogonal"
@@ -22,6 +24,7 @@ dm:
     contenu: "Expression analytique · Bilinéarité · Symétrie"
     duree: "1 semaine"
     pdf: premiere-spe-ch9-dm-02-sujet.pdf
+dsblancs_published: true
 ds_blancs:
   - num: 1
     contenu: "Calcul de produits scalaires · Orthogonalité"
@@ -31,7 +34,7 @@ ds_blancs:
     contenu: "Coordonnées · Norme · Distance"
     duree: "55 min"
     pdf: premiere-spe-ch9-dsblanc-02-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
   - num: 1
     pdf: premiere-spe-ch9-ds-01-sujet.pdf
