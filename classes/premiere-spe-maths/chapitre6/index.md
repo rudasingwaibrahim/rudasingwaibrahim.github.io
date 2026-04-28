@@ -1,6 +1,7 @@
 ---
 title: "Chapitre 6 — Dérivation (Partie 3)"
 permalink: /classes/premiere-spe-maths/chapitre6/
+dossier_pdf: premiere-spe-maths
 hero_title: "Chapitre 6"
 hero_subtitle: "Dérivation — Optimisation et problèmes"
 cours:
@@ -13,6 +14,7 @@ planches:
     pdf: premiere-spe-ch6-planche-01.pdf
   - num: 2
     pdf: premiere-spe-ch6-planche-02.pdf
+dm_published: false
 dm:
   - num: 1
     contenu: "Modélisation · Étude complète d'une fonction"
@@ -22,6 +24,7 @@ dm:
     contenu: "Optimisation · Problème concret"
     duree: "1 semaine"
     pdf: premiere-spe-ch6-dm-02-sujet.pdf
+dsblancs_published: true
 ds_blancs:
   - num: 1
     contenu: "Étude de fonction · Tangente"
@@ -31,7 +34,7 @@ ds_blancs:
     contenu: "Optimisation · Application"
     duree: "55 min"
     pdf: premiere-spe-ch6-dsblanc-02-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
   - num: 1
     pdf: premiere-spe-ch6-ds-01-sujet.pdf
