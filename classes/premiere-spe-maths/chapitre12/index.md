@@ -1,6 +1,7 @@
 ---
 title: "Chapitre 12 — Produit scalaire (Partie 2)"
 permalink: /classes/premiere-spe-maths/chapitre12/
+dossier_pdf: premiere-spe-maths
 hero_title: "Chapitre 12"
 hero_subtitle: "Produit scalaire — Applications géométriques"
 cours:
@@ -13,6 +14,7 @@ planches:
     pdf: premiere-spe-ch12-planche-01.pdf
   - num: 2
     pdf: premiere-spe-ch12-planche-02.pdf
+dm_published: false
 dm:
   - num: 1
     contenu: "Théorème d'Al-Kashi · Loi des sinus · Aire d'un triangle"
@@ -22,6 +24,7 @@ dm:
     contenu: "Formules d'addition · Duplication · Démonstrations"
     duree: "1 semaine"
     pdf: premiere-spe-ch12-dm-02-sujet.pdf
+dsblancs_published: true
 ds_blancs:
   - num: 1
     contenu: "Al-Kashi · Calcul de longueurs et angles"
@@ -31,7 +34,7 @@ ds_blancs:
     contenu: "Formules trigo · Démonstration · Application"
     duree: "55 min"
     pdf: premiere-spe-ch12-dsblanc-02-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
   - num: 1
     pdf: premiere-spe-ch12-ds-01-sujet.pdf
