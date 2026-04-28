@@ -1,46 +1,47 @@
 ---
 title: "Chapitre 14 — Géométrie repérée"
 permalink: /classes/premiere-spe-maths/chapitre14/
+dossier_pdf: premiere-spe-maths
 hero_title: "Chapitre 14"
 hero_subtitle: "Géométrie repérée — Droites, vecteurs et cercles"
 cours:
   - titre: "Cours — Version élève"
-    pdf: premiere-spe-maths/premiere-spe-ch14-cours-eleve.pdf
+    pdf: premiere-spe-ch14-cours-eleve.pdf
   - titre: "Cours — Version professeur"
-    pdf: premiere-spe-maths/premiere-spe-ch14-cours-prof.pdf
+    pdf: premiere-spe-ch14-cours-prof.pdf
 planches:
   - num: 1
-    pdf: premiere-spe-maths/premiere-spe-ch14-planche-01.pdf
+    pdf: premiere-spe-ch14-planche-01.pdf
   - num: 2
-    pdf: premiere-spe-maths/premiere-spe-ch14-planche-02.pdf
+    pdf: premiere-spe-ch14-planche-02.pdf
 dm_published: false
 dm:
   - num: 1
     contenu: "Vecteurs · Équations cartésienne et paramétrique"
     duree: "1 semaine"
-    pdf: premiere-spe-maths/premiere-spe-ch14-dm-01-sujet.pdf
+    pdf: premiere-spe-ch14-dm-01-sujet.pdf
   - num: 2
     contenu: "Équation de cercle · Tangente · Configurations"
     duree: "1 semaine"
-    pdf: premiere-spe-maths/premiere-spe-ch14-dm-02-sujet.pdf
+    pdf: premiere-spe-ch14-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
   - num: 1
     contenu: "Droites · Vecteurs directeurs et normaux"
     duree: "55 min"
-    pdf: premiere-spe-maths/premiere-spe-ch14-dsblanc-01-sujet.pdf
+    pdf: premiere-spe-ch14-dsblanc-01-sujet.pdf
   - num: 2
     contenu: "Cercle · Équation · Position relative"
     duree: "55 min"
-    pdf: premiere-spe-maths/premiere-spe-ch14-dsblanc-02-sujet.pdf
+    pdf: premiere-spe-ch14-dsblanc-02-sujet.pdf
 ds_published: false
 ds:
   - num: 1
-    pdf: premiere-spe-maths/premiere-spe-ch14-ds-01-sujet.pdf
+    pdf: premiere-spe-ch14-ds-01-sujet.pdf
   - num: 2
-    pdf: premiere-spe-maths/premiere-spe-ch14-ds-02-sujet.pdf
+    pdf: premiere-spe-ch14-ds-02-sujet.pdf
   - num: 3
-    pdf: premiere-spe-maths/premiere-spe-ch14-ds-03-sujet.pdf
+    pdf: premiere-spe-ch14-ds-03-sujet.pdf
 erreurs:
   - "Confondre vecteur directeur et vecteur normal d'une droite ax + by + c = 0 : directeur (−b ; a), normal (a ; b)"
   - "Oublier de vérifier l'orientation : (−b ; a) ou (b ; −a) sont tous deux directeurs"
