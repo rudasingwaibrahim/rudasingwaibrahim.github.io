@@ -1,46 +1,47 @@
 ---
 title: "Chapitre 15 — Variables aléatoires"
 permalink: /classes/premiere-spe-maths/chapitre15/
+dossier_pdf: premiere-spe-maths
 hero_title: "Chapitre 15"
 hero_subtitle: "Variables aléatoires — Loi, espérance et variance"
 cours:
   - titre: "Cours — Version élève"
-    pdf: premiere-spe-maths/premiere-spe-ch15-cours-eleve.pdf
+    pdf: premiere-spe-ch15-cours-eleve.pdf
   - titre: "Cours — Version professeur"
-    pdf: premiere-spe-maths/premiere-spe-ch15-cours-prof.pdf
+    pdf: premiere-spe-ch15-cours-prof.pdf
 planches:
   - num: 1
-    pdf: premiere-spe-maths/premiere-spe-ch15-planche-01.pdf
+    pdf: premiere-spe-ch15-planche-01.pdf
   - num: 2
-    pdf: premiere-spe-maths/premiere-spe-ch15-planche-02.pdf
+    pdf: premiere-spe-ch15-planche-02.pdf
 dm_published: false
 dm:
   - num: 1
     contenu: "Variable aléatoire · Loi de probabilité"
     duree: "1 semaine"
-    pdf: premiere-spe-maths/premiere-spe-ch15-dm-01-sujet.pdf
+    pdf: premiere-spe-ch15-dm-01-sujet.pdf
   - num: 2
     contenu: "Espérance · Variance · Écart-type"
     duree: "1 semaine"
-    pdf: premiere-spe-maths/premiere-spe-ch15-dm-02-sujet.pdf
+    pdf: premiere-spe-ch15-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
   - num: 1
     contenu: "Loi de probabilité · Espérance"
     duree: "55 min"
-    pdf: premiere-spe-maths/premiere-spe-ch15-dsblanc-01-sujet.pdf
+    pdf: premiere-spe-ch15-dsblanc-01-sujet.pdf
   - num: 2
     contenu: "Variance · Écart-type · Linéarité"
     duree: "55 min"
-    pdf: premiere-spe-maths/premiere-spe-ch15-dsblanc-02-sujet.pdf
+    pdf: premiere-spe-ch15-dsblanc-02-sujet.pdf
 ds_published: false
 ds:
   - num: 1
-    pdf: premiere-spe-maths/premiere-spe-ch15-ds-01-sujet.pdf
+    pdf: premiere-spe-ch15-ds-01-sujet.pdf
   - num: 2
-    pdf: premiere-spe-maths/premiere-spe-ch15-ds-02-sujet.pdf
+    pdf: premiere-spe-ch15-ds-02-sujet.pdf
   - num: 3
-    pdf: premiere-spe-maths/premiere-spe-ch15-ds-03-sujet.pdf
+    pdf: premiere-spe-ch15-ds-03-sujet.pdf
 erreurs:
   - "Confondre variable aléatoire X (fonction) et ses valeurs xᵢ"
   - "Oublier que la somme des probabilités d'une loi vaut 1"
