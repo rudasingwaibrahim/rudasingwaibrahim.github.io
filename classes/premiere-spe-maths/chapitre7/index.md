@@ -1,6 +1,7 @@
 ---
 title: "Chapitre 7 — Généralités sur les suites"
 permalink: /classes/premiere-spe-maths/chapitre7/
+dossier_pdf: premiere-spe-maths
 hero_title: "Chapitre 7"
 hero_subtitle: "Suites — Modes de définition et sens de variation"
 cours:
@@ -13,6 +14,7 @@ planches:
     pdf: premiere-spe-ch7-planche-01.pdf
   - num: 2
     pdf: premiere-spe-ch7-planche-02.pdf
+dm_published: false
 dm:
   - num: 1
     contenu: "Suites · Définitions explicite et par récurrence"
@@ -22,6 +24,7 @@ dm:
     contenu: "Sens de variation · Représentation graphique"
     duree: "1 semaine"
     pdf: premiere-spe-ch7-dm-02-sujet.pdf
+dsblancs_published: true
 ds_blancs:
   - num: 1
     contenu: "Calcul des premiers termes · Conjecture"
@@ -31,7 +34,7 @@ ds_blancs:
     contenu: "Sens de variation · Etude"
     duree: "55 min"
     pdf: premiere-spe-ch7-dsblanc-02-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
   - num: 1
     pdf: premiere-spe-ch7-ds-01-sujet.pdf
