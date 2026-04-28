@@ -1,6 +1,7 @@
 ---
 title: "Chapitre 5 — Probabilités conditionnelles et indépendance"
 permalink: /classes/premiere-spe-maths/chapitre5/
+dossier_pdf: premiere-spe-maths
 hero_title: "Chapitre 5"
 hero_subtitle: "Probabilités conditionnelles — Arbre pondéré et indépendance"
 cours:
@@ -13,6 +14,7 @@ planches:
     pdf: premiere-spe-ch5-planche-01.pdf
   - num: 2
     pdf: premiere-spe-ch5-planche-02.pdf
+dm_published: false
 dm:
   - num: 1
     contenu: "Arbre pondéré · Probabilités conditionnelles"
@@ -22,6 +24,7 @@ dm:
     contenu: "Formule des probabilités totales · Indépendance"
     duree: "1 semaine"
     pdf: premiere-spe-ch5-dm-02-sujet.pdf
+dsblancs_published: true
 ds_blancs:
   - num: 1
     contenu: "Arbre · Probabilités conditionnelles"
@@ -31,7 +34,7 @@ ds_blancs:
     contenu: "Probas totales · Indépendance"
     duree: "55 min"
     pdf: premiere-spe-ch5-dsblanc-02-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
   - num: 1
     pdf: premiere-spe-ch5-ds-01-sujet.pdf
