@@ -1,46 +1,47 @@
 ---
 title: "Chapitre 6 — Dérivation (Partie 3)"
 permalink: /classes/premiere-spe-maths/chapitre6/
+dossier_pdf: premiere-spe-maths
 hero_title: "Chapitre 6"
 hero_subtitle: "Dérivation — Optimisation et problèmes"
 cours:
   - titre: "Cours — Version élève"
-    pdf: premiere-spe-maths/premiere-spe-ch6-cours-eleve.pdf
+    pdf: premiere-spe-ch6-cours-eleve.pdf
   - titre: "Cours — Version professeur"
-    pdf: premiere-spe-maths/premiere-spe-ch6-cours-prof.pdf
+    pdf: premiere-spe-ch6-cours-prof.pdf
 planches:
   - num: 1
-    pdf: premiere-spe-maths/premiere-spe-ch6-planche-01.pdf
+    pdf: premiere-spe-ch6-planche-01.pdf
   - num: 2
-    pdf: premiere-spe-maths/premiere-spe-ch6-planche-02.pdf
+    pdf: premiere-spe-ch6-planche-02.pdf
 dm_published: false
 dm:
   - num: 1
     contenu: "Modélisation · Étude complète d'une fonction"
     duree: "1 semaine"
-    pdf: premiere-spe-maths/premiere-spe-ch6-dm-01-sujet.pdf
+    pdf: premiere-spe-ch6-dm-01-sujet.pdf
   - num: 2
     contenu: "Optimisation · Problème concret"
     duree: "1 semaine"
-    pdf: premiere-spe-maths/premiere-spe-ch6-dm-02-sujet.pdf
+    pdf: premiere-spe-ch6-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
   - num: 1
     contenu: "Étude de fonction · Tangente"
     duree: "55 min"
-    pdf: premiere-spe-maths/premiere-spe-ch6-dsblanc-01-sujet.pdf
+    pdf: premiere-spe-ch6-dsblanc-01-sujet.pdf
   - num: 2
     contenu: "Optimisation · Application"
     duree: "55 min"
-    pdf: premiere-spe-maths/premiere-spe-ch6-dsblanc-02-sujet.pdf
+    pdf: premiere-spe-ch6-dsblanc-02-sujet.pdf
 ds_published: false
 ds:
   - num: 1
-    pdf: premiere-spe-maths/premiere-spe-ch6-ds-01-sujet.pdf
+    pdf: premiere-spe-ch6-ds-01-sujet.pdf
   - num: 2
-    pdf: premiere-spe-maths/premiere-spe-ch6-ds-02-sujet.pdf
+    pdf: premiere-spe-ch6-ds-02-sujet.pdf
   - num: 3
-    pdf: premiere-spe-maths/premiere-spe-ch6-ds-03-sujet.pdf
+    pdf: premiere-spe-ch6-ds-03-sujet.pdf
 erreurs:
   - "Oublier de définir précisément la fonction à optimiser (et son domaine)"
   - "Confondre la grandeur à optimiser avec une variable libre : exprimer en fonction d'UNE variable"
