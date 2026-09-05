@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 11 — Information chiffrée"
-permalink: /classes/seconde205/chapitre11/
+permalink: /classes/seconde220/chapitre11/
 hero_title: "Chapitre 11"
 hero_subtitle: "Information chiffrée"
 cours:
