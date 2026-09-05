@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 6 — Nombres réels (Partie 1)"
-permalink: /classes/seconde205/chapitre6/
+permalink: /classes/seconde220/chapitre6/
 hero_title: "Chapitre 6"
 hero_subtitle: "Nombres réels (Partie 1)"
 cours:
