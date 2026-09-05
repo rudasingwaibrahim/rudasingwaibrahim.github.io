@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 15 — Droites du plan"
-permalink: /classes/seconde205/chapitre15/
+permalink: /classes/seconde220/chapitre15/
 hero_title: "Chapitre 15"
 hero_subtitle: "Droites du plan"
 ---
