@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 14 — Variations d'une fonction"
-permalink: /classes/seconde205/chapitre14/
+permalink: /classes/seconde220/chapitre14/
 hero_title: "Chapitre 14"
 hero_subtitle: "Variations d'une fonction"
 cours:
