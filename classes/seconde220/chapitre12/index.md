@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 12 — Les fonctions de référence"
-permalink: /classes/seconde205/chapitre12/
+permalink: /classes/seconde220/chapitre12/
 hero_title: "Chapitre 12"
 hero_subtitle: "Les fonctions de référence"
 cours:
