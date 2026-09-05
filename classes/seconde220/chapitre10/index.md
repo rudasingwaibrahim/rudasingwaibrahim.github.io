@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 10 — Équations et inéquations"
-permalink: /classes/seconde205/chapitre10/
+permalink: /classes/seconde220/chapitre10/
 hero_title: "Chapitre 10"
 hero_subtitle: "Équations et inéquations"
 cours:
