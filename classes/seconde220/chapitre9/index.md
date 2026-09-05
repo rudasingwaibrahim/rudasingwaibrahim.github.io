@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 9 — Vecteurs et repérage"
-permalink: /classes/seconde205/chapitre9/
+permalink: /classes/seconde220/chapitre9/
 hero_title: "Chapitre 9"
 hero_subtitle: "Vecteurs et repérage"
 cours:
