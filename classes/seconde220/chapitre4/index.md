@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 4 — Notion de multiple, diviseur et nombre premier"
-permalink: /classes/seconde205/chapitre4/
+permalink: /classes/seconde220/chapitre4/
 hero_title: "Chapitre 4"
 hero_subtitle: "Notion de multiple, diviseur et nombre premier"
 cours:
