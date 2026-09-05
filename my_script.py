@@ -22,7 +22,7 @@ seconde_chapitres = [
 ]
 
 classes = {
-    "seconde205": {
+    "seconde220": {
         "shared_pdf_root": "seconde/commun",
         "chapitres": seconde_chapitres,
     },
@@ -239,7 +239,7 @@ for classe, config in classes.items():
             continue
 
         cours_filename = f"{classe}-ch{i}-cours.pdf"
-        if classe in ("seconde205", "seconde219"):
+        if classe in ("seconde220", "seconde219"):
             cours_filename = f"seconde-ch{i}-cours.pdf"
 
         contenu = f"""---
