@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 13 — Statistiques descriptives"
-permalink: /classes/seconde205/chapitre13/
+permalink: /classes/seconde220/chapitre13/
 hero_title: "Chapitre 13"
 hero_subtitle: "Statistiques descriptives"
 cours:
