@@ -1,6 +1,6 @@
 ---
 title: "Chapitre 16 — Probabilités"
-permalink: /classes/seconde205/chapitre16/
+permalink: /classes/seconde220/chapitre16/
 hero_title: "Chapitre 16"
 hero_subtitle: "Probabilités"
 ---
