@@ -1,71 +1,49 @@
 ---
-layout: default
-title: "Chapitre 1 - Suites 1/2"
+title: "Chapitre 1 — Suites 1/2"
 permalink: /classes/terminale-spe-maths/chapitre1/
 hero_title: "Chapitre 1"
 hero_subtitle: "Suites 1/2"
----
 
 
-## 📘 Cours
+cours:
+  - titre: "Cours complet"
+    pdf: suites.pdf
 
-- [Cours complet — PDF](/assets/pdf/suites.pdf)
+planches:
+  - num: 1
+    pdf: terminale-suites-arith-planche-01.pdf
 
----
+dm:
+  - num: 1
+    pdf: terminale-suites-arith-dm-01.pdf
 
-## 📝 Planches d'exercices
+ds_blancs:
+  - num: 1
+    pdf: terminale-suites-arith-dsblanc-01.pdf
+  - num: 2
+    pdf: terminale-suites-arith-dsblanc-02.pdf
 
-- **Planche 1** — [Sujet](/assets/pdf/terminale-suites-arith-planche-01.pdf) • [Correction](/assets/pdf/terminale-suites-arith-planche-01-correction.pdf)
+ds_published: true
+ds:
+  - num: 1
+    pdf: terminale-suites-arith-ds-01.pdf
+  - num: 2
+    pdf: terminale-suites-arith-ds-02.pdf
 
----
+erreurs:
+  - 'Confondre raison arithmétique r et raison géométrique q'
+  - 'Oublier de distinguer u_0 et u_1 dans la formule du terme général'
+  - 'Appliquer la formule de somme géométrique avec q = 1 : ce cas se traite séparément'
+  - 'Confondre le nombre de termes et le dernier indice dans une somme de p à n'
+  - 'Oublier de vérifier la nature de la suite avant d''appliquer une formule'
 
-## 🏠 Devoir maison
-
-- **DM 1** — [Sujet](/assets/pdf/terminale-suites-arith-dm-01.pdf) • [Correction](/assets/pdf/terminale-suites-arith-dm-01-correction.pdf)
-
----
-
-## ✍️ Devoirs blancs
-
-- **DS blanc 1** — [Sujet](/assets/pdf/terminale-suites-arith-dsblanc-01.pdf) • [Correction](/assets/pdf/terminale-suites-arith-dsblanc-01-correction.pdf)
-- **DS blanc 2** — [Sujet](/assets/pdf/terminale-suites-arith-dsblanc-02.pdf) • [Correction](/assets/pdf/terminale-suites-arith-dsblanc-02-correction.pdf)
-
----
-
-## 🧪 Devoirs surveillés
-
-- **DS 1** — [Sujet](/assets/pdf/terminale-suites-arith-ds-01.pdf) • [Correction](/assets/pdf/terminale-suites-arith-ds-01-correction.pdf)
-- **DS 2** — [Sujet](/assets/pdf/terminale-suites-arith-ds-02.pdf) • [Correction](/assets/pdf/terminale-suites-arith-ds-02-correction.pdf)
-
----
-
-## 📁 Ressources complémentaires
-
-### ⚠️ Erreurs fréquentes
-
-- Confondre **raison arithmétique** \( r \) et **raison géométrique** \( q \)
-- Oublier de distinguer \( u_0 \) et \( u_1 \) dans la formule du terme général
-- Appliquer la formule de somme géométrique avec \( q = 1 \) (cas à traiter séparément)
-- Confondre le **nombre de termes** et le dernier indice dans \( \sum_{k=p}^{n} \)
-- Oublier de vérifier la nature d'une suite avant d'appliquer une formule
+liens:
+  - nom: "Bibmath — Suites numériques"
+    desc: "Cours de référence et exercices corrigés"
+    url: "https://www.bibmath.net/ressources/index.php?action=affiche&quoi=lycee/suites.html"
+    ico: "📚"
+    cat: cours
 
 ---
 
-### 🎯 À maîtriser
-
-- Terme général :
-  - Suite arithmétique : \( u_n = u_0 + nr \)
-  - Suite géométrique : \( u_n = u_0 \times q^n \)
-- Somme de termes consécutifs :
-  - Arithmétique : \( \sum_{k=p}^{n} u_k = (n-p+1) \times \dfrac{u_p + u_n}{2} \)
-  - Géométrique : \( \sum_{k=p}^{n} u_k = u_p \times \dfrac{1 - q^{n-p+1}}{1-q} \)
-- Moyennes arithmétique et géométrique
-- Lien avec croissance linéaire / exponentielle
-- Algorithmes Python : somme des carrés, cubes, inverses
-
----
-
-### 🔗 Liens utiles
-
-- [Bibmath – Suites numériques](https://www.bibmath.net/ressources/index.php?action=affiche&quoi=lycee/suites.html){:target="_blank"}
-
+{% include cours-cards.html %}
