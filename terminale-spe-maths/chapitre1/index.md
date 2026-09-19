@@ -6,43 +6,48 @@ hero_subtitle: "Suites 1/2"
 
 
 cours:
-  - titre: "Cours complet"
-    pdf: suites.pdf
+  - titre: "Cours — Version élève"
+    pdf: terminale-spe-ch1-cours-eleve.pdf
+  - titre: "Cours — Version professeur"
+    pdf: terminale-spe-ch1-cours-prof.pdf
 
 planches:
   - num: 1
-    pdf: terminale-suites-arith-planche-01.pdf
+    pdf: terminale-spe-ch1-planche-01.pdf
+  - num: 2
+    pdf: terminale-spe-ch1-planche-02.pdf
 
 dm:
   - num: 1
-    pdf: terminale-suites-arith-dm-01.pdf
+    pdf: terminale-spe-ch1-dm-01-sujet.pdf
+  - num: 2
+    pdf: terminale-spe-ch1-dm-02-sujet.pdf
 
 ds_blancs:
   - num: 1
-    pdf: terminale-suites-arith-dsblanc-01.pdf
+    pdf: terminale-spe-ch1-dsblanc-01-sujet.pdf
   - num: 2
-    pdf: terminale-suites-arith-dsblanc-02.pdf
+    pdf: terminale-spe-ch1-dsblanc-02-sujet.pdf
 
 ds_published: true
 ds:
   - num: 1
-    pdf: terminale-suites-arith-ds-01.pdf
+    pdf: terminale-spe-ch1-ds-01-sujet.pdf
   - num: 2
-    pdf: terminale-suites-arith-ds-02.pdf
+    pdf: terminale-spe-ch1-ds-02-sujet.pdf
+  - num: 3
+    pdf: terminale-spe-ch1-ds-03-sujet.pdf
 
 erreurs:
-  - 'Confondre raison arithmétique r et raison géométrique q'
-  - 'Oublier de distinguer u_0 et u_1 dans la formule du terme général'
-  - 'Appliquer la formule de somme géométrique avec q = 1 : ce cas se traite séparément'
-  - 'Confondre le nombre de termes et le dernier indice dans une somme de p à n'
-  - 'Oublier de vérifier la nature de la suite avant d''appliquer une formule'
-
-liens:
-  - nom: "Bibmath — Suites numériques"
-    desc: "Cours de référence et exercices corrigés"
-    url: "https://www.bibmath.net/ressources/index.php?action=affiche&quoi=lycee/suites.html"
-    ico: "📚"
-    cat: cours
+  - "Oublier l'initialisation : l'hérédité seule ne démontre rien"
+  - "Écrire « supposons la propriété vraie pour tout n » au lieu de fixer un rang n et supposer P(n)"
+  - "Vérifier l'initialisation à un rang autre que celui à partir duquel on conclut"
+  - "Utiliser une récurrence simple pour une suite définie par deux rangs : il faut une récurrence forte"
+  - "Confondre divergente et sans limite : une suite qui tend vers +∞ est divergente"
+  - "Croire qu'une forme indéterminée signifie que la limite n'existe pas : il faut lever l'indétermination"
+  - "Appliquer la règle du quotient sans étudier le signe du dénominateur quand celui-ci tend vers 0"
+  - "Écrire q^n → 0 sans la condition −1 < q < 1 : pour q ≤ −1 la suite n'a pas de limite"
+  - "Factoriser par un terme qui n'est pas le terme dominant, ce qui laisse l'indétermination"
 
 ---
 
