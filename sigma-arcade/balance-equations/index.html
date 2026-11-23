@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Balance des équations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE : clair, encourageant, scolaire ; jamais de mise en échec.
+   IDEA : une balance de marché en laiton ; chaque geste s'écrit aussitôt comme dans un cahier.
+   PICTURE : la balance qui penche dès qu'on n'agit que d'un côté.
+   COLOUR and TYPE : laiton et bois, poids orange, sacs en toile, ballons rouges ; Lexend.
+   LAYOUT : balance et outils à gauche, « Ma résolution » à droite comme une copie. */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#101418);--ink:light-dark(#15191d,#e9edf0);--mut:light-dark(#56616b,#9ba7b1);
+--panel:light-dark(#f1f3f5,#1a2027);--line:light-dark(#cfd5da,#323c46);--or:#ff7a00;--orsoft:rgba(255,122,0,.18);
+--pos:light-dark(#1260b8,#72b4ff);--neg:light-dark(#b23a2a,#ff8c7a);--ok:light-dark(#23803a,#5fd27c);
+--vx:light-dark(#7a3fc2,#c39bff);
+--stage1:light-dark(#eaf4fd,#14202e);--stage2:light-dark(#fdf6ea,#1c1915);--table:light-dark(#9b6a3f,#5a3d26);
+--brass1:#f2c45a;--brass2:#b8860b;--paper:light-dark(#fffdf7,#171c22);--rule:light-dark(#dfe7f3,#26303b)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 Lexend,system-ui,sans-serif;overflow-x:clip}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(28px,3.6vw,42px);line-height:1.05;margin:0 0 4px;text-wrap:balance}
+header p{margin:0;color:var(--mut);max-width:72ch}
+.back{display:inline-block;margin:0 0 8px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:2px solid var(--or)}.back:hover{color:var(--or)}
+.app{max-width:1320px;margin:auto;padding:12px max(3vw,16px) 32px;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:clamp(18px,2.6vw,34px);align-items:start}
+button{font:inherit}
+button:focus-visible,input:focus-visible{outline:3px solid var(--or);outline-offset:2px}
+.lv{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}
+.lv button{min-height:42px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:600;font-size:15px;cursor:pointer}
+.lv button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.lv .snd{margin-left:auto;border-style:dashed}.lv .snd[aria-pressed=true]{background:var(--orsoft);color:var(--ink);border-color:var(--or)}
+.lvdesc{color:var(--mut);margin:2px 0 10px;min-height:1.5em}
+.stage{border-radius:18px;background:linear-gradient(180deg,var(--stage1),var(--stage2));overflow:hidden;position:relative;transition:opacity .4s}
+.stage.fade #bal{opacity:.22}
+.stage.fade::after{content:"La balance s'efface : fie-toi à l'écriture.";position:absolute;left:0;right:0;bottom:10px;text-align:center;font-size:14px;font-weight:600;color:var(--mut)}
+#bal{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none;transition:opacity .4s}
+.eqbig{font:700 clamp(30px,4.6vw,54px)/1.2 Lexend,sans-serif;text-align:center;margin:14px 0 4px;white-space:nowrap;overflow-x:auto;padding:4px 0}
+.vx{color:var(--vx);font-style:italic}
+.opn{color:var(--or)}
+.ne{color:var(--or)}
+.msg{text-align:center;color:var(--mut);min-height:1.6em;margin:0 0 10px}
+.alert{border:2px solid var(--or);background:var(--orsoft);border-radius:14px;padding:12px 16px;margin:0 0 12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.alert b{font-size:18px}
+.alert p{margin:0;flex:1 1 260px}
+.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tool{min-height:64px;padding:8px 12px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.tool b{font-size:18px}.tool small{color:var(--mut);font-size:13px;line-height:1.3}
+.tool:hover:not(:disabled){border-color:var(--or);background:var(--orsoft)}
+.tool:disabled{opacity:.38;cursor:not-allowed}
+.btn{min-height:48px;padding:0 18px;border-radius:12px;border:0;background:var(--ink);color:var(--bg);font-weight:600;cursor:pointer}
+.btn.or{background:var(--or);color:#1d0e00}.btn.gh{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+.win{border-radius:16px;padding:16px 18px;margin:12px 0;background:light-dark(#eaf7ee,#13261a);border:2px solid var(--ok)}
+.win .big{font:700 clamp(30px,4vw,44px)/1.1 Lexend,sans-serif;color:var(--ok)}
+.win p{margin:6px 0}
+.copy{background:var(--paper);border:1.5px solid var(--line);border-radius:16px;padding:16px 18px 18px;position:sticky;top:10px;
+  background-image:repeating-linear-gradient(var(--paper) 0 33px,var(--rule) 33px 34px);background-position:0 54px}
+.copy h2{font-size:20px;margin:0 0 8px;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.copy h2 span{font-size:14px;color:var(--mut);font-weight:600}
+.log{font-size:clamp(18px,1.7vw,21px);line-height:34px;min-height:136px}
+.log div{white-space:nowrap;overflow-x:auto}
+.log .orig{font-weight:700}
+.log .opl{color:var(--mut)}
+.log .res{font-weight:600}
+.log .fin{font-weight:700;color:var(--ok)}
+.log .ver{white-space:normal;line-height:1.5;margin-top:8px;font-size:16px;padding:10px 12px;border-radius:10px;background:light-dark(#eaf7ee,#13261a);color:var(--ink)}
+.dots{display:flex;gap:6px;margin:12px 0 0;align-items:center;flex-wrap:wrap}
+.dots span{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dots span.g{background:var(--ok)}.dots span.c{background:var(--or);box-shadow:0 0 0 3px var(--orsoft)}
+.dots em{font-style:normal;color:var(--mut);font-size:14px;margin-left:6px}
+.libre{margin-top:16px;padding-top:12px;border-top:1.5px dashed var(--line)}
+.libre label{font-weight:600;display:block;margin-bottom:6px}
+.libre form{display:flex;gap:8px;flex-wrap:wrap}
+.libre input{flex:1 1 160px;height:48px;font:600 18px Lexend,sans-serif;padding:0 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}
+.libre .warn{color:var(--neg);font-size:15px;margin:6px 0 0;min-height:1.4em}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:14px;color:var(--mut);margin:8px 2px 0}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:5px}
+/* objets de la balance */
+.it{cursor:pointer;transition:opacity .22s,transform .22s;transform-box:fill-box;transform-origin:50% 100%}
+.it:hover{filter:brightness(1.08)}
+.it.out{opacity:0;transform:scale(.4) translateY(-10px)}
+.it.in{animation:pop .3s ease-out}
+@keyframes pop{0%{opacity:0;transform:scale(.3)}100%{opacity:1;transform:scale(1)}}
+.bl.in{animation:rise .45s ease-out}
+@keyframes rise{0%{opacity:0;transform:translateY(30px)}100%{opacity:1;transform:none}}
+.bl{animation:bob 3s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-3px)}}
+.it.out.bl{animation:none;opacity:0;transform:translateY(-40px) scale(.6)}
+.bag-l{font:700 17px Lexend,sans-serif;fill:#fff;font-style:italic}
+.bag-l.rv{font-style:normal;animation:flip .5s ease-out}
+@keyframes flip{0%{opacity:0}100%{opacity:1}}
+.w-l{font:700 12px Lexend,sans-serif;fill:#3a1c00}
+.b-l{font:700 11px Lexend,sans-serif;fill:#fff}
+.needle{transition:stroke .3s}
+.lock .it{cursor:default}
+@media (prefers-reduced-motion:reduce){.bl,.it.in,.bl.in{animation:none}.it{transition:none}}
+@media(max-width:900px){.app{grid-template-columns:minmax(0,1fr)}.copy{position:static}}
+@media(max-width:520px){.tool{min-height:58px}.tool b{font-size:16px}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>La balance des équations</h1>
+<p>Une équation, c'est une balance en équilibre. Pour trouver la valeur du sac <span class="vx">x</span>, on fait toujours <b>la même chose des deux côtés</b> : la balance reste droite.</p>
+</header>
+
+<main class="app">
+<section>
+<div class="lv" id="lv" role="group" aria-label="Niveaux"></div>
+<p class="lvdesc" id="lvdesc"></p>
+
+<div class="stage" id="stage">
+<svg id="bal" viewBox="0 0 960 380" role="img" aria-label="Balance à deux plateaux"></svg>
+</div>
+<div class="legend" aria-hidden="true">
+<span><i style="background:#c58b4a"></i>sac <span class="vx">x</span> : valeur inconnue</span>
+<span><i style="background:#ff8a1e"></i>poids : vaut 1</span>
+<span><i style="background:#e53935;border-radius:50%"></i>ballon : vaut −1 (il tire vers le haut)</span>
+</div>
+
+<div class="eqbig" id="eq" aria-live="polite"></div>
+<p class="msg" id="msg" aria-live="polite"></p>
+
+<div class="alert" id="alert" hidden>
+<p><b>La balance penche : ce n'est plus une égalité !</b><br>Tu as agi d'un seul côté. Ce que tu fais d'un côté, fais-le aussi de l'autre.</p>
+<button class="btn or" id="mirror" type="button">Faire pareil de l'autre côté</button>
+<button class="btn gh" id="undo2" type="button">Annuler</button>
+</div>
+
+<div class="tools" id="tools">
+<button class="tool" id="tm1" type="button"><b>− 1 des deux côtés</b><small>enlever un poids (ou ajouter un ballon)</small></button>
+<button class="tool" id="tp1" type="button"><b>+ 1 des deux côtés</b><small>ajouter un poids (ou enlever un ballon)</small></button>
+<button class="tool" id="tmx" type="button"><b>− <span class="vx">x</span> des deux côtés</b><small>enlever un sac de chaque plateau</small></button>
+<button class="tool" id="tdiv" type="button"><b id="tdivb">÷ 2 des deux côtés</b><small>partager chaque plateau en parts égales</small></button>
+</div>
+<div class="row">
+<button class="btn gh" id="undo" type="button">↶ Annuler</button>
+<button class="btn gh" id="reset" type="button">Recommencer l'équation</button>
+</div>
+<p class="msg" style="text-align:left;margin:0" id="tip">Tu peux aussi toucher un objet sur un plateau pour l'enlever de ce côté seulement.</p>
+
+<div class="win" id="win" hidden>
+<div class="big" id="winx"></div>
+<p id="winp"></p>
+<div class="row"><button class="btn or" id="next" type="button">Équation suivante →</button></div>
+</div>
+</section>
+
+<aside class="copy">
+<h2>Ma résolution <span id="lvname"></span></h2>
+<div class="log" id="log"></div>
+<div class="dots" id="dots"></div>
+<div class="libre">
+<label for="own">Mon équation</label>
+<form id="ownf"><input id="own" autocomplete="off" placeholder="ex. 3x − 4 = x + 6" aria-describedby="ownw"><button class="btn" type="submit">Charger</button></form>
+<p class="warn" id="ownw"></p>
+</div>
+</aside>
+</main>
+
+<script>
+{
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const clone=o=>JSON.parse(JSON.stringify(o));
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const pause=ms=>new Promise(r=>setTimeout(r,reduce?0:ms));
+const M='−';
+const PER=5;               // équations par niveau
+const PX=480,PY=118,ARM=230;
+
+/* ---------------- niveaux ---------------- */
+const LV=[
+ {t:'1. Un sac',d:'Enlève les poids des deux côtés pour laisser le sac seul. Exemple : x + 3 = 7.',g:g1},
+ {t:'2. Partager',d:'Plusieurs sacs identiques : partage les deux plateaux en parts égales. Exemple : 3x = 12.',g:g2},
+ {t:'3. Deux étapes',d:'D\'abord les poids, ensuite le partage. Exemple : 2x + 3 = 11.',g:g3},
+ {t:'4. x des deux côtés',d:'Regroupe les sacs d\'un seul côté en en enlevant autant de chaque côté. Exemple : 3x + 2 = x + 10.',g:g4},
+ {t:'5. Ballons (−)',d:'Un ballon vaut −1 : il tire le plateau vers le haut. Un poids et un ballon ensemble s\'annulent. Exemple : x − 3 = 4.',g:g5},
+ {t:'6. Balance floue',d:'La balance s\'efface : appuie-toi sur l\'écriture, la balance n\'est plus qu\'une ombre.',g:gmix,fade:1},
+ {t:'7. Sans balance',d:'Plus de balance : uniquement l\'écriture, avec les mêmes gestes.',g:gmix,hide:1}
+];
+function ok(L,R){
+  return L.x<=5&&R.x<=5&&L.c<=15&&R.c<=15&&L.c>=-6&&R.c>=-6&&!solvedState(L,R)&&(L.x||R.x)&&L.x!==R.x}
+function g1(){for(;;){const x0=ri(1,9),a=ri(1,6),L={x:1,c:a},R={x:0,c:x0+a};if(ok(L,R))return sw({L,R,x0},.2)}}
+function g2(){for(;;){const a=ri(2,4),x0=ri(1,5),L={x:a,c:0},R={x:0,c:a*x0};if(ok(L,R))return sw({L,R,x0},.2)}}
+function g3(){for(;;){const a=ri(2,3),x0=ri(1,5),b=ri(1,6),L={x:a,c:b},R={x:0,c:a*x0+b};if(ok(L,R))return sw({L,R,x0},.2)}}
+function g4(){for(;;){const aR=ri(1,2),aL=aR+ri(1,2),x0=ri(1,5),bL=ri(0,5),L={x:aL,c:bL},R={x:aR,c:(aL-aR)*x0+bL};if(ok(L,R))return sw({L,R,x0},.4)}}
+function g5(){for(;;){const aL=ri(1,3),aR=ri(0,aL-1),x0=ri(1,6),bL=ri(-6,6),L={x:aL,c:bL},R={x:aR,c:(aL-aR)*x0+bL};
+  if(ok(L,R)&&(L.c<0||R.c<0))return sw({L,R,x0},.3)}}
+function gmix(){return pick([g3,g4,g5,g5])()}
+function sw(e,p){return Math.random()<p?{L:e.R,R:e.L,x0:e.x0}:e}
+const solvedState=(L,R)=>(L.x===1&&L.c===0&&R.x===0)||(R.x===1&&R.c===0&&L.x===0);
+
+/* ---------------- écriture ---------------- */
+function side(sd,h=true){
+  const X=n=>h?`<span class="vx">${n}</span>`:n;
+  const xs=sd.x===0?'':sd.x===1?X('x'):sd.x+X('x');
+  if(!xs)return sd.c<0?M+(-sd.c):String(sd.c);
+  return sd.c>0?`${xs} + ${sd.c}`:sd.c<0?`${xs} ${M} ${-sd.c}`:xs;
+}
+const eqs=(L,R,h=true)=>`${side(L,h)} = ${side(R,h)}`;
+function sideOp(sd,e){
+  const b=side(sd);
+  if(e.k==='c')return `${b} <span class="opn">${e.v>0?'+ '+e.v:M+' '+(-e.v)}</span>`;
+  if(e.k==='x'){const n=-e.v;return `${b} <span class="opn">${M} ${n===1?'':n}<span class="vx">x</span></span>`}
+  const par=sd.x!==0&&sd.c!==0;return `${par?'('+b+')':b} <span class="opn">÷ ${e.v}</span>`;
+}
+function subst(sd,v){
+  const parts=[];
+  if(sd.x)parts.push(sd.x===1?String(v):`${sd.x} × ${v}`);
+  if(sd.c||!parts.length)parts.push(parts.length?(sd.c>0?'+ '+sd.c:M+' '+(-sd.c)):(sd.c<0?M+(-sd.c):String(sd.c)));
+  const val=sd.x*v+sd.c,vs=val<0?M+(-val):String(val);
+  return parts.length===1&&(!sd.x||(sd.x===1&&!sd.c))?vs:`${parts.join(' ')} = ${vs}`;
+}
+
+/* ---------------- état ---------------- */
+let lvl=0,done=Array(LV.length).fill(0),cur=null,S=null,log=[],pending=null,pendBefore=null,hist=[],solved=false,busy=false,own=false;
+let ang=0,angAnim=0,prevCnt={L:{x:0,w:0,b:0},R:{x:0,w:0,b:0}};
+
+function load(e,isOwn=false){
+  cur=e;S={L:clone(e.L),R:clone(e.R)};log=[];pending=null;pendBefore=null;hist=[];solved=false;own=isOwn;
+  prevCnt={L:{x:0,w:0,b:0},R:{x:0,w:0,b:0}};
+  $('win').hidden=true;$('alert').hidden=true;$('ownw').textContent='';
+  render(true);setAngle(0,true);update();say(hint());
+}
+function newEq(){load(LV[lvl].g())}
+
+/* ---------------- dessin ---------------- */
+const svg=$('bal');
+svg.innerHTML=`<defs>
+<linearGradient id="gBrass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset=".5" stop-color="#e0a92e"/><stop offset="1" stop-color="#a87412"/></linearGradient>
+<linearGradient id="gPan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe6a6"/><stop offset="1" stop-color="#c08d1c"/></linearGradient>
+<linearGradient id="gWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b98252"/><stop offset="1" stop-color="#7a4e2b"/></linearGradient>
+<linearGradient id="gW" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e86a00"/><stop offset=".45" stop-color="#ffb056"/><stop offset="1" stop-color="#d95f00"/></linearGradient>
+<linearGradient id="gBag" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9a066"/><stop offset="1" stop-color="#9c6532"/></linearGradient>
+<radialGradient id="gBal" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ff8a80"/><stop offset=".5" stop-color="#e53935"/><stop offset="1" stop-color="#a71d1a"/></radialGradient>
+</defs>
+<rect x="0" y="338" width="960" height="42" fill="var(--table)"/>
+<rect x="0" y="334" width="960" height="6" fill="#000" opacity=".12"/>
+<path d="M430 334 L450 300 H510 L530 334 Z" fill="url(#gBrass)" stroke="#8a5c0a" stroke-width="1.5"/>
+<rect x="473" y="${PY}" width="14" height="184" rx="4" fill="url(#gBrass)" stroke="#8a5c0a" stroke-width="1.2"/>
+<path d="M${PX-60} ${PY-40} A60 60 0 0 1 ${PX+60} ${PY-40}" fill="none" stroke="#8a5c0a" stroke-width="2" opacity=".55"/>
+<path d="M${PX} ${PY-104} v10" stroke="#23803a" stroke-width="3"/>
+<g id="beam">
+<rect x="${PX-ARM-12}" y="${PY-7}" width="${2*ARM+24}" height="14" rx="7" fill="url(#gBrass)" stroke="#8a5c0a" stroke-width="1.5"/>
+<line class="needle" id="needle" x1="${PX}" y1="${PY}" x2="${PX}" y2="${PY-92}" stroke="#23803a" stroke-width="4" stroke-linecap="round"/>
+<circle cx="${PX-ARM}" cy="${PY}" r="6" fill="#8a5c0a"/><circle cx="${PX+ARM}" cy="${PY}" r="6" fill="#8a5c0a"/>
+</g>
+<circle cx="${PX}" cy="${PY}" r="11" fill="url(#gBrass)" stroke="#8a5c0a" stroke-width="2"/>
+<g id="panL"></g><g id="panR"></g>`;
+
+function panSVG(sd,s){
+  const pc=prevCnt[s],w=Math.max(sd.c,0),b=Math.max(-sd.c,0);
+  const items=[];for(let i=0;i<sd.x;i++)items.push({k:'x',i,w:38});for(let i=0;i<w;i++)items.push({k:'w',i,w:26});
+  // rangées : on remplit de gauche à droite, rangée suivante au-dessus
+  const rows=[[]];let width=0;
+  for(const it of items){if(width+it.w>212&&rows[rows.length-1].length){rows.push([]);width=0}rows[rows.length-1].push(it);width+=it.w+4}
+  let o=`<path d="M0 0 L-128 122 M0 0 L128 122" stroke="#8a5c0a" stroke-width="1.6" fill="none"/>
+  <path d="M-142 120 Q0 152 142 120 Z" fill="url(#gPan)" stroke="#8a5c0a" stroke-width="1.5"/>
+  <g transform="translate(0 121) scale(1.28) translate(0 -121)">`;
+  rows.forEach((r,ri_)=>{
+    const tw=r.reduce((a,it)=>a+it.w+4,-4);let xx=-tw/2;const yb=121-ri_*46;
+    for(const it of r){
+      const isNew=(it.k==='x'?it.i>=pc.x:it.i>=pc.w);const cls=`it${isNew?' in':''}`;
+      if(it.k==='x'){
+        o+=`<g transform="translate(${xx} ${yb})"><g class="${cls}" data-s="${s}" data-k="x">
+        <path d="M4 0 Q-1 -20 9 -34 L7 -40 Q19 -46 31 -40 L29 -34 Q39 -20 34 0 Z" fill="url(#gBag)" stroke="#6b4220" stroke-width="1.3"/>
+        <path d="M9 -34 Q19 -30 29 -34" stroke="#6b4220" stroke-width="2" fill="none"/>
+        <text class="bag-l${solved?' rv':''}" x="19" y="-11" text-anchor="middle">${solved?cur.x0:'x'}</text></g></g>`;
+      }else{
+        o+=`<g transform="translate(${xx} ${yb})"><g class="${cls}" data-s="${s}" data-k="w">
+        <rect x="0" y="-24" width="26" height="24" rx="4" fill="url(#gW)" stroke="#a84300" stroke-width="1.2"/>
+        <rect x="9" y="-29" width="8" height="6" rx="2" fill="#c25700"/>
+        <text class="w-l" x="13" y="-7" text-anchor="middle">1</text></g></g>`;
+      }
+      xx+=it.w+4;
+    }
+  });
+  o+='</g>';
+  // ballons : à l'extérieur du plateau, attachés au bord
+  const dir=s==='L'?-1:1;
+  for(let i=0;i<b;i++){
+    const col=i%2,row=Math.floor(i/2),bx=dir*(168+col*34),by=6+row*42,isNew=i>=pc.b;
+    o+=`<g class="it bl${isNew?' in':''}" data-s="${s}" data-k="b">
+    <path d="M${dir*140} 121 Q${bx-dir*4} ${by+44} ${bx} ${by+21}" stroke="#7a2a22" stroke-width="1" fill="none"/>
+    <ellipse cx="${bx}" cy="${by}" rx="16" ry="19" fill="url(#gBal)"/>
+    <path d="M${bx-3} ${by+20} h6 l-3 4z" fill="#a71d1a"/>
+    <text class="b-l" x="${bx}" y="${by+4}" text-anchor="middle">${M}1</text></g>`;
+  }
+  return o;
+}
+function render(first){
+  $('panL').innerHTML=panSVG(S.L,'L');$('panR').innerHTML=panSVG(S.R,'R');
+  for(const s of ['L','R'])prevCnt[s]={x:S[s].x,w:Math.max(S[s].c,0),b:Math.max(-S[s].c,0)};
+  if(first)svg.querySelectorAll('.it.in').forEach(e=>e.classList.remove('in'));
+  place();
+  $('eq').innerHTML=pending?`${side(S.L)} <span class="ne">≠</span> ${side(S.R)}`:eqs(S.L,S.R);
+  drawLog();
+}
+function place(){
+  const r=ang*Math.PI/180,cx=ARM*Math.cos(r),cy=ARM*Math.sin(r);
+  $('beam').setAttribute('transform',`rotate(${ang} ${PX} ${PY})`);
+  $('panL').setAttribute('transform',`translate(${PX-cx} ${PY-cy})`);
+  $('panR').setAttribute('transform',`translate(${PX+cx} ${PY+cy})`);
+  $('needle').setAttribute('stroke',Math.abs(ang)<.5?'#23803a':'#e65100');
+}
+function target(){const d=(S.R.x*cur.x0+S.R.c)-(S.L.x*cur.x0+S.L.c);return clamp(d*3,-14,14)}
+function setAngle(t,instant){
+  cancelAnimationFrame(angAnim);
+  if(instant||reduce){ang=t;place();return}
+  const a0=ang,t0=performance.now(),D=700;
+  const st=now=>{const u=Math.min(1,(now-t0)/D);const e=1+2.2*Math.pow(u-1,3)+1.2*Math.pow(u-1,2); // léger rebond
+    ang=a0+(t-a0)*e;place();if(u<1)angAnim=requestAnimationFrame(st);else{ang=t;place()}};
+  angAnim=requestAnimationFrame(st);
+}
+
+/* ---------------- résolution écrite ---------------- */
+function drawLog(){
+  const lines=[`<div class="orig">${eqs(cur.L,cur.R)}</div>`];
+  for(const e of log){
+    const op=e.k==='div'?{k:'div',v:e.v}:e;
+    lines.push(`<div class="opl">${sideOp(e.b.L,op)} = ${sideOp(e.b.R,op)}</div>`);
+    lines.push(`<div class="res">${eqs(e.a.L,e.a.R)}</div>`);
+  }
+  if(solved){
+    const v=cur.x0;
+    if(S.R.x===1)lines.push(`<div class="fin">donc <span class="vx">x</span> = ${v}</div>`);
+    else lines[lines.length-1]=lines[lines.length-1].replace('class="res"','class="res fin"');
+    lines.push(`<div class="ver"><b>Vérification avec <span class="vx">x</span> = ${v}</b><br>À gauche : ${subst(cur.L,v)}<br>À droite : ${subst(cur.R,v)}<br>Les deux côtés sont égaux ✓</div>`);
+  }
+  $('log').innerHTML=lines.join('');
+  $('dots').innerHTML=own?'<em>Équation personnelle</em>':Array.from({length:PER},(_,i)=>`<span class="${i<done[lvl]?'g':i===done[lvl]?'c':''}"></span>`).join('')+`<em>${Math.min(done[lvl],PER)} / ${PER}</em>`;
+}
+function addLog(k,v,before){
+  const last=log[log.length-1];
+  if(last&&last.k===k&&k!=='div'){last.v+=v;last.a=clone(S);if(last.v===0)log.pop()}
+  else log.push({k,v,b:before,a:clone(S)});
+}
+
+/* ---------------- conseils ---------------- */
+function hint(){
+  if(solved)return '';
+  const xs=S.L.x&&S.R.x,xSide=S.L.x?S.L:S.R;
+  if(xs)return 'Il y a des sacs des deux côtés : enlève un sac de chaque plateau pour les regrouper d\'un seul côté.';
+  if(xSide.c>0)return 'Il reste des poids à côté des sacs : enlève-les des deux côtés.';
+  if(xSide.c<0)return 'Il reste des ballons à côté des sacs : ajoute un poids de chaque côté pour les faire disparaître.';
+  if(xSide.x>1)return `Il y a ${xSide.x} sacs identiques : partage chaque plateau en ${xSide.x} parts égales.`;
+  return '';
+}
+const say=t=>{$('msg').textContent=t};
+
+/* ---------------- son ---------------- */
+let actx=null,snd=true;try{snd=localStorage.getItem('bal-son')!=='0'}catch(e){}
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type='sine',w=0){const a=ac();if(!a)return;const t=a.currentTime+w,o=a.createOscillator(),g=a.createGain();
+  o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0008,t+d);
+  o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const sClink=()=>{if(snd){tone(1568,.25,.06,'triangle');tone(2349,.18,.03)}};
+const sTilt=()=>{if(snd){tone(220,.35,.09,'triangle');tone(165,.45,.06,'sine',.08)}};
+const sWin=()=>{if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.5,.08,'triangle',i*.12))};
+
+/* ---------------- actions ---------------- */
+function snap(){hist.push({S:clone(S),log:clone(log),pending:clone(pending),pendBefore:clone(pendBefore)})}
+function lastOf(s,k,n){const els=[...$(s==='L'?'panL':'panR').querySelectorAll(`.it[data-k="${k}"]`)];return n>0?els.slice(-n):[]}
+async function outAnim(list){list.forEach(e=>e.classList.add('out'));if(list.length)await pause(230)}
+
+async function both(k,v){
+  if(busy||solved||pending)return;
+  if(k==='x'&&(S.L.x<1||S.R.x<1)){say('Pour enlever un sac des deux côtés, il faut un sac sur chaque plateau.');return}
+  busy=true;snap();const before=clone(S);
+  const outs=[];
+  for(const s of ['L','R']){
+    if(k==='x')outs.push(...lastOf(s,'x',1));
+    else if(v<0&&S[s].c>0)outs.push(...lastOf(s,'w',1));
+    else if(v>0&&S[s].c<0)outs.push(...lastOf(s,'b',1));
+  }
+  await outAnim(outs);
+  if(k==='x'){S.L.x--;S.R.x--}else{S.L.c+=v;S.R.c+=v}
+  addLog(k,v,before);sClink();busy=false;render();after();
+}
+async function divide(){
+  if(busy||solved||pending)return;const d=divisor();if(!d)return;
+  busy=true;snap();const before=clone(S);
+  const outs=[];
+  for(const s of ['L','R']){const sd=S[s];
+    if(sd.x)outs.push(...lastOf(s,'x',sd.x-sd.x/d));
+    if(sd.c>0)outs.push(...lastOf(s,'w',sd.c-sd.c/d));
+    if(sd.c<0)outs.push(...lastOf(s,'b',-sd.c+sd.c/d));
+  }
+  await outAnim(outs);
+  for(const s of ['L','R']){S[s].x/=d;S[s].c/=d}
+  addLog('div',d,before);sClink();busy=false;render();after();
+}
+function divisor(){
+  if(S.L.x&&S.R.x)return 0;const xs=S.L.x?S.L:S.R,d=xs.x;
+  if(d<2)return 0;
+  return [S.L.x,S.L.c,S.R.x,S.R.c].every(n=>n%d===0)?d:0;
+}
+async function single(el){
+  if(busy||solved||pending)return;
+  const s=el.dataset.s,kk=el.dataset.k;
+  busy=true;snap();pendBefore=clone(S);
+  await outAnim([el]);
+  const op=kk==='x'?{k:'x',v:-1}:kk==='w'?{k:'c',v:-1}:{k:'c',v:1};
+  if(op.k==='x')S[s].x--;else S[s].c+=op.v;
+  pending={...op,s};
+  render();setAngle(target());sTilt();
+  $('alert').hidden=false;
+  say(kk==='x'?'Tu as enlevé un sac d\'un seul côté.':kk==='w'?'Tu as enlevé un poids d\'un seul côté.':'Tu as enlevé un ballon d\'un seul côté : ce plateau est devenu plus lourd.');
+  busy=false;update();
+}
+async function mirror(){
+  if(busy||!pending)return;
+  const o=pending.s==='L'?'R':'L';
+  if(pending.k==='x'&&S[o].x<1){say('De l\'autre côté, il n\'y a pas de sac à enlever. Annule et essaie autre chose.');return}
+  busy=true;
+  const outs=pending.k==='x'?lastOf(o,'x',1):pending.v<0?(S[o].c>0?lastOf(o,'w',1):[]):(S[o].c<0?lastOf(o,'b',1):[]);
+  await outAnim(outs);
+  if(pending.k==='x')S[o].x--;else S[o].c+=pending.v;
+  const before=pendBefore,k=pending.k,v=pending.v;
+  pending=null;pendBefore=null;$('alert').hidden=true;
+  addLog(k,v,before);sClink();busy=false;render();after();
+}
+function undo(){
+  if(busy||!hist.length)return;
+  const h=hist.pop();S=h.S;log=h.log;pending=h.pending;pendBefore=h.pendBefore;solved=false;
+  $('win').hidden=true;$('alert').hidden=!pending;
+  render(true);setAngle(pending?target():0);update();say(pending?'':hint());
+}
+function after(){
+  setAngle(0);
+  if(solvedState(S.L,S.R)){
+    solved=true;render();sWin();
+    const v=cur.x0;
+    $('winx').innerHTML=`Bravo ! <span class="vx">x</span> = ${v}`;
+    if(!own){done[lvl]=Math.min(PER,done[lvl]+1)}
+    const lvlDone=!own&&done[lvl]>=PER;
+    $('winp').textContent=lvlDone?(lvl<LV.length-1?'Niveau réussi ! Tu peux passer au niveau suivant.':'Tu as terminé tous les niveaux, bravo !'):'Regarde la vérification dans « Ma résolution » : on remplace x par sa valeur, et les deux côtés sont égaux.';
+    $('next').textContent=lvlDone&&lvl<LV.length-1?'Niveau suivant →':'Équation suivante →';
+    $('next').dataset.up=lvlDone&&lvl<LV.length-1?'1':'';
+    $('win').hidden=false;svg.classList.add('lock');drawLog();say('');
+  }else say(hint());
+  update();
+}
+function update(){
+  const lock=busy||solved||!!pending;
+  $('tm1').disabled=lock;$('tp1').disabled=lock;
+  $('tmx').disabled=lock||!(S.L.x>=1&&S.R.x>=1);
+  const d=divisor();$('tdiv').disabled=lock||!d;$('tdivb').textContent=`÷ ${d||Math.max(S.L.x,S.R.x,2)} des deux côtés`;
+  $('undo').disabled=!hist.length;
+  svg.classList.toggle('lock',solved||!!pending);
+}
+
+/* ---------------- événements ---------------- */
+svg.addEventListener('click',e=>{const it=e.target.closest('.it');if(it&&!it.classList.contains('out'))single(it)});
+$('tm1').onclick=()=>both('c',-1);$('tp1').onclick=()=>both('c',1);$('tmx').onclick=()=>both('x',-1);$('tdiv').onclick=divide;
+$('mirror').onclick=mirror;$('undo').onclick=undo;$('undo2').onclick=undo;
+$('reset').onclick=()=>{if(!busy)load(cur,own)};
+$('next').onclick=()=>{own=false;if($('next').dataset.up)lvl++;renderLv();newEq()};
+function renderLv(){
+  $('lv').innerHTML=LV.map((l,i)=>`<button type="button" data-l="${i}" aria-pressed="${i===lvl&&!own}">${l.t}</button>`).join('')+
+    `<button type="button" class="snd" id="snd" aria-pressed="${snd}">♪ Son : ${snd?'oui':'non'}</button>`;
+  $('lvdesc').textContent=own?'Équation personnelle : résous-la avec les mêmes gestes.':LV[lvl].d;
+  $('lvname').textContent=own?'':`· niveau ${lvl+1}`;
+  $('stage').classList.toggle('fade',!!LV[lvl].fade&&!own);$('stage').hidden=!!LV[lvl].hide&&!own;
+  document.querySelector('.legend').hidden=!!LV[lvl].hide&&!own;
+  $('tip').hidden=!!LV[lvl].hide&&!own||!!LV[lvl].fade&&!own;
+}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;
+  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('bal-son',snd?'1':'0')}catch(_){}renderLv();if(snd)sClink();return}
+  lvl=+b.dataset.l;own=false;renderLv();newEq()});
+
+/* équation personnelle : ax + b = cx + d, entiers */
+function parseSide(str){
+  if(!str)throw 0;const t=str.replace(/\s+/g,'').replace(/[−–]/g,'-');
+  if(!/^[+-]?(\d*x|\d+)([+-](\d*x|\d+))*$/.test(t))throw 0;
+  const sd={x:0,c:0};for(const m of t.match(/[+-]?(\d*x|\d+)/g)){
+    if(m.includes('x')){const n=m.replace('x','');sd.x+=n===''||n==='+'?1:n==='-'?-1:parseInt(n,10)}else sd.c+=parseInt(m,10)}
+  return sd;
+}
+$('ownf').addEventListener('submit',e=>{e.preventDefault();if(busy)return;const w=$('ownw');
+  const parts=$('own').value.split('=');let L,R;
+  try{if(parts.length!==2)throw 0;L=parseSide(parts[0]);R=parseSide(parts[1])}catch(_){w.textContent='Écris une équation comme 3x − 4 = x + 6 (nombres entiers, une seule lettre x).';return}
+  if(L.x<0||R.x<0){w.textContent='Sur la balance, les sacs x ne peuvent pas être négatifs : choisis une équation avec des +x.';return}
+  if(L.x===R.x){w.textContent='Il faut plus de sacs x d\'un côté que de l\'autre.';return}
+  const num=R.c-L.c,den=L.x-R.x;
+  if(num%den!==0||num/den<1||num/den>20){w.textContent='Pour la balance, choisis une équation dont la solution est un nombre entier positif (entre 1 et 20).';return}
+  if(L.x>5||R.x>5||Math.max(L.c,R.c)>15||Math.min(L.c,R.c)<-6){w.textContent='Trop d\'objets pour la balance : au plus 5 sacs, 15 poids et 6 ballons par plateau.';return}
+  if(solvedState(L,R)){w.textContent='Cette équation est déjà résolue !';return}
+  own=true;renderLv();load({L,R,x0:num/den},true);
+});
+
+renderLv();newEq();
+}
+</script>
+</body>
+</html>
