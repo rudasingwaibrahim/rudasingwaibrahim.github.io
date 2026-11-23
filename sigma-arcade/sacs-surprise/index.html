@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Les Sacs à Surprise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE : clair, encourageant, scolaire ; jamais de mise en échec.
+   IDEA : le comptoir d'une fête foraine ; chaque objet posé s'écrit aussitôt sur une ardoise.
+   PICTURE : le sac fermé x, la bille qui vaut 1, la caisse carrée x × x.
+   COLOUR and TYPE : sacs en toile et ruban orange, billes bleues, caisses en bois, ardoises vertes ; Lexend.
+   LAYOUT : comptoir et outils à gauche, « Ma copie » à droite comme une copie. */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#101418);--ink:light-dark(#15191d,#e9edf0);--mut:light-dark(#56616b,#9ba7b1);
+--panel:light-dark(#f1f3f5,#1a2027);--line:light-dark(#cfd5da,#323c46);--or:#ff7a00;--orsoft:rgba(255,122,0,.18);
+--ok:light-dark(#23803a,#5fd27c);--vx:light-dark(#7a3fc2,#c39bff);
+--stage1:light-dark(#eaf4fd,#14202e);--stage2:light-dark(#fdf6ea,#1c1915);
+--paper:light-dark(#fffdf7,#171c22);--rule:light-dark(#dfe7f3,#26303b);
+--shelf1:light-dark(#c08a58,#7a5636);--shelf2:light-dark(#8a5a32,#4a3220);--cream:light-dark(#fff4e0,#f3e3c6)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 Lexend,system-ui,sans-serif;overflow-x:clip}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(28px,3.6vw,42px);line-height:1.05;margin:0 0 4px;text-wrap:balance}
+header p{margin:0;color:var(--mut);max-width:76ch}
+.back{display:inline-block;margin:0 0 8px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:2px solid var(--or)}.back:hover{color:var(--or)}
+.app{max-width:1320px;margin:auto;padding:12px max(3vw,16px) 32px;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:clamp(18px,2.6vw,34px);align-items:start}
+button{font:inherit;-webkit-tap-highlight-color:transparent}
+button:focus-visible,input:focus-visible{outline:3px solid var(--or);outline-offset:2px}
+.lv{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}
+.lv button{min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:600;font-size:15px;cursor:pointer}
+.lv button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.lv button .ck{color:var(--ok);margin-left:4px}
+.lv button[aria-pressed=true] .ck{color:inherit}
+.lv .snd{margin-left:auto;border-style:dashed}.lv .snd[aria-pressed=true]{background:var(--orsoft);color:var(--ink);border-color:var(--or)}
+.lvdesc{color:var(--mut);margin:2px 0 10px;min-height:1.5em}
+.stage{border-radius:18px;background:linear-gradient(180deg,var(--stage1),var(--stage2));overflow:hidden;position:relative}
+.stage.fade::after{content:"Les objets s'effacent : fie-toi à l'écriture des ardoises.";position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:14px;font-weight:600;color:var(--mut);padding:0 10px}
+.stage.fade{padding-bottom:22px}
+#scene{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+#defs{position:absolute;width:0;height:0;overflow:hidden}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;color:var(--mut);margin:8px 2px 0;align-items:center}
+.legend>span{display:inline-flex;align-items:center;gap:6px}
+.legend svg{width:22px;height:22px;flex:none}
+.eqbig{font:700 clamp(26px,4vw,46px)/1.25 Lexend,sans-serif;text-align:center;margin:14px 0 2px;padding:4px 0;overflow-wrap:anywhere}
+.eqbig small{display:block;font-size:15px;font-weight:600;color:var(--mut);line-height:1.4}
+.vx{color:var(--vx);font-style:italic}
+.slot{display:inline-block;min-width:1.6em;border-bottom:4px solid var(--or);color:var(--mut)}
+.msg{text-align:center;color:var(--mut);min-height:1.6em;margin:0 0 10px}
+.zone{margin:6px 0 0}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.opt{min-height:64px;padding:6px 12px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:700 clamp(22px,2.6vw,28px)/1.2 Lexend,sans-serif;cursor:pointer;transition:border-color .15s,background .15s,transform .15s}
+.opt:hover:not(:disabled){border-color:var(--or);background:var(--orsoft)}
+.opt:disabled{cursor:default}
+.opt.no{opacity:.45;text-decoration:line-through;text-decoration-color:var(--or);text-decoration-thickness:2px}
+.opt.yes{border-color:var(--ok);background:light-dark(#eaf7ee,#13261a);opacity:1}
+.opt small{display:block;font:600 13px Lexend,sans-serif;color:var(--mut)}
+.btn{min-height:48px;padding:0 18px;border-radius:12px;border:0;background:var(--ink);color:var(--bg);font-weight:600;cursor:pointer}
+.btn.or{background:var(--or);color:#1d0e00}.btn.gh{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0;align-items:center}
+/* constructeur */
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.stp{border:1.5px solid var(--line);border-radius:14px;padding:8px 10px 10px;background:var(--bg);display:flex;flex-direction:column;align-items:center;gap:6px}
+.stp .lab{display:flex;align-items:center;gap:6px;font-weight:600;font-size:15px;text-align:center;line-height:1.2}
+.stp .lab svg{width:30px;height:30px;flex:none}
+.ctr{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;overflow:hidden}
+.ctr button{width:48px;height:48px;border:0;background:transparent;color:var(--ink);font:600 26px Lexend,sans-serif;cursor:pointer;touch-action:manipulation}
+.ctr button:hover:not(:disabled){background:var(--orsoft)}
+.ctr button:disabled{opacity:.3;cursor:not-allowed}
+.ctr output{min-width:2.2ch;text-align:center;font:700 24px Lexend,sans-serif}
+.liveexp{font-size:18px;margin:10px 0 0;text-align:center}
+.liveexp b{font-size:clamp(22px,2.6vw,28px)}
+/* clavier */
+.padw{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:16px;align-items:start}
+.ansrow{display:flex;gap:8px;flex-wrap:wrap}
+#ans{flex:1 1 160px;height:56px;font:700 26px Lexend,sans-serif;text-align:center;border:1.5px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);padding:0 10px}
+.prev{min-height:1.6em;margin:8px 0 0;color:var(--mut);text-align:center;font-size:16px}
+.prev b{color:var(--ink);font-size:20px}
+.pad{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.pad button{height:52px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);font:600 22px Lexend,sans-serif;color:var(--ink);cursor:pointer;touch-action:manipulation}
+.pad button:hover:not(:disabled){border-color:var(--or)}
+.pad button:disabled{opacity:.25;cursor:not-allowed}
+.pad .vk{color:var(--vx);font-style:italic}
+.pad .ok{grid-column:span 2;background:var(--or);color:#1d0e00;border:0;font-size:18px;font-style:normal}
+/* pièges */
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chips .cl{font-weight:600;margin-right:4px}
+.chips button{min-height:44px;min-width:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:600 16px Lexend,sans-serif;cursor:pointer}
+.chips button:hover,.chips button.on{border-color:var(--or);background:var(--orsoft)}
+.cnt{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:10px 0 4px;min-height:44px}
+.cnt span{padding:8px 14px;border-radius:12px;background:var(--panel);font-weight:600}
+.cnt span b{font-size:20px}
+/* retours */
+.fb{border-radius:14px;padding:12px 16px;margin:12px 0}
+.fb.ko{border:2px solid var(--or);background:var(--orsoft)}
+.fb b.t{font-size:18px;display:block}
+.fb p{margin:4px 0}
+.fb .mini{display:block;width:min(100%,380px);height:auto;margin:8px 0 0;border-radius:10px;background:linear-gradient(180deg,var(--stage1),var(--stage2))}
+.win{border-radius:16px;padding:16px 18px;margin:12px 0;background:light-dark(#eaf7ee,#13261a);border:2px solid var(--ok)}
+.win .big{font:700 clamp(26px,3.4vw,38px)/1.15 Lexend,sans-serif;color:var(--ok)}
+.win p{margin:6px 0}
+/* copie */
+.copy{background:var(--paper);border:1.5px solid var(--line);border-radius:16px;padding:16px 18px 18px;position:sticky;top:10px;
+  background-image:repeating-linear-gradient(var(--paper) 0 33px,var(--rule) 33px 34px);background-position:0 54px}
+.copy h2{font-size:20px;margin:0 0 8px;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.copy h2 span{font-size:14px;color:var(--mut);font-weight:600}
+.log{font-size:clamp(17px,1.6vw,20px);line-height:34px;min-height:136px}
+.log div{overflow-wrap:anywhere}
+.log .orig{font-weight:700}
+.log .opl{color:var(--mut)}
+.log .res{font-weight:600}
+.log .fin{font-weight:700;color:var(--ok)}
+.log .ver{line-height:1.5;margin-top:8px;font-size:16px;padding:10px 12px;border-radius:10px;background:light-dark(#eaf7ee,#13261a);color:var(--ink)}
+.log .ver.hint{background:var(--orsoft)}
+.log table{border-collapse:collapse;font-size:16px;line-height:1.4;margin:6px 0;background:var(--paper)}
+.log th,.log td{border:1px solid var(--line);padding:4px 10px;text-align:center}
+.log td.df{color:var(--or);font-weight:700}.log td.eq{color:var(--ok);font-weight:700}
+.dots{display:flex;gap:6px;margin:12px 0 0;align-items:center;flex-wrap:wrap}
+.dots span{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dots span.g{background:var(--ok)}.dots span.c{background:var(--or);box-shadow:0 0 0 3px var(--orsoft)}
+.dots em{font-style:normal;color:var(--mut);font-size:14px;margin-left:6px}
+.libre{margin-top:16px;padding-top:12px;border-top:1.5px dashed var(--line)}
+.libre label{font-weight:600;display:block;margin-bottom:2px}
+.libre .sub{font-size:14px;color:var(--mut);margin:0 0 6px}
+.libre form{display:flex;gap:8px;flex-wrap:wrap}
+.libre input{flex:1 1 160px;height:48px;font:600 18px Lexend,sans-serif;padding:0 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}
+.libre .warn{color:light-dark(#b23a2a,#ff8c7a);font-size:15px;margin:6px 0 0;min-height:1.4em}
+/* objets du comptoir */
+.obj{transition:transform .55s cubic-bezier(.3,1.2,.5,1)}
+.obj .inner{transform-box:fill-box;transform-origin:50% 100%}
+.pick .obj{cursor:pointer}
+.pick .obj:hover .inner{filter:brightness(1.08) drop-shadow(0 0 4px rgba(255,122,0,.8))}
+.pop{animation:pop .35s ease-out both}
+@keyframes pop{0%{opacity:0;transform:scale(.3)}70%{transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+.inner.out{opacity:0;transform:scale(.4) translateY(-10px);transition:opacity .22s,transform .22s}
+.wig{animation:wig .6s ease-in-out}
+@keyframes wig{20%{transform:rotate(-7deg)}50%{transform:rotate(6deg)}80%{transform:rotate(-3deg)}}
+.opn{animation:opn .45s ease-out}
+@keyframes opn{0%{transform:scale(1,.85)}60%{transform:scale(1,1.06)}100%{transform:scale(1)}}
+#objs{transition:opacity .5s}
+.ghost #objs{opacity:.17}
+.shd{fill:#000;opacity:.16}
+.sx{font:italic 700 23px Lexend,sans-serif;fill:#fff;paint-order:stroke;stroke:#5a3517;stroke-width:2px}
+.sx.nb{font-style:normal}
+.cx2{font:700 24px Lexend,sans-serif;fill:#3a2412}
+.cx2 .tx{font-style:italic;fill:#7a3fc2}
+.dim path{stroke:var(--mut);stroke-width:1.4;fill:none}
+.dimt{font:700 15px Lexend,sans-serif;fill:var(--mut)}
+.dimt.v{font-style:italic;fill:var(--vx)}
+.tag rect{fill:#24392f;stroke:#8a6440;stroke-width:2.5}
+.tag text,.tagq{font:700 21px Lexend,sans-serif;fill:#f6f2e6}
+.tag .tx{font-style:italic;fill:#d9bcff}
+.tag.reduced rect{stroke:var(--or)}
+.plus{font:700 24px Lexend,sans-serif;fill:var(--mut)}
+.badge circle{fill:var(--ink)}.badge text{font:700 16px Lexend,sans-serif;fill:var(--bg)}
+.sep{stroke:var(--line);stroke-width:2;stroke-dasharray:6 6}
+.empty{font:600 17px Lexend,sans-serif;fill:var(--mut)}
+.signt{font:700 17px Lexend,sans-serif;fill:#3a1c00;letter-spacing:.5px}
+.bulb{animation:tw 2.4s ease-in-out infinite}
+@keyframes tw{50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){.obj,#objs{transition:none}.pop,.wig,.opn,.bulb{animation:none}.inner.out{transition:none}}
+@media(max-width:900px){.app{grid-template-columns:minmax(0,1fr)}.copy{position:static}}
+@media(max-width:640px){.padw{grid-template-columns:minmax(0,1fr)}.steps{gap:6px}.stp{padding:6px 4px 8px}.stp .lab{font-size:13px;flex-direction:column;gap:2px}.ctr button{width:44px;height:48px}.ctr output{min-width:1.8ch;font-size:21px}}
+@media(max-width:420px){.opts{gap:8px}.opt{min-height:60px}.lv button{padding:0 11px;font-size:14px}}
+</style>
+</head>
+<body>
+<svg id="defs" aria-hidden="true" focusable="false"><defs>
+<linearGradient id="ss-sac" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ddb07a"/><stop offset=".55" stop-color="#b7793f"/><stop offset="1" stop-color="#8a5629"/></linearGradient>
+<radialGradient id="ss-bille" cx=".35" cy=".32" r=".75"><stop offset="0" stop-color="#bfe3ff"/><stop offset=".45" stop-color="#3d8fe0"/><stop offset="1" stop-color="#0f4a96"/></radialGradient>
+<linearGradient id="ss-bois" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2b27a"/><stop offset="1" stop-color="#b07a44"/></linearGradient>
+<linearGradient id="ss-shelf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--shelf1)"/><stop offset="1" stop-color="var(--shelf2)"/></linearGradient>
+<linearGradient id="ss-sign" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe2a8"/><stop offset="1" stop-color="#f0b860"/></linearGradient>
+</defs></svg>
+
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Les Sacs à Surprise</h1>
+<p>Une lettre, c'est un sac fermé : on ne sait pas combien il contient de billes, mais tous les sacs <span class="vx">x</span> en contiennent autant. Une bille vaut 1. Compte, range, ouvre les sacs… et écris !</p>
+</header>
+
+<main class="app">
+<section>
+<div class="lv" id="lv" role="group" aria-label="Niveaux"></div>
+<p class="lvdesc" id="lvdesc"></p>
+
+<div class="stage" id="stage">
+<svg id="scene" viewBox="0 0 960 300" role="img" aria-label="Comptoir de la fête foraine avec des sacs, des billes et des caisses carrées"><g id="bg"></g><g id="objs"></g><g id="tags"></g></svg>
+</div>
+<div class="legend" id="legend" aria-hidden="true">
+<span><svg viewBox="-2 -68 58 70"><use href="#ic-sac"/></svg><span>sac <span class="vx">x</span> : un nombre inconnu de billes</span></span>
+<span><svg viewBox="-1 -25 26 26"><use href="#ic-bille"/></svg><span>bille : vaut 1</span></span>
+<span><svg viewBox="-4 -90 94 94"><use href="#ic-caisse"/></svg><span>caisse carrée <span class="vx">x</span>² = <span class="vx">x</span> × <span class="vx">x</span> : <span class="vx">x</span> rangées de <span class="vx">x</span> billes</span></span>
+</div>
+
+<div class="eqbig" id="eq" aria-live="polite"></div>
+<p class="msg" id="msg" aria-live="polite"></p>
+
+<div class="zone">
+<div class="opts" id="z-opts" hidden></div>
+
+<div id="z-build" hidden>
+<div class="steps" id="steps"></div>
+<p class="liveexp" id="liveexp"></p>
+<div class="row" style="justify-content:center"><button class="btn gh" id="rangeb" type="button" hidden>Ranger par familles</button><button class="btn or" id="bval" type="button">Valider</button></div>
+</div>
+
+<div id="z-open" class="row" hidden><button class="btn or" id="openb" type="button">Ouvrir les sacs</button></div>
+
+<div id="z-xs" hidden>
+<div class="chips" id="xchips"></div>
+<div class="cnt" id="cnt" aria-live="polite"></div>
+</div>
+
+<div class="opts" id="z-trap" hidden>
+<button class="opt" type="button" data-t="1">Toujours égales<small>pour toutes les valeurs de <span class="vx">x</span></small></button>
+<button class="opt" type="button" data-t="0">Pas toujours égales<small>au moins une valeur de <span class="vx">x</span> les sépare</small></button>
+</div>
+
+<div id="z-own" class="row" hidden><button class="btn gh" id="ownrange" type="button">Ranger par familles</button></div>
+
+<div class="padw" id="z-pad" hidden>
+<div>
+<form class="ansrow" id="ansf"><input id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="none" aria-label="Ta réponse" placeholder="?"><button class="btn gh" id="hintb" type="button">Un indice</button></form>
+<p class="prev" id="prev"></p>
+</div>
+<div class="pad" id="pad"></div>
+</div>
+</div>
+
+<div class="fb ko" id="fb" hidden></div>
+<div class="win" id="win" hidden>
+<div class="big" id="winx"></div>
+<p id="winp"></p>
+<div class="row"><button class="btn or" id="next" type="button">Question suivante →</button></div>
+</div>
+</section>
+
+<aside class="copy">
+<h2>Ma copie <span id="lvname"></span></h2>
+<div class="log" id="log"></div>
+<div class="dots" id="dots"></div>
+<div class="libre">
+<label for="own">Mon expression</label>
+<p class="sub">Pour le tableau : écris une expression, le comptoir la construit.</p>
+<form id="ownf"><input id="own" autocomplete="off" spellcheck="false" placeholder="ex. x² + 2x + x + 3" aria-describedby="ownw"><button class="btn" type="submit">Construire</button></form>
+<p class="warn" id="ownw"></p>
+</div>
+</aside>
+</main>
+
+<script>
+{
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const PER=5;
+const LIM={a:4,b:8,c:12};
+
+/* =============== expressions =============== */
+// terme : {k:'a' (x²) | 'b' (x) | 'c' (nombre), n : entier ≥ 1, xx : écrit « x × x »}
+const X='<span class="vx">x</span>';
+function tTxt(t,h=true){const x=h?X:'x';
+  if(t.k==='c')return String(t.n);
+  if(t.k==='b')return (t.n===1?'':t.n)+x;
+  if(t.xx)return `${x} × ${x}`;
+  return (t.n===1?'':t.n)+x+'²';}
+const eTxt=(ts,h=true)=>ts.length?ts.map(t=>tTxt(t,h)).join(' + '):'0';
+const P=(a=0,b=0,c=0)=>({a,b,c});
+function poly(ts){const p=P();for(const t of ts)p[t.k]+=t.n;return p}
+function canon(p){const ts=[];for(const k of 'abc')if(p[k])ts.push({k,n:p[k]});return ts}
+const pTxt=(p,h=true)=>eTxt(canon(p),h);
+const same=(p,q)=>p.a===q.a&&p.b===q.b&&p.c===q.c;
+const val=(p,v)=>p.a*v*v+p.b*v+p.c;
+const isEmpty=p=>!p.a&&!p.b&&!p.c;
+const fams=p=>(p.a>0)+(p.b>0)+(p.c>0);
+const isReduced=ts=>{const s=new Set();for(const t of ts){if(s.has(t.k)||t.xx)return false;s.add(t.k)}return true};
+const NAME={a:['une caisse carrée','caisses carrées'],b:['un sac','sacs'],c:['une bille','billes']};
+const nm=(k,n)=>n===1?NAME[k][0]:`${n} ${NAME[k][1]}`;
+function describe(p){const parts=[];for(const k of 'abc')if(p[k])parts.push(nm(k,p[k]));
+  if(!parts.length)return 'rien du tout';
+  return parts.length===1?parts[0]:parts.slice(0,-1).join(', ')+' et '+parts[parts.length-1];}
+const FAM={a:'les caisses carrées (termes en '+X+'²)',b:'les sacs (termes en '+X+')',c:'les billes (nombres seuls)'};
+function substTxt(ts,v){return ts.map(t=>t.k==='c'?String(t.n):t.k==='b'?(t.n===1?`${v}`:`${t.n} × ${v}`):t.xx?`${v} × ${v}`:(t.n===1?`${v}²`:`${t.n} × ${v}²`)).join(' + ')}
+const tVal=(t,v)=>t.k==='c'?t.n:t.k==='b'?t.n*v:t.n*v*v;
+// étapes d'un calcul : substitution, puissances, produits, total
+function calcSteps(ts,v){
+  const p=poly(ts),tot=val(p,v),out=[];
+  out.push(substTxt(ts,v));
+  if(ts.some(t=>t.k==='a'))out.push(ts.map(t=>t.k==='c'?String(t.n):t.k==='b'?(t.n===1?`${v}`:`${t.n} × ${v}`):(t.n===1?`${v*v}`:`${t.n} × ${v*v}`)).join(' + '));
+  if(ts.length>1)out.push(ts.map(t=>String(tVal(t,v))).join(' + '));
+  out.push(String(tot));
+  return out.filter((s,i)=>i===0||s!==out[i-1]);
+}
+
+/* =============== niveaux =============== */
+const LV=[
+ {t:'1. Inventaire',d:'Regarde le comptoir et touche l\'étiquette qui l\'écrit. Un sac s\'écrit x, une bille vaut 1, une caisse carrée s\'écrit x².'},
+ {t:'2. Le marchand',d:'Pose sur le comptoir exactement ce que demande l\'expression. Touche un objet du comptoir pour le reprendre.'},
+ {t:'3. Ouvre les sacs !',d:'On connaît enfin x : ouvre les sacs et compte toutes les billes. C\'est calculer l\'expression pour une valeur de x.'},
+ {t:'4. Grand rangement',d:'Range par familles : les sacs avec les sacs, les billes avec les billes, les caisses avec les caisses. C\'est réduire l\'expression.'},
+ {t:'5. Les pièges',d:'Deux collections A et B : ont-elles toujours autant de billes, quel que soit x ? Essaie des valeurs avant de répondre.'},
+ {t:'6. Sacs fantômes',d:'Les objets s\'effacent : réduis ou calcule en écrivant ta réponse au clavier.',fade:1},
+ {t:'7. Sans objets',d:'Plus d\'objets : uniquement l\'écriture. Réduis ou calcule comme un pro.',hide:1}
+];
+
+/* ---------- générateurs ---------- */
+const T=(k,n,xx)=>xx?{k,n,xx:true}:{k,n};
+function genTrad(){
+  for(;;){const r=Math.random();let p;
+    if(r<.14)p=P(0,ri(2,5),0);
+    else if(r<.28)p=P(0,1,ri(2,6));
+    else if(r<.56)p=P(0,ri(2,5),ri(1,6));
+    else if(r<.68)p=P(1,0,ri(0,5));
+    else if(r<.86)p=P(ri(1,2),ri(1,4),ri(0,5));
+    else p=P(0,2,ri(0,4));
+    if(p.a===2&&p.b===0&&p.c===0)continue;
+    const opts=tradOpts(p);if(opts)return {type:'trad',p,opts:shuffle([{p,why:'ok'},...opts])};
+  }
+}
+function okDraw(q){return !isEmpty(q)&&q.a<=LIM.a&&q.b<=LIM.b&&q.c<=LIM.c&&q.a>=0&&q.b>=0&&q.c>=0}
+function tradOpts(p){
+  const c=[];const add=(q,why)=>c.push({p:q,why});
+  const tot=p.a+p.b+p.c;
+  if(fams(p)>=2){add(P(0,tot,0),'mix');if(!p.a)add(P(0,0,tot),'mixnum')}
+  if(p.b&&p.c&&p.b!==p.c)add(P(p.a,p.c,p.b),'swap');
+  if(p.a)add(P(0,p.b+2*p.a,p.c),'sq');
+  if(!p.a&&p.b===2)add(P(1,0,p.c),'sq2');
+  if(!p.a&&!p.c&&p.b>=2)add(P(0,1,p.b),'plus');
+  if(!p.a&&p.b===1&&p.c>=2)add(P(0,p.c,0),'plus2');
+  if(!p.a&&p.b===1)add(P(1,0,p.c),'sq3');
+  const err=shuffle(c).filter(o=>okDraw(o.p)&&!same(o.p,p));
+  const fb=shuffle([P(p.a,p.b+1,p.c),P(p.a,p.b,p.c+1),P(p.a,Math.max(p.b-1,0),p.c),P(p.a,p.b,Math.max(p.c-1,0)),P(p.a+1,p.b,p.c)]).filter(q=>okDraw(q)&&!same(q,p)).map(q=>({p:q,why:'off'}));
+  const out=[];
+  for(const o of [...err,...fb]){if(out.length===3)break;if(out.some(u=>same(u.p,o.p)))continue;out.push(o)}
+  return out.length===3?out:null;
+}
+function genBuild(){
+  for(;;){const r=Math.random();let ts;
+    if(r<.22)ts=pick([[T('b',1),T('b',1),T('c',ri(1,5))],[T('b',1),T('b',1),T('b',1)],[T('b',ri(2,3)),T('b',1),T('c',ri(1,4))],[T('a',1),T('b',1),T('b',1)],[T('c',ri(1,4)),T('b',1),T('b',1)]]);
+    else if(r<.42)ts=pick([[T('a',1)],[T('b',2)],[T('b',1),T('c',ri(2,5))],[T('b',ri(3,5))],[T('a',1),T('c',ri(1,4))],[T('b',2),T('c',ri(1,4))]]);
+    else ts=canon(P(Math.random()<.3?ri(1,2):0,ri(1,5),ri(0,7)));
+    const p=poly(ts);if(okDraw(p)&&p.b<=6&&p.c<=9&&p.a<=2)return {type:'build',ts,p};
+  }
+}
+function genCalc(o={}){
+  for(;;){const sq=Math.random()<(o.sq??.25);const a=sq?(o.maxA?ri(1,o.maxA):1):0;
+    const v=ri(2,a?5:(o.vmax||9));
+    const b=pick([0,1,ri(2,5),ri(2,5),ri(2,5)]),c=pick([0,ri(1,8),ri(1,8)]);
+    const p=P(a,b,c);if(!p.a&&!p.b)continue;if(fams(p)<2&&Math.random()<.6)continue;
+    if(!p.a&&p.b===1&&!p.c)continue;
+    return {type:'calc',ts:canon(p),p,v};
+  }
+}
+function splitB(){return pick([[1,1],[1,ri(2,4)],[ri(2,4),1],[ri(2,3),ri(2,3)],[1,1,1],[ri(2,4)],[1]])}
+function splitC(){return pick([[],[ri(1,6)],[ri(1,6)],[ri(1,5),ri(1,4)]])}
+function splitA(xx){return pick([[],[],[],[1],[1,1],[2],[1,2]].concat(xx?[[1],[1,1]]:[]))}
+function genRed(o={}){
+  for(;;){
+    if(o.allowReduced&&Math.random()<.15){const p=P(Math.random()<.3?1:0,ri(1,5),ri(1,7));return {type:'reduce',ts:canon(p),p}}
+    const ts=[];
+    for(const n of splitA(o.xx))ts.push(T('a',n,o.xx&&n===1&&Math.random()<.5));
+    for(const n of splitB())ts.push(T('b',n));
+    for(const n of splitC())ts.push(T('c',n));
+    const p=poly(ts);
+    if(isReduced(ts)||p.a>2||p.b>6||p.c>9||ts.length>6)continue;
+    let s=shuffle(ts);
+    return {type:'reduce',ts:s,p};
+  }
+}
+const B=n=>T('b',n),C=n=>T('c',n),A=n=>T('a',n);
+const TRAPS=[
+ ()=>{const n=ri(2,5);return {A:[B(n)],B:[B(1),C(n)],tip:`${n}${X}, ce sont ${n} sacs (${n} × ${X}) ; ${X} + ${n}, c'est un sac et ${n} billes.`}},
+ ()=>({A:[B(2)],B:[A(1)],tip:`2${X} = ${X} + ${X} : deux sacs. ${X}² = ${X} × ${X} : une caisse carrée de ${X} rangées de ${X} billes.`}),
+ ()=>({A:[B(1),B(1)],B:[A(1)],tip:`${X} + ${X}, ce sont deux sacs : 2${X}. Pour obtenir ${X}², il faut multiplier ${X} par ${X}.`}),
+ ()=>({A:[B(1),B(1)],B:[B(2)],tip:`${X} + ${X}, un sac plus un sac : deux sacs, donc 2${X}.`}),
+ ()=>{const n=ri(2,4);return {A:[B(1),B(n)],B:[B(n+1)],tip:`${X} tout seul, c'est un sac : ${X} = 1${X}. Donc ${X} + ${n}${X} = ${n+1}${X}.`}},
+ ()=>{const n=ri(2,4);return {A:[B(1),B(n)],B:[B(n)],tip:`${X} tout seul compte pour un sac (${X} = 1${X}) : ${X} + ${n}${X} = ${n+1}${X}, pas ${n}${X}.`}},
+ ()=>{const n=ri(2,4),m=ri(1,4);return {A:[B(n),C(m)],B:[B(n+m)],tip:`Des sacs et des billes ne s'empilent pas ensemble : ${n}${X} + ${m} ne se réduit pas.`}},
+ ()=>{const n=ri(2,4),m=ri(1,5);return {A:[C(m),B(n)],B:[B(n),C(m)],tip:`Ce sont les mêmes objets, posés dans un autre ordre : l'ordre d'une somme ne change rien.`}},
+ ()=>({A:[B(1),B(1),B(1)],B:[B(3)],tip:`Trois sacs, c'est 3${X} : ${X} + ${X} + ${X} = 3${X}.`}),
+ ()=>({A:[A(1),A(1)],B:[A(2)],tip:`Deux caisses carrées : ${X}² + ${X}² = 2${X}².`}),
+ ()=>{const n=ri(1,3),m=ri(2,3);return {A:[B(n),B(m)],B:[B(n+m)],tip:`Des sacs avec des sacs : ${tTxt(B(n))} + ${m}${X} = ${n+m}${X}.`}},
+ ()=>{const m=ri(2,4);return {A:[A(1),C(m)],B:[B(2),C(m)],tip:`Les billes sont les mêmes ; mais ${X}² (une caisse) n'est pas 2${X} (deux sacs).`}}
+];
+let trapBag=[];
+function genTrap(){
+  if(!trapBag.length)trapBag=shuffle(TRAPS.map((_,i)=>i));
+  const i=trapBag.pop(),t=TRAPS[i]();
+  const sw=Math.random()<.5;const A_=sw?t.B:t.A,B_=sw?t.A:t.B;
+  return {type:'trap',A:A_,B:B_,pA:poly(A_),pB:poly(B_),eq:same(poly(A_),poly(B_)),tip:t.tip,tid:i};
+}
+let mixOff=0;
+function genQ(l,idx=0){
+  if(l===0)return genTrad();
+  if(l===1)return genBuild();
+  if(l===2)return genCalc({sq:.3,vmax:9});
+  if(l===3)return genRed();
+  if(l===4)return genTrap();
+  if(l===5)return (idx+mixOff)%2?genCalc({sq:.3,vmax:9}):genRed();
+  return (idx+mixOff)%2?genCalc({sq:.35,maxA:2,vmax:10}):genRed({xx:true,allowReduced:true});
+}
+
+/* =============== objets SVG =============== */
+function heap(v,cx,by){
+  let s='',left=v,row=0;const caps=[4,3,2,1,1];
+  while(left>0&&row<caps.length){const k=Math.min(left,caps[row]);
+    for(let i=0;i<k;i++){const x=cx+(i-(k-1)/2)*10.4,y=by-row*8.6;
+      s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5.2" fill="url(#ss-bille)" stroke="#0b3d7a" stroke-width=".6"/>`}
+    left-=k;row++}
+  return s;
+}
+function sacSVG(v){
+  let s=`<ellipse cx="27" cy="0" rx="24" ry="3.5" class="shd"/>
+<path d="M9 -1 C-3 -16 4 -36 14 -44 L40 -44 C50 -36 57 -16 45 -1 C33 2 21 2 9 -1 Z" fill="url(#ss-sac)" stroke="#6b4220" stroke-width="1.4"/>
+<path d="M12 -9 C20 -5 34 -5 42 -9" stroke="#6b4220" stroke-width="1" fill="none" opacity=".35" stroke-dasharray="3 3"/>`;
+  if(v==null){
+    s+=`<path d="M15 -44 C14 -52 18 -57 14 -63 C20 -60 23 -64 27 -60 C31 -64 34 -60 40 -63 C36 -57 40 -52 39 -44 Z" fill="url(#ss-sac)" stroke="#6b4220" stroke-width="1.2"/>
+<path d="M14 -45 Q27 -41 40 -45" stroke="#ff7a00" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+<path d="M27 -44 C21 -52 15 -49 18 -43 C21 -40 25 -42 27 -44 Z M27 -44 C33 -52 39 -49 36 -43 C33 -40 29 -42 27 -44 Z" fill="#ff9a3c" stroke="#a84300" stroke-width=".9"/>
+<path d="M26 -43 L22 -33 M28 -43 L33 -34" stroke="#ff7a00" stroke-width="2.4" stroke-linecap="round"/>
+<text class="sx" x="27" y="-13" text-anchor="middle">x</text>`;
+  }else{
+    s+=`<path d="M13 -44 C10 -48 6 -50 3 -53 L51 -53 C48 -50 44 -48 41 -44 Z" fill="#c38a55" stroke="#6b4220" stroke-width="1.2"/>
+<ellipse cx="27" cy="-53" rx="24" ry="5.5" fill="#3a2412" stroke="#6b4220" stroke-width="1.2"/>
+${heap(v,27,-55)}
+<text class="sx nb" x="27" y="-13" text-anchor="middle">${v}</text>`;
+  }
+  return s;
+}
+const billeSVG=()=>`<ellipse cx="12" cy="0" rx="10" ry="2.5" class="shd"/><circle cx="12" cy="-12" r="11" fill="url(#ss-bille)" stroke="#0b3d7a" stroke-width=".9"/><path d="M5.5 -9 C8 -15 15 -16 18.5 -11" stroke="#ffb056" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".95"/><ellipse cx="8" cy="-17.5" rx="3.6" ry="2.3" fill="#fff" opacity=".85"/>`;
+function caisseSVG(v){
+  let s=`<ellipse cx="43" cy="0" rx="42" ry="4" class="shd"/>
+<rect x="0" y="-86" width="86" height="86" rx="3" fill="url(#ss-bois)" stroke="#5a3a1c" stroke-width="1.6"/>`;
+  if(v==null){
+    s+=`<path d="M3 -57.5 H83 M3 -28.5 H83" stroke="#5a3a1c" stroke-width="1.2" opacity=".55"/>
+<path d="M6 -80 L80 -6" stroke="#8a5a30" stroke-width="6" opacity=".45" stroke-linecap="round"/>
+<g fill="#5a3a1c"><path d="M0 -86 h13 v4 h-9 v9 h-4z"/><path d="M86 -86 h-13 v4 h9 v9 h4z"/><path d="M0 0 h13 v-4 h-9 v-9 h-4z"/><path d="M86 0 h-13 v-4 h9 v-9 h4z"/></g>
+<rect x="20" y="-58" width="46" height="31" rx="5" fill="#fff5dc" stroke="#5a3a1c" stroke-width="1.2"/>
+<text class="cx2" x="43" y="-34" text-anchor="middle"><tspan class="tx">x</tspan>²</text>`;
+  }else{
+    const cell=76/v,r=Math.min(cell*.42,9);
+    s+=`<rect x="5" y="-81" width="76" height="76" rx="2" fill="#3a2412"/>`;
+    for(let i=0;i<v;i++)for(let j=0;j<v;j++)s+=`<circle cx="${(5+cell*(j+.5)).toFixed(1)}" cy="${(-81+cell*(i+.5)).toFixed(1)}" r="${r.toFixed(1)}" fill="url(#ss-bille)"/>`;
+  }
+  const L=v==null?'x':v,cl=v==null?'dimt v':'dimt';
+  s+=`<g class="dim"><path d="M0 -94 H86 M0 -98 v8 M86 -98 v8"/><path d="M-9 0 V-86 M-13 0 h8 M-13 -86 h8"/></g>
+<text class="${cl}" x="43" y="-99" text-anchor="middle">${L}</text><text class="${cl}" x="-14" y="-38" text-anchor="end">${L}</text>`;
+  return s;
+}
+const objSVG=(k,v)=>k==='a'?caisseSVG(v):k==='b'?sacSVG(v):billeSVG();
+// icônes réutilisées (légende, constructeur)
+$('defs').insertAdjacentHTML('beforeend',`<g id="ic-sac">${sacSVG(null)}</g><g id="ic-bille">${billeSVG()}</g><g id="ic-caisse">${caisseSVG(null)}</g>`);
+
+/* =============== disposition du comptoir =============== */
+const GAP=48,PADX=24,TOPPAD=14,TOP=66;
+const HK={a:106,b:86,c:24};
+function blockGeom(g){const n=g.items.length,pos=[];let w,h;
+  if(g.k==='b'){g.items.forEach((o,i)=>pos.push([i*60,0]));w=n*60-6;h=HK.b}
+  else if(g.k==='c'){const rows=Math.ceil(n/5);g.items.forEach((o,i)=>{const r=Math.floor(i/5);pos.push([(i%5)*26+(r%2?13:0),-r*21])});w=Math.min(n,5)*26-2+(rows>1?13:0);h=24+(rows-1)*21}
+  else{g.items.forEach((o,i)=>pos.push([28+i*120,0]));w=28+n*120-34;h=HK.a}
+  return {g,w,h,pos}}
+function tagW(ts){const s=ts==null?'?':eTxt(ts,false);return Math.max(46,s.length*12.6+26)}
+function flow(groups,x0,x1,y0){
+  const bl=groups.map(blockGeom),rows=[];let cur=[],cw=0;const maxW=x1-x0-2*PADX;
+  for(const b of bl){b.tw=Math.max(b.w,b.g.tag?tagW(b.g.tag):46);const need=(cur.length?GAP:0)+b.tw;
+    if(cur.length&&cw+need>maxW){rows.push({b:cur,w:cw});cur=[];cw=0}
+    cw+=(cur.length?GAP:0)+b.tw;cur.push(b)}
+  if(cur.length)rows.push({b:cur,w:cw});
+  const out={items:[],tags:[],plus:[],shelves:[],bottom:y0};let y=y0;
+  rows.forEach((r,rI)=>{const mh=Math.max(...r.b.map(b=>b.h));const base=y+TOPPAD+mh;let x=x0+(x1-x0-r.w)/2;
+    out.shelves.push({x0:x0+10,x1:x1-10,y:base});
+    r.b.forEach((b,bI)=>{const ox=x+(b.tw-b.w)/2;
+      b.pos.forEach((p,i)=>out.items.push({o:b.g.items[i],x:ox+p[0],y:base+p[1]}));
+      out.tags.push({ts:b.g.tag,cx:x+b.tw/2,y:base+40,red:b.g.red});
+      const last=rI===rows.length-1&&bI===r.b.length-1;
+      if(!last)out.plus.push({x:x+b.tw+GAP/2,y:base+48});
+      x+=b.tw+GAP});
+    y=base+64});
+  if(!rows.length){out.shelves.push({x0:x0+10,x1:x1-10,y:y0+96});y=y0+150;out.emptyY=y0+60}
+  out.bottom=y;return out;
+}
+function tagMarkup(ts,cx,y,red,hide){
+  const inner=hide||ts==null?'?':ts.map(t=>t.k==='c'?String(t.n):t.k==='b'?`${t.n===1?'':t.n}<tspan class="tx">x</tspan>`:t.xx?'<tspan class="tx">x</tspan> × <tspan class="tx">x</tspan>':`${t.n===1?'':t.n}<tspan class="tx">x</tspan>²`).join(' + ');
+  const w=hide||ts==null?46:tagW(ts);
+  return `<g class="tag${red?' reduced':''}"><path d="M${cx-14} ${y-28} L${cx} ${y-38} L${cx+14} ${y-28}" stroke="#8a6440" stroke-width="2" fill="none"/><rect x="${cx-w/2}" y="${y-28}" width="${w}" height="38" rx="7"/><text x="${cx}" y="${y-2}" text-anchor="middle">${inner}</text></g>`;
+}
+function awning(W){
+  let s='';const n=Math.ceil(W/40);
+  for(let i=0;i<n;i++){const x=i*40,f=i%2?'var(--cream)':'#ff7a00';
+    s+=`<rect x="${x}" y="0" width="40" height="30" fill="${f}"/><path d="M${x} 30 a20 16 0 0 0 40 0 z" fill="${f}"/>`}
+  s+=`<rect x="0" y="0" width="${W}" height="5" fill="#a84300" opacity=".5"/>`;
+  let d=`M0 52`;for(let x=0;x<W;x+=60)d+=` Q${x+30} 64 ${x+60} 52`;
+  s+=`<path d="${d}" stroke="#4b3a2a" stroke-width="1.2" fill="none" opacity=".6"/>`;
+  const cols=['#ffd54f','#ff8a1e','#c39bff','#72b4ff','#5fd27c'];
+  for(let x=30,i=0;x<W;x+=60,i++)s+=`<circle class="bulb" style="animation-delay:${(i%5)*.45}s" cx="${x}" cy="59" r="4.5" fill="${cols[i%5]}" stroke="#4b3a2a" stroke-width=".8"/>`;
+  const sw=W<600?200:230;
+  s+=`<g transform="translate(${W/2-sw/2} 8)"><rect width="${sw}" height="34" rx="9" fill="url(#ss-sign)" stroke="#a84300" stroke-width="2"/><circle cx="12" cy="17" r="3" fill="#a84300"/><circle cx="${sw-12}" cy="17" r="3" fill="#a84300"/><text class="signt" x="${sw/2}" y="23" text-anchor="middle"${W<600?' style="font-size:14px"':''}>SACS À SURPRISE</text></g>`;
+  return s;
+}
+
+/* =============== scène (réconciliation par identifiant) =============== */
+const svg=$('scene'),objsG=$('objs'),live=new Map();
+let OID=0;const mk=k=>({id:++OID,k});
+let SC={groups:[],A:null,B:null,open:null,ghost:false,hideTags:false,empty:''};
+let Wsc=960;
+function sceneW(){return $('stage').clientWidth<600?480:720}
+function groupsFromTerms(ts){return ts.map(t=>({k:t.k,tag:[t],items:Array.from({length:t.n},()=>mk(t.k))}))}
+function rangeGroups(groups,reduced){const out=[];for(const k of 'abc'){const gs=groups.filter(g=>g.k===k);if(!gs.length)continue;
+  const items=gs.flatMap(g=>g.items),tags=gs.flatMap(g=>g.tag);out.push({k,items,tag:reduced?[{k,n:items.length}]:tags,red:reduced})}return out}
+function clearScene(){objsG.innerHTML='';live.clear()}
+function draw(){
+  if($('stage').hidden)return;
+  Wsc=sceneW();const W=Wsc;let L,bgx='';
+  if(SC.A){
+    if(W>=700){const a=flow(SC.A,0,W/2,TOP+34),b=flow(SC.B,W/2,W,TOP+34);
+      L={items:[...a.items,...b.items],tags:[...a.tags,...b.tags],plus:[...a.plus,...b.plus],shelves:[...a.shelves,...b.shelves],bottom:Math.max(a.bottom,b.bottom)};
+      bgx+=`<line class="sep" x1="${W/2}" y1="${TOP+10}" x2="${W/2}" y2="${L.bottom-6}"/>`+badge('A',26,TOP+22)+badge('B',W/2+26,TOP+22);
+    }else{const a=flow(SC.A,0,W,TOP+34);const b=flow(SC.B,0,W,a.bottom+40);
+      L={items:[...a.items,...b.items],tags:[...a.tags,...b.tags],plus:[...a.plus,...b.plus],shelves:[...a.shelves,...b.shelves],bottom:b.bottom};
+      bgx+=badge('A',26,TOP+22)+`<line class="sep" x1="16" y1="${a.bottom+8}" x2="${W-16}" y2="${a.bottom+8}"/>`+badge('B',26,a.bottom+28);}
+  }else{L=flow(SC.groups,0,W,TOP+6);if(L.emptyY)bgx+=`<text class="empty" x="${W/2}" y="${L.emptyY+20}" text-anchor="middle">${SC.empty||''}</text>`}
+  const H=Math.round(L.bottom+10);
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  let bg=awning(W)+bgx;
+  for(const s of L.shelves)bg+=`<rect x="${s.x0}" y="${s.y}" width="${s.x1-s.x0}" height="12" rx="3" fill="url(#ss-shelf)"/><rect x="${s.x0+6}" y="${s.y+12}" width="${s.x1-s.x0-12}" height="4" fill="#000" opacity=".12"/>`;
+  $('bg').innerHTML=bg;
+  let tg='';for(const t of L.tags)tg+=tagMarkup(t.ts,t.cx,t.y,t.red,SC.hideTags);
+  for(const p of L.plus)tg+=`<text class="plus" x="${p.x}" y="${p.y-8}" text-anchor="middle">+</text>`;
+  $('tags').innerHTML=tg;
+  // ajuste la largeur des ardoises au texte réel
+  $('tags').querySelectorAll('.tag').forEach(g=>{const t=g.querySelector('text'),r=g.querySelector('rect');try{const bb=t.getBBox();const w=Math.max(46,bb.width+26);r.setAttribute('x',bb.x+bb.width/2-w/2);r.setAttribute('width',w)}catch(e){}});
+  svg.classList.toggle('ghost',SC.ghost);
+  const seen=new Set();
+  for(const it of L.items){const id=it.o.id;seen.add(id);let r=live.get(id);const sig=it.o.k+'|'+(it.o.k==='c'?'':SC.open??'');
+    const tr=`translate(${it.x}px,${it.y}px)`;
+    if(!r){const el=document.createElementNS(NS,'g');el.setAttribute('class','obj');el.dataset.id=id;el.dataset.k=it.o.k;el.style.transform=tr;
+      const inner=document.createElementNS(NS,'g');inner.setAttribute('class','inner pop');inner.innerHTML=objSVG(it.o.k,it.o.k==='c'?null:SC.open);
+      inner.addEventListener('animationend',()=>inner.classList.remove('pop','wig','opn'));
+      el.appendChild(inner);objsG.appendChild(el);r={el,inner,sig};live.set(id,r);
+    }else{if(r.el.style.transform!==tr)r.el.style.transform=tr;
+      if(r.sig!==sig){r.inner.innerHTML=objSVG(it.o.k,SC.open);r.sig=sig;r.inner.classList.remove('opn','pop','wig');void r.inner.getBoundingClientRect();r.inner.classList.add('opn')}}
+  }
+  for(const [id,r] of live)if(!seen.has(id)){live.delete(id);r.inner.classList.remove('pop');r.inner.classList.add('out');setTimeout(()=>r.el.remove(),reduceM?0:260)}
+}
+function badge(l,x,y){return `<g class="badge"><circle cx="${x}" cy="${y}" r="15"/><text x="${x}" y="${y+5.5}" text-anchor="middle">${l}</text></g>`}
+function wiggle(kinds){for(const [id,r] of live){const g=r.el;const k=[...SC.groups,...(SC.A||[]),...(SC.B||[])].find(gr=>gr.items.some(o=>o.id===id));
+  if(k&&kinds.includes(k.k)){r.inner.classList.remove('wig','pop','opn');void r.inner.getBoundingClientRect();r.inner.classList.add('wig')}}}
+function miniSVG(p){
+  let id=0;const groups=canon(p).map(t=>({k:t.k,tag:[t],items:Array.from({length:t.n},()=>({id:'m'+(id++),k:t.k}))}));
+  const W=560,L=flow(groups,0,W,6);let s='';
+  for(const sh of L.shelves)s+=`<rect x="${sh.x0}" y="${sh.y}" width="${sh.x1-sh.x0}" height="12" rx="3" fill="url(#ss-shelf)"/>`;
+  for(const it of L.items)s+=`<g transform="translate(${it.x} ${it.y})">${objSVG(it.o.k,null)}</g>`;
+  for(const t of L.tags)s+=tagMarkup(t.ts,t.cx,t.y,false,false);
+  for(const pl of L.plus)s+=`<text class="plus" x="${pl.x}" y="${pl.y-8}" text-anchor="middle">+</text>`;
+  return `<svg class="mini" viewBox="0 0 ${W} ${Math.round(L.bottom)}" aria-hidden="true">${s}</svg>`;
+}
+
+/* =============== son =============== */
+let actx=null,snd=true;try{snd=localStorage.getItem('ss-son')!=='0'}catch(e){}
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type='sine',w=0){const a=ac();if(!a)return;const t=a.currentTime+w,o=a.createOscillator(),g=a.createGain();
+  o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0008,t+d);
+  o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const sPop=()=>{if(snd){tone(660,.12,.06,'triangle');tone(990,.08,.03,'sine',.03)}};
+const sOff=()=>{if(snd)tone(440,.12,.05,'triangle')};
+const sOpen=()=>{if(snd)[2093,2637,2349,3136,2794].forEach((f,i)=>tone(f,.09,.03,'triangle',i*.05))};
+const sSoft=()=>{if(snd){tone(392,.22,.05,'sine');tone(330,.3,.05,'sine',.12)}};
+const sWin=()=>{if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.45,.07,'triangle',i*.11))};
+
+/* =============== état =============== */
+let lvl=0,done=Array(LV.length).fill(0),Q=null,tries=0,solved=false,own=false,hints=0;
+try{const d=JSON.parse(localStorage.getItem('ss-prog')||'null');if(Array.isArray(d)&&d.length===LV.length)done=d.map(n=>Math.max(0,Math.min(PER,n|0)))}catch(e){}
+const save=()=>{try{localStorage.setItem('ss-prog',JSON.stringify(done))}catch(e){}};
+let pools={a:[],b:[],c:[]},bq=P(),ranged=false,tried=[],ownState=null;
+const ZONES=['z-opts','z-build','z-open','z-xs','z-trap','z-own','z-pad'];
+function zones(...on){for(const z of ZONES)$(z).hidden=!on.includes(z)}
+const say=t=>{$('msg').innerHTML=t};
+const setEq=h=>{$('eq').innerHTML=h};
+let copyLines=[];
+const setCopy=a=>{copyLines=a;$('log').innerHTML=a.join('')};
+const addCopy=l=>{copyLines.push(l);$('log').innerHTML=copyLines.join('')};
+function dots(){$('dots').innerHTML=own?'<em>Expression personnelle</em>':Array.from({length:PER},(_,i)=>`<span class="${i<done[lvl]?'g':i===done[lvl]?'c':''}"></span>`).join('')+`<em>${Math.min(done[lvl],PER)} / ${PER}</em>`}
+function fbKo(title,html,mini){const f=$('fb');f.innerHTML=`<b class="t">${title}</b>${html}${mini||''}`;f.hidden=false;sSoft()}
+const KOT=['Pas tout à fait…','Presque !','Regardons ensemble','Bonne tentative !'];
+
+/* ---------- nouvelle question ---------- */
+function newQ(){
+  own=false;Q=genQ(lvl,done[lvl]);tries=0;hints=0;solved=false;ranged=false;tried=[];
+  $('fb').hidden=true;$('win').hidden=true;$('ans').value='';$('prev').innerHTML='';
+  clearScene();svg.classList.remove('pick');
+  SC={groups:[],A:null,B:null,open:null,ghost:!!LV[lvl].fade,hideTags:false,empty:''};
+  const ty=Q.type;
+  if(ty==='trad'){
+    SC.groups=groupsFromTerms(canon(Q.p));SC.hideTags=true;
+    setEq(`Ce comptoir s'écrit : <span class="slot">?</span>`);
+    say('Touche l\'étiquette qui décrit exactement ce qui est posé.');
+    $('z-opts').innerHTML=Q.opts.map((o,i)=>`<button class="opt" type="button" data-i="${i}">${pTxt(o.p)}</button>`).join('');
+    zones('z-opts');setCopy([`<div class="opl">J'observe le comptoir…</div>`]);
+  }else if(ty==='build'){
+    pools={a:[],b:[],c:[]};syncBuild();svg.classList.add('pick');
+    setEq(`<small>Pose sur le comptoir :</small>${eTxt(Q.ts)}`);
+    say('Ajoute des objets avec les boutons + et −.');
+    buildSteps(true);zones('z-build');$('rangeb').hidden=true;
+    setCopy([`<div class="orig">À poser : ${eTxt(Q.ts)}</div>`]);
+  }else if(ty==='calc'){
+    SC.groups=groupsFromTerms(Q.ts);
+    setEq(`<small>${LV[lvl].fade||LV[lvl].hide?'Calcule':'Combien de billes en tout ?'}</small>${eTxt(Q.ts)} pour ${X} = ${Q.v}`);
+    const hasA=Q.p.a>0;
+    say(LV[lvl].fade||LV[lvl].hide?`Remplace ${X} par ${Q.v}, puis calcule.`:`Dans chaque sac, il y a ${Q.v} billes${hasA?` ; une caisse carrée contient ${Q.v} rangées de ${Q.v} billes`:''}.`);
+    padMode('num');if(lvl===2){zones('z-open','z-pad');$('openb').disabled=false}else zones('z-pad');
+    setCopy([`<div class="orig">${eTxt(Q.ts)} pour ${X} = ${Q.v}</div>`]);
+  }else if(ty==='reduce'){
+    SC.groups=groupsFromTerms(Q.ts);
+    if(lvl===3){
+      setEq(`<small>Réduis : écris le plus simplement possible</small>${eTxt(Q.ts)}`);
+      say('Range par familles si tu veux, puis compose ta réponse.');
+      buildSteps(false);zones('z-build');$('rangeb').hidden=false;$('rangeb').disabled=false;$('rangeb').textContent='Ranger par familles';
+    }else{
+      setEq(`<small>Réduis : écris le plus simplement possible</small>${eTxt(Q.ts)}`);
+      say('Écris ta réponse avec le clavier, puis valide.');
+      padMode('expr');zones('z-pad');
+    }
+    setCopy([`<div class="orig">${eTxt(Q.ts)}</div>`]);
+  }else if(ty==='trap'){
+    SC.A=groupsFromTerms(Q.A);SC.B=groupsFromTerms(Q.B);
+    setEq(`A = ${eTxt(Q.A)}<span style="color:var(--mut);font-weight:600"> et </span>B = ${eTxt(Q.B)}`);
+    say(`Ouvre les sacs avec plusieurs valeurs de ${X}, puis réponds : A et B ont-elles toujours autant de billes ?`);
+    xChips(6);zones('z-xs','z-trap');$('cnt').innerHTML='';
+    $('z-trap').querySelectorAll('.opt').forEach(b=>{b.disabled=false;b.classList.remove('no','yes')});
+    setCopy([`<div class="orig">A = ${eTxt(Q.A)}</div>`,`<div class="orig">B = ${eTxt(Q.B)}</div>`]);
+  }
+  draw();dots();renderLvName();
+}
+
+/* ---------- niveau 1 : étiquettes ---------- */
+$('z-opts').addEventListener('click',e=>{const b=e.target.closest('.opt');if(!b||solved||b.disabled)return;
+  const o=Q.opts[+b.dataset.i],p=Q.p;
+  if(same(o.p,p)){b.classList.add('yes');
+    $('z-opts').querySelectorAll('.opt').forEach(x=>x.disabled=true);
+    SC.hideTags=false;draw();
+    setEq(`Ce comptoir s'écrit : ${pTxt(p)}`);
+    const ls=canon(p).map(t=>`<div class="opl">${nm(t.k,t.n)} → ${tTxt(t)}${t.k==='b'&&t.n===1?' <small>(on n\'écrit pas 1x)</small>':''}${t.k==='a'&&t.n===1?' <small>(on n\'écrit pas 1x²)</small>':''}</div>`);
+    setCopy([`<div class="opl">Sur le comptoir : ${describe(p)}</div>`,...ls,`<div class="res fin">Donc : ${pTxt(p)}</div>`]);
+    win(`Une famille d'objets = un terme : ${pTxt(p)}.`);
+  }else{b.classList.add('no');b.disabled=true;tries++;
+    const q=o.p;const tips={mix:`Des objets différents ne s'additionnent pas : on ne peut pas transformer des billes${p.a?' ou des caisses':''} en sacs.`,
+      mixnum:`Un sac n'est pas une bille : un sac peut contenir beaucoup de billes. On ne peut pas les compter ensemble.`,
+      swap:`Le nombre collé à ${X} compte les sacs ; le nombre tout seul compte les billes.`,
+      sq:`${X}², c'est une caisse carrée (${X} × ${X}), pas deux sacs.`,
+      sq2:`Deux sacs, c'est ${X} + ${X} = 2${X}. ${X}², c'est une caisse carrée ${X} × ${X}.`,
+      plus:`${pTxt(p)}, ce sont ${describe(p)}. ${pTxt(q)}, c'est un sac et des billes.`,
+      plus2:`${pTxt(q)} voudrait dire ${describe(q)}. Ici il n'y a qu'un seul sac : on écrit ${X}.`,
+      sq3:`Un seul sac s'écrit ${X}. ${X}², c'est une caisse carrée ${X} × ${X}.`,
+      off:`Recompte chaque famille d'objets, une par une.`};
+    fbKo(pick(KOT),`<p>L'étiquette « ${pTxt(q)} » décrirait ce comptoir-là : ${describe(q)}.</p><p>${tips[o.why]||tips.off}</p>`,miniSVG(q));
+    say('Compare les deux comptoirs, puis choisis une autre étiquette.');
+  }
+});
+
+/* ---------- constructeur (niveaux 2 et 4) ---------- */
+const STLAB={a:`Caisses ${X}²`,b:`Sacs ${X}`,c:'Billes'};
+const ICV={a:'-4 -90 94 94',b:'-2 -68 58 70',c:'-1 -25 26 26'};
+const ICI={a:'ic-caisse',b:'ic-sac',c:'ic-bille'};
+let buildScene=true;
+function buildSteps(scene){buildScene=scene;bq=P();
+  $('steps').innerHTML=['b','c','a'].map(k=>`<div class="stp"><div class="lab"><svg viewBox="${ICV[k]}" aria-hidden="true"><use href="#${ICI[k]}"/></svg><span>${STLAB[k]}</span></div>
+<div class="ctr"><button type="button" data-k="${k}" data-d="-1" aria-label="Enlever : ${STLAB[k].replace(/<[^>]+>/g,'')}">−</button><output id="o-${k}">0</output><button type="button" data-k="${k}" data-d="1" aria-label="Ajouter : ${STLAB[k].replace(/<[^>]+>/g,'')}">+</button></div></div>`).join('');
+  $('bval').disabled=false;liveExp();}
+function liveExp(){
+  for(const k of 'abc'){$('o-'+k).textContent=bq[k];
+    $('steps').querySelector(`[data-k="${k}"][data-d="-1"]`).disabled=solved||bq[k]<=0;
+    $('steps').querySelector(`[data-k="${k}"][data-d="1"]`).disabled=solved||bq[k]>=LIM[k];}
+  $('liveexp').innerHTML=(buildScene?'Ton comptoir s\'écrit : ':'Ta réponse : ')+`<b>${isEmpty(bq)?'<span style="color:var(--mut)">rien pour l\'instant</span>':pTxt(bq)}</b>`;
+}
+function syncBuild(){bq=P(pools.a.length,pools.b.length,pools.c.length);
+  SC.groups=canon(bq).map(t=>({k:t.k,tag:[t],items:pools[t.k]}));SC.empty='Comptoir vide : ajoute des objets avec les boutons.';}
+$('steps').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||solved)return;
+  const k=b.dataset.k,d=+b.dataset.d;
+  if(buildScene){if(d>0){pools[k].push(mk(k));sPop()}else{pools[k].pop();sOff()}syncBuild();draw()}
+  else{bq[k]=Math.max(0,Math.min(LIM[k],bq[k]+d));d>0?sPop():sOff()}
+  liveExp();$('fb').hidden=true;
+});
+objsG.addEventListener('click',e=>{if(!Q||Q.type!=='build'||solved||own)return;const el=e.target.closest('.obj');if(!el)return;
+  const id=+el.dataset.id;for(const k of 'abc'){const i=pools[k].findIndex(o=>o.id===id);if(i>=0){pools[k].splice(i,1);sOff();syncBuild();draw();liveExp();return}}});
+$('rangeb').onclick=()=>{if(solved)return;ranged=!ranged;
+  if(ranged){SC.groups=rangeGroups(SC.groups,false);$('rangeb').textContent='Défaire le rangement';
+    const rg=regroupLine(Q.ts);if(copyLines.length<2&&rg!==eTxt(Q.ts))addCopy(`<div class="opl">= ${rg}</div>`);}
+  else{const pool={a:[],b:[],c:[]};for(const g of SC.groups)pool[g.k].push(...g.items);
+    SC.groups=Q.ts.map(t=>({k:t.k,tag:[t],items:pool[t.k].splice(0,t.n)}));
+    $('rangeb').textContent='Ranger par familles';}
+  draw();sPop();};
+$('bval').onclick=()=>{if(solved)return;
+  if(Q.type==='build'){
+    const p=Q.p,q=bq;
+    if(same(p,q)){
+      SC.groups.forEach(g=>g.red=true);draw();
+      const ls=[`<div class="orig">À poser : ${eTxt(Q.ts)}</div>`,`<div class="opl">J'ai posé : ${describe(p)}</div>`];
+      if(!isReduced(Q.ts))ls.push(`<div class="res fin">Donc ${eTxt(Q.ts)} = ${pTxt(p)}</div>`);else ls.push(`<div class="res fin">${pTxt(p)} ✓</div>`);
+      setCopy(ls);win(isReduced(Q.ts)?`Le comptoir correspond exactement à ${pTxt(p)}.`:`Tu as posé ${describe(p)} : ${eTxt(Q.ts)} = ${pTxt(p)}.`);
+      return;}
+    tries++;
+    if(isEmpty(q)){fbKo('Le comptoir est vide',`<p>Ajoute des objets avec les boutons +.</p>`);return}
+    const ls=[];const bad=[];
+    for(const k of 'abc')if(p[k]!==q[k]){bad.push(k);ls.push(`${NAME[k][1][0].toUpperCase()+NAME[k][1].slice(1)} : tu en as posé ${q[k]}, l'expression en demande ${p[k]}.`)}
+    let tip='';
+    const ones=Q.ts.filter(t=>t.k==='b'&&t.n===1).length;
+    if(p.a>q.a&&q.b>p.b)tip=`${X}² n'est pas deux sacs : c'est une caisse carrée ${X} × ${X}.`;
+    else if(q.a>p.a&&p.b>q.b)tip=`${X} + ${X}, ce sont deux sacs (2${X}). La caisse carrée ${X}², c'est ${X} × ${X}.`;
+    else if(p.b===1&&q.b===0)tip=`${X} tout seul, c'est un sac : ${X} = 1${X}.`;
+    else if(ones&&q.b===p.b-ones)tip=`N'oublie pas les ${X} tout seuls : chacun compte pour un sac (${X} = 1${X}).`;
+    else if(p.b>=2&&q.b===1&&q.c===p.c+p.b)tip=`${p.b}${X}, c'est ${p.b} × ${X} : ${p.b} sacs, pas un sac et ${p.b} billes.`;
+    else if(p.c&&q.b===p.b+p.c&&!q.c)tip=`Le nombre tout seul compte des billes, pas des sacs.`;
+    else tip=`Lis l'expression terme par terme : chaque terme dit combien d'objets d'une même famille il faut poser.`;
+    wiggle(bad);
+    fbKo(pick(KOT),`<p>${ls.join('<br>')}</p><p>${tip}</p>`);
+    say('Corrige le comptoir, puis valide à nouveau.');
+  }else if(Q.type==='reduce'){
+    checkReduce(bq,{fromBuilder:true});
+  }
+};
+
+/* ---------- réduction : analyse des réponses ---------- */
+function redTip(ts,q){
+  const p=poly(ts),tot=p.a+p.b+p.c;
+  if(fams(p)>=2&&fams(q)===1&&q.a+q.b+q.c===tot){const fs=[p.a&&'des caisses',p.b&&'des sacs',p.c&&'des billes'].filter(Boolean);return `Des objets différents ne s'additionnent pas : ${fs.slice(0,-1).join(', ')} et ${fs[fs.length-1]} ne s'empilent pas ensemble. ${pTxt(q)} voudrait dire ${describe(q)}.`}
+  if(q.a>p.a)return `${X} + ${X}, ce sont deux sacs : 2${X}. ${X}² = ${X} × ${X} n'apparaît que si l'on multiplie ${X} par ${X}.`;
+  if(q.a<p.a&&q.b>p.b)return `${X}² (une caisse carrée) et ${X} (un sac) ne sont pas de la même famille : on ne les regroupe pas.`;
+  const o1=ts.filter(t=>t.k==='b'&&t.n===1).length,o2=ts.filter(t=>t.k==='a'&&t.n===1).length;
+  if(o1&&q.b===p.b-o1&&q.a===p.a&&q.c===p.c)return `${X} tout seul compte pour un sac : ${X} = 1${X}. Ne l'oublie pas dans ton compte !`;
+  if(o2&&q.a===p.a-o2&&q.b===p.b&&q.c===p.c)return `${X}² tout seul compte pour une caisse : ${X}² = 1${X}².`;
+  const bad=[...'abc'].filter(k=>p[k]!==q[k]);
+  return `Vérifie ${bad.map(k=>FAM[k]).join(' et ')} : regroupe-les et compte-les à part.`;
+}
+// regroupement par familles (x², puis x, puis nombres) ; parenthèses seulement si une famille a au moins deux termes
+function regroupLine(ts){const out=[];for(const k of 'abc'){const f=ts.filter(t=>t.k===k);if(!f.length)continue;
+  out.push(f.length>1?'('+eTxt(f)+')':tTxt(f[0]))}return out.join(' + ')}
+function checkReduce(q,o={}){
+  const p=Q.p,ts=Q.ts;
+  if(isEmpty(q)){fbKo('Ta réponse est vide',`<p>${o.fromBuilder?'Compose ta réponse avec les boutons +.':'Écris une expression avec le clavier.'}</p>`);return}
+  if(same(p,q)&&!o.notReduced&&!o.one&&!o.zero){
+    SC.groups=rangeGroups(SC.groups,true);
+    draw();
+    const lines=[`<div class="orig">${eTxt(ts)}</div>`];
+    const rg=regroupLine(ts);
+    if(!isReduced(ts)){if(rg!==eTxt(ts))lines.push(`<div class="opl">= ${rg}</div>`);lines.push(`<div class="res fin">= ${pTxt(p)}</div>`)}
+    else lines.push(`<div class="res fin">Déjà réduite : on ne peut rien regrouper.</div>`);
+    const v=ri(2,5);
+    lines.push(`<div class="ver"><b>Vérification avec ${X} = ${v}</b><br>${eTxt(ts)} = ${substTxt(ts,v)} = ${val(p,v)}<br>${pTxt(p)} = ${substTxt(canon(p),v)} = ${val(p,v)}<br>Même résultat ✓</div>`);
+    setCopy(lines);
+    let extra='';if(o.order)extra=` On écrit souvent ${pTxt(p)} (les ${X}² d'abord, puis les ${X}, puis le nombre), mais ton ordre est juste aussi.`;
+    win((isReduced(ts)?`${pTxt(p)} ne se réduit pas : des familles différentes restent séparées.`:`${eTxt(ts)} = ${pTxt(p)}.`)+extra);
+    return;
+  }
+  tries++;
+  if(same(p,q)){
+    if(o.zero){fbKo('Presque !',`<p>Un terme avec 0 devant vaut 0 : on ne l'écrit pas.</p>`);return}
+    if(o.one){fbKo('Presque !',`<p>C'est juste, mais on n'écrit jamais le 1 devant la lettre : 1${X} s'écrit ${X}, et 1${X}² s'écrit ${X}². Corrige et valide.</p>`);return}
+    fbKo('Presque !',`<p>Ton expression est égale, mais pas encore la plus simple : il reste des termes de la même famille à regrouper.</p>`);return;
+  }
+  const tip=redTip(ts,q);
+  const extra=tries>=2?`<p><b>Coup de pouce :</b> ${eTxt(ts)} = ${regroupLine(ts)}</p>`:'';
+  fbKo(pick(KOT),`<p>${tip}</p>${extra}`,lvl<=3?miniSVG(q):'');
+  if(lvl<6)wiggle([...'abc'].filter(k=>p[k]!==q[k]));
+  say(lvl===3?'Compare avec le comptoir rangé, puis corrige ta réponse.':'Corrige ta réponse, puis valide à nouveau.');
+}
+
+/* ---------- ouvrir les sacs (niveau 3) ---------- */
+$('openb').onclick=()=>{if(SC.open!=null)return;SC.open=Q.v;draw();sOpen();$('openb').disabled=true;
+  addCopy(`<div class="opl">= ${calcSteps(Q.ts,Q.v)[0]}</div>`);
+  say(`Les sacs sont ouverts : compte toutes les billes. ${Q.p.a?`Dans une caisse : ${Q.v} rangées de ${Q.v} billes.`:''}`);};
+
+/* ---------- clavier ---------- */
+let padKind='num';
+function padMode(kind){padKind=kind;
+  const keys=['7','8','9','⌫','4','5','6','x','1','2','3','x²','0','+','OK'];
+  $('pad').innerHTML=keys.map(k=>{const isV=k==='x'||k==='x²';const dis=kind==='num'&&(isV||k==='+');
+    return `<button type="button" data-k="${k}" class="${isV?'vk':''}${k==='OK'?' ok':''}"${dis?' disabled':''} aria-label="${k==='⌫'?'Effacer':k==='OK'?'Valider':k}">${k==='OK'?'Valider':k}</button>`}).join('');
+  $('ans').placeholder=kind==='num'?'nombre de billes ?':'ta réponse';$('hintb').disabled=false;$('ans').disabled=false;
+}
+$('pad').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||solved)return;const k=b.dataset.k,a=$('ans');
+  if(k==='OK'){validatePad();return}
+  if(k==='⌫'){const v=a.value;a.value=v.endsWith('x²')?v.slice(0,-2):v.endsWith(' + ')?v.slice(0,-3):v.slice(0,-1)}
+  else if(k==='+')a.value=a.value.replace(/\s+$/,'')+' + ';
+  else a.value+=k;
+  preview();});
+function preview(){const s=$('ans').value;
+  if(!s.trim()){$('prev').innerHTML='';return}
+  if(padKind==='num'){$('prev').innerHTML='';return}
+  const r=parseExpr(s);$('prev').innerHTML=r.ok?`Tu as écrit : <b>${eTxt(r.ts)}</b>`:'';
+}
+$('ans').addEventListener('input',()=>{const a=$('ans');let v=a.value.replace(/X/g,'x').replace(/\^2/g,'²');
+  v=padKind==='num'?v.replace(/[^0-9]/g,''):v.replace(/[^0-9x²+\s−\-×*]/g,'');if(v!==a.value)a.value=v;preview()});
+$('ansf').addEventListener('submit',e=>{e.preventDefault();validatePad()});
+function parseExpr(s){
+  const t=s.replace(/\s+/g,'').replace(/X/g,'x').replace(/\^2/g,'²').replace(/[−–]/g,'-').replace(/\*/g,'×');
+  if(!t)return {ok:false,err:'Écris une expression.'};
+  if(t.includes('-'))return {ok:false,err:'Ici, toutes les expressions s\'écrivent avec des + : pas de signe −.'};
+  const parts=t.split('+');if(parts.some(x=>!x))return {ok:false,err:'Il manque un terme avant ou après un signe +.'};
+  const ts=[];let one=false,zero=false;
+  for(const q of parts){
+    if(/^\d+×x$/.test(q))return {ok:false,err:`Écris ${q.replace('×x','')}${X} plutôt que ${q.replace('×x',' × ')}${X} : on ne met pas de × devant la lettre.`};
+    const m=q.match(/^(\d*)(x×x|x²|x)?$/);
+    if(!m||(!m[1]&&!m[2]))return {ok:false,err:`Je ne comprends pas « ${q} ». Utilise les chiffres, ${X}, ${X}² et +.`};
+    if(m[1].length>1&&m[1][0]==='0')return {ok:false,err:'Un nombre ne commence pas par 0.'};
+    if(!m[2]){const n=parseInt(m[1],10);if(n===0)zero=true;else ts.push(T('c',n));continue}
+    if(m[2]==='x×x'&&m[1])return {ok:false,err:`Écris ${m[1]}${X}² plutôt que ${m[1]}${X} × ${X}.`};
+    const n=m[1]===''?1:parseInt(m[1],10);if(m[1]==='1')one=true;if(n===0){zero=true;continue}
+    ts.push(T(m[2]==='x'?'b':'a',n,m[2]==='x×x'));
+  }
+  if(!ts.length&&zero)return {ok:true,ts:[],zero:true,one};
+  return {ok:true,ts,one,zero};
+}
+function validatePad(){if(solved)return;const s=$('ans').value.trim();
+  if(Q.type==='calc'){
+    if(!/^\d+$/.test(s)){fbKo('Il me faut un nombre',`<p>Tape le nombre total de billes avec le clavier.</p>`);return}
+    const r=parseInt(s,10),ok=val(Q.p,Q.v);
+    if(r===ok){calcWin();return}
+    tries++;fbKo(pick(KOT),`<p>${calcTip(Q.ts,Q.v,r)}</p>${tries>=2?`<p><b>Coup de pouce :</b> ${eTxt(Q.ts)} = ${calcSteps(Q.ts,Q.v).slice(0,-1).join(' = ')}</p>`:''}`);
+    say('Corrige, puis valide à nouveau.');return;
+  }
+  const r=parseExpr(s);
+  if(!r.ok){fbKo('Je n\'arrive pas à lire ta réponse',`<p>${r.err}</p>`);return}
+  const q=poly(r.ts);
+  const red=isReduced(r.ts);
+  const canonOrder=red&&eTxt(r.ts,false)===pTxt(q,false);
+  checkReduce(q,{notReduced:!red,one:r.one,zero:r.zero,order:red&&!canonOrder});
+}
+function calcTip(ts,v,r){
+  const p=poly(ts),ok=val(p,v);
+  const cc=ts.reduce((s,t)=>s+(t.k==='c'?t.n:t.k==='b'?(t.n===1?v:Number(`${t.n}${v}`)):(t.n===1?v*v:t.n*v*v)),0);
+  const bt=ts.find(t=>t.k==='b'&&t.n>1);
+  if(bt&&cc===r&&cc!==ok)return `On dirait que tu as lu ${bt.n}${X} comme le nombre « ${bt.n}${v} ». Mais ${bt.n}${X} veut dire ${bt.n} × ${X} : ${bt.n} sacs de ${v} billes, soit ${bt.n} × ${v} = ${bt.n*v}.`;
+  const sp=ts.reduce((s,t)=>s+(t.k==='c'?t.n:t.k==='b'?(t.n===1?v:t.n+v):t.n*v*v),0);
+  if(bt&&sp===r&&sp!==ok)return `${bt.n}${X}, c'est ${bt.n} × ${X} (${bt.n} sacs de ${v} billes), pas ${bt.n} + ${X}.`;
+  const sq=ts.reduce((s,t)=>s+(t.k==='c'?t.n:t.k==='b'?t.n*v:t.n*2*v),0);
+  if(p.a&&sq===r&&sq!==ok)return `${X}² = ${X} × ${X} = ${v} × ${v} = ${v*v} : une caisse carrée de ${v} rangées de ${v} billes, et non 2 × ${v}.`;
+  if(p.c&&r===ok-p.c)return `Tu as compté les ${p.b?'sacs':'caisses'}, mais oublié ${nm('c',p.c)} posée${p.c>1?'s':''} à côté.`;
+  if(p.b===1&&ts.some(t=>t.k==='b'&&t.n===1)&&r===ok-v)return `N'oublie pas le sac ${X} tout seul : il contient lui aussi ${v} billes (${X} = 1${X}).`;
+  return `Tu as trouvé ${r}. Remplace chaque ${X} par ${v} : ${substTxt(ts,v)}, puis fais d'abord les multiplications${p.a?' (et les carrés)':''}, ensuite les additions.`;
+}
+function calcWin(){
+  const ts=Q.ts,v=Q.v,st=calcSteps(ts,v);
+  if(SC.open==null&&!LV[lvl].hide&&!LV[lvl].fade){SC.open=v;sOpen()}
+  draw();
+  const lines=[`<div class="orig">${eTxt(ts)} pour ${X} = ${v}</div>`];
+  st.forEach((s,i)=>lines.push(`<div class="${i===st.length-1?'res fin':'opl'}">= ${s}</div>`));
+  const parts=ts.map(t=>t.k==='c'?nm('c',t.n):t.k==='b'?`${nm('b',t.n)} de ${v} billes (${t.n*v})`:`${nm('a',t.n)} de ${v} × ${v} billes (${t.n*v*v})`);
+  lines.push(`<div class="ver"><b>Vérification en billes</b><br>${parts.join(' + ')} : ${val(Q.p,v)} billes ✓</div>`);
+  setCopy(lines);
+  win(`${eTxt(ts)} = ${val(Q.p,v)} quand ${X} = ${v}.`);
+}
+$('hintb').onclick=()=>{if(solved)return;hints++;
+  if(Q.type==='calc'){const st=calcSteps(Q.ts,Q.v);const h=st[Math.min(hints-1,Math.max(0,st.length-2))];
+    addCopy(`<div class="ver hint"><b>Indice</b> : ${eTxt(Q.ts)} = ${h}${hints>1&&st.length>2?' = …':''}</div>`);}
+  else{const rg=regroupLine(Q.ts);
+    addCopy(`<div class="ver hint"><b>Indice</b> : ${hints===1?`regroupe chaque famille : ${eTxt(Q.ts)} = ${rg}`:`chaque famille donne un seul terme ; ${X} tout seul compte pour 1${X}.`}</div>`);}
+  $('hintb').disabled=hints>=2;};
+
+/* ---------- pièges (niveau 5) ---------- */
+function xChips(max){$('xchips').innerHTML=`<span class="cl">Ouvrir avec ${X} =</span>`+Array.from({length:max},(_,i)=>`<button type="button" data-v="${i+1}">${i+1}</button>`).join('')+`<button type="button" data-v="0">Refermer</button>`}
+$('xchips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const v=+b.dataset.v;
+  $('xchips').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b&&v>0));
+  SC.open=v||null;draw();if(v)sOpen();
+  if(own){ownOpen(v);return}
+  if(!v){$('cnt').innerHTML='';return}
+  const a=val(Q.pA,v),bb=val(Q.pB,v);
+  $('cnt').innerHTML=`<span>A : <b>${a}</b> billes</span><span>B : <b>${bb}</b> billes</span>`;
+  if(!tried.includes(v)){tried.push(v);tried.sort((x,y)=>x-y);trapTable()}
+});
+function trapTable(){
+  const rows=tried.map(v=>{const a=val(Q.pA,v),b=val(Q.pB,v);return `<tr><td>${v}</td><td>${a}</td><td>${b}</td><td class="${a===b?'eq':'df'}">${a===b?'=':'≠'}</td></tr>`}).join('');
+  setCopy([`<div class="orig">A = ${eTxt(Q.A)}</div>`,`<div class="orig">B = ${eTxt(Q.B)}</div>`,`<table><tr><th>${X}</th><th>A</th><th>B</th><th></th></tr>${rows}</table>`]);
+}
+$('z-trap').addEventListener('click',e=>{const b=e.target.closest('.opt');if(!b||b.disabled||solved)return;
+  const say1=b.dataset.t==='1';
+  let expl;
+  if(Q.eq)expl=`A et B contiennent toutes les deux ${describe(Q.pA)} : ${eTxt(Q.A)} = ${eTxt(Q.B)} pour toutes les valeurs de ${X}.`;
+  else{let v0=1;while(val(Q.pA,v0)===val(Q.pB,v0))v0++;
+    const fa=substTxt(Q.A,v0),fb=substTxt(Q.B,v0),a=val(Q.pA,v0),bb=val(Q.pB,v0);
+    const coinc=[];for(let v=1;v<=9;v++)if(val(Q.pA,v)===val(Q.pB,v))coinc.push(v);
+    expl=`Pour ${X} = ${v0} : A = ${fa===String(a)?a:fa+' = '+a} et B = ${fb===String(bb)?bb:fb+' = '+bb}. Un seul exemple où les nombres diffèrent suffit : A et B ne sont pas toujours égales.`;
+    if(coinc.length)expl+=` <br>Attention au piège : pour ${X} = ${coinc.join(' et pour '+X+' = ')}, A et B ont autant de billes ! Un essai qui « marche » ne prouve pas que c'est toujours vrai.`;}
+  if(say1===Q.eq){b.classList.add('yes');$('z-trap').querySelectorAll('.opt').forEach(x=>x.disabled=true);
+    if(Q.eq){SC.A=rangeGroups(SC.A,true);SC.B=rangeGroups(SC.B,true);draw()}
+    const base=tried.length?copyLines:[`<div class="orig">A = ${eTxt(Q.A)}</div>`,`<div class="orig">B = ${eTxt(Q.B)}</div>`];
+    setCopy([...base,`<div class="res fin">${Q.eq?`${eTxt(Q.A)} = ${eTxt(Q.B)} : toujours égales`:`${eTxt(Q.A)} et ${eTxt(Q.B)} : pas toujours égales`}</div>`,`<div class="ver">${expl}</div>`]);
+    win(Q.tip);
+  }else{b.classList.add('no');b.disabled=true;tries++;
+    fbKo(Q.eq?'En fait, si !':'Attention au piège !',`<p>${expl}</p><p>${Q.tip}</p>`);
+    $('z-trap').querySelectorAll('.opt').forEach(x=>{if(x!==b){x.disabled=false}});
+    say('Lis l\'explication, puis choisis l\'autre réponse.');}
+});
+
+/* ---------- réussite ---------- */
+function win(text){
+  solved=true;$('fb').hidden=true;sWin();
+  if(!own){done[lvl]=Math.min(PER,done[lvl]+1);save()}
+  const lvlDone=!own&&done[lvl]>=PER;
+  $('winx').textContent=pick(['Bravo !','Exactement !','Bien vu !','Parfait !']);
+  $('winp').innerHTML=text+(lvlDone?`<br><b>${lvl<LV.length-1?'Niveau réussi ! Tu peux passer au niveau suivant.':'Tu as terminé tous les niveaux, bravo !'}</b>`:'');
+  const up=lvlDone&&lvl<LV.length-1;
+  $('next').textContent=up?'Niveau suivant →':'Question suivante →';$('next').dataset.up=up?'1':'';
+  $('win').hidden=false;
+  if(Q&&Q.type==='build'){svg.classList.remove('pick');liveExp()}
+  if(Q&&Q.type==='reduce'&&lvl===3){liveExp();$('rangeb').disabled=true}
+  $('bval').disabled=true;$('openb').disabled=true;$('hintb').disabled=true;
+  $('pad').querySelectorAll('button').forEach(b=>b.disabled=true);
+  dots();renderLv();say('');
+}
+$('next').onclick=()=>{if($('next').dataset.up)lvl++;renderLv();newQ();$('stage').scrollIntoView({block:'nearest',behavior:reduceM?'auto':'smooth'})};
+
+/* ---------- niveaux ---------- */
+function renderLvName(){$('lvname').textContent=own?'':`· niveau ${lvl+1}`}
+function renderLv(){
+  $('lv').innerHTML=LV.map((l,i)=>`<button type="button" data-l="${i}" aria-pressed="${i===lvl&&!own}">${l.t}${done[i]>=PER?'<span class="ck" aria-label="réussi">✓</span>':''}</button>`).join('')+
+    `<button type="button" class="snd" id="snd" aria-pressed="${snd}">♪ Son : ${snd?'oui':'non'}</button>`;
+  $('lvdesc').textContent=own?'Expression personnelle : range-la par familles et ouvre les sacs avec la valeur de x de ton choix.':LV[lvl].d;
+  const hide=!!LV[lvl].hide&&!own,fade=!!LV[lvl].fade&&!own;
+  $('stage').hidden=hide;$('legend').hidden=hide;$('stage').classList.toggle('fade',fade);
+  renderLvName();
+}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('ss-son',snd?'1':'0')}catch(_){}renderLv();if(snd)sPop();return}
+  lvl=+b.dataset.l;own=false;mixOff=ri(0,1);renderLv();newQ()});
+
+/* ---------- mon expression ---------- */
+$('ownf').addEventListener('submit',e=>{e.preventDefault();const w=$('ownw');
+  const r=parseExpr($('own').value);
+  if(!r.ok){w.innerHTML=r.err;return}
+  if(!r.ts.length){w.textContent='Écris au moins un terme non nul.';return}
+  const p=poly(r.ts);
+  if(r.ts.length>8||p.a>3||p.b>8||p.c>12||r.ts.some(t=>t.k==='b'&&t.n>7)){w.innerHTML=`Trop d'objets pour le comptoir : au plus 3 caisses, 8 sacs (7 par terme), 12 billes et 8 termes.`;return}
+  w.textContent='';own=true;solved=false;
+  Q={type:'own',ts:r.ts.map(t=>t.k==='a'&&t.xx?{...t}:{k:t.k,n:t.n}),p};ranged=false;
+  $('fb').hidden=true;$('win').hidden=true;clearScene();svg.classList.remove('pick');
+  SC={groups:groupsFromTerms(Q.ts),A:null,B:null,open:null,ghost:false,hideTags:false,empty:''};
+  renderLv();
+  setEq(eTxt(Q.ts));say(`Range les objets, ou ouvre les sacs avec une valeur de ${X}.`);
+  xChips(9);$('cnt').innerHTML='';zones('z-own','z-xs');$('ownrange').textContent='Ranger par familles';
+  ownState={tried:[]};ownCopy();draw();dots();
+  $('stage').scrollIntoView({block:'nearest',behavior:reduceM?'auto':'smooth'});
+});
+function ownCopy(){const ts=Q.ts,p=Q.p;const l=[`<div class="orig">${eTxt(ts)}</div>`];
+  if(isReduced(ts))l.push(`<div class="opl">Déjà réduite.</div>`);
+  else{const rg=regroupLine(ts);if(rg!==eTxt(ts))l.push(`<div class="opl">= ${rg}</div>`);l.push(`<div class="res">= ${pTxt(p)}</div>`)}
+  for(const v of ownState.tried){const st=calcSteps(ts,v);l.push(`<div class="opl">Pour ${X} = ${v} : ${eTxt(ts)} = ${st.join(' = ')}</div>`)}
+  setCopy(l)}
+function ownOpen(v){if(!v){$('cnt').innerHTML='';return}
+  $('cnt').innerHTML=`<span>Pour ${X} = ${v} : <b>${val(Q.p,v)}</b> billes</span>`;
+  if(!ownState.tried.includes(v)){ownState.tried.push(v);ownCopy()}}
+$('ownrange').onclick=()=>{if(!own)return;ranged=!ranged;
+  if(ranged){SC.groups=rangeGroups(SC.groups,true);$('ownrange').textContent='Défaire le rangement'}
+  else{const pool={a:[],b:[],c:[]};for(const g of SC.groups)pool[g.k].push(...g.items);SC.groups=Q.ts.map(t=>({k:t.k,tag:[t],items:pool[t.k].splice(0,t.n)}));$('ownrange').textContent='Ranger par familles'}
+  draw();sPop()};
+
+/* ---------- redimensionnement ---------- */
+let rz=0;addEventListener('resize',()=>{cancelAnimationFrame(rz);rz=requestAnimationFrame(()=>{if(sceneW()!==Wsc)draw()})});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>draw());
+
+/* ---------- accès pour les tests automatiques ---------- */
+window.SS={genQ,regroup:ts=>regroupLine(ts).replace(/<[^>]+>/g,''),eTxt:ts=>eTxt(ts,false),pTxt:p=>pTxt(p,false),val,poly,parseExpr,calcSteps:(ts,v)=>calcSteps(ts,v),
+  state:()=>({lvl,own,solved,type:Q&&Q.type,done:done.slice()}),describe,isReduced};
+
+mixOff=ri(0,1);renderLv();newQ();
+}
+</script>
+
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script>
+/* Sigma Arcade — musique de fond originale (Web Audio, aucun fichier audio).
+   Deux compositions originales :
+   - « aventure » : marche héroïque en ré majeur, 4/4, 116 bpm ;
+   - « epique »   : saga sombre en ré mineur, 3/4, 126 bpm.
+   Démarre au premier geste de l'utilisateur (règle des navigateurs),
+   se coupe avec le bouton, mémorise le choix, baisse quand la page est cachée.
+   API : SigmaMusic.duck(true|false) baisse le volume (ex. trajets de l'ascenseur). */
+(function () {
+  'use strict';
+  if (window.SigmaMusic) return;
+  var STYLE0 = window.SIGMA_MUSIC_STYLE === 'epique' ? 'epique' : 'aventure';
+  var store = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+  var on = store.get('sigma-musique', '1') === '1';
+  var style = store.get('sigma-musique-style-' + location.pathname, STYLE0);
+
+  /* ---- notes : nom → fréquence ---- */
+  var SEMI = { C: -9, D: -7, E: -5, F: -4, G: -2, A: 0, B: 2 };
+  function hz(n) { // ex. 'D4', 'F#4', 'Bb3'
+    var m = /^([A-G])([#b]?)(\d)$/.exec(n); if (!m) return 0;
+    var s = SEMI[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0) + (parseInt(m[3], 10) - 4) * 12;
+    return 440 * Math.pow(2, s / 12);
+  }
+  /* séquence compacte : "note:durée note:durée …" (durée en temps ; '-' = silence) */
+  function seq(str) {
+    var t = 0, out = [];
+    str.trim().split(/\s+/).forEach(function (tok) {
+      var p = tok.split(':'), d = parseFloat(p[1]);
+      if (p[0] !== '-') out.push({ t: t, d: d, f: hz(p[0]) });
+      t += d;
+    });
+    return { ev: out, len: t };
+  }
+
+  /* ================= compositions originales ================= */
+  var SONGS = {
+    aventure: { bpm: 116, beats: 4, bars: 8,
+      lead: seq(
+        'D4:1 A4:0.5 F#4:0.5 A4:1 D5:1 ' +
+        'C#5:0.75 B4:0.25 A4:1 G4:1 -:1 ' +
+        'B4:1 D5:0.5 B4:0.5 G4:1 B4:1 ' +
+        'A4:1.5 G4:0.5 F#4:1 E4:1 ' +
+        'F#4:1 A4:0.5 D5:0.5 F#5:1 E5:1 ' +
+        'D5:0.75 C#5:0.25 B4:1 G4:1 B4:1 ' +
+        'A4:1 E4:0.5 G4:0.5 C#5:1 B4:0.5 C#5:0.5 ' +
+        'D5:2 A4:1 -:1'),
+      bass: seq(
+        'D2:1 D3:1 A2:1 D3:1  G2:1 G3:1 D3:1 G3:1  G2:1 G3:1 D3:1 B2:1  A2:1 A3:1 E3:1 A2:1 ' +
+        'D2:1 D3:1 A2:1 F#2:1 G2:1 G3:1 B2:1 G2:1  A2:1 A3:1 E3:1 C#3:1 D2:1 A2:1 D3:1 -:1'),
+      chords: [['D3','F#3','A3'],['G3','B3','D4'],['G3','B3','D4'],['A3','C#4','E4'],
+               ['D3','F#3','A3'],['G3','B3','D4'],['A3','C#4','E4'],['D3','F#3','A3']],
+      drums: 'march', leadType: 'brass' },
+    epique: { bpm: 126, beats: 3, bars: 8,
+      lead: seq(
+        'D5:2 C5:1  Bb4:3  A4:2 G4:1  A4:2 -:1 ' +
+        'F4:1 G4:1 A4:1  Bb4:2 D5:1  C5:1.5 Bb4:0.5 A4:1  D4:3'),
+      bass: seq(
+        'D2:1 A2:1 D3:1  Bb1:1 F2:1 Bb2:1  C2:1 G2:1 C3:1  A1:1 E2:1 A2:1 ' +
+        'D2:1 A2:1 D3:1  G1:1 D2:1 G2:1  A1:1 E2:1 A2:1  D2:1 A2:1 D3:1'),
+      chords: [['D3','F3','A3'],['Bb2','D3','F3'],['C3','E3','G3'],['A2','C#3','E3'],
+               ['D3','F3','A3'],['G2','Bb2','D3'],['A2','C#3','E3'],['D3','F3','A3']],
+      drums: 'war', leadType: 'strings' }
+  };
+
+  /* ================= moteur ================= */
+  var ctx = null, master = null, duckG = null, timer = null, nextT = 0, beat = 0, playing = false;
+  function audio() {
+    if (!ctx) {
+      try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
+      master = ctx.createGain(); master.gain.value = 0;
+      duckG = ctx.createGain(); duckG.gain.value = 1;
+      var comp = ctx.createDynamicsCompressor();
+      master.connect(duckG); duckG.connect(comp); comp.connect(ctx.destination);
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  function env(g, t, a, peak, dur, rel) {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(peak, t + a);
+    g.gain.setValueAtTime(peak, t + Math.max(a, dur - rel));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + rel);
+  }
+  function lead(f, t, dur, type) {
+    var o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
+    o1.type = 'sawtooth'; o2.type = type === 'brass' ? 'square' : 'sawtooth';
+    o1.frequency.value = f; o2.frequency.value = f; o2.detune.value = type === 'brass' ? -6 : 9;
+    lp.type = 'lowpass'; lp.Q.value = type === 'brass' ? 2 : 0.7;
+    lp.frequency.setValueAtTime(type === 'brass' ? 700 : 900, t);
+    lp.frequency.linearRampToValueAtTime(type === 'brass' ? 2200 : 1500, t + Math.min(0.12, dur / 2));
+    o1.connect(lp); o2.connect(lp); lp.connect(g); g.connect(master);
+    env(g, t, type === 'brass' ? 0.03 : 0.12, type === 'brass' ? 0.11 : 0.09, dur, type === 'brass' ? 0.08 : 0.25);
+    o1.start(t); o2.start(t); o1.stop(t + dur + 0.4); o2.stop(t + dur + 0.4);
+  }
+  function bass(f, t, dur) {
+    var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.value = f;
+    o.connect(g); g.connect(master); env(g, t, 0.01, 0.16, dur * 0.9, 0.06); o.start(t); o.stop(t + dur + 0.2);
+  }
+  function pad(notes, t, dur) {
+    notes.forEach(function (n) {
+      var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = hz(n);
+      o.connect(g); g.connect(master); env(g, t, 0.25, 0.028, dur, 0.4); o.start(t); o.stop(t + dur + 0.6);
+    });
+  }
+  var noiseBuf = null;
+  function noise(t, dur, vol, freq) {
+    if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate); var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    var s = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
+    s.buffer = noiseBuf; bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 0.8;
+    s.connect(bp); bp.connect(g); g.connect(master); env(g, t, 0.002, vol, dur, dur); s.start(t); s.stop(t + dur * 2 + 0.05);
+  }
+  function drum(t, f0, f1, dur, vol) {
+    var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine';
+    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    o.connect(g); g.connect(master); env(g, t, 0.003, vol, dur, dur * 0.5); o.start(t); o.stop(t + dur + 0.1);
+  }
+  function drums(kind, b, t, spb, beats) {
+    var pos = b % beats;
+    if (kind === 'march') {
+      if (pos === 0 || pos === 2) drum(t, 130, 45, 0.18, 0.22);
+      if (pos === 1 || pos === 3) noise(t, 0.09, 0.07, 1800);
+      noise(t + spb / 2, 0.05, 0.03, 2600);                       // roulement léger à la croche
+      if (pos === 3) noise(t + spb * 0.75, 0.05, 0.035, 2200);
+    } else {
+      if (pos === 0) { drum(t, 95, 38, 0.45, 0.3); }
+      if (pos === 2) drum(t + spb / 2, 140, 70, 0.2, 0.12);
+      if (pos === 1) noise(t, 0.16, 0.035, 900);
+    }
+  }
+  function schedule() {
+    var S = SONGS[style], spb = 60 / S.bpm, total = S.beats * S.bars;
+    while (nextT < ctx.currentTime + 0.25) {
+      var b = beat % total;
+      S.lead.ev.forEach(function (e) { if (e.t >= b && e.t < b + 1) lead(e.f, nextT + (e.t - b) * spb, e.d * spb * 0.95, S.leadType); });
+      S.bass.ev.forEach(function (e) { if (e.t >= b && e.t < b + 1) bass(e.f, nextT + (e.t - b) * spb, e.d * spb); });
+      if (b % S.beats === 0) pad(S.chords[(b / S.beats) % S.chords.length], nextT, S.beats * spb);
+      drums(S.drums, b, nextT, spb, S.beats);
+      nextT += spb; beat++;
+    }
+  }
+  function start() {
+    if (playing || !on || document.hidden) return;
+    if (!audio()) return;
+    playing = true; beat = 0; nextT = ctx.currentTime + 0.12;
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setValueAtTime(0, ctx.currentTime); master.gain.linearRampToValueAtTime(0.55, ctx.currentTime + 1.5);
+    schedule(); timer = setInterval(schedule, 60);
+  }
+  function stop() {
+    if (!playing) return; playing = false; clearInterval(timer);
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setValueAtTime(master.gain.value, ctx.currentTime); master.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+  }
+  function duck(x) {
+    if (!ctx) return; var t = ctx.currentTime;
+    duckG.gain.cancelScheduledValues(t); duckG.gain.setValueAtTime(duckG.gain.value, t);
+    duckG.gain.linearRampToValueAtTime(x ? 0.18 : 1, t + (x ? 0.25 : 0.8));
+  }
+
+  /* ================= bouton flottant ================= */
+  var css = '.smus{position:absolute;top:12px;right:max(12px,env(safe-area-inset-right));z-index:9000;display:flex;gap:6px;font:600 14px Lexend,system-ui,sans-serif}' +
+    '.smus button{min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid rgba(255,122,0,.6);background:light-dark(rgba(255,255,255,.94),rgba(20,24,28,.94));color:light-dark(#15191d,#e9edf0);cursor:pointer;box-shadow:0 6px 18px -8px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font:inherit}' +
+    '.smus button[aria-pressed=true]{background:#ff7a00;color:#1d0e00;border-color:#ff7a00}' +
+    '.smus .sty{font-size:13px}.smus button:focus-visible{outline:3px solid #ff7a00;outline-offset:2px}' +
+    '@media(max-width:520px){.smus .sty{display:none}.smus button{min-height:40px;padding:0 12px;font-size:13px}}' +
+    '@media print{.smus{display:none}}';
+  var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+  var box = document.createElement('div'); box.className = 'smus'; box.setAttribute('aria-label', 'Musique de fond');
+  var bOn = document.createElement('button'), bSty = document.createElement('button');
+  bOn.type = bSty.type = 'button'; bSty.className = 'sty';
+  function label() {
+    bOn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    bOn.textContent = on ? '♪ Musique : oui' : '♪ Musique : non';
+    bSty.textContent = style === 'epique' ? 'Style : épique' : 'Style : aventure';
+  }
+  bOn.addEventListener('click', function (e) {
+    e.stopPropagation(); on = !on; store.set('sigma-musique', on ? '1' : '0'); label();
+    if (on) start(); else stop();
+  });
+  bSty.addEventListener('click', function (e) {
+    e.stopPropagation(); style = style === 'epique' ? 'aventure' : 'epique';
+    store.set('sigma-musique-style-' + location.pathname, style); label();
+    if (playing) { stop(); setTimeout(start, 450); }
+  });
+  box.appendChild(bSty); box.appendChild(bOn);
+  function mount() { document.body.appendChild(box); label(); }
+  if (document.body) mount(); else document.addEventListener('DOMContentLoaded', mount);
+
+  /* premier geste : la musique peut démarrer */
+  function first() { start(); }
+  ['pointerdown', 'keydown'].forEach(function (ev) { document.addEventListener(ev, first, { once: true, capture: true }); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else if (on && ctx) start(); });
+
+  window.SigmaMusic = { start: start, stop: stop, duck: duck, isOn: function () { return on; } };
+})();
+
+</script>
+</body>
+</html>
