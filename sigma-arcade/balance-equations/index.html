@@ -101,7 +101,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--or);outline-off
 .lock .it{cursor:default}
 @media (prefers-reduced-motion:reduce){.bl,.it.in,.bl.in{animation:none}.it{transition:none}}
 @media(max-width:900px){.app{grid-template-columns:minmax(0,1fr)}.copy{position:static}}
-@media(max-width:520px){.tool{min-height:58px}.tool b{font-size:16px}}
+@media(max-width:520px){.tool{min-height:58px}.tool b{font-size:16px}.back{margin-bottom:18px}} /* laisse passer le bouton de musique du kit */
 </style>
 </head>
 <body>
@@ -223,11 +223,12 @@ function subst(sd,v){
 }
 
 /* ---------------- état ---------------- */
-let lvl=0,done=Array(LV.length).fill(0),cur=null,S=null,log=[],pending=null,pendBefore=null,hist=[],solved=false,busy=false,own=false;
-let ang=0,angAnim=0,prevCnt={L:{x:0,w:0,b:0},R:{x:0,w:0,b:0}};
+let lvl=0,done=Array(LV.length).fill(0),first=Array(LV.length).fill(0),tilted=false,cur=null,S=null,log=[],pending=null,pendBefore=null,hist=[],solved=false,busy=false,own=false;
+let tiltEq=null,ang=0,angAnim=0,prevCnt={L:{x:0,w:0,b:0},R:{x:0,w:0,b:0}};
 
 function load(e,isOwn=false){
   cur=e;S={L:clone(e.L),R:clone(e.R)};log=[];pending=null;pendBefore=null;hist=[];solved=false;own=isOwn;
+  if(e!==tiltEq)tilted=false;
   prevCnt={L:{x:0,w:0,b:0},R:{x:0,w:0,b:0}};
   $('win').hidden=true;$('alert').hidden=true;$('ownw').textContent='';
   render(true);setAngle(0,true);update();say(hint());
@@ -359,7 +360,7 @@ function hint(){
 const say=t=>{$('msg').textContent=t};
 
 /* ---------------- son ---------------- */
-let actx=null,snd=true;try{snd=localStorage.getItem('bal-son')!=='0'}catch(e){}
+let actx=null,snd=true;try{const f=localStorage.getItem('sigma-fanfare');snd=f!==null?f!=='0':localStorage.getItem('bal-son')!=='0'}catch(e){}
 function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
 function tone(f,d,v,type='sine',w=0){const a=ac();if(!a)return;const t=a.currentTime+w,o=a.createOscillator(),g=a.createGain();
   o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0008,t+d);
@@ -408,7 +409,7 @@ function divisor(){
 async function single(el){
   if(busy||solved||pending)return;
   const s=el.dataset.s,kk=el.dataset.k;
-  busy=true;snap();pendBefore=clone(S);
+  busy=true;snap();pendBefore=clone(S);tilted=true;tiltEq=cur;
   await outAnim([el]);
   const op=kk==='x'?{k:'x',v:-1}:kk==='w'?{k:'c',v:-1}:{k:'c',v:1};
   if(op.k==='x')S[s].x--;else S[s].c+=op.v;
@@ -439,15 +440,22 @@ function undo(){
 function after(){
   setAngle(0);
   if(solvedState(S.L,S.R)){
-    solved=true;render();sWin();
+    solved=true;render();
     const v=cur.x0;
     $('winx').innerHTML=`Bravo ! <span class="vx">x</span> = ${v}`;
-    if(!own){done[lvl]=Math.min(PER,done[lvl]+1)}
-    const lvlDone=!own&&done[lvl]>=PER;
-    $('winp').textContent=lvlDone?(lvl<LV.length-1?'Niveau réussi ! Tu peux passer au niveau suivant.':'Tu as terminé tous les niveaux, bravo !'):'Regarde la vérification dans « Ma résolution » : on remplace x par sa valeur, et les deux côtés sont égaux.';
+    const before=done[lvl];
+    if(!own){done[lvl]=Math.min(PER,done[lvl]+1);if(done[lvl]>before&&!tilted)first[lvl]++}
+    const lvlDone=!own&&done[lvl]>=PER,justDone=lvlDone&&before<PER;
+    if(!justDone||!window.SigmaKit)sWin();
+    $('winp').textContent='Regarde la vérification dans « Ma résolution » : on remplace x par sa valeur, et les deux côtés sont égaux.';
     $('next').textContent=lvlDone&&lvl<LV.length-1?'Niveau suivant →':'Équation suivante →';
     $('next').dataset.up=lvlDone&&lvl<LV.length-1?'1':'';
     $('win').hidden=false;svg.classList.add('lock');drawLog();say('');
+    if(justDone&&window.SigmaKit){const L=lvl;
+      setTimeout(()=>SigmaKit.levelComplete({level:L+1,score:first[L],total:PER}).then(v=>{
+        if(v==='next'&&L<LV.length-1){own=false;lvl=L+1;renderLv();newEq()}
+        else if(v==='replay'){own=false;lvl=L;done[L]=0;first[L]=0;renderLv();newEq()}
+      }),reduce?0:700)}
   }else say(hint());
   update();
 }
@@ -468,7 +476,7 @@ $('reset').onclick=()=>{if(!busy)load(cur,own)};
 $('next').onclick=()=>{own=false;if($('next').dataset.up)lvl++;renderLv();newEq()};
 function renderLv(){
   $('lv').innerHTML=LV.map((l,i)=>`<button type="button" data-l="${i}" aria-pressed="${i===lvl&&!own}">${l.t}</button>`).join('')+
-    `<button type="button" class="snd" id="snd" aria-pressed="${snd}">♪ Son : ${snd?'oui':'non'}</button>`;
+    `<button type="button" class="snd" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`;
   $('lvdesc').textContent=own?'Équation personnelle : résous-la avec les mêmes gestes.':LV[lvl].d;
   $('lvname').textContent=own?'':`· niveau ${lvl+1}`;
   $('stage').classList.toggle('fade',!!LV[lvl].fade&&!own);$('stage').hidden=!!LV[lvl].hide&&!own;
@@ -476,7 +484,7 @@ function renderLv(){
   $('tip').hidden=!!LV[lvl].hide&&!own||!!LV[lvl].fade&&!own;
 }
 $('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;
-  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('bal-son',snd?'1':'0')}catch(_){}renderLv();if(snd)sClink();return}
+  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('sigma-fanfare',snd?'1':'0');localStorage.setItem('bal-son',snd?'1':'0')}catch(_){}renderLv();if(snd)sClink();return}
   lvl=+b.dataset.l;own=false;renderLv();newEq()});
 
 /* équation personnelle : ax + b = cx + d, entiers */
@@ -504,205 +512,138 @@ renderLv();newEq();
 </script>
 
 <script>window.SIGMA_MUSIC_STYLE='epique'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
 <script>
-/* Sigma Arcade — musique de fond originale (Web Audio, aucun fichier audio).
-   Deux compositions originales :
-   - « aventure » : marche héroïque en ré majeur, 4/4, 116 bpm ;
-   - « epique »   : saga sombre en ré mineur, 3/4, 126 bpm.
-   Démarre au premier geste de l'utilisateur (règle des navigateurs),
-   se coupe avec le bouton, mémorise le choix, baisse quand la page est cachée.
-   API : SigmaMusic.duck(true|false) baisse le volume (ex. trajets de l'ascenseur). */
-(function () {
-  'use strict';
-  if (window.SigmaMusic) return;
-  var STYLE0 = window.SIGMA_MUSIC_STYLE === 'epique' ? 'epique' : 'aventure';
-  var store = {
-    get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
-    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-  };
-  var on = store.get('sigma-musique', '1') === '1';
-  var style = store.get('sigma-musique-style-' + location.pathname, STYLE0);
+/* ===== Sigma Arcade : niveaux et Épreuve finale de la balance ===== */
+(function(){
+const M='−',X='<span class="vx">x</span>';
+const P=n=>n<0?M+(-n):String(n), Pp=n=>n<0?'('+M+(-n)+')':String(n);
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a};
+const isInt=v=>Number.isInteger(v);
+// un côté a·x + b (a ≥ 0), écrit comme dans un manuel
+function side(a,b,h=true){const x=h?X:'x',xs=a===0?'':a===1?x:a+x;
+  if(!xs)return P(b);return b>0?`${xs} + ${b}`:b<0?`${xs} ${M} ${-b}`:xs}
+const E=(a,b,c,d)=>`${side(a,b)} = ${side(c,d)}`;
+const xs=v=>`${X} = ${P(v)}`;
+const AN=n=>n<0?[M+(-n),'-'+(-n)]:n>0?[String(n),'+'+n]:['0'];
+const AX=n=>AN(n).flatMap(s=>['x='+s,s]);           // « 5 » ou « x = 5 »
+const AXT=a=>a===1?['x','+x']:[a+'x','+'+a+'x',a+'×x',a+'*x'];  // « 2x »
+// valeur d'un côté pour x = v, écrite comme dans un cahier
+function subst(a,b,v){const parts=[];
+  if(a)parts.push(a===1?P(v):`${a} × ${Pp(v)}`);
+  if(b)parts.push(parts.length?(b>0?'+ '+b:M+' '+(-b)):P(b));
+  return parts.length?parts.join(' '):'0'}
+function mk(level,prompt,right,wrongs,explain){
+  const seen=new Set([right]),w=[];
+  for(const x of wrongs)if(x!=null&&!seen.has(x)){seen.add(x);w.push(x)}
+  if(w.length<2)return null;
+  return{type:'qcm',level,prompt,choices:[right].concat(w.slice(0,3)),answer:0,explain};
+}
+const tr=(level,prompt,blanks,explain)=>({type:'trous',level,prompt,blanks,explain});
+const vals=(list,x0)=>list.filter(v=>v!=null&&isInt(v)&&v!==x0).map(xs);
 
-  /* ---- notes : nom → fréquence ---- */
-  var SEMI = { C: -9, D: -7, E: -5, F: -4, G: -2, A: 0, B: 2 };
-  function hz(n) { // ex. 'D4', 'F#4', 'Bb3'
-    var m = /^([A-G])([#b]?)(\d)$/.exec(n); if (!m) return 0;
-    var s = SEMI[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0) + (parseInt(m[3], 10) - 4) * 12;
-    return 440 * Math.pow(2, s / 12);
-  }
-  /* séquence compacte : "note:durée note:durée …" (durée en temps ; '-' = silence) */
-  function seq(str) {
-    var t = 0, out = [];
-    str.trim().split(/\s+/).forEach(function (tok) {
-      var p = tok.split(':'), d = parseFloat(p[1]);
-      if (p[0] !== '-') out.push({ t: t, d: d, f: hz(p[0]) });
-      t += d;
-    });
-    return { ev: out, len: t };
-  }
-
-  /* ================= compositions originales ================= */
-  var SONGS = {
-    aventure: { bpm: 116, beats: 4, bars: 8,
-      lead: seq(
-        'D4:1 A4:0.5 F#4:0.5 A4:1 D5:1 ' +
-        'C#5:0.75 B4:0.25 A4:1 G4:1 -:1 ' +
-        'B4:1 D5:0.5 B4:0.5 G4:1 B4:1 ' +
-        'A4:1.5 G4:0.5 F#4:1 E4:1 ' +
-        'F#4:1 A4:0.5 D5:0.5 F#5:1 E5:1 ' +
-        'D5:0.75 C#5:0.25 B4:1 G4:1 B4:1 ' +
-        'A4:1 E4:0.5 G4:0.5 C#5:1 B4:0.5 C#5:0.5 ' +
-        'D5:2 A4:1 -:1'),
-      bass: seq(
-        'D2:1 D3:1 A2:1 D3:1  G2:1 G3:1 D3:1 G3:1  G2:1 G3:1 D3:1 B2:1  A2:1 A3:1 E3:1 A2:1 ' +
-        'D2:1 D3:1 A2:1 F#2:1 G2:1 G3:1 B2:1 G2:1  A2:1 A3:1 E3:1 C#3:1 D2:1 A2:1 D3:1 -:1'),
-      chords: [['D3','F#3','A3'],['G3','B3','D4'],['G3','B3','D4'],['A3','C#4','E4'],
-               ['D3','F#3','A3'],['G3','B3','D4'],['A3','C#4','E4'],['D3','F#3','A3']],
-      drums: 'march', leadType: 'brass' },
-    epique: { bpm: 126, beats: 3, bars: 8,
-      lead: seq(
-        'D5:2 C5:1  Bb4:3  A4:2 G4:1  A4:2 -:1 ' +
-        'F4:1 G4:1 A4:1  Bb4:2 D5:1  C5:1.5 Bb4:0.5 A4:1  D4:3'),
-      bass: seq(
-        'D2:1 A2:1 D3:1  Bb1:1 F2:1 Bb2:1  C2:1 G2:1 C3:1  A1:1 E2:1 A2:1 ' +
-        'D2:1 A2:1 D3:1  G1:1 D2:1 G2:1  A1:1 E2:1 A2:1  D2:1 A2:1 D3:1'),
-      chords: [['D3','F3','A3'],['Bb2','D3','F3'],['C3','E3','G3'],['A2','C#3','E3'],
-               ['D3','F3','A3'],['G2','Bb2','D3'],['A2','C#3','E3'],['D3','F3','A3']],
-      drums: 'war', leadType: 'strings' }
-  };
-
-  /* ================= moteur ================= */
-  var ctx = null, master = null, duckG = null, timer = null, nextT = 0, beat = 0, playing = false;
-  function audio() {
-    if (!ctx) {
-      try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
-      master = ctx.createGain(); master.gain.value = 0;
-      duckG = ctx.createGain(); duckG.gain.value = 1;
-      var comp = ctx.createDynamicsCompressor();
-      master.connect(duckG); duckG.connect(comp); comp.connect(ctx.destination);
-    }
-    if (ctx.state === 'suspended') ctx.resume();
-    return ctx;
-  }
-  function env(g, t, a, peak, dur, rel) {
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.linearRampToValueAtTime(peak, t + a);
-    g.gain.setValueAtTime(peak, t + Math.max(a, dur - rel));
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + rel);
-  }
-  function lead(f, t, dur, type) {
-    var o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
-    o1.type = 'sawtooth'; o2.type = type === 'brass' ? 'square' : 'sawtooth';
-    o1.frequency.value = f; o2.frequency.value = f; o2.detune.value = type === 'brass' ? -6 : 9;
-    lp.type = 'lowpass'; lp.Q.value = type === 'brass' ? 2 : 0.7;
-    lp.frequency.setValueAtTime(type === 'brass' ? 700 : 900, t);
-    lp.frequency.linearRampToValueAtTime(type === 'brass' ? 2200 : 1500, t + Math.min(0.12, dur / 2));
-    o1.connect(lp); o2.connect(lp); lp.connect(g); g.connect(master);
-    env(g, t, type === 'brass' ? 0.03 : 0.12, type === 'brass' ? 0.11 : 0.09, dur, type === 'brass' ? 0.08 : 0.25);
-    o1.start(t); o2.start(t); o1.stop(t + dur + 0.4); o2.stop(t + dur + 0.4);
-  }
-  function bass(f, t, dur) {
-    var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.value = f;
-    o.connect(g); g.connect(master); env(g, t, 0.01, 0.16, dur * 0.9, 0.06); o.start(t); o.stop(t + dur + 0.2);
-  }
-  function pad(notes, t, dur) {
-    notes.forEach(function (n) {
-      var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = hz(n);
-      o.connect(g); g.connect(master); env(g, t, 0.25, 0.028, dur, 0.4); o.start(t); o.stop(t + dur + 0.6);
-    });
-  }
-  var noiseBuf = null;
-  function noise(t, dur, vol, freq) {
-    if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate); var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
-    var s = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
-    s.buffer = noiseBuf; bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 0.8;
-    s.connect(bp); bp.connect(g); g.connect(master); env(g, t, 0.002, vol, dur, dur); s.start(t); s.stop(t + dur * 2 + 0.05);
-  }
-  function drum(t, f0, f1, dur, vol) {
-    var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine';
-    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
-    o.connect(g); g.connect(master); env(g, t, 0.003, vol, dur, dur * 0.5); o.start(t); o.stop(t + dur + 0.1);
-  }
-  function drums(kind, b, t, spb, beats) {
-    var pos = b % beats;
-    if (kind === 'march') {
-      if (pos === 0 || pos === 2) drum(t, 130, 45, 0.18, 0.22);
-      if (pos === 1 || pos === 3) noise(t, 0.09, 0.07, 1800);
-      noise(t + spb / 2, 0.05, 0.03, 2600);                       // roulement léger à la croche
-      if (pos === 3) noise(t + spb * 0.75, 0.05, 0.035, 2200);
-    } else {
-      if (pos === 0) { drum(t, 95, 38, 0.45, 0.3); }
-      if (pos === 2) drum(t + spb / 2, 140, 70, 0.2, 0.12);
-      if (pos === 1) noise(t, 0.16, 0.035, 900);
-    }
-  }
-  function schedule() {
-    var S = SONGS[style], spb = 60 / S.bpm, total = S.beats * S.bars;
-    while (nextT < ctx.currentTime + 0.25) {
-      var b = beat % total;
-      S.lead.ev.forEach(function (e) { if (e.t >= b && e.t < b + 1) lead(e.f, nextT + (e.t - b) * spb, e.d * spb * 0.95, S.leadType); });
-      S.bass.ev.forEach(function (e) { if (e.t >= b && e.t < b + 1) bass(e.f, nextT + (e.t - b) * spb, e.d * spb); });
-      if (b % S.beats === 0) pad(S.chords[(b / S.beats) % S.chords.length], nextT, S.beats * spb);
-      drums(S.drums, b, nextT, spb, S.beats);
-      nextT += spb; beat++;
-    }
-  }
-  function start() {
-    if (playing || !on || document.hidden) return;
-    if (!audio()) return;
-    playing = true; beat = 0; nextT = ctx.currentTime + 0.12;
-    master.gain.cancelScheduledValues(ctx.currentTime);
-    master.gain.setValueAtTime(0, ctx.currentTime); master.gain.linearRampToValueAtTime(0.55, ctx.currentTime + 1.5);
-    schedule(); timer = setInterval(schedule, 60);
-  }
-  function stop() {
-    if (!playing) return; playing = false; clearInterval(timer);
-    master.gain.cancelScheduledValues(ctx.currentTime);
-    master.gain.setValueAtTime(master.gain.value, ctx.currentTime); master.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
-  }
-  function duck(x) {
-    if (!ctx) return; var t = ctx.currentTime;
-    duckG.gain.cancelScheduledValues(t); duckG.gain.setValueAtTime(duckG.gain.value, t);
-    duckG.gain.linearRampToValueAtTime(x ? 0.18 : 1, t + (x ? 0.25 : 0.8));
-  }
-
-  /* ================= bouton flottant ================= */
-  var css = '.smus{position:absolute;top:12px;right:max(12px,env(safe-area-inset-right));z-index:9000;display:flex;gap:6px;font:600 14px Lexend,system-ui,sans-serif}' +
-    '.smus button{min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid rgba(255,122,0,.6);background:light-dark(rgba(255,255,255,.94),rgba(20,24,28,.94));color:light-dark(#15191d,#e9edf0);cursor:pointer;box-shadow:0 6px 18px -8px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font:inherit}' +
-    '.smus button[aria-pressed=true]{background:#ff7a00;color:#1d0e00;border-color:#ff7a00}' +
-    '.smus .sty{font-size:13px}.smus button:focus-visible{outline:3px solid #ff7a00;outline-offset:2px}' +
-    '@media(max-width:520px){.smus .sty{display:none}.smus button{min-height:40px;padding:0 12px;font-size:13px}}' +
-    '@media print{.smus{display:none}}';
-  var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
-  var box = document.createElement('div'); box.className = 'smus'; box.setAttribute('aria-label', 'Musique de fond');
-  var bOn = document.createElement('button'), bSty = document.createElement('button');
-  bOn.type = bSty.type = 'button'; bSty.className = 'sty';
-  function label() {
-    bOn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    bOn.textContent = on ? '♪ Musique : oui' : '♪ Musique : non';
-    bSty.textContent = style === 'epique' ? 'Style : épique' : 'Style : aventure';
-  }
-  bOn.addEventListener('click', function (e) {
-    e.stopPropagation(); on = !on; store.set('sigma-musique', on ? '1' : '0'); label();
-    if (on) start(); else stop();
-  });
-  bSty.addEventListener('click', function (e) {
-    e.stopPropagation(); style = style === 'epique' ? 'aventure' : 'epique';
-    store.set('sigma-musique-style-' + location.pathname, style); label();
-    if (playing) { stop(); setTimeout(start, 450); }
-  });
-  box.appendChild(bSty); box.appendChild(bOn);
-  function mount() { document.body.appendChild(box); label(); }
-  if (document.body) mount(); else document.addEventListener('DOMContentLoaded', mount);
-
-  /* premier geste : la musique peut démarrer */
-  function first() { start(); }
-  ['pointerdown', 'keydown'].forEach(function (ev) { document.addEventListener(ev, first, { once: true, capture: true }); });
-  document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else if (on && ctx) start(); });
-
-  window.SigmaMusic = { start: start, stop: stop, duck: duck, isOn: function () { return on; } };
+/* 1. x + a = b */
+function g1(){const x0=ri(1,15),a=ri(2,15),b=x0+a,sw=Math.random()<.3;
+  return{x0,a,b,e:sw?`${a} + ${X} = ${b}`:`${X} + ${a} = ${b}`,
+    ex:`On enlève ${a} de chaque côté : ${X} = ${b} ${M} ${a} = ${x0}.`}}
+const L1={
+  qcm(){const q=g1();return mk(1,`Résoudre : ${q.e}`,xs(q.x0),vals([q.b+q.a,-q.x0,q.b],q.x0),q.ex)},
+  trous(){const q=g1();return tr(1,`Résoudre : ${q.e}.<br>${X} = {0}`,[{answers:AN(q.x0),size:3}],q.ex)}
+};
+/* 2. ax = b */
+function g2(){const a=ri(2,9),x0=Math.random()<.3?-ri(1,9):ri(2,12);
+  return{a,x0,b:a*x0,e:`${a}${X} = ${P(a*x0)}`,ex:`On divise chaque côté par ${a} : ${X} = ${P(a*x0)} ÷ ${a} = ${P(x0)}.`}}
+const L2={
+  qcm(){const q=g2();return mk(2,`Résoudre : ${q.e}`,xs(q.x0),vals([q.b-q.a,q.b+q.a,q.b*q.a,-q.x0],q.x0),q.ex)},
+  trous(){const q=g2();return tr(2,`Résoudre : ${q.e}.<br>${X} = {0}`,[{answers:AN(q.x0),size:3}],q.ex)}
+};
+/* 3. ax + b = c */
+function g3(){const a=ri(2,6),x0=ri(1,9),b=ri(1,12),c=a*x0+b;
+  return{a,b,c,x0,e:`${side(a,b)} = ${c}`,ex:`On enlève ${b} de chaque côté : ${a}${X} = ${c-b}, puis on divise chaque côté par ${a} : ${X} = ${x0}.`}}
+const L3={
+  qcm(){const q=g3();return mk(3,`Résoudre : ${q.e}`,xs(q.x0),vals([(q.c+q.b)/q.a,q.c-q.b,q.c-q.b-q.a,q.c/q.a-q.b],q.x0),q.ex)},
+  trous(){const q=g3();return tr(3,`Résoudre : ${q.e}.<br>${q.a}${X} = {0}, donc ${X} = {1}.`,[{answers:AN(q.c-q.b),size:3},{answers:AN(q.x0),size:3}],q.ex)}
+};
+/* 4. x des deux côtés : ax + b = cx + d */
+function g4(neg){for(;;){const c=ri(1,4),a=c+ri(neg?1:2,4),x0=neg?nz(-6,8):ri(1,8),b=neg?nz(-9,9):ri(0,9),d=(a-c)*x0+b;
+  if(d===0||Math.abs(d)>30||(!neg&&d<0))continue;
+  return{a,b,c,d,x0,e:E(a,b,c,d),
+    ex:`On enlève ${side(c,0)} de chaque côté : ${side(a-c,b)} = ${P(d)}${b?`, puis on ${b>0?'enlève '+b:'ajoute '+(-b)} de chaque côté : ${side(a-c,0)} = ${P(d-b)}`:''}${a-c>1?`, et on divise par ${a-c} : ${X} = ${P(x0)}`:''}.`}}}
+const L4={
+  qcm(){const q=g4(false),k=q.a-q.c;return mk(4,`Résoudre : ${q.e}`,xs(q.x0),vals([(q.d+q.b)/k,(q.d-q.b)/(q.a+q.c),-q.x0,q.d-q.b],q.x0),q.ex)},
+  trous(){const q=g4(false);return tr(4,`Résoudre : ${q.e}.<br>On enlève {0} de chaque côté : ${side(q.a-q.c,q.b)} = ${q.d}, donc ${X} = {1}.`,
+    [{answers:AXT(q.c),size:3},{answers:AN(q.x0),size:3}],q.ex)}
+};
+/* 5. avec des négatifs */
+function g5(){for(;;){const a=ri(1,5),x0=nz(-9,9),b=nz(-12,12),c=a*x0+b;
+  if(c===0||(b>0&&x0>0&&c>0))continue;
+  return{a,b,c,x0,e:`${side(a,b)} = ${P(c)}`,
+    ex:`On ${b>0?'enlève '+b:'ajoute '+(-b)} de chaque côté : ${side(a,0)} = ${P(c-b)}${a>1?`, puis on divise chaque côté par ${a} : ${X} = ${P(x0)}`:''}.`}}}
+const L5={
+  qcm(){const q=g5();return mk(5,`Résoudre : ${q.e}`,xs(q.x0),vals([(q.c+q.b)/q.a,-q.x0,(q.b-q.c)/q.a,q.c-q.b],q.x0),q.ex)},
+  trous(){const q=g5();return q.a>1
+    ?tr(5,`Résoudre : ${q.e}.<br>${q.a}${X} = {0}, donc ${X} = {1}.`,[{answers:AN(q.c-q.b),size:3},{answers:AN(q.x0),size:3}],q.ex)
+    :tr(5,`Résoudre : ${q.e}.<br>${X} = {0}`,[{answers:AN(q.x0),size:3}],q.ex)}
+};
+/* 6. Vérifier une solution par substitution */
+const L6={
+  qcm(){
+    if(Math.random()<.5){const q=g4(true),v=q.x0;if(q.a>9||v<2)return null;
+      return mk(6,`Pour vérifier que ${X} = ${P(v)} est solution de ${q.e}, quel calcul fait-on ?`,
+        `${subst(q.a,q.b,v)} et ${subst(q.c,q.d,v)}, puis on compare`,
+        [`${q.a}${v}${q.b?(q.b>0?' + '+q.b:' '+M+' '+(-q.b)):''} et ${q.c===1?'':q.c}${v}${q.d>0?' + '+q.d:' '+M+' '+(-q.d)}, puis on compare`,
+         q.a+v===q.a*v?null:`${q.a} + ${v}${q.b?(q.b>0?' + '+q.b:' '+M+' '+(-q.b)):''} et ${q.c===1?v:q.c+' + '+v}${q.d>0?' + '+q.d:' '+M+' '+(-q.d)}, puis on compare`,
+         `${subst(q.a,q.b,v)} seulement`],
+        `${q.a}${X} veut dire ${q.a} × ${X} : on remplace ${X} par ${P(v)} dans les deux côtés et on vérifie qu'on trouve le même nombre.`)}
+    const q=g4(true),v=q.x0,L=q.a*v+q.b,k=q.a-q.c;
+    return mk(6,`Lequel de ces nombres est solution de ${q.e} ?`,P(v),[-v,(q.d+q.b)/k,q.d-q.b,(q.d-q.b)/(q.a+q.c)].filter(t=>isInt(t)&&t!==0&&t!==v).map(P),
+      `Pour ${X} = ${P(v)} : à gauche ${subst(q.a,q.b,v)} = ${P(L)}, à droite ${subst(q.c,q.d,v)} = ${P(L)}. Les deux côtés sont égaux.`)},
+  trous(){const q=g4(true),v=q.x0,L=q.a*v+q.b;
+    return tr(6,`Vérifions que ${X} = ${P(v)} est solution de ${q.e}.<br>À gauche : ${subst(q.a,q.b,v)} = {0}. À droite : ${subst(q.c,q.d,v)} = {1}.`,
+      [{answers:AN(L),size:3},{answers:AN(L),size:3}],`On remplace ${X} par ${P(v)} de chaque côté : on trouve ${P(L)} des deux côtés, donc ${P(v)} est bien solution.`)}
+};
+/* 7. Choisir la bonne opération (des deux côtés) */
+const L7={
+  qcm(){const k=ri(0,2);
+    if(k===0){const q=Math.random()<.5?g3():g5();if(q.a<2)return null;const b=q.b,c=q.c,a=q.a;
+      const op=b>0?`On enlève ${b} de chaque côté`:`On ajoute ${-b} de chaque côté`;
+      return mk(7,`Pour résoudre ${q.e}, quelle première étape est correcte ?`,`${op} : ${a}${X} = ${P(c-b)}`,
+        [`On passe ${P(b)} de l'autre côté sans changer son signe : ${a}${X} = ${P(c+b)}`,
+         `On divise seulement ${a}${X} par ${a} : ${side(1,b)} = ${P(c)}`,
+         c-a-b!==q.x0?`On enlève ${a} de chaque côté : ${side(1,b)} = ${P(c-a)}`:null],
+        `Pour garder l'égalité, on fait la même opération de chaque côté : ${op.toLowerCase()} et on obtient ${a}${X} = ${P(c-b)}.`)}
+    if(k===1){const a=ri(2,9),x0=nz(-9,9),b=a*x0;
+      return mk(7,`Pour résoudre ${a}${X} = ${P(b)}, que fait-on de chaque côté ?`,`On divise par ${a} : ${xs(x0)}`,
+        [b-a!==x0?`On enlève ${a} : ${xs(b-a)}`:null,`On divise par ${a} : ${xs(-x0)}`,`On multiplie par ${a} : ${xs(b*a)}`],
+        `${a}${X} veut dire ${a} × ${X} : on divise chaque côté par ${a}, et ${P(b)} ÷ ${a} = ${P(x0)}.`)}
+    const q=g4(true);if(q.c<1)return null;
+    return mk(7,`Pour résoudre ${q.e}, quelle étape est correcte ?`,`On enlève ${side(q.c,0)} de chaque côté : ${side(q.a-q.c,q.b)} = ${P(q.d)}`,
+      [`On passe ${side(q.c,0)} de l'autre côté sans changer son signe : ${side(q.a+q.c,q.b)} = ${P(q.d)}`,
+       `On enlève ${side(q.c,0)} à gauche seulement : ${side(q.a-q.c,q.b)} = ${side(q.c,q.d)}`,
+       q.c===1&&q.a>1?`On enlève ${X} de chaque côté : ${q.b?`${q.a} ${q.b>0?'+ '+q.b:M+' '+(-q.b)}`:q.a} = ${q.d}`:null],
+      `On enlève ${side(q.c,0)} de chaque côté pour regrouper les ${X} d'un seul côté : ${side(q.a-q.c,q.b)} = ${P(q.d)}.`)},
+  trous(){const q=g5();if(q.a<2)return null;const b=q.b;
+    return tr(7,`Pour résoudre ${q.e} : on ${b>0?'enlève':'ajoute'} {0} de chaque côté, puis on divise chaque côté par {1}. On trouve ${X} = {2}.`,
+      [{answers:AN(Math.abs(b)),size:2},{answers:AN(q.a),size:2},{answers:AN(q.x0),size:3}],q.ex)}
+};
+const GEN=[null,L1,L2,L3,L4,L5,L6,L7];
+function buildFinal(){
+  const lv=shuf([1,2,3,4,5,6,7,ri(3,7),ri(4,7),ri(5,7)]),ty=shuf(['qcm','qcm','qcm','qcm','qcm','qcm','trous','trous','trous','trous']);
+  const out=[],seen=new Set();
+  for(let i=0;i<10;i++){let q,g=0;
+    do{q=GEN[lv[i]][ty[i]]()}while(!q||seen.has(q.prompt));
+    seen.add(q.prompt);out.push(q)}
+  return out;
+}
+window.__balFinal=buildFinal;
+if(window.SigmaKit)SigmaKit.init({game:'balance-equations',title:'La balance des équations',levels:7,
+  levelNames:['Un sac','Partager','Deux étapes','x des deux côtés','Ballons (−)','Balance floue','Sans balance'],
+  music:'epique',buildFinal});
 })();
-
 </script>
 </body>
 </html>

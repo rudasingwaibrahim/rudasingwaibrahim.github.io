@@ -24,10 +24,10 @@
 *{box-sizing:border-box;min-width:0}
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 Lexend,system-ui,sans-serif;overflow-x:clip}
-header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+header{max-width:1320px;margin:auto;padding:22px max(3vw,16px) 4px}
 h1{font-size:clamp(28px,3.6vw,42px);line-height:1.05;margin:0 0 4px;text-wrap:balance}
 header p{margin:0;color:var(--mut);max-width:72ch}
-.back{display:inline-block;margin:0 0 8px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:2px solid var(--or)}.back:hover{color:var(--or)}
+.back{display:inline-block;margin:0 0 14px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:2px solid var(--or)}.back:hover{color:var(--or)}
 .app{max-width:1320px;margin:auto;padding:12px max(3vw,16px) 32px;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:clamp(18px,2.6vw,34px);align-items:start}
 button,select,input{font:inherit}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--or);outline-offset:2px}
@@ -95,6 +95,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .win{border-radius:16px;padding:14px 18px;margin:12px 0;background:light-dark(#eaf7ee,#13261a);border:2px solid var(--ok)}
 .win .big{font:700 clamp(28px,3.6vw,40px)/1.1 Lexend,sans-serif;color:var(--ok)}
 .win p{margin:6px 0}
+.winh{display:flex;gap:12px;align-items:center}.winmk{flex:none;width:72px;height:72px}.winmk:empty{display:none}.winmk svg{width:100%;height:100%}
 .row{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 0}
 .copy{background:var(--paper);border:1.5px solid var(--line);border-radius:16px;padding:16px 18px 18px;position:sticky;top:10px;
   background-image:repeating-linear-gradient(var(--paper) 0 33px,var(--rule) 33px 34px);background-position:0 54px}
@@ -114,7 +115,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .chip.add{background:#2a73b3}.chip.mul{background:#178a73}
 .dots{display:flex;gap:6px;margin:12px 0 0;align-items:center;flex-wrap:wrap}
 .dots span{width:14px;height:14px;border-radius:50%;background:var(--line)}
-.dots span.g{background:var(--ok)}.dots span.h{background:transparent;box-shadow:inset 0 0 0 3px var(--ok)}
+.dots span.g{background:var(--ok)}.dots span.r{background:light-dark(#c0392b,#ff8c7a)}
 .dots span.c{background:var(--or);box-shadow:0 0 0 3px var(--orsoft)}
 .dots em{font-style:normal;color:var(--mut);font-size:14px;margin-left:6px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--mut);margin-top:10px}
@@ -240,9 +241,9 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 </div>
 
 <div class="win" id="win" hidden>
-<div class="big" id="winx"></div>
-<p id="winp"></p>
-<div class="row"><button class="btn or" id="next" type="button">Question suivante →</button></div>
+<div class="winh"><span class="winmk" id="winmk" aria-hidden="true"></span><div><div class="big" id="winx"></div>
+<p id="winp"></p></div></div>
+<div class="row" id="winrow"></div>
 </div>
 
 <div class="own" id="own" hidden>
@@ -272,6 +273,9 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 </aside>
 </main>
 
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
 <script>
 {
 const $=id=>document.getElementById(id);
@@ -455,7 +459,7 @@ function g6(type){
 }
 
 /* ================= son ================= */
-let actx=null,snd=true;try{snd=localStorage.getItem('abra-son')!=='0'}catch(e){}
+let actx=null,snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
 function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
 function tone(f,d,v,type='sine',w=0,f2=0){const a=ac();if(!a)return;const t=a.currentTime+w,o=a.createOscillator(),g=a.createGain();
   o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
@@ -639,7 +643,7 @@ function drawLog(){
 }
 function drawDots(){
   if(mode==='own'){$('dots').innerHTML='<em>Ma machine : démonstration libre</em>';return}
-  $('dots').innerHTML=Array.from({length:PER},(_,i)=>`<span class="${i<done[lvl]?(helped[lvl][i]?'h':'g'):i===done[lvl]&&$('win').hidden?'c':''}"></span>`).join('')+`<em>${done[lvl]} / ${PER}</em>`;
+  $('dots').innerHTML=Array.from({length:PER},(_,i)=>`<span class="${i<done[lvl]?(helped[lvl][i]?'r':'g'):i===done[lvl]&&$('win').hidden?'c':''}"></span>`).join('')+`<em>${done[lvl]} / ${PER}</em>`;
 }
 const say=h=>{$('msg').innerHTML=nb(h)};
 function setPrompt(c,h){$('pcons').textContent=nb(c);$('pbody').innerHTML=nb(h)}
@@ -657,7 +661,7 @@ function padKey(k){
 }
 $('pad').addEventListener('click',e=>{const b=e.target.closest('button');if(b)padKey(b.dataset.k)});
 document.addEventListener('keydown',e=>{
-  if($('padw').hidden||e.target.closest('input,select,textarea')||e.ctrlKey||e.metaKey||e.altKey)return;
+  if($('padw').hidden||document.querySelector('.sk-ov')||e.target.closest('input,select,textarea')||e.ctrlKey||e.metaKey||e.altKey)return;
   if(/^\d$/.test(e.key))padKey(e.key);else if(e.key==='-'||e.key==='−')padKey('−');else if(e.key==='Backspace')padKey('⌫');
   else if(e.key==='Enter'){if(e.target.closest('button'))return;padKey('OK')}else if(e.key==='Escape')padKey('C');else return;
   e.preventDefault();
@@ -699,7 +703,7 @@ async function askNum(expect,{m=null,mod=0,line='',hint=()=>'',reveal=null}={}){
     const ev=await next(['num'],{type:'num',v:expect});hidePad();
     if(ev.v===expect){sfx('ding');return false}
     tries++;
-    if(m)await m.cough(mod);else{sfx('boing');await sleep(250)}
+    QERR=true;if(m)await m.cough(mod);else{sfx('boing');await sleep(250)}
     if(tries>=2){
       say(`${hint(ev.v,tries)}<br><b>La réponse : ${line?line+' ':''}${num(expect)}</b>`);
       if(reveal)reveal();
@@ -715,7 +719,7 @@ async function askChoice(opts,ok,{m=null,mod=0,q='',why=()=>'',reveal=null}={}){
     const ev=await next(['choice'],{type:'choice',i:ok});
     if(ev.i===ok){hideChoices();sfx('ding');return false}
     tries++;dis.add(ev.i);hideChoices();
-    if(m)await m.cough(mod);else{sfx('boing');await sleep(250)}
+    QERR=true;if(m)await m.cough(mod);else{sfx('boing');await sleep(250)}
     if(tries>=2){say(`${why(ev.i)}<br><b>La bonne écriture : ${opts[ok]}</b>`);if(reveal)reveal();await askBtn([{id:'ok',label:'Compris, on continue →',cls:'or'}]);return true}
     say(`${why(ev.i)} Essaie encore !`);
   }
@@ -849,7 +853,7 @@ async function f2(Q){
     await m.go(n+1);
     if(built.every((p,i)=>opKey(p)===opKey(Q.ops[i]))){m.celebrate();sfx('ding');break}
     fails++;const bad=built.findIndex((p,i)=>opKey(p)!==opKey(Q.ops[i]));
-    await m.cough(bad);const msg=diag2(Q,built,v);
+    QERR=true;await m.cough(bad);const msg=diag2(Q,built,v);
     if(fails>=2){helped=true;say(`${msg}<br>Pas de souci : la machine se répare toute seule. Regarde le bon montage.`);
       slots=Q.ops.map(o=>Q.parts.findIndex(p=>opKey(p)===opKey(o)));m.setMods(modsOf());m.hideTok();rub();
       await askBtn([{id:'fix',label:'▶ Tester le bon montage',cls:'or'}]);auto=true;continue}
@@ -894,7 +898,7 @@ async function f3(Q){
       showTray(Q.parts,used);
       const ev=await next(['part'],{type:'part',i:ni});const p=Q.parts[ev.i];
       if(ev.i===ni){used.add(ni);sfx('pop');break}
-      tries++;hideTray();await m.cough(j);const msg=msg3(p,o,j,Q);
+      tries++;QERR=true;hideTray();await m.cough(j);const msg=msg3(p,o,j,Q);
       if(tries>=2){helped=true;say(`${msg}<br><b>Pour défaire « ${opStr(o)} », on fait « ${opStr(need)} ».</b>`);await askBtn([{id:'ok',label:'Compris, on continue →',cls:'or'}]);used.add(ni);break}
       say(msg+' Essaie encore !');
     }
@@ -1060,7 +1064,7 @@ const LV=[
   {t:'6. Sans machine',d:'Plus de machine : uniquement l’écriture, comme au brevet.',gen:null,flow:f6,stage:0}
 ];
 const ORD6=['exec','expr','rev','two','mix'];
-let lvl=0,mode='lvl';const done=LV.map(()=>0),helped=LV.map(()=>[]);
+let lvl=0,mode='lvl',QERR=false;const done=LV.map(()=>0),helped=LV.map(()=>[]);
 
 function setStage(k){
   $('stage').hidden=k===0;$('ruban').hidden=k===0;$('mB').toggleAttribute('hidden',k<2);document.querySelector('.legend').hidden=k===0;
@@ -1068,24 +1072,34 @@ function setStage(k){
 }
 async function play(){
   newRun();const id=RUN;
-  $('win').hidden=true;LOG=[];RB.rows=[];RB.cmp='';drawRuban();drawLog();say('');
+  $('win').hidden=true;QERR=false;LOG=[];RB.rows=[];RB.cmp='';drawRuban();drawLog();say('');
   const L=LV[lvl];setStage(L.stage);
   const Q=lvl===5?g6(ORD6[done[5]%5]):L.gen();T.q=Q;
   try{const h=await L.flow(Q);if(id!==RUN)return;finishQ(h)}catch(e){if(!(e instanceof Cancel))throw e}
 }
 function finishQ(h){
   clearCtrl();
-  if(done[lvl]<PER){helped[lvl][done[lvl]]=!!h;done[lvl]++}
+  const miss=!!h||QERR;
+  if(done[lvl]<PER){helped[lvl][done[lvl]]=miss;done[lvl]++}
   const lvlDone=done[lvl]>=PER,last=lvl===LV.length-1;
-  sfx('win');
+  $('winmk').innerHTML=window.SigmaKit?SigmaKit.maki(miss?'joie':'bravo'):'';
   $('winx').textContent=pick(['Bravo !','Bien joué !','Excellent !','La machine est ravie !','Superbe !']);
-  $('winp').textContent=nb(lvlDone?(last?'Tu as terminé tous les niveaux : les programmes de calcul n’ont plus de secret pour toi !':`Niveau ${lvl+1} réussi ! Passe au niveau suivant.`)
-    :(h?'La machine t’a donné un coup de main : relis la correction dans ta copie, puis passe à la suite.':'Question réussie. Regarde ta copie : tout y est écrit.'));
-  $('next').textContent=lvlDone?(last?'Rejouer ce niveau':'Niveau suivant →'):'Question suivante →';
-  $('next').dataset.go=lvlDone?(last?'again':'up'):'';
+  $('winp').textContent=nb(lvlDone?`Niveau ${lvl+1} terminé : ${helped[lvl].filter(x=>!x).length} / ${PER} du premier coup.`
+    :(h?'La machine t’a donné un coup de main : relis la correction dans ta copie, puis passe à la suite.':miss?'Réussi ! Relis ta copie pour bien retenir.':'Réussi du premier coup. Regarde ta copie : tout y est écrit.'));
+  winBtns(lvlDone?(last?[['replay','Rejouer ce niveau','or'],['final','Épreuve finale','gh']]:[['next','Niveau suivant →','or'],['replay','Rejouer ce niveau','gh'],['final','Épreuve finale','gh']]):[['q','Question suivante →','or']]);
   $('win').hidden=false;say('');drawLog();
+  if(lvlDone&&window.SigmaKit){
+    const L=lvl;
+    SigmaKit.levelComplete({level:L+1,score:helped[L].filter(x=>!x).length,total:PER}).then(v=>{if(mode!=='lvl'||lvl!==L)return;if(v==='next'&&!last)winGo('next');else if(v==='replay')winGo('replay')});
+  }else sfx('win');
 }
-$('next').onclick=()=>{const g=$('next').dataset.go;if(g==='up')lvl++;else if(g==='again'){done[lvl]=0;helped[lvl]=[]}renderLv();play()};
+function winBtns(list){$('winrow').innerHTML=list.map(([id,l,c])=>`<button class="btn ${c}" type="button" data-go="${id}">${l}</button>`).join('')}
+function winGo(g){
+  if(g==='final'){if(window.SigmaKit)SigmaKit.openFinal();return}
+  if(g==='next')lvl++;else if(g==='replay'){done[lvl]=0;helped[lvl]=[]}
+  renderLv();play();
+}
+$('winrow').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)winGo(b.dataset.go)});
 
 /* ================= Ma machine (professeur) ================= */
 const own={ops:[{t:'mul',v:3},{t:'add',v:5}]};
@@ -1152,226 +1166,84 @@ $('ownB').onclick=()=>{
 /* ================= menu ================= */
 function renderLv(){
   $('lv').innerHTML=LV.map((l,i)=>`<button type="button" data-l="${i}" aria-pressed="${mode==='lvl'&&i===lvl}">${l.t}</button>`).join('')+
-    `<button type="button" class="own" data-l="own" aria-pressed="${mode==='own'}">Ma machine (prof)</button><button type="button" class="snd" id="snd" aria-pressed="${snd}">♪ Son : ${snd?'oui':'non'}</button>`;
+    `<button type="button" class="own" data-l="own" aria-pressed="${mode==='own'}">Ma machine (prof)</button><button type="button" class="snd" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`;
   const o=mode==='own';
   $('lvdesc').innerHTML=nb(o?'Mode « Au tableau » : le professeur compose son propre programme et le fait tourner devant la classe.':LV[lvl].d);
   $('lvname').textContent=o?'· ma machine':`· niveau ${lvl+1}`;
   $('prompt').hidden=o;$('ctrl').hidden=o;$('own').hidden=!o;if(o)$('win').hidden=true;
 }
 $('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
-  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('abra-son',snd?'1':'0')}catch(_){}renderLv();if(snd)sfx('ding');return}
+  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('sigma-fanfare',snd?'1':'0')}catch(_){}renderLv();if(snd)sfx('ding');return}
   if(b.dataset.l==='own'){mode='own';renderLv();setStage(1);ownDraw();ownSync();LOG=[];drawLog();say('Composez le programme, puis lancez la machine.');return}
   mode='lvl';lvl=+b.dataset.l;renderLv();play()});
 let rT=0;addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(()=>{for(const m of[MA,MB])if(!m.busy&&m.g&&m.geom().narrow!==m.narrow)m.build()},120)});
 
+/* ================= Épreuve finale (kit Sigma Arcade) ================= */
+const lc=w=>w.charAt(0).toLowerCase()+w.slice(1);
+const progTxt=(ws,name='')=>`${name?`<b>${name}</b> : `:''}« Choisir un nombre ; ${ws.map(lc).join(' ; ')}. »`;
+const distinctNums=(right,cands)=>{const out=[],seen=new Set([right]);for(const c of cands){if(!Number.isInteger(c)||seen.has(c))continue;seen.add(c);out.push(c)}return out};
+function mkQcm(level,prompt,right,wrongs,explain,meta){
+  const k=wrongs.length>=3?3:2,ch=[right,...shuffle(wrongs).slice(0,k)].map(x=>nb(String(x)));
+  return{type:'qcm',level,prompt:nb(prompt),choices:ch,answer:0,explain:nb(explain),meta};
+}
+const numAns=v=>v<0?[num(v),'-'+(-v)]:[String(v),'+'+v];
+function affAns(a,b){
+  const X=a===1?'x':a===-1?M+'x':num(a)+'x',fwd=fmtAff(a,b),out=new Set([fwd]);
+  if(b)out.add(`${num(b)} ${a>0?'+':M} ${Math.abs(a)===1?'x':Math.abs(a)+'x'}`);
+  for(const s of[...out])out.add(s.replace(/−/g,'-'));
+  return[...out];
+}
+const FQ={
+  q1(){for(;;){const q=g1(),res=q.vals.at(-1),np=evalExpr(noParStr(q.s,q.ops)),rv=runChain(q.s,q.ops.slice().reverse()).at(-1);
+    const w=distinctNums(res,[np&&!np.a?np.b:NaN,rv,-res]);if(w.length<2)continue;
+    return mkQcm(1,`Programme de calcul : ${progTxt(q.words||words(q.ops))}<br>On choisit le nombre ${num(q.s)}. Quel résultat obtient-on ?`,num(res),w.map(num),
+      `On applique les étapes l’une après l’autre, dans l’ordre : ${q.ops.map((o,i)=>calc(q.vals[i],o)).join(' ; ')}.`,{k:'exec',s:q.s,ops:q.ops,r:res})}},
+  t1(){const q=g1(),res=q.vals.at(-1);
+    return{type:'trous',level:1,prompt:nb(`Programme de calcul : ${progTxt(words(q.ops))}<br>En choisissant ${num(q.s)}, on obtient {0}.`),
+      blanks:[{answers:numAns(res),size:4}],explain:nb(`Étape par étape : ${q.ops.map((o,i)=>calc(q.vals[i],o)).join(' ; ')}.`),meta:{k:'exec',s:q.s,ops:q.ops,r:res}}},
+  q2(){for(;;){const q=g2();if(!hasParen(q.ops))continue;const w=q.lineOpts.filter(o=>o.k!=='ok').map(o=>esc(o.s));
+    return mkQcm(2,`Programme de calcul : ${progTxt(q.words)}<br>Quelle écriture en une seule ligne donne le résultat quand on choisit ${q.t} ?`,esc(q.line),w,
+      `Pour respecter l’ordre du programme, on met des parenthèses autour de ce qui est calculé avant la multiplication : ${esc(q.line)} = ${q.res}.`,{k:'line',t:q.t,ops:q.ops,r:q.res})}},
+  q3(){for(;;){const q=g3(),n=q.ops.length,wo=runChain(q.out,q.ops.map(inv)).at(-1),fw=runChain(q.out,q.ops).at(-1);
+    const w=distinctNums(q.x0,[wo,fw,-q.x0]);if(w.length<2)continue;
+    return mkQcm(3,`Programme de calcul : ${progTxt(q.words)}<br>On a obtenu ${num(q.out)}. Quel nombre avait-on choisi ?`,num(q.x0),w.map(num),
+      `On remonte le programme avec les opérations contraires, en commençant par la dernière étape : ${Array.from({length:n},(_,k)=>calc(q.vals[n-k],inv(q.ops[n-1-k]))).join(' ; ')}.`,{k:'rev',ops:q.ops,out:q.out,x0:q.x0})}},
+  t3(){const q=g3(),n=q.ops.length;
+    return{type:'trous',level:3,prompt:nb(`Programme de calcul : ${progTxt(q.words)}<br>Pour obtenir ${num(q.out)}, il faut choisir le nombre {0}.`),
+      blanks:[{answers:numAns(q.x0),size:4}],explain:nb(`Marche arrière : ${Array.from({length:n},(_,k)=>calc(q.vals[n-k],inv(q.ops[n-1-k]))).join(' ; ')}. Vérification : ${esc(chainStr(q.x0,q.ops))} = ${num(q.out)}.`),
+      meta:{k:'rev',ops:q.ops,out:q.out,x0:q.x0}}},
+  q4(){const q=g6('expr');const pk=q.pick;
+    return mkQcm(4,`Programme de calcul : ${progTxt(q.words)}<br>On choisit un nombre ${VX}. Quelle expression, développée et réduite, donne le résultat ?`,hx(q.final.s),pk.opts.filter((_,i)=>i!==pk.ok).map(c=>hx(c.s)),
+      `On écrit chaque étape avec ${VX} : ${q.steps.map(s=>hx(s.line)).join(' ; ')}.`,{k:'aff',ops:q.ops,a:q.final.a,b:q.final.b,opts:pk.opts.map(c=>c.s),ok:pk.ok})},
+  t4(){const q=g4(),f=q.final;
+    return{type:'trous',level:4,prompt:nb(`Programme de calcul : ${progTxt(q.words)}<br>On choisit un nombre ${VX}. Le résultat, développé et réduit, s’écrit {0}.`),
+      blanks:[{answers:affAns(f.a,f.b),size:7}],explain:nb(`On écrit chaque étape avec ${VX} : ${q.steps.map(s=>hx(s.line)).join(' ; ')}.`),meta:{k:'aff',ops:q.ops,a:f.a,b:f.b}}},
+  q5(){for(;;){const q=g5(),nu=q.fb.b-q.fa.b,de=q.fa.a-q.fb.a,sm=q.fa.a+q.fb.a,ad=q.fb.b+q.fa.b;
+    const w=distinctNums(q.x0,[-q.x0,de!==1&&de!==-1?nu:NaN,ad%de===0?ad/de+0:NaN,nu%sm===0?nu/sm+0:NaN]);if(w.length<2)continue;
+    return mkQcm(5,`${progTxt(words(q.A),'Programme A')}<br>${progTxt(words(q.B),'Programme B')}<br>Quel nombre faut-il choisir pour que les deux programmes donnent le même résultat ?`,num(q.x0),w.map(num),
+      `A donne ${hx(q.fa.s)} et B donne ${hx(q.fb.s)}. On résout ${hx(q.fa.s)} = ${hx(q.fb.s)} : ${hx(solveLines(q.fa,q.fb).at(-1)[0])}. Les deux programmes donnent alors ${num(q.val)}.`,{k:'two',A:q.A,B:q.B,x0:q.x0})}},
+  t5(){const q=g5();
+    return{type:'trous',level:5,prompt:nb(`${progTxt(words(q.A),'Programme A')}<br>${progTxt(words(q.B),'Programme B')}<br>Les deux programmes donnent le même résultat lorsqu’on choisit le nombre {0}.`),
+      blanks:[{answers:numAns(q.x0),size:4}],explain:nb(`On résout ${hx(q.fa.s)} = ${hx(q.fb.s)} et on trouve ${hx('x')} = ${num(q.x0)} : les deux programmes donnent ${num(q.val)}.`),meta:{k:'two',A:q.A,B:q.B,x0:q.x0}}},
+  q6(){for(;;){const ops=progOps(ri(2,3),2);if(!hasParen(ops)||new Set(ops.map(opKey)).size<ops.length)continue;
+    const right=chainStr('x',ops),R=evalExpr(right),c=[noParStr('x',ops),chainStr('x',ops.slice().reverse())];
+    if(ops.length>=2)try{c.push(grouped('x',ops))}catch(e){}
+    const seen=new Set([right]),vals=new Set([R.a+','+R.b]),w=[];
+    for(const s of c){const e=evalExpr(s);if(!e||seen.has(s)||vals.has(e.a+','+e.b))continue;seen.add(s);vals.add(e.a+','+e.b);w.push(s)}
+    if(w.length<2)continue;
+    return mkQcm(6,`<span style="font-size:.85em;color:var(--sk-mut)">Type brevet.</span><br>Programme de calcul : ${progTxt(words(ops))}<br>On note ${VX} le nombre choisi. Quelle expression traduit ce programme ?`,hx(right),w.map(hx),
+      `La multiplication est prioritaire : pour qu’elle s’applique à tout le résultat précédent, on l’entoure de parenthèses. On écrit ${hx(right)}, qui vaut ${hx(fmtAff(R.a,R.b))}.`,{k:'expr6',ops,right,wr:w})}}
+};
+function buildFinal(){const Q=shuffle(['q1','q2','q3','q4','q5','q6','t1','t3','t4','t5'].map(k=>FQ[k]()));window.__abraLast=Q;return Q}
+
 /* accès pour les tests automatiques */
-window.__abra={T,calc,opStr,inv,words,whyText,subst,exprSteps,gen:l=>l===5?g6(pick(['exec','expr','rev','two'])):LV[l].gen(),g6,evalExpr,chainStr,noParStr,fmtAff,affOf,buildSteps,solveLines,
+window.__abra={T,buildFinal,FQ,calc,opStr,inv,words,whyText,subst,exprSteps,gen:l=>l===5?g6(pick(['exec','expr','rev','two'])):LV[l].gen(),g6,evalExpr,chainStr,noParStr,fmtAff,affOf,buildSteps,solveLines,
   state:()=>({lvl,done:done.slice(),mode,win:!$('win').hidden}),setLevel:i=>{mode='lvl';lvl=i;renderLv();play()},finishCount:()=>done.slice()};
 
+if(window.SigmaKit)SigmaKit.init({game:'machine-abracadabra',title:'La Machine Abracadabra',levels:LV.length,
+  levelNames:LV.map(l=>l.t.replace(/^\d+\.\s*/,'')),music:'aventure',buildFinal});
 renderLv();play();
 }
-</script>
-
-<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
-<script>
-/* Sigma Arcade — musique de fond originale (Web Audio, aucun fichier audio).
-   Deux compositions originales :
-   - « aventure » : marche héroïque en ré majeur, 4/4, 116 bpm ;
-   - « epique »   : saga sombre en ré mineur, 3/4, 126 bpm.
-   Démarre au premier geste de l'utilisateur (règle des navigateurs),
-   se coupe avec le bouton, mémorise le choix, baisse quand la page est cachée.
-   API : SigmaMusic.duck(true|false) baisse le volume (ex. trajets de l'ascenseur). */
-(function () {
-  'use strict';
-  if (window.SigmaMusic) return;
-  var STYLE0 = window.SIGMA_MUSIC_STYLE === 'epique' ? 'epique' : 'aventure';
-  var store = {
-    get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
-    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-  };
-  var on = store.get('sigma-musique', '1') === '1';
-  var style = store.get('sigma-musique-style-' + location.pathname, STYLE0);
-
-  /* ---- notes : nom → fréquence ---- */
-  var SEMI = { C: -9, D: -7, E: -5, F: -4, G: -2, A: 0, B: 2 };
-  function hz(n) { // ex. 'D4', 'F#4', 'Bb3'
-    var m = /^([A-G])([#b]?)(\d)$/.exec(n); if (!m) return 0;
-    var s = SEMI[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0) + (parseInt(m[3], 10) - 4) * 12;
-    return 440 * Math.pow(2, s / 12);
-  }
-  /* séquence compacte : "note:durée note:durée …" (durée en temps ; '-' = silence) */
-  function seq(str) {
-    var t = 0, out = [];
-    str.trim().split(/\s+/).forEach(function (tok) {
-      var p = tok.split(':'), d = parseFloat(p[1]);
-      if (p[0] !== '-') out.push({ t: t, d: d, f: hz(p[0]) });
-      t += d;
-    });
-    return { ev: out, len: t };
-  }
-
-  /* ================= compositions originales ================= */
-  var SONGS = {
-    aventure: { bpm: 116, beats: 4, bars: 8,
-      lead: seq(
-        'D4:1 A4:0.5 F#4:0.5 A4:1 D5:1 ' +
-        'C#5:0.75 B4:0.25 A4:1 G4:1 -:1 ' +
-        'B4:1 D5:0.5 B4:0.5 G4:1 B4:1 ' +
-        'A4:1.5 G4:0.5 F#4:1 E4:1 ' +
-        'F#4:1 A4:0.5 D5:0.5 F#5:1 E5:1 ' +
-        'D5:0.75 C#5:0.25 B4:1 G4:1 B4:1 ' +
-        'A4:1 E4:0.5 G4:0.5 C#5:1 B4:0.5 C#5:0.5 ' +
-        'D5:2 A4:1 -:1'),
-      bass: seq(
-        'D2:1 D3:1 A2:1 D3:1  G2:1 G3:1 D3:1 G3:1  G2:1 G3:1 D3:1 B2:1  A2:1 A3:1 E3:1 A2:1 ' +
-        'D2:1 D3:1 A2:1 F#2:1 G2:1 G3:1 B2:1 G2:1  A2:1 A3:1 E3:1 C#3:1 D2:1 A2:1 D3:1 -:1'),
-      chords: [['D3','F#3','A3'],['G3','B3','D4'],['G3','B3','D4'],['A3','C#4','E4'],
-               ['D3','F#3','A3'],['G3','B3','D4'],['A3','C#4','E4'],['D3','F#3','A3']],
-      drums: 'march', leadType: 'brass' },
-    epique: { bpm: 126, beats: 3, bars: 8,
-      lead: seq(
-        'D5:2 C5:1  Bb4:3  A4:2 G4:1  A4:2 -:1 ' +
-        'F4:1 G4:1 A4:1  Bb4:2 D5:1  C5:1.5 Bb4:0.5 A4:1  D4:3'),
-      bass: seq(
-        'D2:1 A2:1 D3:1  Bb1:1 F2:1 Bb2:1  C2:1 G2:1 C3:1  A1:1 E2:1 A2:1 ' +
-        'D2:1 A2:1 D3:1  G1:1 D2:1 G2:1  A1:1 E2:1 A2:1  D2:1 A2:1 D3:1'),
-      chords: [['D3','F3','A3'],['Bb2','D3','F3'],['C3','E3','G3'],['A2','C#3','E3'],
-               ['D3','F3','A3'],['G2','Bb2','D3'],['A2','C#3','E3'],['D3','F3','A3']],
-      drums: 'war', leadType: 'strings' }
-  };
-
-  /* ================= moteur ================= */
-  var ctx = null, master = null, duckG = null, timer = null, nextT = 0, beat = 0, playing = false;
-  function audio() {
-    if (!ctx) {
-      try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
-      master = ctx.createGain(); master.gain.value = 0;
-      duckG = ctx.createGain(); duckG.gain.value = 1;
-      var comp = ctx.createDynamicsCompressor();
-      master.connect(duckG); duckG.connect(comp); comp.connect(ctx.destination);
-    }
-    if (ctx.state === 'suspended') ctx.resume();
-    return ctx;
-  }
-  function env(g, t, a, peak, dur, rel) {
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.linearRampToValueAtTime(peak, t + a);
-    g.gain.setValueAtTime(peak, t + Math.max(a, dur - rel));
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + rel);
-  }
-  function lead(f, t, dur, type) {
-    var o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
-    o1.type = 'sawtooth'; o2.type = type === 'brass' ? 'square' : 'sawtooth';
-    o1.frequency.value = f; o2.frequency.value = f; o2.detune.value = type === 'brass' ? -6 : 9;
-    lp.type = 'lowpass'; lp.Q.value = type === 'brass' ? 2 : 0.7;
-    lp.frequency.setValueAtTime(type === 'brass' ? 700 : 900, t);
-    lp.frequency.linearRampToValueAtTime(type === 'brass' ? 2200 : 1500, t + Math.min(0.12, dur / 2));
-    o1.connect(lp); o2.connect(lp); lp.connect(g); g.connect(master);
-    env(g, t, type === 'brass' ? 0.03 : 0.12, type === 'brass' ? 0.11 : 0.09, dur, type === 'brass' ? 0.08 : 0.25);
-    o1.start(t); o2.start(t); o1.stop(t + dur + 0.4); o2.stop(t + dur + 0.4);
-  }
-  function bass(f, t, dur) {
-    var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.value = f;
-    o.connect(g); g.connect(master); env(g, t, 0.01, 0.16, dur * 0.9, 0.06); o.start(t); o.stop(t + dur + 0.2);
-  }
-  function pad(notes, t, dur) {
-    notes.forEach(function (n) {
-      var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = hz(n);
-      o.connect(g); g.connect(master); env(g, t, 0.25, 0.028, dur, 0.4); o.start(t); o.stop(t + dur + 0.6);
-    });
-  }
-  var noiseBuf = null;
-  function noise(t, dur, vol, freq) {
-    if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate); var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
-    var s = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
-    s.buffer = noiseBuf; bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 0.8;
-    s.connect(bp); bp.connect(g); g.connect(master); env(g, t, 0.002, vol, dur, dur); s.start(t); s.stop(t + dur * 2 + 0.05);
-  }
-  function drum(t, f0, f1, dur, vol) {
-    var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine';
-    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
-    o.connect(g); g.connect(master); env(g, t, 0.003, vol, dur, dur * 0.5); o.start(t); o.stop(t + dur + 0.1);
-  }
-  function drums(kind, b, t, spb, beats) {
-    var pos = b % beats;
-    if (kind === 'march') {
-      if (pos === 0 || pos === 2) drum(t, 130, 45, 0.18, 0.22);
-      if (pos === 1 || pos === 3) noise(t, 0.09, 0.07, 1800);
-      noise(t + spb / 2, 0.05, 0.03, 2600);                       // roulement léger à la croche
-      if (pos === 3) noise(t + spb * 0.75, 0.05, 0.035, 2200);
-    } else {
-      if (pos === 0) { drum(t, 95, 38, 0.45, 0.3); }
-      if (pos === 2) drum(t + spb / 2, 140, 70, 0.2, 0.12);
-      if (pos === 1) noise(t, 0.16, 0.035, 900);
-    }
-  }
-  function schedule() {
-    var S = SONGS[style], spb = 60 / S.bpm, total = S.beats * S.bars;
-    while (nextT < ctx.currentTime + 0.25) {
-      var b = beat % total;
-      S.lead.ev.forEach(function (e) { if (e.t >= b && e.t < b + 1) lead(e.f, nextT + (e.t - b) * spb, e.d * spb * 0.95, S.leadType); });
-      S.bass.ev.forEach(function (e) { if (e.t >= b && e.t < b + 1) bass(e.f, nextT + (e.t - b) * spb, e.d * spb); });
-      if (b % S.beats === 0) pad(S.chords[(b / S.beats) % S.chords.length], nextT, S.beats * spb);
-      drums(S.drums, b, nextT, spb, S.beats);
-      nextT += spb; beat++;
-    }
-  }
-  function start() {
-    if (playing || !on || document.hidden) return;
-    if (!audio()) return;
-    playing = true; beat = 0; nextT = ctx.currentTime + 0.12;
-    master.gain.cancelScheduledValues(ctx.currentTime);
-    master.gain.setValueAtTime(0, ctx.currentTime); master.gain.linearRampToValueAtTime(0.55, ctx.currentTime + 1.5);
-    schedule(); timer = setInterval(schedule, 60);
-  }
-  function stop() {
-    if (!playing) return; playing = false; clearInterval(timer);
-    master.gain.cancelScheduledValues(ctx.currentTime);
-    master.gain.setValueAtTime(master.gain.value, ctx.currentTime); master.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
-  }
-  function duck(x) {
-    if (!ctx) return; var t = ctx.currentTime;
-    duckG.gain.cancelScheduledValues(t); duckG.gain.setValueAtTime(duckG.gain.value, t);
-    duckG.gain.linearRampToValueAtTime(x ? 0.18 : 1, t + (x ? 0.25 : 0.8));
-  }
-
-  /* ================= bouton flottant ================= */
-  var css = '.smus{position:absolute;top:12px;right:max(12px,env(safe-area-inset-right));z-index:9000;display:flex;gap:6px;font:600 14px Lexend,system-ui,sans-serif}' +
-    '.smus button{min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid rgba(255,122,0,.6);background:light-dark(rgba(255,255,255,.94),rgba(20,24,28,.94));color:light-dark(#15191d,#e9edf0);cursor:pointer;box-shadow:0 6px 18px -8px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font:inherit}' +
-    '.smus button[aria-pressed=true]{background:#ff7a00;color:#1d0e00;border-color:#ff7a00}' +
-    '.smus .sty{font-size:13px}.smus button:focus-visible{outline:3px solid #ff7a00;outline-offset:2px}' +
-    '@media(max-width:520px){.smus .sty{display:none}.smus button{min-height:40px;padding:0 12px;font-size:13px}}' +
-    '@media print{.smus{display:none}}';
-  var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
-  var box = document.createElement('div'); box.className = 'smus'; box.setAttribute('aria-label', 'Musique de fond');
-  var bOn = document.createElement('button'), bSty = document.createElement('button');
-  bOn.type = bSty.type = 'button'; bSty.className = 'sty';
-  function label() {
-    bOn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    bOn.textContent = on ? '♪ Musique : oui' : '♪ Musique : non';
-    bSty.textContent = style === 'epique' ? 'Style : épique' : 'Style : aventure';
-  }
-  bOn.addEventListener('click', function (e) {
-    e.stopPropagation(); on = !on; store.set('sigma-musique', on ? '1' : '0'); label();
-    if (on) start(); else stop();
-  });
-  bSty.addEventListener('click', function (e) {
-    e.stopPropagation(); style = style === 'epique' ? 'aventure' : 'epique';
-    store.set('sigma-musique-style-' + location.pathname, style); label();
-    if (playing) { stop(); setTimeout(start, 450); }
-  });
-  box.appendChild(bSty); box.appendChild(bOn);
-  function mount() { document.body.appendChild(box); label(); }
-  if (document.body) mount(); else document.addEventListener('DOMContentLoaded', mount);
-
-  /* premier geste : la musique peut démarrer */
-  function first() { start(); }
-  ['pointerdown', 'keydown'].forEach(function (ev) { document.addEventListener(ev, first, { once: true, capture: true }); });
-  document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else if (on && ctx) start(); });
-
-  window.SigmaMusic = { start: start, stop: stop, duck: duck, isOn: function () { return on; } };
-})();
-
 </script>
 </body>
 </html>

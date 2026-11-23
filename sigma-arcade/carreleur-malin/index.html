@@ -28,7 +28,7 @@
 body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 Lexend,system-ui,sans-serif;overflow-x:clip}
 header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
 .back{display:inline-block;margin:0 0 8px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:2px solid var(--or)}.back:hover{color:var(--or)}
-h1{font-size:clamp(28px,3.6vw,42px);line-height:1.05;margin:0 0 4px;text-wrap:balance}
+h1{font-size:clamp(28px,3.6vw,42px);line-height:1.05;margin:0 0 4px;text-wrap:balance;width:fit-content;max-width:100%}
 header p{margin:0;color:var(--mut);max-width:76ch}
 .app{max-width:1320px;margin:auto;padding:12px max(3vw,16px) 32px;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:clamp(18px,2.6vw,34px);align-items:start}
 button{font:inherit}
@@ -81,6 +81,8 @@ body.dragging{-webkit-user-select:none;user-select:none;cursor:grabbing}
 .btn:disabled{opacity:.35;cursor:not-allowed}
 .row{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
 .win{border-radius:16px;padding:16px 18px;margin:12px 0;background:light-dark(#eaf7ee,#13261a);border:2px solid var(--ok)}
+.win{display:flex;gap:14px;align-items:flex-start}.win>div{flex:1}.wmaki svg{width:72px;height:72px;display:block}
+body:has(.sk-ov) .selbar{display:none!important}
 .win .big{font:700 clamp(26px,3.6vw,40px)/1.15 Lexend,sans-serif;color:var(--ok)}
 .win p{margin:6px 0}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;color:var(--mut);margin:8px 2px 4px}
@@ -113,7 +115,7 @@ body.dragging{-webkit-user-select:none;user-select:none;cursor:grabbing}
 .log .ver div{white-space:normal}
 .dots{display:flex;gap:6px;margin:12px 0 0;align-items:center;flex-wrap:wrap}
 .dots span{width:14px;height:14px;border-radius:50%;background:var(--line)}
-.dots span.g{background:var(--ok)}.dots span.a{background:var(--ok);opacity:.55}.dots span.c{background:var(--or);box-shadow:0 0 0 3px var(--orsoft)}
+.dots span.g{background:var(--ok)}.dots span.r{background:light-dark(#c0392b,#ff8c7a)}.dots span.c{background:var(--or);box-shadow:0 0 0 3px var(--orsoft)}
 .dots em{font-style:normal;color:var(--mut);font-size:14px;margin-left:6px}
 .libre{margin-top:16px;padding-top:12px;border-top:1.5px dashed var(--line)}
 .libre label{font-weight:600;display:block;margin-bottom:6px}
@@ -173,7 +175,7 @@ body.dragging{-webkit-user-select:none;user-select:none;cursor:grabbing}
 @keyframes bub{50%{transform:translateX(5px)}}
 @media (prefers-reduced-motion:reduce){.pz .t,.prev.shake,.zone.glow,.zcut.glow,.fadein,.deco-bub,.tap .deco-trowel{animation:none}.mv{transition:none}}
 @media(max-width:900px){.app{grid-template-columns:minmax(0,1fr)}.copy{position:static}}
-@media(max-width:520px){.tray{grid-template-columns:repeat(2,minmax(0,1fr))}.card b{font-size:18px}.pad button{font-size:19px}.lv button{padding:0 11px;font-size:14px}}
+@media(max-width:520px){header .back{margin-bottom:14px}.tray{grid-template-columns:repeat(2,minmax(0,1fr))}.card b{font-size:18px}.pad button{font-size:19px}.lv button{padding:0 11px;font-size:14px}}
 </style>
 </head>
 <body>
@@ -262,9 +264,12 @@ body.dragging{-webkit-user-select:none;user-select:none;cursor:grabbing}
 </div>
 
 <div class="win" id="win" hidden>
+<span class="wmaki" id="wmaki" aria-hidden="true"></span>
+<div>
 <div class="big" id="winx"></div>
 <p id="winp"></p>
-<div class="row"><button class="btn or" id="next" type="button">Terrain suivant →</button></div>
+<div class="row"><button class="btn or" id="next" type="button">Terrain suivant →</button><button class="btn gh" id="replay" type="button" hidden>Rejouer ce niveau</button><button class="btn gh" id="wfinal" type="button" hidden>Épreuve finale</button></div>
+</div>
 </div>
 </div>
 
@@ -286,12 +291,15 @@ body.dragging{-webkit-user-select:none;user-select:none;cursor:grabbing}
 <div class="dots" id="dots"></div>
 <div class="libre">
 <label for="own">Mon expression</label>
-<form id="ownf"><input id="own" autocomplete="off" placeholder="ex. 3(x + 4) ou (x + 2)(x − 5)" aria-describedby="ownw"><button class="btn" type="submit">Charger</button></form>
+<form id="ownf"><input id="own" autocomplete="off" placeholder="ex. 3(x + 4) ou (x + 2)(x − 5)" aria-describedby="ownw"><button class="btn or" type="submit">Charger</button></form>
 <p class="warn" id="ownw"></p>
 </div>
 </aside>
 </main>
 
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
 <script>
 {
 const $=id=>document.getElementById(id);
@@ -508,7 +516,7 @@ const LV=[
 let lvl=0,done=LV.map(()=>[]),Q=null,own=false,sel=null,prevT=0,preview=null,board=false,boardShow=false,boardItems=[];
 
 /* ================= son ================= */
-let actx=null,snd=true;try{snd=localStorage.getItem('cm-son')!=='0'}catch(e){}
+let actx=null,snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
 function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
 function tone(f,d,v,type='sine',w=0){const a=ac();if(!a)return;const t=a.currentTime+w,o=a.createOscillator(),g=a.createGain();
   o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0008,t+d);
@@ -850,7 +858,7 @@ function load(q,isOwn=false){
   update();draw(true);
   say(q.kind==='dev'?(q.num?'Chaque morceau du terrain a une largeur et une longueur : choisis le bon carreau pour le couvrir.':'Commence par n\'importe quel morceau.'):q.kind==='fac'?'Avec la bonne largeur, tous les carreaux forment un seul rectangle, sans trou.':q.kind==='sq'?'Regarde bien le coin enlevé.':q.ins+' Écris le résultat avec le clavier, puis valide.');
 }
-function newQ(){load(LV[lvl].g(done[lvl].length%PER))}
+function newQ(){if(done[lvl].length>=PER)done[lvl]=[];load(LV[lvl].g(done[lvl].length%PER))}
 
 /* ================= actions : poser un carreau ================= */
 function fitCard(c,z){
@@ -878,7 +886,7 @@ function place(ci,zi){
       z.s<0?`Découpe posée : on enlève ${strip(body(Math.abs(z.c),z.p,false))}, ça s'écrit « ${M} ${body(Math.abs(z.c),z.p)} ».`:
       `Bien posé : ${fac1(z.l)} × ${fac1(z.t)} = ${q.num?z.l.c*z.t.c:body(z.c,z.p)}.`);
     update();drawDev();
-    if(!all)setTimeout(()=>{if(Q===q&&q.step==='pose'&&sel===null)goTo($('tray'),'nearest')},RM?0:450);
+    if(!all)setTimeout(()=>{if(Q===q&&q.step==='pose'&&sel===null&&!drag)goTo($('tray'),'nearest')},RM?0:450);
     if(q.step==='done')finish();
     return;
   }
@@ -1033,15 +1041,20 @@ function okTxt(show){const q=Q;q.done=true;q.mine=show;q.shown=false;sClack();$(
 
 /* ================= fin de question ================= */
 function finish(){
-  const q=Q;sWin();
-  if(!own){const R=done[lvl];if(R.length<PER)R.push(q.err||q.helped?'a':'g')}
+  const q=Q;if(window.SigmaKit)SigmaKit.fanfare('ok');else sWin();
+  if(!own){const R=done[lvl];if(R.length<PER)R.push(q.err||q.helped?'r':'g')}
   const lvlDone=!own&&done[lvl].length>=PER;
   const parf=q.err===0&&!q.helped;
+  if(window.SigmaKit)$('wmaki').innerHTML=SigmaKit.maki(parf?'bravo':'joie');
   $('winx').textContent=q.kind==='fac'||q.kind==='sq'||q.mode==='fac'?'Bien recollé !':'Terrain carrelé !';
   $('winp').innerHTML=(parf?'Sans aucune retouche. ':'')+(lvlDone?(lvl<LV.length-1?'Niveau réussi ! Passe au niveau suivant.':'Tu as terminé tous les niveaux, bravo !'):'Regarde « Ma copie » : le calcul est écrit en entier, avec la vérification.');
   const up=lvlDone&&lvl<LV.length-1;
   $('next').textContent=up?'Niveau suivant →':'Terrain suivant →';$('next').dataset.up=up?'1':'';
-  if(lvlDone&&!up)$('next').textContent='Rejouer ce niveau →';
+  $('next').hidden=lvlDone&&!up;$('replay').hidden=!lvlDone;$('wfinal').hidden=!lvlDone||!window.SigmaKit;
+  if(lvlDone&&window.SigmaKit){const L=lvl,score=done[L].filter(r=>r==='g').length;
+    setTimeout(()=>{if(lvl!==L||own||board)return;
+      SigmaKit.levelComplete({level:L+1,score,total:PER}).then(v=>{if(lvl!==L||own||board)return;
+        if(v==='next'&&L<LV.length-1){lvl=L+1;renderLv();newQ()}else if(v==='replay'){done[L]=[];newQ()}})},RM?0:600)}
   $('win').hidden=false;$('hint').hidden=true;$('corr').hidden=true;$('showfig').hidden=true;$('tray').hidden=true;$('choices').hidden=true;$('ans').hidden=true;
   drawLog();
 }
@@ -1085,7 +1098,7 @@ const PHONE=matchMedia('(max-width: 900px)');
 const goTo=(el,block)=>{if(PHONE.matches)el.scrollIntoView({block,behavior:RM?'auto':'smooth'})};
 function selectCard(i){sel=sel===i?null:i;markSel();
   if(sel!==null){say('Carreau choisi : touche son morceau sur le terrain ou sa case dans l\'écriture.');goTo(fig,'start')}else say('')}
-function syncBar(){const on=sel!==null&&Q&&Q.kind==='dev'&&Q.step==='pose'&&!board;$('selbar').hidden=!on;if(on)$('selname').innerHTML=Q.cards[sel].lab}
+function syncBar(){const on=sel!==null&&Q&&Q.kind==='dev'&&Q.step==='pose'&&!board&&!(drag&&drag.on);$('selbar').hidden=!on||!!document.querySelector('.sk-ov');if(on)$('selname').innerHTML=Q.cards[sel].lab}
 $('selno').onclick=()=>{sel=null;markSel();say('')};
 function targetAt(x,y){const el=document.elementFromPoint(x,y);if(!el)return null;const z=el.closest('[data-z]');if(z)return +z.dataset.z;const s=el.closest('[data-slot]');if(s)return +s.dataset.slot;return null}
 function markSel(){$('tray').querySelectorAll('.card').forEach(c=>c.setAttribute('aria-pressed',String(+c.dataset.c===sel)));if(Q.kind==='dev')drawDev();syncBar()}
@@ -1111,17 +1124,19 @@ $('reset').onclick=()=>{const q=Q;if(q.kind==='dev'){q.posed=q.posed.map(()=>fal
   q.tried=[];sel=null;preview=null;update();draw(true);say('On recommence ce terrain.')};
 $('showfig').onclick=()=>{const q=Q;q.shown=!q.shown;q.helped=q.helped||q.shown;ansUI();if(q.shown){const s=Q;Q=s.fig;drawDev({ro:1,empty:1});Q=s;$('cons').textContent='Le terrain correspondant : chaque morceau est un produit.'}};
 $('corr').onclick=()=>{const q=Q;q.helped=true;q.done=true;q.mine=null;update();finish()};
-$('next').onclick=()=>{const up=$('next').dataset.up;if(up)lvl++;else if(!own&&done[lvl].length>=PER)done[lvl]=[];own=false;renderLv();newQ()};
+$('next').onclick=()=>{if($('next').dataset.up)lvl++;own=false;renderLv();newQ()};
+$('replay').onclick=()=>{done[lvl]=[];own=false;renderLv();newQ()};
+$('wfinal').onclick=()=>{if(window.SigmaKit)SigmaKit.openFinal()};
 
 function renderLv(){
   $('lv').innerHTML=LV.map((l,i)=>`<button type="button" data-l="${i}" aria-pressed="${i===lvl&&!own&&!board}">${l.t}</button>`).join('')+
     `<button type="button" class="tb" id="tbbtn" aria-pressed="${board}">Au tableau</button>`+
-    `<button type="button" class="snd" id="snd" aria-pressed="${snd}">♪ Son : ${snd?'oui':'non'}</button>`;
+    `<button type="button" class="snd" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`;
   $('lvdesc').textContent=own?'Expression personnelle : joue-la avec les mêmes gestes.':LV[lvl].d;
   $('lvname').textContent=own?'':`· niveau ${lvl+1}`;
 }
 $('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
-  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('cm-son',snd?'1':'0')}catch(_){}renderLv();if(snd)sClack();return}
+  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('sigma-fanfare',snd?'1':'0')}catch(_){}renderLv();if(snd)sClack();return}
   if(b.id==='tbbtn'){board?closeBoard():openBoard();return}
   lvl=+b.dataset.l;own=false;if(board)closeBoard(true);renderLv();newQ()});
 
@@ -1178,214 +1193,102 @@ $('ownf').addEventListener('submit',e=>{e.preventDefault();const w=$('ownw');con
 
 let rT=0;addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(()=>draw(true),120)});
 
+/* ================= Épreuve finale (kit Sigma Arcade) ================= */
+const NW=h=>`<span style="white-space:nowrap">${h}</span>`;
+const XP=(F)=>[fprod(F),fprod(F,false)];
+const PP=(P)=>[fpoly(trim(P)),fpoly(trim(P),false)];
+const vars=v=>v<0?[M+(-v),'-'+(-v)]:[String(v)];
+const BL=vals=>vals.map(v=>({answers:vars(v),size:3}));
+function fq(level,prompt,good,bads,explain,x){
+  const pr=c=>typeof c==='string'?[c,c]:c;good=pr(good);
+  const seen=new Set([good[1]]),ch=[good];
+  for(const b0 of bads){const b=pr(b0);if(ch.length>=4)break;if(seen.has(b[1]))continue;seen.add(b[1]);ch.push(b)}
+  return{type:'qcm',level,prompt,choices:ch.map(c=>c[0]),answer:0,explain,_x:x,_c:ch.map(c=>c[1])};
+}
+function ft(level,prompt,vals,chk,explain){return{type:'trous',level,prompt,blanks:BL(vals),explain,_chk:chk}}
+function devEx(F){
+  const zs=[];F[0].forEach(l=>F[1].forEach(t=>zs.push({l,t,c:l.c*t.c,p:l.p+t.p})));
+  const prods=zs.map((z,i)=>(i?' + ':'')+fac1(z.l)+' × '+fac1(z.t)).join('');
+  const tl=zs.map((z,i)=>term(z.c,z.p,i===0)).join(''),P=fpolyOf(F),fin=fpoly(P);
+  const how=F[0].length===1?`${fac1(F[0][0])} multiplie chaque terme de la parenthèse`:'Chaque terme de la première parenthèse multiplie chaque terme de la seconde';
+  return `${how} : ${fprod(F)} = ${prods} = ${tl}${strip(tl)!==strip(fin)?' = '+fin:''}.`;
+}
+const sqEx=(m,a)=>{const A=m===1?XH:`${m}${XH}`;return `On reconnaît a² ${M} b² = (a ${M} b)(a + b) avec a = ${A} et b = ${a} : ${fpoly([-a*a,0,m*m])} = ${m===1?XH+'²':'('+A+')²'} ${M} ${a}² = ${fprod([[T(m,1),T(-a)],[T(m,1),T(a)]])}.`};
+const DEV='Quelle est la forme développée et réduite de ',FAC='Quelle est la factorisation de ';
+function fin1(t){for(;;){const k=ri(2,9),a=ri(2,9),b=ri(1,9);if(a===b||a*b===a+b)continue;
+  if(t==='qcm'){const s=`${k} × (${a} + ${b})`;
+    return fq(1,`Quelle expression est égale à ${s} ?`,`${k} × ${a} + ${k} × ${b}`,[`${k} × ${a} + ${b}`,`${a} + ${k} × ${b}`,`${k} × ${a} × ${b}`],
+      `On multiplie ${k} par chaque terme de la somme : ${k} × ${a} + ${k} × ${b} = ${k*a} + ${k*b} = ${k*(a+b)}, comme ${k} × ${a+b}.`,s)}
+  const base=pick([10*ri(2,9),100]),u=ri(1,9),N=base+u;
+  return ft(1,`Calcul mental avec la distributivité : ${k} × ${N} = ${k} × ${base} + ${k} × {0} = {1}`,[u,k*N],
+    [`${k} × ${N} = ${k} × ${base} + ${k} × {0}`,`${k} × ${N} = {1}`],`${N} = ${base} + ${u}, donc ${k} × ${N} = ${k} × ${base} + ${k} × ${u} = ${k*base} + ${k*u} = ${k*N}.`)}}
+function fin2(t){const k=ri(2,9),a=ri(1,5),b=ri(1,9),F=[[T(k)],[T(a,1),T(b)]],P=fpolyOf(F),[E,e]=XP(F);
+  if(t==='qcm')return fq(2,DEV+NW(E)+' ?',PP(P),[PP([b,k*a]),PP([k*b,a]),PP([0,k*a+k*b])],devEx(F),e);
+  return ft(2,`Développer : ${NW(E)} = {0}${XH} + {1}`,[k*a,k*b],[`${e} = {0}x + {1}`],devEx(F))}
+function fin3(t){
+  if(Math.random()<.3){const b=ri(2,9),P=[0,b,1],F=[[T(1,1)],[T(1,1),T(b)]],[S,s]=PP(P);
+    const ex=`${XH} est un facteur commun : ${S} = ${XH} × ${XH} + ${XH} × ${b} = ${fprod(F)}.`;
+    if(t==='qcm')return fq(3,FAC+NW(S)+' ?',XP(F),[XP([[T(1,1)],[T(1,1),T(b,1)]]),XP([[T(b,1)],[T(1,1),T(1)]]),XP([[T(1,2)],[T(1),T(b)]])],ex,s);
+    return ft(3,`Factoriser : ${NW(S)} = ${XH}(${XH} + {0})`,[b],[`${s} = x(x + {0})`],ex)}
+  for(;;){const k=ri(2,9),m=ri(t==='qcm'?1:2,5),r=ri(1,9);if(gcd(m,r)!==1)continue;
+    const c=k*m,n=k*r,P=[n,c],F=[[T(k)],[T(m,1),T(r)]],[S,s]=PP(P);
+    const ex=`${k} est un facteur commun aux deux termes : ${S} = ${k} × ${body(m,1)} + ${k} × ${r} = ${fprod(F)}.`;
+    if(t==='qcm')return fq(3,FAC+NW(S)+' ?',XP(F),[XP([[T(k)],[T(m,1),T(n)]]),XP([[T(k)],[T(c,1),T(r)]]),XP([[T(k,1)],[T(m),T(r)]])],ex,s);
+    return ft(3,`Factoriser : ${NW(S)} = ${k}({0}${XH} + {1})`,[m,r],[`${s} = ${k}({0}x + {1})`],ex)}}
+function fin4(t){let a,b;do{a=ri(1,9);b=ri(1,9)}while(a*b===a+b);const F=[[T(1,1),T(a)],[T(1,1),T(b)]],P=fpolyOf(F),[E,e]=XP(F);
+  if(t==='qcm')return fq(4,DEV+NW(E)+' ?',PP(P),[PP([a*b,0,1]),PP([a+b,a+b,1]),PP([a+b,a*b,1]),PP([a*b,a*b,1])],devEx(F),e);
+  return ft(4,`Développer et réduire : ${NW(E)} = ${XH}² + {0}${XH} + {1}`,[a+b,a*b],[`${e} = x² + {0}x + {1}`],devEx(F))}
+function fin5(t){const v=pick(['k','neg','dd','dd']);
+  if(v==='k'){const k=ri(2,9),a=ri(1,3),b=ri(1,9),F=[[T(k)],[T(a,1),T(-b)]],P=fpolyOf(F),[E,e]=XP(F);
+    if(t==='qcm')return fq(5,DEV+NW(E)+' ?',PP(P),[PP([-b,k*a]),PP([k*b,k*a]),PP([-k*b,a])],devEx(F),e);
+    return ft(5,`Développer : ${NW(E)} = {0}${XH} ${M} {1}`,[k*a,k*b],[`${e} = {0}x - {1}`],devEx(F))}
+  if(v==='neg'){const k=ri(2,9),b=ri(1,9),sg=pick([1,-1]),F=[[T(-k)],[T(1,1),T(sg*b)]],P=fpolyOf(F),[E,e]=XP(F);
+    if(t==='qcm')return fq(5,DEV+NW(E)+' ?',PP(P),[PP([k*sg*b,-k]),PP([sg*b,-k]),PP([-k*sg*b,k])],devEx(F)+` Multiplier par un nombre négatif change le signe de chaque terme.`,e);
+    return ft(5,`Développer : ${NW(E)} = ${M}{0}${XH} ${sg>0?M:'+'} {1}`,[k,k*b],[`${e} = -{0}x ${sg>0?'-':'+'} {1}`],devEx(F))}
+  for(;;){const a=ri(1,9),b=ri(1,9);if(a===b||(t!=='qcm'&&Math.abs(a-b)<2))continue;
+    const F=[[T(1,1),T(a)],[T(1,1),T(-b)]],P=fpolyOf(F),[E,e]=XP(F);
+    if(t==='qcm')return fq(5,DEV+NW(E)+' ?',PP(P),[PP([-a*b,b-a,1]),PP([a*b,a-b,1]),PP([-a*b,0,1]),PP([-a*b,a+b,1])],devEx(F),e);
+    const up=a>b;return ft(5,`Développer et réduire : ${NW(E)} = ${XH}² ${up?'+':M} {0}${XH} ${M} {1}`,[Math.abs(a-b),a*b],[`${e} = x² ${up?'+':'-'} {0}x - {1}`],devEx(F))}}
+function fin6(t){const v=Math.random();
+  if(v<.2){for(;;){const m=ri(2,3),a=ri(1,7);if(gcd(m,a)!==1)continue;const P=[-a*a,0,m*m],[S,s]=PP(P),F=[[T(m,1),T(-a)],[T(m,1),T(a)]];
+    if(t==='qcm')return fq(6,FAC+NW(S)+' ?',XP(F),[XP([[T(m*m,1),T(-a*a)],[T(m*m,1),T(a*a)]]),XP([[T(m,1),T(-a)],[T(m,1),T(-a)]]),XP([[T(m*m,1),T(-a)],[T(m*m,1),T(a)]])],sqEx(m,a),s);
+    return ft(6,`Factoriser : ${NW(S)} = ({0}${XH} ${M} {1})({2}${XH} + {3})`,[m,a,m,a],[`${s} = ({0}x - {1})({2}x + {3})`],sqEx(m,a))}}
+  if(v<.45){const a=ri(3,9),F=[[T(1,1),T(-a)],[T(1,1),T(a)]],P=fpolyOf(F),[E,e]=XP(F);
+    if(t==='qcm')return fq(6,DEV+NW(E)+' ?',PP(P),[PP([a*a,0,1]),PP([-2*a,0,1])],devEx(F)+` C'est l'égalité (a ${M} b)(a + b) = a² ${M} b².`,e);
+    return ft(6,`Développer : ${NW(E)} = ${XH}² ${M} {0}`,[a*a],[`${e} = x² - {0}`],devEx(F))}
+  const a=ri(2,9),P=[-a*a,0,1],[S,s]=PP(P),F=[[T(1,1),T(-a)],[T(1,1),T(a)]];
+  if(t==='qcm')return fq(6,FAC+NW(S)+' ?',XP(F),[XP([[T(1,1),T(-a*a)],[T(1,1),T(a*a)]]),XP([[T(1,1),T(-a)],[T(1,1),T(-a)]]),XP([[T(1,1),T(a)],[T(1,1),T(a)]])],sqEx(1,a),s);
+  return ft(6,`Factoriser : ${NW(S)} = (${XH} ${M} {0})(${XH} + {1})`,[a,a],[`${s} = (x - {0})(x + {1})`],sqEx(1,a))}
+function fin7(t){
+  if(Math.random()<.35){for(;;){const k=ri(2,9),m=ri(t==='qcm'?1:2,5),r=ri(1,9);if(gcd(m,r)!==1)continue;
+    const P=[-k*r,k*m],F=[[T(k)],[T(m,1),T(-r)]],[S,s]=PP(P);
+    const ex=`${k} est un facteur commun aux deux termes : ${S} = ${k} × ${body(m,1)} ${M} ${k} × ${r} = ${fprod(F)}.`;
+    if(t==='qcm')return fq(7,FAC+NW(S)+' ?',XP(F),[XP([[T(k)],[T(m,1),T(-k*r)]]),XP([[T(k)],[T(m,1),T(r)]]),XP([[T(k,1)],[T(m),T(-r)]])],ex,s);
+    return ft(7,`Factoriser : ${NW(S)} = ${k}({0}${XH} ${M} {1})`,[m,r],[`${s} = ${k}({0}x - {1})`],ex)}}
+  for(;;){const m=ri(2,3),a=ri(1,9)*pick([1,-1]),b=ri(1,9)*pick([1,-1]),F=[[T(m,1),T(a)],[T(1,1),T(b)]],P=fpolyOf(F),[E,e]=XP(F);
+    if(!P[1]||(t!=='qcm'&&Math.abs(P[1])<2))continue;
+    if(t==='qcm')return fq(7,DEV+NW(E)+' ?',PP(P),[PP([P[0],0,P[2]]),PP([P[0],-P[1],P[2]]),PP([-P[0],P[1],P[2]])],devEx(F),e);
+    const s1=P[1]>0,s0=P[0]>0;
+    return ft(7,`Développer et réduire : ${NW(E)} = {0}${XH}² ${s1?'+':M} {1}${XH} ${s0?'+':M} {2}`,[m,Math.abs(P[1]),Math.abs(P[0])],[`${e} = {0}x² ${s1?'+':'-'} {1}x ${s0?'+':'-'} {2}`],devEx(F))}}
+const FIN=[fin1,fin2,fin3,fin4,fin5,fin6,fin7];
+let lastFinal=null;
+function buildFinal(){
+  const lv=shuffle([1,2,3,4,5,6,7,...shuffle([2,3,4,5,6,7]).slice(0,3)]);
+  const ty=shuffle(['qcm','qcm','qcm','qcm','qcm','qcm','trous','trous','trous','trous']);
+  const out=[],seen=new Set();
+  for(let i=0;i<10;i++){let q;do{q=FIN[lv[i]-1](ty[i])}while(seen.has(q.prompt));seen.add(q.prompt);out.push(q)}
+  lastFinal=out;return out;
+}
+if(window.SigmaKit)SigmaKit.init({game:'carreleur-malin',title:'Le Carreleur Malin',levels:LV.length,
+  levelNames:LV.map(l=>l.t.replace(/^\d+\.\s*/,'')),music:'aventure',buildFinal});
+new MutationObserver(()=>syncBar()).observe(document.body,{childList:true});
+
 /* crochets de test (sans effet sur le jeu) */
 window.CM={gen:(l,i=0)=>LV[l].g(i),parse:s=>{try{return ev(parse(s))}catch(e){return null}},fpoly,fprod:(F)=>fprod(F,false),q:()=>Q,
-  lvl:()=>lvl,done:()=>done.map(r=>r.length),ownQ,isDev:s=>isDeveloped(parse(s))};
+  lvl:()=>lvl,final:buildFinal,lastFinal:()=>lastFinal,done:()=>done.map(r=>r.length),ownQ,isDev:s=>isDeveloped(parse(s))};
 
 renderLv();newQ();
 }
-</script>
-
-<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
-<script>
-/* Sigma Arcade — musique de fond originale (Web Audio, aucun fichier audio).
-   Deux compositions originales :
-   - « aventure » : marche héroïque en ré majeur, 4/4, 116 bpm ;
-   - « epique »   : saga sombre en ré mineur, 3/4, 126 bpm.
-   Démarre au premier geste de l'utilisateur (règle des navigateurs),
-   se coupe avec le bouton, mémorise le choix, baisse quand la page est cachée.
-   API : SigmaMusic.duck(true|false) baisse le volume (ex. trajets de l'ascenseur). */
-(function () {
-  'use strict';
-  if (window.SigmaMusic) return;
-  var STYLE0 = window.SIGMA_MUSIC_STYLE === 'epique' ? 'epique' : 'aventure';
-  var store = {
-    get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
-    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-  };
-  var on = store.get('sigma-musique', '1') === '1';
-  var style = store.get('sigma-musique-style-' + location.pathname, STYLE0);
-
-  /* ---- notes : nom → fréquence ---- */
-  var SEMI = { C: -9, D: -7, E: -5, F: -4, G: -2, A: 0, B: 2 };
-  function hz(n) { // ex. 'D4', 'F#4', 'Bb3'
-    var m = /^([A-G])([#b]?)(\d)$/.exec(n); if (!m) return 0;
-    var s = SEMI[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0) + (parseInt(m[3], 10) - 4) * 12;
-    return 440 * Math.pow(2, s / 12);
-  }
-  /* séquence compacte : "note:durée note:durée …" (durée en temps ; '-' = silence) */
-  function seq(str) {
-    var t = 0, out = [];
-    str.trim().split(/\s+/).forEach(function (tok) {
-      var p = tok.split(':'), d = parseFloat(p[1]);
-      if (p[0] !== '-') out.push({ t: t, d: d, f: hz(p[0]) });
-      t += d;
-    });
-    return { ev: out, len: t };
-  }
-
-  /* ================= compositions originales ================= */
-  var SONGS = {
-    aventure: { bpm: 116, beats: 4, bars: 8,
-      lead: seq(
-        'D4:1 A4:0.5 F#4:0.5 A4:1 D5:1 ' +
-        'C#5:0.75 B4:0.25 A4:1 G4:1 -:1 ' +
-        'B4:1 D5:0.5 B4:0.5 G4:1 B4:1 ' +
-        'A4:1.5 G4:0.5 F#4:1 E4:1 ' +
-        'F#4:1 A4:0.5 D5:0.5 F#5:1 E5:1 ' +
-        'D5:0.75 C#5:0.25 B4:1 G4:1 B4:1 ' +
-        'A4:1 E4:0.5 G4:0.5 C#5:1 B4:0.5 C#5:0.5 ' +
-        'D5:2 A4:1 -:1'),
-      bass: seq(
-        'D2:1 D3:1 A2:1 D3:1  G2:1 G3:1 D3:1 G3:1  G2:1 G3:1 D3:1 B2:1  A2:1 A3:1 E3:1 A2:1 ' +
-        'D2:1 D3:1 A2:1 F#2:1 G2:1 G3:1 B2:1 G2:1  A2:1 A3:1 E3:1 C#3:1 D2:1 A2:1 D3:1 -:1'),
-      chords: [['D3','F#3','A3'],['G3','B3','D4'],['G3','B3','D4'],['A3','C#4','E4'],
-               ['D3','F#3','A3'],['G3','B3','D4'],['A3','C#4','E4'],['D3','F#3','A3']],
-      drums: 'march', leadType: 'brass' },
-    epique: { bpm: 126, beats: 3, bars: 8,
-      lead: seq(
-        'D5:2 C5:1  Bb4:3  A4:2 G4:1  A4:2 -:1 ' +
-        'F4:1 G4:1 A4:1  Bb4:2 D5:1  C5:1.5 Bb4:0.5 A4:1  D4:3'),
-      bass: seq(
-        'D2:1 A2:1 D3:1  Bb1:1 F2:1 Bb2:1  C2:1 G2:1 C3:1  A1:1 E2:1 A2:1 ' +
-        'D2:1 A2:1 D3:1  G1:1 D2:1 G2:1  A1:1 E2:1 A2:1  D2:1 A2:1 D3:1'),
-      chords: [['D3','F3','A3'],['Bb2','D3','F3'],['C3','E3','G3'],['A2','C#3','E3'],
-               ['D3','F3','A3'],['G2','Bb2','D3'],['A2','C#3','E3'],['D3','F3','A3']],
-      drums: 'war', leadType: 'strings' }
-  };
-
-  /* ================= moteur ================= */
-  var ctx = null, master = null, duckG = null, timer = null, nextT = 0, beat = 0, playing = false;
-  function audio() {
-    if (!ctx) {
-      try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
-      master = ctx.createGain(); master.gain.value = 0;
-      duckG = ctx.createGain(); duckG.gain.value = 1;
-      var comp = ctx.createDynamicsCompressor();
-      master.connect(duckG); duckG.connect(comp); comp.connect(ctx.destination);
-    }
-    if (ctx.state === 'suspended') ctx.resume();
-    return ctx;
-  }
-  function env(g, t, a, peak, dur, rel) {
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.linearRampToValueAtTime(peak, t + a);
-    g.gain.setValueAtTime(peak, t + Math.max(a, dur - rel));
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + rel);
-  }
-  function lead(f, t, dur, type) {
-    var o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
-    o1.type = 'sawtooth'; o2.type = type === 'brass' ? 'square' : 'sawtooth';
-    o1.frequency.value = f; o2.frequency.value = f; o2.detune.value = type === 'brass' ? -6 : 9;
-    lp.type = 'lowpass'; lp.Q.value = type === 'brass' ? 2 : 0.7;
-    lp.frequency.setValueAtTime(type === 'brass' ? 700 : 900, t);
-    lp.frequency.linearRampToValueAtTime(type === 'brass' ? 2200 : 1500, t + Math.min(0.12, dur / 2));
-    o1.connect(lp); o2.connect(lp); lp.connect(g); g.connect(master);
-    env(g, t, type === 'brass' ? 0.03 : 0.12, type === 'brass' ? 0.11 : 0.09, dur, type === 'brass' ? 0.08 : 0.25);
-    o1.start(t); o2.start(t); o1.stop(t + dur + 0.4); o2.stop(t + dur + 0.4);
-  }
-  function bass(f, t, dur) {
-    var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.value = f;
-    o.connect(g); g.connect(master); env(g, t, 0.01, 0.16, dur * 0.9, 0.06); o.start(t); o.stop(t + dur + 0.2);
-  }
-  function pad(notes, t, dur) {
-    notes.forEach(function (n) {
-      var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = hz(n);
-      o.connect(g); g.connect(master); env(g, t, 0.25, 0.028, dur, 0.4); o.start(t); o.stop(t + dur + 0.6);
-    });
-  }
-  var noiseBuf = null;
-  function noise(t, dur, vol, freq) {
-    if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate); var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
-    var s = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
-    s.buffer = noiseBuf; bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 0.8;
-    s.connect(bp); bp.connect(g); g.connect(master); env(g, t, 0.002, vol, dur, dur); s.start(t); s.stop(t + dur * 2 + 0.05);
-  }
-  function drum(t, f0, f1, dur, vol) {
-    var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine';
-    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
-    o.connect(g); g.connect(master); env(g, t, 0.003, vol, dur, dur * 0.5); o.start(t); o.stop(t + dur + 0.1);
-  }
-  function drums(kind, b, t, spb, beats) {
-    var pos = b % beats;
-    if (kind === 'march') {
-      if (pos === 0 || pos === 2) drum(t, 130, 45, 0.18, 0.22);
-      if (pos === 1 || pos === 3) noise(t, 0.09, 0.07, 1800);
-      noise(t + spb / 2, 0.05, 0.03, 2600);                       // roulement léger à la croche
-      if (pos === 3) noise(t + spb * 0.75, 0.05, 0.035, 2200);
-    } else {
-      if (pos === 0) { drum(t, 95, 38, 0.45, 0.3); }
-      if (pos === 2) drum(t + spb / 2, 140, 70, 0.2, 0.12);
-      if (pos === 1) noise(t, 0.16, 0.035, 900);
-    }
-  }
-  function schedule() {
-    var S = SONGS[style], spb = 60 / S.bpm, total = S.beats * S.bars;
-    while (nextT < ctx.currentTime + 0.25) {
-      var b = beat % total;
-      S.lead.ev.forEach(function (e) { if (e.t >= b && e.t < b + 1) lead(e.f, nextT + (e.t - b) * spb, e.d * spb * 0.95, S.leadType); });
-      S.bass.ev.forEach(function (e) { if (e.t >= b && e.t < b + 1) bass(e.f, nextT + (e.t - b) * spb, e.d * spb); });
-      if (b % S.beats === 0) pad(S.chords[(b / S.beats) % S.chords.length], nextT, S.beats * spb);
-      drums(S.drums, b, nextT, spb, S.beats);
-      nextT += spb; beat++;
-    }
-  }
-  function start() {
-    if (playing || !on || document.hidden) return;
-    if (!audio()) return;
-    playing = true; beat = 0; nextT = ctx.currentTime + 0.12;
-    master.gain.cancelScheduledValues(ctx.currentTime);
-    master.gain.setValueAtTime(0, ctx.currentTime); master.gain.linearRampToValueAtTime(0.55, ctx.currentTime + 1.5);
-    schedule(); timer = setInterval(schedule, 60);
-  }
-  function stop() {
-    if (!playing) return; playing = false; clearInterval(timer);
-    master.gain.cancelScheduledValues(ctx.currentTime);
-    master.gain.setValueAtTime(master.gain.value, ctx.currentTime); master.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
-  }
-  function duck(x) {
-    if (!ctx) return; var t = ctx.currentTime;
-    duckG.gain.cancelScheduledValues(t); duckG.gain.setValueAtTime(duckG.gain.value, t);
-    duckG.gain.linearRampToValueAtTime(x ? 0.18 : 1, t + (x ? 0.25 : 0.8));
-  }
-
-  /* ================= bouton flottant ================= */
-  var css = '.smus{position:absolute;top:12px;right:max(12px,env(safe-area-inset-right));z-index:9000;display:flex;gap:6px;font:600 14px Lexend,system-ui,sans-serif}' +
-    '.smus button{min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid rgba(255,122,0,.6);background:light-dark(rgba(255,255,255,.94),rgba(20,24,28,.94));color:light-dark(#15191d,#e9edf0);cursor:pointer;box-shadow:0 6px 18px -8px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font:inherit}' +
-    '.smus button[aria-pressed=true]{background:#ff7a00;color:#1d0e00;border-color:#ff7a00}' +
-    '.smus .sty{font-size:13px}.smus button:focus-visible{outline:3px solid #ff7a00;outline-offset:2px}' +
-    '@media(max-width:520px){.smus .sty{display:none}.smus button{min-height:40px;padding:0 12px;font-size:13px}}' +
-    '@media print{.smus{display:none}}';
-  var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
-  var box = document.createElement('div'); box.className = 'smus'; box.setAttribute('aria-label', 'Musique de fond');
-  var bOn = document.createElement('button'), bSty = document.createElement('button');
-  bOn.type = bSty.type = 'button'; bSty.className = 'sty';
-  function label() {
-    bOn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    bOn.textContent = on ? '♪ Musique : oui' : '♪ Musique : non';
-    bSty.textContent = style === 'epique' ? 'Style : épique' : 'Style : aventure';
-  }
-  bOn.addEventListener('click', function (e) {
-    e.stopPropagation(); on = !on; store.set('sigma-musique', on ? '1' : '0'); label();
-    if (on) start(); else stop();
-  });
-  bSty.addEventListener('click', function (e) {
-    e.stopPropagation(); style = style === 'epique' ? 'aventure' : 'epique';
-    store.set('sigma-musique-style-' + location.pathname, style); label();
-    if (playing) { stop(); setTimeout(start, 450); }
-  });
-  box.appendChild(bSty); box.appendChild(bOn);
-  function mount() { document.body.appendChild(box); label(); }
-  if (document.body) mount(); else document.addEventListener('DOMContentLoaded', mount);
-
-  /* premier geste : la musique peut démarrer */
-  function first() { start(); }
-  ['pointerdown', 'keydown'].forEach(function (ev) { document.addEventListener(ev, first, { once: true, capture: true }); });
-  document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else if (on && ctx) start(); });
-
-  window.SigmaMusic = { start: start, stop: stop, duck: duck, isOn: function () { return on; } };
-})();
-
 </script>
 </body>
 </html>

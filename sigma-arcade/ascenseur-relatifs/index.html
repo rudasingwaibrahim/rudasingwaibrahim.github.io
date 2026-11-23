@@ -229,7 +229,7 @@ tbody tr{cursor:pointer}tbody tr:hover{background:var(--orsoft)}
 <button role="tab" data-tab="calc" aria-selected="false">Calculer</button>
 <button role="tab" data-tab="exo" aria-selected="false">Exercices</button>
 <button role="tab" data-tab="tableau" aria-selected="false">Au tableau</button>
-<button type="button" class="snd" id="snd" aria-pressed="true">♪ Musique : oui</button>
+<button type="button" class="snd" id="snd" aria-pressed="true">♪ Bruitages : oui</button>
 </div>
 
 <!-- SE REPÉRER -->
@@ -501,7 +501,7 @@ let cur=0,busy=false,k=3,arr=5;
 const NF={g:196,C:261.63,D:293.66,E:329.63,F:349.23,G:392};
 const ODE='E E F G G F E D C C D E E D D E E F G G F E D C C D E D C C D D E C D E F E C D E F E D C D g E E F G G F E D C C D E D C C'.split(' ').map(n=>NF[n]);
 let actx=null,noteI=0,soundOn=true;
-try{soundOn=localStorage.getItem('asc-son')!=='0'}catch(e){}
+try{const f=localStorage.getItem('sigma-fanfare');soundOn=f!==null?f!=='0':localStorage.getItem('asc-son')!=='0'}catch(e){}
 function ac(){
   if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}
   if(actx.state==='suspended')actx.resume();return actx}
@@ -512,8 +512,8 @@ function tone(f,dur,vol,type,when=0){
 function note(sec){if(!soundOn)return;const f=ODE[noteI++%ODE.length],d=clamp(sec*1.6,.22,.7);
   tone(f,d,.17,'triangle');tone(f*2,d*.55,.035,'sine')}
 function ding(){if(!soundOn)return;tone(1318.5,1,.09,'sine');tone(1046.5,1.2,.09,'sine',.2)}
-function renderSnd(){const b=$('snd');b.setAttribute('aria-pressed',soundOn);b.textContent=soundOn?'♪ Musique : oui':'♪ Musique : non'}
-$('snd').onclick=()=>{soundOn=!soundOn;try{localStorage.setItem('asc-son',soundOn?'1':'0')}catch(e){}renderSnd();if(soundOn){noteI=0;note(.3)}};
+function renderSnd(){const b=$('snd');b.setAttribute('aria-pressed',soundOn);b.textContent=soundOn?'♪ Bruitages : oui':'♪ Bruitages : non'}
+$('snd').onclick=()=>{soundOn=!soundOn;try{localStorage.setItem('sigma-fanfare',soundOn?'1':'0');localStorage.setItem('asc-son',soundOn?'1':'0')}catch(e){}renderSnd();if(soundOn){noteI=0;note(.3)}};
 document.addEventListener('pointerdown',()=>{if(soundOn)ac()},{once:true});
 renderSnd();
 
@@ -763,7 +763,7 @@ $('pad').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||
 $('f-num').addEventListener('submit',e=>{e.preventDefault();answer()});
 $('cpad').addEventListener('click',e=>{const b=e.target.closest('button');if(b)answer(b.dataset.c)});
 document.addEventListener('keydown',e=>{
-  if($('t-exo').hidden||$('v-run').hidden||locked||!ser)return;
+  if($('t-exo').hidden||$('v-run').hidden||locked||!ser||document.querySelector('.sk-ov'))return;
   if(ser.qs[ser.i].kind==='cmp'&&['<','>','='].includes(e.key)){e.preventDefault();answer(e.key)}
 });
 function answer(c){
@@ -787,6 +787,10 @@ function renderEnd(){
   $('end-m').textContent=sc===N?'Sans faute, bravo !':sc>=8?'Excellent travail !':sc>=6?'Bien, encore un petit effort.':sc>=4?'Ça vient : on recommence ?':'On s\'entraîne encore avec l\'ascenseur.';
   $('end-l').textContent=`Niveau : ${LVid[ser.id].t}`;
   $('end-t').innerHTML=ser.res.map((r,j)=>`<tr data-j="${j}"><td>${j+1}</td><td>${r.q.stmt('<span class="slot">…</span>')}</td><td class="${r.ok?'ok-c':'ko-c'}">${r.given}</td><td>${r.q.ansTxt}</td><td class="${r.ok?'ok-c':'ko-c'}">${r.ok?'✓':'✗'}</td></tr>`).join('');
+  // écran commun Sigma Arcade (le bilan détaillé reste affiché dessous)
+  const li=LV.findIndex(l=>l.id===ser.id);
+  if(window.SigmaKit)SigmaKit.levelComplete({level:li+1,score:sc,total:N}).then(v=>{
+    if(v==='next'&&LV[li+1])start(LV[li+1].id);else if(v==='replay')start(LV[li].id)});
 }
 $('end-t').addEventListener('click',e=>{const tr=e.target.closest('tr');if(tr)run(async()=>{bub(null);await ser.qs[+tr.dataset.j].play(tr)})});
 $('again').onclick=()=>start(ser.id);
@@ -899,205 +903,147 @@ place(0);show();renderK();renderArr();renderLevels();newBoard();renderX();
 </script>
 
 <script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
 <script>
-/* Sigma Arcade — musique de fond originale (Web Audio, aucun fichier audio).
-   Deux compositions originales :
-   - « aventure » : marche héroïque en ré majeur, 4/4, 116 bpm ;
-   - « epique »   : saga sombre en ré mineur, 3/4, 126 bpm.
-   Démarre au premier geste de l'utilisateur (règle des navigateurs),
-   se coupe avec le bouton, mémorise le choix, baisse quand la page est cachée.
-   API : SigmaMusic.duck(true|false) baisse le volume (ex. trajets de l'ascenseur). */
-(function () {
-  'use strict';
-  if (window.SigmaMusic) return;
-  var STYLE0 = window.SIGMA_MUSIC_STYLE === 'epique' ? 'epique' : 'aventure';
-  var store = {
-    get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
-    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-  };
-  var on = store.get('sigma-musique', '1') === '1';
-  var style = store.get('sigma-musique-style-' + location.pathname, STYLE0);
+/* ===== Sigma Arcade : niveaux et Épreuve finale de l'ascenseur ===== */
+(function(){
+const P=n=>n<0?'−'+(-n):String(n), S=n=>n>0?'+'+n:P(n), Q=n=>'('+S(n)+')';
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a};
+const A=Math.abs;
+// réponses acceptées : nombre seul (avec ou sans « + ») et, si demandé, entre parenthèses
+const AN=n=>n<0?['−'+(-n),'-'+(-n)]:n>0?[String(n),'+'+n]:['0'];
+const AP=n=>AN(n).concat(n<0?['('+P(n)+')']:['(+'+n+')','('+n+')']);
+function mk(level,prompt,right,wrongs,explain){
+  const seen=new Set([right]),w=[];
+  for(const x of wrongs)if(x!=null&&!seen.has(x)){seen.add(x);w.push(x)}
+  if(w.length<2)return null;
+  return{type:'qcm',level,prompt,choices:[right].concat(w.slice(0,3)),answer:0,explain};
+}
+const tr=(level,prompt,blanks,explain)=>({type:'trous',level,prompt,blanks,explain});
+const mv=(d)=>d>0?'monter de '+d:'descendre de '+(-d);
 
-  /* ---- notes : nom → fréquence ---- */
-  var SEMI = { C: -9, D: -7, E: -5, F: -4, G: -2, A: 0, B: 2 };
-  function hz(n) { // ex. 'D4', 'F#4', 'Bb3'
-    var m = /^([A-G])([#b]?)(\d)$/.exec(n); if (!m) return 0;
-    var s = SEMI[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0) + (parseInt(m[3], 10) - 4) * 12;
-    return 440 * Math.pow(2, s / 12);
-  }
-  /* séquence compacte : "note:durée note:durée …" (durée en temps ; '-' = silence) */
-  function seq(str) {
-    var t = 0, out = [];
-    str.trim().split(/\s+/).forEach(function (tok) {
-      var p = tok.split(':'), d = parseFloat(p[1]);
-      if (p[0] !== '-') out.push({ t: t, d: d, f: hz(p[0]) });
-      t += d;
-    });
-    return { ev: out, len: t };
-  }
+/* 1. Écriture simplifiée : −2 + 12, 10 − 15 */
+function simple(){for(;;){const a=nz(-15,15),b=ri(2,15),op=pick(['+','−']),r=op==='+'?a+b:a-b;
+  if((a<0||r<0)&&r!==0&&A(r)<=20)return{a,b,op,r,e:`${P(a)} ${op} ${b}`,
+    ex:`${P(a)} ${op} ${b} : en partant de ${P(a)}, ${op==='+'?'monter':'descendre'} de ${b} mène à ${P(r)}.`}}}
+const L1={
+  qcm(){const q=simple(),w=q.op==='+'?q.a-q.b:q.a+q.b;
+    return mk(1,`Calculer : ${q.e}`,P(q.r),[P(-q.r),P(w),P(-w)],q.ex)},
+  trous(){const q=simple();return tr(1,`${q.e} = {0}`,[{answers:AN(q.r),size:4}],q.ex)}
+};
 
-  /* ================= compositions originales ================= */
-  var SONGS = {
-    aventure: { bpm: 116, beats: 4, bars: 8,
-      lead: seq(
-        'D4:1 A4:0.5 F#4:0.5 A4:1 D5:1 ' +
-        'C#5:0.75 B4:0.25 A4:1 G4:1 -:1 ' +
-        'B4:1 D5:0.5 B4:0.5 G4:1 B4:1 ' +
-        'A4:1.5 G4:0.5 F#4:1 E4:1 ' +
-        'F#4:1 A4:0.5 D5:0.5 F#5:1 E5:1 ' +
-        'D5:0.75 C#5:0.25 B4:1 G4:1 B4:1 ' +
-        'A4:1 E4:0.5 G4:0.5 C#5:1 B4:0.5 C#5:0.5 ' +
-        'D5:2 A4:1 -:1'),
-      bass: seq(
-        'D2:1 D3:1 A2:1 D3:1  G2:1 G3:1 D3:1 G3:1  G2:1 G3:1 D3:1 B2:1  A2:1 A3:1 E3:1 A2:1 ' +
-        'D2:1 D3:1 A2:1 F#2:1 G2:1 G3:1 B2:1 G2:1  A2:1 A3:1 E3:1 C#3:1 D2:1 A2:1 D3:1 -:1'),
-      chords: [['D3','F#3','A3'],['G3','B3','D4'],['G3','B3','D4'],['A3','C#4','E4'],
-               ['D3','F#3','A3'],['G3','B3','D4'],['A3','C#4','E4'],['D3','F#3','A3']],
-      drums: 'march', leadType: 'brass' },
-    epique: { bpm: 126, beats: 3, bars: 8,
-      lead: seq(
-        'D5:2 C5:1  Bb4:3  A4:2 G4:1  A4:2 -:1 ' +
-        'F4:1 G4:1 A4:1  Bb4:2 D5:1  C5:1.5 Bb4:0.5 A4:1  D4:3'),
-      bass: seq(
-        'D2:1 A2:1 D3:1  Bb1:1 F2:1 Bb2:1  C2:1 G2:1 C3:1  A1:1 E2:1 A2:1 ' +
-        'D2:1 A2:1 D3:1  G1:1 D2:1 G2:1  A1:1 E2:1 A2:1  D2:1 A2:1 D3:1'),
-      chords: [['D3','F3','A3'],['Bb2','D3','F3'],['C3','E3','G3'],['A2','C#3','E3'],
-               ['D3','F3','A3'],['G2','Bb2','D3'],['A2','C#3','E3'],['D3','F3','A3']],
-      drums: 'war', leadType: 'strings' }
-  };
+/* 2. Somme de deux relatifs : (−3) + (+5) */
+function somme(){for(;;){const a=nz(-12,12),b=nz(-12,12),r=a+b;
+  if((a<0||b<0)&&r!==0)return{a,b,r,e:`${Q(a)} + ${Q(b)}`,
+    ex:(a<0)===(b<0)
+      ?`Même signe : on garde le signe et on ajoute les distances à zéro (${A(a)} + ${A(b)} = ${A(r)}), donc ${Q(a)} + ${Q(b)} = ${P(r)}.`
+      :`Signes contraires : on soustrait les distances à zéro (${Math.max(A(a),A(b))} − ${Math.min(A(a),A(b))} = ${A(r)}) et on garde le signe de celui qui est le plus loin de zéro, donc ${Q(a)} + ${Q(b)} = ${P(r)}.`}}}
+const L2={
+  qcm(){const q=somme();return mk(2,`Calculer : ${q.e}`,P(q.r),[P(-q.r),P(q.a-q.b),P(q.b-q.a)],q.ex)},
+  trous(){const q=somme();return tr(2,`${q.e} = {0}`,[{answers:AN(q.r),size:4}],q.ex)}
+};
 
-  /* ================= moteur ================= */
-  var ctx = null, master = null, duckG = null, timer = null, nextT = 0, beat = 0, playing = false;
-  function audio() {
-    if (!ctx) {
-      try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
-      master = ctx.createGain(); master.gain.value = 0;
-      duckG = ctx.createGain(); duckG.gain.value = 1;
-      var comp = ctx.createDynamicsCompressor();
-      master.connect(duckG); duckG.connect(comp); comp.connect(ctx.destination);
-    }
-    if (ctx.state === 'suspended') ctx.resume();
-    return ctx;
-  }
-  function env(g, t, a, peak, dur, rel) {
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.linearRampToValueAtTime(peak, t + a);
-    g.gain.setValueAtTime(peak, t + Math.max(a, dur - rel));
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + rel);
-  }
-  function lead(f, t, dur, type) {
-    var o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
-    o1.type = 'sawtooth'; o2.type = type === 'brass' ? 'square' : 'sawtooth';
-    o1.frequency.value = f; o2.frequency.value = f; o2.detune.value = type === 'brass' ? -6 : 9;
-    lp.type = 'lowpass'; lp.Q.value = type === 'brass' ? 2 : 0.7;
-    lp.frequency.setValueAtTime(type === 'brass' ? 700 : 900, t);
-    lp.frequency.linearRampToValueAtTime(type === 'brass' ? 2200 : 1500, t + Math.min(0.12, dur / 2));
-    o1.connect(lp); o2.connect(lp); lp.connect(g); g.connect(master);
-    env(g, t, type === 'brass' ? 0.03 : 0.12, type === 'brass' ? 0.11 : 0.09, dur, type === 'brass' ? 0.08 : 0.25);
-    o1.start(t); o2.start(t); o1.stop(t + dur + 0.4); o2.stop(t + dur + 0.4);
-  }
-  function bass(f, t, dur) {
-    var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.value = f;
-    o.connect(g); g.connect(master); env(g, t, 0.01, 0.16, dur * 0.9, 0.06); o.start(t); o.stop(t + dur + 0.2);
-  }
-  function pad(notes, t, dur) {
-    notes.forEach(function (n) {
-      var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = hz(n);
-      o.connect(g); g.connect(master); env(g, t, 0.25, 0.028, dur, 0.4); o.start(t); o.stop(t + dur + 0.6);
-    });
-  }
-  var noiseBuf = null;
-  function noise(t, dur, vol, freq) {
-    if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate); var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
-    var s = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
-    s.buffer = noiseBuf; bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 0.8;
-    s.connect(bp); bp.connect(g); g.connect(master); env(g, t, 0.002, vol, dur, dur); s.start(t); s.stop(t + dur * 2 + 0.05);
-  }
-  function drum(t, f0, f1, dur, vol) {
-    var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine';
-    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
-    o.connect(g); g.connect(master); env(g, t, 0.003, vol, dur, dur * 0.5); o.start(t); o.stop(t + dur + 0.1);
-  }
-  function drums(kind, b, t, spb, beats) {
-    var pos = b % beats;
-    if (kind === 'march') {
-      if (pos === 0 || pos === 2) drum(t, 130, 45, 0.18, 0.22);
-      if (pos === 1 || pos === 3) noise(t, 0.09, 0.07, 1800);
-      noise(t + spb / 2, 0.05, 0.03, 2600);                       // roulement léger à la croche
-      if (pos === 3) noise(t + spb * 0.75, 0.05, 0.035, 2200);
-    } else {
-      if (pos === 0) { drum(t, 95, 38, 0.45, 0.3); }
-      if (pos === 2) drum(t + spb / 2, 140, 70, 0.2, 0.12);
-      if (pos === 1) noise(t, 0.16, 0.035, 900);
-    }
-  }
-  function schedule() {
-    var S = SONGS[style], spb = 60 / S.bpm, total = S.beats * S.bars;
-    while (nextT < ctx.currentTime + 0.25) {
-      var b = beat % total;
-      S.lead.ev.forEach(function (e) { if (e.t >= b && e.t < b + 1) lead(e.f, nextT + (e.t - b) * spb, e.d * spb * 0.95, S.leadType); });
-      S.bass.ev.forEach(function (e) { if (e.t >= b && e.t < b + 1) bass(e.f, nextT + (e.t - b) * spb, e.d * spb); });
-      if (b % S.beats === 0) pad(S.chords[(b / S.beats) % S.chords.length], nextT, S.beats * spb);
-      drums(S.drums, b, nextT, spb, S.beats);
-      nextT += spb; beat++;
-    }
-  }
-  function start() {
-    if (playing || !on || document.hidden) return;
-    if (!audio()) return;
-    playing = true; beat = 0; nextT = ctx.currentTime + 0.12;
-    master.gain.cancelScheduledValues(ctx.currentTime);
-    master.gain.setValueAtTime(0, ctx.currentTime); master.gain.linearRampToValueAtTime(0.55, ctx.currentTime + 1.5);
-    schedule(); timer = setInterval(schedule, 60);
-  }
-  function stop() {
-    if (!playing) return; playing = false; clearInterval(timer);
-    master.gain.cancelScheduledValues(ctx.currentTime);
-    master.gain.setValueAtTime(master.gain.value, ctx.currentTime); master.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
-  }
-  function duck(x) {
-    if (!ctx) return; var t = ctx.currentTime;
-    duckG.gain.cancelScheduledValues(t); duckG.gain.setValueAtTime(duckG.gain.value, t);
-    duckG.gain.linearRampToValueAtTime(x ? 0.18 : 1, t + (x ? 0.25 : 0.8));
-  }
+/* 3. Différence : soustraire, c'est ajouter l'opposé */
+function diff(){for(;;){const a=nz(-10,10),b=nz(-10,10),r=a-b;
+  if((a<0||b<0)&&r!==0&&a+b!==0)return{a,b,r,e:`${Q(a)} − ${Q(b)}`,
+    ex:`Soustraire ${Q(b)}, c'est ajouter son opposé ${Q(-b)} : ${Q(a)} + ${Q(-b)} = ${P(r)}.`}}}
+const L3={
+  qcm(){if(Math.random()<.5){const q=diff();return mk(3,`Calculer : ${q.e}`,P(q.r),[P(q.a+q.b),P(-q.r),P(-(q.a+q.b))],q.ex)}
+    const q=diff();
+    return mk(3,`${q.e} est égal à :`,`${Q(q.a)} + ${Q(-q.b)}`,[`${Q(q.a)} + ${Q(q.b)}`,`${Q(-q.a)} + ${Q(-q.b)}`,`${Q(q.a)} − ${Q(-q.b)}`],
+      `Soustraire un nombre, c'est ajouter son opposé : seul le nombre soustrait change de signe, ${Q(q.a)} − ${Q(q.b)} = ${Q(q.a)} + ${Q(-q.b)}.`)},
+  trous(){const q=diff();return tr(3,`${q.e} = ${Q(q.a)} + {0} = {1}`,[{answers:AP(-q.b),size:4},{answers:AN(q.r),size:4}],q.ex)}
+};
 
-  /* ================= bouton flottant ================= */
-  var css = '.smus{position:absolute;top:12px;right:max(12px,env(safe-area-inset-right));z-index:9000;display:flex;gap:6px;font:600 14px Lexend,system-ui,sans-serif}' +
-    '.smus button{min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid rgba(255,122,0,.6);background:light-dark(rgba(255,255,255,.94),rgba(20,24,28,.94));color:light-dark(#15191d,#e9edf0);cursor:pointer;box-shadow:0 6px 18px -8px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font:inherit}' +
-    '.smus button[aria-pressed=true]{background:#ff7a00;color:#1d0e00;border-color:#ff7a00}' +
-    '.smus .sty{font-size:13px}.smus button:focus-visible{outline:3px solid #ff7a00;outline-offset:2px}' +
-    '@media(max-width:520px){.smus .sty{display:none}.smus button{min-height:40px;padding:0 12px;font-size:13px}}' +
-    '@media print{.smus{display:none}}';
-  var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
-  var box = document.createElement('div'); box.className = 'smus'; box.setAttribute('aria-label', 'Musique de fond');
-  var bOn = document.createElement('button'), bSty = document.createElement('button');
-  bOn.type = bSty.type = 'button'; bSty.className = 'sty';
-  function label() {
-    bOn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    bOn.textContent = on ? '♪ Musique : oui' : '♪ Musique : non';
-    bSty.textContent = style === 'epique' ? 'Style : épique' : 'Style : aventure';
-  }
-  bOn.addEventListener('click', function (e) {
-    e.stopPropagation(); on = !on; store.set('sigma-musique', on ? '1' : '0'); label();
-    if (on) start(); else stop();
-  });
-  bSty.addEventListener('click', function (e) {
-    e.stopPropagation(); style = style === 'epique' ? 'aventure' : 'epique';
-    store.set('sigma-musique-style-' + location.pathname, style); label();
-    if (playing) { stop(); setTimeout(start, 450); }
-  });
-  box.appendChild(bSty); box.appendChild(bOn);
-  function mount() { document.body.appendChild(box); label(); }
-  if (document.body) mount(); else document.addEventListener('DOMContentLoaded', mount);
+/* 4. Enchaînements : −3 + 8 − 6 ou (−2) − (+5) + (+4) */
+function chain(){for(;;){
+  if(Math.random()<.6){const a=nz(-12,12),b=ri(1,12),c=ri(1,12),o1=pick(['+','−']),o2=pick(['+','−']);
+    const p1=o1==='+'?a+b:a-b,r=o2==='+'?p1+c:p1-c;
+    if(!(a<0||p1<0||r<0)||r===0||p1===0||A(r)>20)continue;
+    return{r,e:`${P(a)} ${o1} ${b} ${o2} ${c}`,flip:o2==='+'?p1-c:p1+c,first:r-2*a,
+      ex:`On calcule de gauche à droite : ${P(a)} ${o1} ${b} = ${P(p1)}, puis ${P(p1)} ${o2} ${c} = ${P(r)}.`}}
+  const a=nz(-9,9),b=nz(-9,9),c=nz(-9,9),o1=pick(['+','−']),o2=pick(['+','−']);
+  const p1=o1==='+'?a+b:a-b,r=o2==='+'?p1+c:p1-c;
+  if(!(a<0||b<0||c<0)||r===0||p1===0||A(r)>20)continue;
+  return{r,e:`${Q(a)} ${o1} ${Q(b)} ${o2} ${Q(c)}`,flip:o2==='+'?p1-c:p1+c,first:r-2*a,
+    ex:`On calcule de gauche à droite (soustraire, c'est ajouter l'opposé) : ${Q(a)} ${o1} ${Q(b)} = ${P(p1)}, puis on ${o2==='+'?'ajoute':'soustrait'} ${Q(c)} : on obtient ${P(r)}.`}}}
+const L4={
+  qcm(){const q=chain();return mk(4,`Calculer : ${q.e}`,P(q.r),[P(-q.r),P(q.flip),P(q.first)],q.ex)},
+  trous(){const q=chain();return tr(4,`${q.e} = {0}`,[{answers:AN(q.r),size:4}],q.ex)}
+};
 
-  /* premier geste : la musique peut démarrer */
-  function first() { start(); }
-  ['pointerdown', 'keydown'].forEach(function (ev) { document.addEventListener(ev, first, { once: true, capture: true }); });
-  document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else if (on && ctx) start(); });
+/* 5. Nombre manquant : (−4) + … = (+3) */
+function miss(){for(;;){const a=nz(-9,9),r=nz(-9,9),plus=Math.random()<.55,x=plus?r-a:a-r;
+  if(r===a||!(a<0||r<0||x<0))continue;
+  return{a,r,x,plus,
+    ex:plus?`${Q(a)} + ${Q(x)} = ${P(r)} : pour aller de ${P(a)} à ${P(r)}, il faut ${mv(x)}.`
+           :`${Q(a)} − ${Q(x)} = ${Q(a)} + ${Q(-x)} = ${P(r)} : soustraire ${Q(x)}, c'est ajouter ${Q(-x)}.`}}}
+const L5={
+  qcm(){const q=miss(),s=q.plus?q.r+q.a:q.a+q.r;
+    return mk(5,`Quel nombre manque ? ${Q(q.a)} ${q.plus?'+':'−'} … = ${Q(q.r)}`,Q(q.x),[Q(-q.x),s?Q(s):null,s?Q(-s):null],q.ex)},
+  trous(){const q=miss();return tr(5,`Compléter : ${Q(q.a)} ${q.plus?'+':'−'} {0} = ${Q(q.r)}`,[{answers:AP(q.x),size:4}],q.ex)}
+};
 
-  window.SigmaMusic = { start: start, stop: stop, duck: duck, isOn: function () { return on; } };
+/* 6. Se repérer et comparer */
+function distinct(n,f){const s=new Set();while(s.size<n)s.add(f());return[...s]}
+const L6={
+  qcm(){const k=ri(0,2);
+    if(k===0){const [n1,n2]=distinct(2,()=>ri(-15,-1)).sort((x,y)=>x-y),p=ri(1,9),L=shuf([n1,n2,0,p]);
+      return mk(6,`Quel est le plus petit des nombres suivants : ${L.map(S).join(' ; ')} ?`,S(n1),[S(n2),'0',S(p)],
+        `Plus un nombre négatif est loin de zéro, plus il est petit : ${P(n1)} &lt; ${P(n2)} &lt; 0 &lt; ${S(p)}.`)}
+    if(k===1){const L=distinct(4,()=>ri(-20,-1)),o=[...L].sort((x,y)=>x-y);
+      return mk(6,`Quel est le plus grand des nombres suivants : ${shuf([...L]).map(P).join(' ; ')} ?`,P(o[3]),[P(o[0]),P(o[1]),P(o[2])],
+        `Entre deux nombres négatifs, le plus grand est le plus proche de zéro : c'est ${P(o[3])}.`)}
+    const [n1,n2]=distinct(2,()=>ri(-12,-1)).sort((x,y)=>x-y),p=ri(1,9),L=[n1,n2,0,p],f=a=>a.map(S).join(' &lt; ');
+    return mk(6,`Ranger dans l'ordre croissant : ${shuf([...L]).map(S).join(' ; ')}.`,f([n1,n2,0,p]),
+      [f([n2,n1,0,p]),f([p,0,n2,n1]),f([0,n2,p,n1].sort((x,y)=>A(x)-A(y)||x-y))],
+      `Les négatifs d'abord, du plus éloigné de zéro au plus proche, puis 0, puis les positifs : ${f([n1,n2,0,p])}.`)},
+  trous(){if(Math.random()<.4){const a=nz(-15,15);
+      return tr(6,`L'opposé de ${P(a)} est {0}.`,[{answers:AN(-a),size:3}],`Deux nombres opposés ont la même distance à zéro et des signes contraires : l'opposé de ${P(a)} est ${P(-a)}.`)}
+    let a,b;do{a=ri(-15,15);b=ri(-15,15)}while(a===b||(a>=0&&b>=0));
+    const lt=a<b,lo=Math.min(a,b),hi=Math.max(a,b);
+    return tr(6,`Compléter par &lt; ou &gt; : ${P(a)} {0} ${P(b)}`,[{answers:lt?['&lt;','<']:['&gt;','>'],size:1}],
+      `Sur une droite graduée, ${P(lo)} est à gauche de ${P(hi)}, donc ${P(lo)} &lt; ${P(hi)}${lt?'':`, c'est-à-dire ${P(hi)} &gt; ${P(lo)}`}.`)}
+};
+
+/* 7. Grand mélange : problèmes */
+const L7={
+  qcm(){const k=ri(0,2);
+    if(k===0){const m=ri(-12,-1),p=ri(1,15),d=p-m;
+      return mk(7,`Ce matin, il faisait ${P(m)} °C. Cet après-midi, il fait ${p} °C. De combien de degrés la température a-t-elle augmenté ?`,
+        `${d} degrés`,[p+m?`${P(p+m)} degré${A(p+m)>1?'s':''}`:null,`${P(-d)} degrés`,`${p} degré${p>1?'s':''}`],
+        `Augmentation = arrivée − départ : ${p} − ${Q(m)} = ${p} + ${-m} = ${d} degrés.`)}
+    for(;;){const s=nz(-5,5),u=ri(2,9),d=ri(2,9),e=s+u-d;
+      if(e===0||u===d)continue;
+      if(k===1)return mk(7,`Un ascenseur part de l'étage ${P(s)}, monte de ${u} étages puis descend de ${d} étages. À quel étage arrive-t-il ?`,
+        P(e),[P(s-u+d),P(-e),P(s+u+d)],`${P(s)} + ${u} − ${d} = ${P(s+u)} − ${d} = ${P(e)}.`);
+      const a=s,b=e;if(a===b)continue;
+      return mk(7,`Un ascenseur va de l'étage ${S(a)} à l'étage ${S(b)}. Son déplacement (arrivée − départ) est :`,S(b-a),[S(a-b),S(b+a)!=='0'?S(b+a):null,S(-(b+a))!=='0'?S(-(b+a)):null],
+        `Déplacement = arrivée − départ : ${Q(b)} − ${Q(a)} = ${Q(b)} + ${Q(-a)} = ${S(b-a)}.`)}},
+  trous(){if(Math.random()<.5){const m=ri(-12,-1),k=ri(2,15),r=m+k;
+      return tr(7,`À 6 h, il fait ${P(m)} °C. À midi, il fait ${k} degrés de plus. À midi, il fait {0} °C.`,[{answers:AN(r),size:3}],`${P(m)} + ${k} = ${P(r)} : à midi, il fait ${P(r)} °C.`)}
+    for(;;){const z=-ri(3,20),u=ri(2,15),r=z+u;if(r>=0)continue;
+      return tr(7,`Un plongeur est à ${P(z)} m. Il remonte de ${u} m. Il se trouve alors à {0} m.`,[{answers:AN(r),size:3}],`Remonter, c'est ajouter : ${P(z)} + ${u} = ${P(r)}.`)}}
+};
+
+const GEN=[null,L1,L2,L3,L4,L5,L6,L7];
+function buildFinal(){
+  const lv=shuf([1,2,3,4,5,6,7,ri(1,7),ri(1,7),ri(1,7)]),ty=shuf(['qcm','qcm','qcm','qcm','qcm','qcm','trous','trous','trous','trous']);
+  const out=[],seen=new Set();
+  for(let i=0;i<10;i++){let q,g=0;
+    do{q=GEN[lv[i]][ty[i]]()}while(!q||seen.has(q.prompt));
+    seen.add(q.prompt);out.push(q)}
+  return out;
+}
+window.__ascFinal=buildFinal;
+if(window.SigmaKit)SigmaKit.init({game:'ascenseur-relatifs',title:'L\'ascenseur des nombres relatifs',levels:7,
+  levelNames:['Écriture simplifiée','Somme de relatifs','Différence de relatifs','Enchaînements','Nombre manquant','Comparer','Grand mélange'],
+  music:'aventure',buildFinal});
 })();
-
 </script>
 </body>
 </html>
