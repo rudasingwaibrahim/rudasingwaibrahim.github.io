@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Détective Erreur</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE : bienveillant, joueur, scolaire ; l'erreur est celle d'un autre, jamais celle du joueur.
+   IDEA : le bureau d'une inspectrice ; des copies d'élèves imaginaires sur papier ligné, à inspecter à la loupe.
+   PICTURE : la loupe qui grossit l'erreur, le tampon « AFFAIRE CLASSÉE ».
+   COLOUR and TYPE : papier ligné, encre bleue, stylo rouge et vert du correcteur, accent orange ; Lexend.
+   LAYOUT : la copie à gauche, le carnet d'enquête à droite (en dessous sur téléphone). */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#101418);--ink:light-dark(#15191d,#e9edf0);--mut:light-dark(#56616b,#9ba7b1);
+--panel:light-dark(#f1f3f5,#1a2027);--line:light-dark(#cfd5da,#323c46);--or:#ff7a00;--orsoft:rgba(255,122,0,.18);
+--ok:light-dark(#23803a,#5fd27c);--ko:light-dark(#c0392b,#ff7b6b);--vx:light-dark(#7a3fc2,#c39bff);
+--paper:light-dark(#fffdf6,#191e25);--rule:light-dark(#d3e1f2,#2b3541);--margin:light-dark(#f0a3a3,#7c3b3b);
+--pen:light-dark(#1d3f9e,#a9c1ff);--red:light-dark(#c8231d,#ff7b6b);--green:light-dark(#1d7a35,#6be08a);
+--wall:light-dark(#f4ead8,#1c222a);--wall2:light-dark(#e7d7bb,#222a33);--floor:light-dark(#c99a6b,#2a231e);
+--wood1:light-dark(#a8713f,#5a3d26);--wood2:light-dark(#7d502c,#3b2818);--kraft:light-dark(#ecd5a6,#4a3f2e);--kraft2:light-dark(#d9bb82,#3a3124);
+--sky1:light-dark(#6fc0f0,#0b1730);--sky2:light-dark(#dff3ff,#2a3d63);--sea:light-dark(#22aeb0,#145250);--isle:light-dark(#2f7d4a,#16351f);
+--sun:light-dark(#ffc93a,#eef0f6);--cork:light-dark(#c98f55,#6b4a2c);--frame:light-dark(#ffffff,#3a434d);--sheet:light-dark(#fffdf6,#d9d4c8);
+--rim:light-dark(#6b4a2b,#e0b98a);--lh:54px}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html{overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 Lexend,system-ui,sans-serif;overflow-x:clip}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(28px,3.6vw,42px);line-height:1.05;margin:0 0 4px;text-wrap:balance}
+header p{margin:0;color:var(--mut);max-width:72ch}
+.back{display:inline-block;margin:0 0 8px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:2px solid var(--or)}.back:hover{color:var(--or)}
+.back{position:relative}.back::before{content:"";position:absolute;inset:-10px -8px}/* zone tactile de 44 px, sans changer l'aspect */
+main{max-width:1320px;margin:auto;padding:12px max(3vw,16px) 36px}
+button{font:inherit}
+button:focus-visible,a:focus-visible{outline:3px solid var(--or);outline-offset:2px}
+.btn{min-height:48px;padding:0 18px;border-radius:12px;border:0;background:var(--ink);color:var(--bg);font-weight:600;cursor:pointer}
+.btn.or{background:var(--or);color:#1d0e00}.btn.gh{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.gh:hover:not(:disabled){border-color:var(--or)}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.pill{min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:600;font-size:15px;cursor:pointer}
+.pill[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pill.snd{border-style:dashed}.pill.snd[aria-pressed=true]{background:var(--orsoft);color:var(--ink);border-color:var(--or)}
+.vx{font-style:italic}
+.mth{white-space:nowrap;font-weight:600}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.fr{position:relative;display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:.72em;line-height:1.05;margin:0 .08em}
+.fr .nu{border-bottom:2px solid currentColor;padding:0 .18em}.fr .de{padding:0 .18em}
+
+/* ---------- bureau ---------- */
+.desk{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:clamp(18px,2.6vw,34px);align-items:start}
+.scene{display:block;width:100%;height:auto;border-radius:18px;background:var(--wall)}
+.how{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:8px}
+.how li{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;align-items:center}
+.how b{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--orsoft);color:var(--ink);border:1.5px solid var(--or)}
+.tip{color:var(--mut);margin:10px 0 0;font-size:15px}
+.dossiers{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:14px;margin-top:6px}
+.dossier{position:relative;text-align:left;padding:22px 16px 14px;border-radius:4px 14px 14px 14px;border:0;background:var(--kraft);color:var(--ink);cursor:pointer;display:flex;flex-direction:column;gap:3px;min-height:132px;box-shadow:0 6px 16px -10px rgba(0,0,0,.5);transition:transform .15s}
+.dossier::before{content:"";position:absolute;left:0;top:-12px;width:42%;height:14px;border-radius:8px 8px 0 0;background:var(--kraft2)}
+.dossier:hover{transform:translateY(-3px)}
+.dossier .dn{font-size:13px;font-weight:700;color:var(--mut);letter-spacing:.04em;text-transform:uppercase}
+.dossier b{font-size:18px;line-height:1.2}.dossier small{font-size:14px;color:var(--mut);line-height:1.35}
+.dossier .closed{position:absolute;right:10px;top:12px;transform:rotate(-9deg);border:2.5px solid var(--red);color:var(--red);font-weight:700;font-size:11px;padding:1px 6px;border-radius:5px;letter-spacing:.06em;background:color-mix(in srgb,var(--kraft) 80%,transparent)}
+.dossier .bmini{width:30px;height:36px;flex:none}
+.dfoot{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:6px;font-size:14px;font-weight:600;color:var(--mut)}
+.badges{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 0}
+.badges figure{margin:0;width:84px;text-align:center;font-size:12px;line-height:1.25;color:var(--mut)}
+.badges svg{width:56px;height:67px;display:block;margin:0 auto 2px}
+.badge.off{opacity:.55}
+h2.sec{font-size:22px;margin:18px 0 6px}
+.desk h2.sec:first-child{margin-top:0}
+
+/* ---------- enquête ---------- */
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 12px}
+.top .ttl{font-weight:700;font-size:19px;margin-right:auto}
+.top .ttl small{display:block;font-size:14px;color:var(--mut);font-weight:600}
+.dots{display:flex;gap:6px;align-items:center}
+.dots span{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dots span.g{background:var(--ok)}.dots span.c{background:var(--or);box-shadow:0 0 0 3px var(--orsoft)}
+.dots em{font-style:normal;color:var(--mut);font-size:14px;margin-left:4px}
+.case{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(290px,1fr);gap:clamp(18px,2.6vw,34px);align-items:start}
+.sheet{position:relative;background:var(--paper);border-radius:6px 6px 16px 16px;padding:14px 0 26px;box-shadow:0 1px 0 var(--line),0 14px 34px -18px rgba(0,0,0,.55);overflow:hidden}
+.sheet::before{content:"";position:absolute;left:54px;top:0;bottom:0;width:2px;background:var(--margin)}
+.shead{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:0 16px 0 66px;font-size:15px;color:var(--mut);font-weight:600}
+.who{color:var(--pen)}
+.cons{margin:6px 16px 4px 66px;font-weight:700}
+.given,.lines li{min-height:var(--lh)}
+.given{display:flex;align-items:center;padding:0 12px 0 66px;font:700 clamp(19px,2.1vw,24px)/1.3 Lexend,sans-serif;color:var(--ink);border-bottom:1px solid var(--rule)}
+.given .ex,.ln .ex{white-space:nowrap}
+.lab{margin-right:.32em;white-space:nowrap}
+.lines{list-style:none;margin:0;padding:0;background:repeating-linear-gradient(to bottom,transparent 0 calc(var(--lh) - 1px),var(--rule) calc(var(--lh) - 1px) var(--lh))}
+.ln{position:relative;display:flex;align-items:center;width:100%;min-height:var(--lh);padding:0 8px 0 0;border:0;background:transparent;color:var(--pen);text-align:left;cursor:pointer;font:500 clamp(19px,2.1vw,24px)/1.3 Lexend,sans-serif;border-radius:0;-webkit-tap-highlight-color:transparent}
+.ln .no{flex:none;width:54px;text-align:center;font:600 14px Lexend,sans-serif;color:var(--mut)}
+.ln .tx{flex:1;padding-left:12px;overflow-x:auto;overflow-y:hidden;padding-block:6px}
+.ln .tag{flex:none;font:600 13px Lexend,sans-serif;color:var(--green);display:flex;align-items:center;gap:4px}
+.ln:hover{background:color-mix(in srgb,var(--or) 7%,transparent)}
+.ln.sel{background:var(--orsoft);box-shadow:inset 0 0 0 2px var(--or)}
+.ln.sel .no{color:var(--ink)}
+.ln .lou{width:30px;height:30px}
+.ln.done{cursor:default}.ln.done:hover{background:transparent}
+.concl{white-space:normal!important;font-size:.9em}
+.ln .ex.concl{display:inline-block;line-height:1.35}
+mark.cul{position:relative;display:inline-block;background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.55),rgba(190,230,255,.22));color:var(--red);border:3px solid var(--rim);border-radius:999px;padding:0 .3em;margin:0 .3em;font-weight:700;transform:scale(1.35);transform-origin:50% 55%;animation:lens .5s ease-out}
+mark.cul::after{content:"";position:absolute;right:-13px;bottom:-9px;width:16px;height:6px;border-radius:3px;background:var(--rim);transform:rotate(40deg)}
+@keyframes lens{0%{transform:scale(.6);opacity:.2}70%{transform:scale(1.5)}100%{transform:scale(1.35)}}
+.ln.caught .tx{overflow:visible}
+.ln.caught{background:color-mix(in srgb,var(--red) 7%,transparent)}
+.fixl{display:flex;align-items:center;min-height:var(--lh);padding:0 8px 0 66px;color:var(--green);font:600 clamp(19px,2.1vw,24px)/1.3 Lexend,sans-serif;white-space:nowrap;overflow-x:auto}
+.fixl .pen{font-size:14px;font-weight:700;margin-right:10px;border:1.5px solid currentColor;border-radius:6px;padding:0 6px}
+.ln.struck .ex{text-decoration:line-through;text-decoration-color:var(--red);text-decoration-thickness:2px}
+.ln.struck mark.cul{text-decoration:none}
+.sheet.stamped{padding-bottom:92px}
+.stamp{position:absolute;right:6%;bottom:18px;transform:rotate(-7deg);border:5px double var(--red);color:var(--red);font:700 clamp(18px,2.3vw,26px)/1.1 Lexend,sans-serif;letter-spacing:.08em;padding:.25em .6em;border-radius:12px;pointer-events:none;background:color-mix(in srgb,var(--paper) 70%,transparent);animation:stamp .45s cubic-bezier(.2,1.4,.5,1)}
+.stamp.inno{border-color:var(--green);color:var(--green)}
+@keyframes stamp{0%{transform:rotate(-7deg) scale(1.8);opacity:0}100%{transform:rotate(-7deg) scale(1);opacity:1}}
+.note{display:flex;flex-direction:column;gap:12px}
+.talk{display:flex;gap:12px;align-items:flex-start}
+.talk svg{width:58px;height:58px;flex:none}
+.bubble{position:relative;flex:1;background:var(--panel);border-radius:4px 16px 16px 16px;padding:10px 14px;margin:0;min-height:58px}
+.bubble b{display:block;font-size:13px;color:var(--mut)}
+.acts{display:grid;gap:10px}
+.acts .btn{width:100%}
+.hints{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.hints li{border-left:4px solid var(--or);background:var(--orsoft);padding:8px 12px;border-radius:0 10px 10px 0;font-size:15px}
+.choices{display:grid;gap:10px}
+.choices>p{margin:0;font-weight:700}
+.choice{min-height:56px;border-radius:12px;border:1.5px solid var(--line);background:var(--paper);color:var(--pen);cursor:pointer;text-align:left;padding:6px 14px;font:500 clamp(18px,1.9vw,22px)/1.3 Lexend,sans-serif;white-space:nowrap;overflow-x:auto}
+.choice:hover:not(:disabled){border-color:var(--or)}
+.choice:disabled{opacity:.45;cursor:not-allowed;text-decoration:line-through;text-decoration-color:var(--mut)}
+.choice.good{border-color:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 25%,transparent)}
+.expl{border-radius:14px;padding:14px 16px;background:light-dark(#eaf7ee,#13261a);border:2px solid var(--ok)}
+.expl h3{margin:0 0 6px;font-size:19px;line-height:1.25}
+.expl p{margin:6px 0}
+.expl .k{font-size:14px;color:var(--mut);font-weight:600;display:block}
+.expl .big{font-weight:700}
+.board-bar{display:none}
+
+/* ---------- fin de dossier ---------- */
+.end{max-width:760px;margin:10px auto;text-align:center;overflow:hidden;background:var(--kraft);border-radius:6px 18px 18px 18px;padding:28px 22px;position:relative;box-shadow:0 14px 34px -18px rgba(0,0,0,.55)}
+.end .bigb{width:120px;height:144px;display:block;margin:0 auto}
+.end h2{margin:6px 0 4px;font-size:clamp(24px,3vw,32px);line-height:1.15}
+.end p{margin:6px 0}
+.end .stampbig{display:inline-block;margin:10px 0 6px;transform:rotate(-6deg);border:5px double var(--red);color:var(--red);font:700 clamp(19px,4.6vw,34px)/1.1 Lexend,sans-serif;letter-spacing:.06em;padding:.2em .5em;border-radius:12px;max-width:100%;animation:stamp2 .5s cubic-bezier(.2,1.4,.5,1)}
+@keyframes stamp2{0%{transform:rotate(-6deg) scale(1.6);opacity:0}100%{transform:rotate(-6deg) scale(1);opacity:1}}
+.end ul{list-style:none;padding:0;margin:12px 0;display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.end li{background:var(--paper);border-radius:12px;padding:8px 14px;font-weight:600}
+.end .row{justify-content:center;margin-top:14px}
+
+/* ---------- au tableau ---------- */
+body.board{--lh:78px}
+body.board header{display:none}
+body.board main{max-width:1600px;padding-top:14px}
+body.board .board-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+body.board .top .dots,body.board #toDesk{display:none}
+body.board .ln,body.board .given,body.board .fixl{font-size:clamp(26px,3.2vw,44px)}
+body.board .ln .no{font-size:18px}
+body.board .cons{font-size:22px}
+body.board .choice{font-size:clamp(22px,2.3vw,30px)}
+body.board .bubble{font-size:19px}
+
+/* scène */
+.f-wall{fill:var(--wall)}.f-wall2{fill:var(--wall2)}.f-floor{fill:var(--floor)}.f-wood1{fill:var(--wood1)}.f-wood2{fill:var(--wood2)}
+.f-kraft{fill:var(--kraft)}.f-kraft2{fill:var(--kraft2)}.f-sea{fill:var(--sea)}.f-isle{fill:var(--isle)}.f-sun{fill:var(--sun)}
+.f-cork{fill:var(--cork)}.f-frame{fill:var(--frame)}.s-frame{stroke:var(--frame)}.f-sheet{fill:var(--sheet)}
+.c-sky1{stop-color:var(--sky1)}.c-sky2{stop-color:var(--sky2)}
+.blink{animation:blink 5s infinite;transform-box:fill-box;transform-origin:center}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+.tailw{animation:tail 4s ease-in-out infinite;transform-origin:172px 246px}
+@keyframes tail{50%{transform:rotate(6deg)}}
+.lensg{animation:peek 6s ease-in-out infinite;transform-origin:366px 160px}
+@keyframes peek{0%,100%{transform:none}50%{transform:rotate(-4deg) translate(-2px,-2px)}}
+.steam{animation:steam 3s ease-in-out infinite;opacity:.6}
+@keyframes steam{50%{transform:translateY(-4px);opacity:.25}}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}mark.cul{transform:scale(1.35)}}
+@media(max-width:900px){.desk,.case{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:520px){
+ :root{--lh:50px}
+ .sheet::before{left:40px}.shead,.cons{padding-left:50px;margin-left:0}.cons{margin-left:50px;padding-left:0}
+ .given{padding-left:50px}.ln .no{width:40px}.ln .tx{padding-left:10px}.fixl{padding-left:50px}
+ .top .ttl{width:100%}
+ body.incase header p{display:none}
+ .end{padding:22px 14px}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+<defs>
+<symbol id="ylang" viewBox="0 0 64 64">
+<circle cx="32" cy="32" r="31" fill="#ffe3c4"/>
+<circle cx="32" cy="34" r="17" fill="#1d1410"/><circle cx="18" cy="38" r="7" fill="#1d1410"/><circle cx="46" cy="38" r="7" fill="#1d1410"/>
+<path d="M18 64 Q20 50 32 48 Q44 50 46 64Z" fill="#c9a46a"/><path d="M28 48 L32 56 L36 48Z" fill="#fff"/>
+<rect x="28.5" y="42" width="7" height="8" fill="#8d5a3b"/>
+<circle cx="32" cy="35" r="13" fill="#8d5a3b"/>
+<circle cx="27.5" cy="35" r="1.7" fill="#1d1410"/><circle cx="36.5" cy="35" r="1.7" fill="#1d1410"/>
+<path d="M27.5 40.5 Q32 44 36.5 40.5" stroke="#3a1f12" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+<ellipse cx="31" cy="22.5" rx="16" ry="6" fill="#ff7a00" transform="rotate(-8 31 22.5)"/><circle cx="32" cy="16.5" r="2" fill="#c45a00"/>
+<path d="M17 25.5 Q31 29 45 22.5" stroke="#c45a00" stroke-width="2" fill="none"/>
+</symbol>
+<symbol id="loupe" viewBox="0 0 32 32"><circle cx="13" cy="13" r="9" fill="rgba(190,230,255,.35)" stroke="#6b4a2b" stroke-width="3"/><path d="M19.5 19.5 L28 28" stroke="#6b4a2b" stroke-width="4.5" stroke-linecap="round"/><path d="M8.5 10 Q10 7 13 6.5" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></symbol>
+</defs>
+</svg>
+
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Détective Erreur</h1>
+<p>Des élèves imaginaires ont rendu leurs copies. Dans chacune se cache une erreur… ou aucune ! Mène l'enquête ligne par ligne avec l'inspectrice Ylang et Maki, son assistant.</p>
+</header>
+
+<main>
+<!-- ================= BUREAU ================= -->
+<section id="v-desk">
+<div class="desk">
+<div>
+<svg class="scene" id="scene" viewBox="0 0 640 400" role="img" aria-label="Le bureau de l'inspectrice Ylang, qui observe à la loupe ; Maki, son assistant, est assis sur la pile de dossiers."></svg>
+<h2 class="sec">Comment enquêter</h2>
+<ol class="how">
+<li><b>1</b><span>Touche une ligne de la copie pour la mettre sous la loupe.</span></li>
+<li><b>2</b><span>Accuse la ligne fautive… ou déclare la copie <i>innocente</i> si tout est juste.</span></li>
+<li><b>3</b><span>Choisis la bonne correction : l'affaire est classée !</span></li>
+</ol>
+<p class="tip">Astuce de Maki : compare toujours une ligne avec celle juste au-dessus. Pas de chrono, pas de pénalité : un bon détective prend son temps.</p>
+</div>
+<div>
+<h2 class="sec">Les dossiers</h2>
+<div class="dossiers" id="dossiers"></div>
+<h2 class="sec">Mes badges d'enquêteur</h2>
+<div class="badges" id="badges"></div>
+<div class="row" style="margin-top:16px">
+<button class="btn gh" id="toBoard" type="button">Au tableau (projection)</button>
+<button class="pill snd" id="snd1" type="button" aria-pressed="true">♪ Son : oui</button>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ================= ENQUÊTE ================= -->
+<section id="v-case" hidden>
+<div class="board-bar" id="boardBar" role="group" aria-label="Au tableau"></div>
+<div class="top">
+<div class="ttl" id="caseTitle"></div>
+<div class="dots" id="dots"></div>
+<button class="pill" id="toDesk" type="button">← Bureau</button>
+<button class="pill snd" id="snd2" type="button" aria-pressed="true">♪ Son : oui</button>
+</div>
+<div class="case">
+<article class="sheet" id="sheet" aria-label="Copie de l'élève">
+<div class="shead"><span class="who" id="who"></span><span id="cnum"></span></div>
+<p class="cons" id="cons"></p>
+<div class="given" id="given"></div>
+<ol class="lines" id="lines"></ol>
+<div class="stamp" id="stamp" hidden></div>
+</article>
+<aside class="note" aria-label="Carnet d'enquête">
+<div class="talk"><svg aria-hidden="true"><use href="#ylang"/></svg><p class="bubble" id="say" aria-live="polite"></p></div>
+<ul class="hints" id="hints"></ul>
+<div class="acts" id="acts">
+<button class="btn or" id="accuse" type="button" disabled>Touche d'abord une ligne</button>
+<button class="btn gh" id="inno" type="button">Copie innocente : aucune erreur</button>
+<button class="btn gh" id="hintB" type="button">Demander un indice (1/3)</button>
+</div>
+<div class="choices" id="choices" hidden></div>
+<div class="expl" id="expl" hidden></div>
+<button class="btn or" id="next" type="button" hidden>Copie suivante →</button>
+</aside>
+</div>
+</section>
+
+<!-- ================= FIN DE DOSSIER ================= -->
+<section id="v-end" hidden>
+<div class="end" id="endBox"></div>
+</section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const nz=(a,b,ex=[])=>{for(;;){const v=ri(a,b);if(v!==0&&!ex.includes(v))return v}};
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const M='−';
+const fN=v=>v<0?M+(-v):String(v);
+const PER=5;
+
+/* =====================================================================
+   1. CALCUL EXACT : rationnels, polynômes, lecture des écritures
+   Écriture « machine » : 3x+2, (-5)^2, 24:4*2, x=12/(-3), 2x*3x ...
+   ===================================================================== */
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a||1};
+function Q(n,d=1){if(d===0)throw new Error('division par zéro');if(d<0){n=-n;d=-d}const g=gcd(n,d);return{n:n/g+0,d:d/g}}
+const qa=(a,b)=>Q(a.n*b.d+b.n*a.d,a.d*b.d),qs=(a,b)=>Q(a.n*b.d-b.n*a.d,a.d*b.d),qm=(a,b)=>Q(a.n*b.n,a.d*b.d),qd=(a,b)=>Q(a.n*b.d,a.d*b.n);
+const qeq=(a,b)=>a.n===b.n&&a.d===b.d,qz=a=>a.n===0,Z=()=>Q(0);
+const trim=r=>{while(r.length>1&&qz(r[r.length-1]))r.pop();return r};
+const padd=(a,b)=>trim(Array.from({length:Math.max(a.length,b.length)},(_,i)=>qa(a[i]||Z(),b[i]||Z())));
+const pneg=a=>a.map(x=>Q(-x.n,x.d));
+const psub=(a,b)=>padd(a,pneg(b));
+function pmul(a,b){const r=Array.from({length:a.length+b.length-1},Z);a.forEach((x,i)=>b.forEach((y,j)=>{r[i+j]=qa(r[i+j],qm(x,y))}));return trim(r)}
+function pdiv(a,b){if(b.length!==1||qz(b[0]))throw new Error('division non constante');return trim(a.map(x=>qd(x,b[0])))}
+const peq=(a,b)=>{const d=psub(a,b);return d.length===1&&qz(d[0])};
+function tok(s){const c=s.replace(/\s+/g,''),t=c.match(/\d+|x|[-+*:\/^=()]/g)||[];if(t.join('')!==c)throw new Error('écriture illisible : '+s);return t}
+function parseExpr(s){
+  const t=tok(s);let i=0;const peek=()=>t[i];
+  const eat=v=>{if(t[i]!==v)throw new Error(`attendu ${v} dans ${s}`);i++};
+  function expr(){let v=term();while(peek()==='+'||peek()==='-'){const o=t[i++],w=term();v=o==='+'?padd(v,w):psub(v,w)}return v}
+  function term(){let v=unary();for(;;){const p=peek();
+    if(p==='*'||p===':'||p==='/'){i++;const w=unary();v=p==='*'?pmul(v,w):pdiv(v,w)}
+    else if(p==='x'||p==='('){v=pmul(v,power())}else break}return v}
+  function unary(){if(peek()==='-'){i++;return pneg(unary())}return power()}
+  function power(){let v=atom();if(peek()==='^'){i++;if(t[i++]!=='2')throw new Error('seul le carré est accepté');v=pmul(v,v)}return v}
+  function atom(){const p=t[i++];if(p==='('){const v=expr();eat(')');return v}if(p==='x')return[Z(),Q(1)];if(/^\d+$/.test(p))return[Q(+p)];throw new Error('inattendu '+p+' dans '+s)}
+  const v=expr();if(i!==t.length)throw new Error('reste illisible dans '+s);return v}
+function cst(s){const p=parseExpr(s);if(p.length!==1)throw new Error('pas un nombre : '+s);return p[0]}
+function solSet(s){const [l,r]=s.split('=');if(r===undefined||s.split('=').length!==2)throw new Error('pas une équation : '+s);
+  const d=psub(parseExpr(l),parseExpr(r));if(d.length>2)throw new Error('degré 2');
+  if(d.length===2&&!qz(d[1]))return{k:'one',v:qd(pneg([d[0]])[0],d[1])};return qz(d[0])?{k:'all'}:{k:'none'}}
+const sameSol=(a,b)=>a.k===b.k&&(a.k!=='one'||qeq(a.v,b.v));
+const pval=(p,x)=>p.reduce((acc,c,i)=>qa(acc,qm(c,Q(x**i))),Z());
+
+/* ---------- mise en forme : écriture machine → écriture française ---------- */
+function fmtT(s){const t=tok(s),out=[];let pv=null;
+  for(let i=0;i<t.length;i++){const c=t[i];
+    if(c==='^'){i++;out[out.length-1]+='²';pv='v';continue}
+    if(c==='/'){const nu=out.pop();let de;if(t[i+1]==='('){de=M+t[i+3];i+=4}else{de=t[i+1];i+=1}
+      out.push(`<span class="fr"><span class="nu">${nu}</span><span class="sr">/</span><span class="de">${de}</span></span>`);pv='v';continue}
+    if(c==='-'){const un=pv===null||pv==='('||pv==='op'||pv==='=';out.push(un?M:` ${M} `);pv=un?'u':'op';continue}
+    if(c==='+'){out.push(' + ');pv='op';continue}
+    if(c==='*'){out.push(' × ');pv='op';continue}
+    if(c===':'){out.push(' ÷ ');pv='op';continue}
+    if(c==='='){out.push(' = ');pv='=';continue}
+    if(c==='('){out.push('(');pv='(';continue}
+    if(c===')'){out.push(')');pv='v';continue}
+    if(c==='x'){out.push('<i class="vx">x</i>');pv='v';continue}
+    out.push(c);pv='v'}
+  return out}
+const fmt=s=>fmtT(s).join('');
+const F=s=>`<span class="mth">${fmt(s)}</span>`;
+
+/* ---------- petites écritures machine ---------- */
+const PN=v=>v<0?`(${v})`:String(v);
+const X=k=>k===1?'x':k===-1?'-x':k+'x';
+const sg=s=>s>0?'+':'-';
+function T(list){let s='';for(const [c,d] of list){if(!c)continue;const a=Math.abs(c),body=d===0?String(a):(a===1?'':String(a))+(d===1?'x':'x^2');s+=s===''?(c<0?'-':'')+body:(c<0?'-':'+')+body}return s||'0'}
+const Sm=(...ns)=>ns.map((n,i)=>i===0?String(n):(n<0?'-'+(-n):'+'+n)).join('');
+const Fr=(n,d)=>(n<0?'-'+(-n):String(n))+'/'+(d<0?`(${d})`:String(d));
+function frac(n,d){if(d<0){n=-n;d=-d}const g=gcd(n,d);n/=g;d/=g;return d===1?String(n):Fr(n,d)}
+const fQ=q=>q.d===1?fN(q.n):`${fN(q.n)}/${q.d}`;
+const affine=(p,s,q)=>`${p}*${PN(s)}`+(q>0?'+'+q:q<0?'-'+(-q):'');
+
+/* =====================================================================
+   2. COPIES NUMÉRIQUES : calcul pas à pas, une opération par ligne
+   ===================================================================== */
+const SIGNK=['sub-neg','neg-neg','mixed-sum','small-big','prod-sign'];
+const PRIOK=['prio-mult','prio-left','prio-pow','sq-double','sq-neg'];
+const ALLK=[...SIGNK,...PRIOK];
+const famOf=k=>SIGNK.includes(k)?'signes':(k==='prio-mult'||k==='prio-left')?'prio':'carre';
+const itm=(it,first)=>it.sq?(it.v<0?`(${it.v})^2`:`${it.v}^2`):(it.v<0&&!first?`(${it.v})`:String(it.v));
+const nm=e=>e.it.map((it,k)=>(k?e.op[k-1]:'')+itm(it,k===0)).join('');
+const opv=(a,o,b)=>o==='+'?a+b:o==='-'?a-b:o==='*'?a*b:(b!==0&&a%b===0?a/b:NaN);
+function nstep(e){const s=e.it.findIndex(t=>t.sq);if(s>=0)return{k:'sq',i:s};const i=e.op.findIndex(o=>o==='*'||o===':');if(i>=0)return{k:'op',i};return e.op.length?{k:'op',i:0}:null}
+function mergeAt(e,i,v,sq=false){const it=e.it.slice(),op=e.op.slice();it.splice(i,2,{v:v+0,sq});op.splice(i,1);return{it,op}}
+function setAt(e,i,v){const it=e.it.slice();it[i]={v:v+0,sq:false};return{it,op:e.op.slice()}}
+function ncorrect(e){const s=nstep(e);if(s.k==='sq'){const v=e.it[s.i].v;return setAt(e,s.i,v*v)}return mergeAt(e,s.i,opv(e.it[s.i].v,e.op[s.i],e.it[s.i+1].v))}
+const okE=e=>e.it.every(t=>Number.isInteger(t.v)&&Math.abs(t.v)<=400);
+const valE=e=>cst(nm(e));
+function nbugs(e,K){
+  const s=nstep(e),r=[];if(!s)return r;
+  const add=(kind,ne,meta)=>{if(K.includes(kind)&&okE(ne))r.push({kind,e:ne,meta:{...meta,kind}})};
+  if(s.k==='sq'){const v=e.it[s.i].v;
+    if(v>0&&v!==2)add('sq-double',setAt(e,s.i,2*v),{t:'sq',i:s.i});
+    if(v<0)add('sq-neg',setAt(e,s.i,-v*v),{t:'sq',i:s.i});
+    if(s.i>0&&e.op[s.i-1]==='*'&&!e.it[s.i-1].sq)add('prio-pow',mergeAt(e,s.i-1,e.it[s.i-1].v*v,true),{t:'op',i:s.i-1});
+  }else{
+    const i=s.i,a=e.it[i].v,o=e.op[i],b=e.it[i+1].v,c=opv(a,o,b);
+    if(o==='-'&&b<0)add('sub-neg',mergeAt(e,i,a+b),{t:'op',i});
+    if(o==='-'&&a<0&&b>0&&-a>b)add('neg-neg',mergeAt(e,i,a+b),{t:'op',i});
+    if(o==='+'&&a<0&&b<0&&a<b)add('neg-neg',mergeAt(e,i,a-b),{t:'op',i});
+    if(o==='+'&&a*b<0&&Math.abs(a)!==Math.abs(b))add('mixed-sum',mergeAt(e,i,-(a+b)),{t:'op',i});
+    if(o==='-'&&a>=0&&b>a)add('small-big',mergeAt(e,i,b-a),{t:'op',i});
+    if((o==='*'||o===':')&&(a<0||b<0)&&c)add('prod-sign',mergeAt(e,i,-c),{t:'op',i});
+    if(o==='*'||o===':')for(const j of [i-1,i+1])if(j>=0&&j<e.op.length&&(e.op[j]==='+'||e.op[j]==='-'))add('prio-mult',mergeAt(e,j,opv(e.it[j].v,e.op[j],e.it[j+1].v)),{t:'op',i:j});
+    const cl=x=>x==='*'||x===':'?1:0;
+    if(i+1<e.op.length&&cl(e.op[i+1])===cl(o)&&(o==='-'||o===':')){const v=opv(e.it[i+1].v,e.op[i+1],e.it[i+2].v);if(!isNaN(v))add('prio-left',mergeAt(e,i+1,v),{t:'op',i:i+1})}
+  }
+  const v0=valE(e);return r.filter(x=>{try{return !qeq(valE(x.e),v0)}catch(_){return false}});
+}
+function randE(style,want,aim=0){
+  if(style==='rel'){const n=ri(3,4),it=[],op=[];for(let k=0;k<n;k++){it.push({v:nz(-9,9),sq:false});if(k)op.push(pick(['+','-','-','*','+']))}return{it,op}}
+  const sqk=['sq-double','sq-neg','prio-pow'].includes(want),pw=want==='prio-pow'?1:0;
+  const n=sqk?Math.max(ri(3,4),aim+pw+1):ri(3,4),it=[],op=[];
+  for(let k=0;k<n;k++){it.push({v:ri(2,12),sq:false});if(k)op.push(pick(['+','-','*',':']))}
+  if(want==='prio-left'&&Math.random()<.7){const p=ri(0,n-3);const pat=pick([['-','+'],['-','-'],[':','*'],['-','+']]);op[p]=pat[0];op[p+1]=pat[1];
+    if(pat[0]===':'){it[p+1].v=ri(2,4);it[p+2].v=ri(2,3);it[p].v=it[p+1].v*it[p+2].v*ri(1,3)}else{op.forEach((o,k)=>{if(o==='*'||o===':')op[k]=pick(['+','-'])})}}
+  for(let k=0;k<op.length;k++)if(op[k]===':'&&!(want==='prio-left'))it[k].v=it[k+1].v*ri(1,5);
+  if(sqk||Math.random()<.25){
+    /* carrés justes placés avant le carré piégé : l'erreur arrive à la ligne visée */
+    const extra=sqk?aim:(Math.random()<.5?1:0);
+    let p=ri(Math.min(extra+pw,n-1),n-1);if(pw){op[p-1]='*';it[p-1].v=ri(2,5)}
+    it[p].sq=true;it[p].v=want==='sq-neg'?-ri(2,7):ri(3,9);
+    const sqs=[p,...shuffle([...Array(p-pw).keys()]).slice(0,extra)];
+    for(const q of sqs.slice(1)){it[q].sq=true;it[q].v=ri(2,6)}
+    for(const q of sqs){if(q<n-1&&op[q]===':')op[q]=pick(['+','-']);if(q>0&&op[q-1]===':')op[q-1]='+'}
+  }
+  return{it,op};
+}
+const sqName={'sq-double':"Le carré, ce n'est pas le double",'sq-neg':"Le carré d'un nombre négatif"};
+function exNum(kind,prev,meta){
+  if(kind==='sq-double'){const v=prev.it[meta.i].v;return{name:sqName[kind],txt:`${F(v+'^2')} = ${F(v+'*'+v)} = ${v*v}. Le double de ${v}, ce serait ${F('2*'+v)} = ${2*v} : le carré et le double, ce n'est pas pareil.`}}
+  if(kind==='sq-neg'){const v=prev.it[meta.i].v;return{name:sqName[kind],txt:`${F(`(${v})^2`)} = ${F(`(${v})*(${v})`)} = ${v*v} : le produit de deux nombres négatifs est positif.`}}
+  if(kind==='prio-pow'){const a=prev.it[meta.i].v,b=prev.it[meta.i+1].v;return{name:"Le carré d'abord",txt:`Le carré ne porte que sur le nombre placé juste avant lui : ${F(`${PN(a)}*${b}^2`)} = ${F(`${PN(a)}*${b*b}`)}. Ce n'est pas ${F(`(${a}*${b})^2`)}.`}}
+  const s=nstep(prev),i=s.i,a=prev.it[i].v,o=prev.op[i],b=prev.it[i+1].v,c=opv(a,o,b),ab=F(`${a}${o}${PN(b)}`);
+  switch(kind){
+    case 'sub-neg':return{name:'Soustraire un nombre négatif',txt:`Soustraire un nombre négatif, c'est ajouter son opposé : ${ab} = ${F(`${a}+${-b}`)} = ${fN(c)}.`};
+    case 'neg-neg':return o==='-'?{name:'Deux nombres négatifs',txt:`${ab} : on part de ${fN(a)} et on descend encore de ${b}. On ajoute les distances à zéro (${-a} + ${b} = ${b-a}) et on garde le signe ${M} : ${ab} = ${fN(c)}.`}
+      :{name:'Deux nombres négatifs',txt:`Ajouter ${fN(b)}, c'est descendre de ${-b}. On ajoute les distances à zéro (${-a} + ${-b} = ${-c}) et on garde le signe ${M} : ${ab} = ${fN(c)}.`};
+    case 'mixed-sum':{const far=Math.abs(a)>Math.abs(b)?a:b;return{name:'Deux nombres de signes contraires',txt:`Dans ${ab}, les signes sont contraires : on soustrait les distances à zéro (${Math.max(Math.abs(a),Math.abs(b))} ${M} ${Math.min(Math.abs(a),Math.abs(b))} = ${Math.abs(c)}) et on garde le signe du nombre le plus éloigné de zéro, ici ${fN(far)}. Résultat : ${fN(c)}.`}}
+    case 'small-big':return{name:'Soustraire un nombre plus grand',txt:`${ab} : en partant de ${a}, on descend de ${b} et on passe sous zéro. Résultat : ${fN(c)}, et non ${b-a}.`};
+    case 'prod-sign':return{name:'La règle des signes',txt:`Dans ${o==='*'?'un produit':'un quotient'}, deux nombres de même signe donnent un résultat positif ; deux nombres de signes contraires, un résultat négatif : ${ab} = ${fN(c)}.`};
+    case 'prio-mult':return{name:o==='*'?'La multiplication passe avant':'La division passe avant',txt:`On calcule d'abord ${o==='*'?'la multiplication':'la division'} : ${ab} = ${fN(c)}. L'addition et la soustraction attendent leur tour.`};
+    case 'prio-left':return{name:'De gauche à droite',txt:`Sans parenthèses, ${o==='-'?'additions et soustractions':'multiplications et divisions'} se calculent de gauche à droite : on commence par ${ab} = ${fN(c)}.`};
+  }
+}
+function genNum(style,want,guilty){
+  const aim=ri(0,2);
+  for(let t=0;t<6000;t++){
+    const e0=randE(style,want,aim);if(!okE(e0))continue;
+    const ch=[e0];let c=e0,bad=false;while(nstep(c)){c=ncorrect(c);if(!okE(c)){bad=true;break}ch.push(c)}
+    if(bad||ch.length<3||ch.length>7)continue;
+    if(style==='prio'&&!ch.every(e=>e.it.every(x=>x.v>=0||x.sq)))continue;
+    if(style==='rel'&&!ch.every(e=>e.it.every(x=>Math.abs(x.v)<=90)))continue;
+    const fin=nm(ch[ch.length-1]);
+    if(!guilty){if(!ch.slice(0,-1).some(e=>nbugs(e,[want]).length))continue;
+      return{type:'num',cons:'calc',fam:famOf(want),tpl:want,given:nm(e0),lines:ch.slice(1).map(nm),err:-1,fin,meta:null,ex:null}}
+    const cands=[];ch.slice(0,-1).forEach((e,idx)=>nbugs(e,[want]).forEach(b=>cands.push({idx,b})));
+    if(!cands.length)continue;
+    const at=cands.filter(x=>x.idx===aim);if(!at.length&&t<5000)continue;
+    const cd=pick(at.length?at:cands);let w=cd.b.e;const rest=[w];
+    while(nstep(w)){w=ncorrect(w);if(!okE(w)){bad=true;break}rest.push(w)}
+    if(bad)continue;
+    const lines=[...ch.slice(1,cd.idx+1),...rest].map(nm);if(lines.length>6)continue;
+    const prev=ch[cd.idx],fix=nm(ch[cd.idx+1]),wrong=nm(cd.b.e),v0=valE(prev);
+    const s=nstep(prev),pool1=shuffle(nbugs(prev,ALLK).map(b=>nm(b.e))),pool2=[];
+    if(s.k==='sq'){const v=prev.it[s.i].v;pool2.push(nm(setAt(prev,s.i,-v*v)),nm(setAt(prev,s.i,2*v)))}
+    else{const cc=opv(prev.it[s.i].v,prev.op[s.i],prev.it[s.i+1].v);pool2.push(nm(mergeAt(prev,s.i,-cc)),nm(mergeAt(prev,s.i,cc+1)),nm(mergeAt(prev,s.i,cc-1)),nm(mergeAt(prev,s.i,cc+10)))}
+    const dis=[];for(const m of [...pool1,...pool2]){if(dis.length>=2)break;if(m===wrong||m===fix||dis.includes(m))continue;try{if(qeq(cst(m),v0))continue}catch(_){continue}dis.push(m)}
+    if(dis.length<2)continue;
+    return{type:'num',cons:'calc',fam:famOf(want),tpl:want,given:nm(e0),lines,err:cd.idx,fix,dis,fin,meta:{...cd.b.meta},ex:exNum(cd.b.kind,prev,cd.b.meta)};
+  }
+  throw new Error('génération impossible : '+want);
+}
+
+/* =====================================================================
+   3. GABARITS LITTÉRAUX ET ÉQUATIONS
+   chaque gabarit : mk(coupable) → {given, lines, err, fix, dis, fin, meta, ex}
+   ===================================================================== */
+const TP={};
+const tp=(id,fam,type,cons,mk)=>{TP[id]={id,fam,type,cons,mk}};
+/* --- réduction --- */
+tp('red-unlike','reduc','poly','red',g=>{const a=ri(2,7),b=ri(1,9),c=ri(2,7);
+  const C=[`${a}x+${c}x+${b}`,T([[a+c,1],[b,0]])];
+  const r={given:`${a}x+${b}+${c}x`,fin:C[1],meta:{a,b,c},ex:{name:"On n'ajoute pas des x et des nombres",txt:`${F(`${a}x+${b}`)} ne se simplifie pas : ${F(a+'x')}, c'est ${a} fois ${F('x')}, et ${b} est un nombre. On regroupe seulement les termes en ${F('x')} : ${F(`${a}x+${c}x`)} = ${F((a+c)+'x')}.`}};
+  return g?{...r,lines:[`${a+b}x+${c}x`,`${a+b+c}x`],err:0,fix:C[0],dis:[`${a+c}x^2+${b}`,`${a+b+c}x`]}:{...r,lines:C,err:-1}});
+tp('red-xx','reduc','poly','red',g=>{const b=ri(1,6),c=ri(2,6),a=ri(1,9);
+  const L1=`${X(b)}+${X(c)}+${a}`,C=[L1,T([[b+c,1],[a,0]])];
+  const r={given:`${X(b)}+${a}+${X(c)}`,fin:C[1],meta:{a,b,c},ex:{name:'x + x = 2x, pas x²',txt:`Ajouter ${F(X(b))} et ${F(X(c))}, c'est compter des ${F('x')} : ${F(`${X(b)}+${X(c)}`)} = ${F((b+c)+'x')}. Le carré n'apparaît que lorsqu'on multiplie ${F('x')} par ${F('x')}.`}};
+  return g?{...r,lines:[L1,T([[b+c,2],[a,0]])],err:1,fix:C[1],dis:[`${b+c+a}x`,`${b*c}x+${a}`]}:{...r,lines:C,err:-1}});
+tp('red-prod','carre','poly','red',g=>{const a=ri(2,6),b=ri(2,6),c=ri(1,9),p=a*b;
+  const r={given:`${a}x*${b}x+${c}x`,fin:`${p}x^2+${X(c)}`,meta:{a,b,c},ex:{name:'x × x = x²',txt:`${F(`${a}x*${b}x`)} = ${F(`${a}*${b}*x*x`)} = ${F(p+'x^2')} : ${F('x*x')} s'écrit ${F('x^2')}. Le ${F('x')} ne doit pas disparaître.`}};
+  return g?{...r,lines:[`${p}x+${X(c)}`,`${p+c}x`],err:0,fix:`${p}x^2+${X(c)}`,dis:[`${a+b}x^2+${X(c)}`,`${p+c}x^2`]}:{...r,lines:[`${p}x^2+${X(c)}`],err:-1}});
+tp('red-cancel','reduc','poly','red',g=>{const a=ri(3,9),b=ri(1,9);
+  const L1=`${a}x-x+${b}`,C=[L1,`${a-1}x+${b}`];
+  const r={given:`${a}x+${b}-x`,fin:C[1],meta:{a,b},ex:{name:'Le x ne disparaît pas',txt:`${F(`${a}x-x`)} = ${F(`${a}x-1x`)} = ${F((a-1)+'x')} : on enlève un ${F('x')}, il en reste ${a-1}. Écrire ${F(`${a}x-x`)} = ${a}, c'est faire disparaître les ${F('x')}.`}};
+  return g?{...r,lines:[L1,`${a}+${b}`,`${a+b}`],err:1,fix:C[1],dis:[`${a-1}+${b}`,`${a+1}x+${b}`]}:{...r,lines:C,err:-1}});
+tp('red-sign','signes','poly','red',g=>{const a=ri(2,8),b=nz(2,9,[a]),c=ri(2,9);
+  const L1=`-${a}x+${b}x+${c}`,C=[L1,T([[b-a,1],[c,0]])];
+  const r={given:`${c}-${a}x+${b}x`,fin:C[1],meta:{a,b,c},ex:{name:'Le signe colle au terme',txt:`Le signe placé devant un terme lui appartient : ${F(`-${a}x+${b}x`)} = ${F(T([[b-a,1]]))}, car ${F(`-${a}+${b}`)} = ${fN(b-a)}.`}};
+  return g?{...r,lines:[L1,T([[-(a+b),1],[c,0]])],err:1,fix:C[1],dis:[T([[a+b,1],[c,0]]),T([[a-b,1],[c,0]])]}:{...r,lines:C,err:-1}});
+tp('sq-lit','carre','poly','red',g=>{const a=ri(3,9);
+  const r={given:`x*x+${a}x`,fin:`x^2+${a}x`,meta:{a},ex:{name:'x × x = x², pas 2x',txt:`${F('x*x')} = ${F('x^2')} : c'est ${F('x')} multiplié par lui-même. ${F('2x')}, c'est ${F('x+x')}, le double de ${F('x')}.`}};
+  return g?{...r,lines:[`2x+${a}x`,`${a+2}x`],err:0,fix:`x^2+${a}x`,dis:[`2x^2+${a}x`,`${a+1}x^2`]}:{...r,lines:[`x^2+${a}x`],err:-1}});
+/* --- parenthèses --- */
+tp('dist-forgot','dist','poly','dev',g=>{const a=ri(2,7),b=ri(1,9),s=pick([1,-1]),c=ri(1,9);
+  const C=[`${a}x${sg(s)}${a*b}+${c}`,T([[a,1],[s*a*b+c,0]])];
+  const r={given:`${a}(x${sg(s)}${b})+${c}`,fin:C[1],meta:{a,b,s,c},ex:{name:'Le facteur multiplie chaque terme',txt:`${F(`${a}(x${sg(s)}${b})`)} = ${F(`${a}*x${sg(s)}${a}*${b}`)} = ${F(`${a}x${sg(s)}${a*b}`)}. Le ${a} doit multiplier les deux termes de la parenthèse, pas seulement le premier.`}};
+  return g?{...r,lines:[`${a}x${sg(s)}${b}+${c}`,T([[a,1],[s*b+c,0]])],err:0,fix:C[0],dis:[`${a}x${sg(s)}${a*b}+${a*c}`,`x${sg(s)}${a*b}+${c}`]}:{...r,lines:C,err:-1}});
+tp('dist-x','dist','poly','dev',g=>{const b=ri(2,9),c=ri(2,9);
+  const C=[`x^2+${b}x+${c}x`,`x^2+${b+c}x`];
+  const r={given:`x(x+${b})+${c}x`,fin:C[1],meta:{b,c},ex:{name:'x multiplie chaque terme',txt:`${F(`x(x+${b})`)} = ${F(`x*x+x*${b}`)} = ${F(`x^2+${b}x`)}. Le ${F('x')} devant la parenthèse multiplie aussi le ${b}.`}};
+  return g?{...r,lines:[`x^2+${b}+${c}x`,`x^2+${c}x+${b}`],err:0,fix:C[0],dis:[`2x+${b}x+${c}x`,`x+${b}x+${c}x`]}:{...r,lines:C,err:-1}});
+tp('dist-sign','dist','poly','dev',g=>{const a=ri(2,6),b=ri(1,9),c=ri(1,12);
+  const C=[`${c}-${a}x+${a*b}`,T([[-a,1],[c+a*b,0]])];
+  const r={given:`${c}-${a}(x-${b})`,fin:C[1],meta:{a,b,c},ex:{name:'Le signe du facteur compte',txt:`On multiplie chaque terme par ${fN(-a)} : ${F(`-${a}*x`)} = ${F(`-${a}x`)} et ${F(`(-${a})*(-${b})`)} = ${a*b} (deux nombres négatifs : produit positif). Donc ${F(`-${a}(x-${b})`)} = ${F(`-${a}x+${a*b}`)}.`}};
+  return g?{...r,lines:[`${c}-${a}x-${a*b}`,T([[-a,1],[c-a*b,0]])],err:0,fix:C[0],dis:[`${c}-${a}x-${b}`,`${c}+${a}x-${a*b}`]}:{...r,lines:C,err:-1}});
+tp('minus-par','moins','poly','dev',g=>{const a=ri(2,9),b=nz(1,8,[a]),c=ri(1,9);
+  const C=[`${a}x-${X(b)}-${c}`,T([[a-b,1],[-c,0]])];
+  const r={given:`${a}x-(${X(b)}+${c})`,fin:C[1],meta:{a,b,c},ex:{name:'Le signe moins devant la parenthèse',txt:`Un « ${M} » devant une parenthèse change le signe de <b>chaque</b> terme à l'intérieur : ${F(`-(${X(b)}+${c})`)} = ${F(`-${X(b)}-${c}`)}.`}};
+  return g?{...r,lines:[`${a}x-${X(b)}+${c}`,T([[a-b,1],[c,0]])],err:0,fix:C[0],dis:[`${a}x+${X(b)}-${c}`,`${a}x+${X(b)}+${c}`]}:{...r,lines:C,err:-1}});
+tp('minus-par2','moins','poly','dev',g=>{const a=ri(2,6),b=ri(1,8),c=nz(1,6,[a]),d=ri(1,9);
+  const L1=`${a}x+${a*b}-(${X(c)}-${d})`,C=[L1,`${a}x+${a*b}-${X(c)}+${d}`,T([[a-c,1],[a*b+d,0]])];
+  const r={given:`${a}(x+${b})-(${X(c)}-${d})`,fin:C[2],meta:{a,b,c,d},ex:{name:'Le signe moins devant la parenthèse',txt:`Le « ${M} » devant la parenthèse change le signe de <b>chaque</b> terme : ${F(`-(${X(c)}-${d})`)} = ${F(`-${X(c)}+${d}`)}. Le ${F('-'+d)} devient ${F('+'+d)}.`}};
+  return g?{...r,lines:[L1,`${a}x+${a*b}-${X(c)}-${d}`,T([[a-c,1],[a*b-d,0]])],err:1,fix:C[1],dis:[`${a}x+${a*b}+${X(c)}+${d}`,`${a}x+${a*b}+${X(c)}-${d}`]}:{...r,lines:C,err:-1}});
+tp('dev-sign','signes','poly','dev',g=>{const a=ri(2,5),b=ri(1,4),c=ri(2,5),d=ri(3,9);if(a*b>=c*d)return null;
+  const C=[`${a}x+${a*b}+${c}x-${c*d}`,`${a}x+${c}x+${a*b}-${c*d}`,T([[a+c,1],[a*b-c*d,0]])];
+  const r={given:`${a}(x+${b})+${c}(x-${d})`,fin:C[2],meta:{a,b,c,d},ex:{name:'Soustraire un nombre plus grand',txt:`Les deux développements sont justes, mais ${F(`${a*b}-${c*d}`)} = ${fN(a*b-c*d)} : en partant de ${a*b}, on descend de ${c*d} et on passe sous zéro.`}};
+  return g?{...r,lines:[C[0],C[1],T([[a+c,1],[c*d-a*b,0]])],err:2,fix:C[2],dis:[T([[a+c,1],[a*b+c*d,0]]),T([[a+c,1],[-(a*b+c*d),0]])]}:{...r,lines:C,err:-1}});
+tp('dist-coef','dist','poly','dev',g=>{const a=ri(2,6),b=ri(2,5),c=ri(1,9),s=pick([1,-1]),d=ri(1,9);
+  const C=[`${a*b}x${sg(s)}${a*c}+${d}`,T([[a*b,1],[s*a*c+d,0]])];
+  const r={given:`${a}(${b}x${sg(s)}${c})+${d}`,fin:C[1],meta:{a,b,c,s,d},ex:{name:'Le facteur multiplie chaque terme',txt:`${F(`${a}(${b}x${sg(s)}${c})`)} = ${F(`${a}*${b}x${sg(s)}${a}*${c}`)} = ${F(`${a*b}x${sg(s)}${a*c}`)} : le ${a} multiplie aussi le ${c}.`}};
+  return g?{...r,lines:[`${a*b}x${sg(s)}${c}+${d}`,T([[a*b,1],[s*c+d,0]])],err:0,fix:C[0],dis:[`${a+b}x${sg(s)}${a+c}+${d}`,`${b}x${sg(s)}${a*c}+${d}`]}:{...r,lines:C,err:-1}});
+tp('dev-red','dist','poly','dev',g=>{const a=ri(2,6),b=ri(1,8),c=ri(2,6),d=ri(2,8);
+  const C=[`${a}x+${a*b}+${c}x-${c*d}`,`${a}x+${c}x+${a*b}-${c*d}`,T([[a+c,1],[a*b-c*d,0]])];
+  const r={given:`${a}(x+${b})+${c}(x-${d})`,fin:C[2],meta:{a,b,c,d},ex:{name:'Le facteur multiplie chaque terme',txt:`Dans la deuxième parenthèse aussi : ${F(`${c}(x-${d})`)} = ${F(`${c}x-${c}*${d}`)} = ${F(`${c}x-${c*d}`)}.`}};
+  return g?{...r,lines:[`${a}x+${a*b}+${c}x-${d}`,`${a}x+${c}x+${a*b}-${d}`,T([[a+c,1],[a*b-d,0]])],err:0,fix:C[0],dis:[`${a}x+${b}+${c}x-${d}`,`${a}x+${a*b}+${c}x+${c*d}`]}:{...r,lines:C,err:-1}});
+/* --- équations en une étape --- */
+tp('eq-move-add','eqpass','eq','eq',g=>{const a=ri(2,15),x0=nz(-9,12),b=x0+a,left=pick([`x+${a}`,`${a}+x`]);
+  const C=[`x=${Sm(b,-a)}`,`x=${x0}`];
+  const r={given:`${left}=${b}`,fin:`x=${x0}`,meta:{a,b},ex:{name:"Changer de côté… sans changer le signe",txt:`Pour isoler ${F('x')}, on soustrait ${a} des deux côtés : ${F(`x=${Sm(b,-a)}`)}. « Faire passer » un terme de l'autre côté, c'est faire l'opération contraire : ${F('+'+a)} devient ${F('-'+a)}.`}};
+  return g?{...r,lines:[`x=${Sm(b,a)}`,`x=${b+a}`],err:0,fix:C[0],dis:[`x=${Sm(a,-b)}`,`x=${Sm(-b,-a)}`]}:{...r,lines:C,err:-1}});
+tp('eq-move-sub','eqpass','eq','eq',g=>{const a=ri(2,15),x0=nz(-9,15),b=x0-a;
+  const C=[`x=${Sm(b,a)}`,`x=${x0}`];
+  const r={given:`x-${a}=${b}`,fin:`x=${x0}`,meta:{a,b},ex:{name:"Changer de côté… sans changer le signe",txt:`Pour isoler ${F('x')}, on ajoute ${a} des deux côtés : ${F(`x=${Sm(b,a)}`)}. Le ${F('-'+a)} « passe » de l'autre côté en devenant ${F('+'+a)}.`}};
+  return g?{...r,lines:[`x=${Sm(b,-a)}`,`x=${b-a}`],err:0,fix:C[0],dis:[`x=${Sm(a,-b)}`,`x=${Sm(-b,a)}`]}:{...r,lines:C,err:-1}});
+tp('eq-div-sub','eqdiv','eq','eq',g=>{const a=ri(2,9),x0=nz(-9,12,[1]),b=a*x0;
+  const C=[`x=${Fr(b,a)}`,`x=${x0}`];
+  const r={given:`${a}x=${b}`,fin:`x=${x0}`,meta:{a,b},ex:{name:`${a}x, c'est ${a} × x`,txt:`${F(a+'x')} signifie ${F(a+'*x')}. Pour retrouver ${F('x')}, on divise les deux côtés par ${a} : ${F(`x=${Fr(b,a)}`)} = ${fN(x0)}. Soustraire ${a} ne défait pas une multiplication.`}};
+  return g?{...r,lines:[`x=${Sm(b,-a)}`,`x=${b-a}`],err:0,fix:C[0],dis:[`x=${Fr(a,b)}`,`x=${Sm(b,a)}`]}:{...r,lines:C,err:-1}});
+tp('eq-div-inv','eqdiv','eq','eq',g=>{const a=ri(2,9),x0=nz(-8,9,[1,-1]),b=a*x0;
+  const C=[`x=${Fr(b,a)}`,`x=${x0}`];
+  const r={given:`${a}x=${b}`,fin:`x=${x0}`,meta:{a,b},ex:{name:'La division à l\'envers',txt:`De ${F(`${a}x=${b}`)}, on divise les deux côtés par ${a} : ${F(`x=${Fr(b,a)}`)}. Le nombre qui multiplie ${F('x')} va au dénominateur.`}};
+  return g?{...r,lines:[`x=${Fr(a,b)}`,`x=${frac(a,b)}`],err:0,fix:C[0],dis:[`x=${Sm(b,-a)}`,`x=${Fr(-b,a)}`]}:{...r,lines:C,err:-1}});
+tp('eq-neg-x','eqdiv','eq','eq',g=>{const b=ri(2,12),c=nz(-9,12,[b]),v=c-b;
+  const C=[`-x=${Sm(c,-b)}`,`-x=${v}`,`x=${-v}`];
+  const r={given:`${b}-x=${c}`,fin:`x=${-v}`,meta:{b,c},ex:{name:'−x, ce n\'est pas x',txt:`${F(`-x=${v}`)} signifie que l'opposé de ${F('x')} vaut ${fN(v)}, donc ${F(`x=${-v}`)}. On peut aussi diviser les deux côtés par ${fN(-1)}.`}};
+  return g?{...r,lines:[C[0],C[1],`x=${v}`],err:2,fix:C[2],dis:[`x=${c+b}`,`-x=${-v}`]}:{...r,lines:C,err:-1}});
+tp('eq-calc','signes','eq','eq',g=>{const a=ri(5,15),b=ri(1,a-1);
+  const C=[`x=${Sm(b,-a)}`,`x=${b-a}`];
+  const r={given:`x+${a}=${b}`,fin:`x=${b-a}`,meta:{a,b},ex:{name:'Soustraire un nombre plus grand',txt:`La ligne ${F(`x=${Sm(b,-a)}`)} est juste, mais ${F(Sm(b,-a))} = ${fN(b-a)} : en partant de ${b}, on descend de ${a} et on passe sous zéro.`}};
+  return g?{...r,lines:[C[0],`x=${a-b}`],err:1,fix:C[1],dis:[`x=${b+a}`,`x=${-(a+b)}`]}:{...r,lines:C,err:-1}});
+tp('eq-div-sign','eqdiv','eq','eq',g=>{const a=ri(2,9),x0=-ri(2,9),b=-a*x0;
+  const C=[`x=${Fr(b,-a)}`,`x=${x0}`];
+  const r={given:`-${a}x=${b}`,fin:`x=${x0}`,meta:{a,b},ex:{name:'Diviser par un nombre négatif',txt:`Le nombre qui multiplie ${F('x')} est ${fN(-a)}, avec son signe : on divise les deux côtés par ${fN(-a)}. ${F(`x=${Fr(b,-a)}`)} = ${fN(x0)}.`}};
+  return g?{...r,lines:[`x=${Fr(b,a)}`,`x=${b/a}`],err:0,fix:C[0],dis:[`x=${Sm(b,a)}`,`x=${Fr(a,-b)}`]}:{...r,lines:C,err:-1}});
+/* --- équations en deux étapes --- */
+tp('eq2-div-one','eqdiv','eq','eq',g=>{const a=ri(2,5),k=ri(1,6),b=a*k,x0=nz(-5,9),m=x0+k,c=a*m;
+  const C=[`x+${k}=${m}`,`x=${Sm(m,-k)}`,`x=${x0}`];
+  const r={given:`${a}x+${b}=${c}`,fin:`x=${x0}`,meta:{a,b,c},ex:{name:'Diviser tous les termes',txt:`Diviser un côté par ${a}, c'est diviser <b>chacun</b> de ses termes : ${F(`${a}x:${a}`)} = ${F('x')} et ${F(`${b}:${a}`)} = ${k}. Le ${b} aurait dû devenir ${k}.`}};
+  return g?{...r,lines:[`x+${b}=${m}`,`x=${Sm(m,-b)}`,`x=${m-b}`],err:0,fix:C[0],dis:[`x+${k}=${c}`,`${a}x+${k}=${m}`]}:{...r,lines:C,err:-1}});
+tp('eq2-move','eqpass','eq','eq',g=>{const a=ri(2,7),b=ri(2,12),x0=nz(-6,9),c=a*x0+b;
+  const C=[`${a}x=${Sm(c,-b)}`,`${a}x=${c-b}`,`x=${Fr(c-b,a)}`,`x=${x0}`];
+  const W=[`${a}x=${Sm(c,b)}`,`${a}x=${c+b}`,`x=${Fr(c+b,a)}`];if(frac(c+b,a)!==Fr(c+b,a))W.push(`x=${frac(c+b,a)}`);
+  const r={given:`${a}x+${b}=${c}`,fin:`x=${x0}`,meta:{a,b,c},ex:{name:"Changer de côté… sans changer le signe",txt:`Pour enlever le ${F('+'+b)}, on soustrait ${b} des deux côtés : ${F(`${a}x=${Sm(c,-b)}`)}. Le terme change de côté <b>et</b> de signe.`}};
+  return g?{...r,lines:W,err:0,fix:C[0],dis:[`${a}x=${Sm(b,-c)}`,`x=${Sm(c,-b)}`]}:{...r,lines:C,err:-1}});
+tp('eq2-move-x','eqpass','eq','eq',g=>{const c=ri(1,4),a=c+ri(1,4),x0=nz(-6,8),b=ri(1,12),d=(a-c)*x0+b;
+  const C=[`${a}x-${X(c)}=${Sm(d,-b)}`,`${X(a-c)}=${d-b}`];if(a-c>1)C.push(`x=${Fr(d-b,a-c)}`,`x=${x0}`);
+  const W=[`${a}x+${X(c)}=${Sm(d,-b)}`,`${a+c}x=${d-b}`,`x=${Fr(d-b,a+c)}`];if(frac(d-b,a+c)!==Fr(d-b,a+c))W.push(`x=${frac(d-b,a+c)}`);
+  const r={given:`${a}x+${b}=${T([[c,1],[d,0]])}`,fin:`x=${x0}`,meta:{a,b,c,d},ex:{name:'Les x aussi changent de signe',txt:`Pour regrouper les ${F('x')} à gauche, on soustrait ${F(X(c))} des deux côtés : ${F(`${a}x-${X(c)}`)}. Le terme ${F(X(c))} change de côté <b>et</b> de signe, comme les nombres.`}};
+  return g?{...r,lines:W,err:0,fix:C[0],dis:[`${a}x-${X(c)}=${Sm(d,b)}`,`${a}x+${X(c)}=${Sm(d,b)}`]}:{...r,lines:C,err:-1}});
+tp('eq2-div-sub','eqdiv','eq','eq',g=>{const a=ri(2,9),b=ri(1,12),x0=nz(-6,9,[1]),c=a*x0-b,v=c+b;
+  const C=[`${a}x=${Sm(c,b)}`,`${a}x=${v}`,`x=${Fr(v,a)}`,`x=${x0}`];
+  const r={given:`${a}x-${b}=${c}`,fin:`x=${x0}`,meta:{a,b,c},ex:{name:`${a}x, c'est ${a} × x`,txt:`De ${F(`${a}x=${v}`)}, on divise les deux côtés par ${a} : ${F(`x=${Fr(v,a)}`)} = ${fN(x0)}. Soustraire ${a} ne défait pas une multiplication.`}};
+  return g?{...r,lines:[C[0],C[1],`x=${Sm(v,-a)}`,`x=${v-a}`],err:2,fix:C[2],dis:[`x=${Fr(a,v)}`,`x=${Sm(v,a)}`]}:{...r,lines:C,err:-1}});
+/* --- vérification d'une solution --- */
+function chkCopy(kind,g){
+  const p=ri(2,6),q=ri(1,9),r_=nz(2,6,[p]),s=kind==='chk-sign'?-ri(2,6):nz(-3,6,[0]);
+  const yes=Math.random()<.5,t0=p*s+q-r_*s,t=yes?t0:t0+nz(-5,5);
+  const v1=p*s+q,v2=r_*s+t,L=[[p,q],[r_,t]];
+  let w=0;if(g&&kind==='chk-prio'&&t!==0&&Math.random()<.5)w=1;
+  if(g&&kind==='chk-sign'&&Math.random()<.5)w=1;
+  const val=[v1,v2],shown=val.slice();
+  const bugv=(P,K)=>kind==='chk-prio'?P*(s+K):-P*s+K;
+  if(g)shown[w]=bugv(L[w][0],L[w][1]);
+  const lhs=k=>affine(L[k][0],s,L[k][1]);
+  const lines=[{t:'chk',m:`${lhs(0)}=${shown[0]}`},{t:'chk',m:`${lhs(1)}=${shown[1]}`},{t:'concl',s,yes:shown[0]===shown[1],refs:[0,1]}];
+  const P=L[w][0],K=L[w][1];
+  const exT=kind==='chk-prio'
+    ?{name:'Les priorités dans la vérification',txt:`On remplace ${F('x')} par ${fN(s)}, puis on multiplie avant d'ajouter : ${F(lhs(w))} = ${F(Sm(P*s,K))} = ${fN(val[w])}.`}
+    :{name:'La règle des signes dans la vérification',txt:`${F(`${P}*${PN(s)}`)} = ${fN(P*s)} : un nombre positif multiplié par un nombre négatif donne un résultat négatif. Donc ${F(lhs(w))} = ${fN(val[w])}.`};
+  const r={type:'chk',given:`${p}x+${q}=${T([[r_,1],[t,0]])}`,lines,fin:{s,yes:v1===v2,v1,v2},meta:{p,q,r:r_,t,s,w},ex:exT,sol:s};
+  if(!g)return{...r,err:-1};
+  const cand=shuffle([-val[w],P*s-K,P+s+K,bugv(P,K)+1,-shown[w],val[w]+P,val[w]-P]);
+  const dis=[];for(const d of cand){if(dis.length>=2)break;if(d===val[w]||d===shown[w]||dis.includes(d))continue;dis.push(d)}
+  return{...r,err:w,fix:`${lhs(w)}=${val[w]}`,dis:dis.map(d=>`${lhs(w)}=${d}`)};
+}
+tp('chk-prio','verif','chk','chk',g=>chkCopy('chk-prio',g));
+tp('chk-sign','verif','chk','chk',g=>chkCopy('chk-sign',g));
+tp('chk-sq','carre','chk','chk',g=>{const b=nz(-5,5),s=-ri(1,5),v=s*s+b*s,r_=ri(1,5),yes=Math.random()<.5,t=v-r_*s+(yes?0:nz(-4,4)),v2=r_*s+t;
+  const lhs=`${PN(s)}^2${b<0?'-':'+'}${Math.abs(b)}*${PN(s)}`,aff=affine(r_,s,t),wv=-s*s+b*s,shown=g?wv:v,sqF=Math.random()<.5;
+  const Lsq={t:'chk',m:`${lhs}=${shown}`},Laf={t:'chk',m:`${aff}=${v2}`},Psq=T([[1,2],[b,1]]),Paf=T([[r_,1],[t,0]]);
+  const lines=[...(sqF?[Lsq,Laf]:[Laf,Lsq]),{t:'concl',s,yes:shown===v2,refs:[0,1]}];
+  const r={type:'chk',given:sqF?`${Psq}=${Paf}`:`${Paf}=${Psq}`,lines,fin:{s,yes:v===v2,v1:sqF?v:v2,v2:sqF?v2:v},meta:{b,s,r:r_,t,sqF},sol:s,ex:{name:"Le carré d'un nombre négatif",txt:`${F(`${PN(s)}^2`)} = ${F(`${PN(s)}*${PN(s)}`)} = ${s*s} : deux nombres négatifs ont un produit positif. Donc ${F(lhs)} = ${fN(v)}.`}};
+  if(!g)return{...r,err:-1};
+  const dis=[];for(const d of shuffle([-v,s*s-b*s,2*s+b*s,-wv,v+1,v-1])){if(dis.length>=2)break;if(d===v||d===wv||dis.includes(d))continue;dis.push(d)}
+  return{...r,err:sqF?0:1,fix:`${lhs}=${v}`,dis:dis.map(d=>`${lhs}=${d}`)}});
+
+/* =====================================================================
+   4. LES ENQUÊTES
+   ===================================================================== */
+const LV=[
+ {t:'Les signes en cavale',s:'Nombres relatifs',cls:['5e','4e'],d:'Sommes, différences et produits de nombres relatifs.',style:'rel',pool:SIGNK,badge:'Flair des signes',sym:'±',col:'#1260b8'},
+ {t:'Qui passe en premier ?',s:'Priorités opératoires',cls:['5e','4e'],d:'Priorités, calculs de gauche à droite et carrés.',style:'prio',pool:PRIOK,badge:'Gardien des priorités',sym:'×÷',col:'#7a3fc2'},
+ {t:'Les faux jumeaux',s:'Réduire une expression',cls:['4e'],d:'Des x avec des x, des nombres avec des nombres… et x² à part.',pool:['red-unlike','red-xx','red-prod','red-cancel','red-sign','sq-lit'],badge:'Œil de lynx',sym:'2x',col:'#1d7a35'},
+ {t:'Le gang des parenthèses',s:'Développer',cls:['4e','3e'],d:'Distributivité et signe moins devant une parenthèse.',pool:['dist-forgot','dist-x','dist-sign','minus-par','minus-par2','dist-coef','dev-red','dev-sign'],badge:'Briseur de parenthèses',sym:'( )',col:'#b8860b'},
+ {t:'Le passage secret',s:'Équations en une étape',cls:['4e'],d:'Isoler x en faisant la même opération des deux côtés.',pool:['eq-move-add','eq-move-sub','eq-div-sub','eq-div-inv','eq-neg-x','eq-calc','eq-div-sign'],badge:'Maître du passage',sym:'=',col:'#0f7f86'},
+ {t:'La double énigme',s:'Équations en deux étapes',cls:['4e','3e'],d:'Deux étapes, x des deux côtés et vérification d\'une solution.',pool:['eq2-div-one','eq2-move','eq2-move-x','eq2-div-sub','chk-prio','chk-sign','chk-sq'],badge:'Double flair',sym:'x ?',col:'#c2410c'},
+ {t:'L\'affaire du siècle',s:'Enquête finale',cls:['3e'],d:'Toutes les erreurs mélangées : le grand dossier.',mix:true,badge:'Grand détective',sym:'★',col:'#b91c1c'}
+];
+const FAMH={signes:"Regarde les signes : les « − », les nombres négatifs, les parenthèses.",prio:"Regarde l'ordre des calculs : quelle opération faut-il faire en premier ?",carre:"Regarde les carrés : 5², c'est 5 × 5 ; et x × x, c'est x².",reduc:"Regarde ce qu'on regroupe : des x avec des x, des nombres avec des nombres.",dist:"Regarde les parenthèses : le facteur devant multiplie-t-il chaque terme ?",moins:"Regarde le signe « − » placé devant la parenthèse.",eqpass:"Regarde ce qui change de côté : on fait toujours la même opération des deux côtés.",eqdiv:"Regarde comment on se débarrasse du nombre qui multiplie x.",verif:"Refais toi-même chaque calcul de la vérification, en respectant les priorités."};
+const NAMES=['Anli','Faïza','Nassim','Zaïnaba','Yanis','Mariama','Kassim','Inès','Djamal','Hadidja','Rayan','Nayla','Soilihi','Chloé','Ismaël','Laïla','Hakim','Sitti','Mounir','Rozette'];
+const CONS={calc:l=>`Calculer ${l}.`,red:l=>`Réduire l'expression ${l}.`,dev:l=>`Développer et réduire ${l}.`,eq:()=>'Résoudre l\'équation.',chk:(l,c)=>`Le nombre ${fN(c.sol)} est-il solution de l'équation ? On remplace x par ${fN(c.sol)} dans chaque membre.`};
+
+/* étape juste ajoutée en tête : un nombre ou un coefficient de x écrit en deux morceaux (5 = 2 + 3, 6x = 4x + 2x),
+   que l'élève regroupe sur la ligne suivante ; l'erreur du gabarit arrive donc une ou deux lignes plus loin */
+function splitStep(m){
+  const t=tok(m),c=[];let d=0;
+  for(let i=0;i<t.length;i++){const p=t[i];if(p==='('){d++;continue}if(p===')'){d--;continue}
+    if(d||!/^\d+$/.test(p)||+p<2)continue;
+    if(i>0&&!['+','-','='].includes(t[i-1]))continue;
+    const isX=t[i+1]==='x',after=isX?t[i+2]:t[i+1];
+    if(after!==undefined&&!['+','-','='].includes(after))continue;
+    c.push({i,isX})}
+  if(!c.length)return null;
+  const {i,isX}=pick(c),N=+t[i],a=ri(1,N-1),b=N-a,sgn=i>0&&t[i-1]==='-'?'-':'+';
+  const w=k=>isX?(k===1?'x':k+'x'):String(k);
+  return [...t.slice(0,i),w(a)+sgn+w(b),...t.slice(i+(isX?2:1))].join('');
+}
+function addPrefix(r,k){
+  let g=r.given;const pre=[];
+  for(let n=0;n<k;n++){if(r.lines.length+pre.length>=6)break;const s=splitStep(g);if(!s)break;pre.unshift(g);g=s}
+  return{...r,given:g,lines:[...pre,...r.lines],err:r.err<0?-1:r.err+pre.length};
+}
+function rawCopy(l,guilty,key){
+  const L=LV[l];
+  if(L.style)return genNum(L.style,key,guilty);
+  const t=TP[key];let r=null;while(!r)r=t.mk(guilty);if(t.type!=='chk')r=addPrefix(r,ri(0,2));return{type:t.type,cons:t.cons,fam:t.fam,tpl:key,...r};
+}
+function genCopy(l,guilty,key){
+  if(LV[l].mix){const ls=[0,1,2,3,4,5];const sl=key&&key.l!==undefined?key.l:pick(ls);return{...genCopy(sl,guilty,key&&key.k||pick(LV[sl].pool)),lvl:l,src:sl}}
+  key=key||pick(LV[l].pool);
+  for(let n=0;n<60;n++){
+    const r=rawCopy(l,guilty,key);
+    const c=decorate(r,l);
+    const v=verifyCopy(c);if(v===true)return c;
+  }
+  throw new Error('copie invalide : '+key);
+}
+function decorate(r,l){
+  const c={...r,lvl:l};
+  c.lines=r.lines.map(x=>typeof x==='string'?{t:r.type,m:x}:x);
+  c.label=(r.type==='num'||r.type==='poly')?pick(['A','B','C','D','E']):'';
+  c.student=pick(NAMES);c.cls=pick(LV[l].cls);
+  c.consigne=CONS[r.cons](c.label,c);
+  if(r.err>=0)c.choices=shuffle([r.fix,...r.dis]);
+  return c;
+}
+function genEnquete(l){
+  const L=LV[l];let keys;
+  if(L.mix){const ls=shuffle([0,1,2,3,4,5]).slice(0,5);keys=ls.map(x=>({l:x,k:pick(LV[x].pool)}))}
+  else{keys=shuffle(L.pool);while(keys.length<PER)keys=keys.concat(shuffle(L.pool));keys=keys.slice(0,PER)}
+  let inno=-1;if(Math.random()<.6)inno=ri(1,PER-1);
+  return keys.map((k,i)=>genCopy(l,i!==inno,k));
+}
+
+/* ---------- vérificateur interne (la copie est refusée si un seul test échoue) ---------- */
+function prevM(c,k){return k===0?c.given:c.lines[k-1].m}
+function rhsVal(c,ref){if(typeof ref==='number'){const m=c.lines[ref].m;return cst(m.split('=')[1])}return Q(ref.c)}
+function lineValid(c,k,m){
+  const L=c.lines[k],t=L.t;
+  if(t==='num'||t==='poly')return peq(parseExpr(prevM(c,k)),parseExpr(m));
+  if(t==='eq')return sameSol(solSet(prevM(c,k)),solSet(m));
+  if(t==='chk'){const [a,b]=m.split('=');return peq(parseExpr(a),parseExpr(b))}
+  if(t==='concl'){return qeq(rhsVal(c,L.refs[0]),rhsVal(c,L.refs[1]))===L.yes}
+  throw new Error('type '+t);
+}
+function verifyCopy(c){
+  try{
+    const bad=[];c.lines.forEach((L,k)=>{if(!lineValid(c,k,L.m))bad.push(k)});
+    if(c.err<0){if(bad.length)return 'ligne fausse dans une copie innocente'}
+    else{
+      if(bad.length!==1||bad[0]!==c.err)return 'nombre de lignes fausses : '+bad.join(',');
+      if(!lineValid(c,c.err,c.fix))return 'correction fausse';
+      if(c.dis.some(d=>lineValid(c,c.err,d)))return 'leurre juste';
+      const all=[c.lines[c.err].m,c.fix,...c.dis];if(new Set(all).size!==all.length)return 'propositions en double';
+    }
+    if(c.type==='num'||c.type==='poly'){if(!peq(parseExpr(c.given),parseExpr(c.fin)))return 'résultat final faux'}
+    else if(c.type==='eq'){const s=solSet(c.given);if(!sameSol(s,solSet(c.fin))||s.k!=='one')return 'solution fausse'}
+    else{const [a,b]=c.given.split('=');const yes=qeq(pval(parseExpr(a),c.sol),pval(parseExpr(b),c.sol));if(yes!==c.fin.yes)return 'conclusion finale fausse'}
+    return true;
+  }catch(e){return 'exception : '+e.message}
+}
+
+/* =====================================================================
+   5. INTERFACE
+   ===================================================================== */
+let prog={solved:[]};try{prog=JSON.parse(localStorage.getItem('de-prog'))||prog}catch(e){}
+const save=()=>{try{localStorage.setItem('de-prog',JSON.stringify(prog))}catch(e){}};
+const G={lvl:0,copies:[],idx:0,board:false,cur:null,phase:'look',sel:-1,hint:0,res:[],leads:0,hints:0,inno:0};
+
+/* ---------- son (synthétisé, très court) ---------- */
+let actx=null,snd=true;try{snd=localStorage.getItem('de-son')!=='0'}catch(e){}
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type='sine',w=0,f2){const a=ac();if(!a)return;const t=a.currentTime+w,o=a.createOscillator(),g=a.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0008,t+d);
+  o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const sTick=()=>{if(snd)tone(1400,.06,.05,'triangle')};
+const sHmm=()=>{if(snd){tone(330,.16,.06,'triangle');tone(294,.22,.05,'triangle',.13)}};
+const sAha=()=>{if(snd){tone(523.25,.14,.07,'triangle');tone(783.99,.3,.07,'triangle',.11)}};
+const sStamp=()=>{if(snd){tone(140,.22,.22,'sine',0,55);tone(900,.04,.05,'square')}};
+const sWin=()=>{if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.45,.07,'triangle',i*.11))};
+function renderSnd(){for(const id of ['snd1','snd2']){const b=$(id);b.setAttribute('aria-pressed',snd);b.textContent=snd?'♪ Son : oui':'♪ Son : non'}}
+function toggleSnd(){snd=!snd;try{localStorage.setItem('de-son',snd?'1':'0')}catch(e){}renderSnd();if(snd)sTick()}
+
+/* ---------- vues ---------- */
+function show(v){for(const x of ['desk','case','end'])$('v-'+x).hidden=x!==v;document.body.classList.toggle('incase',v!=='desk');window.scrollTo({top:0,behavior:'instant'})}
+function badgeSVG(i,on,cls='badge'){const L=LV[i];return `<svg viewBox="0 0 80 96" class="${cls}${on?'':' off'}" aria-hidden="true">
+<path d="M26 58 L15 92 L30 85 L38 96 L45 62Z" fill="${on?'#d0302a':'var(--line)'}"/><path d="M54 58 L65 92 L50 85 L42 96 L35 62Z" fill="${on?'#1260b8':'var(--line)'}"/>
+<circle cx="40" cy="40" r="32" fill="${on?L.col:'var(--panel)'}" stroke="${on?'#ffb056':'var(--line)'}" stroke-width="5"/>
+<circle cx="40" cy="40" r="23.5" fill="none" stroke="#fff" stroke-opacity="${on?.55:.25}" stroke-width="1.5" stroke-dasharray="3 3"/>
+<text x="40" y="${L.sym.length>2?46:48}" text-anchor="middle" font-family="Lexend,system-ui,sans-serif" font-weight="700" font-size="${L.sym.length>2?16:22}" fill="${on?'#fff':'var(--mut)'}">${on?L.sym:'?'}</text></svg>`}
+function renderDesk(){
+  $('dossiers').innerHTML=LV.map((L,i)=>`<button type="button" class="dossier" data-l="${i}"><span class="dn">Enquête ${i+1} · ${L.s}</span><b>${L.t}</b><small>${L.d}</small>
+  <span class="dfoot">${badgeSVG(i,!!prog.solved[i],'bmini badge')}${prog.solved[i]?'Dossier résolu · rejouer':'À résoudre'}</span>${prog.solved[i]?'<span class="closed">CLASSÉE</span>':''}</button>`).join('');
+  $('badges').innerHTML=LV.map((L,i)=>`<figure>${badgeSVG(i,!!prog.solved[i])}<figcaption>${prog.solved[i]?L.badge:'Badge mystère'}</figcaption></figure>`).join('');
+}
+$('dossiers').addEventListener('click',e=>{const b=e.target.closest('.dossier');if(b)startCase(+b.dataset.l)});
+
+function startCase(l){G.board=false;document.body.classList.remove('board');G.lvl=l;G.copies=genEnquete(l);G.idx=0;G.res=[];G.leads=0;G.hints=0;G.inno=0;
+  $('caseTitle').innerHTML=`Enquête ${l+1} : ${LV[l].t}<small>${LV[l].s}</small>`;show('case');renderCopy()}
+function startBoard(l){G.board=true;document.body.classList.add('board');G.lvl=l;G.cur=genCopy(l,Math.random()>.2);renderBoardBar();
+  $('caseTitle').innerHTML=`Au tableau : ${LV[l].t}<small>${LV[l].s}</small>`;show('case');renderCopy()}
+function renderBoardBar(){$('boardBar').innerHTML=LV.map((L,i)=>`<button type="button" class="pill" data-l="${i}" aria-pressed="${i===G.lvl}">${i+1}. ${L.s}</button>`).join('')+
+  `<button type="button" class="btn or" id="bNew">Nouvelle copie</button><button type="button" class="btn gh" id="bRev">Révéler la réponse</button><button type="button" class="btn gh" id="bOut">Quitter le tableau</button>`}
+$('boardBar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.l!==undefined){startBoard(+b.dataset.l);return}
+  if(b.id==='bNew'){G.cur=genCopy(G.lvl,Math.random()>.2);renderCopy()}
+  if(b.id==='bRev')reveal();
+  if(b.id==='bOut'){G.board=false;document.body.classList.remove('board');renderDesk();show('desk')}});
+
+/* ---------- affichage d'une copie ---------- */
+function lineHTML(c,L,given){
+  if(L.t==='concl'){const a=rhsVal(c,L.refs[0]),b=rhsVal(c,L.refs[1]);
+    return `<span class="ex concl">${fQ(a)} ${L.yes?'=':'≠'} ${fQ(b)}, donc ${fN(L.s)} ${L.yes?'est':'n\'est pas'} solution de l'équation.</span>`}
+  const m=typeof L==='string'?L:L.m;
+  const lab=c.label?`<span class="lab">${c.label} =</span>`:'';
+  return lab+`<span class="ex">${fmt(m)}</span>`;
+}
+function say(html){$('say').innerHTML=html}
+function dots(){
+  if(G.board){$('dots').innerHTML='';return}
+  $('dots').innerHTML=Array.from({length:PER},(_,i)=>`<span class="${G.res[i]?'g':i===G.idx?'c':''}"></span>`).join('')+`<em>${G.res.filter(Boolean).length} / ${PER}</em>`;
+}
+function renderCopy(){
+  const c=G.board?G.cur:G.copies[G.idx];G.cur=c;
+  G.phase='look';G.sel=-1;G.hint=0;G.revealed=false;
+  $('who').textContent=`Copie de ${c.student} · ${c.cls}`;
+  $('cnum').textContent=G.board?'':`Copie ${G.idx+1} / ${PER}`;
+  $('cons').textContent=c.consigne;
+  $('given').innerHTML=lineHTML(c,c.given);
+  $('lines').innerHTML=c.lines.map((L,k)=>`<li><button type="button" class="ln" data-i="${k}" aria-pressed="false" aria-label="Ligne ${k+1}"><span class="no" aria-hidden="true">${k+1}</span><span class="tx">${lineHTML(c,L)}</span><span class="tag"></span></button><div class="fixl" hidden></div></li>`).join('');
+  $('stamp').hidden=true;$('sheet').classList.remove('stamped');$('choices').hidden=true;$('expl').hidden=true;$('next').hidden=true;$('acts').hidden=false;$('hints').innerHTML='';
+  updAcc();updHint();dots();
+  const first=!G.board&&G.idx===0;
+  say(`<b>Inspectrice Ylang</b>${first?'Nouvelle enquête ! ':''}Voici la copie de ${c.student}. Lis chaque ligne et compare-la à celle du dessus. Une seule ligne est fausse… ou aucune !`);
+}
+function updAcc(){const b=$('accuse');if(G.sel<0){b.disabled=true;b.textContent='Touche d\'abord une ligne'}else{b.disabled=false;b.textContent=`Accuser la ligne ${G.sel+1}`}}
+function updHint(){const b=$('hintB');b.disabled=G.hint>=3;b.textContent=G.hint>=3?'Plus d\'indice':`Demander un indice (${G.hint+1}/3)`}
+const lnEl=k=>$('lines').querySelector(`.ln[data-i="${k}"]`);
+function loupeTag(){return `<svg class="lou" aria-hidden="true"><use href="#loupe"/></svg>`}
+
+$('lines').addEventListener('click',e=>{const b=e.target.closest('.ln');if(!b||G.phase!=='look')return;
+  const k=+b.dataset.i;
+  if(G.sel>=0){const o=lnEl(G.sel);o.classList.remove('sel');o.setAttribute('aria-pressed','false');if(!o.classList.contains('clear'))o.querySelector('.tag').innerHTML=''}
+  if(G.sel===k){G.sel=-1;updAcc();return}
+  G.sel=k;b.classList.add('sel');b.setAttribute('aria-pressed','true');if(!b.classList.contains('clear'))b.querySelector('.tag').innerHTML=loupeTag();sTick();updAcc();
+  say(`<b>Inspectrice Ylang</b>Ligne ${k+1} sous la loupe. Refais le calcul à partir de la ligne au-dessus : ${k===0?'l\'énoncé':'la ligne '+k}. Si elle te semble fausse, accuse-la !`);
+});
+
+function justify(c,k){
+  const L=c.lines[k];
+  if(L.t==='num')return `Elle vaut bien ${fQ(cst(L.m))}, comme ${k===0?'l\'énoncé':'la ligne '+k}.`;
+  if(L.t==='poly'){const a=parseExpr(prevM(c,k)),b=parseExpr(L.m);return `Test avec x = 2 : ${k===0?'l\'énoncé':'la ligne '+k} et la ligne ${k+1} valent toutes les deux ${fQ(pval(a,2))}. C'est bon signe : elles sont bien égales.`}
+  if(L.t==='eq')return `Elle découle bien de ${k===0?'l\'équation de départ':'la ligne '+k} : la même opération a été faite des deux côtés, ou le calcul est juste.`;
+  if(L.t==='chk'){const [a,b]=L.m.split('=');return `Le calcul est juste : ${F(a)} vaut bien ${fN(+b)}.`}
+  return 'La conclusion suit bien les calculs écrits au-dessus.';
+}
+$('accuse').onclick=()=>{
+  const c=G.cur,k=G.sel;if(G.phase!=='look'||k<0)return;
+  const b=lnEl(k);b.classList.remove('sel');b.setAttribute('aria-pressed','false');G.sel=-1;
+  if(k===c.err){caught();return}
+  G.leads++;b.classList.add('clear');b.querySelector('.tag').innerHTML='✓ vérifiée';sHmm();updAcc();
+  say(`<b>Inspectrice Ylang</b>Fausse piste, mais excellente méthode ! La ligne ${k+1} est juste. ${justify(c,k)} Continue l'enquête.`);
+};
+$('inno').onclick=()=>{
+  const c=G.cur;if(G.phase!=='look')return;
+  if(c.err<0){finishInnocent();return}
+  G.leads++;sHmm();
+  say(`<b>Inspectrice Ylang</b>Maki fronce le nez… Il y a bien une erreur cachée dans cette copie. Reprends ligne par ligne : chaque ligne doit être égale à celle du dessus.`);
+};
+$('hintB').onclick=()=>{
+  const c=G.cur;if(G.phase!=='look'||G.hint>=3)return;G.hint++;G.hints++;
+  let h;
+  if(G.hint===1)h=FAMH[c.fam];
+  else if(G.hint===2)h=c.err>=0?`Le suspect se cache dans les lignes ${Math.max(1,c.err)} à ${Math.max(1,c.err)+1} : refais ces calculs toi-même.`:`Refais chaque calcul toi-même, ligne après ligne. Si tout est juste, la copie est peut-être innocente…`;
+  else h=c.err>=0?`Maki pointe la ligne ${c.err+1} du doigt… Regarde-la de très près.`:`Maki a tout recalculé : il ne trouve aucune erreur. Et toi ?`;
+  $('hints').insertAdjacentHTML('beforeend',`<li><b>Indice ${G.hint}.</b> ${h}</li>`);updHint();sTick();
+};
+function diffMark(wrong,fix){
+  const a=fmtT(wrong),b=fmtT(fix),n=a.length,m=b.length;
+  const D=Array.from({length:n+1},()=>Array(m+1).fill(0));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)D[i][j]=a[i]===b[j]?D[i+1][j+1]+1:Math.max(D[i+1][j],D[i][j+1]);
+  const keep=Array(n).fill(false),ins=[];let i=0,j=0;while(i<n&&j<m){if(a[i]===b[j]){keep[i]=true;i++;j++}else if(D[i+1][j]>=D[i][j+1])i++;else{ins.push(i);j++}}
+  if(j<m)ins.push(n-1);
+  let f=keep.indexOf(false),l=keep.lastIndexOf(false);
+  if(f<0){if(!ins.length)return a.join('');/* un signe « − » manquant : on entoure le terme qui l'a perdu */
+    f=Math.min(ins[0],n-1);l=Math.min(ins[ins.length-1],n-1)}
+  const g=a.slice(f,l+1).join(''),lead=g.match(/^\s*/)[0],trail=g.match(/\s*$/)[0];
+  return a.slice(0,f).join('')+lead+`<mark class="cul">${g.trim()}</mark>`+trail+a.slice(l+1).join('');
+}
+function caught(){
+  const c=G.cur,k=c.err,b=lnEl(k);G.phase='fix';
+  b.classList.add('caught','done');b.querySelector('.tag').innerHTML='';
+  const ex=b.querySelector('.ex');ex.innerHTML=diffMark(c.lines[k].m,c.fix);
+  sAha();$('acts').hidden=true;
+  say(`<b>Inspectrice Ylang</b>Démasquée ! La loupe grossit l'erreur de la ligne ${k+1}. Maintenant, aide ${c.student} : par quoi faut-il remplacer cette ligne ?`);
+  const ch=$('choices');ch.hidden=false;
+  ch.innerHTML=`<p>La bonne ligne ${k+1} :</p>`+c.choices.map((m,i)=>`<button type="button" class="choice" data-i="${i}">${lineHTML(c,{t:c.lines[k].t,m})}</button>`).join('');
+  $('lines').querySelectorAll('.ln').forEach(x=>x.classList.add('done'));
+}
+$('choices').addEventListener('click',e=>{const b=e.target.closest('.choice');if(!b||b.disabled||G.phase!=='fix')return;
+  const c=G.cur,m=c.choices[+b.dataset.i];
+  if(m===c.fix){b.classList.add('good');finishCaught();return}
+  b.disabled=true;sHmm();
+  const t=c.lines[c.err].t;
+  say(`<b>Inspectrice Ylang</b>Pas encore : ${t==='eq'?'cette équation n\'a pas la même solution que la ligne au-dessus':t==='chk'?'ce calcul n\'est pas juste non plus':'cette écriture n\'est pas égale à la ligne au-dessus'}. Essaie une autre proposition !`);
+});
+function finText(c){
+  if(c.type==='chk'){const f=c.fin;return `${fN(f.v1)} ${f.yes?'=':'≠'} ${fN(f.v2)}, donc ${fN(f.s)} ${f.yes?'est':'n\'est pas'} solution de l'équation.`}
+  return (c.label?c.label+' = ':'')+fmt(c.type==='eq'?c.fin:c.fin);
+}
+function stamp(inno){$('sheet').classList.add('stamped');const s=$('stamp');s.hidden=true;void s.offsetWidth;s.textContent=inno?'COPIE INNOCENTE':'AFFAIRE CLASSÉE';s.classList.toggle('inno',inno);s.hidden=false;sStamp()}
+function finishCaught(){
+  const c=G.cur,k=c.err;G.phase='done';
+  const b=lnEl(k);b.classList.add('struck');
+  const fx=b.parentElement.querySelector('.fixl');fx.innerHTML=`<span class="pen">corrigé</span>${lineHTML(c,{t:c.lines[k].t,m:c.fix})}`;fx.hidden=false;
+  $('choices').querySelectorAll('.choice').forEach(x=>x.disabled=x.classList.contains('good')?false:true);
+  $('choices').querySelectorAll('.choice').forEach(x=>{if(!x.classList.contains('good'))x.hidden=true});
+  const e=$('expl');e.hidden=false;
+  e.innerHTML=`<h3>Erreur démasquée : ${c.ex.name}</h3><p>${c.ex.txt}</p><p><span class="k">Ligne ${k+1} corrigée</span><span class="mth">${lineHTML(c,{t:c.lines[k].t,m:c.fix})}</span></p><p><span class="k">${c.type==='chk'?'Conclusion juste':'Résultat juste'}</span><span class="big mth">${finText(c)}</span></p>`;
+  say(G.revealed?`<b>Inspectrice Ylang</b>Voici la réponse : l'erreur, sa correction et l'explication.`:`<b>Inspectrice Ylang</b>Bravo, détective ! Tu as trouvé l'erreur <i>et</i> sa correction. Lis l'explication pour ne plus jamais te faire piéger.`);
+  stamp(false);endCopy();
+}
+function finishInnocent(){
+  const c=G.cur;G.phase='done';G.inno++;
+  $('lines').querySelectorAll('.ln').forEach(x=>{x.classList.add('done');x.classList.remove('sel');x.querySelector('.tag').innerHTML='✓ juste'});
+  $('acts').hidden=true;const e=$('expl');e.hidden=false;
+  e.innerHTML=`<h3>Copie innocente !</h3><p>Chaque ligne est égale à celle du dessus : ${c.student} n'a fait aucune erreur. Un bon détective sait aussi reconnaître un innocent.</p><p><span class="k">${c.type==='chk'?'Conclusion':'Résultat'}</span><span class="big mth">${finText(c)}</span></p>`;
+  say(G.revealed?`<b>Inspectrice Ylang</b>Voici la réponse : cette copie était parfaite, aucune erreur.`:`<b>Inspectrice Ylang</b>Bien vu ! Tu ne t'es pas laissé piéger : cette copie était parfaite.`);
+  stamp(true);endCopy();
+}
+function endCopy(){
+  if(G.board){$('next').hidden=true;return}
+  G.res[G.idx]=true;dots();
+  const last=G.idx>=PER-1;$('next').textContent=last?'Fermer le dossier →':'Copie suivante →';$('next').hidden=false;
+}
+function reveal(){
+  const c=G.cur;if(G.phase==='done')return;G.revealed=true;
+  if(c.err<0){finishInnocent();return}
+  if(G.phase==='look'){if(G.sel>=0){lnEl(G.sel).classList.remove('sel')}caught()}
+  const good=[...$('choices').querySelectorAll('.choice')].find(x=>c.choices[+x.dataset.i]===c.fix);good.classList.add('good');finishCaught();
+}
+$('next').onclick=()=>{if(G.idx>=PER-1){endCase();return}G.idx++;renderCopy();window.scrollTo({top:0,behavior:reduceM?'instant':'smooth'})};
+function endCase(){
+  const l=G.lvl,L=LV[l],first=!prog.solved[l];prog.solved[l]=true;save();sWin();
+  const n=G.copies.filter(c=>c.err>=0).length,inn=PER-n;
+  $('endBox').innerHTML=`${badgeSVG(l,true,'bigb badge')}<div class="stampbig">AFFAIRE CLASSÉE</div>
+  <h2>Dossier résolu : ${L.t}</h2>
+  <p>${first?'Nouveau badge d\'enquêteur':'Badge d\'enquêteur'} : <b>« ${L.badge} »</b></p>
+  <ul><li>${PER} copies examinées</li><li>${n} erreur${n>1?'s':''} démasquée${n>1?'s':''} et corrigée${n>1?'s':''}</li><li>${inn} copie${inn>1?'s':''} innocente${inn>1?'s':''} reconnue${inn>1?'s':''}</li></ul>
+  <p>${G.leads?`${G.leads} fausse${G.leads>1?'s':''} piste${G.leads>1?'s':''} écartée${G.leads>1?'s':''} : vérifier, c'est le métier de détective !`:'Aucune fausse piste : quel flair !'}</p>
+  <div class="row">${l<LV.length-1?`<button class="btn or" type="button" id="eNext">Enquête suivante →</button>`:''}<button class="btn gh" type="button" id="eAgain">Rejouer l'enquête</button><button class="btn gh" type="button" id="eDesk">Retour au bureau</button></div>`;
+  show('end');
+  const en=$('eNext');if(en)en.onclick=()=>startCase(l+1);
+  $('eAgain').onclick=()=>startCase(l);$('eDesk').onclick=()=>{renderDesk();show('desk')};
+}
+$('toDesk').onclick=()=>{renderDesk();show('desk')};
+$('toBoard').onclick=()=>startBoard(0);
+$('snd1').onclick=toggleSnd;$('snd2').onclick=toggleSnd;
+
+/* ---------- la scène du bureau ---------- */
+$('scene').innerHTML=`<defs>
+<linearGradient id="gsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="c-sky1"/><stop offset="1" class="c-sky2"/></linearGradient>
+<radialGradient id="glens" cx=".38" cy=".34" r=".75"><stop offset="0" stop-color="#ffffff" stop-opacity=".6"/><stop offset="1" stop-color="#bfe6ff" stop-opacity=".22"/></radialGradient>
+<linearGradient id="gcoat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dcbb80"/><stop offset="1" stop-color="#b38a50"/></linearGradient>
+<linearGradient id="gshade" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb056"/><stop offset="1" stop-color="#e86a00"/></linearGradient>
+<linearGradient id="glight" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe7a8" stop-opacity=".55"/><stop offset="1" stop-color="#ffe7a8" stop-opacity="0"/></linearGradient>
+</defs>
+<rect width="640" height="300" class="f-wall"/>
+<rect y="232" width="640" height="68" class="f-wall2"/>
+<rect y="300" width="640" height="100" class="f-floor"/>
+<g transform="translate(40 36)">
+ <rect x="-9" y="-9" width="218" height="168" rx="6" class="f-frame"/>
+ <rect width="200" height="150" fill="url(#gsky)"/>
+ <circle cx="158" cy="34" r="14" class="f-sun"/>
+ <path d="M0 104 L18 92 L34 96 L56 70 L66 76 L80 50 L90 66 L104 60 L124 86 L150 90 L176 82 L200 88 L200 112 L0 112Z" class="f-isle"/>
+ <rect y="106" width="200" height="44" class="f-sea"/>
+ <path d="M12 120 h26 M64 134 h34 M138 126 h30 M20 142 h22" stroke="#ffffff" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/>
+ <g transform="translate(112 116)"><path d="M0 4 Q20 12 40 4 L37 8 Q20 14 3 8Z" fill="#7a4e2b"/><path d="M10 4 L6 -4 M30 4 L34 -4" stroke="#5a3d26" stroke-width="1.5"/><path d="M0 -4 H40" stroke="#5a3d26" stroke-width="2"/><path d="M-6 -2 h10 M36 -2 h10" stroke="#5a3d26" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="-3" r="3" fill="#1d1410"/><path d="M20 0 v4" stroke="#1d1410" stroke-width="3"/></g>
+ <path d="M100 0 V150 M0 75 H200" class="s-frame" stroke-width="6"/>
+ <rect x="-14" y="150" width="228" height="10" rx="3" class="f-frame"/>
+</g>
+<g transform="translate(400 34)">
+ <rect width="208" height="146" rx="6" class="f-cork" stroke="#7a4e2b" stroke-width="7"/>
+ <g transform="rotate(-5 50 54)"><rect x="18" y="18" width="64" height="80" fill="#fffdf6"/><path d="M26 34 h48 M26 46 h40 M26 58 h46 M26 70 h36 M26 82 h44" stroke="#9cb6dc" stroke-width="2"/><ellipse cx="50" cy="58" rx="20" ry="8" fill="none" stroke="#d0302a" stroke-width="2.5"/></g>
+ <g transform="rotate(4 156 46)"><rect x="118" y="16" width="72" height="56" fill="#fffdf6"/><text x="154" y="52" text-anchor="middle" font-family="Lexend,system-ui,sans-serif" font-weight="700" font-size="20" fill="#1d3f9e">x = ?</text></g>
+ <g transform="rotate(-8 142 112)"><rect x="118" y="88" width="48" height="44" fill="#ffb056"/><text x="142" y="120" text-anchor="middle" font-family="Lexend,system-ui,sans-serif" font-weight="700" font-size="26" fill="#5a2a00">?</text></g>
+ <path d="M50 22 L154 20 L142 92 Z" fill="none" stroke="#d0302a" stroke-width="2"/>
+ <circle cx="50" cy="22" r="5" fill="#d0302a"/><circle cx="154" cy="20" r="5" fill="#1260b8"/><circle cx="142" cy="92" r="5" fill="#23803a"/>
+</g>
+<g>
+ <circle cx="330" cy="134" r="40" fill="#1d1410"/><circle cx="296" cy="146" r="14" fill="#1d1410"/><circle cx="364" cy="146" r="14" fill="#1d1410"/>
+ <path d="M262 300 Q262 200 330 186 Q398 200 398 300Z" fill="url(#gcoat)"/>
+ <path d="M318 188 L330 216 L342 188Z" fill="#ffffff"/>
+ <path d="M312 190 L300 236 L322 228 L330 214Z M348 190 L360 236 L338 228 L330 214Z" fill="#a57b42"/>
+ <path d="M318 190 Q330 200 342 190 L338 204 Q330 210 322 204Z" fill="#ff7a00"/>
+ <rect x="321" y="160" width="18" height="30" rx="6" fill="#7d4e33"/>
+ <circle cx="330" cy="136" r="31" fill="#8d5a3b"/>
+ <circle cx="300" cy="140" r="5" fill="#7d4e33"/><circle cx="300" cy="148" r="3" fill="#ffb056"/>
+ <g class="blink"><circle cx="318" cy="136" r="3.6" fill="#1d1410"/></g>
+ <path d="M310 126 Q318 121 325 126" stroke="#1d1410" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+ <path d="M319 153 Q328 160 338 153" stroke="#3a1f12" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+ <ellipse cx="312" cy="146" rx="5" ry="3" fill="#c0704f" opacity=".5"/>
+ <ellipse cx="326" cy="106" rx="40" ry="14" fill="#ff7a00" transform="rotate(-8 326 106)"/>
+ <path d="M288 112 Q326 120 364 101" stroke="#c45a00" stroke-width="4" fill="none" stroke-linecap="round"/>
+ <circle cx="330" cy="92" r="4" fill="#c45a00"/>
+ <path d="M384 220 Q394 186 372 166" stroke="#c9a46a" stroke-width="20" fill="none" stroke-linecap="round"/>
+ <g class="lensg">
+  <path d="M357 148 L370 166" stroke="#6b4a2b" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="344" cy="132" r="19" fill="url(#glens)" stroke="#5a3d26" stroke-width="5"/>
+  <circle cx="344" cy="133" r="7.5" fill="#ffffff"/><circle cx="345" cy="134" r="4.6" fill="#1d1410"/><circle cx="343.4" cy="132" r="1.6" fill="#ffffff"/>
+  <path d="M333 124 Q337 118 344 117" stroke="#ffffff" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".8"/>
+ </g>
+ <circle cx="372" cy="168" r="9" fill="#8d5a3b"/>
+</g>
+<rect x="44" y="276" width="552" height="18" rx="5" class="f-wood1"/>
+<rect x="60" y="294" width="520" height="96" class="f-wood2"/>
+<path d="M330 300 V384 M70 340 H320 M340 340 H570" stroke="#000" stroke-opacity=".18" stroke-width="2"/>
+<circle cx="196" cy="320" r="4" fill="#ffd27a"/><circle cx="456" cy="320" r="4" fill="#ffd27a"/>
+<path d="M268 278 L396 278 L404 290 L260 290Z" class="f-sheet"/><path d="M276 282 H388 M272 286 H392" stroke="#9cb6dc" stroke-width="1"/>
+<g>
+ <rect x="92" y="262" width="126" height="16" rx="3" class="f-kraft2"/><rect x="88" y="250" width="128" height="16" rx="3" class="f-kraft"/>
+ <rect x="96" y="238" width="122" height="16" rx="3" class="f-kraft2"/><rect x="100" y="232" width="30" height="8" rx="2" class="f-kraft2"/>
+ <path d="M150 252 h40" stroke="#d0302a" stroke-width="3"/>
+</g>
+<g>
+ <path class="tailw" d="M172 246 C214 248 222 290 200 302 C188 310 176 300 184 292" stroke="#4b3626" stroke-width="10" fill="none" stroke-linecap="round"/>
+ <ellipse cx="156" cy="214" rx="22" ry="25" fill="#6e5240"/>
+ <ellipse cx="156" cy="221" rx="12" ry="16" fill="#a88a6a"/>
+ <ellipse cx="142" cy="236" rx="8" ry="5" fill="#5b4232"/><ellipse cx="170" cy="236" rx="8" ry="5" fill="#5b4232"/>
+ <ellipse cx="156" cy="186" rx="22" ry="15" fill="#cdb48e"/>
+ <circle cx="141" cy="170" r="6" fill="#5b4232"/><circle cx="171" cy="170" r="6" fill="#5b4232"/>
+ <circle cx="156" cy="182" r="17" fill="#5b4232"/>
+ <ellipse cx="156" cy="189" rx="9" ry="12" fill="#2a1f18"/>
+ <g class="blink"><circle cx="149" cy="180" r="5" fill="#ff9a1e"/><circle cx="163" cy="180" r="5" fill="#ff9a1e"/><circle cx="149.6" cy="180.5" r="2.2" fill="#1a1008"/><circle cx="163.6" cy="180.5" r="2.2" fill="#1a1008"/></g>
+ <ellipse cx="156" cy="195" rx="3" ry="2" fill="#000"/>
+ <path d="M144 208 Q136 220 142 228" stroke="#5b4232" stroke-width="6" fill="none" stroke-linecap="round"/>
+</g>
+<g>
+ <path d="M462 246 h28 v24 q0 8 -8 8 h-12 q-8 0 -8 -8Z" fill="#f4f1ea" stroke="#9aa6af" stroke-width="1.5"/><path d="M490 252 q10 0 10 8 q0 8 -10 8" fill="none" stroke="#9aa6af" stroke-width="3"/>
+ <path class="steam" d="M472 240 q-4 -6 0 -12 M480 240 q-4 -6 0 -12" stroke="#9aa6af" stroke-width="2" fill="none" stroke-linecap="round"/>
+</g>
+<g>
+ <path d="M520 196 L470 276 L596 276Z" fill="url(#glight)"/>
+ <ellipse cx="548" cy="276" rx="26" ry="5" fill="#2b3137"/>
+ <path d="M548 274 L560 230 L528 196" stroke="#2b3137" stroke-width="5" fill="none" stroke-linecap="round"/>
+ <path d="M500 206 L522 176 L548 192 L530 216Z" fill="url(#gshade)" stroke="#a84300" stroke-width="1.5"/>
+</g>`;
+
+/* ---------- démarrage ---------- */
+renderSnd();renderDesk();show('desk');
+window.DE={LV,TP,genCopy,genEnquete,verifyCopy,fmt,parseExpr,lineValid,
+  batch:(l,n,ratio=.8)=>Array.from({length:n},(_,i)=>genCopy(l,i<n*ratio)),
+  state:()=>G};
+})();
+</script>
+
+<script>window.SIGMA_MUSIC_STYLE='epique'</script>
+<script>
+/* Sigma Arcade — musique de fond originale (Web Audio, aucun fichier audio).
+   Deux compositions originales :
+   - « aventure » : marche héroïque en ré majeur, 4/4, 116 bpm ;
+   - « epique »   : saga sombre en ré mineur, 3/4, 126 bpm.
+   Démarre au premier geste de l'utilisateur (règle des navigateurs),
+   se coupe avec le bouton, mémorise le choix, baisse quand la page est cachée.
+   API : SigmaMusic.duck(true|false) baisse le volume (ex. trajets de l'ascenseur). */
+(function () {
+  'use strict';
+  if (window.SigmaMusic) return;
+  var STYLE0 = window.SIGMA_MUSIC_STYLE === 'epique' ? 'epique' : 'aventure';
+  var store = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+  var on = store.get('sigma-musique', '1') === '1';
+  var style = store.get('sigma-musique-style-' + location.pathname, STYLE0);
+
+  /* ---- notes : nom → fréquence ---- */
+  var SEMI = { C: -9, D: -7, E: -5, F: -4, G: -2, A: 0, B: 2 };
+  function hz(n) { // ex. 'D4', 'F#4', 'Bb3'
+    var m = /^([A-G])([#b]?)(\d)$/.exec(n); if (!m) return 0;
+    var s = SEMI[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0) + (parseInt(m[3], 10) - 4) * 12;
+    return 440 * Math.pow(2, s / 12);
+  }
+  /* séquence compacte : "note:durée note:durée …" (durée en temps ; '-' = silence) */
+  function seq(str) {
+    var t = 0, out = [];
+    str.trim().split(/\s+/).forEach(function (tok) {
+      var p = tok.split(':'), d = parseFloat(p[1]);
+      if (p[0] !== '-') out.push({ t: t, d: d, f: hz(p[0]) });
+      t += d;
+    });
+    return { ev: out, len: t };
+  }
+
+  /* ================= compositions originales ================= */
+  var SONGS = {
+    aventure: { bpm: 116, beats: 4, bars: 8,
+      lead: seq(
+        'D4:1 A4:0.5 F#4:0.5 A4:1 D5:1 ' +
+        'C#5:0.75 B4:0.25 A4:1 G4:1 -:1 ' +
+        'B4:1 D5:0.5 B4:0.5 G4:1 B4:1 ' +
+        'A4:1.5 G4:0.5 F#4:1 E4:1 ' +
+        'F#4:1 A4:0.5 D5:0.5 F#5:1 E5:1 ' +
+        'D5:0.75 C#5:0.25 B4:1 G4:1 B4:1 ' +
+        'A4:1 E4:0.5 G4:0.5 C#5:1 B4:0.5 C#5:0.5 ' +
+        'D5:2 A4:1 -:1'),
+      bass: seq(
+        'D2:1 D3:1 A2:1 D3:1  G2:1 G3:1 D3:1 G3:1  G2:1 G3:1 D3:1 B2:1  A2:1 A3:1 E3:1 A2:1 ' +
+        'D2:1 D3:1 A2:1 F#2:1 G2:1 G3:1 B2:1 G2:1  A2:1 A3:1 E3:1 C#3:1 D2:1 A2:1 D3:1 -:1'),
+      chords: [['D3','F#3','A3'],['G3','B3','D4'],['G3','B3','D4'],['A3','C#4','E4'],
+               ['D3','F#3','A3'],['G3','B3','D4'],['A3','C#4','E4'],['D3','F#3','A3']],
+      drums: 'march', leadType: 'brass' },
+    epique: { bpm: 126, beats: 3, bars: 8,
+      lead: seq(
+        'D5:2 C5:1  Bb4:3  A4:2 G4:1  A4:2 -:1 ' +
+        'F4:1 G4:1 A4:1  Bb4:2 D5:1  C5:1.5 Bb4:0.5 A4:1  D4:3'),
+      bass: seq(
+        'D2:1 A2:1 D3:1  Bb1:1 F2:1 Bb2:1  C2:1 G2:1 C3:1  A1:1 E2:1 A2:1 ' +
+        'D2:1 A2:1 D3:1  G1:1 D2:1 G2:1  A1:1 E2:1 A2:1  D2:1 A2:1 D3:1'),
+      chords: [['D3','F3','A3'],['Bb2','D3','F3'],['C3','E3','G3'],['A2','C#3','E3'],
+               ['D3','F3','A3'],['G2','Bb2','D3'],['A2','C#3','E3'],['D3','F3','A3']],
+      drums: 'war', leadType: 'strings' }
+  };
+
+  /* ================= moteur ================= */
+  var ctx = null, master = null, duckG = null, timer = null, nextT = 0, beat = 0, playing = false;
+  function audio() {
+    if (!ctx) {
+      try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
+      master = ctx.createGain(); master.gain.value = 0;
+      duckG = ctx.createGain(); duckG.gain.value = 1;
+      var comp = ctx.createDynamicsCompressor();
+      master.connect(duckG); duckG.connect(comp); comp.connect(ctx.destination);
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  function env(g, t, a, peak, dur, rel) {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(peak, t + a);
+    g.gain.setValueAtTime(peak, t + Math.max(a, dur - rel));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + rel);
+  }
+  function lead(f, t, dur, type) {
+    var o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
+    o1.type = 'sawtooth'; o2.type = type === 'brass' ? 'square' : 'sawtooth';
+    o1.frequency.value = f; o2.frequency.value = f; o2.detune.value = type === 'brass' ? -6 : 9;
+    lp.type = 'lowpass'; lp.Q.value = type === 'brass' ? 2 : 0.7;
+    lp.frequency.setValueAtTime(type === 'brass' ? 700 : 900, t);
+    lp.frequency.linearRampToValueAtTime(type === 'brass' ? 2200 : 1500, t + Math.min(0.12, dur / 2));
+    o1.connect(lp); o2.connect(lp); lp.connect(g); g.connect(master);
+    env(g, t, type === 'brass' ? 0.03 : 0.12, type === 'brass' ? 0.11 : 0.09, dur, type === 'brass' ? 0.08 : 0.25);
+    o1.start(t); o2.start(t); o1.stop(t + dur + 0.4); o2.stop(t + dur + 0.4);
+  }
+  function bass(f, t, dur) {
+    var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.value = f;
+    o.connect(g); g.connect(master); env(g, t, 0.01, 0.16, dur * 0.9, 0.06); o.start(t); o.stop(t + dur + 0.2);
+  }
+  function pad(notes, t, dur) {
+    notes.forEach(function (n) {
+      var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = hz(n);
+      o.connect(g); g.connect(master); env(g, t, 0.25, 0.028, dur, 0.4); o.start(t); o.stop(t + dur + 0.6);
+    });
+  }
+  var noiseBuf = null;
+  function noise(t, dur, vol, freq) {
+    if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate); var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    var s = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
+    s.buffer = noiseBuf; bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 0.8;
+    s.connect(bp); bp.connect(g); g.connect(master); env(g, t, 0.002, vol, dur, dur); s.start(t); s.stop(t + dur * 2 + 0.05);
+  }
+  function drum(t, f0, f1, dur, vol) {
+    var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine';
+    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    o.connect(g); g.connect(master); env(g, t, 0.003, vol, dur, dur * 0.5); o.start(t); o.stop(t + dur + 0.1);
+  }
+  function drums(kind, b, t, spb, beats) {
+    var pos = b % beats;
+    if (kind === 'march') {
+      if (pos === 0 || pos === 2) drum(t, 130, 45, 0.18, 0.22);
+      if (pos === 1 || pos === 3) noise(t, 0.09, 0.07, 1800);
+      noise(t + spb / 2, 0.05, 0.03, 2600);                       // roulement léger à la croche
+      if (pos === 3) noise(t + spb * 0.75, 0.05, 0.035, 2200);
+    } else {
+      if (pos === 0) { drum(t, 95, 38, 0.45, 0.3); }
+      if (pos === 2) drum(t + spb / 2, 140, 70, 0.2, 0.12);
+      if (pos === 1) noise(t, 0.16, 0.035, 900);
+    }
+  }
+  function schedule() {
+    var S = SONGS[style], spb = 60 / S.bpm, total = S.beats * S.bars;
+    while (nextT < ctx.currentTime + 0.25) {
+      var b = beat % total;
+      S.lead.ev.forEach(function (e) { if (e.t >= b && e.t < b + 1) lead(e.f, nextT + (e.t - b) * spb, e.d * spb * 0.95, S.leadType); });
+      S.bass.ev.forEach(function (e) { if (e.t >= b && e.t < b + 1) bass(e.f, nextT + (e.t - b) * spb, e.d * spb); });
+      if (b % S.beats === 0) pad(S.chords[(b / S.beats) % S.chords.length], nextT, S.beats * spb);
+      drums(S.drums, b, nextT, spb, S.beats);
+      nextT += spb; beat++;
+    }
+  }
+  function start() {
+    if (playing || !on || document.hidden) return;
+    if (!audio()) return;
+    playing = true; beat = 0; nextT = ctx.currentTime + 0.12;
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setValueAtTime(0, ctx.currentTime); master.gain.linearRampToValueAtTime(0.55, ctx.currentTime + 1.5);
+    schedule(); timer = setInterval(schedule, 60);
+  }
+  function stop() {
+    if (!playing) return; playing = false; clearInterval(timer);
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setValueAtTime(master.gain.value, ctx.currentTime); master.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+  }
+  function duck(x) {
+    if (!ctx) return; var t = ctx.currentTime;
+    duckG.gain.cancelScheduledValues(t); duckG.gain.setValueAtTime(duckG.gain.value, t);
+    duckG.gain.linearRampToValueAtTime(x ? 0.18 : 1, t + (x ? 0.25 : 0.8));
+  }
+
+  /* ================= bouton flottant ================= */
+  var css = '.smus{position:absolute;top:12px;right:max(12px,env(safe-area-inset-right));z-index:9000;display:flex;gap:6px;font:600 14px Lexend,system-ui,sans-serif}' +
+    '.smus button{min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid rgba(255,122,0,.6);background:light-dark(rgba(255,255,255,.94),rgba(20,24,28,.94));color:light-dark(#15191d,#e9edf0);cursor:pointer;box-shadow:0 6px 18px -8px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font:inherit}' +
+    '.smus button[aria-pressed=true]{background:#ff7a00;color:#1d0e00;border-color:#ff7a00}' +
+    '.smus .sty{font-size:13px}.smus button:focus-visible{outline:3px solid #ff7a00;outline-offset:2px}' +
+    '@media(max-width:520px){.smus .sty{display:none}.smus button{min-height:40px;padding:0 12px;font-size:13px}}' +
+    '@media print{.smus{display:none}}';
+  var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+  var box = document.createElement('div'); box.className = 'smus'; box.setAttribute('aria-label', 'Musique de fond');
+  var bOn = document.createElement('button'), bSty = document.createElement('button');
+  bOn.type = bSty.type = 'button'; bSty.className = 'sty';
+  function label() {
+    bOn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    bOn.textContent = on ? '♪ Musique : oui' : '♪ Musique : non';
+    bSty.textContent = style === 'epique' ? 'Style : épique' : 'Style : aventure';
+  }
+  bOn.addEventListener('click', function (e) {
+    e.stopPropagation(); on = !on; store.set('sigma-musique', on ? '1' : '0'); label();
+    if (on) start(); else stop();
+  });
+  bSty.addEventListener('click', function (e) {
+    e.stopPropagation(); style = style === 'epique' ? 'aventure' : 'epique';
+    store.set('sigma-musique-style-' + location.pathname, style); label();
+    if (playing) { stop(); setTimeout(start, 450); }
+  });
+  box.appendChild(bSty); box.appendChild(bOn);
+  function mount() { document.body.appendChild(box); label(); }
+  if (document.body) mount(); else document.addEventListener('DOMContentLoaded', mount);
+
+  /* premier geste : la musique peut démarrer */
+  function first() { start(); }
+  ['pointerdown', 'keydown'].forEach(function (ev) { document.addEventListener(ev, first, { once: true, capture: true }); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else if (on && ctx) start(); });
+
+  window.SigmaMusic = { start: start, stop: stop, duck: duck, isOn: function () { return on; } };
+})();
+
+</script>
+</body>
+</html>

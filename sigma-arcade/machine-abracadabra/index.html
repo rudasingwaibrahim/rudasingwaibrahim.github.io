@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La Machine Abracadabra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE : clair, encourageant, scolaire ; la machine tousse, elle ne gronde jamais.
+   IDEA : un atelier de modules sur un tapis roulant ; chaque geste s'écrit aussitôt dans la copie.
+   PICTURE : le nombre-capsule qui voyage sous les presses et change à chaque étape.
+   COLOUR and TYPE : modules bleus (+ −) et verts (× ÷), capsule orange, x violet ; Lexend.
+   LAYOUT : machine, ruban d'écriture et commandes à gauche ; « Ma copie » à droite. */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#101418);--ink:light-dark(#15191d,#e9edf0);--mut:light-dark(#56616b,#9ba7b1);
+--panel:light-dark(#f1f3f5,#1a2027);--line:light-dark(#cfd5da,#323c46);--or:#ff7a00;--orsoft:rgba(255,122,0,.18);
+--ok:light-dark(#23803a,#5fd27c);--vx:light-dark(#7a3fc2,#c39bff);--neg:light-dark(#b23a2a,#ff8c7a);
+--stage1:light-dark(#e9f1f8,#141b24);--stage2:light-dark(#f7efe4,#1b1814);
+--wall:light-dark(#dfe8f1,#1b232d);--wline:light-dark(#cfdbe6,#232d39);--floor:light-dark(#bba68e,#3a3129);--tile:light-dark(#a8927a,#4b4035);
+--pipe:light-dark(#a7b6c3,#3b4855);--pipej:light-dark(#8696a4,#56636f);--tint:light-dark(#38b6d8,#38b6d8);
+--paper:light-dark(#fffdf7,#171c22);--rule:light-dark(#dfe7f3,#26303b)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 Lexend,system-ui,sans-serif;overflow-x:clip}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(28px,3.6vw,42px);line-height:1.05;margin:0 0 4px;text-wrap:balance}
+header p{margin:0;color:var(--mut);max-width:72ch}
+.back{display:inline-block;margin:0 0 8px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:2px solid var(--or)}.back:hover{color:var(--or)}
+.app{max-width:1320px;margin:auto;padding:12px max(3vw,16px) 32px;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:clamp(18px,2.6vw,34px);align-items:start}
+button,select,input{font:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--or);outline-offset:2px}
+.lv{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}
+.lv button{flex:none;min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:600;font-size:15px;cursor:pointer;white-space:nowrap}
+.lv button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.lv .own{border-color:var(--or)}
+.lv .snd{margin-left:auto;border-style:dashed}.lv .snd[aria-pressed=true]{background:var(--orsoft);color:var(--ink);border-color:var(--or)}
+.lvdesc{color:var(--mut);margin:2px 0 10px;min-height:1.5em}
+.prompt{background:var(--panel);border-radius:16px;padding:12px 16px;margin:0 0 10px}
+.prompt .cons{font-size:14px;color:var(--mut);font-weight:600;margin:0;text-transform:uppercase;letter-spacing:.04em}
+.prompt .pb{font-size:clamp(18px,2vw,22px);font-weight:600;margin:2px 0 0}
+.prompt .pb p{margin:6px 0 0}
+.progs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:10px;margin-top:4px}
+.progbox{border:2px solid var(--line);border-radius:12px;padding:8px 14px;background:var(--bg);font-size:17px;font-weight:600}
+.progbox .pt{display:block;color:var(--or);font-size:15px}
+.prog{list-style:none;margin:2px 0 0;padding:0}
+.prog li{margin:3px 0;display:flex;gap:8px;align-items:baseline}
+.prog li::before{content:"▸";color:var(--mut)}
+.prog li.n::before{content:none}
+.pn{display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:50%;background:var(--or);color:#1d0e00;font-size:13px;font-weight:700;flex:none}
+.stage{border-radius:18px;background:linear-gradient(180deg,var(--stage1),var(--stage2));overflow:hidden;position:relative}
+.mach{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+#mB{border-top:2px dashed var(--line)}
+.vx{color:var(--vx);font-style:italic;font-weight:700}
+.ruban{margin:10px 0 2px;display:flex;flex-direction:column;gap:8px;align-items:center}
+.rrow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 4px;font:700 clamp(18px,2vw,23px)/1.25 Lexend,sans-serif}
+.rlab{font-size:13px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-right:4px}
+.rrow.rv .rlab{color:#1e8fb3}
+.cell{min-width:2.4em;padding:3px 10px;border-radius:10px;border:2px solid var(--line);background:var(--bg);text-align:center;white-space:nowrap}
+.cell.emp{border-style:dashed}
+.cell.act{border-color:var(--or);box-shadow:0 0 0 3px var(--orsoft)}
+.arr{display:inline-flex;flex-direction:column;align-items:center;min-width:42px;padding:0 2px}
+.arr small{font-size:14px;color:var(--mut);font-weight:700;white-space:nowrap;line-height:1.2}
+.rv .arr small{color:#1e8fb3}
+.arr i{display:block;width:100%;min-width:38px;height:2px;background:var(--mut);position:relative;margin:4px 0 6px}
+.arr i::after{content:"";position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left:8px solid var(--mut);border-right:0}
+.cmp{font:700 clamp(22px,2.6vw,30px) Lexend,sans-serif;padding:2px 16px;border-radius:12px;background:var(--panel)}
+.msg{text-align:center;color:var(--ink);min-height:1.6em;margin:6px 0 8px}
+.msg b{font-weight:700}
+.ask{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font:700 clamp(22px,2.8vw,32px)/1.25 Lexend,sans-serif;margin:4px 0 10px;text-align:center}
+#inp{min-width:3.4ch;padding:2px 14px;border-radius:12px;border:2.5px solid var(--or);background:var(--bg);color:var(--ink)}
+#inp.ph{color:var(--mut)}
+.padw{max-width:360px;margin:0 auto}
+.pad{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.pad button{height:52px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);font:600 22px Lexend,sans-serif;color:var(--ink);cursor:pointer;touch-action:manipulation}
+.pad button:hover{border-color:var(--or)}
+.pad .okb{grid-column:span 2;background:var(--or);color:#1d0e00;border:0;font-size:18px}.pad .zero{grid-column:span 2}
+.chq{text-align:center;font-weight:600;margin:0 0 8px}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:10px}
+.choices button{min-height:60px;padding:6px 12px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:700 clamp(19px,2.1vw,24px)/1.25 Lexend,sans-serif;cursor:pointer;white-space:nowrap;overflow-x:auto}
+.choices button:hover:not(:disabled){border-color:var(--or);background:var(--orsoft)}
+.choices button:disabled{opacity:.38;text-decoration:line-through;cursor:not-allowed}
+.trayh{text-align:center;font-size:14px;color:var(--mut);font-weight:600;margin:0 0 6px}
+.tray{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.part{min-width:88px;min-height:56px;padding:0 14px;border-radius:14px;border:0;color:#fff;font:700 22px Lexend,sans-serif;cursor:pointer;box-shadow:inset 0 -5px 0 rgba(0,0,0,.25),0 3px 8px -4px rgba(0,0,0,.5);touch-action:manipulation;white-space:nowrap}
+.part.add{background:linear-gradient(#3d93d6,#1f5d94)}.part.mul{background:linear-gradient(#25ad8f,#13705e)}
+.part:hover:not(:disabled){filter:brightness(1.12)}
+.part:disabled{opacity:.22;cursor:default}
+.acts{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:10px 0 0}
+.acts:empty{margin:0}
+.btn{min-height:48px;padding:0 18px;border-radius:12px;border:0;background:var(--ink);color:var(--bg);font-weight:600;cursor:pointer}
+.btn.or{background:var(--or);color:#1d0e00}.btn.gh{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.win{border-radius:16px;padding:14px 18px;margin:12px 0;background:light-dark(#eaf7ee,#13261a);border:2px solid var(--ok)}
+.win .big{font:700 clamp(28px,3.6vw,40px)/1.1 Lexend,sans-serif;color:var(--ok)}
+.win p{margin:6px 0}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 0}
+.copy{background:var(--paper);border:1.5px solid var(--line);border-radius:16px;padding:16px 18px 18px;position:sticky;top:10px;
+  background-image:repeating-linear-gradient(var(--paper) 0 33px,var(--rule) 33px 34px);background-position:0 54px}
+.copy h2{font-size:20px;margin:0 0 8px;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.copy h2 span{font-size:14px;color:var(--mut);font-weight:600}
+.log{font-size:clamp(17px,1.6vw,20px);line-height:34px;min-height:170px}
+.log div{white-space:nowrap;overflow-x:auto}.log .new{animation:wr .35s ease-out}
+@keyframes wr{from{opacity:0;transform:translateX(-6px)}}
+.log .orig{font-weight:700}
+.log .txt{white-space:normal;line-height:1.45;padding:5px 0;color:var(--mut);font-size:.9em}
+.log .try{color:var(--mut)}
+.log .fin{font-weight:700;color:var(--ok)}
+.log .fin,.log .orig{white-space:normal;line-height:1.4;padding:4px 0}
+.log small{color:var(--mut);font-size:.72em}
+.log .ver{white-space:normal;line-height:1.5;margin-top:8px;font-size:16px;padding:10px 12px;border-radius:10px;background:light-dark(#eaf7ee,#13261a);color:var(--ink)}
+.chip{display:inline-block;padding:0 8px;border-radius:8px;color:#fff;font-weight:700;line-height:1.5}
+.chip.add{background:#2a73b3}.chip.mul{background:#178a73}
+.dots{display:flex;gap:6px;margin:12px 0 0;align-items:center;flex-wrap:wrap}
+.dots span{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dots span.g{background:var(--ok)}.dots span.h{background:transparent;box-shadow:inset 0 0 0 3px var(--ok)}
+.dots span.c{background:var(--or);box-shadow:0 0 0 3px var(--orsoft)}
+.dots em{font-style:normal;color:var(--mut);font-size:14px;margin-left:6px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--mut);margin-top:10px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:5px}
+/* Ma machine */
+.own{background:var(--panel);border-radius:16px;padding:14px 16px;margin:10px 0 0}
+.own h2{font-size:20px;margin:0 0 2px}
+.own .hint{color:var(--mut);margin:0 0 10px;font-size:15px}
+.ostep{display:flex;gap:8px;align-items:center;margin:0 0 8px;flex-wrap:wrap}
+.ostep select,.ostep input,.orun input{height:46px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font-weight:700;font-size:20px;padding:0 10px}
+.ostep select{width:72px}.ostep input{width:96px}.orun input{width:104px}
+.btn.sm{min-height:46px;min-width:46px;padding:0 12px}
+.orun{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:10px;margin-top:12px}
+.orun>div{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:8px 10px}
+.orun label{font-size:14px;font-weight:600;color:var(--mut);width:100%}
+.warn{color:var(--neg);font-weight:600;min-height:1.4em;margin:8px 0 0}
+/* machine SVG */
+.wall{fill:var(--wall)}.wline{stroke:var(--wline);stroke-width:2}
+.revtint{fill:var(--tint);opacity:0;transition:opacity .5s}.rev .revtint{opacity:.13}
+.floor{fill:var(--floor)}.tile{stroke:var(--tile);stroke-width:1.5}
+.pipe{fill:none;stroke:var(--pipe);stroke-width:10;stroke-linecap:round}.pipej{fill:var(--pipej)}
+.ptxt{font:700 18px Lexend,sans-serif;fill:#3a2406;letter-spacing:1.2px}
+.ptxt.r,.pl.r{display:none}.rev .ptxt.r,.rev .pl.r{display:inline}.rev .ptxt.f,.rev .pl.f{display:none}
+.ptxt.r{fill:#06303d}
+.led{font-family:Lexend,sans-serif;font-weight:700;fill:#ff9a3c}
+.led.rv{fill:#5ce1ff}.led.q{fill:#7d8790}
+.msub{font:600 12.5px Lexend,sans-serif;fill:#fff;opacity:.92}
+.mnum{font:700 12px Lexend,sans-serif;fill:#fff;opacity:.75}
+.hlab,.elab{font:700 12px Lexend,sans-serif;letter-spacing:.5px}
+.hlab{fill:#2b3137}.elab{fill:#ffcf8a}
+.badge{font:700 20px Lexend,sans-serif;fill:#1d0e00}
+.lamp{transition:fill .2s}.lamp.g{fill:#1d4d2a}.lamp.r{fill:#4d1d1d}
+.lamp.g.on{fill:#5fe08a;filter:drop-shadow(0 0 3px #5fe08a)}.lamp.r.on{fill:#ff5a4a}
+.elamp{fill:#4b555e;transition:fill .3s}.elamp.on{fill:#5fe08a}
+.mod.pick{cursor:pointer}
+.mod .mb{stroke:rgba(0,0,0,.35);stroke-width:2}
+.mod.empty .mb{stroke:#5b6670;stroke-dasharray:8 6;stroke-width:2.5;fill-opacity:.55}
+.mod.hl .mb{stroke:var(--or);stroke-width:5;stroke-dasharray:none;animation:hlp 1.1s ease-in-out infinite}
+@keyframes hlp{50%{stroke-opacity:.35}}
+.mbody{transform-box:fill-box;transform-origin:50% 100%}
+.mod.cough .mbody{animation:shake .55s}
+@keyframes shake{15%{transform:translateX(-5px) rotate(-1.2deg)}35%{transform:translateX(5px) rotate(1.2deg)}55%{transform:translateX(-4px)}75%{transform:translateX(3px)}}
+.gear{transform-box:fill-box;transform-origin:center}
+.mod.spin .gear{animation:spin .9s ease-in-out}
+@keyframes spin{to{transform:rotate(360deg)}}
+.piston{transition:transform .16s ease-in}
+.mod.press .piston{transform:translateY(10px)}
+.puff{fill:#9aa4ad;transform-box:fill-box;transform-origin:center;animation:puff 1.3s ease-out forwards}
+@keyframes puff{0%{opacity:.95;transform:translate(0,0) scale(.35)}100%{opacity:0;transform:translate(var(--dx),-58px) scale(1.9)}}
+.bubble{transform-box:fill-box;transform-origin:50% 100%;animation:bub 1.5s ease-out forwards}
+@keyframes bub{0%{opacity:0;transform:scale(.4)}15%{opacity:1;transform:scale(1.08)}25%{transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}
+.bubble rect{fill:#fff;stroke:#2b3137;stroke-width:1.5}.bubble text{font:700 15px Lexend,sans-serif;fill:#2b3137}
+.spark{transform-box:fill-box;transform-origin:center;animation:spark 1.1s ease-out forwards}
+@keyframes spark{0%{opacity:1;transform:translate(0,0) scale(.3) rotate(0)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.2) rotate(140deg)}}
+.twk{transform-box:fill-box;transform-origin:center;animation:twk 2.4s ease-in-out infinite}
+@keyframes twk{0%,100%{opacity:.25;transform:scale(.6)}50%{opacity:1;transform:scale(1.1)}}
+.needle{transform-box:fill-box;transform-origin:center;animation:ndl 3.2s ease-in-out infinite}
+@keyframes ndl{0%,100%{transform:rotate(-35deg)}40%{transform:rotate(25deg)}55%{transform:rotate(12deg)}70%{transform:rotate(30deg)}}
+.lever{transform-box:fill-box;transform-origin:center;transition:transform .5s cubic-bezier(.5,1.8,.5,1);transform:rotate(-38deg)}
+.rev .lever{transform:rotate(38deg)}
+.bdash{stroke:#6b7782;stroke-width:2;stroke-dasharray:10 14}
+.moving.mvr .bdash{animation:belt .5s linear infinite}.moving.mvl .bdash{animation:belt .5s linear infinite reverse}
+@keyframes belt{to{stroke-dashoffset:-24}}
+.roller{transform-box:fill-box;transform-origin:center}
+.moving.mvr .roller{animation:spin .7s linear infinite}.moving.mvl .roller{animation:spin .7s linear infinite reverse}
+.chev{fill:none;stroke:#ff9a3c;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:.8}
+.chev.r{display:none}.rev .chev.r{display:inline}.rev .chev.f{display:none}
+.chev.r{stroke:#5ce1ff}
+.ttxt{font-family:Lexend,sans-serif;font-weight:700}
+.tx{font-style:italic;fill:#6a2fb5}
+.tkpop{animation:tkp .35s ease-out}
+@keyframes tkp{0%{transform:scale(.6)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+.tkg{transform-box:fill-box;transform-origin:center}
+@media (prefers-reduced-motion:reduce){
+ .twk,.needle,.mod.spin .gear,.mod.cough .mbody,.tkpop,.mod.hl .mb,.log .new{animation:none}
+ .puff{animation:none;opacity:.7}.bubble{animation:none}.spark{display:none}
+ .moving .bdash,.moving .roller{animation:none!important}.lever,.piston,.revtint{transition:none}}
+@media(max-width:900px){.app{grid-template-columns:minmax(0,1fr)}.copy{position:static}
+ .padw{position:sticky;bottom:0;z-index:5;max-width:none;margin:0 calc(-1*max(3vw,16px));padding:8px max(3vw,16px) calc(8px + env(safe-area-inset-bottom));
+   background:var(--bg);box-shadow:0 -6px 16px -8px rgba(0,0,0,.35);border-top:1px solid var(--line)}
+ .padw .pad{max-width:420px;margin:0 auto;gap:6px}.padw .pad button{height:46px;font-size:20px}
+ .padw .ask{margin:0 0 6px;font-size:22px;gap:8px}#inp{padding:0 12px}}
+@media(max-width:600px){
+ header p{display:none}
+ .lv{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+ .lv .snd{margin-left:0}
+ .pad button{height:48px}
+ .prompt{padding:10px 12px}
+ .rrow{font-size:17px;gap:4px 3px}.rlab{flex-basis:100%;text-align:center;margin:0}
+ .cell{min-width:1.8em;padding:2px 5px}.arr{min-width:30px}.arr i{min-width:28px}.arr small{font-size:12px}
+}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>La Machine Abracadabra</h1>
+<p>Une machine à étapes transforme le nombre qu'on y glisse. En marche avant, elle calcule ; en marche arrière, elle retrouve le nombre de départ ; avec la lettre <span class="vx">x</span>, elle fabrique une expression.</p>
+</header>
+
+<main class="app">
+<section>
+<div class="lv" id="lv" role="group" aria-label="Niveaux"></div>
+<p class="lvdesc" id="lvdesc"></p>
+
+<div class="prompt" id="prompt"><p class="cons" id="pcons"></p><div class="pb" id="pbody"></div></div>
+
+<div class="stage" id="stage">
+<svg class="mach" id="mA" role="img" aria-label="Machine à étapes sur un tapis roulant"></svg>
+<svg class="mach" id="mB" role="img" aria-label="Deuxième machine" hidden></svg>
+</div>
+<div class="ruban" id="ruban" aria-live="polite"></div>
+<p class="msg" id="msg" aria-live="polite"></p>
+
+<div class="ctrl" id="ctrl">
+<div id="chw" hidden><p class="chq" id="chq"></p><div class="choices" id="choices"></div></div>
+<div id="trw" hidden><p class="trayh">Boîte à modules : touche un module pour l'installer.</p><div class="tray" id="tray"></div></div>
+<div class="padw" id="padw" hidden>
+<div class="ask"><span id="padline"></span><output id="inp" class="ph" aria-live="polite">?</output></div>
+<div class="pad" id="pad"></div>
+</div>
+<div class="acts" id="acts"></div>
+</div>
+
+<div class="win" id="win" hidden>
+<div class="big" id="winx"></div>
+<p id="winp"></p>
+<div class="row"><button class="btn or" id="next" type="button">Question suivante →</button></div>
+</div>
+
+<div class="own" id="own" hidden>
+<h2>Ma machine</h2>
+<p class="hint">Composez votre programme (1 à 4 étapes), puis faites tourner la machine devant la classe : marche avant, lettre <span class="vx">x</span> ou marche arrière.</p>
+<div id="ownSteps"></div>
+<button class="btn gh" id="ownAdd" type="button">+ Ajouter une étape</button>
+<div class="orun">
+<div><label for="ownS">Marche avant : nombre de départ</label><input id="ownS" inputmode="numeric" value="4" autocomplete="off"><button class="btn or" id="ownF" type="button">▶ Lancer</button></div>
+<div><label>Avec la lettre <span class="vx">x</span></label><button class="btn" id="ownX" type="button">▶ Glisser <span class="vx" style="color:inherit">x</span></button></div>
+<div><label for="ownR">Marche arrière : résultat obtenu</label><input id="ownR" inputmode="numeric" value="17" autocomplete="off"><button class="btn" id="ownB" type="button">◀ Remonter</button></div>
+</div>
+<p class="warn" id="ownW" aria-live="polite"></p>
+</div>
+
+<div class="legend" aria-hidden="true">
+<span><i style="background:#2a73b3"></i>module + ou −</span>
+<span><i style="background:#178a73"></i>module × ou ÷</span>
+<span><i style="background:#ff8a1e;border-radius:50%"></i>capsule : le nombre qui voyage</span>
+</div>
+</section>
+
+<aside class="copy">
+<h2>Ma copie <span id="lvname"></span></h2>
+<div class="log" id="log"></div>
+<div class="dots" id="dots"></div>
+</aside>
+</main>
+
+<script>
+{
+const $=id=>document.getElementById(id);
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const M='−',PER=5;
+const num=n=>n<0?M+(-n):String(n+0);
+const pnum=n=>n<0?`(${M}${-n})`:String(n+0);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const hx=s=>esc(s).replace(/x/g,'<span class="vx">x</span>');
+const sx=s=>esc(s).replace(/x/g,'<tspan class="tx">x</tspan>');
+const VX='<span class="vx">x</span>';
+
+/* ================= opérations ================= */
+const SYM={add:'+',sub:M,mul:'×',div:'÷'};
+const FAM={add:'add',sub:'add',mul:'mul',div:'mul'};
+const INV={add:'sub',sub:'add',mul:'div',div:'mul'};
+const opStr=o=>`${SYM[o.t]}\u00a0${pnum(o.v)}`;
+const nb=s=>String(s).replace(/ ([?!:;»])/g,'\u00a0$1').replace(/« /g,'«\u00a0');
+const opKey=o=>o.t+':'+o.v;
+const inv=o=>({t:INV[o.t],v:o.v});
+const fwd=o=>({kind:'fwd',t:o.t,txt:opStr(o)});
+function ap(o,n){switch(o.t){case'add':return n+o.v;case'sub':return n-o.v;case'mul':return n*o.v+0;default:return o.v!==0&&n%o.v===0?n/o.v+0:NaN}}
+const runChain=(s,ops)=>{const r=[s];for(const o of ops)r.push(ap(o,r[r.length-1]));return r};
+const calc=(a,o)=>`${num(a)} ${opStr(o)} = ${num(ap(o,a))}`;
+const cancels=(p,o)=>!!p&&opKey(inv(p))===opKey(o);
+const hasParen=ops=>ops.some((o,i)=>i>0&&FAM[o.t]==='mul'&&FAM[ops[i-1].t]==='add');
+const doesWhat=o=>({add:`ajoute ${o.v}`,sub:`soustrait ${o.v}`,mul:`multiplie par ${num(o.v)}`,div:`divise par ${num(o.v)}`})[o.t];
+const doesAgain=o=>({add:`ajouterait encore ${o.v}`,sub:`soustrairait encore ${o.v}`,mul:`multiplierait encore par ${num(o.v)}`,div:`diviserait encore par ${num(o.v)}`})[o.t];
+
+/* écriture en une ligne, avec les parenthèses nécessaires */
+function chainFrom(s,prec,ops,par=true){for(const o of ops){if(FAM[o.t]==='mul'){if(par&&(prec==='add'||prec==='neg'))s=`(${s})`;prec='mul'}else prec='add';s=`${s} ${opStr(o)}`}return s}
+const startOf=v=>v==='x'?['x','atom']:[num(v),v<0?'neg':'atom'];
+const chainStr=(v,ops)=>{const[s,p]=startOf(v);return chainFrom(s,p,ops)};
+const noParStr=(v,ops)=>{const[s,p]=startOf(v);return chainFrom(s,p,ops,false)};
+function grouped(v,ops){const[s]=startOf(v);const[o1,o2,...rest]=ops;return chainFrom(`${s} ${SYM[o1.t]} (${o1.v} ${SYM[o2.t]} ${o2.v})`,FAM[o1.t]==='mul'?'mul':'add',rest)}
+
+/* évaluation exacte d'une écriture (nombres, x, + − × ÷, parenthèses) -> {a,b} affine */
+function evalExpr(str){
+  const t=str.replace(/\s+/g,'').replace(/−/g,'-');let i=0;const pk=()=>t[i];
+  function E(){let v=T();while(pk()==='+'||pk()==='-'){const o=t[i++],w=T();v=o==='+'?{a:v.a+w.a,b:v.b+w.b}:{a:v.a-w.a,b:v.b-w.b}}return v}
+  function T(){let v=F();while(pk()==='×'||pk()==='÷'||pk()==='x'||pk()==='('){const o=pk()==='×'||pk()==='÷'?t[i++]:'×';const w=F();
+    if(o==='×'){if(v.a&&w.a)throw 0;v={a:v.a*w.b+w.a*v.b,b:v.b*w.b}}else{if(w.a||!w.b)throw 0;v={a:v.a/w.b,b:v.b/w.b}}}return v}
+  function F(){if(pk()==='-'){i++;const v=F();return{a:-v.a,b:-v.b}}if(pk()==='('){i++;const v=E();if(t[i++]!==')')throw 0;return v}
+    if(pk()==='x'){i++;return{a:1,b:0}}const m=/^\d+/.exec(t.slice(i));if(!m)throw 0;i+=m[0].length;return{a:0,b:+m[0]}}
+  try{const v=E();return i===t.length?v:null}catch(e){return null}
+}
+
+/* expressions affines */
+function fmtAff(a,b){let s='';if(a){s=a===1?'x':a===-1?M+'x':num(a)+'x'}if(b){s=s?s+(b>0?` + ${b}`:` ${M} ${-b}`):num(b)}return s||'0'}
+const AF=(a,b,why)=>({s:fmtAff(a,b),a:a+0,b:b+0,why});
+const SUP={2:'²',3:'³',4:'⁴',5:'⁵'};
+function affOf(ops){let a=1,b=0;for(const o of ops){if(o.t==='add')b+=o.v;else if(o.t==='sub')b-=o.v;else if(o.t==='mul'){a*=o.v;b*=o.v}else{a/=o.v;b/=o.v}}return AF(a,b)}
+function affNoDist(ops){let a=1,b=0;for(const o of ops){if(o.t==='add')b+=o.v;else if(o.t==='sub')b-=o.v;else a*=o.v}return AF(a,b)}
+const valAt=(c,t)=>c.na?Math.pow(t,c.k):c.a*t+c.b;
+function mkPick(right,cands,ctx){
+  const ok=[],seen=new Set([right.s]),vals=new Set([right.a+','+right.b]);
+  for(const c of cands){if(!c||seen.has(c.s))continue;
+    if(!c.na){if(!Number.isFinite(c.a)||!Number.isFinite(c.b)||c.a===0)continue;const k=c.a+','+c.b;if(vals.has(k))continue;vals.add(k)}
+    seen.add(c.s);ok.push(c)}
+  if(ok.length<2)return null;
+  const opts=shuffle([right,...shuffle(ok).slice(0,2)]);
+  return{opts,ok:opts.indexOf(right),ctx};
+}
+function buildSteps(ops){
+  let a=1,b=0,cur='x';const steps=[];
+  for(const o of ops){
+    const picks=[];let line,res;
+    if(o.t==='add'||o.t==='sub'){
+      const c=o.t==='add'?o.v:-o.v;res=AF(a,b+c);
+      const cands=[AF(a+c,b,'coef'),AF(a,b-c,'sign')];
+      if(b===0&&o.t==='add')cands.push(AF(a*o.v,0,'mulc'));
+      if(o.t==='sub')cands.push(AF(-a,o.v-b,'revsub'));
+      picks.push(mkPick(res,cands,{kind:'add',o,prev:cur}));
+      const raw=`${cur} ${opStr(o)}`;line=raw.replace(/\u00a0/g,' ')===res.s?res.s:`${raw} = ${res.s}`;
+    }else{
+      const k=o.v;res=AF(k*a,k*b);
+      if(b===0){
+        const cands=[AF(a,k,'addk')];
+        if(a===1&&SUP[k])cands.push({s:'x'+SUP[k],na:true,k,why:'pow'});
+        if(a!==1)cands.push(AF(a+k,0,'coefadd'));
+        picks.push(mkPick(res,cands,{kind:'mulm',o,prev:cur}));
+        line=`${cur} × ${pnum(k)} = ${res.s}`;
+      }else{
+        const s1=`${cur} × ${pnum(k)}`,s2=`${pnum(k)} × ${cur}`,e1=evalExpr(s1),e2=evalExpr(s2);
+        const par={s:`(${cur}) × ${pnum(k)}`,a:k*a,b:k*b};
+        picks.push(mkPick(par,[{s:s1,a:e1.a,b:e1.b,why:'nopar'},{s:s2,a:e2.a,b:e2.b,why:'nopar2'}],{kind:'par',o,prev:cur}));
+        picks.push(mkPick(res,[AF(k*a,b,'dist1'),AF(a,k*b,'dist2'),AF(k*a,-k*b,'sign')],{kind:'dev',o,prev:cur}));
+        line=`(${cur}) × ${pnum(k)} = ${res.s}`;
+      }
+    }
+    a=res.a;b=res.b;cur=res.s;steps.push({o,picks,res,line});
+  }
+  return steps;
+}
+function words(ops){return ops.map((o,i)=>{const r=i>0;switch(o.t){
+  case'add':return r&&Math.random()<.5?`Ajouter ${o.v} au résultat`:`Ajouter ${o.v}`;
+  case'sub':return r&&Math.random()<.5?`Soustraire ${o.v} au résultat`:`Soustraire ${o.v}`;
+  case'mul':return r?`Multiplier le résultat par ${num(o.v)}`:`Multiplier par ${num(o.v)}`;
+  default:return r?`Diviser le résultat par ${num(o.v)}`:`Diviser par ${num(o.v)}`}})}
+const progHTML=(w,title='')=>`<div class="progbox">${title?`<span class="pt">${title}</span>`:''}<ul class="prog"><li>Choisir un nombre.</li>${w.map((s,i)=>`<li class="n"><span class="pn">${i+1}</span>${s}.</li>`).join('')}</ul></div>`;
+
+/* ================= générateurs ================= */
+function g1(){for(;;){
+  const n=ri(2,3),s=ri(-9,12);if(!s)continue;
+  const ops=[];let v=s,bad=false;
+  for(let i=0;i<n;i++){const prev=ops[i-1];const t=pick(['add','sub','mul','div'].filter(t=>!prev||t!==prev.t));let o;
+    if(t==='add'||t==='sub')o={t,v:ri(2,12)};
+    else if(t==='mul')o={t,v:pick([2,3,4,5,-1,-2,-3,-4])};
+    else{const ds=[2,3,4,5,-2].filter(d=>v%d===0&&Math.abs(v)>Math.abs(d));if(!ds.length){bad=true;break}o={t,v:pick(ds)}}
+    if(cancels(prev,o)){bad=true;break}
+    v=ap(o,v);if(!Number.isInteger(v)||v===0||Math.abs(v)>80){bad=true;break}ops.push(o)}
+  if(bad)continue;
+  const vals=runChain(s,ops);
+  if(!vals.some(x=>x<0)&&Math.random()<.75)continue;
+  return{s,ops,vals};
+}}
+function decoys(ops){
+  const keys=new Set(ops.map(opKey)),c=[];
+  for(const o of ops){if(o.t==='add')c.push({t:'mul',v:o.v},{t:'sub',v:o.v});if(o.t==='sub')c.push({t:'add',v:o.v});if(o.t==='mul')c.push({t:'add',v:o.v})}
+  for(const p of ops)for(const q of ops)if(p!==q)c.push({t:p.t,v:q.v});
+  const out=[],seen=new Set(keys);
+  for(const o of shuffle(c)){const k=opKey(o);if(seen.has(k)||(o.t==='mul'&&o.v<2)||o.v<1)continue;seen.add(k);out.push(o)}
+  return out.slice(0,3);
+}
+function g2(){for(;;){
+  const n=ri(2,3),ops=[];
+  for(let i=0;i<n;i++){const prev=ops[i-1];const t=pick(['add','sub','mul'].filter(t=>!prev||FAM[t]!==FAM[prev.t]));ops.push(t==='mul'?{t,v:ri(2,6)}:{t,v:ri(2,9)})}
+  if(new Set(ops.map(opKey)).size<n)continue;
+  if(Math.random()<.65&&!hasParen(ops))continue;
+  const t=ri(2,9),vals=runChain(t,ops);if(vals.some(v=>v<=0||v>99))continue;
+  const res=vals[n],line=chainStr(t,ops);
+  const cand=[[noParStr(t,ops),'nopar'],[chainStr(t,ops.slice().reverse()),'order'],[grouped(t,ops),'group']];
+  const good=[],seen=new Set([line]),sv=new Set([res]);
+  for(const[s,k]of cand){const e=evalExpr(s);if(!e||e.a||!Number.isInteger(e.b)||seen.has(s)||sv.has(e.b))continue;seen.add(s);sv.add(e.b);good.push({s,k,v:e.b})}
+  if(good.length<2)continue;
+  const lo=shuffle([{s:line,k:'ok',v:res},...shuffle(good).slice(0,2)]);
+  const dec=decoys(ops);if(dec.length<3)continue;
+  const parts=shuffle([...ops.map(o=>({...o})),...dec]);
+  return{t,ops,vals,res,line,lineOpts:lo,lineOk:lo.findIndex(o=>o.k==='ok'),parts,words:words(ops)};
+}}
+function g3(){for(;;){
+  const n=ri(2,3),x0=ri(-8,12);if(!x0)continue;
+  const ops=[];let v=x0,bad=false;
+  for(let i=0;i<n;i++){const prev=ops[i-1];const t=pick(['add','sub','mul','mul','div'].filter(t=>!prev||FAM[t]!==FAM[prev.t]));let o;
+    if(t==='add'||t==='sub')o={t,v:ri(2,12)};else if(t==='mul')o={t,v:pick([2,3,4,5,-2,-3])};
+    else{const ds=[2,3,4,5].filter(d=>v%d===0&&Math.abs(v)>d);if(!ds.length){bad=true;break}o={t,v:pick(ds)}}
+    v=ap(o,v);if(!Number.isInteger(v)||v===0||Math.abs(v)>99){bad=true;break}ops.push(o)}
+  if(bad||new Set(ops.map(opKey)).size<n)continue;
+  const vals=runChain(x0,ops),out=vals[n];
+  const map=new Map();for(const p of[...ops.map(inv),...ops])map.set(opKey(p),p);
+  return{x0,ops,vals,out,parts:shuffle([...map.values()]),words:words(ops)};
+}}
+function progOps(n,addMin=1){const ops=[];for(let i=0;i<n;i++){const prev=ops[i-1];const t=pick(['add','sub','mul'].filter(t=>!prev||FAM[t]!==FAM[prev.t]));ops.push(t==='mul'?{t,v:ri(2,5)}:{t,v:ri(addMin,9)})}return ops}
+function g4(){for(;;){
+  const n=ri(2,3),ops=progOps(n);
+  if(Math.random()<.7&&!hasParen(ops))continue;
+  const steps=buildSteps(ops);if(steps.some(s=>s.picks.some(p=>!p)))continue;
+  const f=steps[n-1].res;if(Math.abs(f.b)>60||f.a>60||(f.a===1&&f.b===0))continue;
+  return{ops,steps,final:f,t:ri(2,6),words:words(ops)};
+}}
+function g5(){for(;;){
+  let A=progOps(ri(1,2),2),B=progOps(ri(2,3),2);if(Math.random()<.5)[A,B]=[B,A];
+  const fa=affOf(A),fb=affOf(B);if(fa.a===fb.a)continue;
+  const nu=fb.b-fa.b,de=fa.a-fb.a;if(nu%de)continue;const x0=nu/de+0;if(!x0||x0<-5||x0>10)continue;
+  const val=fa.a*x0+fa.b;if(Math.abs(val)>99)continue;
+  if(runChain(x0,A).some(v=>Math.abs(v)>99)||runChain(x0,B).some(v=>Math.abs(v)>99))continue;
+  return{A,B,fa,fb,x0,val,sA:buildSteps(A),sB:buildSteps(B)};
+}}
+const T6=['exec','expr','rev','two'];
+function g6(type){
+  if(type==='mix')type=pick(T6);
+  if(type==='exec'){const q=g1();return{type,...q,words:words(q.ops)}}
+  if(type==='rev'){const q=g3();return{type,...q}}
+  if(type==='expr'){for(;;){const q=g4(),np=evalExpr(noParStr('x',q.ops));
+    const c=[{s:fmtAff(np.a,np.b),a:np.a,b:np.b,why:'nopar'},{...affOf(q.ops.slice().reverse()),why:'order'},{...affNoDist(q.ops),why:'dist'}];
+    const pk=mkPick(q.final,c,{kind:'expr'});if(pk)return{type,...q,pick:pk}}}
+  const q=g5();return{type:'two',...q,wA:words(q.A),wB:words(q.B)};
+}
+
+/* ================= son ================= */
+let actx=null,snd=true;try{snd=localStorage.getItem('abra-son')!=='0'}catch(e){}
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type='sine',w=0,f2=0){const a=ac();if(!a)return;const t=a.currentTime+w,o=a.createOscillator(),g=a.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0008,t+d);
+  o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}
+let nbuf=null;
+function noise(d,v,w=0,fq=1200,q=1){const a=ac();if(!a)return;if(!nbuf){nbuf=a.createBuffer(1,Math.floor(a.sampleRate*.6),a.sampleRate);const c=nbuf.getChannelData(0);for(let i=0;i<c.length;i++)c[i]=Math.random()*2-1}
+  const t=a.currentTime+w,s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=nbuf;f.type='bandpass';f.frequency.value=fq;f.Q.value=q;
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0008,t+d);s.connect(f).connect(g).connect(a.destination);s.start(t);s.stop(t+d+.05)}
+const SFX={
+  pop:()=>tone(520,.09,.06,'sine',0,880),
+  stamp:()=>{tone(120,.12,.07,'square',0,70);noise(.06,.1,0,2400,2)},
+  whirr:()=>{tone(220,.35,.03,'sawtooth',0,520);noise(.3,.05,0,900,1)},
+  cough:()=>{noise(.3,.22,0,520,.8);tone(210,.32,.045,'sawtooth',0,75);noise(.22,.16,.32,700,.8);tone(170,.22,.035,'sawtooth',.32,60)},
+  ding:()=>{tone(1318.5,.3,.06,'triangle');tone(1760,.35,.05,'triangle',.08)},
+  win:()=>[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.45,.07,'triangle',i*.11)),
+  boing:()=>tone(330,.22,.05,'sine',0,180)
+};
+const sfx=k=>{if(snd)try{SFX[k]()}catch(e){}};
+
+/* ================= déroulement asynchrone ================= */
+class Cancel extends Error{}
+let RUN=0,waiter=null;
+const T={expect:null};
+function guard(id){if(id!==RUN)throw new Cancel()}
+async function sleep(ms){const id=RUN;await new Promise(r=>setTimeout(r,reduce?Math.min(ms,30):ms));guard(id)}
+function next(types,expect){T.expect=expect;return new Promise((res,rej)=>{waiter={types,res,rej}})}
+function emit(ev){if(!waiter||!waiter.types.includes(ev.type))return false;const w=waiter;waiter=null;T.expect=null;w.res(ev);return true}
+function newRun(){RUN++;if(waiter){const w=waiter;waiter=null;w.rej(new Cancel())}T.expect=null;MA.stop();MB.stop();clearCtrl()}
+
+/* ================= la machine (SVG) ================= */
+function gearPath(r,n){let d='';for(let i=0;i<n*2;i++){const R=i%2?r*.7:r,a0=i*Math.PI/n,a1=(i+1)*Math.PI/n;
+  d+=(i?'L':'M')+(R*Math.cos(a0)).toFixed(1)+' '+(R*Math.sin(a0)).toFixed(1)+'L'+(R*Math.cos(a1)).toFixed(1)+' '+(R*Math.sin(a1)).toFixed(1)}return d+'Z'}
+const GEAR=gearPath(13,8);
+const STAR='M0-9L2.6-2.8 9-2.8 3.8 1.2 5.6 8 0 4 -5.6 8 -3.8 1.2 -9-2.8 -2.6-2.8Z';
+const COUGHS=['Atchoum !','Pfff…','Bzzzt !','Hic !','Teuf teuf !'];
+let MID=0;
+class Machine{
+  constructor(svg){this.svg=svg;this.id='m'+(++MID);this.compact=false;this.name='';this.mods=[];this.rev=false;this.hlI=-1;this.lamps=[];
+    this.tk={k:0,label:'',x:false,vis:false};this.busy=false;this.narrow=null;this.g=null;
+    svg.addEventListener('click',e=>{const m=e.target.closest('.mod');if(m)emit({type:'slot',i:+m.dataset.i})})}
+  geom(){
+    const sw=$('stage').clientWidth||960,narrow=sw<640,W=narrow?600:960,C=this.compact,n=Math.max(1,this.mods.length);
+    const yB=C?52:92,hb=120,bot=yB+hb,yT=bot+52,yBelt=yT+25,H=yBelt+(C?38:60);
+    const mg=12,hz=narrow?84:118,x0=mg+hz,x1=W-mg-hz,sp=(x1-x0)/n,mw=Math.min(196,sp-18);
+    const X=k=>k<=0?mg+hz/2:k>n?W-mg-hz/2:x0+sp*(k-.5);
+    return{narrow,W,H,C,n,yB,hb,bot,yT,yBelt,mg,hz,sp,mw,X};
+  }
+  build(){
+    const g=this.g=this.geom();this.narrow=g.narrow;const{W,H,C,n,yB,bot,yT,yBelt,mg,hz,mw,X}=g,id=this.id;
+    const lg=(nm,a,b,v=1)=>`<linearGradient id="${id}-${nm}" x1="0" y1="0" x2="${v?0:1}" y2="${v?1:0}"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
+    let s=`<defs>${lg('gadd','#4aa3e6','#1d5a91')}${lg('gmul','#30c3a2','#12705d')}${lg('gnone','#c3cbd2','#7f8a94')}${lg('gtk','#ffb75e','#ee6a00')}${lg('gbr','#ffe08a','#c8901c')}${lg('gcy','#9cecff','#2aa5c9')}
+<linearGradient id="${id}-gm" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6f7c87"/><stop offset=".5" stop-color="#d3dce3"/><stop offset="1" stop-color="#66737e"/></linearGradient></defs>`;
+    s+=`<rect class="wall" width="${W}" height="${yBelt+18}"/>`;
+    for(let x=60;x<W;x+=120)s+=`<line class="wline" x1="${x}" y1="0" x2="${x}" y2="${yBelt}"/>`;
+    s+=`<rect class="revtint" width="${W}" height="${yBelt+18}"/>`;
+    const py=yB-16;s+=`<path class="pipe" d="M0 ${py}H${W}"/>`;for(let x=90;x<W;x+=180)s+=`<rect class="pipej" x="${x-6}" y="${py-9}" width="12" height="18" rx="2"/>`;
+    s+=`<rect class="floor" y="${yBelt+18}" width="${W}" height="${H-yBelt-18}"/>`;
+    for(let x=0;x<W+40;x+=56)s+=`<line class="tile" x1="${x}" y1="${yBelt+18}" x2="${x-22}" y2="${H}"/>`;
+    s+=`<line class="tile" x1="0" y1="${(yBelt+18+H)/2+4}" x2="${W}" y2="${(yBelt+18+H)/2+4}"/>`;
+    for(let k=0;k<5;k++){const x=mg+40+k*(W-2*mg-80)/4;s+=`<rect x="${x-5}" y="${yBelt+14}" width="10" height="${H-yBelt-20}" fill="#59636c"/><rect x="${x-12}" y="${H-10}" width="24" height="6" rx="2" fill="#454e56"/>`}
+    for(let i=0;i<n;i++){const cx=X(i+1);s+=`<rect x="${cx-mw/2+12}" y="${bot-6}" width="9" height="${yBelt-bot+6}" fill="#6b7782"/><rect x="${cx+mw/2-21}" y="${bot-6}" width="9" height="${yBelt-bot+6}" fill="#6b7782"/>`}
+    s+=`<rect x="${mg}" y="${yBelt}" width="${W-2*mg}" height="20" rx="10" fill="#262c32"/><line class="bdash" x1="${mg+10}" y1="${yBelt+4}" x2="${W-mg-10}" y2="${yBelt+4}"/>`;
+    for(let x=mg+12;x<W-mg-6;x+=44)s+=`<g transform="translate(${x} ${yBelt+12})"><g class="roller"><circle r="6" fill="#59636c"/><path d="M-6 0H6M0-6V6" stroke="#2b3137" stroke-width="1.5"/></g></g>`;
+    for(let x=mg+70;x<W-mg-40;x+=150)s+=`<path class="chev f" d="M${x-4} ${yBelt+9}l7 4.5-7 4.5"/><path class="chev r" d="M${x+4} ${yBelt+9}l-7 4.5 7 4.5"/>`;
+    if(!C){
+      const pw=Math.min(380,W-270),px=W/2;
+      s+=`<g><rect class="pl f" x="${px-pw/2}" y="8" width="${pw}" height="40" rx="10" fill="url(#${id}-gbr)" stroke="#8a5c0a" stroke-width="1.5"/><rect class="pl r" x="${px-pw/2}" y="8" width="${pw}" height="40" rx="10" fill="url(#${id}-gcy)" stroke="#156b85" stroke-width="1.5"/>
+<circle cx="${px-pw/2+12}" cy="28" r="3" fill="#6b4a10"/><circle cx="${px+pw/2-12}" cy="28" r="3" fill="#6b4a10"/>
+<text class="ptxt f" x="${px}" y="34.5" text-anchor="middle">MACHINE ABRACADABRA</text><text class="ptxt r" x="${px}" y="34.5" text-anchor="middle">⟲ MARCHE ARRIÈRE</text>
+<g transform="translate(${px-pw/2-18} 20)"><path class="twk" d="${STAR}" fill="#ffcf3a"/></g><g transform="translate(${px+pw/2+18} 36) scale(.8)"><path class="twk" style="animation-delay:-1.4s" d="${STAR}" fill="#ffcf3a"/></g></g>`;
+      const lx=W-112;
+      s+=`<g transform="translate(${lx} 30)"><g class="lever"><circle r="22" fill="none"/><line x1="0" y1="0" x2="0" y2="-20" stroke="#2b3137" stroke-width="4" stroke-linecap="round"/><circle cy="-21" r="6" fill="#e53935"/></g><rect x="-13" y="-2" width="26" height="10" rx="4" fill="#4b555e"/></g>`;
+      s+=`<g transform="translate(${W-50} 30)"><circle r="19" fill="#f4f6f8" stroke="#4b555e" stroke-width="3"/><path d="M-12 6A13 13 0 1 1 12 6" fill="none" stroke="#c9d0d6" stroke-width="3"/><path d="M6 -11A13 13 0 0 1 12 6" fill="none" stroke="#e53935" stroke-width="3"/>
+<g class="needle"><circle r="13" fill="none"/><path d="M0 3L-1.8 0 0-12 1.8 0Z" fill="#2b3137"/></g><circle r="2.5" fill="#2b3137"/></g>`;
+    }
+    // sortie
+    const eX=X(n+1),ew=hz-22;
+    s+=`<g><rect x="${eX-ew/2}" y="${yB+40}" width="8" height="${yBelt-yB-40}" fill="#5b6670"/><rect x="${eX+ew/2-8}" y="${yB+40}" width="8" height="${yBelt-yB-40}" fill="#5b6670"/>
+<rect x="${eX-ew/2-4}" y="${yB+22}" width="${ew+8}" height="30" rx="7" fill="#2b3137"/><text class="elab" x="${eX}" y="${yB+42}" text-anchor="middle" style="font-size:${g.narrow?10.5:12}px">RÉSULTAT</text>
+<circle class="elamp" cx="${eX}" cy="${yB+12}" r="7"/></g>`;
+    s+=`<g class="tok"></g><g class="mods"></g>`;
+    // trémie de départ
+    const hX=X(0),hw=hz-22;
+    s+=`<g><rect x="${hX-hw/2-4}" y="${yB+4}" width="${hw+8}" height="10" rx="4" fill="#5b6670"/>
+<path d="M${hX-hw/2} ${yB+14}H${hX+hw/2}L${hX+15} ${bot+2}V${yT-31}H${hX-15}V${bot+2}Z" fill="url(#${id}-gm)" stroke="#5b6670" stroke-width="1.5"/>
+<text class="hlab" x="${hX}" y="${yB+44}" text-anchor="middle">DÉPART</text>
+<g transform="translate(${hX+hw/2-4} ${yB-2})"><path class="twk" d="${STAR}" fill="#ffcf3a"/></g>
+<g transform="translate(${hX-hw/2+6} ${yB+70}) scale(.6)"><path class="twk" style="animation-delay:-1.2s" d="${STAR}" fill="#fff"/></g></g>`;
+    if(C&&this.name)s+=`<circle cx="${hX}" cy="${yB-24}" r="17" fill="#ff8a1e" stroke="#a84300" stroke-width="2"/><text class="badge" x="${hX}" y="${yB-17}" text-anchor="middle">${this.name}</text>`;
+    s+=`<g class="fx"></g>`;
+    this.svg.setAttribute('viewBox',`0 0 ${W} ${H}`);this.svg.innerHTML=s;this.svg.classList.toggle('rev',this.rev);
+    this.drawMods();if(!this.busy){this.tk.px=X(this.tk.k);this.tk.py=yT}this.drawTok();
+  }
+  modSVG(i){
+    const g=this.g,d=this.mods[i]||{kind:'empty'},cx=g.X(i+1),mw=g.mw,{yB,hb,bot}=g,id=this.id;
+    const kind=d.kind,fam=kind==='empty'?'none':FAM[d.t],txt=kind==='empty'?'?':d.txt,sub=kind==='empty'?'à installer':d.sub||'';
+    const fs=Math.min(g.narrow?28:32,(mw-30)/(Math.max(2,[...txt].length)*.62)),lp=this.lamps[i]||'';
+    const cls=kind==='rev'?' rv':kind==='q'||kind==='empty'?' q':'';
+    return`<g class="mod${kind==='empty'?' empty':''}${this.hlI===i?' hl':''}${this.pick?' pick':''}" data-i="${i}" transform="translate(${cx} 0)"><g class="mbody">
+<rect x="${mw/2-46}" y="${yB-30}" width="20" height="34" fill="url(#${id}-gm)" stroke="#4b555e"/><rect x="${mw/2-50}" y="${yB-37}" width="28" height="8" rx="2" fill="#4b555e"/>
+<rect class="mb" x="${-mw/2}" y="${yB}" width="${mw}" height="${hb}" rx="16" fill="url(#${id}-g${fam})"/>
+<rect x="${-mw/2+8}" y="${yB+4}" width="${mw-16}" height="6" rx="3" fill="#fff" opacity=".22"/>
+<rect x="${-mw/2+10}" y="${yB+12}" width="${mw-20}" height="48" rx="9" fill="#0f1418" stroke="#000" stroke-opacity=".4"/>
+<text class="led${cls}" x="0" y="${(yB+36+fs*.36).toFixed(1)}" font-size="${fs.toFixed(1)}" text-anchor="middle">${esc(txt)}</text>
+${sub?`<text class="msub" x="0" y="${yB+77}" text-anchor="middle">${esc(sub)}</text>`:''}
+<circle cx="${-mw/2+28}" cy="${yB+hb-22}" r="17" fill="#1b2228"/><g transform="translate(${-mw/2+28} ${yB+hb-22})"><path class="gear" d="${GEAR}" fill="#d0a64a"/><circle r="4" fill="#1b2228"/></g>
+${mw>=110?`<text class="mnum" x="2" y="${yB+hb-17}" text-anchor="middle">n° ${i+1}</text>`:''}
+<circle class="lamp g${lp==='ok'?' on':''}" cx="${mw/2-18}" cy="${yB+hb-22}" r="6"/><circle class="lamp r${lp==='ko'?' on':''}" cx="${mw/2-36}" cy="${yB+hb-22}" r="6"/>
+<g class="piston"><rect x="-5" y="${bot-2}" width="10" height="14" fill="#8796a2"/><rect x="-26" y="${bot+10}" width="52" height="9" rx="3" fill="#59636c"/></g>
+</g><g class="smoke" transform="translate(${mw/2-36} ${yB-40})"></g></g>`;
+  }
+  drawMods(){const el=this.svg.querySelector('.mods');if(el)el.innerHTML=this.mods.map((_,i)=>this.modSVG(i)).join('')}
+  drawTok(){
+    const t=this.tk,g=this.g,el=this.svg.querySelector('.tok');if(!el)return;
+    if(!t.vis){el.innerHTML='';return}
+    const lab=t.label,len=[...lab].length,f0=g.narrow?24:26,fs=len>9?f0*.74:len>6?f0*.86:f0,w=Math.max(56,len*fs*.6+30),h=46;this.tkw=w;
+    const fill=t.x?'#fff4e2':lab==='?'?'#e3e8ec':`url(#${this.id}-gtk)`,stroke=lab==='?'?'#8e99a3':'#b54d00',tc=lab==='?'?'#5b6670':'#1d0e00';
+    el.innerHTML=`<ellipse cx="0" cy="25" rx="${w/2-4}" ry="4" fill="#000" opacity=".22"/><g class="tkg"><rect x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="${h/2}" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>
+<rect x="${-w/2+10}" y="${-h/2+5}" width="${w-20}" height="7" rx="3.5" fill="#fff" opacity=".45"/>
+<text class="ttxt" y="${(fs*.36).toFixed(1)}" text-anchor="middle" font-size="${fs.toFixed(1)}" fill="${tc}">${sx(lab)}</text></g>`;
+    this.posTok(t.px,t.py);
+  }
+  posTok(x,y){this.tk.px=x;this.tk.py=y;const el=this.svg.querySelector('.tok'),h=(this.tkw||56)/2+4,W=this.g.W;if(el)el.setAttribute('transform',`translate(${Math.min(Math.max(x,h),W-h).toFixed(1)} ${y.toFixed(1)})`)}
+  tween(x1,y1,dur){
+    const id=RUN,x0=this.tk.px,y0=this.tk.py;
+    if(reduce||dur<=0){this.posTok(x1,y1);return Promise.resolve()}
+    this.busy=true;this.svg.classList.add('moving');this.svg.classList.toggle('mvl',x1<x0);this.svg.classList.toggle('mvr',x1>=x0);
+    return new Promise(res=>{const t0=performance.now();
+      const st=now=>{if(id!==RUN){this.end();return res()}
+        const u=Math.min(1,(now-t0)/dur),e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;this.posTok(x0+(x1-x0)*e,y0+(y1-y0)*e);
+        if(u<1)requestAnimationFrame(st);else{this.end();res()}};
+      requestAnimationFrame(st)}).then(()=>guard(id));
+  }
+  end(){this.busy=false;this.svg.classList.remove('moving');if(this.narrow!==null&&this.geom().narrow!==this.narrow)this.build()}
+  stop(){this.busy=false;this.svg.classList.remove('moving')}
+  async feed(label,isX=false){const g=this.g;this.tk={k:0,label,x:isX,vis:true,px:g.X(0),py:Math.max(26,g.yB-36)};this.lamps=[];this.drawMods();this.drawTok();this.elamp(false);sfx('pop');await this.tween(g.X(0),g.yT,620)}
+  place(k,label,isX=false){const g=this.g;this.tk={k,label,x:isX,vis:true,px:g.X(k),py:g.yT};this.drawTok()}
+  hideTok(){this.tk.vis=false;this.tk.k=0;this.drawTok();this.elamp(false)}
+  label(lab,isX){this.tk.label=lab;if(isX!==undefined)this.tk.x=isX;this.drawTok();const k=this.svg.querySelector('.tkg');if(k&&!reduce)k.classList.add('tkpop')}
+  async go(k){const g=this.g,x=g.X(k),d=Math.abs(x-this.tk.px);this.tk.k=k;await this.tween(x,g.yT,Math.max(260,d*1.35))}
+  modEl(i){return this.svg.querySelector(`.mod[data-i="${i}"]`)}
+  async stamp(i){const el=this.modEl(i);if(el){el.classList.add('press');sfx('stamp')}await sleep(190);const e2=this.modEl(i);if(e2){e2.classList.remove('press');e2.classList.add('spin');setTimeout(()=>e2.classList.remove('spin'),900)}await sleep(170)}
+  async cough(i){
+    const el=this.modEl(i);sfx('cough');
+    if(el){el.classList.remove('cough');void el.getBoundingClientRect();el.classList.add('cough');
+      el.querySelector('.lamp.r')?.classList.add('on');
+      const sm=el.querySelector('.smoke');
+      if(sm){let p='';for(let k=0;k<4;k++)p+=`<circle class="puff" r="${9+k*2}" cx="0" cy="0" style="--dx:${(k%2?14:-10)+k*4}px;animation-delay:${k*.14}s"/>`;
+        const g=this.g,cx=g.X(i+1)+g.mw/2-36,bx=Math.min(Math.max(cx-78,62),g.W-62)-cx,txt=pick(COUGHS),bw=txt.length*9+22;
+        p+=`<g transform="translate(${bx} 20)"><g class="bubble"><rect x="${-bw/2}" y="-17" width="${bw}" height="30" rx="14"/><text y="4" text-anchor="middle">${txt}</text></g></g>`;
+        sm.innerHTML=p;setTimeout(()=>{if(sm.isConnected)sm.innerHTML=''},1600)}
+      setTimeout(()=>{if(el.isConnected){el.classList.remove('cough');el.querySelector('.lamp.r')?.classList.remove('on')}},1400)}
+    await sleep(650);
+  }
+  lamp(i,st){this.lamps[i]=st;const el=this.modEl(i);if(el){el.querySelector('.lamp.g')?.classList.toggle('on',st==='ok')}}
+  hl(i){this.hlI=i;this.drawMods()}
+  elamp(on){this.svg.querySelector('.elamp')?.classList.toggle('on',on)}
+  setMods(mods){const nChanged=mods.length!==this.mods.length;this.mods=mods.map(m=>({...m}));this.lamps=[];this.hlI=-1;if(nChanged||!this.g)this.build();else this.drawMods()}
+  setMod(i,d){this.mods[i]={...d};this.drawMods()}
+  setRev(on){if(this.rev===on)return;this.rev=on;this.svg.classList.toggle('rev',on);sfx('whirr')}
+  setPick(on){this.pick=on;this.svg.querySelectorAll('.mod').forEach(m=>m.classList.toggle('pick',on))}
+  celebrate(){
+    this.elamp(true);const g=this.g,fx=this.svg.querySelector('.fx');if(!fx||reduce)return;
+    const x=this.tk.px,y=g.yT;let s='';const C=['#ffcf3a','#ff7a00','#5fd27c','#72b4ff'];
+    for(let i=0;i<12;i++){const a=i/12*2*Math.PI,d=58+(i%3)*14;s+=`<g transform="translate(${x.toFixed(0)} ${y})"><path class="spark" style="--dx:${(Math.cos(a)*d).toFixed(0)}px;--dy:${(Math.sin(a)*d*.75-14).toFixed(0)}px" d="${STAR}" fill="${C[i%4]}"/></g>`}
+    fx.innerHTML=s;setTimeout(()=>{if(fx.isConnected)fx.innerHTML=''},1300);
+  }
+}
+const MA=new Machine($('mA')),MB=new Machine($('mB'));MB.name='B';
+
+/* ================= écriture : ruban et copie ================= */
+const RB={rows:[],cmp:''};
+function drawRuban(){
+  $('ruban').innerHTML=RB.rows.map(r=>`<div class="rrow${r.rev?' rv':''}">${r.name?`<span class="rlab">${r.name}</span>`:''}${r.cells.map((c,i)=>`${i?`<span class="arr"><small>${r.ops[i-1]||'&nbsp;'}</small><i></i></span>`:''}<span class="cell${i===r.act?' act':''}${c===''?' emp':''}">${c===''?'&nbsp;':c}</span>`).join('')}</div>`).join('')+(RB.cmp?`<div class="cmp">${RB.cmp}</div>`:'');
+}
+let LOG=[];
+function write(html,cls=''){LOG.push({html:nb(html),cls});const el=$('log');if(el.children.length===LOG.length-1){const d=document.createElement('div');d.className=(cls?cls+' ':'')+'new';d.innerHTML=LOG[LOG.length-1].html;el.appendChild(d);drawDots()}else drawLog()}
+function drawLog(){
+  $('log').innerHTML=LOG.map(l=>`<div class="${l.cls}">${l.html}</div>`).join('');drawDots();
+}
+function drawDots(){
+  if(mode==='own'){$('dots').innerHTML='<em>Ma machine : démonstration libre</em>';return}
+  $('dots').innerHTML=Array.from({length:PER},(_,i)=>`<span class="${i<done[lvl]?(helped[lvl][i]?'h':'g'):i===done[lvl]&&$('win').hidden?'c':''}"></span>`).join('')+`<em>${done[lvl]} / ${PER}</em>`;
+}
+const say=h=>{$('msg').innerHTML=nb(h)};
+function setPrompt(c,h){$('pcons').textContent=nb(c);$('pbody').innerHTML=nb(h)}
+
+/* ================= commandes ================= */
+const PADK=['7','8','9','⌫','4','5','6','−','1','2','3','C','0','OK'];
+$('pad').innerHTML=PADK.map(k=>`<button type="button" data-k="${k}" class="${k==='OK'?'okb':k==='0'?'zero':''}" aria-label="${{'⌫':'Effacer','C':'Tout effacer','−':'Changer le signe','OK':'Valider'}[k]||k}">${k==='OK'?'Valider':k}</button>`).join('');
+let buf='',neg=false;
+function drawBuf(){const o=$('inp');o.textContent=buf?(neg?M:'')+buf:(neg?M:'?');o.classList.toggle('ph',!buf)}
+function padKey(k){
+  if(/^\d$/.test(k)){if(buf.length<4)buf=buf==='0'?k:buf+k}
+  else if(k==='−')neg=!neg;else if(k==='⌫'){if(buf)buf=buf.slice(0,-1);else neg=false}else if(k==='C'){buf='';neg=false}
+  else if(k==='OK'){if(!buf){say('Tape d’abord un nombre avec le clavier, puis valide.');return}emit({type:'num',v:(neg?-1:1)*parseInt(buf,10)+0});return}
+  drawBuf();
+}
+$('pad').addEventListener('click',e=>{const b=e.target.closest('button');if(b)padKey(b.dataset.k)});
+document.addEventListener('keydown',e=>{
+  if($('padw').hidden||e.target.closest('input,select,textarea')||e.ctrlKey||e.metaKey||e.altKey)return;
+  if(/^\d$/.test(e.key))padKey(e.key);else if(e.key==='-'||e.key==='−')padKey('−');else if(e.key==='Backspace')padKey('⌫');
+  else if(e.key==='Enter'){if(e.target.closest('button'))return;padKey('OK')}else if(e.key==='Escape')padKey('C');else return;
+  e.preventDefault();
+});
+function showPad(line){buf='';neg=false;drawBuf();$('padline').innerHTML=nb(line||'');$('padw').hidden=false;keepVisible()}
+/* téléphone : le clavier est collé en bas ; on amène la case active (ruban ou énoncé) juste au-dessus */
+function keepVisible(){
+  if(innerWidth>900)return;
+  requestAnimationFrame(()=>{
+    const pw=$('padw');if(pw.hidden)return;
+    const act=!$('ruban').hidden&&$('ruban').querySelector('.cell.act');
+    const top=act?($('ruban').getBoundingClientRect().top):(!$('stage').hidden?$('ruban'):$('prompt')).getBoundingClientRect().top;
+    let bot=act?act.getBoundingClientRect().bottom:(!$('stage').hidden?$('ruban'):$('prompt')).getBoundingClientRect().bottom;
+    if($('msg').textContent.trim())bot=Math.max(bot,$('msg').getBoundingClientRect().bottom);
+    const lim=innerHeight-pw.offsetHeight-8;let d=0;
+    if(bot>lim)d=Math.min(bot-lim,Math.max(0,top-8));
+    if(act){const r=act.getBoundingClientRect();if(r.bottom-d>lim)d=r.bottom-lim}
+    if(top-d<0&&!act)d=top-8;
+    if(Math.abs(d)>2)scrollBy({top:d,behavior:reduce?'auto':'smooth'});
+  });
+}
+const hidePad=()=>{$('padw').hidden=true};
+function showChoices(opts,dis,q){$('chq').innerHTML=nb(q||'');$('choices').innerHTML=opts.map((h,i)=>`<button type="button" data-i="${i}"${dis.has(i)?' disabled':''}>${h}</button>`).join('');$('chw').hidden=false}
+const hideChoices=()=>{$('chw').hidden=true};
+$('choices').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&!b.disabled)emit({type:'choice',i:+b.dataset.i})});
+function showTray(parts,used){$('tray').innerHTML=parts.map((p,i)=>`<button type="button" class="part ${FAM[p.t]}" data-i="${i}"${used.has(i)?' disabled':''}>${opStr(p)}</button>`).join('');$('trw').hidden=false}
+const hideTray=()=>{$('trw').hidden=true};
+$('tray').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&!b.disabled)emit({type:'part',i:+b.dataset.i})});
+function showActs(list){$('acts').innerHTML=list.map(a=>`<button type="button" class="btn ${a.cls||''}" data-id="${a.id}">${a.label}</button>`).join('')}
+const clearActs=()=>{$('acts').innerHTML=''};
+$('acts').addEventListener('click',e=>{const b=e.target.closest('button');if(b)emit({type:'btn',id:b.dataset.id})});
+function clearCtrl(){hidePad();hideChoices();hideTray();clearActs()}
+async function askBtn(list){showActs(list);const ev=await next(['btn'],{type:'btn',id:list[0].id});clearActs();return ev.id}
+
+async function askNum(expect,{m=null,mod=0,line='',hint=()=>'',reveal=null}={}){
+  let tries=0;
+  for(;;){
+    showPad(line);
+    const ev=await next(['num'],{type:'num',v:expect});hidePad();
+    if(ev.v===expect){sfx('ding');return false}
+    tries++;
+    if(m)await m.cough(mod);else{sfx('boing');await sleep(250)}
+    if(tries>=2){
+      say(`${hint(ev.v,tries)}<br><b>La réponse : ${line?line+' ':''}${num(expect)}</b>`);
+      if(reveal)reveal();
+      await askBtn([{id:'ok',label:'Compris, on continue →',cls:'or'}]);return true;
+    }
+    say(`${hint(ev.v,tries)} Essaie encore !`);
+  }
+}
+async function askChoice(opts,ok,{m=null,mod=0,q='',why=()=>'',reveal=null}={}){
+  let tries=0;const dis=new Set();
+  for(;;){
+    showChoices(opts,dis,q);
+    const ev=await next(['choice'],{type:'choice',i:ok});
+    if(ev.i===ok){hideChoices();sfx('ding');return false}
+    tries++;dis.add(ev.i);hideChoices();
+    if(m)await m.cough(mod);else{sfx('boing');await sleep(250)}
+    if(tries>=2){say(`${why(ev.i)}<br><b>La bonne écriture : ${opts[ok]}</b>`);if(reveal)reveal();await askBtn([{id:'ok',label:'Compris, on continue →',cls:'or'}]);return true}
+    say(`${why(ev.i)} Essaie encore !`);
+  }
+}
+
+/* ================= conseils ================= */
+function hintNum(a,o,r,v){
+  if(v===-r&&r!==0){
+    if(FAM[o.t]==='mul')return`Presque : ${Math.abs(r)} est juste, mais pas le signe. Règle des signes : deux nombres de même signe donnent un résultat positif, deux nombres de signes contraires un résultat négatif.`;
+    return`Presque : ${Math.abs(r)} est juste, mais pas le signe. Sur une droite graduée, pars de ${num(a)} et ${o.t==='add'?'avance':'recule'} de ${o.v}.`;
+  }
+  if(o.t==='mul'){
+    if(v===a+o.v)return`Tu as ajouté ${num(o.v)}. Multiplier par ${num(o.v)}, ce n’est pas ajouter ${num(o.v)}.`;
+    if(a<0||o.v<0)return`Multiplie d’abord sans les signes : ${Math.abs(a)} × ${Math.abs(o.v)}. Puis applique la règle des signes.`;
+    return`Pense à la table de ${o.v} : ${o.v} fois ${a}.`;
+  }
+  if(o.t==='div'){
+    if(v===a*o.v)return'Tu as multiplié : ici, la machine divise.';
+    return`Cherche le nombre qui, multiplié par ${pnum(o.v)}, donne ${num(a)}.`;
+  }
+  if(v===(o.t==='add'?a-o.v:a+o.v))return`Attention : « ${opStr(o)} » fait ${o.t==='add'?'monter':'descendre'} le nombre.`;
+  return`Imagine un thermomètre : il affiche ${num(a)} °C, puis la température ${o.t==='add'?'monte':'baisse'} de ${o.v} °C. Quelle température affiche-t-il ?`;
+}
+function whyText(c,pk){
+  const R=pk.opts[pk.ok],{o,prev}=pk.ctx;let t=2;
+  for(const u of[2,3,4,5,6,7])if(valAt(c,u)!==valAt(R,u)){t=u;break}
+  const k=o?o.v:0,P=hx(prev||'');let m='';
+  if(!o)m={nopar:'Sans parenthèses, la multiplication passe en priorité : cette écriture ne suit plus l’ordre du programme.',order:'Les étapes doivent être faites dans l’ordre du programme.',dist:'Quand on multiplie, c’est tout le résultat précédent qui est multiplié, pas seulement une partie.'}[c.why]||'';
+  else switch(c.why){
+    case'coef':m=`On ne mélange pas les ${VX} et les nombres seuls : ${o.t==='add'?'ajouter':'soustraire'} ${o.v} ne change pas le nombre de ${VX}.`;break;
+    case'sign':m=`Attention au signe : regarde bien ce que fait la machine (« ${opStr(o)} »).`;break;
+    case'mulc':m=`Ajouter ${k}, ce n’est pas multiplier par ${k}.`;break;
+    case'revsub':m=`La machine enlève ${k} au nombre ${P}, pas l’inverse.`;break;
+    case'addk':m=`Multiplier par ${k}, ce n’est pas ajouter ${k}.`;break;
+    case'pow':m=`${hx(c.s)}, c’est ${hx(Array(c.k).fill('x').join(' × '))} : le nombre multiplié par lui-même. Ici, on prend ${k} fois le nombre.`;break;
+    case'coefadd':m=`${P} × ${k}, c’est ${k} fois ${P} : on multiplie le nombre de ${VX}.`;break;
+    case'nopar':m=`Sans parenthèses, la multiplication passe en priorité : seul le dernier terme serait multiplié par ${k}. Or la machine multiplie tout le nombre ${P}.`;break;
+    case'nopar2':m=`Sans parenthèses, la multiplication passe en priorité : seul le premier terme serait multiplié par ${k}. Or la machine multiplie tout le nombre ${P}.`;break;
+    case'dist1':case'dist2':m=`Pour développer, on multiplie chaque terme de la parenthèse par ${k}.`;break;
+    case'order':m='Les étapes doivent être faites dans l’ordre du programme.';break;
+    case'dist':m='Quand on multiplie, c’est tout le résultat précédent qui est multiplié, pas seulement le nombre de départ.';break;
+  }
+  return`${m} Essaie avec ${VX} = ${t} : la bonne écriture donne ${num(valAt(R,t))}, mais ${hx(c.s)} donne ${num(valAt(c,t))}.`;
+}
+function solveLines(A,B){
+  const L=[];let l={a:A.a,b:A.b},r={a:B.a,b:B.b};const eq=(p,q)=>`${fmtAff(p.a,p.b)} = ${fmtAff(q.a,q.b)}`;
+  L.push([eq(l,r),'']);
+  const m=Math.min(l.a,r.a);
+  if(m){l={a:l.a-m,b:l.b};r={a:r.a-m,b:r.b};L.push([eq(l,r),`on enlève ${hx(fmtAff(m,0))} de chaque côté`])}
+  let X=l.a?l:r,O=l.a?r:l;
+  if(!l.a)L.push([eq(X,O),'on lit l’égalité dans l’autre sens']);
+  if(X.b){const c=X.b;O={a:0,b:O.b-c};X={a:X.a,b:0};L.push([eq(X,O),c>0?`on enlève ${c} de chaque côté`:`on ajoute ${-c} de chaque côté`])}
+  if(X.a!==1){const k=X.a;O={a:0,b:O.b/k+0};X={a:1,b:0};L.push([eq(X,O),`on divise chaque côté par ${k}`])}
+  return L;
+}
+const writeSolve=(A,B)=>{for(const[e,c]of solveLines(A,B))write(`${hx(e)}${c?` <small>(${c})</small>`:''}`)};
+function subst(f,t){
+  if(!f.a)return num(f.b);
+  let s=f.a===1?pnum(t):`${num(f.a)} × ${pnum(t)}`;if(f.b)s+=f.b>0?` + ${f.b}`:` ${M} ${-f.b}`;
+  return`${s} = ${num(f.a*t+f.b)}`;
+}
+
+/* ================= niveaux ================= */
+async function runAuto(m,label,isX,labels,fast=false){
+  await m.feed(label,isX);
+  for(let i=0;i<labels.length;i++){await m.go(i+1);await m.stamp(i);m.label(labels[i],isX);m.lamp(i,'ok');await sleep(fast?90:220)}
+  await m.go(labels.length+1);
+}
+
+/* niveau 1 : marche avant */
+async function f1(Q){
+  const m=MA,n=Q.ops.length;let helped=false;
+  m.setMods(Q.ops.map(fwd));m.hideTok();
+  setPrompt('Fais tourner la machine',`Nombre glissé dans la machine : <b>${num(Q.s)}</b>`);
+  RB.rows=[{cells:[num(Q.s),...Array(n).fill('')],ops:Q.ops.map(opStr),act:-1}];drawRuban();
+  write(`Je choisis ${num(Q.s)}.`,'orig');
+  say('Glisse le nombre dans la machine : à chaque module, calcule ce qui en sort.');
+  await askBtn([{id:'go',label:'▶ Glisser le nombre',cls:'or'}]);
+  await m.feed(num(Q.s));
+  for(let i=0;i<n;i++){
+    const o=Q.ops[i],a=Q.vals[i],r=Q.vals[i+1];
+    await m.go(i+1);await m.stamp(i);m.label('?');
+    RB.rows[0].act=i+1;drawRuban();
+    say(`Module n° ${i+1} : la machine fait « ${opStr(o)} ». Quel nombre sort ?`);
+    helped=await askNum(r,{m,mod:i,line:`${num(a)} ${opStr(o)} =`,hint:v=>hintNum(a,o,r,v)})||helped;
+    m.label(num(r));m.lamp(i,'ok');RB.rows[0].cells[i+1]=num(r);RB.rows[0].act=-1;drawRuban();
+    write(calc(a,o));say('');
+  }
+  await m.go(n+1);m.celebrate();
+  write(`Résultat : ${num(Q.vals[n])}`,'fin');
+  return helped;
+}
+
+/* niveau 2 : monter la machine */
+function exp2(Q,slots){
+  for(let i=0;i<slots.length;i++)if(slots[i]!==null&&opKey(Q.parts[slots[i]])!==opKey(Q.ops[i]))return{type:'slot',i};
+  const k=slots.indexOf(null);if(k>=0)return{type:'part',i:Q.parts.findIndex(p=>opKey(p)===opKey(Q.ops[k]))};
+  return{type:'btn',id:'test'};
+}
+function diag2(Q,built,v){
+  const same=built.map(opKey).sort().join()===Q.ops.map(opKey).sort().join();
+  if(same)return`Tu as les bons modules, mais pas dans le bon ordre ! Avec ${Q.t}, ta machine donne ${num(v)} alors que le programme donne ${Q.res}. L’ordre des étapes compte.`;
+  const i=built.findIndex((p,j)=>opKey(p)!==opKey(Q.ops[j])),b=built[i];
+  let s=`Relis l’étape ${i+1} du programme : « ${Q.words[i]} ». Le module « ${opStr(b)} » ${doesWhat(b)} : ce n’est pas la même chose.`;
+  s+=v===Q.res?` (Avec ${Q.t}, le résultat tombe juste par hasard, mais la machine n’est pas la bonne.)`:` Avec ${Q.t}, ta machine donne ${num(v)} ; le programme donne ${Q.res}.`;
+  return s;
+}
+async function f2(Q){
+  const m=MA,n=Q.ops.length;let slots=Array(n).fill(null),fails=0,helped=false,auto=false;
+  const modsOf=()=>slots.map(si=>si===null?{kind:'empty'}:fwd(Q.parts[si]));
+  const rub=()=>{RB.rows=[{cells:[num(Q.t),...Array(n).fill('')],ops:slots.map(si=>si===null?'?':opStr(Q.parts[si])),act:-1}];drawRuban()};
+  m.setMods(modsOf());m.hideTok();rub();
+  setPrompt('Monte la machine du programme',progHTML(Q.words));
+  say('Touche les modules dans l’ordre du programme : ils s’installent de gauche à droite. Touche un module installé pour le retirer.');
+  for(;;){
+    if(!auto){
+      const full=!slots.includes(null);
+      showTray(Q.parts,new Set(slots.filter(s=>s!==null)));
+      showActs(full?[{id:'test',label:`▶ Tester la machine avec ${Q.t}`,cls:'or'}]:[]);
+      m.setPick(true);
+      const ev=await next(['part','slot','btn'],exp2(Q,slots));
+      if(ev.type==='part'){const k=slots.indexOf(null);if(k<0){say('Toutes les places sont prises. Touche un module installé pour le retirer.');continue}if(slots.includes(ev.i))continue;
+        slots[k]=ev.i;sfx('pop');m.setMods(modsOf());m.setPick(true);rub();say(slots.includes(null)?'Bien. Module suivant ?':'La machine est montée : teste-la !');continue}
+      if(ev.type==='slot'){if(slots[ev.i]===null)continue;slots[ev.i]=null;sfx('boing');m.setMods(modsOf());m.setPick(true);rub();continue}
+    }
+    auto=false;m.setPick(false);clearCtrl();
+    const built=slots.map(si=>Q.parts[si]);
+    rub();say('');
+    await m.feed(String(Q.t));let v=Q.t;
+    for(let i=0;i<n;i++){await m.go(i+1);await m.stamp(i);v=ap(built[i],v);m.label(num(v));RB.rows[0].cells[i+1]=num(v);drawRuban();await sleep(160)}
+    await m.go(n+1);
+    if(built.every((p,i)=>opKey(p)===opKey(Q.ops[i]))){m.celebrate();sfx('ding');break}
+    fails++;const bad=built.findIndex((p,i)=>opKey(p)!==opKey(Q.ops[i]));
+    await m.cough(bad);const msg=diag2(Q,built,v);
+    if(fails>=2){helped=true;say(`${msg}<br>Pas de souci : la machine se répare toute seule. Regarde le bon montage.`);
+      slots=Q.ops.map(o=>Q.parts.findIndex(p=>opKey(p)===opKey(o)));m.setMods(modsOf());m.hideTok();rub();
+      await askBtn([{id:'fix',label:'▶ Tester le bon montage',cls:'or'}]);auto=true;continue}
+    say(`${msg} Les modules qui ne conviennent pas sont revenus dans la boîte.`);
+    slots=slots.map((si,i)=>opKey(Q.parts[si])===opKey(Q.ops[i])?si:null);
+    m.setMods(modsOf());m.hideTok();rub();
+  }
+  write(`Machine : ${Q.ops.map(o=>`<span class="chip ${FAM[o.t]}">${opStr(o)}</span>`).join(' → ')}`);
+  write(`Avec ${Q.t} :`,'orig');for(let i=0;i<n;i++)write(calc(Q.vals[i],Q.ops[i]));
+  say('La machine marche ! Maintenant, écris tout son calcul en une seule ligne.');
+  const why=i=>{const c=Q.lineOpts[i];const r={nopar:'la multiplication est prioritaire : elle serait faite avant l’addition ou la soustraction. Il faut des parenthèses pour garder l’ordre de la machine.',order:'les étapes ne sont pas dans l’ordre du programme.',group:'les parenthèses ne sont pas au bon endroit.'}[c.k];
+    return`${esc(c.s)} = ${num(c.v)} : ${r} Or la machine donne ${Q.res}.`};
+  const h2=await askChoice(Q.lineOpts.map(o=>esc(o.s)),Q.lineOk,{m,mod:n-1,q:`Avec ${Q.t}, le calcul de la machine s’écrit :`,why});
+  write(`${esc(Q.line)} = ${Q.res}`,'fin');
+  return helped||h2;
+}
+
+/* niveau 3 : marche arrière */
+function msg3(p,o,j,Q){
+  if(opKey(p)===opKey(o))return`« ${opStr(p)} » ${doesAgain(p)} ! Pour défaire « ${opStr(o)} », il faut l’opération contraire.`;
+  const k=Q.ops.findIndex(q=>opKey(inv(q))===opKey(p));
+  if(k>=0&&k!==j)return`« ${opStr(p)} » défait l’étape n° ${k+1} (« ${opStr(Q.ops[k])} »), qui a été faite plus tôt. En marche arrière, on défait d’abord la dernière étape faite : ici « ${opStr(o)} ».`;
+  return`« ${opStr(p)} » ne défait pas « ${opStr(o)} ». Rappel : + et − se défont l’une l’autre, × et ÷ aussi.`;
+}
+async function f3(Q){
+  const m=MA,n=Q.ops.length;let helped=false;
+  m.setMods(Q.ops.map(fwd));m.place(n+1,num(Q.out));m.elamp(true);
+  setPrompt('Marche arrière',`La machine a fabriqué <b>${num(Q.out)}</b>. Quel nombre avait-on glissé au départ ?`);
+  RB.rows=[{name:'aller',cells:['?',...Array(n-1).fill(''),num(Q.out)],ops:Q.ops.map(opStr),act:-1}];drawRuban();
+  write(`La machine a donné ${num(Q.out)}. Je cherche le nombre de départ.`,'txt');
+  say('Pour remonter le temps, fais tourner la machine à l’envers : chaque module doit défaire ce qu’il avait fait.');
+  await askBtn([{id:'rev',label:'⟲ Passer en marche arrière',cls:'or'}]);
+  const rm=Q.ops.map(o=>({kind:'q',t:o.t,txt:'?',sub:`aller : ${opStr(o)}`}));
+  m.setRev(true);m.setMods(rm);m.elamp(false);
+  RB.rows.push({name:'retour',rev:true,cells:[num(Q.out),...Array(n).fill('')],ops:Array(n).fill('?'),act:-1});drawRuban();
+  const used=new Set();
+  for(let j=n-1;j>=0;j--){
+    const o=Q.ops[j],need=inv(o),ni=Q.parts.findIndex(p=>opKey(p)===opKey(need));m.hl(j);
+    say(`${j===n-1?'Le nombre revient d’abord':'Il passe ensuite'} par le module n° ${j+1}, qui avait fait « ${opStr(o)} ». Quel module le défait ?`);
+    let tries=0;
+    for(;;){
+      showTray(Q.parts,used);
+      const ev=await next(['part'],{type:'part',i:ni});const p=Q.parts[ev.i];
+      if(ev.i===ni){used.add(ni);sfx('pop');break}
+      tries++;hideTray();await m.cough(j);const msg=msg3(p,o,j,Q);
+      if(tries>=2){helped=true;say(`${msg}<br><b>Pour défaire « ${opStr(o)} », on fait « ${opStr(need)} ».</b>`);await askBtn([{id:'ok',label:'Compris, on continue →',cls:'or'}]);used.add(ni);break}
+      say(msg+' Essaie encore !');
+    }
+    hideTray();rm[j]={kind:'rev',t:need.t,txt:opStr(need),sub:'retour'};m.setMod(j,rm[j]);
+    RB.rows[1].ops[n-1-j]=opStr(need);drawRuban();
+  }
+  m.hl(-1);
+  write(`On défait les étapes dans l’ordre inverse : ${Q.ops.slice().reverse().map(o=>`« ${opStr(inv(o))} »`).join(' puis ')}.`,'txt');
+  say('La machine est réglée. Fais-la tourner à l’envers et calcule ce qui sort de chaque module.');
+  await askBtn([{id:'run',label:'◀ Faire tourner à l’envers',cls:'or'}]);
+  for(let j=n-1;j>=0;j--){
+    const a=Q.vals[j+1],r=Q.vals[j],o=inv(Q.ops[j]);
+    await m.go(j+1);await m.stamp(j);m.label('?');RB.rows[1].act=n-j;drawRuban();
+    say(`Module n° ${j+1} en marche arrière : « ${opStr(o)} ».`);
+    helped=await askNum(r,{m,mod:j,line:`${num(a)} ${opStr(o)} =`,hint:v=>hintNum(a,o,r,v)})||helped;
+    m.label(num(r));m.lamp(j,'ok');RB.rows[1].cells[n-j]=num(r);RB.rows[1].act=-1;drawRuban();write(calc(a,o));say('');
+  }
+  await m.go(0);
+  RB.rows[0].cells[0]=num(Q.x0);drawRuban();
+  write(`Nombre de départ : ${num(Q.x0)}`,'fin');
+  say(`On trouve ${num(Q.x0)}. Vérifions : on remet la machine en marche avant avec ce nombre.`);
+  await askBtn([{id:'ver',label:'✓ Vérifier en marche avant',cls:'or'}]);
+  m.setRev(false);m.setMods(Q.ops.map(fwd));say('');
+  await runAuto(m,num(Q.x0),false,Q.vals.slice(1).map(num),true);
+  RB.rows[0].cells=Q.vals.map(num);drawRuban();
+  write(`Vérification : ${chainStr(Q.x0,Q.ops)} = ${num(Q.out)} ✓`,'ver');m.celebrate();
+  return helped;
+}
+
+/* niveau 4 : la lettre x */
+function pickQ(st,p,prev){
+  const o=st.o,P=hx(prev);
+  if(st.picks.length===2)return p===0?`La machine multiplie tout le nombre ${P} par ${o.v}. Comment l’écrire ?`:`Développe et réduis : ${hx(`(${prev}) × ${o.v}`)} = ?`;
+  if(o.t==='mul')return`La machine multiplie ${P} par ${o.v}. Quelle expression sort ?`;
+  return`La machine fait « ${opStr(o)} » sur ${P}. Quelle expression sort ?`;
+}
+async function f4(Q){
+  const m=MA,n=Q.ops.length;let helped=false;
+  m.setMods(Q.ops.map(fwd));m.hideTok();
+  setPrompt('La lettre x',`Glisse la lettre ${VX} dans la machine : quelle expression en sort ?`);
+  RB.rows=[{cells:[VX,...Array(n).fill('')],ops:Q.ops.map(opStr),act:-1}];drawRuban();
+  write(`On choisit un nombre et on l’appelle ${VX}.`,'txt');
+  say(`La lettre ${VX} remplace n’importe quel nombre : la machine va fabriquer une expression.`);
+  await askBtn([{id:'go',label:'▶ Glisser x',cls:'or'}]);
+  await m.feed('x',true);let prev='x';
+  for(let i=0;i<n;i++){
+    const st=Q.steps[i];await m.go(i+1);await m.stamp(i);m.label('?',true);RB.rows[0].act=i+1;drawRuban();say('');
+    for(let p=0;p<st.picks.length;p++){const pk=st.picks[p];
+      helped=await askChoice(pk.opts.map(c=>hx(c.s)),pk.ok,{m,mod:i,q:pickQ(st,p,prev),why:k=>whyText(pk.opts[k],pk)})||helped;
+      const s=pk.opts[pk.ok].s;m.label(s,true);RB.rows[0].cells[i+1]=hx(s);drawRuban();say('');
+    }
+    RB.rows[0].act=-1;drawRuban();write(hx(st.line));m.lamp(i,'ok');prev=st.res.s;
+  }
+  await m.go(n+1);m.elamp(true);
+  write(`La machine fabrique ${hx(Q.final.s)}.`,'fin');
+  say(`Vérifions avec un vrai nombre : glissons ${Q.t} dans la machine.`);
+  await askBtn([{id:'ver',label:`✓ Vérifier avec ${Q.t}`,cls:'or'}]);say('');
+  const vals=runChain(Q.t,Q.ops);
+  await runAuto(m,String(Q.t),false,vals.slice(1).map(num),true);
+  write(`Avec ${Q.t}, la machine donne ${num(vals[n])}, et ${subst(Q.final,Q.t)} ✓`,'ver');m.celebrate();
+  return helped;
+}
+
+/* niveau 5 : deux machines */
+function hint5(Q,t,a,b,tries){
+  const d=a-b,s=Q.fa.a-Q.fb.a;
+  let h=`La machine ${d>0?'A':'B'} donne ${Math.abs(d)} de plus que la machine ${d>0?'B':'A'}.`;
+  h+=` Quand le nombre augmente de 1, A augmente de ${Q.fa.a} et B de ${Q.fb.a} : l’écart change de ${Math.abs(s)} à chaque fois.`;
+  h+=Q.x0>t?' Essaie un nombre plus grand.':' Essaie un nombre plus petit.';
+  if(tries>=3)h+=' Tu peux aussi regarder la résolution de l’équation.';
+  return h;
+}
+async function f5(Q){
+  let helped=false;const nA=Q.A.length,nB=Q.B.length;
+  MA.setMods(Q.A.map(fwd));MB.setMods(Q.B.map(fwd));MA.hideTok();MB.hideTok();
+  setPrompt('Deux machines','Pour quel nombre les deux machines donnent-elles le même résultat ?');
+  const rows=(a,b)=>{RB.rows=[{name:'A',cells:[a,...Array(nA).fill('')],ops:Q.A.map(opStr),act:-1},{name:'B',cells:[b,...Array(nB).fill('')],ops:Q.B.map(opStr),act:-1}];RB.cmp=''};
+  rows(VX,VX);drawRuban();
+  say(`Commence par glisser ${VX} dans les deux machines : chacune fabrique son expression.`);
+  await askBtn([{id:'x',label:'▶ Glisser x dans les deux machines',cls:'or'}]);say('');
+  await Promise.all([runAuto(MA,'x',true,Q.sA.map(s=>s.res.s)),runAuto(MB,'x',true,Q.sB.map(s=>s.res.s))]);
+  RB.rows[0].cells=[VX,...Q.sA.map(s=>hx(s.res.s))];RB.rows[1].cells=[VX,...Q.sB.map(s=>hx(s.res.s))];drawRuban();
+  write(`Machine A : ${hx(Q.fa.s)}`);write(`Machine B : ${hx(Q.fb.s)}`);
+  write(`On cherche ${VX} tel que ${hx(Q.fa.s)} = ${hx(Q.fb.s)}.`,'orig');
+  say('Essaie un nombre : les deux machines le calculent en même temps. Le but : obtenir le même résultat !');
+  let tries=0;
+  for(;;){
+    showPad('Nombre à essayer :');showActs(tries>=3?[{id:'solve',label:'Voir la résolution',cls:'gh'}]:[]);
+    const ev=await next(['num','btn'],{type:'num',v:Q.x0});
+    if(ev.type==='btn'){helped=true;break}
+    const t=ev.v;if(Math.abs(t)>50){say('Choisis un nombre entre −50 et 50 : la machine chaufferait trop !');continue}
+    hidePad();clearActs();say('');
+    const va=runChain(t,Q.A),vb=runChain(t,Q.B);rows(num(t),num(t));drawRuban();
+    await Promise.all([runAuto(MA,num(t),false,va.slice(1).map(num),true),runAuto(MB,num(t),false,vb.slice(1).map(num),true)]);
+    RB.rows[0].cells=va.map(num);RB.rows[1].cells=vb.map(num);
+    const a=va[nA],b=vb[nB];tries++;RB.cmp=`<span class="rlab">A</span> ${num(a)} ${a===b?'=':'≠'} ${num(b)} <span class="rlab">B</span>`;drawRuban();
+    if(a===b){MA.celebrate();MB.celebrate();sfx('ding');write(`Avec ${num(t)} : A donne ${num(a)}, B donne ${num(b)} ✓`);break}
+    write(`Avec ${num(t)} : A donne ${num(a)}, B donne ${num(b)}.`,'try');sfx('boing');
+    say(hint5(Q,t,a,b,tries));
+  }
+  clearCtrl();
+  write('Par le calcul :','txt');writeSolve(Q.fa,Q.fb);
+  write(`Pour ${VX} = ${num(Q.x0)}, les deux machines donnent ${num(Q.val)}.`,'fin');
+  if(helped){say(`Regarde : avec ${num(Q.x0)}, les deux machines donnent bien le même résultat.`);
+    const va=runChain(Q.x0,Q.A),vb=runChain(Q.x0,Q.B);rows(num(Q.x0),num(Q.x0));drawRuban();
+    await Promise.all([runAuto(MA,num(Q.x0),false,va.slice(1).map(num),true),runAuto(MB,num(Q.x0),false,vb.slice(1).map(num),true)]);
+    RB.rows[0].cells=va.map(num);RB.rows[1].cells=vb.map(num);RB.cmp=`<span class="rlab">A</span> ${num(Q.val)} = ${num(Q.val)} <span class="rlab">B</span>`;drawRuban();MA.celebrate();MB.celebrate()}
+  return helped;
+}
+
+/* niveau 6 : sans machine */
+async function f6(Q){
+  let h;
+  const twoProgs=()=>`<div class="progs">${progHTML(Q.wA,'Programme A')}${progHTML(Q.wB,'Programme B')}</div>`;
+  if(Q.type==='exec'){
+    const res=Q.vals.at(-1);
+    setPrompt('Programme de calcul',progHTML(Q.words)+`<p>Quel résultat obtient-on en choisissant <b>${num(Q.s)}</b> ?</p>`);
+    say('Fais le calcul au brouillon, étape par étape, puis tape le résultat.');
+    const corr=()=>{write(`Je choisis ${num(Q.s)}.`,'orig');Q.ops.forEach((o,i)=>write(calc(Q.vals[i],o)));write(`Résultat : ${num(res)}`,'fin');write(`En une ligne : ${esc(chainStr(Q.s,Q.ops))} = ${num(res)}`,'ver')};
+    const np=evalExpr(noParStr(Q.s,Q.ops));
+    h=await askNum(res,{line:'Résultat :',reveal:corr,hint:v=>{
+      if(np&&np.b===v&&v!==res)return'Attention à l’ordre : le programme fait les étapes l’une après l’autre, la première d’abord.';
+      if(v===-res)return'Attention au signe ! Reprends les règles des signes.';
+      return`Pas tout à fait. Reprends étape par étape : ${num(Q.s)} ${opStr(Q.ops[0])} = … , puis la suite.`}});
+    if(!h)corr();
+  }else if(Q.type==='expr'){
+    setPrompt('Programme de calcul',progHTML(Q.words)+`<p>On choisit un nombre ${VX}. Quelle expression donne le résultat du programme ?</p>`);
+    say('Écris les étapes au brouillon avec la lettre x, sans oublier les parenthèses.');
+    const corr=()=>{write(`On choisit ${VX}.`,'orig');Q.steps.forEach(s=>write(hx(s.line)));write(`Le programme donne ${hx(Q.final.s)}.`,'fin')};
+    h=await askChoice(Q.pick.opts.map(c=>hx(c.s)),Q.pick.ok,{q:'Le programme donne :',reveal:corr,why:k=>whyText(Q.pick.opts[k],Q.pick)});
+    if(!h)corr();
+  }else if(Q.type==='rev'){
+    const n=Q.ops.length;
+    setPrompt('Programme de calcul',progHTML(Q.words)+`<p>On a obtenu <b>${num(Q.out)}</b>. Quel nombre avait-on choisi ?</p>`);
+    say('Pense à la marche arrière : opérations contraires, dans l’ordre inverse.');
+    const corr=()=>{write(`On part de ${num(Q.out)} et on remonte le programme :`,'txt');for(let j=n-1;j>=0;j--)write(calc(Q.vals[j+1],inv(Q.ops[j])));write(`Nombre choisi : ${num(Q.x0)}`,'fin');write(`Vérification : ${esc(chainStr(Q.x0,Q.ops))} = ${num(Q.out)} ✓`,'ver')};
+    const wo=runChain(Q.out,Q.ops.map(inv)).at(-1),fw=runChain(Q.out,Q.ops).at(-1);
+    h=await askNum(Q.x0,{line:'Nombre choisi :',reveal:corr,hint:v=>{
+      if(v===wo&&v!==Q.x0)return'Tu as défait les étapes dans le mauvais ordre : on commence par défaire la dernière.';
+      if(v===fw)return'Tu as refait le programme au lieu de le défaire.';
+      const f=runChain(v,Q.ops).at(-1);
+      return`Vérifie : avec ${num(v)}, le programme donne ${Number.isFinite(f)?num(f):'un résultat qui ne tombe pas juste'}, pas ${num(Q.out)}.`}});
+    if(!h)corr();
+  }else{
+    setPrompt('Deux programmes',twoProgs()+`<p>Quel nombre faut-il choisir pour que les deux programmes donnent le même résultat ?</p>`);
+    say(`Exprime chaque programme avec ${VX}, puis résous l’équation.`);
+    const corr=()=>{write(`Programme A : ${hx(Q.fa.s)}`);write(`Programme B : ${hx(Q.fb.s)}`);writeSolve(Q.fa,Q.fb);
+      write(`Vérification : A donne ${subst(Q.fa,Q.x0)} et B donne ${subst(Q.fb,Q.x0)} ✓`,'ver')};
+    h=await askNum(Q.x0,{line:'Nombre à choisir :',reveal:corr,hint:v=>{
+      const a=Q.fa.a*v+Q.fa.b,b=Q.fb.a*v+Q.fb.b;
+      return`Vérifie : avec ${num(v)}, A donne ${num(a)} et B donne ${num(b)}. Résous ${hx(Q.fa.s)} = ${hx(Q.fb.s)}.`}});
+    if(!h)corr();
+  }
+  return h;
+}
+
+const LV=[
+  {t:'1. Marche avant',d:'Glisse un nombre dans la machine et calcule ce qu’elle fabrique à chaque étape, nombres négatifs compris.',gen:g1,flow:f1,stage:1},
+  {t:'2. Monter la machine',d:'Lis le programme de calcul, installe les bons modules dans le bon ordre, puis écris le calcul en une ligne.',gen:g2,flow:f2,stage:1},
+  {t:'3. Marche arrière',d:'On connaît le résultat : fais tourner la machine à l’envers pour retrouver le nombre de départ.',gen:g3,flow:f3,stage:1},
+  {t:'4. La lettre x',d:'Glisse la lettre '+VX+' : la machine fabrique une expression. Attention aux parenthèses !',gen:g4,flow:f4,stage:1},
+  {t:'5. Deux machines',d:'Deux machines, un même nombre : pour lequel donnent-elles le même résultat ? C’est une équation.',gen:g5,flow:f5,stage:2},
+  {t:'6. Sans machine',d:'Plus de machine : uniquement l’écriture, comme au brevet.',gen:null,flow:f6,stage:0}
+];
+const ORD6=['exec','expr','rev','two','mix'];
+let lvl=0,mode='lvl';const done=LV.map(()=>0),helped=LV.map(()=>[]);
+
+function setStage(k){
+  $('stage').hidden=k===0;$('ruban').hidden=k===0;$('mB').toggleAttribute('hidden',k<2);document.querySelector('.legend').hidden=k===0;
+  MA.compact=k===2;MA.name=k===2?'A':'';MB.compact=true;MA.rev=false;MA.mods=[];MA.build();if(k===2){MB.mods=[];MB.build()}
+}
+async function play(){
+  newRun();const id=RUN;
+  $('win').hidden=true;LOG=[];RB.rows=[];RB.cmp='';drawRuban();drawLog();say('');
+  const L=LV[lvl];setStage(L.stage);
+  const Q=lvl===5?g6(ORD6[done[5]%5]):L.gen();T.q=Q;
+  try{const h=await L.flow(Q);if(id!==RUN)return;finishQ(h)}catch(e){if(!(e instanceof Cancel))throw e}
+}
+function finishQ(h){
+  clearCtrl();
+  if(done[lvl]<PER){helped[lvl][done[lvl]]=!!h;done[lvl]++}
+  const lvlDone=done[lvl]>=PER,last=lvl===LV.length-1;
+  sfx('win');
+  $('winx').textContent=pick(['Bravo !','Bien joué !','Excellent !','La machine est ravie !','Superbe !']);
+  $('winp').textContent=nb(lvlDone?(last?'Tu as terminé tous les niveaux : les programmes de calcul n’ont plus de secret pour toi !':`Niveau ${lvl+1} réussi ! Passe au niveau suivant.`)
+    :(h?'La machine t’a donné un coup de main : relis la correction dans ta copie, puis passe à la suite.':'Question réussie. Regarde ta copie : tout y est écrit.'));
+  $('next').textContent=lvlDone?(last?'Rejouer ce niveau':'Niveau suivant →'):'Question suivante →';
+  $('next').dataset.go=lvlDone?(last?'again':'up'):'';
+  $('win').hidden=false;say('');drawLog();
+}
+$('next').onclick=()=>{const g=$('next').dataset.go;if(g==='up')lvl++;else if(g==='again'){done[lvl]=0;helped[lvl]=[]}renderLv();play()};
+
+/* ================= Ma machine (professeur) ================= */
+const own={ops:[{t:'mul',v:3},{t:'add',v:5}]};
+function parseNum(s){const t=String(s).trim().replace(/[−–]/g,'-').replace(/\s+/g,'');if(!/^[+-]?\d{1,3}$/.test(t))return null;return parseInt(t,10)+0}
+const ownWarn=t=>{$('ownW').textContent=t};
+function ownDraw(){
+  $('ownSteps').innerHTML=own.ops.map((o,i)=>`<div class="ostep"><span class="pn">${i+1}</span><select data-i="${i}" aria-label="Opération de l’étape ${i+1}">${['add','sub','mul','div'].map(t=>`<option value="${t}"${t===o.t?' selected':''}>${SYM[t]}</option>`).join('')}</select><input data-i="${i}" inputmode="numeric" autocomplete="off" value="${num(o.v)}" aria-label="Nombre de l’étape ${i+1}"><button type="button" class="btn gh sm" data-del="${i}" aria-label="Supprimer l’étape ${i+1}"${own.ops.length<2?' disabled':''}>✕</button></div>`).join('');
+  $('ownAdd').disabled=own.ops.length>=4;
+}
+function ownSync(){newRun();MA.rev=false;MA.svg.classList.remove('rev');MA.setMods(own.ops.map(fwd));MA.hideTok();RB.rows=[];RB.cmp='';drawRuban()}
+$('ownSteps').addEventListener('change',e=>{
+  const i=+e.target.dataset.i;if(Number.isNaN(i))return;const o=own.ops[i];ownWarn('');
+  if(e.target.tagName==='SELECT')o.t=e.target.value;
+  else{const v=parseNum(e.target.value);if(v===null||Math.abs(v)>99){ownWarn('Écris un nombre entier entre −99 et 99.');ownDraw();return}o.v=v}
+  if((o.t==='add'||o.t==='sub')&&o.v<0){o.t=INV[o.t];o.v=-o.v}
+  if(o.t==='div'&&o.v===0){ownWarn('On ne peut pas diviser par 0 : la machine refuse ce module.');o.v=1}
+  ownDraw();ownSync();
+});
+$('ownSteps').addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b||own.ops.length<2)return;own.ops.splice(+b.dataset.del,1);ownDraw();ownSync()});
+$('ownAdd').onclick=()=>{if(own.ops.length>=4)return;own.ops.push({t:'add',v:2});ownDraw();ownSync()};
+async function ownGo(fn){ownSync();LOG=[];drawLog();if(innerWidth<900)$('stage').scrollIntoView({block:'start',behavior:reduce?'auto':'smooth'});try{await fn()}catch(e){if(!(e instanceof Cancel))throw e}}
+$('ownF').onclick=()=>{
+  const s=parseNum($('ownS').value);ownWarn('');if(s===null)return ownWarn('Nombre de départ : écris un nombre entier entre −999 et 999.');$('ownS').value=num(s);
+  const ops=own.ops.map(o=>({...o})),vals=runChain(s,ops),bad=vals.findIndex(v=>!Number.isFinite(v));
+  if(bad>0)return ownWarn(`À l’étape ${bad}, ${num(vals[bad-1])} ${opStr(ops[bad-1])} ne tombe pas juste : la machine ne travaille qu’avec des nombres entiers.`);
+  if(vals.some(v=>Math.abs(v)>99999))return ownWarn('Les nombres deviennent trop grands pour la machine.');
+  ownGo(async()=>{const n=ops.length;RB.rows=[{cells:[num(s),...Array(n).fill('')],ops:ops.map(opStr),act:-1}];drawRuban();write(`Je choisis ${num(s)}.`,'orig');
+    await MA.feed(num(s));for(let i=0;i<n;i++){await MA.go(i+1);await MA.stamp(i);MA.label(num(vals[i+1]));MA.lamp(i,'ok');RB.rows[0].cells[i+1]=num(vals[i+1]);drawRuban();write(calc(vals[i],ops[i]));await sleep(350)}
+    await MA.go(n+1);MA.celebrate();write(`Résultat : ${num(vals[n])}`,'fin');write(`En une ligne : ${esc(chainStr(s,ops))} = ${num(vals[n])}`,'ver')});
+};
+function exprSteps(ops){
+  let a=1,b=0,s='x',simp=true,prec='atom';const out=[];
+  for(const o of ops){let line;
+    if(simp){
+      if(o.t==='add'||o.t==='sub'){const c=o.t==='add'?o.v:-o.v,ns=fmtAff(a,b+c),raw=`${s} ${opStr(o)}`;line=raw.replace(/\u00a0/g,' ')===ns?ns:`${raw} = ${ns}`;b+=c;s=ns}
+      else{const raw=(b===0||a===0)?`${s} ${opStr(o)}`:`(${s}) ${opStr(o)}`;
+        if(o.t==='mul'){a=a*o.v+0;b=b*o.v+0;const ns=fmtAff(a,b);line=`${raw} = ${ns}`;s=ns}
+        else if(a%o.v===0&&b%o.v===0){a=a/o.v+0;b=b/o.v+0;const ns=fmtAff(a,b);line=`${raw} = ${ns}`;s=ns}
+        else{simp=false;s=raw;prec='mul';line=raw}}
+    }else{s=chainFrom(s,prec,[o]);prec=FAM[o.t]==='mul'?'mul':'add';line=s}
+    out.push({line,s})}
+  return{out,simp};
+}
+$('ownX').onclick=()=>{ownWarn('');const ops=own.ops.map(o=>({...o})),E=exprSteps(ops),n=ops.length;
+  ownGo(async()=>{RB.rows=[{cells:[VX,...Array(n).fill('')],ops:ops.map(opStr),act:-1}];drawRuban();write(`On choisit un nombre ${VX}.`,'orig');
+    await MA.feed('x',true);for(let i=0;i<n;i++){await MA.go(i+1);await MA.stamp(i);MA.label(E.out[i].s,true);MA.lamp(i,'ok');RB.rows[0].cells[i+1]=hx(E.out[i].s);drawRuban();write(hx(E.out[i].line));await sleep(350)}
+    await MA.go(n+1);MA.elamp(true);write(`La machine fabrique ${hx(E.out[n-1].s)}.`,'fin');
+    if(!E.simp)write('La division ne tombe pas juste sur chaque terme : on garde l’écriture avec la division.','txt')});
+};
+$('ownB').onclick=()=>{
+  const r=parseNum($('ownR').value);ownWarn('');if(r===null)return ownWarn('Résultat : écris un nombre entier entre −999 et 999.');$('ownR').value=num(r);
+  const ops=own.ops.map(o=>({...o})),n=ops.length;
+  if(ops.some(o=>o.t==='mul'&&o.v===0))return ownWarn('Avec « × 0 », impossible de revenir en arrière : tous les nombres donnent 0 !');
+  const rops=ops.slice().reverse().map(inv),vals=runChain(r,rops),bad=vals.findIndex(v=>!Number.isFinite(v));
+  if(bad>0)return ownWarn(`En marche arrière, ${num(vals[bad-1])} ${opStr(rops[bad-1])} ne tombe pas juste : aucun nombre entier ne donne ${num(r)} avec ce programme.`);
+  if(vals.some(v=>Math.abs(v)>99999))return ownWarn('Les nombres deviennent trop grands pour la machine.');
+  const x0=vals[n];
+  ownGo(async()=>{MA.setRev(true);MA.setMods(ops.map(o=>({kind:'rev',t:INV[o.t],txt:opStr(inv(o)),sub:`aller : ${opStr(o)}`})));MA.place(n+1,num(r));
+    RB.rows=[{name:'retour',rev:true,cells:[num(r),...Array(n).fill('')],ops:rops.map(opStr),act:-1}];drawRuban();write(`La machine a donné ${num(r)}.`,'orig');
+    await sleep(500);for(let j=n-1;j>=0;j--){const k=n-1-j;await MA.go(j+1);await MA.stamp(j);MA.label(num(vals[k+1]));MA.lamp(j,'ok');RB.rows[0].cells[k+1]=num(vals[k+1]);drawRuban();write(calc(vals[k],rops[k]));await sleep(350)}
+    await MA.go(0);write(`Nombre de départ : ${num(x0)}`,'fin');write(`Vérification : ${esc(chainStr(x0,ops))} = ${num(r)} ✓`,'ver')});
+};
+
+/* ================= menu ================= */
+function renderLv(){
+  $('lv').innerHTML=LV.map((l,i)=>`<button type="button" data-l="${i}" aria-pressed="${mode==='lvl'&&i===lvl}">${l.t}</button>`).join('')+
+    `<button type="button" class="own" data-l="own" aria-pressed="${mode==='own'}">Ma machine (prof)</button><button type="button" class="snd" id="snd" aria-pressed="${snd}">♪ Son : ${snd?'oui':'non'}</button>`;
+  const o=mode==='own';
+  $('lvdesc').innerHTML=nb(o?'Mode « Au tableau » : le professeur compose son propre programme et le fait tourner devant la classe.':LV[lvl].d);
+  $('lvname').textContent=o?'· ma machine':`· niveau ${lvl+1}`;
+  $('prompt').hidden=o;$('ctrl').hidden=o;$('own').hidden=!o;if(o)$('win').hidden=true;
+}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('abra-son',snd?'1':'0')}catch(_){}renderLv();if(snd)sfx('ding');return}
+  if(b.dataset.l==='own'){mode='own';renderLv();setStage(1);ownDraw();ownSync();LOG=[];drawLog();say('Composez le programme, puis lancez la machine.');return}
+  mode='lvl';lvl=+b.dataset.l;renderLv();play()});
+let rT=0;addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(()=>{for(const m of[MA,MB])if(!m.busy&&m.g&&m.geom().narrow!==m.narrow)m.build()},120)});
+
+/* accès pour les tests automatiques */
+window.__abra={T,calc,opStr,inv,words,whyText,subst,exprSteps,gen:l=>l===5?g6(pick(['exec','expr','rev','two'])):LV[l].gen(),g6,evalExpr,chainStr,noParStr,fmtAff,affOf,buildSteps,solveLines,
+  state:()=>({lvl,done:done.slice(),mode,win:!$('win').hidden}),setLevel:i=>{mode='lvl';lvl=i;renderLv();play()},finishCount:()=>done.slice()};
+
+renderLv();play();
+}
+</script>
+
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script>
+/* Sigma Arcade — musique de fond originale (Web Audio, aucun fichier audio).
+   Deux compositions originales :
+   - « aventure » : marche héroïque en ré majeur, 4/4, 116 bpm ;
+   - « epique »   : saga sombre en ré mineur, 3/4, 126 bpm.
+   Démarre au premier geste de l'utilisateur (règle des navigateurs),
+   se coupe avec le bouton, mémorise le choix, baisse quand la page est cachée.
+   API : SigmaMusic.duck(true|false) baisse le volume (ex. trajets de l'ascenseur). */
+(function () {
+  'use strict';
+  if (window.SigmaMusic) return;
+  var STYLE0 = window.SIGMA_MUSIC_STYLE === 'epique' ? 'epique' : 'aventure';
+  var store = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+  var on = store.get('sigma-musique', '1') === '1';
+  var style = store.get('sigma-musique-style-' + location.pathname, STYLE0);
+
+  /* ---- notes : nom → fréquence ---- */
+  var SEMI = { C: -9, D: -7, E: -5, F: -4, G: -2, A: 0, B: 2 };
+  function hz(n) { // ex. 'D4', 'F#4', 'Bb3'
+    var m = /^([A-G])([#b]?)(\d)$/.exec(n); if (!m) return 0;
+    var s = SEMI[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0) + (parseInt(m[3], 10) - 4) * 12;
+    return 440 * Math.pow(2, s / 12);
+  }
+  /* séquence compacte : "note:durée note:durée …" (durée en temps ; '-' = silence) */
+  function seq(str) {
+    var t = 0, out = [];
+    str.trim().split(/\s+/).forEach(function (tok) {
+      var p = tok.split(':'), d = parseFloat(p[1]);
+      if (p[0] !== '-') out.push({ t: t, d: d, f: hz(p[0]) });
+      t += d;
+    });
+    return { ev: out, len: t };
+  }
+
+  /* ================= compositions originales ================= */
+  var SONGS = {
+    aventure: { bpm: 116, beats: 4, bars: 8,
+      lead: seq(
+        'D4:1 A4:0.5 F#4:0.5 A4:1 D5:1 ' +
+        'C#5:0.75 B4:0.25 A4:1 G4:1 -:1 ' +
+        'B4:1 D5:0.5 B4:0.5 G4:1 B4:1 ' +
+        'A4:1.5 G4:0.5 F#4:1 E4:1 ' +
+        'F#4:1 A4:0.5 D5:0.5 F#5:1 E5:1 ' +
+        'D5:0.75 C#5:0.25 B4:1 G4:1 B4:1 ' +
+        'A4:1 E4:0.5 G4:0.5 C#5:1 B4:0.5 C#5:0.5 ' +
+        'D5:2 A4:1 -:1'),
+      bass: seq(
+        'D2:1 D3:1 A2:1 D3:1  G2:1 G3:1 D3:1 G3:1  G2:1 G3:1 D3:1 B2:1  A2:1 A3:1 E3:1 A2:1 ' +
+        'D2:1 D3:1 A2:1 F#2:1 G2:1 G3:1 B2:1 G2:1  A2:1 A3:1 E3:1 C#3:1 D2:1 A2:1 D3:1 -:1'),
+      chords: [['D3','F#3','A3'],['G3','B3','D4'],['G3','B3','D4'],['A3','C#4','E4'],
+               ['D3','F#3','A3'],['G3','B3','D4'],['A3','C#4','E4'],['D3','F#3','A3']],
+      drums: 'march', leadType: 'brass' },
+    epique: { bpm: 126, beats: 3, bars: 8,
+      lead: seq(
+        'D5:2 C5:1  Bb4:3  A4:2 G4:1  A4:2 -:1 ' +
+        'F4:1 G4:1 A4:1  Bb4:2 D5:1  C5:1.5 Bb4:0.5 A4:1  D4:3'),
+      bass: seq(
+        'D2:1 A2:1 D3:1  Bb1:1 F2:1 Bb2:1  C2:1 G2:1 C3:1  A1:1 E2:1 A2:1 ' +
+        'D2:1 A2:1 D3:1  G1:1 D2:1 G2:1  A1:1 E2:1 A2:1  D2:1 A2:1 D3:1'),
+      chords: [['D3','F3','A3'],['Bb2','D3','F3'],['C3','E3','G3'],['A2','C#3','E3'],
+               ['D3','F3','A3'],['G2','Bb2','D3'],['A2','C#3','E3'],['D3','F3','A3']],
+      drums: 'war', leadType: 'strings' }
+  };
+
+  /* ================= moteur ================= */
+  var ctx = null, master = null, duckG = null, timer = null, nextT = 0, beat = 0, playing = false;
+  function audio() {
+    if (!ctx) {
+      try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
+      master = ctx.createGain(); master.gain.value = 0;
+      duckG = ctx.createGain(); duckG.gain.value = 1;
+      var comp = ctx.createDynamicsCompressor();
+      master.connect(duckG); duckG.connect(comp); comp.connect(ctx.destination);
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  function env(g, t, a, peak, dur, rel) {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(peak, t + a);
+    g.gain.setValueAtTime(peak, t + Math.max(a, dur - rel));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + rel);
+  }
+  function lead(f, t, dur, type) {
+    var o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
+    o1.type = 'sawtooth'; o2.type = type === 'brass' ? 'square' : 'sawtooth';
+    o1.frequency.value = f; o2.frequency.value = f; o2.detune.value = type === 'brass' ? -6 : 9;
+    lp.type = 'lowpass'; lp.Q.value = type === 'brass' ? 2 : 0.7;
+    lp.frequency.setValueAtTime(type === 'brass' ? 700 : 900, t);
+    lp.frequency.linearRampToValueAtTime(type === 'brass' ? 2200 : 1500, t + Math.min(0.12, dur / 2));
+    o1.connect(lp); o2.connect(lp); lp.connect(g); g.connect(master);
+    env(g, t, type === 'brass' ? 0.03 : 0.12, type === 'brass' ? 0.11 : 0.09, dur, type === 'brass' ? 0.08 : 0.25);
+    o1.start(t); o2.start(t); o1.stop(t + dur + 0.4); o2.stop(t + dur + 0.4);
+  }
+  function bass(f, t, dur) {
+    var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.value = f;
+    o.connect(g); g.connect(master); env(g, t, 0.01, 0.16, dur * 0.9, 0.06); o.start(t); o.stop(t + dur + 0.2);
+  }
+  function pad(notes, t, dur) {
+    notes.forEach(function (n) {
+      var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = hz(n);
+      o.connect(g); g.connect(master); env(g, t, 0.25, 0.028, dur, 0.4); o.start(t); o.stop(t + dur + 0.6);
+    });
+  }
+  var noiseBuf = null;
+  function noise(t, dur, vol, freq) {
+    if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate); var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    var s = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
+    s.buffer = noiseBuf; bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 0.8;
+    s.connect(bp); bp.connect(g); g.connect(master); env(g, t, 0.002, vol, dur, dur); s.start(t); s.stop(t + dur * 2 + 0.05);
+  }
+  function drum(t, f0, f1, dur, vol) {
+    var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine';
+    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    o.connect(g); g.connect(master); env(g, t, 0.003, vol, dur, dur * 0.5); o.start(t); o.stop(t + dur + 0.1);
+  }
+  function drums(kind, b, t, spb, beats) {
+    var pos = b % beats;
+    if (kind === 'march') {
+      if (pos === 0 || pos === 2) drum(t, 130, 45, 0.18, 0.22);
+      if (pos === 1 || pos === 3) noise(t, 0.09, 0.07, 1800);
+      noise(t + spb / 2, 0.05, 0.03, 2600);                       // roulement léger à la croche
+      if (pos === 3) noise(t + spb * 0.75, 0.05, 0.035, 2200);
+    } else {
+      if (pos === 0) { drum(t, 95, 38, 0.45, 0.3); }
+      if (pos === 2) drum(t + spb / 2, 140, 70, 0.2, 0.12);
+      if (pos === 1) noise(t, 0.16, 0.035, 900);
+    }
+  }
+  function schedule() {
+    var S = SONGS[style], spb = 60 / S.bpm, total = S.beats * S.bars;
+    while (nextT < ctx.currentTime + 0.25) {
+      var b = beat % total;
+      S.lead.ev.forEach(function (e) { if (e.t >= b && e.t < b + 1) lead(e.f, nextT + (e.t - b) * spb, e.d * spb * 0.95, S.leadType); });
+      S.bass.ev.forEach(function (e) { if (e.t >= b && e.t < b + 1) bass(e.f, nextT + (e.t - b) * spb, e.d * spb); });
+      if (b % S.beats === 0) pad(S.chords[(b / S.beats) % S.chords.length], nextT, S.beats * spb);
+      drums(S.drums, b, nextT, spb, S.beats);
+      nextT += spb; beat++;
+    }
+  }
+  function start() {
+    if (playing || !on || document.hidden) return;
+    if (!audio()) return;
+    playing = true; beat = 0; nextT = ctx.currentTime + 0.12;
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setValueAtTime(0, ctx.currentTime); master.gain.linearRampToValueAtTime(0.55, ctx.currentTime + 1.5);
+    schedule(); timer = setInterval(schedule, 60);
+  }
+  function stop() {
+    if (!playing) return; playing = false; clearInterval(timer);
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setValueAtTime(master.gain.value, ctx.currentTime); master.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+  }
+  function duck(x) {
+    if (!ctx) return; var t = ctx.currentTime;
+    duckG.gain.cancelScheduledValues(t); duckG.gain.setValueAtTime(duckG.gain.value, t);
+    duckG.gain.linearRampToValueAtTime(x ? 0.18 : 1, t + (x ? 0.25 : 0.8));
+  }
+
+  /* ================= bouton flottant ================= */
+  var css = '.smus{position:absolute;top:12px;right:max(12px,env(safe-area-inset-right));z-index:9000;display:flex;gap:6px;font:600 14px Lexend,system-ui,sans-serif}' +
+    '.smus button{min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid rgba(255,122,0,.6);background:light-dark(rgba(255,255,255,.94),rgba(20,24,28,.94));color:light-dark(#15191d,#e9edf0);cursor:pointer;box-shadow:0 6px 18px -8px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font:inherit}' +
+    '.smus button[aria-pressed=true]{background:#ff7a00;color:#1d0e00;border-color:#ff7a00}' +
+    '.smus .sty{font-size:13px}.smus button:focus-visible{outline:3px solid #ff7a00;outline-offset:2px}' +
+    '@media(max-width:520px){.smus .sty{display:none}.smus button{min-height:40px;padding:0 12px;font-size:13px}}' +
+    '@media print{.smus{display:none}}';
+  var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+  var box = document.createElement('div'); box.className = 'smus'; box.setAttribute('aria-label', 'Musique de fond');
+  var bOn = document.createElement('button'), bSty = document.createElement('button');
+  bOn.type = bSty.type = 'button'; bSty.className = 'sty';
+  function label() {
+    bOn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    bOn.textContent = on ? '♪ Musique : oui' : '♪ Musique : non';
+    bSty.textContent = style === 'epique' ? 'Style : épique' : 'Style : aventure';
+  }
+  bOn.addEventListener('click', function (e) {
+    e.stopPropagation(); on = !on; store.set('sigma-musique', on ? '1' : '0'); label();
+    if (on) start(); else stop();
+  });
+  bSty.addEventListener('click', function (e) {
+    e.stopPropagation(); style = style === 'epique' ? 'aventure' : 'epique';
+    store.set('sigma-musique-style-' + location.pathname, style); label();
+    if (playing) { stop(); setTimeout(start, 450); }
+  });
+  box.appendChild(bSty); box.appendChild(bOn);
+  function mount() { document.body.appendChild(box); label(); }
+  if (document.body) mount(); else document.addEventListener('DOMContentLoaded', mount);
+
+  /* premier geste : la musique peut démarrer */
+  function first() { start(); }
+  ['pointerdown', 'keydown'].forEach(function (ev) { document.addEventListener(ev, first, { once: true, capture: true }); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else if (on && ctx) start(); });
+
+  window.SigmaMusic = { start: start, stop: stop, duck: duck, isOn: function () { return on; } };
+})();
+
+</script>
+</body>
+</html>
