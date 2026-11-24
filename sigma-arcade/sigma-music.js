@@ -160,10 +160,10 @@
   }
 
   /* ================= bouton flottant ================= */
-  var css = '.smus{position:absolute;top:12px;right:max(12px,env(safe-area-inset-right));z-index:9000;display:flex;gap:6px;font:600 14px Lexend,system-ui,sans-serif}' +
-    '.smus button{min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid rgba(255,122,0,.6);background:light-dark(rgba(255,255,255,.94),rgba(20,24,28,.94));color:light-dark(#15191d,#e9edf0);cursor:pointer;box-shadow:0 6px 18px -8px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font:inherit}' +
-    '.smus button[aria-pressed=true]{background:#ff7a00;color:#1d0e00;border-color:#ff7a00}' +
-    '.smus .sty{font-size:13px}.smus button:focus-visible{outline:3px solid #ff7a00;outline-offset:2px}' +
+  var css = '.smus{position:absolute;top:12px;right:max(12px,env(safe-area-inset-right));z-index:9000;display:flex;gap:6px;font:600 14px Outfit,system-ui,sans-serif}' +
+    '.smus button{min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid rgba(120,160,255,.32);background:rgba(10,22,40,.92);color:#f0f4ff;cursor:pointer;box-shadow:0 6px 18px -8px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font:inherit}' +
+    '.smus button[aria-pressed=true]{background:#6c8eff;color:#071022;border-color:#6c8eff}' +
+    '.smus .sty{font-size:13px}.smus button:focus-visible{outline:3px solid #6c8eff;outline-offset:2px}' +
     '@media(max-width:520px){.smus .sty{display:none}.smus button{min-height:44px;padding:0 12px;font-size:13px}}' +
     '@media print{.smus{display:none}}';
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);

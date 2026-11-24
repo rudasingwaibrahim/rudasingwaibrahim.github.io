@@ -40,13 +40,14 @@
 
   /* ---------------- styles communs ---------------- */
   var CSS = [
-    ':root{--sk-or:#ff7a00;--sk-ink:light-dark(#15191d,#e9edf0);--sk-bg:light-dark(#ffffff,#101418);--sk-mut:light-dark(#56616b,#9ba7b1);',
-    '--sk-panel:light-dark(#f1f3f5,#1a2027);--sk-line:light-dark(#cfd5da,#323c46);--sk-ok:light-dark(#23803a,#5fd27c);--sk-ko:light-dark(#c0392b,#ff8c7a);--sk-gold:#f5b301}',
-    '.sk-ov{position:fixed;inset:0;z-index:20000;background:rgba(10,14,20,.55);display:flex;align-items:center;justify-content:center;padding:16px;',
+    ':root{--sk-or:var(--sg-accent,#6c8eff);--sk-on:var(--sg-on-accent,#071022);--sk-ink:var(--sg-text,#f0f4ff);--sk-bg:var(--sg-panel-solid,#0c1a30);',
+    '--sk-mut:var(--sg-muted,rgba(200,215,255,.72));--sk-panel:rgba(255,255,255,.04);--sk-line:var(--sg-border-strong,rgba(120,160,255,.32));',
+    '--sk-ok:var(--sg-ok,#5fd27c);--sk-ko:var(--sg-coral,#ff6b6b);--sk-gold:var(--sg-gold,#c8a84b)}',
+    '.sk-ov{position:fixed;inset:0;z-index:20000;background:rgba(3,7,16,.72);display:flex;align-items:center;justify-content:center;padding:16px;',
     '-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);animation:skfade .2s ease-out}',
     '@keyframes skfade{from{opacity:0}to{opacity:1}}',
-    '.sk-card{background:var(--sk-bg);color:var(--sk-ink);border-radius:22px;width:min(720px,100%);max-height:calc(100dvh - 32px);overflow:auto;',
-    'box-shadow:0 30px 80px -30px rgba(0,0,0,.6);font:17px/1.5 Lexend,system-ui,sans-serif;animation:skpop .35s cubic-bezier(.2,1.4,.4,1)}',
+    '.sk-card{background:linear-gradient(160deg,#10213d,#0a1628 70%);border:1px solid var(--sk-line);color:var(--sk-ink);border-radius:22px;width:min(720px,100%);max-height:calc(100dvh - 32px);overflow:auto;',
+    'box-shadow:0 30px 80px -30px rgba(0,0,0,.6);font:17px/1.55 var(--sg-font,Outfit,system-ui,sans-serif);animation:skpop .35s cubic-bezier(.2,1.4,.4,1)}',
     '@keyframes skpop{from{transform:scale(.9) translateY(12px);opacity:0}to{transform:none;opacity:1}}',
     '.sk-head{display:flex;gap:16px;align-items:center;padding:22px 24px 8px}',
     '.sk-head svg{flex:none;width:96px;height:96px}',
@@ -60,45 +61,54 @@
     '.sk-big .sk-stars svg:nth-child(2){animation-delay:.15s}.sk-big .sk-stars svg:nth-child(3){animation-delay:.3s}',
     '@keyframes skstar{from{transform:scale(0) rotate(-40deg)}to{transform:none}}',
     '.sk-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}',
-    '.sk-btn{min-height:48px;padding:0 20px;border-radius:12px;border:0;background:var(--sk-ink);color:var(--sk-bg);font:600 16px Lexend,system-ui,sans-serif;cursor:pointer}',
-    '.sk-btn.or{background:var(--sk-or);color:#1d0e00}.sk-btn.gh{background:transparent;color:var(--sk-ink);border:1.5px solid var(--sk-line)}',
+    '.sk-btn{min-height:48px;padding:0 20px;border-radius:12px;border:0;background:var(--sk-ink);color:#0a1628;font:600 16px var(--sg-font,Outfit,system-ui,sans-serif);cursor:pointer}',
+    '.sk-btn.or{background:var(--sk-or);color:var(--sk-on);box-shadow:0 6px 20px -8px var(--sg-glow,rgba(108,142,255,.5))}.sk-btn.gh{background:transparent;color:var(--sk-ink);border:1.5px solid var(--sk-line)}',
     '.sk-btn:disabled{opacity:.35;cursor:not-allowed}',
     '.sk-btn:focus-visible,.sk-ch:focus-visible,.sk-in:focus-visible{outline:3px solid var(--sk-or);outline-offset:2px}',
     '.sk-prog{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}',
     '.sk-prog span{width:14px;height:14px;border-radius:50%;background:var(--sk-line)}',
-    '.sk-prog span.c{background:var(--sk-or);box-shadow:0 0 0 3px rgba(255,122,0,.2)}.sk-prog span.g{background:var(--sk-ok)}.sk-prog span.r{background:var(--sk-ko)}',
+    '.sk-prog span.c{background:var(--sk-or);box-shadow:0 0 0 3px rgba(108,142,255,.2)}.sk-prog span.g{background:var(--sk-ok)}.sk-prog span.r{background:var(--sk-ko)}',
     '.sk-q{font-size:clamp(19px,2.6vw,23px);font-weight:600;line-height:1.45;margin:4px 0 14px}',
     '.sk-tag{display:inline-block;font-size:13px;font-weight:600;color:var(--sk-mut);margin-bottom:4px}',
     '.sk-chs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px}',
     '.sk-ch{min-height:56px;padding:10px 16px;border-radius:14px;border:1.5px solid var(--sk-line);background:var(--sk-bg);color:var(--sk-ink);',
-    'font:600 19px Lexend,system-ui,sans-serif;text-align:left;cursor:pointer}',
-    '.sk-ch:hover:not(:disabled){border-color:var(--sk-or);background:rgba(255,122,0,.1)}',
-    '.sk-ch.ok{border-color:var(--sk-ok);background:light-dark(#eaf7ee,#13261a)}.sk-ch.ko{border-color:var(--sk-ko);background:light-dark(#fdecea,#2a1513)}',
+    'font:600 19px var(--sg-font,Outfit,system-ui,sans-serif);text-align:left;cursor:pointer}',
+    '.sk-ch:hover:not(:disabled){border-color:var(--sk-or);background:rgba(108,142,255,.1)}',
+    '.sk-ch.ok{border-color:var(--sk-ok);background:rgba(95,210,124,.14)}.sk-ch.ko{border-color:var(--sk-ko);background:rgba(255,107,107,.14)}',
     '.sk-ch:disabled{cursor:default}',
-    '.sk-in{width:5.5em;height:46px;margin:2px 4px;padding:0 8px;font:700 20px Lexend,system-ui,sans-serif;text-align:center;border:1.5px solid var(--sk-line);',
+    '.sk-in{width:5.5em;height:46px;margin:2px 4px;padding:0 8px;font:700 20px var(--sg-font,Outfit,system-ui,sans-serif);text-align:center;border:1.5px solid var(--sk-line);',
     'border-bottom:3px solid var(--sk-or);border-radius:10px;background:var(--sk-bg);color:var(--sk-ink);vertical-align:middle}',
     '.sk-in.ok{border-color:var(--sk-ok);color:var(--sk-ok)}.sk-in.ko{border-color:var(--sk-ko);color:var(--sk-ko)}',
     '.sk-fb{margin-top:14px;padding:12px 14px;border-radius:12px;line-height:1.5}',
-    '.sk-fb.ok{background:light-dark(#eaf7ee,#13261a)}.sk-fb.ko{background:light-dark(#fff1e6,#2a1d12)}',
+    '.sk-fb.ok{background:rgba(95,210,124,.14)}.sk-fb.ko{background:rgba(200,168,75,.14)}',
     '.sk-fb>b:first-child{display:block;font-size:18px;margin-bottom:2px}',
-    '.sk-res{font:700 clamp(48px,9vw,72px)/1 Lexend,system-ui,sans-serif}.sk-res small{font-size:.4em;color:var(--sk-mut)}',
+    '.sk-res{font:700 clamp(48px,9vw,72px)/1 var(--sg-font,Outfit,system-ui,sans-serif)}.sk-res small{font-size:.4em;color:var(--sk-mut)}',
     '.sk-verdict{display:inline-block;margin-top:8px;padding:6px 14px;border-radius:999px;font-weight:700}',
-    '.sk-verdict.a{background:light-dark(#eaf7ee,#13261a);color:var(--sk-ok)}.sk-verdict.b{background:rgba(255,122,0,.15);color:light-dark(#b45300,#ffb066)}',
-    '.sk-verdict.c{background:light-dark(#fdecea,#2a1513);color:var(--sk-ko)}',
+    '.sk-verdict.a{background:rgba(95,210,124,.14);color:var(--sk-ok)}.sk-verdict.b{background:rgba(108,142,255,.15);color:var(--sg-gold-bright,#e8c766)}',
+    '.sk-verdict.c{background:rgba(255,107,107,.14);color:var(--sk-ko)}',
     '.sk-list{margin:12px 0 0;padding-left:1.2em}.sk-list li{margin:4px 0}',
     '.sk-trophy{display:flex;align-items:center;gap:10px;margin-top:12px;font-weight:700}',
-    '.sk-trophy svg{width:44px;height:44px}',
+    '.sk-trophy svg{width:44px;height:44px;flex:none}',
+    '.sk-tis{display:grid;gap:12px}',
+    '.sk-ti{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px;border-radius:16px;border:1px solid var(--sk-line);background:rgba(255,255,255,.035)}',
+    '.sk-ti svg{width:64px;height:64px}.sk-ti.got{border-color:rgba(200,168,75,.55);background:rgba(200,168,75,.08)}.sk-ti.locked{opacity:.6}',
+    '.sk-ti-t b{display:block;font-size:18px}.sk-ti-t span{display:block;color:var(--sk-mut);font-size:15px;line-height:1.4}',
+    '.sk-ti-st{margin-top:4px;font-weight:600;color:var(--sk-ink)!important}.sk-ti-st.ok{color:var(--sk-gold)!important}.sk-ti-st.lock{color:var(--sk-mut)!important}',
+    '.sk-prof{margin-top:16px;color:var(--sk-mut);font-size:14px}.sk-prof summary{cursor:pointer;min-height:32px}.sk-prof-f{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}',
+    '.sk-trophy .sk-maki{width:64px;height:64px;flex:none}',
+    '@media (max-width:520px){.sk-ti{grid-template-columns:52px minmax(0,1fr)}.sk-ti svg{width:52px;height:52px}.sk-ti .sk-btn{grid-column:1/-1}}',
     '.sk-launch{position:absolute;left:max(12px,env(safe-area-inset-left));top:12px;z-index:9000}',
     '.sk-final-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px 0 6px;border-radius:999px;border:1.5px solid var(--sk-gold);',
-    'background:light-dark(#fff8e1,#2a2410);color:var(--sk-ink);font:600 15px Lexend,system-ui,sans-serif;cursor:pointer;box-shadow:0 6px 18px -10px rgba(0,0,0,.4)}',
+    'background:rgba(200,168,75,.12);color:var(--sk-ink);font:600 15px var(--sg-font,Outfit,system-ui,sans-serif);cursor:pointer;box-shadow:0 6px 18px -10px rgba(0,0,0,.4)}',
     '.sk-final-btn svg{width:34px;height:34px}',
-    '.sk-final-btn:hover{background:light-dark(#ffefb3,#3a3112)}',
+    '.sk-final-btn:hover{background:rgba(200,168,75,.22)}',
     '.sk-maki .arm-r{transform-box:fill-box;transform-origin:10% 90%}',
     '.sk-maki.joie .arm-r,.sk-maki.bravo .arm-r{animation:skwave 1.2s ease-in-out infinite}',
     '@keyframes skwave{0%,100%{transform:rotate(0)}50%{transform:rotate(-22deg)}}',
     '.sk-maki .tail{transform-box:fill-box;transform-origin:0% 0%;animation:sktail 3s ease-in-out infinite}',
     '@keyframes sktail{50%{transform:rotate(6deg)}}',
     '@media (prefers-reduced-motion:reduce){.sk-ov,.sk-card,.sk-big .sk-stars svg,.sk-maki .arm-r,.sk-maki .tail{animation:none!important}}',
+    '.sk-final-btn .s{display:none}',
     '@media (max-width:520px){.sk-head{padding:18px 16px 6px}.sk-head svg{width:72px;height:72px}.sk-body{padding:6px 16px 18px}.sk-final-btn .l{display:none}.sk-final-btn .s{display:inline}}'
   ].join('');
   var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
@@ -189,15 +199,15 @@
     fanfare('level');
     var name = cfg.levelNames && cfg.levelNames[o.level - 1] ? ' · ' + cfg.levelNames[o.level - 1] : '';
     var last = o.level >= cfg.levels;
-    var msg = n === 3 ? 'Sans faute : bravo !' : n === 2 ? 'Très bien joué !' : 'Niveau terminé : rejoue-le pour gagner plus d\'étoiles.';
+    var msg = n === 3 ? 'Sans faute&nbsp;: bravo\u00a0!' : n === 2 ? 'Très bien joué\u00a0!' : 'Niveau terminé : rejoue-le pour gagner plus d\'étoiles.';
     return new Promise(function (res) {
-      var m = modal('<div class="sk-head">' + maki(n === 3 ? 'bravo' : 'joie') + '<div><h2>Niveau ' + o.level + ' réussi !</h2><p>' + cfg.title + name + '</p></div></div>' +
+      var m = modal('<div class="sk-head">' + maki(n === 3 ? 'bravo' : 'joie') + '<div><h2>Niveau ' + o.level + ' réussi&nbsp;!</h2><p>' + cfg.title + name + '</p></div></div>' +
         '<div class="sk-body sk-big"><div>' + stars(n) + '</div><p style="margin:10px 0 0;font-size:18px"><b>' + o.score + ' / ' + o.total + '</b> du premier coup. ' + msg + '</p>' +
         (n < prev ? '<p style="margin:4px 0 0;color:var(--sk-mut)">Ton record reste ' + prev + ' étoile' + (prev > 1 ? 's' : '') + '.</p>' : '') +
         '<div class="sk-row">' +
-        (last ? '<button class="sk-btn or" data-v="final" data-auto>Passer l\'Épreuve finale</button>' : '<button class="sk-btn or" data-v="next" data-auto>Niveau suivant →</button>') +
+        (last ? '<button class="sk-btn or" data-v="final" data-auto>Passer les épreuves finales</button>' : '<button class="sk-btn or" data-v="next" data-auto>Niveau suivant →</button>') +
         '<button class="sk-btn gh" data-v="replay">Rejouer ce niveau</button>' +
-        (last ? '' : '<button class="sk-btn gh" data-v="final">Épreuve finale</button>') + '</div></div>', function (v) { if (v === 'final') setTimeout(openFinal, 60); res(v || 'close'); });
+        (last ? '' : '<button class="sk-btn gh" data-v="final">Épreuves finales</button>') + '</div></div>', function (v) { if (v === 'final') setTimeout(function () { openFinal(); }, 60); res(v || 'close'); });
       m.el.addEventListener('click', function (e) { var b = e.target.closest('[data-v]'); if (b) m.close(b.dataset.v); });
     });
   }
@@ -207,10 +217,78 @@
     return String(s).toLowerCase().replace(/\s+/g, '').replace(/[−–—]/g, '-').replace(/,/g, '.').replace(/[×*·]/g, 'x').replace(/^\+/, '');
   }
   function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-  function openFinal() {
-    if (!cfg || !cfg.buildFinal) return;
-    var Q = cfg.buildFinal(), i = 0, score = 0, res = [];
-    var m = modal('<div class="sk-head">' + maki('pense') + '<div><h2>Épreuve finale</h2><p>' + cfg.title + ' · ' + Q.length + ' questions, sans aide. Montre que c\'est acquis !</p></div></div><div class="sk-body" id="sk-fin"></div>');
+  /* ---------------- trois épreuves : Bronze, Argent, Or ---------------- */
+  var TIERS = [
+    { id: 'bronze', name: 'Bronze', sub: 'Les bases', desc: 'Les automatismes indispensables : une étape, des nombres simples.', col: '#cd7f32', col2: '#8a4f1c' },
+    { id: 'argent', name: 'Argent', sub: 'La maîtrise', desc: 'Toute la notion, avec les pièges classiques.', col: '#c9d2de', col2: '#7d8896' },
+    { id: 'or', name: 'Or', sub: 'L’expert', desc: 'Plusieurs étapes, des notions mélangées, des situations de Seconde.', col: '#e8c766', col2: '#a8862c' }
+  ];
+  function tierOf(id) { for (var k = 0; k < TIERS.length; k++) if (TIERS[k].id === id) return TIERS[k]; return TIERS[1]; }
+  function medal(id, earned) {
+    var t = tierOf(id), c = earned ? t.col : 'rgba(200,215,255,.22)', c2 = earned ? t.col2 : 'rgba(200,215,255,.35)', u = 'skm' + id + (earned ? 1 : 0);
+    return '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M15 3h7l4 12h-7zM33 3h-7l-4 12h7z" fill="' + (earned ? '#6c8eff' : 'rgba(108,142,255,.25)') + '"/>' +
+      '<defs><radialGradient id="' + u + '" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity="' + (earned ? '.75' : '.1') + '"/><stop offset=".45" stop-color="' + c + '"/><stop offset="1" stop-color="' + c2 + '"/></radialGradient></defs>' +
+      '<circle cx="24" cy="30" r="14" fill="url(#' + u + ')" stroke="' + c2 + '" stroke-width="1.5"/><circle cx="24" cy="30" r="9.5" fill="none" stroke="' + c2 + '" stroke-width="1" opacity=".7"/>' +
+      '<text x="24" y="34.5" text-anchor="middle" font-family="Outfit,sans-serif" font-weight="800" font-size="12" fill="' + c2 + '">Σ</text></svg>';
+  }
+  function finalsOf() {
+    if (!cfg) return {};
+    if (cfg.finals) return cfg.finals;
+    return cfg.buildFinal ? { argent: cfg.buildFinal } : {};
+  }
+  function rec(g) {                                   // migration : ancienne épreuve unique → Argent
+    if (!g.finals) { g.finals = {}; if (g.final) g.finals.argent = g.final; }
+    return g.finals;
+  }
+  var PROF_KEY = 'sigma-prof';
+  function prof() { try { return sessionStorage.getItem(PROF_KEY) === '1'; } catch (e) { return false; } }
+  function unlocked(id) {
+    var F = finalsOf(); if (!F[id]) return false; if (prof()) return true;
+    var p = load(), f = rec(gameRec(p, cfg.game));
+    if (id === 'bronze') return true;
+    if (id === 'argent') return !F.bronze || !!(f.bronze && f.bronze.acquis) || !!(f.argent);
+    if (id === 'or') return !!(f.argent && f.argent.acquis) || !!(f.or);
+    return false;
+  }
+  function nextTier(id) { var F = finalsOf(), k = TIERS.map(function (t) { return t.id; }).indexOf(id); for (var j = k + 1; j < TIERS.length; j++) if (F[TIERS[j].id]) return TIERS[j].id; return null; }
+
+  function openFinal(tier) {
+    if (!cfg) return; var F = finalsOf(); if (!Object.keys(F).length) return;
+    if (!tier || !F[tier]) return chooser();
+    if (!unlocked(tier)) return chooser();
+    runFinal(tier);
+  }
+  function chooser() {
+    var F = finalsOf(), p = load(), f = rec(gameRec(p, cfg.game));
+    var cards = TIERS.filter(function (t) { return F[t.id]; }).map(function (t) {
+      var r = f[t.id], open = unlocked(t.id), got = !!(r && r.acquis);
+      var st = got ? '<span class="sk-ti-st ok">Médaille obtenue · record ' + r.best + ' / ' + r.total + '</span>'
+        : r ? '<span class="sk-ti-st">Record : ' + r.best + ' / ' + r.total + ' · il faut ' + Math.ceil(.8 * r.total) + '</span>'
+        : open ? '<span class="sk-ti-st">À tenter</span>'
+        : '<span class="sk-ti-st lock">🔒 Obtiens d’abord la médaille ' + (t.id === 'or' ? 'd’Argent' : 'de Bronze') + '</span>';
+      return '<div class="sk-ti' + (open ? '' : ' locked') + (got ? ' got' : '') + '">' + medal(t.id, got) +
+        '<div class="sk-ti-t"><b>' + t.name + ' · ' + t.sub + '</b><span>' + t.desc + '</span>' + st + '</div>' +
+        '<button class="sk-btn ' + (open ? 'or' : 'gh') + '" data-t="' + t.id + '"' + (open ? '' : ' disabled') + '>' + (r ? 'Rejouer' : 'Commencer') + '</button></div>';
+    }).join('');
+    var m = modal('<div class="sk-head">' + maki('pense') + '<div><h2>Épreuves finales</h2><p>' + cfg.title + ' · 10 questions sans aide, 8 bonnes réponses pour la médaille.</p></div></div>' +
+      '<div class="sk-body"><div class="sk-tis">' + cards + '</div>' +
+      '<details class="sk-prof"><summary>Professeur : débloquer les trois épreuves</summary>' +
+      '<form class="sk-prof-f"><input class="sk-in" style="width:9em" placeholder="code" aria-label="Code professeur" autocomplete="off"><button class="sk-btn gh" type="submit">Débloquer</button><span class="sk-prof-m"></span></form></details>' +
+      '<div class="sk-row"><button class="sk-btn gh" data-x="1">Fermer</button></div></div>');
+    m.el.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-t]'); if (b && !b.disabled) { m.close(); setTimeout(function () { runFinal(b.dataset.t); }, 60); }
+      if (e.target.closest('[data-x]')) m.close();
+    });
+    var pf = m.el.querySelector('.sk-prof-f');
+    pf.onsubmit = function (e) {
+      e.preventDefault(); var v = norm(pf.querySelector('input').value);
+      if (v === 'sigmaprof') { try { sessionStorage.setItem(PROF_KEY, '1'); } catch (_) {} m.close(); setTimeout(chooser, 60); }
+      else pf.querySelector('.sk-prof-m').textContent = 'Code incorrect.';
+    };
+  }
+  function runFinal(tier) {
+    var T = tierOf(tier), Q = finalsOf()[tier](), i = 0, score = 0, res = [];
+    var m = modal('<div class="sk-head">' + medal(tier, true) + '<div><h2>Épreuve ' + T.name + '</h2><p>' + cfg.title + ' · ' + T.sub + ' · ' + Q.length + ' questions, sans aide.</p></div></div><div class="sk-body" id="sk-fin"></div>');
     var box = m.el.querySelector('#sk-fin');
     function prog() { return '<div class="sk-prog">' + Q.map(function (_, k) { return '<span class="' + (k < res.length ? (res[k] ? 'g' : 'r') : k === i ? 'c' : '') + '"></span>'; }).join('') + '</div>'; }
     function show() {
@@ -244,54 +322,58 @@
         box.querySelectorAll('.sk-in').forEach(function (inp) { inp.disabled = true; inp.classList.add(inp.dataset.good === '1' ? 'ok' : 'ko'); });
         var sb = box.querySelector('#sk-tf button'); if (sb) sb.remove();
       }
-      var sol = q.type === 'trous' && !ok ? '<br>Réponse attendue : ' + q.blanks.map(function (b) { return '<b style="display:inline">' + b.answers[0] + '</b>'; }).join(', ') + '.' : '';
+      var sol = q.type === 'trous' && !ok ? '<br>Réponse attendue&nbsp;: ' + q.blanks.map(function (b) { return '<b style="display:inline">' + b.answers[0] + '</b>'; }).join(', ') + '.' : '';
       fanfare(ok ? 'ok' : 'none');
-      box.querySelector('#sk-fb').innerHTML = '<div class="sk-fb ' + (ok ? 'ok' : 'ko') + '"><b>' + (ok ? 'Exact !' : 'Pas tout à fait.') + '</b>' + (q.explain || '') + sol + '</div>' +
+      box.querySelector('#sk-fb').innerHTML = '<div class="sk-fb ' + (ok ? 'ok' : 'ko') + '"><b>' + (ok ? 'Exact\u00a0!' : 'Pas tout à fait.') + '</b>' + (q.explain || '') + sol + '</div>' +
         '<div class="sk-row"><button class="sk-btn" id="sk-nx">' + (i < Q.length - 1 ? 'Question suivante →' : 'Voir mon résultat') + '</button></div>';
       box.querySelector('.sk-prog').outerHTML = prog();
       var nx = box.querySelector('#sk-nx'); nx.focus(); nx.onclick = function () { i++; if (i < Q.length) show(); else end(); };
     }
     function end() {
       var tot = Q.length, need = Math.ceil(0.8 * tot), v = score >= need ? 'a' : score / tot >= 0.5 ? 'b' : 'c';
-      var p = load(), g = gameRec(p, cfg.game); g.title = cfg.title;
-      var best = g.final ? Math.max(g.final.best, score) : score;
-      g.final = { best: best, last: score, total: tot, acquis: (g.final && g.final.acquis) || v === 'a', date: new Date().toISOString().slice(0, 10) };
+      var p = load(), g = gameRec(p, cfg.game), f = rec(g); g.title = cfg.title;
+      var old = f[tier], first = v === 'a' && !(old && old.acquis);
+      f[tier] = { best: old ? Math.max(old.best, score) : score, last: score, total: tot, acquis: !!(old && old.acquis) || v === 'a', date: new Date().toISOString().slice(0, 10) };
+      if (f.argent) g.final = f.argent;                 // compatibilité avec l'ancien Passeport
       save(p); fanfare(v === 'a' ? 'trophy' : 'level');
       var weak = {}; Q.forEach(function (q, k) { if (!res[k] && q.level) weak[q.level] = true; });
       var wl = Object.keys(weak).sort(function (a, b) { return a - b; });
-      var advice = wl.length ? '<p style="margin:14px 0 4px"><b>À revoir :</b></p><ul class="sk-list">' + wl.map(function (l) {
+      var advice = wl.length ? '<p style="margin:14px 0 4px"><b>À revoir&nbsp;:</b></p><ul class="sk-list">' + wl.map(function (l) {
         return '<li>Niveau ' + l + (cfg.levelNames && cfg.levelNames[l - 1] ? ' · ' + cfg.levelNames[l - 1] : '') + '</li>'; }).join('') + '</ul>' : '';
-      var head = v === 'a' ? 'C\'est acquis !' : v === 'b' ? 'Presque acquis' : 'À retravailler';
-      box.parentNode.querySelector('.sk-head').innerHTML = maki(v === 'a' ? 'bravo' : v === 'b' ? 'joie' : 'pense') +
-        '<div><h2>' + head + '</h2><p>' + cfg.title + ' · Épreuve finale</p></div>';
+      var nx = v === 'a' ? nextTier(tier) : null;
+      var head = v === 'a' ? (first ? 'Médaille ' + (tier === 'or' ? 'd’Or' : tier === 'argent' ? 'd’Argent' : 'de Bronze') + '\u00a0!' : 'Encore réussi\u00a0!') : v === 'b' ? 'Presque\u00a0!' : 'À retravailler';
+      box.parentNode.querySelector('.sk-head').innerHTML = (v === 'a' ? medal(tier, true) : maki(v === 'b' ? 'joie' : 'pense')) +
+        '<div><h2>' + head + '</h2><p>' + cfg.title + ' · Épreuve ' + T.name + '</p></div>';
       box.innerHTML = '<div class="sk-res">' + score + '<small> / ' + tot + '</small></div>' +
-        '<span class="sk-verdict ' + v + '">' + (v === 'a' ? 'Acquis : ' + need + ' bonnes réponses ou plus' : v === 'b' ? 'En cours d\'acquisition' : 'Pas encore acquis') + '</span>' +
-        (v === 'a' ? '<div class="sk-trophy">' + trophy() + '<span>Trophée ajouté à ton Passeport Sigma Arcade !</span></div>'
-          : '<p style="margin:12px 0 0">Il faut ' + need + ' bonnes réponses sur ' + tot + ' pour obtenir le trophée. Tu peux recommencer quand tu veux : les questions changent à chaque fois.</p>') +
+        '<span class="sk-verdict ' + v + '">' + (v === 'a' ? (tier === 'bronze' ? 'Les bases sont en place' : tier === 'argent' ? 'Notion acquise' : 'Notion maîtrisée') : v === 'b' ? 'En cours d’acquisition' : 'Pas encore acquis') + '</span>' +
+        (v === 'a' ? '<div class="sk-trophy">' + maki('bravo') + '<span>' + (first ? 'Médaille ajoutée à ton Passeport Sigma Arcade\u00a0!' : 'Ta médaille est déjà dans ton Passeport.') + (nx ? ' L’épreuve ' + tierOf(nx).name + ' est débloquée.' : '') + '</span></div>'
+          : '<p style="margin:12px 0 0">Il faut ' + need + ' bonnes réponses sur ' + tot + ' pour la médaille. Les questions changent à chaque essai.</p>') +
         advice +
-        '<div class="sk-row"><button class="sk-btn or" id="sk-again">Recommencer l\'épreuve</button><button class="sk-btn gh" id="sk-close">Fermer</button>' +
-        '<a class="sk-btn gh" href="/sigma-arcade/" style="display:inline-flex;align-items:center;text-decoration:none">Mon Passeport</a></div>';
-      box.querySelector('#sk-again').onclick = function () { m.close(); setTimeout(openFinal, 60); };
+        '<div class="sk-row">' + (nx ? '<button class="sk-btn or" id="sk-next">Tenter l’épreuve ' + tierOf(nx).name + ' →</button>' : '') +
+        '<button class="sk-btn ' + (nx ? 'gh' : 'or') + '" id="sk-again">Recommencer cette épreuve</button><button class="sk-btn gh" id="sk-close">Fermer</button>' +
+        '<a class="sk-btn gh" href="/sigma-arcade/#passeport" style="display:inline-flex;align-items:center;text-decoration:none">Mon Passeport</a></div>';
+      if (nx) box.querySelector('#sk-next').onclick = function () { m.close(); setTimeout(function () { runFinal(nx); }, 60); };
+      box.querySelector('#sk-again').onclick = function () { m.close(); setTimeout(function () { runFinal(tier); }, 60); };
       box.querySelector('#sk-close').onclick = function () { m.close(); };
     }
     show();
   }
 
-  /* ---------------- bouton « Épreuve finale » ---------------- */
+  /* ---------------- bouton « Épreuves » ---------------- */
   function mountFinalButton() {
     var b = document.createElement('button'); b.type = 'button'; b.className = 'sk-final-btn sk-launch';
-    b.innerHTML = trophy() + '<span class="l">Épreuve finale</span><span class="s" style="display:none">Épreuve</span>'; b.title = 'Épreuve finale : QCM et textes à trous';
-    b.onclick = openFinal;
+    b.innerHTML = medal('or', true) + '<span class="l">Épreuves finales</span><span class="s">Épreuves</span>'; b.title = 'Épreuves finales : Bronze, Argent, Or';
+    b.onclick = function () { openFinal(); };
     var hdr = document.querySelector('header');
     if (hdr) { b.classList.remove('sk-launch'); b.style.margin = '8px 0 0'; hdr.appendChild(b); }
     else document.body.appendChild(b);
   }
 
   function init(c) {
-    cfg = c; var p = load(); gameRec(p, c.game).title = c.title; save(p);
-    if (c.buildFinal) { if (document.body) mountFinalButton(); else document.addEventListener('DOMContentLoaded', mountFinalButton); }
+    cfg = c; var p = load(), g = gameRec(p, c.game); g.title = c.title; rec(g); save(p);
+    if (Object.keys(finalsOf()).length) { if (document.body) mountFinalButton(); else document.addEventListener('DOMContentLoaded', mountFinalButton); }
   }
 
-  window.SigmaKit = { init: init, levelComplete: levelComplete, openFinal: openFinal, fanfare: fanfare, maki: maki,
+  window.SigmaKit = { init: init, levelComplete: levelComplete, openFinal: openFinal, medal: medal, tiers: TIERS, fanfare: fanfare, maki: maki,
     stars: stars, trophy: trophy, passport: load, starsFor: starsFor, _norm: norm, _cfg: function () { return cfg; } };
 })();
