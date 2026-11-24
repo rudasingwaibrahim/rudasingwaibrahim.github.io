@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Les Trois Royaumes de f</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : un récit de voyage, clair et bienveillant ; jamais de mise en échec.
+   IDEA : une même fonction f parle trois langues (graphique, tableau, formule) ; le joueur traduit.
+   PICTURE : la carte nocturne des trois royaumes et les traits de construction dorés qui relient les axes à la courbe.
+   COLOUR and TYPE : nuit « océan profond » du site ; cyan pour x et l'axe des abscisses, lilas pour f(x) et l'axe des ordonnées,
+   or lumineux pour les traits de construction, violet-bleu pour l'action ; Outfit.
+   LAYOUT : la carte en bandeau ; le royaume du moment à gauche, la question et les réponses à droite. */
+:root{
+--bg:var(--sg-panel-solid);--ink:var(--sg-text);--mut:var(--sg-muted);--panel:var(--sg-raise);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);
+--or:#e8c766;--orsoft:rgba(232,199,102,.16);
+--ok:var(--sg-ok);--ko:var(--sg-coral);--gold:var(--sg-gold);
+--xc:#6fd3f0;--yc:#d4b0ff;--xsoft:rgba(111,211,240,.14);--ysoft:rgba(212,176,255,.14);
+--curve:#f0f4ff;--gbg:#0b1830;--grid:rgba(120,160,255,.11);--axis:#b9c8f2;
+--paper:#13284a;--paper2:#0f2040;--wood:#6b4a2e;--brass:#c8a84b;
+--sky1:#050c1c;--sky2:#132a52;--far:#13264a;--hill1:#0f2a33;--hill2:#0b2029;
+--road:#3a3a46;--river:#2b5c9a;--stone:#3d4a6b;--stone2:#2a3552;
+--roofg:#5468c9;--roofl:#a8473e;--roofw:#6b4a32;
+--win:#ffd76a;--sun:#e9eef8;--halo:rgba(11,24,48,.9)}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font);overflow-x:clip}
+header{max-width:1320px;margin:auto;padding:22px max(3vw,16px) 6px}
+h1{font-size:clamp(30px,3.8vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:0 0 8px;text-wrap:balance}
+header p{margin:0;color:var(--mut);max-width:78ch}
+.back{display:inline-block;margin:0 0 8px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:2px solid var(--ac)}.back:hover{color:var(--ac)}
+.cx{color:var(--xc)}.cy{color:var(--yc)}
+.vx{font-style:italic}
+button{font:inherit;-webkit-tap-highlight-color:transparent}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.mapwrap{max-width:1320px;margin:12px auto 0;padding:0 max(3vw,16px)}
+#map{display:block;width:100%;height:auto;border-radius:var(--sg-radius);user-select:none;-webkit-user-select:none;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card)}
+#map .realm{transition:opacity .5s,filter .5s}
+#map .realm.dim{opacity:.55;filter:saturate(.6)}
+#map .lbl rect{fill:#0a1628;stroke:var(--line);stroke-width:1}#map .lbl text{font:600 15px var(--sg-font);fill:var(--ink)}
+#map .realm.on .lbl rect{fill:var(--ac);stroke:var(--ac)}#map .realm.on .lbl text{fill:var(--on)}
+#pin{transition:transform .9s cubic-bezier(.45,.05,.3,1)}
+.smoke{animation:smoke 4s ease-in-out infinite}.smoke.b{animation-delay:-2s}
+@keyframes smoke{0%{opacity:0;transform:translate(0,6px) scale(.6)}40%{opacity:.6}100%{opacity:0;transform:translate(10px,-26px) scale(1.4)}}
+.gear{transform-box:fill-box;transform-origin:center;animation:spin 9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.beamv{animation:beam 3.5s ease-in-out infinite}
+@keyframes beam{50%{opacity:.25}}
+.flag{transform-box:fill-box;transform-origin:0 50%;animation:flag 2.6s ease-in-out infinite}
+@keyframes flag{50%{transform:skewY(-6deg) scaleX(.94)}}
+.pinb{animation:pinb 2.4s ease-in-out infinite}
+@keyframes pinb{50%{transform:translateY(-4px)}}
+.twk{animation:twk 3s ease-in-out infinite}.twk.b{animation-delay:-1.5s}
+@keyframes twk{50%{opacity:.25}}
+
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 40px}
+.lv{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 6px}
+.lv button{min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:600;font-size:15px;cursor:pointer;transition:border-color .15s,background .15s}
+.lv button:hover{border-color:var(--ac);background:var(--sg-hover)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}
+.lv .ck{color:var(--sg-gold-bright);margin-left:5px;letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:inherit}
+.lv .own{border-style:dashed}
+.lv .snd{margin-left:auto;border-style:dashed}.lv .snd[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac)}
+.lvdesc{color:var(--mut);margin:4px 0 14px;min-height:1.5em}
+.play{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,1fr);grid-template-areas:"view ask" "view ctrl" "view fb" "view dots" "view ." ;
+  gap:16px clamp(18px,2.6vw,34px);align-items:start}
+.play>.view{grid-area:view}.play>.ask{grid-area:ask}.play>.ctrl{grid-area:ctrl}.play>.fb{grid-area:fb}.play>.dots{grid-area:dots}
+.ask{background:var(--sg-panel);border:1px solid var(--soft);border-radius:var(--sg-radius);padding:16px 20px;box-shadow:var(--sg-shadow-card)}
+.qtag{display:inline-flex;gap:8px;align-items:center;font-size:13px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.qtag i{width:10px;height:10px;border-radius:50%;background:var(--ac);display:inline-block;box-shadow:0 0 0 3px var(--acsoft)}
+.prompt{font-size:clamp(19px,2vw,23px);font-weight:600;line-height:1.4;margin-top:6px}
+.prompt .sub{display:block;font-size:15px;font-weight:400;color:var(--mut);margin-top:6px}
+.big{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ctrl{display:flex;flex-direction:column;gap:12px}
+.ctrl:empty{display:none}
+.steps{font-size:15px;color:var(--mut);margin:0;line-height:1.5}
+.steps b{color:var(--ink)}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:0;background:var(--ink);color:#0a1628;font-weight:600;cursor:pointer;font-size:16px;transition:filter .15s,transform .15s}
+.btn.or{background:var(--ac);color:var(--on);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.gh{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:hover:not(:disabled){filter:brightness(1.08)}.btn.gh:hover:not(:disabled){border-color:var(--ac);background:var(--sg-hover)}
+.btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,120px),1fr));gap:10px}
+.chips.wide{grid-template-columns:1fr}
+.chip{min-height:54px;padding:8px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font-weight:600;font-size:19px;cursor:pointer;text-align:center;line-height:1.3;font-variant-numeric:tabular-nums;transition:border-color .15s,background .15s}
+.chips.wide .chip{text-align:left;font-size:18px}
+.chip:hover:not(:disabled){border-color:var(--ac);background:var(--acsoft)}
+.chip.sel{border-color:var(--ac);background:var(--acsoft);box-shadow:0 0 0 3px var(--acsoft)}
+.chip.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}
+.chip.ko{border-color:rgba(255,107,107,.55);background:rgba(255,107,107,.08);opacity:.7}
+.chip:disabled{cursor:default}
+.fb:empty{display:none}
+.fbx{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:var(--sg-radius);background:var(--sg-panel);border:1px solid var(--soft)}
+.fbx svg{flex:none;width:64px;height:64px}
+.fbx.ok{background:rgba(95,210,124,.10);border-color:rgba(95,210,124,.35)}.fbx.ko{background:rgba(255,107,107,.07);border-color:rgba(255,107,107,.32)}
+.fbx b{display:block;font-size:18px}
+.fbx.ok>div>b{color:var(--ok)}
+.fbx p{margin:2px 0 0;line-height:1.5}
+.fbx .rule{display:block;margin-top:8px;padding-left:10px;border-left:3px solid var(--gold);font-size:15px;color:var(--ink)}
+.fbx .row{margin-top:12px}
+.dots{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dots span{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dots span.g{background:var(--ok)}.dots span.r{background:var(--ko)}.dots span.c{background:var(--ac);box-shadow:0 0 0 3px rgba(108,142,255,.2)}
+.dots em{font-style:normal;color:var(--mut);font-size:14px;margin-left:6px;font-variant-numeric:tabular-nums}
+.view{position:relative}
+.cap{font-size:14px;color:var(--mut);margin:8px 2px 0;text-align:center}
+
+/* repère */
+.gwrap{position:relative;width:100%;max-width:600px;margin:0 auto}
+.gsvg{display:block;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;border-radius:var(--sg-radius);box-shadow:0 0 0 1px var(--line),var(--sg-shadow-card);font-family:var(--sg-font)}
+.gsvg.act{cursor:crosshair}
+.gbg{fill:var(--gbg)}
+.grid{stroke:var(--grid);stroke-width:1}
+.ax{stroke:var(--axis);stroke-width:1.7}
+.axh{fill:var(--axis)}
+.tk{stroke:var(--axis);stroke-width:1.4}
+.num{font:600 12px var(--sg-font);fill:var(--mut);paint-order:stroke;stroke:var(--gbg);stroke-width:4px;stroke-linejoin:round;font-variant-numeric:tabular-nums}
+.axname{font:600 12px var(--sg-font);paint-order:stroke;stroke:var(--gbg);stroke-width:4px}
+.axname.x{fill:var(--xc)}.axname.y{fill:var(--yc)}
+.band{fill:transparent}
+.band.x.hot{fill:var(--xc);opacity:.10}.band.y.hot{fill:var(--yc);opacity:.10}
+.cv{fill:none;stroke:var(--curve);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px rgba(142,166,255,.45))}
+.cvend{fill:var(--curve)}
+.cl{stroke:var(--or);stroke-width:2.6;stroke-dasharray:7 5;fill:none;stroke-linecap:round}
+.beam{stroke:var(--or);stroke-width:3;opacity:.9;stroke-linecap:round}
+.pt{fill:var(--or);stroke:var(--gbg);stroke-width:2.5}
+.mk{fill:var(--ac);stroke:var(--gbg);stroke-width:2.5}
+.mkring{fill:none;stroke:var(--ac);stroke-width:2;opacity:.6}
+.hint{fill:none;stroke:var(--ac);stroke-width:2.5;animation:pulse 1.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes pulse{50%{transform:scale(1.35);opacity:.35}}
+.bub rect{stroke-width:1.5}.bub text{font:700 14px var(--sg-font)}
+.bub.x rect{fill:#0d2236;stroke:var(--xc)}.bub.x text{fill:var(--xc)}
+.bub.y rect{fill:#1d1838;stroke:var(--yc)}.bub.y text{fill:var(--yc)}
+.tgt{fill:transparent;cursor:pointer}
+.tgt:hover{fill:var(--ac);fill-opacity:.16}
+
+/* tableau (bibliothèque) */
+.lib{background:linear-gradient(180deg,#4a3322,#2c1e14);border-radius:var(--sg-radius);padding:12px;border:1px solid rgba(200,168,75,.25);box-shadow:var(--sg-shadow-card)}
+.lib .shelf{display:flex;gap:3px;height:16px;margin:0 6px 8px;align-items:flex-end}
+.lib .shelf i{flex:1;border-radius:2px 2px 0 0;opacity:.85}
+.ftab{border-collapse:separate;border-spacing:3px;width:100%;table-layout:fixed;font-size:20px;font-variant-numeric:tabular-nums}
+.ftab th,.ftab td{padding:0;text-align:center;height:50px;border-radius:10px;font-weight:700}
+.ftab th{width:64px;font-size:17px;background:#0a1628}
+.ftab tr.rx th{color:var(--xc)}.ftab tr.ry th{color:var(--yc)}
+.ftab td{background:var(--paper)}
+.ftab tr.rx td{color:var(--xc)}.ftab tr.ry td{color:var(--yc)}
+.ftab button{width:100%;height:100%;min-height:48px;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;cursor:pointer;position:relative;touch-action:manipulation}
+.ftab button:hover:not(:disabled){background:var(--acsoft)}
+.ftab td.on{background:var(--or);color:#1a1405!important}
+.ftab td.src{box-shadow:inset 0 0 0 3px var(--or)}
+.ftab td.bad{background:rgba(255,107,107,.16)}
+.ftab td.col{background:rgba(232,199,102,.18)}
+.tleg{display:none;margin:0 4px 6px;font-size:14px;color:#e9dcc6}
+.ftab.mini{font-size:16px;border-spacing:2px}.ftab.mini th,.ftab.mini td{height:34px;border-radius:7px}.ftab.mini th{width:46px;font-size:14px}
+.ftab.static{max-width:560px;margin:8px 0}
+.ftab.static td,.ftab.static th{height:40px;font-size:17px;border:1px solid var(--line)}
+.ftab.static th{width:56px}
+
+/* plaque (atelier) */
+.forge{position:relative;border-radius:var(--sg-radius);padding:18px clamp(14px,3vw,26px) 22px;background:radial-gradient(120% 90% at 85% 100%,rgba(232,150,60,.20),transparent 60%),linear-gradient(180deg,#112243,#0a1628);
+  border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);overflow:hidden}
+.forge svg.deco{position:absolute;right:-6px;bottom:-8px;width:150px;height:auto;opacity:.85;pointer-events:none}
+.forge .small{color:var(--mut);font-size:14px;margin-bottom:10px}
+.plaque{position:relative;display:inline-block;padding:12px 22px;border-radius:14px;background:linear-gradient(180deg,#f0d57e,#c8a84b);color:#22180a;
+  font:700 clamp(24px,3.4vw,36px)/1.2 var(--sg-font);box-shadow:inset 0 2px 0 rgba(255,255,255,.45),0 10px 24px -12px rgba(232,199,102,.55);white-space:nowrap;max-width:100%;overflow-x:auto}
+.plaque::before,.plaque::after{content:"";position:absolute;top:50%;width:7px;height:7px;border-radius:50%;background:#7a5a16;transform:translateY(-50%)}
+.plaque::before{left:7px}.plaque::after{right:7px}
+.work{position:relative;margin-top:16px;font:700 clamp(22px,2.8vw,30px)/1.5 var(--sg-font);max-width:calc(100% - 110px);font-variant-numeric:tabular-nums}
+.work div{white-space:nowrap;overflow-x:auto}
+.work .sub{color:var(--mut);font-weight:600}
+.work .res{color:var(--ok)}
+.hole{display:inline-block;min-width:1.6em;border-bottom:4px solid var(--ac);text-align:center;color:var(--ac)}
+
+/* décret (parchemin nocturne) */
+.scroll{position:relative;padding:28px clamp(18px,4vw,40px) 30px;border-radius:14px;background:radial-gradient(90% 120% at 50% 0%,rgba(200,168,75,.12),transparent 60%),linear-gradient(180deg,#14284c,#0d1c38);
+  box-shadow:inset 0 0 0 1px rgba(200,168,75,.35),var(--sg-shadow-card);text-align:center}
+.scroll::before,.scroll::after{content:"";position:absolute;left:-6px;right:-6px;height:14px;border-radius:8px;background:linear-gradient(180deg,#d9bd62,#8a6d24)}
+.scroll::before{top:-6px}.scroll::after{bottom:-6px}
+.scroll .decree{font:700 clamp(30px,5vw,50px)/1.25 var(--sg-font);margin:6px 0;font-variant-numeric:tabular-nums}
+.scroll .small{color:var(--gold);font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.seal{display:inline-flex;align-items:center;gap:.15em;font:700 clamp(30px,5vw,48px)/1.2 var(--sg-font);white-space:nowrap}
+.slot{display:inline-flex;align-items:center;justify-content:center;min-width:1.9em;height:1.35em;border-radius:12px;border:2.5px dashed var(--ac);background:var(--acsoft);cursor:pointer;color:var(--ink);padding:0 .15em}
+.slot.full{border-style:solid;background:#0a1628}
+.wax{display:block;margin:12px auto 0;width:56px;height:56px}
+
+/* conseil (intrus) */
+.council{border-radius:var(--sg-radius);overflow:hidden;background:linear-gradient(180deg,var(--sky1),var(--sky2));border:1px solid var(--soft);box-shadow:var(--sg-shadow-card)}
+.council svg{display:block;width:100%;height:auto}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.card{display:flex;flex-direction:column;align-items:stretch;gap:6px;min-height:150px;padding:10px 12px 12px;border-radius:var(--sg-radius);border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;text-align:left;transition:border-color .15s,background .15s}
+.card:hover:not(:disabled){border-color:var(--ac);background:var(--acsoft)}
+.card .rg{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);display:flex;gap:6px;align-items:center}
+.card .rg i{width:14px;height:14px;border-radius:4px;display:inline-block}
+.card .cc{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;font-size:19px;text-align:center;line-height:1.35;font-variant-numeric:tabular-nums}
+.card .cc small{font-size:14px;color:var(--mut);font-weight:600}
+.card svg.mg{width:100%;max-width:150px;height:auto}
+.card.ok{border-color:var(--ok);background:rgba(95,210,124,.12)}
+.card.ko{border-color:rgba(255,107,107,.55);opacity:.7}
+.card:disabled{cursor:default}
+
+/* clavier */
+.kp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-width:340px}
+.kpd{grid-column:1/-1;height:56px;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:12px;display:flex;align-items:center;justify-content:center;font:700 28px var(--sg-font);background:var(--bg);font-variant-numeric:tabular-nums}
+.kpd:empty::before{content:"?";color:var(--mut)}
+.kp button{height:52px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:600 22px var(--sg-font);cursor:pointer;touch-action:manipulation}
+.kp button:hover{border-color:var(--ac);background:var(--sg-hover)}
+.kp .val{grid-column:1/-1;background:var(--ac);border:0;color:var(--on);font-size:18px;box-shadow:0 6px 20px -8px var(--sg-glow)}
+.kp .val:hover{background:var(--ac);filter:brightness(1.08)}
+
+/* grimoire */
+.memo{margin-top:26px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.memo>div{border-radius:var(--sg-radius);padding:16px 18px;border:1px solid var(--soft);background:var(--sg-panel);box-shadow:var(--sg-shadow-card)}
+.memo h3{margin:0 0 4px;font-size:18px}
+.memo p{margin:0;font-size:15px;color:var(--mut)}
+.memo p b{color:var(--ink)}
+.memo .fl{font:700 22px var(--sg-font);margin:6px 0;color:var(--ink)}
+
+/* ma fonction */
+.ownp{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,1fr);gap:18px clamp(18px,2.6vw,34px);align-items:start}
+.ownp form{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ownp label{font-weight:700;font-size:20px}
+.ownp input{flex:1 1 160px;height:50px;font:600 20px var(--sg-font);padding:0 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}
+.ownw{color:var(--ko);font-size:15px;min-height:1.4em;margin:4px 0 0}
+.res{font-size:19px;font-weight:600;line-height:1.5;padding:14px 16px;border-radius:var(--sg-radius);background:var(--sg-panel);border:1px solid var(--soft);min-height:3em}
+.ownp .ftab td{height:44px;font-size:17px}
+.scrollx{overflow-x:auto}
+
+@media (prefers-reduced-motion:reduce){.smoke,.gear,.beamv,.flag,.pinb,.hint,.twk{animation:none}#pin,#map .realm{transition:none}}
+@media(max-width:900px){.play,.ownp{grid-template-columns:minmax(0,1fr);grid-template-areas:"ask" "view" "ctrl" "fb" "dots"}}
+@media(max-width:520px){.back{margin-bottom:12px}.lib{padding:8px 6px}.lib .ftab{border-spacing:2px}.lib .ftab th{display:none}.tleg{display:block}.lv button{padding:0 12px;font-size:14px}.ftab{font-size:17px}.ftab th{width:48px;font-size:15px}
+  .work{max-width:100%}.forge svg.deco{width:96px;opacity:.3}.card{min-height:130px;padding:8px}.card .cc{font-size:17px}.chip{font-size:18px}
+  .fbx svg{width:52px;height:52px}.prompt{font-size:19px}.ask{padding:14px 16px}.ftab.static td,.ftab.static th{font-size:15px}.ftab.static th{width:44px}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Les Trois Royaumes de f</h1>
+<p>Une fonction f règne sur trois royaumes qui disent la même chose autrement&nbsp;: le <b>Graphique</b>, le <b>Tableau</b> et la <b>Formule</b>. Voyageur, traduis de l'un à l'autre&nbsp;: une <b class="cy">image</b> se lit en partant de <b class="cx">x</b>, un <b class="cx">antécédent</b> en partant de <b class="cy">f(x)</b>.</p>
+</header>
+
+<div class="mapwrap"><svg id="map" viewBox="0 0 960 210" role="img" aria-label="Carte des trois royaumes : le château du Graphique, la bibliothèque du Tableau et l'atelier de la Formule"></svg></div>
+
+<main class="app">
+<div class="lv" id="lv" role="group" aria-label="Niveaux"></div>
+<p class="lvdesc" id="lvdesc"></p>
+
+<section class="play" id="play">
+  <div class="ask"><span class="qtag" id="qtag"></span><div class="prompt" id="prompt" aria-live="polite"></div></div>
+  <div class="view" id="view"></div>
+  <div class="ctrl" id="ctrl"></div>
+  <div class="fb" id="fb" aria-live="polite"></div>
+  <div class="dots" id="dots"></div>
+</section>
+
+<section class="ownp" id="ownp" hidden>
+  <div>
+    <div class="gwrap" id="owng"></div>
+    <p class="cap">Touche l'axe des abscisses pour lire une image, l'axe des ordonnées pour chercher les antécédents.</p>
+  </div>
+  <div>
+    <form id="ownf"><label for="own">f(x) =</label><input id="own" autocomplete="off" spellcheck="false" placeholder="ex. x² − 4 ou 2x + 1"><button class="btn or" type="submit">Charger</button></form>
+    <p class="ownw" id="ownw"></p>
+    <div class="res" id="ownres" aria-live="polite">Écris une expression&nbsp;: la formule, le tableau et le graphique apparaissent ensemble.</div>
+    <div class="scrollx" style="margin-top:12px"><table class="ftab static" id="owntab"></table></div>
+  </div>
+</section>
+
+<section class="memo" id="memo" aria-label="Le grimoire du voyageur">
+  <div><h3>Image&nbsp;: on part de <span class="cx">x</span></h3><p class="fl"><span class="cx">x</span> → <span class="cy">f(x)</span></p>
+    <p><span class="big">f(3) = 7</span> se lit « l'image de 3 par f est 7 ». Sur un graphique, on part de l'<b class="cx">axe des abscisses</b>. Un nombre a <b>une seule</b> image.</p></div>
+  <div><h3>Antécédent&nbsp;: on part de <span class="cy">f(x)</span></h3><p class="fl"><span class="cy">f(x)</span> → <span class="cx">x</span></p>
+    <p><span class="big">f(3) = 7</span> se lit aussi « 3 est un antécédent de 7 par f ». Sur un graphique, on part de l'<b class="cy">axe des ordonnées</b>. Un nombre peut avoir <b>zéro, un ou plusieurs</b> antécédents.</p></div>
+</section>
+</main>
+
+<script>
+{
+'use strict';
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a};
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const M='−';
+const P=n=>{const s=(Math.round(n*100)/100).toString().replace('.',',');return s.startsWith('-')?M+s.slice(1):s};
+const Pp=n=>n<0?'('+P(n)+')':P(n);
+const X='<span class="vx">x</span>';
+const fx=(v,name='f')=>`${name}(${P(v)})`;
+const andList=a=>a.length<2?a.map(P).join(''):a.slice(0,-1).map(P).join(', ')+' et '+P(a[a.length-1]);
+const PER=5, WX=5.6;
+const NB=s=>String(s).replace(/ ([:;!?])/g,'\u00a0$1');
+const sleep=ms=>new Promise(r=>setTimeout(r,reduce?0:ms));
+
+/* =================================================================
+   FONCTIONS : affines, carrés simples, courbes données point par point
+   ================================================================= */
+function sgnTerm(c){return c>0?` + ${c}`:c<0?` ${M} ${-c}`:''}
+function linH(a,b,x=X){const xs=a===1?x:a===-1?M+x:P(a)+x;return a===0?P(b):xs+sgnTerm(b)}
+function mkAff(a,b){return{kind:'aff',a,b,f:x=>a*x+b,h:linH(a,b),py:`(${a})*x+(${b})`,
+  ants(k){const n=k-b;return n%a===0?[n/a]:null}}}
+function sqH(a,c){return (a===1?'':a===-1?M:a)+X+'²'+sgnTerm(c)}
+function mkSq(a,c){return{kind:'sq',a,c,f:x=>a*x*x+c,h:sqH(a,c),py:`(${a})*x**2+(${c})`,
+  ants(k){const t=(k-c)/a;if(t<0)return[];if(t===0)return[0];const r=Math.round(Math.sqrt(t));return r*r===t?[-r,r]:null}}}
+/* courbe point par point : nœuds entiers, interpolation cubique monotone (Fritsch–Carlson) :
+   entre deux nœuds la courbe est monotone, les extremums sont aux nœuds. */
+function mkPts(x0,ys){
+  const n=ys.length,d=[],m=new Array(n).fill(0);
+  for(let i=0;i<n-1;i++)d.push(ys[i+1]-ys[i]);
+  m[0]=d[0];m[n-1]=d[n-2];
+  for(let i=1;i<n-1;i++)m[i]=d[i-1]*d[i]<=0?0:(d[i-1]+d[i])/2;
+  for(let i=0;i<n-1;i++){const a=m[i]/d[i],b=m[i+1]/d[i],s=a*a+b*b;if(s>9){const t=3/Math.sqrt(s);m[i]=t*a*d[i];m[i+1]=t*b*d[i]}}
+  const xs=ys.map((_,i)=>x0+i);
+  return{kind:'pts',xs,ys,m,x0,x1:x0+n-1,f:x=>{const i=x-x0;return Number.isInteger(i)&&i>=0&&i<n?ys[i]:NaN},
+    ants(k){for(let i=0;i<n-1;i++){const lo=Math.min(ys[i],ys[i+1]),hi=Math.max(ys[i],ys[i+1]);if(lo===hi||(lo<k&&k<hi))return null}
+      return xs.filter((x,i)=>ys[i]===k)}}
+}
+function genPts(){
+  for(;;){
+    const x0=pick([-5,-5,-4]),x1=pick([4,5,5]),n=x1-x0+1;let y=ri(-3,3),dir=pick([-1,1]);const ys=[y];
+    for(let i=1;i<n;i++){
+      if(Math.random()<.32)dir=-dir;
+      let s=dir*(Math.random()<.22?2:1);
+      if(y+s>5||y+s<-4){dir=-dir;s=-s}
+      y+=s;ys.push(y);
+    }
+    let turns=0;for(let i=1;i<n-1;i++)if((ys[i]-ys[i-1])*(ys[i+1]-ys[i])<0)turns++;
+    const mx=Math.max(...ys),mn=Math.min(...ys);
+    if(turns>=2&&turns<=4&&mx-mn>=4&&mx<=5&&mn>=-4)return mkPts(x0,ys);
+  }
+}
+const inWin=v=>v>=-5&&v<=5;
+const domOf=F=>F.kind==='pts'?[F.x0,F.x1]:[-5,5];
+function genGraphF(kind){
+  if(kind==='pts')return genPts();
+  if(kind==='aff')return mkAff(pick([-2,-1,1,2]),ri(-3,3));
+  const a=pick([1,1,-1]);return mkSq(a,a>0?ri(-4,0):ri(1,4));
+}
+
+/* =================================================================
+   REPÈRE SVG (taille réelle, ResizeObserver)
+   ================================================================= */
+const graphs=new Set();
+function Graph(host,F,opt={}){
+  const g={F,opt,st:{},mode:opt.mode||null,W:0,u:0,ox:0,oy:0};
+  host.innerHTML='';const svg=document.createElementNS(NS,'svg');svg.classList.add('gsvg');svg.setAttribute('role','img');
+  svg.setAttribute('aria-label',opt.label||'Repère avec la courbe de f');host.appendChild(svg);g.svg=svg;g.host=host;
+  const X_=x=>g.ox+x*g.u,Y_=y=>g.oy-y*g.u;g.X=X_;g.Y=Y_;
+  function curvePath(){
+    const F=g.F;if(!F)return'';
+    if(F.kind==='pts'){
+      let d=`M${X_(F.xs[0]).toFixed(2)} ${Y_(F.ys[0]).toFixed(2)}`;
+      for(let i=0;i<F.xs.length-1;i++){
+        const x=F.xs[i],y=F.ys[i],y2=F.ys[i+1];
+        d+=` C${X_(x+1/3).toFixed(2)} ${Y_(y+F.m[i]/3).toFixed(2)} ${X_(x+2/3).toFixed(2)} ${Y_(y2-F.m[i+1]/3).toFixed(2)} ${X_(x+1).toFixed(2)} ${Y_(y2).toFixed(2)}`;
+      }
+      return d;
+    }
+    if(F.kind==='aff')return `M${X_(-WX).toFixed(2)} ${Y_(F.f(-WX)).toFixed(2)} L${X_(WX).toFixed(2)} ${Y_(F.f(WX)).toFixed(2)}`;
+    // échantillonnage (carrés, fonctions du professeur)
+    let d='',pen=false;const N=Math.max(240,Math.round(g.W));
+    for(let i=0;i<=N;i++){const x=-WX+2*WX*i/N,y=F.f(x);
+      if(!isFinite(y)||Math.abs(y)>60){pen=false;continue}
+      d+=(pen?' L':'M')+X_(x).toFixed(2)+' '+Y_(y).toFixed(2);pen=true}
+    return d;
+  }
+  g.draw=function(){
+    const W=Math.max(240,Math.round(host.clientWidth||360));g.W=W;g.u=W/(2*WX);g.ox=W/2;g.oy=W/2;const u=g.u;
+    svg.setAttribute('viewBox',`0 0 ${W} ${W}`);svg.setAttribute('width',W);svg.setAttribute('height',W);
+    svg.dataset.ox=g.ox;svg.dataset.oy=g.oy;svg.dataset.u=u;
+    let s=`<defs><clipPath id="clp${g.id}"><rect x="0" y="0" width="${W}" height="${W}" rx="16"/></clipPath></defs><rect class="gbg" width="${W}" height="${W}" rx="16"/>`;
+    for(let i=-5;i<=5;i++){s+=`<line class="grid" x1="${X_(i)}" y1="0" x2="${X_(i)}" y2="${W}"/><line class="grid" x1="0" y1="${Y_(i)}" x2="${W}" y2="${Y_(i)}"/>`}
+    s+=`<g id="bands${g.id}"></g>`;
+    s+=`<line class="ax" x1="4" y1="${g.oy}" x2="${W-6}" y2="${g.oy}"/><path class="axh" d="M${W-4} ${g.oy} l-11 -5.5 v11z"/>`;
+    s+=`<line class="ax" x1="${g.ox}" y1="${W-4}" x2="${g.ox}" y2="6"/><path class="axh" d="M${g.ox} 4 l-5.5 11 h11z"/>`;
+    for(let i=-5;i<=5;i++){if(!i)continue;
+      s+=`<line class="tk" x1="${X_(i)}" y1="${g.oy-4}" x2="${X_(i)}" y2="${g.oy+4}"/><line class="tk" x1="${g.ox-4}" y1="${Y_(i)}" x2="${g.ox+4}" y2="${Y_(i)}"/>`;
+      s+=`<text class="num" x="${X_(i)}" y="${g.oy+17}" text-anchor="middle">${P(i)}</text>`;
+      s+=`<text class="num" x="${g.ox-7}" y="${Y_(i)+4}" text-anchor="end">${P(i)}</text>`}
+    s+=`<text class="num" x="${g.ox-6}" y="${g.oy+16}" text-anchor="end">0</text>`;
+    s+=`<text class="axname x" x="${W-8}" y="${g.oy-10}" text-anchor="end">axe des abscisses (x)</text>`;
+    s+=`<text class="axname y" x="${g.ox+10}" y="16">axe des ordonnées (y)</text>`;
+    if(g.F){s+=`<path class="cv" id="cv${g.id}" clip-path="url(#clp${g.id})" d="${curvePath()}"/>`;
+      if(g.F.kind==='pts')s+=`<circle class="cvend" cx="${X_(g.F.x0)}" cy="${Y_(g.F.ys[0])}" r="4.5"/><circle class="cvend" cx="${X_(g.F.x1)}" cy="${Y_(g.F.ys[g.F.ys.length-1])}" r="4.5"/>`}
+    s+=`<g id="ov${g.id}"></g>`;
+    svg.innerHTML=s;g.overlay();
+  };
+  function bubble(x,y,txt,cls,anchor='m'){
+    const w=txt.length*8.6+16,h=26;let bx=x-w/2,by=y-h/2;
+    if(anchor==='l')bx=x-w;if(anchor==='r')bx=x;
+    bx=Math.max(3,Math.min(g.W-w-3,bx));by=Math.max(3,Math.min(g.W-h-3,by));
+    return `<g class="bub ${cls}"><rect x="${bx}" y="${by}" width="${w}" height="${h}" rx="13"/><text x="${bx+w/2}" y="${by+18}" text-anchor="middle">${txt}</text></g>`;
+  }
+  g.overlay=function(){
+    const o=svg.querySelector('#ov'+g.id);if(!o)return;const st=g.st;let s='';
+    const bands=svg.querySelector('#bands'+g.id);
+    if(bands){const tol=g.tol();bands.innerHTML=g.mode==='axis'||g.mode==='explore'?
+      `<rect class="band x${st.hot==='x'?' hot':''}" x="0" y="${g.oy-tol}" width="${g.W}" height="${2*tol}"/><rect class="band y${st.hot==='y'?' hot':''}" x="${g.ox-tol}" y="0" width="${2*tol}" height="${g.W}"/>`:''}
+    if(st.hint){const h=st.hint,cx=h.axis==='x'?X_(h.v):g.ox,cy=h.axis==='x'?g.oy:Y_(h.v);s+=`<circle class="hint" cx="${cx}" cy="${cy}" r="15"/>`}
+    if(st.img){const I=st.img,y1=I.fa*Math.min(1,I.t1);
+      s+=`<line class="cl" x1="${X_(I.a)}" y1="${g.oy}" x2="${X_(I.a)}" y2="${Y_(y1)}"/>`;
+      if(I.t1>=1){if(I.t2>0)s+=`<line class="cl" x1="${X_(I.a)}" y1="${Y_(I.fa)}" x2="${X_(I.a*(1-Math.min(1,I.t2)))}" y2="${Y_(I.fa)}"/>`;
+        s+=`<circle class="pt" cx="${X_(I.a)}" cy="${Y_(I.fa)}" r="7"/>`}
+      if(I.t2>=1){s+=`<circle class="mk" cx="${g.ox}" cy="${Y_(I.fa)}" r="6"/>`;
+        s+=bubble(g.ox+(I.a>0?-12:12),Y_(I.fa),I.show?P(I.fa):'?','y',I.a>0?'l':'r')}
+    }
+    if(st.beam){const B=st.beam,t=Math.min(1,B.t);s+=`<line class="beam" x1="${X_(-WX*t)}" y1="${Y_(B.k)}" x2="${X_(WX*t)}" y2="${Y_(B.k)}"/>`}
+    if(st.found)for(const f of st.found){const t=Math.min(1,f.t);
+      s+=`<line class="cl" x1="${X_(f.x)}" y1="${Y_(f.k)}" x2="${X_(f.x)}" y2="${Y_(f.k*(1-t))}"/><circle class="pt" cx="${X_(f.x)}" cy="${Y_(f.k)}" r="7"/>`;
+      if(t>=1){s+=`<circle class="mk" cx="${X_(f.x)}" cy="${g.oy}" r="6"/>`+bubble(X_(f.x),g.oy+(f.k>0?24:-24),f.lab||P(f.x),'x')}}
+    if(st.sel){const S=st.sel,cx=S.axis==='x'?X_(S.v):g.ox,cy=S.axis==='x'?g.oy:Y_(S.v);
+      s+=`<circle class="mkring" cx="${cx}" cy="${cy}" r="14"/><circle class="mk" cx="${cx}" cy="${cy}" r="8"/>`;
+      s+=S.axis==='x'?bubble(cx,cy+(cy>g.W-60?-30:30),'x = '+P(S.v),'x'):bubble(cx+(S.v===0?0:14),cy-24,'y = '+P(S.v),'y','r')}
+    if(st.targets)for(const x of st.targets)s+=`<circle class="tgt" data-px="${x}" cx="${X_(x)}" cy="${Y_(st.beam.k)}" r="23"/>`;
+    o.innerHTML=s;
+  };
+  g.tol=()=>Math.max(20,Math.min(26,g.u*.72));
+  g.anim=function(obj,key,dur){return new Promise(res=>{
+    if(reduce){obj[key]=1;g.overlay();res();return}
+    const t0=performance.now();const step=now=>{const u=Math.min(1,(now-t0)/dur);obj[key]=u<1?(1-Math.pow(1-u,3)):1;g.overlay();if(u<1)requestAnimationFrame(step);else res()};
+    requestAnimationFrame(step)})};
+  function loc(e){const r=svg.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+  function axisAt(p){const tol=g.tol(),dx=Math.abs(p.x-g.ox),dy=Math.abs(p.y-g.oy);
+    const vx=Math.max(-5,Math.min(5,Math.round((p.x-g.ox)/g.u))),vy=Math.max(-5,Math.min(5,Math.round((g.oy-p.y)/g.u)));
+    if(dy<=tol&&(dx>tol||dy<=dx))return{axis:'x',v:vx};
+    if(dx<=tol)return{axis:'y',v:vy};return null}
+  let drag=null;
+  svg.addEventListener('pointerdown',e=>{
+    const t=e.target.closest('[data-px]');
+    if(t&&g.mode==='points'){g.onPoint&&g.onPoint(+t.dataset.px);return}
+    if(g.mode==='axis'||g.mode==='explore'){const a=axisAt(loc(e));
+      if(!a){g.onOff&&g.onOff();return}
+      drag=a.axis;try{svg.setPointerCapture(e.pointerId)}catch(_){}
+      g.st.sel=a;g.st.hot=a.axis;g.overlay();g.onSelect&&g.onSelect(a);return}
+    if(g.mode==='points'){g.onOff&&g.onOff()}
+  });
+  svg.addEventListener('pointermove',e=>{if(!drag)return;const p=loc(e);
+    const v=drag==='x'?Math.max(-5,Math.min(5,Math.round((p.x-g.ox)/g.u))):Math.max(-5,Math.min(5,Math.round((g.oy-p.y)/g.u)));
+    if(g.st.sel&&g.st.sel.v!==v){g.st.sel={axis:drag,v};g.overlay();g.onSelect&&g.onSelect(g.st.sel)}});
+  const up=()=>{if(!drag)return;drag=null;if(g.mode==='explore'&&g.st.sel)g.onCommit&&g.onCommit(g.st.sel)};
+  svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',()=>{drag=null});
+  g.setMode=m=>{g.mode=m;svg.classList.toggle('act',m==='axis'||m==='explore'||m==='points');g.overlay()};
+  g.id=Graph.n=(Graph.n||0)+1;
+  g.ro=new ResizeObserver(()=>{const w=Math.round(host.clientWidth);if(w&&w!==g.W)g.draw()});g.ro.observe(host);
+  g.draw();g.setMode(g.mode);
+  g.pt=(x,y)=>{const r=svg.getBoundingClientRect();return{x:r.left+X_(x),y:r.top+Y_(y)}};
+  g.kill=()=>{g.ro.disconnect();graphs.delete(g)};
+  graphs.add(g);return g;
+}
+
+/* =================================================================
+   PETITS DESSINS (cartes du Conseil, épreuve)
+   ================================================================= */
+function miniGraph(o){ // o:{F?, pts:[[x,y,lab]], beam?, size}
+  const W=o.size||150,u=W/(2*WX),c=W/2,X_=x=>c+x*u,Y_=y=>c-y*u;let s=`<svg class="mg" viewBox="0 0 ${W} ${W}" aria-hidden="true"><rect width="${W}" height="${W}" rx="10" fill="var(--gbg)" stroke="var(--line)"/>`;
+  for(let i=-5;i<=5;i++)s+=`<path d="M${X_(i)} 0V${W}M0 ${Y_(i)}H${W}" stroke="var(--grid)" stroke-width="1"/>`;
+  s+=`<path d="M2 ${c}H${W-3}M${c} ${W-2}V3" stroke="var(--axis)" stroke-width="1.4"/><path d="M${W-2} ${c}l-7 -3.5v7zM${c} 2l-3.5 7h7z" fill="var(--axis)"/>`;
+  const px=(o.pts||[]).map(p=>p[0]),py=(o.pts||[]).map(p=>p[1]);
+  s+=`<path d="M${X_(1)} ${c-3}v6M${c-3} ${Y_(1)}h6" stroke="var(--axis)" stroke-width="1.4"/>`+(px.some(v=>Math.abs(v)<=2)?'':`<text x="${X_(1)}" y="${c+13}" font-size="10" font-weight="600" text-anchor="middle" fill="var(--mut)">1</text>`)+(py.some(v=>Math.abs(v)<=2)?'':`<text x="${c-5}" y="${Y_(1)+4}" font-size="10" font-weight="600" text-anchor="end" fill="var(--mut)">1</text>`);
+  if(o.F){const F=o.F;let d='';
+    if(F.kind==='pts'){d=`M${X_(F.xs[0])} ${Y_(F.ys[0])}`;for(let i=0;i<F.xs.length-1;i++){const x=F.xs[i];d+=` C${X_(x+1/3)} ${Y_(F.ys[i]+F.m[i]/3)} ${X_(x+2/3)} ${Y_(F.ys[i+1]-F.m[i+1]/3)} ${X_(x+1)} ${Y_(F.ys[i+1])}`}}
+    else{let pen=false;for(let i=0;i<=200;i++){const x=-WX+2*WX*i/200,y=F.f(x);if(Math.abs(y)>8){pen=false;continue}d+=(pen?' L':'M')+X_(x).toFixed(2)+' '+Y_(y).toFixed(2);pen=true}}
+    s+=`<clipPath id="mgc${++miniGraph.n}"><rect width="${W}" height="${W}" rx="10"/></clipPath><path class="mgcurve" clip-path="url(#mgc${miniGraph.n})" d="${d}" fill="none" stroke="var(--curve)" stroke-width="2.4"/>`}
+  if(o.beam!=null)s+=`<path d="M0 ${Y_(o.beam)}H${W}" stroke="var(--or)" stroke-width="2"/>`;
+  for(const [x,y] of o.pts||[]){
+    s+=`<path d="M${X_(x)} ${c}V${Y_(y)}H${c}" fill="none" stroke="var(--or)" stroke-width="1.6" stroke-dasharray="4 3"/><circle cx="${X_(x)}" cy="${Y_(y)}" r="4.5" fill="var(--or)" stroke="var(--gbg)" stroke-width="1.5" data-x="${x}" data-y="${y}"/>`;
+    s+=`<text x="${X_(x)}" y="${y>0?c+14:c-6}" font-size="12" font-weight="700" text-anchor="middle" fill="var(--xc)" paint-order="stroke" stroke="var(--gbg)" stroke-width="3">${P(x)}</text>`;
+    s+=`<text x="${x>0?c-5:c+5}" y="${Y_(y)+4}" font-size="12" font-weight="700" text-anchor="${x>0?'end':'start'}" fill="var(--yc)" paint-order="stroke" stroke="var(--gbg)" stroke-width="3">${P(y)}</text>`;
+  }
+  return s+'</svg>';
+}
+miniGraph.n=0;
+/* repère statique de l'épreuve (style manuel) */
+function staticGraph(F){
+  const W=300,u=W/(2*WX),c=W/2,X_=x=>c+x*u,Y_=y=>c-y*u;
+  let s=`<svg class="fg" viewBox="0 0 ${W} ${W}" data-ox="${c}" data-oy="${c}" data-u="${u}" style="display:block;width:100%;max-width:300px;height:auto;margin:10px auto 2px" role="img" aria-label="Courbe de f dans un repère">`+
+    `<rect width="${W}" height="${W}" rx="10" fill="var(--gbg)" stroke="var(--line)"/>`;
+  for(let i=-5;i<=5;i++)s+=`<path d="M${X_(i)} 0V${W}M0 ${Y_(i)}H${W}" stroke="var(--grid)" stroke-width="1"/>`;
+  s+=`<path d="M3 ${c}H${W-4}M${c} ${W-3}V4" stroke="var(--axis)" stroke-width="1.5"/><path d="M${W-2} ${c}l-9 -4.5v9zM${c} 2l-4.5 9h9z" fill="var(--axis)"/>`;
+  for(let i=-5;i<=5;i++){if(!i)continue;s+=`<text x="${X_(i)}" y="${c+14}" font-size="10.5" font-weight="600" text-anchor="middle" fill="var(--mut)" paint-order="stroke" stroke="var(--gbg)" stroke-width="3">${P(i)}</text>`+
+    `<text x="${c-5}" y="${Y_(i)+3.5}" font-size="10.5" font-weight="600" text-anchor="end" fill="var(--mut)" paint-order="stroke" stroke="var(--gbg)" stroke-width="3">${P(i)}</text>`}
+  s+=`<text x="${c-5}" y="${c+13}" font-size="10.5" font-weight="600" text-anchor="end" fill="var(--mut)">0</text>`;
+  let d='';
+  if(F.kind==='pts'){d=`M${X_(F.xs[0]).toFixed(2)} ${Y_(F.ys[0]).toFixed(2)}`;for(let i=0;i<F.xs.length-1;i++){const x=F.xs[i];
+    d+=` C${X_(x+1/3).toFixed(2)} ${Y_(F.ys[i]+F.m[i]/3).toFixed(2)} ${X_(x+2/3).toFixed(2)} ${Y_(F.ys[i+1]-F.m[i+1]/3).toFixed(2)} ${X_(x+1).toFixed(2)} ${Y_(F.ys[i+1]).toFixed(2)}`}}
+  else if(F.kind==='aff')d=`M${X_(-5).toFixed(2)} ${Y_(F.f(-5)).toFixed(2)} L${X_(5).toFixed(2)} ${Y_(F.f(5)).toFixed(2)}`;
+  else{let pen=false;for(let i=0;i<=280;i++){const x=-5+10*i/280,y=F.f(x);if(Math.abs(y)>9){pen=false;continue}d+=(pen?' L':'M')+X_(x).toFixed(2)+' '+Y_(y).toFixed(2);pen=true}}
+  s+=`<clipPath id="fgc${++miniGraph.n}"><rect width="${W}" height="${W}" rx="10"/></clipPath><path class="fgcurve" clip-path="url(#fgc${miniGraph.n})" d="${d}" fill="none" stroke="var(--curve)" stroke-width="2.6" stroke-linejoin="round"/>`;
+  {const e0=F.kind==='pts'?[F.x0,F.ys[0]]:[-5,F.f(-5)],e1=F.kind==='pts'?[F.x1,F.ys[F.ys.length-1]]:[5,F.f(5)];for(const [ex,ey] of [e0,e1])if(Math.abs(ey)<=5.4)s+=`<circle cx="${X_(ex)}" cy="${Y_(ey)}" r="3.5" fill="var(--curve)"/>`}
+  s+=`<text x="${W-6}" y="${c-8}" font-size="11" font-weight="700" text-anchor="end" fill="var(--xc)">x</text><text x="${c+8}" y="14" font-size="11" font-weight="700" fill="var(--yc)">y</text></svg>`;
+  return s;
+}
+function tableHTML(xs,ys,cls='ftab static',name='f'){
+  return `<table class="${cls}"><tr class="rx"><th>x</th>${xs.map(v=>`<td>${P(v)}</td>`).join('')}</tr><tr class="ry"><th>${name}(x)</th>${ys.map(v=>`<td>${P(v)}</td>`).join('')}</tr></table>`;
+}
+function capOf(F){return F.kind==='pts'?`Courbe représentative de f, fonction définie sur [${P(F.x0)} ; ${P(F.x1)}].`:'Courbe représentative de f.'}
+
+/* =================================================================
+   NIVEAUX : générateurs de questions
+   ================================================================= */
+const LV=[
+ {t:'1. Le Sceau royal',n:'Le Sceau royal',realm:'all',d:'Vocabulaire et notation : f(3) = 7 veut dire « l\'image de 3 est 7 » et aussi « 3 est un antécédent de 7 ».'},
+ {t:'2. La Bibliothèque',n:'La Bibliothèque',realm:'t',d:'Le royaume du Tableau : la ligne des x en haut, la ligne des images f(x) en bas.'},
+ {t:'3. L\'Atelier',n:'L\'Atelier',realm:'f',d:'Le royaume de la Formule : on remplace x par le nombre, entre parenthèses s\'il est négatif.'},
+ {t:'4. Le Château : images',n:'Le Château : images',realm:'g',d:'Lire une image : on part de l\'axe des abscisses, on monte (ou descend) jusqu\'à la courbe, puis on va sur l\'axe des ordonnées.'},
+ {t:'5. Le Château : antécédents',n:'Le Château : antécédents',realm:'g',d:'Chercher les antécédents : on part de l\'axe des ordonnées, on balaie TOUTE la largeur, puis on descend (ou monte) jusqu\'à l\'axe des abscisses.'},
+ {t:'6. Le Conseil',n:'Le Conseil des trois royaumes',realm:'all',d:'Quatre messagers transmettent une information, chacun dans la langue de son royaume. Un seul se trompe : trouve l\'intrus.'},
+ {t:'7. Le Grand Voyage',n:'Le Grand Voyage',realm:'all',d:'Sans aide visuelle : plus de traits de construction ni de grimoire, tu traduis seul.'}
+];
+/* --- phrases --- */
+const phr={
+  img:(a,b)=>`L'image de ${P(a)} par f est ${P(b)}.`,
+  isImg:(a,b)=>`${P(b)} est l'image de ${P(a)} par f.`,
+  ant:(a,b)=>`${P(a)} est un antécédent de ${P(b)} par f.`,
+  pour:(a,b)=>`${P(a)} a pour image ${P(b)} par f.`
+};
+const pairOk=(a,b)=>pick([phr.img,phr.isImg,phr.ant,phr.pour])(a,b);
+/* --- niveau 1 --- */
+function q1notation(){
+  let a,b;do{a=nz(-6,9);b=nz(-6,9)}while(Math.abs(a)===Math.abs(b));
+  const good=pick([phr.img(a,b),phr.ant(a,b)]);
+  return{type:'choice',prompt:`On sait que <span class="big">f(${P(a)}) = ${P(b)}</span>. Quelle phrase est juste ?`,view:{kind:'scroll',decree:`f(${P(a)}) = ${P(b)}`,small:'Décret du royaume'},wide:true,
+    choices:shuf([{h:good,ok:1},{h:phr.img(b,a),why:`Dans f(${P(a)}), le nombre entre parenthèses est le nombre de départ : c'est ${P(a)} qui a une image, et cette image est ${P(b)}.`},
+      {h:phr.ant(b,a),why:`Un antécédent est un nombre de départ : il est entre les parenthèses. Ici c'est ${P(a)}, antécédent de ${P(b)}.`},
+      {h:phr.isImg(b,a),why:`L'image est le résultat, écrit après le signe = : c'est ${P(b)}, image de ${P(a)}.`}]),
+    win:`f(${P(a)}) = ${P(b)} : l'image de ${P(a)} est ${P(b)}, et ${P(a)} est un antécédent de ${P(b)}.`,meta:{k:'notation',a,b}};
+}
+function q1seal(){
+  let a,b;do{a=nz(-6,9);b=nz(-6,9)}while(Math.abs(a)===Math.abs(b));
+  const s=pick(['img','ant','isImg','pour']);
+  return{type:'seal',a,b,prompt:`Grave le sceau : « ${phr[s](a,b).replace(/\.$/,'')} ».`,view:{kind:'seal'},tiles:shuf([a,b]),
+    win:`On écrit f(${P(a)}) = ${P(b)} : le nombre de départ ${P(a)} entre les parenthèses, son image ${P(b)} après le signe =.`,meta:{k:'seal',s,a,b}};
+}
+function q1complete(){
+  let a,b;do{a=nz(-6,9);b=nz(-6,9)}while(Math.abs(a)===Math.abs(b));
+  const askImg=Math.random()<.5;
+  const pr=askImg?`<span class="big">f(${P(a)}) = ${P(b)}</span>. Complète : ${P(b)} est … de ${P(a)} par f.`:`<span class="big">f(${P(a)}) = ${P(b)}</span>. Complète : ${P(a)} est … de ${P(b)} par f.`;
+  return{type:'choice',prompt:pr,view:{kind:'scroll',decree:`f(${P(a)}) = ${P(b)}`,small:'Décret du royaume'},
+    choices:[{h:'l\'image',ok:askImg?1:0,why:askImg?'':`${P(a)} est entre les parenthèses : c'est le nombre de départ, donc un antécédent.`},
+             {h:'un antécédent',ok:askImg?0:1,why:askImg?`${P(b)} est le résultat, après le signe = : c'est l'image de ${P(a)}.`:''}],
+    win:askImg?`${P(b)} est l'image de ${P(a)} par f.`:`${P(a)} est un antécédent de ${P(b)} par f.`,meta:{k:'complete',a,b,askImg}};
+}
+function q1one(){
+  const a=nz(-5,8);let b,c;do{b=nz(-6,9);c=nz(-6,9)}while(b===c||b===a||c===a);
+  return{type:'choice',wide:true,prompt:`Un messager affirme : « <span class="big">f(${P(a)}) = ${P(b)}</span> et <span class="big">f(${P(a)}) = ${P(c)}</span> ». Est-ce possible ?`,view:{kind:'scroll',decree:`f(${P(a)}) = ${P(b)}<br>f(${P(a)}) = ${P(c)}`,small:'Deux décrets… suspects'},
+    choices:[{h:`Non : ${P(a)} n'a qu'une seule image.`,ok:1},{h:`Oui : ${P(a)} a deux images, ${P(b)} et ${P(c)}.`,why:'Une fonction associe à chaque nombre de départ UNE seule image : f(' + P(a) + ') ne peut pas valoir deux nombres différents.'},
+      {h:`Oui : ${P(a)} a deux antécédents, ${P(b)} et ${P(c)}.`,why:`${P(b)} et ${P(c)} sont écrits après le signe = : ce seraient des images, pas des antécédents. Et un nombre n'a qu'une image.`}],
+    win:`Un nombre a une seule image : f(${P(a)}) ne peut valoir qu'un seul nombre.`,meta:{k:'one',a,b,c}};
+}
+function q1many(){
+  const b=nz(-5,8);let a,c;do{a=nz(-6,9);c=nz(-6,9)}while(a===c||a===b||c===b);
+  if(a>c)[a,c]=[c,a];
+  return{type:'choice',wide:true,prompt:`On sait que <span class="big">f(${P(a)}) = ${P(b)}</span> et <span class="big">f(${P(c)}) = ${P(b)}</span>. Que peut-on dire ?`,view:{kind:'scroll',decree:`f(${P(a)}) = ${P(b)}<br>f(${P(c)}) = ${P(b)}`,small:'Deux décrets'},
+    choices:shuf([{h:`${P(b)} a au moins deux antécédents : ${P(a)} et ${P(c)}.`,ok:1},
+      {h:`C'est impossible : un nombre n'a qu'un seul antécédent.`,why:'Plusieurs nombres de départ peuvent avoir la même image : un nombre peut avoir plusieurs antécédents (c\'est l\'image qui est unique).'},
+      {h:`${P(b)} a deux images : ${P(a)} et ${P(c)}.`,why:`${P(a)} et ${P(c)} sont entre les parenthèses : ce sont des nombres de départ, donc des antécédents de ${P(b)}.`}]),
+    win:`${P(a)} et ${P(c)} ont la même image ${P(b)} : ${P(b)} a (au moins) deux antécédents.`,meta:{k:'many',a,b,c}};
+}
+/* --- niveau 2 : tableau --- */
+const TX=[-3,-2,-1,0,1,2,3];
+function tableF(need){ // need: {rep:2|3} pour des antécédents multiples, {inj:true} pour un seul
+  for(;;){
+    const r=Math.random();let F,ys;
+    if(need.rep===3||(need.rep&&r<.45)){ys=TX.map(()=>ri(-6,9));
+      const k=ri(-5,8),cnt=need.rep===3?3:2,pos=shuf(TX.map((_,i)=>i)).slice(0,cnt);ys=ys.map(v=>v===k?k+1:v);pos.forEach(i=>ys[i]=k);
+      F={kind:'tab',xs:TX,ys,py:null};}
+    else if(need.rep){const a=pick([1,-1]),c=a>0?ri(-5,2):ri(1,6);F=mkSq(a,c);ys=TX.map(F.f)}
+    else if(need.inj&&r<.5){F=mkAff(pick([-3,-2,2,3,4]),ri(-5,5));ys=TX.map(F.f)}
+    else{ys=shuf([...Array(17)].map((_,i)=>i-6)).slice(0,7);F={kind:'tab',xs:TX,ys,py:null}}
+    if(ys.some(v=>Math.abs(v)>12))continue;
+    return{F,ys};
+  }
+}
+function q2img(notation){
+  const {F,ys}=tableF({});let i;do{i=ri(0,6)}while(ys[i]===TX[i]);
+  const a=TX[i];
+  return{type:'tImg',xs:TX,ys,i,prompt:notation?`Touche la case de <span class="big">f(${P(a)})</span> dans le tableau.`:`Touche l'image de <span class="big">${P(a)}</span> dans le tableau.`,
+    view:{kind:'table'},win:`f(${P(a)}) = ${P(ys[i])} : sous ${P(a)}, on lit son image ${P(ys[i])}.`,meta:{k:'tImg',a,F:F.py,xs:TX,ys}};
+}
+function q2ant(rep){
+  const {F,ys}=tableF(rep>1?{rep}:{inj:true});
+  const counts={};ys.forEach(v=>counts[v]=(counts[v]||0)+1);
+  const ks=Object.keys(counts).map(Number).filter(k=>rep>1?counts[k]===rep:counts[k]===1);
+  if(!ks.length)return q2ant(rep);
+  const k=pick(ks),ants=TX.filter((x,i)=>ys[i]===k);
+  if(rep===1&&ants[0]===k)return q2ant(rep);
+  return{type:'tAnt',xs:TX,ys,k,ants,prompt:`Trouve, dans le tableau, <b>tous</b> les antécédents de <span class="big">${P(k)}</span>.`,view:{kind:'table'},
+    win:ants.length>1?`Dans le tableau, ${P(k)} a ${ants.length} antécédents : ${andList(ants)}.`:`Dans le tableau, ${P(k)} a un seul antécédent : ${P(ants[0])}.`,meta:{k:'tAnt',kk:k,F:F.py,xs:TX,ys,ants}};
+}
+function q2phrase(){
+  const {F,ys}=tableF({});let i;do{i=ri(0,6)}while(Math.abs(ys[i])===Math.abs(TX[i])||TX[i]===0||ys[i]===0);
+  const a=TX[i],b=ys[i];
+  return{type:'choice',xs:TX,ys,col:i,prompt:`La colonne entourée nous dit que :`,view:{kind:'table',col:i},
+    choices:shuf([{h:`f(${P(a)}) = ${P(b)}`,ok:1},{h:`f(${P(b)}) = ${P(a)}`,why:`Le nombre de départ est sur la ligne des x : c'est ${P(a)}. Il va entre les parenthèses.`},
+      {h:phr.isImg(b,a).replace(/\.$/,''),why:`L'image se lit sur la ligne f(x) : c'est ${P(b)}, l'image de ${P(a)}.`}]),
+    win:`En haut x = ${P(a)}, en bas son image ${P(b)} : f(${P(a)}) = ${P(b)}.`,meta:{k:'tPhrase',a,b,xs:TX,ys}};
+}
+/* --- niveau 3 : formule --- */
+function exprF(kind){
+  if(kind==='aff'){const a=pick([-5,-4,-3,-2,2,3,4,5]),b=nz(-9,9);return{...mkAff(a,b),kind:'aff'}}
+  if(kind==='sq1'){const c=nz(-6,6);return mkSq(1,c)}
+  if(kind==='sqm'){const c=ri(1,9);return mkSq(-1,c)}
+  if(kind==='sqk'){const k=pick([2,3]),c=nz(-5,5);return mkSq(k,c)}
+  if(kind==='sqx'){const p=nz(-4,4);return{kind:'sqx',p,f:x=>x*x+p*x,h:X+'²'+(p>0?' + ':` ${M} `)+(Math.abs(p)===1?'':Math.abs(p))+X,py:`x**2+(${p})*x`}}
+  const h=nz(-3,3);return{kind:'bin',hh:h,f:x=>(x+h)*(x+h),h:`(${X}${sgnTerm(h)})²`,py:`(x+(${h}))**2`};
+}
+function substHTML(F,v){const V=Pp(v);
+  if(F.kind==='aff')return`${P(F.a)} × ${V}${sgnTerm(F.b)}`;
+  if(F.kind==='sq')return(F.a===1?'':F.a===-1?M:F.a+' × ')+V+'²'+sgnTerm(F.c);
+  if(F.kind==='sqx')return`${V}²${F.p>0?' + ':` ${M} `}${Math.abs(F.p)===1?V:Math.abs(F.p)+' × '+V}`;
+  return`(${P(v)}${sgnTerm(F.hh)})²`}
+function stepsHTML(F,v){const r=F.f(v);
+  if(F.kind==='aff')return`${P(F.a*v)}${sgnTerm(F.b)} = ${P(r)}`;
+  if(F.kind==='sq')return F.a===1?`${v*v}${sgnTerm(F.c)} = ${P(r)}`:F.a===-1?`${M}${v*v}${sgnTerm(F.c)} = ${P(r)}`:`${F.a} × ${v*v}${sgnTerm(F.c)} = ${P(r)}`;
+  if(F.kind==='sqx')return`${v*v}${sgnTerm(F.p*v)} = ${P(r)}`;
+  return`${Pp(v+F.hh)}² = ${P(r)}`}
+function calcWhy(F,v,ans){
+  const r=F.f(v);
+  if(v<0&&(F.kind==='sq'||F.kind==='sqx')&&ans===-(v*v)*(F.a||1)+(F.c||0)+(F.kind==='sqx'?F.p*v:0)&&ans!==r)return`Piège classique, même en fin de collège : (${P(v)})² = (${P(v)}) × (${P(v)}) = ${v*v}. Sans parenthèses, ${M}${-v}² = ${M}(${-v}²) = ${M}${v*v} : c'est un autre calcul. En remplaçant x par ${P(v)}, on écrit toujours les parenthèses.`;
+  if((F.kind==='sq'||F.kind==='sqx')&&ans===F.f(v)-(v*v)*(F.a||1)+2*v*(F.a||1))return`Rappel : ${Pp(v)}² = ${Pp(v)} × ${Pp(v)} = ${v*v}, et non 2 × ${Pp(v)}. Le carré, c'est le nombre multiplié par lui-même.`;
+  if(F.kind==='aff'&&ans===(F.a+v)+F.b)return`${P(F.a)}${X} veut dire ${P(F.a)} × ${X} : on multiplie, on n'additionne pas. ${P(F.a)} × ${Pp(v)} = ${P(F.a*v)}.`;
+  if(F.kind==='sqx'&&ans===(v*v+F.p)*v)return`Priorités : on calcule d'abord ${Pp(v)}² et ${Math.abs(F.p)} × ${Pp(v)}, puis on fait la somme.`;
+  if(F.kind==='sq'&&F.a===-1&&v<0&&ans===v*v+F.c)return`${M}(${P(v)})² veut dire ${M}(${v*v}) : on calcule d'abord le carré, puis on garde le signe ${M} devant.`;
+  if(F.kind==='sq'&&F.a>1&&ans===(F.a*v)*(F.a*v)+F.c)return`Le carré porte seulement sur ${X} : on calcule ${Pp(v)}² = ${v*v} d'abord, puis on multiplie par ${F.a}.`;
+  if(F.kind==='aff'&&ans===-F.a*v+F.b)return`Règle des signes : deux nombres de même signe donnent un produit positif, de signes contraires un produit négatif. Ici ${P(F.a)} × ${Pp(v)} = ${P(F.a*v)}.`;
+  return'Remplace x par le nombre, entre parenthèses, puis calcule en respectant les priorités : d\'abord le carré, puis les produits, puis les sommes.'}
+function q3img(kind,v){
+  const F=exprF(kind);if(v===undefined)v=Math.random()<.75?-ri(1,4):ri(2,4);
+  const r=F.f(v);if(Math.abs(r)>99)return q3img(kind);
+  const named=Math.random()<.3;
+  return{type:'calc',F,v,ans:r,prompt:named?`f : ${X} ↦ ${F.h}. Calcule l'image de ${P(v)}.`:`f(${X}) = ${F.h}. Calcule <span class="big">f(${P(v)})</span>.`,
+    view:{kind:'plaque',F,v},hint:`f(${P(v)}) = ${substHTML(F,v)}`,full:`f(${P(v)}) = ${substHTML(F,v)} = ${stepsHTML(F,v)}`,
+    win:`f(${P(v)}) = ${substHTML(F,v)} = ${stepsHTML(F,v)}.`,meta:{k:'calc',py:F.py,v,ans:r}};
+}
+function q3ant(){
+  const a=pick([-4,-3,-2,2,3,4,5]),b=nz(-9,9),x0=nz(-6,7),k=a*x0+b,F=mkAff(a,b);
+  if(x0===k)return q3ant();
+  return{type:'calc',F,ant:true,k,ans:x0,prompt:`f(${X}) = ${F.h}. Trouve l'antécédent de <span class="big">${P(k)}</span> par f.`,view:{kind:'plaque',F,k},
+    hint:`On cherche ${X} tel que ${F.h} = ${P(k)}.`,full:`${F.h} = ${P(k)}, donc ${P(a)}${X} = ${P(k-b)}, donc ${X} = ${P(k-b)} ÷ ${Pp(a)} = ${P(x0)}.`,
+    win:`${linH(a,b)} = ${P(k)} donne ${P(a)}${X} = ${P(k-b)}, donc ${X} = ${P(x0)}. Vérification : f(${P(x0)}) = ${P(k)}.`,meta:{k:'calcAnt',py:F.py,kk:k,ans:x0}};
+}
+/* --- niveaux 4 et 5 : graphique --- */
+function q4(kind){
+  for(;;){const F=genGraphF(kind),[d0,d1]=domOf(F),a=ri(d0,d1),fa=F.f(a);
+    if(!a||!fa||fa===a||!inWin(fa)||isNaN(fa))continue;
+    // nombres dont a est l'image (lecture « à l'envers »)
+    const rev=(F.ants(a)||[]).filter(x=>x!==fa&&inWin(x));
+    const chips=[fa,a];if(rev.length)chips.push(rev[0]);else chips.push(fa+(fa<5?1:-1));
+    if(new Set(chips).size<3)continue;
+    return{type:'gImg',F,a,fa,chips:shuf(chips),rev:rev[0],prompt:`Lis l'image de <span class="big">${P(a)}</span> par f.`,view:{kind:'graph'},
+      win:`f(${P(a)}) = ${P(fa)} : en partant de ${P(a)} sur l'axe des abscisses, on arrive à ${P(fa)} sur l'axe des ordonnées. Le point de coordonnées (${P(a)} ; ${P(fa)}) est sur la courbe : abscisse ${P(a)}, ordonnée ${P(fa)}.`,meta:{k:'gImg',F:fMeta(F),a,fa}};
+  }
+}
+function fMeta(F){return F.kind==='pts'?{kind:'pts',x0:F.x0,ys:F.ys}:{kind:F.kind,py:F.py}}
+function q5(cnt){
+  for(let tries=0;;tries++){
+    const kind=cnt===3?'pts':cnt===1?pick(['aff','pts']):cnt===2?pick(['sq','pts','pts']):pick(['sq','pts']);
+    const F=genGraphF(kind);const ks=[];
+    for(let k=-5;k<=5;k++){if(!k)continue;const A=F.ants(k);if(A&&A.length===cnt&&A.every(x=>inWin(x)&&x!==0))ks.push(k)}
+    if(!ks.length)continue;const k=pick(ks),ants=F.ants(k).slice().sort((p,q)=>p-q);
+    return{type:'gAnt',F,k,ants,prompt:`Trouve <b>tous</b> les antécédents de <span class="big">${P(k)}</span> par f.`,view:{kind:'graph'},
+      win:(ants.length===0?`${P(k)} n'a aucun antécédent par f : la ligne horizontale ne rencontre pas la courbe.`:ants.length===1?`${P(k)} a un seul antécédent : ${P(ants[0])}, car f(${P(ants[0])}) = ${P(k)}.`:
+        `${P(k)} a ${ants.length} antécédents : ${andList(ants)}. Chacun a pour image ${P(k)}.`)+`<span class="rule">En Seconde, on dit aussi : l'équation f(x) = ${P(k)} ${ants.length===0?'n\'a pas de solution':ants.length===1?'a pour solution '+P(ants[0]):'a pour solutions '+andList(ants)}.</span>`,meta:{k:'gAnt',F:fMeta(F),kk:k,ants}};
+  }
+}
+/* --- niveau 6 : le Conseil (trouver l'intrus) --- */
+const RG={f:['Formule','#e9a23b'],t:['Tableau','#9b6a3f'],g:['Graphique','#5b4bb7'],p:['Parchemin','#2f8f6a']};
+function cardNot(pairs){return{rg:'f',h:pairs.map(([a,b])=>`f(${P(a)}) = ${P(b)}`).join('<br>'),claims:pairs}}
+function cardTab(pairs){return{rg:'t',h:tableHTML(pairs.map(p=>p[0]),pairs.map(p=>p[1]),'ftab mini'),claims:pairs}}
+function cardGr(pairs,F,beam){return{rg:'g',h:miniGraph({F,pts:pairs,beam}),claims:pairs}}
+function cardPh(pairs){return{rg:'p',h:pairs.length===1?pairOk(pairs[0][0],pairs[0][1]):`Les antécédents de ${P(pairs[0][1])} par f sont ${andList(pairs.map(p=>p[0]))}.`,claims:pairs}}
+function q6single(){
+  let a,b;do{a=nz(-4,4);b=nz(-5,5)}while(Math.abs(a)===Math.abs(b));
+  const good=[[a,b]],bad=[[b,a]];const regs=shuf(['f','t','g','p']);const iBad=ri(0,3);
+  const mk={f:cardNot,t:cardTab,g:p=>cardGr(p),p:cardPh};
+  const cards=regs.map((r,i)=>({...mk[r](i===iBad?bad:good),bad:i===iBad}));
+  return{type:'intrus',cards,prompt:`Quatre messagers transmettent la même information sur f, chacun dans sa langue. Un seul se trompe : lequel ?`,view:{kind:'council'},
+    win:`L'information est f(${P(a)}) = ${P(b)} : l'image de ${P(a)} est ${P(b)}. L'intrus a inversé le nombre de départ et l'image.`,meta:{k:'intrusSingle',a,b,cards:cards.map(c=>({rg:c.rg,claims:c.claims,bad:c.bad}))}};
+}
+function q6formula(){
+  for(;;){
+    const kind=pick(['sq1','sqm','aff','sqk']);const F=kind==='aff'?mkAff(pick([-2,2,3]),nz(-4,4)):exprF(kind);
+    const vals=[-3,-2,-1,1,2,3].filter(x=>inWin(F.f(x))&&F.f(x)!==x);if(vals.length<4)continue;
+    const xs=shuf(vals).slice(0,4);
+    const regs=shuf(['f','t','g','p']);const iBad=ri(0,3),v=xs[iBad];
+    let wrong=null;
+    if(v<0&&F.kind==='sq'&&F.a===1)wrong=-(v*v)+F.c;
+    else if(v<0&&F.kind==='sq'&&F.a===-1)wrong=v*v+F.c;
+    else if(F.kind==='sq'&&F.a>1)wrong=(F.a*v)*(F.a*v)+F.c;
+    else if(F.kind==='aff')wrong=-F.a*v+F.b;
+    if(wrong===null||wrong===F.f(v)||(regs[iBad]==='g'&&!inWin(wrong)))continue;
+    const mk={f:cardNot,t:cardTab,g:p=>cardGr(p,F),p:cardPh};
+    const cards=regs.map((r,i)=>{const x=xs[i];return{...mk[r]([[x,i===iBad?wrong:F.f(x)]]),bad:i===iBad}});
+    return{type:'intrus',F,cards,prompt:`Dans l'atelier, f(${X}) = ${F.h}. Trois messagers disent vrai, un seul se trompe : lequel ?`,view:{kind:'plaque',F},
+      win:`f(${P(v)}) = ${substHTML(F,v)} = ${stepsHTML(F,v)}, et non ${P(wrong)}.`,meta:{k:'intrusFormula',py:F.py,cards:cards.map(c=>({rg:c.rg,claims:c.claims,bad:c.bad}))}};
+  }
+}
+function q6many(){
+  for(;;){
+    const a=pick([1,1,-1]),c=a>0?ri(-4,-1):ri(1,4),F=mkSq(a,c);
+    const ks=[];for(let k=-5;k<=5;k++){const A=F.ants(k);if(A&&A.length===2&&A[1]<=4&&k!==0)ks.push(k)}
+    if(!ks.length)continue;const k=pick(ks),[p,q]=F.ants(k);
+    const regs=shuf(['f','t','g','p']);const iBad=ri(0,3),good=[[p,k],[q,k]];
+    const kindBad=pick(['forget','swap']);
+    const badFor={f:kindBad==='swap'?{rg:'f',h:`f(${P(k)}) = ${P(p)}<br>f(${P(k)}) = ${P(q)}`,claims:[[k,p],[k,q]]}:{rg:'f',h:`f(${P(q)}) = ${P(k)}<br><small>et c'est le seul antécédent de ${P(k)}</small>`,claims:[[q,k]],only:true},
+      t:kindBad==='swap'?cardTab([[k,p],[k,q]]):{...cardTab([[q,k]]),h:tableHTML([q],[k],'ftab mini')+`<small>et aucun autre antécédent de ${P(k)}</small>`,only:true},
+      g:{...cardGr([[q,k]],F,k),only:true},
+      p:kindBad==='swap'?{rg:'p',h:`Les images de ${P(k)} par f sont ${P(p)} et ${P(q)}.`,claims:[[k,p],[k,q]]}:{rg:'p',h:`${P(k)} a un seul antécédent par f : ${P(q)}.`,claims:[[q,k]],only:true}};
+    if(regs[iBad]==='g')continue; // un dessin qui montre un seul point n'affirme pas clairement « un seul » : pas d'intrus graphique ici
+    const mk={f:cardNot,t:cardTab,g:pp=>cardGr(pp,F,k),p:cardPh};
+    const cards=regs.map((r,i)=>i===iBad?{...badFor[r],bad:true}:{...mk[r](good),bad:false});
+    if(cards[iBad].rg==='g')cards[iBad].h=miniGraph({F,pts:[[q,k]],beam:k}).replace('</svg>','')+'</svg>';
+    return{type:'intrus',F,cards,prompt:`Le Conseil parle des antécédents de ${P(k)} par f(${X}) = ${F.h}. Un messager se trompe : lequel ?`,view:{kind:'plaque',F},
+      win:`f(${P(p)}) = ${P(k)} et f(${P(q)}) = ${P(k)} : ${P(k)} a deux antécédents, ${P(p)} et ${P(q)}. ${kindBad==='swap'?'L\'intrus a confondu images et antécédents.':'L\'intrus en a oublié un.'}`,
+      meta:{k:'intrusMany',py:F.py,kk:k,ants:[p,q],cards:cards.map(c=>({rg:c.rg,claims:c.claims,bad:c.bad,only:!!c.only}))}};
+  }
+}
+/* --- niveau 7 : sans aide --- */
+function q7gImg(){const q=q4(pick(['pts','sq','aff']));
+  return{...q,type:'choice',noaid:true,view:{kind:'graph',static:true},prompt:`Par lecture graphique, quelle est l'image de <span class="big">${P(q.a)}</span> par f ?`,
+    choices:q.chips.map(v=>({h:P(v),ok:v===q.fa?1:0,why:v===q.a?`${P(q.a)} est le nombre de départ. Son image se lit sur l'axe des ordonnées.`:v===q.rev?`Tu as lu à l'envers : f(${P(v)}) = ${P(q.a)}. Pour l'image de ${P(q.a)}, on part de ${P(q.a)} sur l'axe des abscisses.`:`Monte (ou descends) bien jusqu'à la courbe à la verticale de ${P(q.a)}, puis va sur l'axe des ordonnées.`}))}}
+function multiChoices(ants,k,extra){
+  const set=new Set(ants),c=new Set(ants);[k,...extra,...ants.map(x=>-x),...ants.map(x=>x+1),...ants.map(x=>x-1)].forEach(v=>{if(c.size<5&&!set.has(v)&&inWin(v))c.add(v)});
+  for(let v=-5;c.size<5;v++)if(!set.has(v))c.add(v);
+  return[...c].sort((p,q)=>p-q);
+}
+function q7gAnt(){const q=q5(pick([0,1,2,2,3]));const fk=q.F.f(q.k);
+  return{...q,type:'multi',noaid:true,view:{kind:'graph',static:true},prompt:`Par lecture graphique, quels sont <b>tous</b> les antécédents de <span class="big">${P(q.k)}</span> par f ?`,
+    opts:multiChoices(q.ants,q.k,isNaN(fk)?[]:[fk]),allowNone:true}}
+function q7tab(){const q=q2ant(pick([2,3]));
+  return{...q,type:'multi',noaid:true,view:{kind:'table',static:true},prompt:`D'après ce tableau de valeurs de f, quels nombres du tableau ont pour image <span class="big">${P(q.k)}</span> ?`,
+    opts:[...new Set(TX)],allowNone:false}}
+function q7sq(){const r=ri(1,5),c=pick([0,0,-1,1,-4]),F=mkSq(1,c),k=r*r+c;
+  return{type:'multi',noaid:true,F,k,ants:[-r,r],view:{kind:'plaque',F},prompt:`f(${X}) = ${F.h}. Quels sont <b>tous</b> les antécédents de <span class="big">${P(k)}</span> par f ?`,
+    opts:multiChoices([-r,r],k,[F.f(k)].filter(v=>Math.abs(v)<=99)),allowNone:true,
+    win:`${X}²${sgnTerm(c)} = ${P(k)} donne ${X}² = ${r*r}, donc ${X} = ${M}${r} ou ${X} = ${r} : deux antécédents.`,meta:{k:'sqAnt',py:F.py,kk:k,ants:[-r,r]}}}
+function genLevel(l){
+  let L;
+  if(l===0)L=[q1notation(),q1seal(),q1complete(),q1one(),q1many()];
+  else if(l===1)L=[q2img(false),q2img(true),q2phrase(),q2ant(2),pick([q2ant(1),q2ant(3)])];
+  else if(l===2)L=[q3img('aff'),q3img('sq1',-ri(2,4)),q3img(pick(['sqm','sqk'])),q3img(pick(['sqx','bin'])),q3ant()];
+  else if(l===3)L=shuf([q4('pts'),q4('pts'),q4('aff'),q4('sq'),q4('pts')]);
+  else if(l===4)L=[q5(1),q5(2),q5(3),q5(0),q5(2)];
+  else if(l===5)L=shuf([q6single(),q6formula(),q6many(),pick([q6single,q6formula])(),pick([q6formula,q6many])()]);
+  else L=shuf([q7gImg(),q7gAnt(),q7tab(),pick([q3img(pick(['sq1','sqm','sqk','bin'])),q3img('aff')]),pick([q3ant(),q7sq()])]).map(q=>({...q,noaid:true}));
+  return L.map(q=>({...q,lv:l+1}));
+}
+
+/* =================================================================
+   CARTE DES TROIS ROYAUMES (illustration originale)
+   ================================================================= */
+function drawMap(){
+  const books=(x,y,n,w)=>{let s='';const cs=['#a8473e','#4a6fc9','#2f7f66','#c8a84b','#7a5bc2','#b0643a'];for(let i=0;i<n;i++)s+=`<rect x="${x+i*w}" y="${y-ri(9,13)}" width="${w-1.4}" height="14" fill="${cs[(i*7+n)%6]}" rx="1"/>`;return s};
+  let stars='';for(let i=0;i<46;i++){const x=(i*211+37)%960,y=(i*97+11)%92+4,r=(i%5===0)?1.6:(i%3===0?1.1:.7);stars+=`<circle class="${i%4===0?'twk':i%4===2?'twk b':''}" cx="${x}" cy="${y}" r="${r}" opacity="${i%5===0?.9:.55}"/>`}
+  $('map').innerHTML=`<defs>
+<linearGradient id="mSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sky1)"/><stop offset="1" stop-color="var(--sky2)"/></linearGradient>
+<linearGradient id="mStone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--stone)"/><stop offset="1" stop-color="var(--stone2)"/></linearGradient>
+<linearGradient id="mGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#c8922a"/></linearGradient>
+<radialGradient id="mGlow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffb347" stop-opacity=".9"/><stop offset="1" stop-color="#ff7a00" stop-opacity="0"/></radialGradient>
+<linearGradient id="mBeam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffcf6b" stop-opacity=".85"/><stop offset="1" stop-color="#ffcf6b" stop-opacity="0"/></linearGradient>
+</defs>
+<rect width="960" height="210" fill="url(#mSky)"/>
+<circle cx="880" cy="40" r="44" fill="var(--sun)" opacity=".06"/><circle cx="880" cy="40" r="30" fill="var(--sun)" opacity=".10"/><circle cx="880" cy="40" r="19" fill="var(--sun)"/><circle cx="874" cy="35" r="4" fill="#cfd8ea"/><circle cx="886" cy="46" r="2.6" fill="#cfd8ea"/>
+<g fill="#f0f4ff">${stars}</g>
+<g fill="#8ea6ff" opacity=".07"><ellipse cx="300" cy="38" rx="60" ry="8"/><ellipse cx="640" cy="30" rx="50" ry="6"/></g>
+<path d="M0 120 L70 78 L130 104 L210 62 L290 108 L370 84 L450 112 L540 74 L620 106 L700 80 L790 110 L870 72 L960 100 V210 H0Z" fill="var(--far)"/>
+<path d="M0 150 Q120 118 240 140 T480 142 T720 138 T960 146 V210 H0Z" fill="var(--hill1)"/>
+<path d="M0 176 Q160 156 320 170 T640 172 T960 166 V210 H0Z" fill="var(--hill2)"/>
+<path d="M300 210 Q318 186 296 170 Q276 154 300 140" fill="none" stroke="var(--river)" stroke-width="12" stroke-linecap="round" opacity=".9"/>
+<path d="M660 210 Q646 188 668 172 Q690 156 668 142" fill="none" stroke="var(--river)" stroke-width="11" stroke-linecap="round" opacity=".9"/>
+<path d="M150 178 Q230 192 300 172 Q390 150 480 178 Q570 198 668 170 Q740 152 812 176" fill="none" stroke="var(--road)" stroke-width="9" stroke-linecap="round"/>
+<path d="M150 178 Q230 192 300 172 Q390 150 480 178 Q570 198 668 170 Q740 152 812 176" fill="none" stroke="#e8c766" stroke-width="1.5" stroke-dasharray="6 8" opacity=".35"/>
+<path d="M288 168 h24 M656 166 h24" stroke="var(--wood)" stroke-width="5" stroke-linecap="round"/>
+
+<g class="realm" id="k-g">
+ <path d="M60 172 Q150 120 250 170Z" fill="var(--hill1)"/>
+ <path d="M190 74 L520 30 L520 118 Z" fill="url(#mBeam)" class="beamv" opacity=".55"/>
+ <rect x="92" y="96" width="122" height="66" fill="url(#mStone)" stroke="var(--stone2)"/>
+ <path d="M92 96 v-8 h10 v8 h10 v-8 h10 v8 h10 v-8 h10 v8 h10 v-8 h10 v8 h10 v-8 h10 v8 h10 v-8 h10 v8 h12 v-8" fill="url(#mStone)" stroke="var(--stone2)"/>
+ <rect x="78" y="70" width="28" height="92" fill="url(#mStone)" stroke="var(--stone2)"/><path d="M74 72 L92 40 L110 72Z" fill="var(--roofg)"/>
+ <rect x="200" y="70" width="28" height="92" fill="url(#mStone)" stroke="var(--stone2)"/><path d="M196 72 L214 40 L232 72Z" fill="var(--roofg)"/>
+ <rect x="136" y="58" width="34" height="40" fill="url(#mStone)" stroke="var(--stone2)"/><path d="M130 60 L153 26 L176 60Z" fill="var(--roofg)"/>
+ <path d="M153 26 V12" stroke="var(--ink)" stroke-width="1.5"/><path class="flag" d="M153 12 h22 l-5 6 l5 6 h-22z" fill="var(--or)"/>
+ <circle cx="214" cy="80" r="6" fill="var(--win)"/>
+ <rect x="112" y="104" width="82" height="50" rx="4" fill="var(--gbg)" stroke="var(--stone2)" stroke-width="2"/>
+ <path d="M112 129 H194 M153 104 V154" stroke="var(--axis)" stroke-width="1.2"/>
+ <path d="M122 104v50M132 104v50M142 104v50M163 104v50M173 104v50M183 104v50M112 114h82M112 124h82M112 134h82M112 144h82" stroke="var(--grid)" stroke-width=".8"/>
+ <path d="M116 150 Q134 108 153 122 T192 110" fill="none" stroke="var(--yc)" stroke-width="2.6" stroke-linecap="round"/>
+ <path d="M173 129 V118 H153" fill="none" stroke="var(--or)" stroke-width="1.8" stroke-dasharray="3 2"/><circle cx="173" cy="118" r="2.8" fill="var(--or)"/>
+ <path d="M140 162 v-14 a13 13 0 0 1 26 0 v14z" fill="var(--wood)"/>
+ <g class="lbl"><rect x="88" y="182" width="132" height="24" rx="12"/><text x="154" y="199" text-anchor="middle">Graphique</text></g>
+</g>
+
+<g class="realm" id="k-t">
+ <path d="M396 164 h168 v8 h-168z M404 156 h152 v8 h-152z" fill="url(#mStone)" stroke="var(--stone2)"/>
+ <rect x="412" y="92" width="136" height="64" fill="var(--paper2)" stroke="var(--stone2)"/>
+ <g>${books(418,120,22,5.6)}${books(418,146,22,5.6)}</g>
+ <path d="M412 121 h136 M412 147 h136" stroke="var(--wood)" stroke-width="3"/>
+ <g fill="url(#mStone)" stroke="var(--stone2)"><rect x="410" y="88" width="12" height="68"/><rect x="446" y="88" width="12" height="68"/><rect x="502" y="88" width="12" height="68"/><rect x="538" y="88" width="12" height="68"/></g>
+ <path d="M398 90 L480 46 L562 90Z" fill="url(#mStone)" stroke="var(--stone2)"/><path d="M402 90 h156" stroke="var(--stone2)" stroke-width="3"/>
+ <rect x="447" y="62" width="66" height="22" rx="4" fill="var(--paper)" stroke="var(--wood)"/>
+ <text x="462" y="78" font-size="12" font-weight="700" fill="var(--xc)" text-anchor="middle">x</text><path d="M474 64 v18" stroke="var(--wood)"/><text x="494" y="78" font-size="12" font-weight="700" fill="var(--yc)" text-anchor="middle">f(x)</text>
+ <rect x="466" y="126" width="28" height="30" rx="3" fill="var(--wood)"/><circle cx="488" cy="142" r="1.8" fill="#ffd76a"/>
+ <g class="lbl"><rect x="420" y="182" width="120" height="24" rx="12"/><text x="480" y="199" text-anchor="middle">Tableau</text></g>
+</g>
+
+<g class="realm" id="k-f">
+ <circle cx="800" cy="138" r="40" fill="url(#mGlow)" opacity=".7"/>
+ <rect x="740" y="102" width="130" height="62" fill="var(--paper2)" stroke="var(--roofw)" stroke-width="1.5"/>
+ <path d="M740 118 h130 M740 140 h130 M772 102 v62 M838 102 v62" stroke="var(--roofw)" stroke-width="3" opacity=".8"/>
+ <path d="M728 104 L805 60 L882 104Z" fill="var(--roofw)"/>
+ <rect x="846" y="56" width="14" height="34" fill="var(--stone2)"/>
+ <circle class="smoke" cx="853" cy="50" r="7" fill="#d9d9d9" opacity=".7"/><circle class="smoke b" cx="855" cy="46" r="6" fill="#d9d9d9" opacity=".7"/>
+ <g transform="translate(784 132)"><g class="gear"><path d="M0 -15 l4 0 l1 5 l5 2 l4 -3 l3 3 l-3 4 l2 5 l5 1 l0 4 l-5 1 l-2 5 l3 4 l-3 3 l-4 -3 l-5 2 l-1 5 l-4 0 l-1 -5 l-5 -2 l-4 3 l-3 -3 l3 -4 l-2 -5 l-5 -1 l0 -4 l5 -1 l2 -5 l-3 -4 l3 -3 l4 3 l5 -2z" fill="#b98a2c" stroke="#7a4f0c"/><circle r="5" fill="var(--paper2)" stroke="#7a4f0c"/></g></g>
+ <rect x="806" y="140" width="34" height="24" fill="#3b2a1e"/><path d="M810 164 q13 -20 26 0" fill="#ff8a1e"/><path d="M815 164 q8 -12 16 0" fill="#ffd36a"/>
+ <rect x="752" y="72" width="84" height="26" rx="5" fill="url(#mGold)" stroke="#7a4f0c"/>
+ <text x="794" y="90" font-size="13" font-weight="700" fill="#2d1a00" text-anchor="middle" font-style="italic">f(x) = …</text>
+ <g class="lbl"><rect x="740" y="182" width="120" height="24" rx="12"/><text x="800" y="199" text-anchor="middle">Formule</text></g>
+</g>
+<g id="pin"><g class="pinb"><path d="M0 0 C-12 -14 -12 -30 0 -30 C12 -30 12 -14 0 0Z" fill="var(--ac)" stroke="#071022" stroke-width="1.5"/><circle cy="-20" r="5" fill="#f0f4ff"/></g></g>`;
+}
+const PIN={g:[154,30],t:[480,40],f:[805,54],all:[480,40]};
+function setRealm(r){
+  for(const k of ['g','t','f']){const el=$('k-'+k);el.classList.toggle('on',r===k);el.classList.toggle('dim',r!=='all'&&r!==k)}
+  const p=PIN[r]||PIN.all;$('pin').setAttribute('transform',`translate(${p[0]} ${p[1]})`);
+  $('pin').style.transform=`translate(${p[0]}px,${p[1]}px)`;
+}
+
+/* =================================================================
+   SON
+   ================================================================= */
+let actx=null,snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type='sine',w=0){const a=ac();if(!a)return;const t=a.currentTime+w,o=a.createOscillator(),g=a.createGain();
+  o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0008,t+d);
+  o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const sTick=()=>{if(snd)tone(1320,.12,.04,'triangle')};
+const sOk=()=>{if(snd){tone(784,.25,.06,'triangle');tone(1175,.35,.05,'triangle',.09)}};
+const sSoft=()=>{if(snd){tone(330,.25,.05,'triangle');tone(262,.3,.04,'sine',.08)}};
+const sSweep=()=>{if(snd)[523,659,784].forEach((f,i)=>tone(f,.18,.035,'sine',i*.07))};
+
+/* =================================================================
+   JEU
+   ================================================================= */
+const S={lvl:0,own:false,list:[],qi:0,Q:null,miss:false,solved:false,res:[],first:Array(7).fill(0),done:Array(7).fill(0),g:null,busy:false};
+const maki=m=>window.SigmaKit?SigmaKit.maki(m):'';
+function say(kind,title,msg,rule){
+  $('fb').innerHTML=NB(`<div class="fbx ${kind}">${maki(kind==='ok'?'joie':kind==='ko'?'pense':'neutre')}<div><b>${title}</b>${msg?`<p>${msg}</p>`:''}${rule?`<span class="rule">${rule}</span>`:''}</div></div>`);
+}
+function dots(){
+  $('dots').innerHTML=Array.from({length:PER},(_,i)=>`<span class="${i<S.res.length?(S.res[i]?'g':'r'):i===S.qi&&!S.solved?'c':''}"></span>`).join('')+`<em>Question ${Math.min(S.qi+1,PER)} sur ${PER}</em>`;
+}
+function renderLv(){
+  let stl={};try{const g=SigmaKit.passport().games['trois-royaumes'];stl=(g&&g.levels)||{}}catch(_){}
+  $('lv').innerHTML=LV.map((l,i)=>`<button type="button" data-l="${i}" aria-pressed="${i===S.lvl&&!S.own}">${l.t}${stl[i+1]?`<span class="ck" aria-label="${stl[i+1]} étoile${stl[i+1]>1?'s':''}">${'★'.repeat(stl[i+1])}</span>`:''}</button>`).join('')+
+    `<button type="button" class="own" data-own="1" aria-pressed="${S.own}">✎ Ma fonction</button>`+
+    `<button type="button" class="snd" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`;
+  $('lvdesc').textContent=NB(S.own?'Ma fonction : écris une expression et explore ses trois royaumes (idéal au tableau).':LV[S.lvl].d);
+  $('play').hidden=S.own;$('ownp').hidden=!S.own;$('memo').hidden=!S.own&&S.lvl===6;
+  setRealm(S.own?'all':LV[S.lvl].realm);
+}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('sigma-fanfare',snd?'1':'0')}catch(_){}renderLv();if(snd)sOk();return}
+  if(b.dataset.own){S.own=true;renderLv();startOwn();return}
+  startLevel(+b.dataset.l)});
+function startLevel(l){S.lvl=l;S.own=false;S.list=genLevel(l);S.qi=0;S.res=[];renderLv();showQ()}
+function killGraph(){if(S.g){S.g.kill();S.g=null}}
+function showQ(){
+  killGraph();S.Q=S.list[S.qi];S.miss=false;S.solved=false;S.busy=false;const q=S.Q;
+  const rn={choice:'Choisis',seal:'Sceau',tImg:'Tableau',tAnt:'Tableau',calc:'Formule',gImg:'Graphique',gAnt:'Graphique',intrus:'Conseil',multi:'Plusieurs réponses possibles'}[q.type];
+  $('qtag').innerHTML=`<i></i>${LV[S.lvl].n} · ${rn}`;
+  $('prompt').innerHTML=NB(q.prompt);$('fb').innerHTML='';$('ctrl').innerHTML='';
+  renderView(q);dots();
+  (R[q.type])(q);
+  if(S.qi>0){const r=$('play').getBoundingClientRect();if(r.top<0)$('play').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'})}
+}
+function renderView(q){
+  const v=$('view'),k=q.view.kind;
+  if(k==='scroll')v.innerHTML=`<div class="scroll"><div class="small">${q.view.small||''}</div><div class="decree">${q.view.decree}</div>${waxSVG()}</div>`;
+  else if(k==='seal')v.innerHTML=`<div class="scroll"><div class="small">Le sceau du royaume</div><div class="seal" id="seal">f(<span class="slot" data-s="0"></span>) = <span class="slot" data-s="1"></span></div>${waxSVG()}</div>`;
+  else if(k==='table')v.innerHTML=libHTML(q);
+  else if(k==='plaque')v.innerHTML=`<div class="forge">${forgeSVG()}<div class="small" style="color:var(--mut);font-size:14px;margin-bottom:8px">L'atelier de la Formule</div><div class="plaque">f(${X}) = ${q.view.F.h}</div>${q.type==='calc'?`<div class="work" id="work">${q.ant?`<div>f(${X}) = ${P(q.k)}</div>`:`<div>f(${P(q.v)}) = <span class="hole" id="hole">?</span></div>`}</div>`:''}</div>`+(q.type==='intrus'||q.type==='multi'?'<div class="cards" id="cards"></div>':'');
+  else if(k==='council')v.innerHTML=`<div class="council">${councilSVG()}</div><div class="cards" id="cards"></div>`;
+  else if(k==='graph'){v.innerHTML=`<div class="gwrap" id="gw"></div><p class="cap">${capOf(q.F)}</p>`;S.g=Graph($('gw'),q.F,{mode:null})}
+  if(q.view.kind==='plaque'&&q.type==='multi')$('cards').remove();
+}
+function waxSVG(){return`<svg class="wax" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="22" fill="#b3261e"/><circle cx="28" cy="28" r="16" fill="none" stroke="#7d1510" stroke-width="2"/><text x="28" y="35" text-anchor="middle" font-size="20" font-weight="700" fill="#f6d3cf" font-style="italic">f</text><path d="M18 48 l-4 7 M38 48 l4 7" stroke="#b3261e" stroke-width="5" stroke-linecap="round"/></svg>`}
+function forgeSVG(){return`<svg class="deco" viewBox="0 0 150 120" aria-hidden="true"><path d="M20 112 h110 l-8 -10 h-94z" fill="#3b2a1e"/><path d="M42 102 h66 v-16 h12 v-10 h-56 q-22 0 -22 14z" fill="#56606b"/><path d="M40 76 h80" stroke="#8b95a0" stroke-width="3"/>
+ <g transform="translate(110 34)"><g class="gear"><circle r="18" fill="#c8922a" stroke="#7a4f0c" stroke-width="2"/><circle r="7" fill="var(--bg)" stroke="#7a4f0c" stroke-width="2"/>${[0,45,90,135,180,225,270,315].map(a=>`<rect x="-4" y="-25" width="8" height="9" rx="2" fill="#c8922a" stroke="#7a4f0c" transform="rotate(${a})"/>`).join('')}</g></g>
+ <path d="M18 70 l26 -26" stroke="#6b4528" stroke-width="7" stroke-linecap="round"/><rect x="36" y="30" width="22" height="14" rx="3" fill="#8b95a0" transform="rotate(-45 47 37)"/></svg>`}
+function councilSVG(){return`<svg viewBox="0 0 600 120" aria-hidden="true"><path d="M0 92 Q300 70 600 92 V120 H0Z" fill="var(--hill2)"/>
+ <ellipse cx="300" cy="96" rx="170" ry="16" fill="var(--wood)"/><ellipse cx="300" cy="92" rx="170" ry="16" fill="#5a3e28"/>
+ ${[[150,'#5b4bb7','g'],[300,'#9b6a3f','t'],[450,'#e9a23b','f']].map(([x,c,k])=>`<path d="M${x} 82 V18" stroke="var(--ink)" stroke-width="2"/><path class="flag" d="M${x} 20 h46 v34 l-23 -9 l-23 9z" fill="${c}"/>
+ <text x="${x+23}" y="42" text-anchor="middle" font-size="${k==='t'?11:13}" font-weight="700" fill="#fff" font-style="italic">${k==='g'?'𝒞f':k==='t'?'x | f(x)':'f(x)'}</text>`).join('')}
+ <circle cx="300" cy="86" r="9" fill="url(#mGold)"/></svg>`}
+function libHTML(q){
+  const cs=['#a8473e','#4a6fc9','#2f7f66','#c8a84b','#7a5bc2','#b0643a','#2b8a7a'];
+  const shelf=`<div class="shelf">${Array.from({length:26},(_,i)=>`<i style="background:${cs[(i*5)%7]};height:${10+(i*7)%7}px"></i>`).join('')}</div>`;
+  const interactive=!q.view.static&&(q.type==='tImg'||q.type==='tAnt');
+  const cell=(r,i,v)=>{const cls=q.view.col===i?' class="col"':'';return interactive?`<td${cls}><button type="button" data-r="${r}" data-i="${i}" aria-label="${r==='x'?'x = ':'f(x) = '}${P(v)}">${P(v)}</button></td>`:`<td${cls}>${P(v)}</td>`};
+  return`<div class="lib">${shelf}<p class="tleg"><b class="cx">x</b> : ligne du haut · <b class="cy">f(x)</b> : ligne du bas</p><div style="position:relative" id="tabbox"><table class="ftab" id="tab"><tr class="rx"><th scope="row">x</th>${q.xs.map((v,i)=>cell('x',i,v)).join('')}</tr><tr class="ry"><th scope="row">f(x)</th>${q.ys.map((v,i)=>cell('y',i,v)).join('')}</tr></table></div></div>`;
+}
+/* ---- succès / erreur ---- */
+function fail(msg,rule){if(S.solved)return;S.miss=true;sSoft();say('ko','Pas tout à fait…',msg,rule);}
+function succeed(extra){
+  if(S.solved)return;S.solved=true;S.res.push(!S.miss);S.done[S.lvl]=S.res.length;if(!S.miss)S.first[S.lvl]++;
+  sOk();dots();
+  const last=S.res.length>=PER;
+  say('ok',S.miss?'Tu y es arrivé !':pick(['Exact !','Bien traduit !','Parfait !','Bravo, voyageur !']),S.Q.win+(extra||''));
+  const nx=document.createElement('div');nx.className='row';nx.innerHTML=`<button class="btn or" id="next" type="button">${last?'Terminer le niveau':'Question suivante →'}</button>`;
+  $('fb').appendChild(nx);
+  $('next').onclick=()=>{if(last)finishLevel();else{S.qi++;showQ()}};
+  if(!reduce)$('next').focus({preventScroll:true});
+  if(last)setTimeout(()=>{if(S.Q===S.list[PER-1]&&!S.ended)finishLevel()},reduce?0:900);
+}
+function finishLevel(){
+  if(S.ended)return;S.ended=true;const L=S.lvl,score=S.res.filter(Boolean).length;
+  const after=v=>{S.ended=false;
+    if(v==='next'&&L<6)startLevel(L+1);else if(v==='replay')startLevel(L);
+    else{ $('next')&&($('next').textContent=L<6?'Niveau suivant →':'Rejouer ce niveau');if($('next'))$('next').onclick=()=>startLevel(L<6?L+1:L)}};
+  if(window.SigmaKit)SigmaKit.levelComplete({level:L+1,score,total:PER}).then(after);else after('close');
+}
+/* ---- rendus par type ---- */
+const R={};
+R.choice=q=>{
+  const box=document.createElement('div');box.className='chips'+(q.wide?' wide':'');
+  box.innerHTML=q.choices.map((c,i)=>`<button class="chip" type="button" data-c="${i}">${NB(c.h)}</button>`).join('');
+  $('ctrl').appendChild(box);
+  if(q.view.kind==='graph'&&q.view.static){/* lecture sans aide */}
+  box.addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b||b.disabled||S.solved)return;const c=q.choices[+b.dataset.c];
+    if(c.ok){b.classList.add('ok');box.querySelectorAll('.chip').forEach(x=>x.disabled=true);succeed()}
+    else{b.classList.add('ko');b.disabled=true;fail(c.why||'Relis bien la question.')}});
+};
+R.seal=q=>{
+  const fill=[null,null];
+  const box=document.createElement('div');box.innerHTML=`<p class="steps">Touche un nombre pour le poser dans la première case libre ; touche une case pour la vider.</p>
+    <div class="chips" id="tiles">${q.tiles.map((t,i)=>`<button class="chip" type="button" data-t="${i}">${P(t)}</button>`).join('')}</div>
+    <button class="btn or" id="sealok" type="button" disabled>Apposer le sceau</button>`;
+  $('ctrl').appendChild(box);
+  const upd=()=>{document.querySelectorAll('#seal .slot').forEach((s,i)=>{s.textContent=fill[i]===null?'':P(q.tiles[fill[i]]);s.classList.toggle('full',fill[i]!==null)});
+    box.querySelectorAll('[data-t]').forEach(b=>b.disabled=fill.includes(+b.dataset.t)||S.solved);$('sealok').disabled=fill.includes(null)||S.solved};
+  box.addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b||S.solved)return;const j=fill.indexOf(null);if(j<0)return;fill[j]=+b.dataset.t;sTick();upd()});
+  $('seal').addEventListener('click',e=>{const s=e.target.closest('.slot');if(!s||S.solved)return;fill[+s.dataset.s]=null;upd()});
+  $('sealok').onclick=()=>{const a=q.tiles[fill[0]],b=q.tiles[fill[1]];
+    if(a===q.a&&b===q.b){upd();succeed()}
+    else{fail(`f(${P(a)}) = ${P(b)} voudrait dire que l'image de ${P(a)} est ${P(b)}. Or ici, le nombre de départ est ${P(q.a)} et son image est ${P(q.b)}.`,'Entre les parenthèses : le nombre de départ (l\'antécédent). Après le signe = : son image.');fill[0]=fill[1]=null;upd()}};
+  upd();
+};
+function tabCell(r,i){return document.querySelector(`#tab [data-r="${r}"][data-i="${i}"]`)}
+async function tabArrow(i,down){
+  const a=tabCell('x',i).parentNode,b=tabCell('y',i).parentNode;
+  (down?a:b).classList.add('src');await sleep(260);(down?b:a).classList.add('on');sTick();
+}
+R.tImg=q=>{
+  $('ctrl').innerHTML=`<p class="steps">Le nombre de départ <b class="cx">x</b> est en haut, son image <b class="cy">f(x)</b> juste en dessous.</p>`;
+  $('tab').addEventListener('click',async e=>{const b=e.target.closest('button');if(!b||S.solved||S.busy)return;const r=b.dataset.r,i=+b.dataset.i,a=q.xs[q.i];
+    if(r==='y'&&i===q.i){S.busy=true;await tabArrow(i,true);S.busy=false;succeed();return}
+    const td=b.parentNode;td.classList.add('bad');setTimeout(()=>td.classList.remove('bad'),900);
+    if(r==='x'&&i===q.i)fail(`${P(a)} est le nombre de départ, sur la ligne des x. Son image est juste en dessous, sur la ligne f(x).`,'Image : on part de x (ligne du haut) et on descend.');
+    else if(r==='x')fail(`Cette case est sur la ligne des x. L'image se lit sur la ligne f(x), sous ${P(a)}.`);
+    else if(q.ys[i]===a||q.xs[i]===q.ys[q.i])fail(`Cette case est f(${P(q.xs[i])}) = ${P(q.ys[i])}, l'image de ${P(q.xs[i])}. On cherche l'image de ${P(a)} : repère d'abord ${P(a)} sur la ligne des x.`,'Ne lis pas à l\'envers : pour une image, on part de la ligne des x.');
+    else fail(`Cette case est f(${P(q.xs[i])}), l'image de ${P(q.xs[i])}. Repère d'abord ${P(a)} sur la ligne des x, puis descends.`);
+  });
+};
+R.tAnt=q=>{
+  const found=new Set();
+  $('ctrl').innerHTML=`<p class="steps">Repère les <b class="cy">${P(q.k)}</b> sur la ligne f(x) : leurs antécédents sont juste au-dessus, sur la ligne <b class="cx">x</b>. Touche chaque antécédent.</p>
+   <div class="row"><button class="btn or" id="tdone" type="button" disabled>C'est tout !</button></div>`;
+  $('tab').addEventListener('click',async e=>{const b=e.target.closest('button');if(!b||S.solved||S.busy)return;const r=b.dataset.r,i=+b.dataset.i;
+    if(r==='x'&&q.ys[i]===q.k){if(found.has(i))return;found.add(i);S.busy=true;await tabArrow(i,false);S.busy=false;$('tdone').disabled=false;
+      say('info',`Trouvé : f(${P(q.xs[i])}) = ${P(q.k)}`,found.size===1?'Y en a-t-il d\'autres ? Regarde toute la ligne f(x), puis touche « C\'est tout ! ».':`${found.size} antécédents trouvés.`);return}
+    const td=b.parentNode;td.classList.add('bad');setTimeout(()=>td.classList.remove('bad'),900);
+    if(r==='y'&&q.ys[i]===q.k)fail(`Ce ${P(q.k)} est sur la ligne f(x) : c'est une image. Son antécédent est le nombre juste au-dessus, sur la ligne des x.`,'Antécédent : on part de f(x) (ligne du bas) et on monte.');
+    else if(r==='x'&&q.xs[i]===q.k)fail(`Ce ${P(q.k)} est sur la ligne des x : son image est f(${P(q.k)}) = ${P(q.ys[i])}. On cherche les nombres dont l'image est ${P(q.k)}.`,'Ne lis pas à l\'envers : pour un antécédent, on part de la ligne f(x).');
+    else if(r==='x')fail(`f(${P(q.xs[i])}) = ${P(q.ys[i])}, pas ${P(q.k)}. Cherche d'abord les ${P(q.k)} sur la ligne f(x).`);
+    else fail(`Cette case vaut ${P(q.ys[i])}, pas ${P(q.k)}. Et les antécédents se touchent sur la ligne des x.`);
+  });
+  $('tdone').onclick=()=>{if(S.solved)return;if(found.size===q.ants.length)succeed();
+    else fail(`Il reste ${q.ants.length-found.size===1?'un':q.ants.length-found.size} ${P(q.k)} sur la ligne f(x) : regarde toute la ligne, de gauche à droite.`,'Un nombre peut avoir plusieurs antécédents : on les cherche tous.')};
+};
+R.calc=q=>{
+  let val='',err=0;
+  $('ctrl').innerHTML=`<div class="kp" id="kp"><div class="kpd" id="kpd" aria-live="polite"></div>${[1,2,3,4,5,6,7,8,9].map(d=>`<button type="button" data-k="${d}">${d}</button>`).join('')}
+    <button type="button" data-k="-" aria-label="moins">${M}</button><button type="button" data-k="0">0</button><button type="button" data-k="del" aria-label="effacer">⌫</button>
+    <button type="button" class="val" data-k="ok">Valider</button></div>`;
+  const show=()=>{$('kpd').textContent=val.replace('-',M);const h=$('hole');if(h)h.textContent=val?val.replace('-',M):'?'};
+  const press=k=>{if(S.solved)return;
+    if(k==='del')val=val.slice(0,-1);else if(k==='-')val=val.startsWith('-')?val.slice(1):'-'+val;
+    else if(k==='ok'){if(!val||val==='-')return;check();return}else if(val.replace('-','').length<4)val=val==='0'?k:val==='-0'?'-'+k:val+k;show()};
+  function check(){const n=parseInt(val,10);
+    if(n===q.ans){const w=$('work');if(w&&!q.ant)w.innerHTML=`<div class="sub">f(${P(q.v)}) = ${substHTML(q.F,q.v)}</div><div class="res">= ${stepsHTML(q.F,q.v)}</div>`;
+      if(w&&q.ant)w.innerHTML=`<div class="sub">${q.F.h} = ${P(q.k)}</div><div class="res">${X} = ${P(q.ans)}</div>`;succeed();return}
+    err++;const w=$('work');
+    if(q.ant){fail(err===1?q.hint+' Ce nombre est l\'antécédent : son image doit être '+P(q.k)+'.':q.full,n===q.F.f(q.k)?`Tu as calculé f(${P(q.k)}) : c'est l'image de ${P(q.k)}, pas son antécédent.`:'');
+      if(w&&err>=1)w.innerHTML=`<div>${q.F.h} = ${P(q.k)}</div>${err>1?`<div class="sub">${q.full.split(', donc ').slice(1).map(s=>s.replace(/^/,'')).join('<br>')}</div>`:''}`}
+    else{fail(err===1?calcWhy(q.F,q.v,n):`Le calcul complet : ${q.full}.`,err===1?'Le nombre remplace x, entre parenthèses s\'il est négatif.':'');
+      if(w)w.innerHTML=`<div class="sub">${q.hint}</div>${err>1?`<div class="sub">= ${stepsHTML(q.F,q.v)}</div>`:''}<div>f(${P(q.v)}) = <span class="hole" id="hole">?</span></div>`}
+    val='';show()}
+  $('kp').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(b)press(b.dataset.k)});
+  S.keyh=e=>{if(S.Q!==q||S.solved||e.target.tagName==='INPUT')return;if(/^[0-9]$/.test(e.key))press(e.key);else if(e.key==='-'||e.key==='−')press('-');else if(e.key==='Backspace')press('del');else if(e.key==='Enter'){e.preventDefault();press('ok')}};
+  show();
+};
+document.addEventListener('keydown',e=>{if(S.keyh&&!document.querySelector('.sk-ov'))S.keyh(e)}); // jamais derrière une fenêtre du kit
+function axisWord(a){return a==='x'?'l\'axe des abscisses':'l\'axe des ordonnées'}
+R.gImg=q=>{
+  const g=S.g;g.setMode('axis');
+  $('ctrl').innerHTML=`<p class="steps"><b>①</b> Touche le point de départ sur un axe. <b>②</b> Trace. <b>③</b> Lis l'image.</p>
+    <button class="btn or" id="go" type="button" disabled>Choisis un point de départ</button><div class="chips" id="rd" hidden></div>`;
+  g.onSelect=s=>{$('go').disabled=false;$('go').textContent=`Partir de ${s.axis==='x'?'x':'y'} = ${P(s.v)} sur ${axisWord(s.axis)}`;sTick()};
+  g.onOff=()=>say('info','Touche un axe','Le point de départ se choisit sur l\'un des deux axes.');
+  $('go').onclick=async()=>{const s=g.st.sel;if(!s||S.solved||S.busy)return;
+    if(s.axis!=='x'){fail(`Tu es parti de l'axe des ordonnées. Pour une image, on part du nombre ${P(q.a)} sur l'axe des abscisses (l'axe horizontal).`,'Partir de l\'axe des ordonnées, c\'est chercher un antécédent : c\'est la lecture à l\'envers.');
+      g.st.sel=null;g.st.hint={axis:'x',v:q.a};g.overlay();$('go').disabled=true;$('go').textContent='Choisis un point de départ';return}
+    if(s.v!==q.a){fail(`Tu es parti de ${P(s.v)}. On cherche l'image de ${P(q.a)} : pars de ${P(q.a)} sur l'axe des abscisses.`);g.st.sel=null;g.st.hint={axis:'x',v:q.a};g.overlay();$('go').disabled=true;$('go').textContent='Choisis un point de départ';return}
+    S.busy=true;g.setMode(null);g.st.hint=null;g.st.hot=null;$('go').hidden=true;
+    g.st.img={a:q.a,fa:q.fa,t1:0,t2:0};sSweep();await g.anim(g.st.img,'t1',650);await sleep(120);await g.anim(g.st.img,'t2',650);S.busy=false;
+    g.st.sel=null;g.overlay();
+    const rd=$('rd');rd.hidden=false;rd.insertAdjacentHTML('beforebegin',`<p class="steps" id="rdq"><b>③</b> Le trait arrive sur l'axe des ordonnées. L'image de ${P(q.a)} est :</p>`);
+    rd.innerHTML=q.chips.map(v=>`<button class="chip" type="button" data-v="${v}">${P(v)}</button>`).join('');
+    rd.onclick=e=>{const b=e.target.closest('.chip');if(!b||b.disabled||S.solved)return;const v=+b.dataset.v;
+      if(v===q.fa){b.classList.add('ok');rd.querySelectorAll('.chip').forEach(x=>x.disabled=true);g.st.img.show=true;g.overlay();succeed()}
+      else{b.classList.add('ko');b.disabled=true;
+        fail(v===q.a?`${P(q.a)} est le nombre de départ. Son image est la graduation où arrive le trait, sur l'axe des ordonnées.`:v===q.rev?`f(${P(v)}) = ${P(q.a)} : c'est la lecture à l'envers. Lis la graduation où arrive le trait orange.`:`Lis bien la graduation où arrive le trait orange sur l'axe des ordonnées.`)}};
+  };
+};
+R.gAnt=q=>{
+  const g=S.g;g.setMode('axis');
+  $('ctrl').innerHTML=`<p class="steps" id="gst"><b>①</b> Touche le point de départ sur un axe. <b>②</b> Touche chaque point où la ligne rencontre la courbe. <b>③</b> Annonce ta réponse.</p>
+    <button class="btn or" id="go" type="button" disabled>Choisis un point de départ</button>
+    <div class="row" id="fin" hidden><button class="btn or" id="adone" type="button" disabled>C'est tout !</button><button class="btn gh" id="anone" type="button">Aucun antécédent</button></div>`;
+  g.onSelect=s=>{$('go').disabled=false;$('go').textContent=`Partir de ${s.axis==='x'?'x':'y'} = ${P(s.v)} sur ${axisWord(s.axis)}`;sTick()};
+  g.onOff=()=>say('info',g.mode==='points'?'Touche un point de rencontre':'Touche un axe',g.mode==='points'?'Touche les points où la ligne orange rencontre la courbe.':'Le point de départ se choisit sur l\'un des deux axes.');
+  $('go').onclick=async()=>{const s=g.st.sel;if(!s||S.solved||S.busy)return;
+    const reset=()=>{g.st.sel=null;g.st.hint={axis:'y',v:q.k};g.overlay();$('go').disabled=true;$('go').textContent='Choisis un point de départ'};
+    if(s.axis!=='y'){fail(`Tu es parti de l'axe des abscisses : c'est ainsi qu'on lit une image. Pour un antécédent de ${P(q.k)}, on part de ${P(q.k)} sur l'axe des ordonnées (l'axe vertical).`,'Antécédent : on part de l\'axe des ordonnées, puis on revient sur l\'axe des abscisses.');reset();return}
+    if(s.v!==q.k){fail(`Tu es parti de ${P(s.v)}. On cherche les antécédents de ${P(q.k)} : pars de ${P(q.k)} sur l'axe des ordonnées.`);reset();return}
+    S.busy=true;g.setMode(null);g.st.hint=null;g.st.hot=null;g.st.sel=null;$('go').hidden=true;
+    g.st.beam={k:q.k,t:0};sSweep();await g.anim(g.st.beam,'t',900);S.busy=false;
+    g.st.found=[];g.st.targets=q.ants.slice();g.setMode('points');$('fin').hidden=false;
+    $('gst').innerHTML=`<b>②</b> La ligne horizontale passe par ${P(q.k)}. Touche <b>chaque</b> point où elle rencontre la courbe, puis annonce ta réponse.`;
+  };
+  g.onPoint=async x=>{if(S.solved||g.st.found.some(f=>f.x===x))return;const f={x,k:q.k,t:0};g.st.found.push(f);g.st.targets=g.st.targets.filter(t=>t!==x);sTick();
+    await g.anim(f,'t',500);$('adone').disabled=false;
+    say('info',`Trouvé : f(${P(x)}) = ${P(q.k)}`,g.st.found.length===1?'Y en a-t-il d\'autres ? Suis la ligne sur toute la largeur.':`${g.st.found.length} antécédents trouvés.`)};
+  const finish=()=>{g.setMode(null);g.st.targets=[];q.ants.forEach(x=>{if(!g.st.found.some(f=>f.x===x))g.st.found.push({x,k:q.k,t:1})});g.overlay();$('adone').disabled=$('anone').disabled=true};
+  $('fin').onclick=e=>{const b=e.target.closest('button');if(!b||S.solved||S.busy)return;
+    if(b.id==='anone'){if(!q.ants.length){finish();succeed()}else fail(`La ligne rencontre la courbe ${q.ants.length===1?'une fois':q.ants.length+' fois'} : ${P(q.k)} a donc au moins un antécédent.`,'Aucun antécédent seulement si la ligne ne touche jamais la courbe.');return}
+    if(g.st.found.length===q.ants.length){finish();succeed()}
+    else fail(`Il reste ${q.ants.length-g.st.found.length===1?'un point':(q.ants.length-g.st.found.length)+' points'} où la ligne rencontre la courbe. Suis-la de gauche à droite.`,'Un nombre peut avoir plusieurs antécédents : on les cherche tous.')};
+};
+R.intrus=q=>{
+  const box=$('cards');box.innerHTML=q.cards.map((c,i)=>`<button class="card" type="button" data-c="${i}"><span class="rg"><i style="background:${RG[c.rg][1]}"></i>${RG[c.rg][0]}</span><span class="cc">${NB(c.h)}</span></button>`).join('');
+  box.onclick=e=>{const b=e.target.closest('.card');if(!b||b.disabled||S.solved)return;const c=q.cards[+b.dataset.c];
+    if(c.bad){b.classList.add('ok');box.querySelectorAll('.card').forEach(x=>x.disabled=true);succeed()}
+    else{b.classList.add('ko');b.disabled=true;fail('Ce messager dit vrai : compare-le aux autres. L\'intrus contredit les trois autres.',c.rg==='g'?'Lire un point (a ; b) : a est l\'abscisse (on la lit sur l\'axe horizontal, en bleu), b est l\'ordonnée (axe vertical, en violet). Point sur la courbe de f ⇔ f(a) = b.':'Une même information s\'écrit dans les trois royaumes : f(a) = b, la colonne (a | b), le point (a ; b).')}};
+};
+R.multi=q=>{
+  const sel=new Set();let none=false;
+  $('ctrl').innerHTML=`<p class="steps">Sélectionne toutes les bonnes réponses, puis valide.</p><div class="chips" id="mc">${q.opts.map(v=>`<button class="chip" type="button" data-v="${v}" aria-pressed="false">${P(v)}</button>`).join('')}${q.allowNone?'<button class="chip" type="button" data-none="1" aria-pressed="false">aucun</button>':''}</div>
+   <button class="btn or" id="mok" type="button" disabled>Valider</button>`;
+  const upd=()=>{$('mc').querySelectorAll('.chip').forEach(b=>{const on=b.dataset.none?none:sel.has(+b.dataset.v);b.classList.toggle('sel',on);b.setAttribute('aria-pressed',on)});$('mok').disabled=!none&&!sel.size||S.solved};
+  $('mc').onclick=e=>{const b=e.target.closest('.chip');if(!b||S.solved)return;if(b.dataset.none){none=!none;if(none)sel.clear()}else{none=false;const v=+b.dataset.v;sel.has(v)?sel.delete(v):sel.add(v)}sTick();upd()};
+  $('mok').onclick=()=>{if(S.solved)return;const A=q.ants;
+    const ok=none?A.length===0:(sel.size===A.length&&A.every(x=>sel.has(x)));
+    if(ok){$('mc').querySelectorAll('.chip').forEach(b=>{b.disabled=true;if(b.classList.contains('sel'))b.classList.add('ok')});succeed();return}
+    const miss=A.filter(x=>!sel.has(x)),extra=[...sel].filter(x=>!A.includes(x));
+    let m;if(none)m=`${P(q.k)} a ${A.length===1?'un antécédent':A.length+' antécédents'}.`;
+    else if(A.length===0)m=`Aucun nombre n'a pour image ${P(q.k)} ici.`;
+    else if(extra.includes(q.k))m=`${P(q.k)} est l'image donnée, pas un antécédent : on cherche les x tels que f(x) = ${P(q.k)}.`;
+    else if(extra.length)m=`${extra.map(x=>`f(${P(x)})`).join(', ')} ne vaut pas ${P(q.k)}.`;
+    else m=`Il en manque : ${P(q.k)} a ${A.length} antécédents.`;
+    fail(m,'Un nombre peut avoir zéro, un ou plusieurs antécédents.')};
+  upd();
+};
+
+/* =================================================================
+   MA FONCTION (le professeur saisit f(x))
+   ================================================================= */
+function parseExpr(src){
+  const s=src.replace(/\s+/g,'').replace(/[−–]/g,'-').replace(/,/g,'.').replace(/[×·]/g,'*').replace(/²/g,'^2').replace(/³/g,'^3').replace(/X/g,'x');
+  if(!s||/[^0-9x.+\-*/^()]/.test(s))throw 0;
+  let i=0;const peek=()=>s[i];
+  function num(){const m=/^\d+(\.\d+)?|^\.\d+/.exec(s.slice(i));if(!m)throw 0;i+=m[0].length;const v=parseFloat(m[0]);return()=>v}
+  function atom(){const c=peek();
+    if(c==='('){i++;const e=sum();if(peek()!==')')throw 0;i++;return e}
+    if(c==='x'){i++;return x=>x}
+    if(c&&/[0-9.]/.test(c))return num();throw 0}
+  function pow(){const a=atom();if(peek()==='^'){i++;const m=/^\d/.exec(s.slice(i));if(!m)throw 0;i++;const n=+m[0];return x=>Math.pow(a(x),n)}return a}
+  function prod(){let a=pow();
+    for(;;){const c=peek();
+      if(c==='*'||c==='/'){i++;const b=pow(),A=a;a=c==='*'?x=>A(x)*b(x):x=>A(x)/b(x)}
+      else if(c==='x'||c==='('){const b=pow(),A=a;a=x=>A(x)*b(x)}
+      else return a}}
+  function unary(){if(peek()==='-'){i++;const a=prod();return x=>-a(x)}if(peek()==='+'){i++}return prod()}
+  function sum(){let a=unary();for(;;){const c=peek();if(c==='+'||c==='-'){i++;const b=prod(),A=a;a=c==='+'?x=>A(x)+b(x):x=>A(x)-b(x)}else return a}}
+  const e=sum();if(i!==s.length)throw 0;if(!/x/.test(s))throw 1;return e;
+}
+const near=v=>Math.abs(v-Math.round(v))<1e-9?Math.round(v):v;
+function roots(f,k){const out=[],N=2240;let px=-WX,py=f(px)-k;
+  for(let i=1;i<=N;i++){const x=-WX+2*WX*i/N,y=f(x)-k;if(!isFinite(y)||!isFinite(py)){px=x;py=y;continue}
+    if(Math.abs(py)<1e-12){if(!out.length||Math.abs(out[out.length-1]-px)>1e-6)out.push(px)}
+    else if(py*y<0){let a=px,b=x,fa=py;for(let j=0;j<60;j++){const m=(a+b)/2,fm=f(m)-k;if(fa*fm<=0)b=m;else{a=m;fa=fm}}out.push((a+b)/2)}
+    else if(i>1&&Math.abs(y)<1e-3){/* tangence possible : test du minimum local de |f-k| */
+      const ym=f(x-2*WX/N)-k,yp=f(x+2*WX/N)-k;if(Math.abs(y)<=Math.abs(ym)&&Math.abs(y)<=Math.abs(yp)){let a=x-2*WX/N,b=x+2*WX/N;for(let j=0;j<80;j++){const m1=a+(b-a)/3,m2=b-(b-a)/3;if(Math.abs(f(m1)-k)<Math.abs(f(m2)-k))b=m2;else a=m1}const r=(a+b)/2;if(Math.abs(f(r)-k)<1e-6&&(!out.length||Math.abs(out[out.length-1]-r)>1e-3))out.push(r)}}
+    px=x;py=y}
+  return out.filter(r=>r>=-5-1e-9&&r<=5+1e-9).map(r=>Math.abs(f(Math.round(r))-k)<1e-9?Math.round(r):Math.abs(f(Math.round(r*2)/2)-k)<1e-9?Math.round(r*2)/2:r)}
+let OWN=null;
+function startOwn(){killGraph();if(!OWN)loadOwn('x² − 4');else drawOwn()}
+function loadOwn(src){
+  let f;try{f=parseExpr(src)}catch(e){$('ownw').textContent=e===1?'Il faut la lettre x dans l\'expression.':'Expression non reconnue. Exemples : 2x + 1, x² − 4, −0,5x² + 3, (x − 1)(x + 2).';return}
+  $('ownw').textContent='';$('own').value=src;OWN={src,f,F:{kind:'own',f}};drawOwn();
+}
+function drawOwn(){
+  const F=OWN.F,xs=[-3,-2,-1,0,1,2,3],ys=xs.map(x=>near(F.f(x)));
+  $('owntab').innerHTML=`<tr class="rx"><th>x</th>${xs.map(v=>`<td>${P(v)}</td>`).join('')}</tr><tr class="ry"><th>f(x)</th>${ys.map(v=>`<td>${isFinite(v)?P(v):'—'}</td>`).join('')}</tr>`;
+  if(S.og)S.og.kill();const g=S.og=Graph($('owng'),F,{mode:'explore'});
+  $('ownres').innerHTML=NB(`f(${X}) = ${OWN.src.replace(/-/g,M)}<br><span style="color:var(--mut);font-size:16px">Touche un axe du repère.</span>`);
+  g.onSelect=()=>{};
+  g.onCommit=async s=>{
+    g.st.img=null;g.st.beam=null;g.st.found=null;g.st.sel=null;g.overlay();
+    if(s.axis==='x'){const v=F.f(s.v);
+      if(!isFinite(v)){$('ownres').innerHTML=NB(`${P(s.v)} n'a pas d'image : le calcul est impossible.`);return}
+      const vv=near(v);
+      if(Math.abs(vv)>WX){$('ownres').innerHTML=NB(`f(${P(s.v)}) = ${P(vv)} : l'image de ${P(s.v)} est ${P(vv)} (hors de la fenêtre).`);return}
+      g.st.img={a:s.v,fa:vv,t1:0,t2:0,show:true};await g.anim(g.st.img,'t1',500);await g.anim(g.st.img,'t2',500);
+      $('ownres').innerHTML=`f(${P(s.v)}) = ${P(vv)}<br>L'image de ${P(s.v)} par f est ${P(vv)}.`}
+    else{const k=s.v,r=roots(F.f,k);g.st.beam={k,t:0};await g.anim(g.st.beam,'t',600);
+      g.st.found=r.map(x=>({x,k,t:0,lab:Number.isInteger(x*2)?P(x):'≈ '+P(Math.round(x*10)/10)}));for(const f of g.st.found)await g.anim(f,'t',350);
+      const lab=r.map(x=>Number.isInteger(x*2)?P(x):'environ '+P(Math.round(x*10)/10));
+      $('ownres').innerHTML=NB(r.length===0?`Dans la fenêtre, la ligne y = ${P(k)} ne rencontre pas la courbe : aucun antécédent de ${P(k)} pour x entre ${M}5 et 5.`:
+        r.length===1?`Dans la fenêtre, ${P(k)} a un antécédent : ${lab[0]}.`:`Dans la fenêtre, ${P(k)} a ${r.length} antécédents : ${lab.slice(0,-1).join(', ')} et ${lab[lab.length-1]}.`)}};
+}
+$('ownf').addEventListener('submit',e=>{e.preventDefault();loadOwn($('own').value.trim())});
+
+/* =================================================================
+   DÉMARRAGE + crochets de test
+   ================================================================= */
+drawMap();startLevel(0);
+window.TR={lvl:()=>S.lvl,qi:()=>S.qi,q:()=>{const q=S.Q;return JSON.parse(JSON.stringify({...q,F:q.F?fMetaSafe(q.F):null}))},res:()=>S.res.slice(),
+  gen:l=>genLevel(l).map(q=>JSON.parse(JSON.stringify({type:q.type,prompt:q.prompt,meta:q.meta,choices:q.choices,ants:q.ants,k:q.k,a:q.a,fa:q.fa,ans:q.ans,v:q.v,xs:q.xs,ys:q.ys,i:q.i,opts:q.opts,tiles:q.tiles,cards:q.cards&&q.cards.map(c=>({rg:c.rg,claims:c.claims,bad:c.bad,only:!!c.only,h:c.h})),F:q.F?fMetaSafe(q.F):null,chips:q.chips}))),
+  pt:(x,y)=>S.g.pt(x,y),ogpt:(x,y)=>S.og.pt(x,y),
+  path:()=>{const p=document.querySelector('.view .cv');const s=p.ownerSVGElement;return{d:p.getAttribute('d'),ox:+s.dataset.ox,oy:+s.dataset.oy,u:+s.dataset.u}},
+  render:renderLv,start:startLevel,done:()=>S.done.slice(),busy:()=>S.busy,solved:()=>S.solved};
+function fMetaSafe(F){return F.kind==='pts'?{kind:'pts',x0:F.x0,ys:F.ys}:F.kind==='own'?{kind:'own'}:{kind:F.kind,py:F.py}}
+window.__TR_internal={Pp,Graph,genLevel,mkPts,mkAff,mkSq,staticGraph,tableHTML,q4,q5,q2ant,q3img,q3ant,exprF,substHTML,stepsHTML,P,phr,genPts,inWin,domOf,miniGraph,X,andList,multiChoices,sgnTerm,linH,sqH,TX,tableF,M};
+}
+</script>
+
+<script>window.SIGMA_MUSIC_STYLE='epique'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+/* ===== Sigma Arcade : épreuves finales des Trois Royaumes (Bronze, Argent, Or) =====
+   Chaque question porte une méta-donnée « meta » qui permet de la vérifier indépendamment (tests/audit.py). */
+(function(){
+const T=window.__TR_internal;if(!T)return;
+const {P,X,M}=T;
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a};
+const NB=s=>String(s).replace(/ ([:;!?])/g,' $1');
+/* toutes les écritures acceptées d'un nombre */
+function AN(n){const s=P(n),o=[s];if(s.startsWith(M))o.push('-'+s.slice(1));else if(n!==0)o.push('+'+s);
+  if(s.includes(','))o.slice().forEach(t=>o.push(t.replace(',','.')));return [...new Set(o)]}
+const W_M=['aucun','un','deux','trois','quatre'],W_F=['aucune','une','deux','trois','quatre'];
+const CNT=(n,fem)=>[String(n),(fem?W_F:W_M)[n]].concat(n===0?['zéro','zero','0']:[]).filter((v,i,a)=>a.indexOf(v)===i);
+function mk(level,prompt,right,wrongs,explain,meta){
+  const seen=new Set([right]),w=[];for(const x of wrongs)if(x!=null&&!seen.has(x)){seen.add(x);w.push(x)}
+  if(w.length<2)return null;
+  return{type:'qcm',level,prompt:NB(prompt),choices:[right].concat(w.slice(0,3)).map(NB),answer:0,explain:NB(explain),meta};
+}
+const tr=(level,prompt,blanks,explain,meta)=>({type:'trous',level,prompt:NB(prompt),blanks,explain:NB(explain),meta});
+const pairS=(lo,hi)=>{let a,b;do{a=nz(lo,hi);b=nz(lo,hi)}while(Math.abs(a)===Math.abs(b));return[a,b]};
+const fm=F=>F.kind==='pts'?{kind:'pts',x0:F.x0,ys:F.ys}:{kind:F.kind,py:F.py};
+const dom=F=>F.kind==='pts'?`[${P(F.x0)} ; ${P(F.x1)}]`:`[${M}5 ; 5]`;
+const gIntro=F=>`On donne la courbe représentative d'une fonction f définie sur ${dom(F)}.${T.staticGraph(F)}`;
+const tIntro=(xs,ys)=>`Voici un tableau de valeurs d'une fonction f.${T.tableHTML(xs,ys)}`;
+const fDef=F=>`Soit f la fonction définie par f(${X}) = ${F.h}.`;
+const txtSet=s=>s.length===0?'aucun antécédent':s.length===1?`${P(s[0])} seulement`:T.andList(s);
+/* phrases du vocabulaire : chacune dit « f(a) = b » */
+const PH=T.phr;
+
+/* ---------------------------------------------------------------- BRONZE : une étape, petits nombres */
+const B={
+ qNot(){const[a,b]=pairS(-5,9);const f=pick(['img','ant','isImg','pour']);
+   return mk(1,`On sait que f(${P(a)}) = ${P(b)}. Quelle phrase est juste ?`,PH[f](a,b),shuf([PH.img(b,a),PH.ant(b,a),PH.isImg(b,a),PH.pour(b,a)]),
+     `Dans f(${P(a)}) = ${P(b)}, ${P(a)} est le nombre de départ (un antécédent) et ${P(b)} est son image.`,{k:'phr',facts:[[a,b]],st:1})},
+ qTabImg(){const xs=T.TX,ys=T.tableF({}).ys;let i;do{i=ri(0,6)}while(ys[i]===xs[i]);const a=xs[i],fa=ys[i];
+   const rev=xs.filter((x,j)=>ys[j]===a);
+   return mk(2,`${tIntro(xs,ys)}Quelle est l'image de ${P(a)} par f ?`,P(fa),[rev.length?P(rev[0]):null,P(a),P(ys[(i+1)%7]),P(ys[(i+6)%7])],
+     `On repère ${P(a)} sur la ligne des x : son image est juste en dessous. f(${P(a)}) = ${P(fa)}.`,{k:'num',spec:{src:'tab',xs,ys,op:'img',a},st:1})},
+ qTabAnt(){const q=T.q2ant(1),xs=T.TX,ys=q.ys,k=q.k,a0=q.ants[0];const j=xs.indexOf(k);
+   return mk(2,`${tIntro(xs,ys)}Dans ce tableau, quel nombre a pour image ${P(k)} ?`,P(a0),[j>=0?P(ys[j]):null,P(k),P(xs[(xs.indexOf(a0)+1)%7]),P(xs[(xs.indexOf(a0)+6)%7])],
+     `On repère ${P(k)} sur la ligne f(x) : juste au-dessus, on lit ${P(a0)}. f(${P(a0)}) = ${P(k)}.`,{k:'num',spec:{src:'tab',xs,ys,op:'ants',kk:k},st:1})},
+ qCalc(){const a=ri(2,5),b=nz(-6,6),v=ri(1,5),F=T.mkAff(a,b),r=a*v+b;
+   return mk(3,`${fDef(F)} Que vaut f(${P(v)}) ?`,P(r),[P(Number(`${a}${v}`)+b),P(a+v+b),P(a*v)],
+     `On remplace ${X} par ${P(v)} : f(${P(v)}) = ${a} × ${P(v)}${T.sgnTerm(b)} = ${P(a*v)}${T.sgnTerm(b)} = ${P(r)}.`,{k:'num',spec:{src:'expr',py:F.py,op:'img',v},st:1})},
+ qGraphImg(){const q=T.q4(pick(['pts','pts','aff']));
+   return mk(4,`${gIntro(q.F)}Par lecture graphique, l'image de ${P(q.a)} par f est :`,P(q.fa),[q.rev!=null?P(q.rev):null,P(q.a),P(q.fa+(q.fa<5?1:-1))],
+     `On part de ${P(q.a)} sur l'axe des abscisses, on rejoint la courbe, puis on lit ${P(q.fa)} sur l'axe des ordonnées.`,{k:'num',spec:{src:'graph',F:fm(q.F),op:'img',a:q.a},st:1})},
+ qPoint(){const[a,b]=pairS(-5,5);
+   return mk(6,`Le point A(${P(a)} ; ${P(b)}) appartient à la courbe représentative d'une fonction f. Que peut-on en déduire ?`,`f(${P(a)}) = ${P(b)}`,[`f(${P(b)}) = ${P(a)}`,PH.isImg(b,a),PH.img(b,a)],
+     `L'abscisse ${P(a)} est le nombre de départ, l'ordonnée ${P(b)} est son image : f(${P(a)}) = ${P(b)}.`,{k:'phr',facts:[[a,b]],st:1})}
+};
+const Bt={
+ tVoc(){const[a,b]=pairS(-5,9);const v=ri(0,2);
+   if(v===0)return tr(1,`On sait que f(${P(a)}) = ${P(b)}.<br>L'image de ${P(a)} par f est {0}.`,[{answers:AN(b),size:3}],`Dans f(${P(a)}) = ${P(b)}, l'image de ${P(a)} est le nombre écrit après le signe =, ici ${P(b)}.`,{k:'blanks',facts:[[a,b]],want:[['img',a]],st:1});
+   if(v===1)return tr(1,`On sait que f(${P(a)}) = ${P(b)}.<br>Le nombre ${P(a)} est un antécédent de {0} par f.`,[{answers:AN(b),size:3}],`${P(a)} est le nombre de départ et son image est ${P(b)} : ${P(a)} est un antécédent de ${P(b)}.`,{k:'blanks',facts:[[a,b]],want:[['img',a]],st:1});
+   return tr(1,`L'image de ${P(a)} par la fonction f est ${P(b)}.<br>On écrit : f({0}) = {1}.`,[{answers:AN(a),size:3},{answers:AN(b),size:3}],`Le nombre de départ ${P(a)} va entre les parenthèses : f(${P(a)}) = ${P(b)}.`,{k:'blanks',facts:[[a,b]],want:[['x',b],['img',a]],st:1})},
+ tTabImg(){const xs=T.TX,ys=T.tableF({}).ys,i=ri(0,6);
+   return tr(2,`${tIntro(xs,ys)}D'après le tableau, f(${P(xs[i])}) = {0}.`,[{answers:AN(ys[i]),size:3}],`Sous ${P(xs[i])}, on lit ${P(ys[i])} : f(${P(xs[i])}) = ${P(ys[i])}.`,{k:'blanks',spec:[{src:'tab',xs,ys,op:'img',a:xs[i]}],st:1})},
+ tCalc(){const sq=Math.random()<.4,F=sq?T.mkSq(1,nz(-5,5)):T.mkAff(ri(2,5),nz(-6,6)),v=ri(1,sq?4:5),r=F.f(v);
+   return tr(3,`${fDef(F)}<br>f(${P(v)}) = {0}`,[{answers:AN(r),size:3}],`f(${P(v)}) = ${T.substHTML(F,v)} = ${T.stepsHTML(F,v)}.`,{k:'blanks',spec:[{src:'expr',py:F.py,op:'img',v}],st:1})},
+ tGraphImg(){const q=T.q4(pick(['pts','pts','aff']));
+   return tr(4,`${gIntro(q.F)}Par lecture graphique, f(${P(q.a)}) = {0}.`,[{answers:AN(q.fa),size:3}],`À la verticale de ${P(q.a)}, la courbe est à la hauteur ${P(q.fa)} : f(${P(q.a)}) = ${P(q.fa)}.`,{k:'blanks',spec:[{src:'graph',F:fm(q.F),op:'img',a:q.a}],st:1})},
+ tPoint(){const[a,b]=pairS(-5,5);
+   return tr(6,`Le point A(${P(a)} ; ${P(b)}) appartient à la courbe représentative de la fonction f.<br>Donc f({0}) = {1}.`,[{answers:AN(a),size:3},{answers:AN(b),size:3}],`Abscisse ${P(a)} : nombre de départ ; ordonnée ${P(b)} : son image. f(${P(a)}) = ${P(b)}.`,{k:'blanks',facts:[[a,b]],want:[['x',b],['img',a]],st:1})}
+};
+
+/* ---------------------------------------------------------------- ARGENT : toute la notion, pièges classiques */
+const A={
+ 1:{qcm(){const r=Math.random();
+     if(r<.45){const[a,b]=pairS(-9,9);const f=pick(['img','ant','isImg','pour']);
+       return mk(1,`On sait que f(${P(a)}) = ${P(b)}. Quelle phrase est juste ?`,PH[f](a,b),shuf([PH.img(b,a),PH.ant(b,a),PH.isImg(b,a),PH.pour(b,a)]),
+        `Dans f(${P(a)}) = ${P(b)}, ${P(a)} est le nombre de départ (un antécédent) et ${P(b)} est son image.`,{k:'phr',facts:[[a,b]],st:1})}
+     if(r<.7){const a=nz(-6,9);let b,c;do{b=nz(-9,9);c=nz(-9,9)}while(b===c||b===a||c===a);
+       return mk(1,`Une fonction f peut-elle vérifier à la fois f(${P(a)}) = ${P(b)} et f(${P(a)}) = ${P(c)} ?`,`Non : ${P(a)} n'a qu'une seule image par f.`,[`Oui : ${P(a)} a deux images, ${P(b)} et ${P(c)}.`,`Oui : ${P(a)} a deux antécédents, ${P(b)} et ${P(c)}.`],
+        'Par une fonction, chaque nombre a une seule image.',{k:'one',a,b,c,st:1})}
+     const b=nz(-6,9);let a,c;do{a=nz(-9,9);c=nz(-9,9)}while(a===c||a===b||c===b);if(a>c)[a,c]=[c,a];
+     return mk(1,`On sait que f(${P(a)}) = ${P(b)} et f(${P(c)}) = ${P(b)}. Que peut-on dire ?`,`${P(b)} a au moins deux antécédents : ${P(a)} et ${P(c)}.`,
+      [`C'est impossible : ${P(b)} ne peut avoir qu'un seul antécédent.`,`${P(b)} a deux images : ${P(a)} et ${P(c)}.`,`${P(a)} et ${P(c)} sont les images de ${P(b)}.`],
+      'Un nombre peut avoir plusieurs antécédents ; c\'est l\'image d\'un nombre qui est unique.',{k:'many',a,b,c,st:1})},
+   trous(){const[a,b]=pairS(-9,9);
+     return Math.random()<.5?tr(1,`On sait que f(${P(a)}) = ${P(b)}.<br>L'image de ${P(a)} par f est {0}, et ${P(a)} est un antécédent de {1} par f.`,[{answers:AN(b),size:3},{answers:AN(b),size:3}],
+       `f(${P(a)}) = ${P(b)} : l'image de ${P(a)} est ${P(b)}, et ${P(a)} est un antécédent de ${P(b)}.`,{k:'blanks',facts:[[a,b]],want:[['img',a],['img',a]],st:1})
+      :tr(1,`${P(a)} est un antécédent de ${P(b)} par la fonction g.<br>On écrit : g({0}) = {1}.`,[{answers:AN(a),size:3},{answers:AN(b),size:3}],`L'antécédent ${P(a)} est le nombre de départ : il va entre les parenthèses. g(${P(a)}) = ${P(b)}.`,{k:'blanks',facts:[[a,b]],want:[['x',b],['img',a]],st:1})}},
+ 2:{qcm(){const xs=T.TX;
+     if(Math.random()<.5){const ys=T.tableF({}).ys;let i;do{i=ri(0,6)}while(ys[i]===xs[i]);const a=xs[i],fa=ys[i];const rev=xs.filter((x,j)=>ys[j]===a);
+       return mk(2,`${tIntro(xs,ys)}Quelle est l'image de ${P(a)} par f ?`,P(fa),[rev.length?P(rev[0]):null,P(a),P(ys[(i+1)%7]),P(ys[(i+6)%7])],
+        `On repère ${P(a)} sur la ligne des x : son image est juste en dessous, f(${P(a)}) = ${P(fa)}.`,{k:'num',spec:{src:'tab',xs,ys,op:'img',a},st:1})}
+     const q=T.q2ant(2),k=q.k,Aa=q.ants,ys=q.ys,j=xs.indexOf(k);
+     return mk(2,`${tIntro(xs,ys)}Quels nombres de ce tableau ont pour image ${P(k)} ?`,T.andList(Aa),[`${P(Aa[1])} seulement`,j>=0&&!Aa.includes(ys[j])?`${P(ys[j])} seulement`:null,`${P(Aa[0])} seulement`,'aucun'],
+       `On repère les ${P(k)} sur la ligne f(x) : au-dessus, on lit ${T.andList(Aa)}.`,{k:'num',spec:{src:'tab',xs,ys,op:'ants',kk:k},st:2})},
+   trous(){const xs=T.TX;if(Math.random()<.5){const ys=T.tableF({}).ys,i=ri(0,6);
+       return tr(2,`${tIntro(xs,ys)}D'après le tableau, f(${P(xs[i])}) = {0}.`,[{answers:AN(ys[i]),size:3}],`Sous ${P(xs[i])}, on lit ${P(ys[i])}.`,{k:'blanks',spec:[{src:'tab',xs,ys,op:'img',a:xs[i]}],st:1})}
+     const q=T.q2ant(2);return tr(2,`${tIntro(xs,q.ys)}Dans ce tableau, les nombres qui ont pour image ${P(q.k)} sont {0} et {1} (du plus petit au plus grand).`,
+       [{answers:AN(q.ants[0]),size:3},{answers:AN(q.ants[1]),size:3}],`Les ${P(q.k)} de la ligne f(x) sont sous ${P(q.ants[0])} et ${P(q.ants[1])}.`,{k:'blanks',spec:[{src:'tab',xs,ys:q.ys,op:'ants',kk:q.k,idx:0},{src:'tab',xs,ys:q.ys,op:'ants',kk:q.k,idx:1}],st:2})}},
+ 3:{qcm(){const kind=pick(['sq1','sqm','sqk','aff']);const F=T.exprF(kind);const v=-ri(2,4);const r=F.f(v);
+     let w;if(F.kind==='sq'&&F.a===1)w=[-(v*v)+F.c,2*v+F.c,v*v-F.c];
+     else if(F.kind==='sq'&&F.a===-1)w=[v*v+F.c,-(v*v)-F.c,-2*v+F.c];
+     else if(F.kind==='sq')w=[(F.a*v)*(F.a*v)+F.c,-F.a*v*v+F.c,F.a*2*v+F.c];
+     else w=[-F.a*v+F.b,F.a*v-F.b,F.a+v+F.b];
+     return mk(3,Math.random()<.5?`Soit f : ${X} ↦ ${F.h}. Quelle est l'image de ${P(v)} par f ?`:`${fDef(F)} Que vaut f(${P(v)}) ?`,P(r),w.filter(x=>x!==r).map(P),
+       `f(${P(v)}) = ${T.substHTML(F,v)} = ${T.stepsHTML(F,v)}.`,{k:'num',spec:{src:'expr',py:F.py,op:'img',v},st:2})},
+   trous(){const F=T.exprF(pick(['aff','sq1','sqm','bin','sqx']));const v=Math.random()<.7?-ri(1,4):ri(2,4);const r=F.f(v);
+     return tr(3,`${fDef(F)}<br>f(${P(v)}) = {0}`,[{answers:AN(r),size:4}],`f(${P(v)}) = ${T.substHTML(F,v)} = ${T.stepsHTML(F,v)}.`,{k:'blanks',spec:[{src:'expr',py:F.py,op:'img',v}],st:2})}},
+ 4:{qcm(){const q=T.q4(pick(['pts','pts','sq','aff']));
+     return mk(4,`${gIntro(q.F)}Par lecture graphique, l'image de ${P(q.a)} par f est :`,P(q.fa),[q.rev!=null?P(q.rev):null,P(q.a),P(q.fa+(q.fa<5?1:-1)),P(q.fa-(q.fa>-5?1:-1))],
+       `On part de ${P(q.a)} sur l'axe des abscisses, on rejoint la courbe, puis on lit ${P(q.fa)} sur l'axe des ordonnées.`,{k:'num',spec:{src:'graph',F:fm(q.F),op:'img',a:q.a},st:1})},
+   trous(){const q=T.q4(pick(['pts','sq','aff']));
+     return tr(4,`${gIntro(q.F)}Par lecture graphique, f(${P(q.a)}) = {0}.`,[{answers:AN(q.fa),size:3}],
+       `À la verticale de ${P(q.a)}, la courbe est à la hauteur ${P(q.fa)}.`,{k:'blanks',spec:[{src:'graph',F:fm(q.F),op:'img',a:q.a}],st:1})}},
+ 5:{qcm(){const q=T.q5(pick([0,1,2,2,3]));const Aa=q.ants,k=q.k,F=q.F;
+     const w=[];if(Aa.length>=2){w.push(txtSet(Aa.slice(1)));w.push(txtSet(Aa.slice(0,-1)))}
+     if(Aa.length)w.push('aucun antécédent');
+     const fk=F.f(k);if(!isNaN(fk)&&!(Aa.length===1&&Aa[0]===fk))w.push(`${P(fk)} seulement`);
+     if(!Aa.includes(k))w.push(`${P(k)} seulement`);
+     if(Aa.length===1&&!Aa.includes(-Aa[0]))w.push(T.andList([Aa[0],-Aa[0]].sort((p,r)=>p-r)));
+     if(!Aa.length&&F.kind==='pts'){let bi=0;F.ys.forEach((y,i)=>{if(Math.abs(y-k)<Math.abs(F.ys[bi]-k))bi=i});w.push(`${P(F.xs[bi])} seulement`)}
+     return mk(5,`${gIntro(F)}Par lecture graphique, les antécédents de ${P(k)} par f sont :`,txtSet(Aa),shuf(w),
+       Aa.length===0?`La droite horizontale d'ordonnée ${P(k)} ne rencontre pas la courbe : ${P(k)} n'a aucun antécédent.`:`La droite horizontale d'ordonnée ${P(k)} rencontre la courbe en ${Aa.length} point${Aa.length>1?'s':''}, d'abscisses ${T.andList(Aa)}.`,
+       {k:'num',spec:{src:'graph',F:fm(F),op:'ants',kk:k},st:2})},
+   trous(){const q=T.q5(pick([0,1,2,3]));const n=q.ants.length,F=q.F;
+     return tr(5,`${gIntro(F)}Par lecture graphique, le nombre ${P(q.k)} a {0} antécédent(s) par f.`,[{answers:CNT(n,false),size:4}],
+       n===0?`La droite horizontale d'ordonnée ${P(q.k)} ne rencontre pas la courbe.`:`La droite horizontale d'ordonnée ${P(q.k)} rencontre la courbe en ${n} point${n>1?'s':''}, d'abscisses ${T.andList(q.ants)}.`,{k:'blanks',spec:[{src:'graph',F:fm(F),op:'count',kk:q.k}],st:2})}},
+ 6:{qcm(){for(;;){const F=pick([()=>T.mkAff(pick([-3,-2,2,3]),nz(-5,5)),()=>T.mkSq(1,nz(-5,5)),()=>T.mkSq(-1,ri(1,6))])();
+      const [a,b,c,d]=shuf([-3,-2,-1,1,2,3]);const fa=F.f(a),fb=F.f(b),fc=F.f(c),fd=F.f(d);
+      if(fd===d||F.f(fd)===d)continue;
+      return mk(6,`${fDef(F)} Une seule de ces affirmations est fausse : laquelle ?`,`L'image de ${P(fd)} par f est ${P(d)}.`,
+        [`f(${P(a)}) = ${P(fa)}`,`Le point de coordonnées (${P(b)} ; ${P(fb)}) appartient à la courbe de f.`,`${P(c)} est un antécédent de ${P(fc)} par f.`],
+        `f(${P(d)}) = ${P(fd)} : ${P(d)} est un antécédent de ${P(fd)}, mais l'image de ${P(fd)} est f(${P(fd)}) = ${P(F.f(fd))}.`,{k:'false',py:F.py,st:2})}},
+   trous(){const a=nz(-5,5);let b;do{b=nz(-5,5)}while(b===a);
+     return tr(6,`Le point A(${P(a)} ; ${P(b)}) appartient à la courbe de la fonction f.<br>Donc f({0}) = {1}, et dans un tableau de valeurs de f, sous x = ${P(a)}, on lit {2}.`,
+       [{answers:AN(a),size:3},{answers:AN(b),size:3},{answers:AN(b),size:3}],`Abscisse ${P(a)} : nombre de départ ; ordonnée ${P(b)} : son image. f(${P(a)}) = ${P(b)}.`,{k:'blanks',facts:[[a,b]],want:[['x',b],['img',a],['img',a]],st:1})}},
+ 7:{qcm(){if(Math.random()<.5){const a=pick([-4,-3,-2,2,3,4,5]),b=nz(-9,9),x0=nz(-6,7),k=a*x0+b,F=T.mkAff(a,b);
+       return mk(7,`${fDef(F)} L'antécédent de ${P(k)} par f est :`,P(x0),[P(a*k+b),Number.isInteger((k+b)/a)?P((k+b)/a):null,P(k-b),Number.isInteger(k/a)?P(k/a-b):null],
+         `On résout ${F.h} = ${P(k)} : ${P(a)}${X} = ${P(k-b)}, donc ${X} = ${P(x0)}.`,{k:'num',spec:{src:'expr',py:F.py,op:'ants',kk:k},st:2})}
+     const r=ri(2,6),c=pick([0,0,-1,1,-3,2]),F=T.mkSq(1,c),k=r*r+c,h=(k-c)/2;
+     return mk(7,`${fDef(F)} Les antécédents de ${P(k)} par f sont :`,`${M}${r} et ${r}`,[`${r} seulement`,`${P(F.f(k))} seulement`,Number.isInteger(h)&&h!==r?`${M}${h} et ${h}`:null,'aucun antécédent'],
+       `${X}²${T.sgnTerm(c)} = ${P(k)} donne ${X}² = ${r*r}, donc ${X} = ${M}${r} ou ${X} = ${r}.`,{k:'num',spec:{src:'expr',py:F.py,op:'ants',kk:k},st:2})},
+   trous(){if(Math.random()<.5){const a=pick([-4,-3,-2,2,3,4,5]),b=nz(-9,9),x0=nz(-6,7),k=a*x0+b,F=T.mkAff(a,b);
+       return tr(7,`${fDef(F)}<br>L'antécédent de ${P(k)} par f est {0}.`,[{answers:AN(x0),size:3}],`${F.h} = ${P(k)} donne ${P(a)}${X} = ${P(k-b)}, donc ${X} = ${P(x0)}.`,{k:'blanks',spec:[{src:'expr',py:F.py,op:'ants',kk:k,idx:0}],st:2})}
+     const r=ri(1,6),c=pick([0,0,-1,1,-4]),F=T.mkSq(1,c),k=r*r+c;
+     return tr(7,`${fDef(F)}<br>Les antécédents de ${P(k)} par f sont {0} et {1} (du plus petit au plus grand).`,[{answers:AN(-r),size:3},{answers:AN(r),size:3}],
+       `${X}²${T.sgnTerm(c)} = ${P(k)} donne ${X}² = ${r*r}, donc ${X} = ${M}${r} ou ${X} = ${r}.`,{k:'blanks',spec:[{src:'expr',py:F.py,op:'ants',kk:k,idx:0},{src:'expr',py:F.py,op:'ants',kk:k,idx:1}],st:2})}}
+};
+
+/* ---------------------------------------------------------------- OR : plusieurs étapes, registres mêlés, situations */
+function bigF(){return pick([
+  ()=>T.mkSq(pick([2,3]),nz(-9,9)),()=>T.mkSq(-1,ri(2,12)),()=>T.exprF('sqx'),()=>T.exprF('bin'),()=>T.mkAff(pick([-5,-4,-3,3,4,5,6]),nz(-12,12))])()}
+function errOf(F,v){ // erreurs classiques pour f(v), v < 0
+  if(F.kind==='sq')return[-F.a*v*v+F.c,(F.a*v)*(F.a*v)+F.c,2*F.a*v+F.c];
+  if(F.kind==='sqx')return[-(v*v)+F.p*v,v*v-F.p*v,2*v+F.p*v];
+  if(F.kind==='bin')return[(v*v)+F.hh*F.hh,(v-F.hh)*(v-F.hh),-(v+F.hh)*(v+F.hh)];
+  return[-F.a*v+F.b,F.a*v-F.b,F.a+v+F.b];
+}
+const SIT=[
+ {u:'km',q:(a,b)=>`Une course de taxi de ${X} kilomètres coûte f(${X}) = ${a}${X} + ${b} euros.`,ask:k=>`Quelle distance a-t-on parcourue pour payer ${k} euros ?`,unit:'km'},
+ {u:'h',q:(a,b)=>`La location d'un kayak pendant ${X} heures coûte f(${X}) = ${a}${X} + ${b} euros.`,ask:k=>`Pendant combien d'heures a-t-on loué le kayak pour payer ${k} euros ?`,unit:'h'},
+ {u:'mois',q:(a,b)=>`Un abonnement à une salle de sport coûte f(${X}) = ${a}${X} + ${b} euros pour ${X} mois (frais d'inscription compris).`,ask:k=>`Pour combien de mois paie-t-on ${k} euros ?`,unit:'mois'}];
+const O={
+ qAffAnt(){const a=pick([-6,-5,-4,-3,3,4,5,6]),b=nz(-15,15),x0=nz(-9,9),k=a*x0+b,F=T.mkAff(a,b);
+   return mk(7,`${fDef(F)} Déterminer l'antécédent de ${P(k)} par f.`,P(x0),[P(a*k+b),Number.isInteger((k+b)/a)?P((k+b)/a):null,P(k-b),P(-x0)],
+     `On résout ${F.h} = ${P(k)} : ${P(a)}${X} = ${P(k-b)}, donc ${X} = ${P(k-b)} ÷ ${T.Pp?T.Pp(a):P(a)} = ${P(x0)}. Vérification : f(${P(x0)}) = ${P(k)}.`,{k:'num',spec:{src:'expr',py:F.py,op:'ants',kk:k},st:2})},
+ qSqAnt(){const c=nz(-9,9),F=T.mkSq(1,c);
+   if(Math.random()<.4){const s=ri(1,4),k=c-s*s;
+     return mk(7,`${fDef(F)} Combien le nombre ${P(k)} a-t-il d'antécédents par f ?`,'Aucun antécédent',[`Deux : ${M}${s} et ${s}`,`Un seul : ${P(k-c)}`,`Un seul : ${P(F.f(k))}`],
+       `${X}²${T.sgnTerm(c)} = ${P(k)} donne ${X}² = ${P(k-c)}. Un carré n'est jamais négatif : ${P(k)} n'a aucun antécédent.`,{k:'cnt',spec:{src:'expr',py:F.py,op:'ants',kk:k},st:2})}
+   const r=ri(2,7),k=r*r+c,h=(k-c)/2;
+   return mk(7,`${fDef(F)} Les antécédents de ${P(k)} par f sont :`,`${M}${r} et ${r}`,[`${r} seulement`,`${P(F.f(k))} seulement`,Number.isInteger(h)&&h!==r?`${M}${h} et ${h}`:null,'aucun antécédent'],
+     `${X}²${T.sgnTerm(c)} = ${P(k)} donne ${X}² = ${r*r}, donc ${X} = ${M}${r} ou ${X} = ${r}.`,{k:'num',spec:{src:'expr',py:F.py,op:'ants',kk:k},st:2})},
+ qBelong(){for(;;){const F=bigF(),a=-ri(1,4),fa=F.f(a),ws=errOf(F,a).filter(w=>w!==fa&&Math.abs(w)<100);if(ws.length<2||Math.abs(fa)>99)continue;
+   const yes=Math.random()<.45,b=yes?fa:ws[0];
+   const right=yes?`Oui, car f(${P(a)}) = ${P(fa)}.`:`Non, car f(${P(a)}) = ${P(fa)}.`;
+   const wr=yes?[`Non, car f(${P(a)}) = ${P(ws[0])}.`,`Non, car f(${P(a)}) = ${P(ws[1])}.`,ws[2]!=null&&ws[2]!==ws[1]?`Non, car f(${P(a)}) = ${P(ws[2])}.`:null]
+     :[`Oui, car f(${P(a)}) = ${P(b)}.`,`Non, car f(${P(a)}) = ${P(ws[1])}.`,ws[2]!=null&&ws[2]!==ws[1]&&ws[2]!==b?`Non, car f(${P(a)}) = ${P(ws[2])}.`:null];
+   return mk(6,`${fDef(F)} Le point A(${P(a)} ; ${P(b)}) appartient-il à la courbe représentative de f ?`,right,wr,
+     `f(${P(a)}) = ${T.substHTML(F,a)} = ${T.stepsHTML(F,a)}. ${yes?`C'est bien l'ordonnée de A : A est sur la courbe.`:`Ce n'est pas l'ordonnée de A : A n'est pas sur la courbe.`}`,{k:'belong',py:F.py,a,b,st:3})}},
+ qFalse(){for(;;){const F=bigF(),xs=shuf([-4,-3,-2,-1,1,2,3,4]);const[a,b,c,d]=xs;const fa=F.f(a),fb=F.f(b),fc=F.f(c),fd=F.f(d);
+   if([fa,fb,fc,fd].some(v=>Math.abs(v)>60))continue;
+   const lie=pick(['swap','sign']);let bad;
+   if(lie==='swap'){if(fd===d||F.f(fd)===d)continue;bad=`L'image de ${P(fd)} par f est ${P(d)}.`}
+   else{const w=errOf(F,-Math.abs(d)).find(v=>v!==F.f(-Math.abs(d)));if(w==null)continue;bad=`${P(-Math.abs(d))} est un antécédent de ${P(w)} par f.`}
+   return mk(6,`${fDef(F)} Une seule de ces affirmations est fausse : laquelle ?`,bad,
+     [`f(${P(a)}) = ${P(fa)}`,`Le point de coordonnées (${P(b)} ; ${P(fb)}) appartient à la courbe de f.`,`${P(c)} est un antécédent de ${P(fc)} par f.`],
+     lie==='swap'?`f(${P(d)}) = ${P(fd)} : ${P(d)} est un antécédent de ${P(fd)}, mais l'image de ${P(fd)} est f(${P(fd)}) = ${P(F.f(fd))}.`
+       :`f(${P(-Math.abs(d))}) = ${T.substHTML(F,-Math.abs(d))} = ${T.stepsHTML(F,-Math.abs(d))}.`,{k:'false',py:F.py,st:3})}},
+ qSit(){const s=pick(SIT),a=ri(2,6),b=ri(2,9),x0=ri(3,15),k=a*x0+b,F=T.mkAff(a,b);
+   const u=n=>`${P(n)} ${s.unit}`;
+   return mk(7,`${s.q(a,b)} ${s.ask(k)}`,u(x0),[u(a*k+b),Number.isInteger((k+b)/a)?u((k+b)/a):null,u(k-b),Number.isInteger(k/a)?u(k/a):null],
+     `On cherche l'antécédent de ${k} : ${a}${X} + ${b} = ${k}, donc ${a}${X} = ${k-b}, donc ${X} = ${x0}. Vérification : ${a} × ${x0} + ${b} = ${k}.`,{k:'num',spec:{src:'expr',py:F.py,op:'ants',kk:k},unit:s.unit,st:3})},
+ qGraphCount(){const q=T.q5(pick([0,1,2,3,3]));const n=q.ants.length,F=q.F;const W=['aucune solution','une seule solution','deux solutions','trois solutions','quatre solutions'];
+   return mk(5,`${gIntro(F)}Combien l'équation f(${X}) = ${P(q.k)} a-t-elle de solutions sur ${dom(F)} ?`,W[n],[0,1,2,3,4].filter(m=>m!==n).slice(0,4).map(m=>W[m]).sort(()=>Math.random()-.5),
+     n===0?`La droite d'équation y = ${P(q.k)} ne coupe pas la courbe : aucune solution.`:`La droite d'équation y = ${P(q.k)} coupe la courbe en ${n} point${n>1?'s':''} : ${n>1?'les solutions sont':'la solution est'} ${T.andList(q.ants)}.`,{k:'cnt',spec:{src:'graph',F:fm(F),op:'ants',kk:q.k},st:2})},
+ qTabWrong(){for(;;){const F=pick([()=>T.exprF('sqx'),()=>T.mkSq(-1,ri(1,9)),()=>T.mkSq(2,nz(-6,6)),()=>T.exprF('bin')])();
+   const xs=T.TX,ys=xs.map(F.f);const neg=[0,1,2];const iw=pick(neg),v=xs[iw];const w=errOf(F,v).find(t=>t!==ys[iw]&&Math.abs(t)<100);if(w==null)continue;
+   const ys2=ys.slice();ys2[iw]=w;if(ys2.some(t=>Math.abs(t)>99))continue;
+   const others=shuf(xs.map((x,i)=>i).filter(i=>i!==iw)).slice(0,3);
+   return mk(2,`On a calculé un tableau de valeurs de la fonction f définie par f(${X}) = ${F.h}.${T.tableHTML(xs,ys2)}Une seule image est fausse : laquelle ?`,
+     `Celle de ${P(v)}`,others.map(i=>`Celle de ${P(xs[i])}`),
+     `f(${P(v)}) = ${T.substHTML(F,v)} = ${T.stepsHTML(F,v)}, et non ${P(w)}.`,{k:'tabwrong',py:F.py,xs,ys:ys2,st:3})}}
+};
+const Ot={
+ tImgAnt(){const a=pick([-5,-4,-3,3,4,5]),b=nz(-12,12),v=-ri(2,6),x0=nz(-8,8),k=a*x0+b,F=T.mkAff(a,b);if(x0===v)return Ot.tImgAnt();
+   return tr(7,`${fDef(F)}<br>L'image de ${P(v)} par f est {0}, et l'antécédent de ${P(k)} par f est {1}.`,[{answers:AN(a*v+b),size:3},{answers:AN(x0),size:3}],
+     `f(${P(v)}) = ${T.substHTML(F,v)} = ${T.stepsHTML(F,v)} ; et ${F.h} = ${P(k)} donne ${P(a)}${X} = ${P(k-b)}, donc ${X} = ${P(x0)}.`,
+     {k:'blanks',spec:[{src:'expr',py:F.py,op:'img',v},{src:'expr',py:F.py,op:'ants',kk:k,idx:0}],st:3})},
+ tSqAnts(){const a=pick([1,2]),c=nz(-9,9),r=ri(2,a===1?7:5),F=T.mkSq(a,c),k=a*r*r+c;
+   return tr(7,`${fDef(F)}<br>Les antécédents de ${P(k)} par f sont {0} et {1} (du plus petit au plus grand).`,[{answers:AN(-r),size:3},{answers:AN(r),size:3}],
+     `${F.h} = ${P(k)} donne ${a===1?'':a}${X}² = ${P(k-c)}${a===1?'':`, donc ${X}² = ${r*r}`}, donc ${X} = ${M}${r} ou ${X} = ${r}.`,
+     {k:'blanks',spec:[{src:'expr',py:F.py,op:'ants',kk:k,idx:0},{src:'expr',py:F.py,op:'ants',kk:k,idx:1}],st:3})},
+ tTwo(){const F=bigF(),u=-ri(2,4),v=pick([-1,2,3].filter(t=>t!==u));if(Math.abs(F.f(u))>99||Math.abs(F.f(v))>99)return Ot.tTwo();
+   return tr(3,`${fDef(F)}<br>f(${P(u)}) = {0} et f(${P(v)}) = {1}`,[{answers:AN(F.f(u)),size:3},{answers:AN(F.f(v)),size:3}],
+     `f(${P(u)}) = ${T.substHTML(F,u)} = ${T.stepsHTML(F,u)} et f(${P(v)}) = ${T.substHTML(F,v)} = ${T.stepsHTML(F,v)}.`,
+     {k:'blanks',spec:[{src:'expr',py:F.py,op:'img',v:u},{src:'expr',py:F.py,op:'img',v}],st:2})},
+ tDec(){const a=pick([2,3,4,5,6,-2,-4]),b=nz(-9,9),v=pick([0.5,1.5,2.5,-0.5,-1.5]),F=T.mkAff(a,b),r=a*v+b;
+   return tr(3,`${fDef(F)}<br>f(${P(v)}) = {0}`,[{answers:AN(r),size:4}],`f(${P(v)}) = ${P(a)} × ${T.Pp?T.Pp(v):P(v)}${T.sgnTerm(b)} = ${P(a*v)}${T.sgnTerm(b)} = ${P(r)}.`,
+     {k:'blanks',spec:[{src:'expr',py:F.py,op:'img',v}],st:2})},
+ tGraph(){const q=T.q5(pick([0,1,2,3,3]));const F=q.F,n=q.ants.length;const[d0,d1]=T.domOf(F);let a;do{a=ri(d0,d1)}while(!inW(F.f(a)));
+   return tr(5,`${gIntro(F)}Par lecture graphique : f(${P(a)}) = {0}, et l'équation f(${X}) = ${P(q.k)} a {1} solution(s).`,[{answers:AN(F.f(a)),size:3},{answers:CNT(n,true),size:4}],
+     `À la verticale de ${P(a)}, la courbe est à la hauteur ${P(F.f(a))}. La droite d'équation y = ${P(q.k)} coupe la courbe en ${n} point${n>1?'s':''}.`,
+     {k:'blanks',spec:[{src:'graph',F:fm(F),op:'img',a},{src:'graph',F:fm(F),op:'count',kk:q.k}],st:2})},
+ tPointF(){const F=bigF(),a=-ri(1,4),fa=F.f(a);if(Math.abs(fa)>99)return Ot.tPointF();
+   return tr(6,`${fDef(F)}<br>Le point A(${P(a)} ; {0}) appartient à la courbe représentative de f.`,[{answers:AN(fa),size:3}],
+     `A est sur la courbe, donc son ordonnée est f(${P(a)}) = ${T.substHTML(F,a)} = ${T.stepsHTML(F,a)}.`,{k:'blanks',spec:[{src:'expr',py:F.py,op:'img',v:a}],st:2})}
+};
+const inW=v=>Number.isFinite(v)&&v>=-5&&v<=5;
+
+/* ---------------------------------------------------------------- assemblage */
+function assemble(qGens,tGens){
+  for(let tries=0;tries<50;tries++){
+    const out=[],seen=new Set();let ok=true;
+    for(const g of qGens.concat(tGens)){let q,n=0;do{q=g();n++}while((!q||seen.has(q.prompt))&&n<40);if(!q||seen.has(q.prompt)){ok=false;break}seen.add(q.prompt);out.push(q)}
+    if(ok)return shuf(out);
+  }
+  throw new Error('épreuve impossible à assembler');
+}
+function bronze(){return window.__lastFinal=assemble(shuf(Object.values(B)).slice(0,6),shuf(Object.values(Bt)).slice(0,4))}
+function argent(){
+  const lv=shuf([1,2,3,4,5,6,7,ri(2,7),ri(3,7),ri(4,7)]);
+  const ty=shuf(['qcm','qcm','qcm','qcm','qcm','qcm','trous','trous','trous','trous']);
+  return window.__lastFinal=assemble([],lv.map((l,i)=>()=>A[l][ty[i]]()));
+}
+function or(){return window.__lastFinal=assemble(shuf(Object.values(O)).slice(0,6),shuf(Object.values(Ot)).slice(0,4))}
+window.__trFinals={bronze,argent,or};
+if(window.SigmaKit)SigmaKit.init({game:'trois-royaumes',title:'Les Trois Royaumes de f',levels:7,
+  levelNames:['Le Sceau royal','La Bibliothèque','L\'Atelier','Le Château : images','Le Château : antécédents','Le Conseil des trois royaumes','Le Grand Voyage'],
+  music:'epique',finals:{bronze,argent,or}});
+if(window.TR&&TR.render)TR.render();
+})();
+</script>
+</body>
+</html>

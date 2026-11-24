@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Les Montagnes Russes de f</title>
+<meta name="description" content="Sens de variation d'une fonction en Seconde : croissante, décroissante, tableau de variations, maximum et minimum, comparaison d'images.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : clair, encourageant, précis ; jamais de mise en échec.
+   IDEA : la courbe de f est la piste d'un grand huit nocturne ; le wagonnet de Maki roule toujours de gauche à droite.
+   PICTURE : la piste (rails acier, traverses dorées), le wagonnet, le tableau de variations comme panneau de la gare.
+   COLOUR and TYPE : nuit « océan profond », accent violet-bleu, or pour les réussites ; Outfit.
+   LAYOUT : piste et réponses à gauche, « Mon carnet de bord » à droite. */
+:root{
+--bg:var(--sg-panel-solid);--ink:var(--sg-text);--mut:var(--sg-muted);--panel:var(--sg-raise);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);
+--up:#7fe0a4;--down:#ffa98f;--paper:var(--sg-panel);--rule:rgba(120,160,255,.07)}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;color:var(--ink);font:17px/1.6 var(--sg-font);overflow-x:clip}
+.opt,.slot,.chips button,.log,.hud,.tvb,.dots em{font-variant-numeric:tabular-nums}
+header{max-width:1320px;margin:auto;padding:22px max(3vw,16px) 6px}
+h1{font-size:clamp(30px,3.8vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:0 0 8px;text-wrap:balance}
+header p{margin:0;color:var(--mut);max-width:76ch}
+.back{display:inline-block;margin:0 0 8px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:2px solid var(--ac)}.back:hover{color:var(--ac)}
+.app{max-width:1320px;margin:auto;padding:12px max(3vw,16px) 32px;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:clamp(18px,2.6vw,34px);align-items:start}
+button{font:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.lv{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}
+.lv button{min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:600;font-size:15px;cursor:pointer;transition:border-color .15s,background .15s}
+.lv button:hover{border-color:var(--ac);background:var(--sg-hover)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}
+.lv button .ck{color:var(--gold2);margin-left:5px;letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:inherit}
+.lv .snd{margin-left:auto;border-style:dashed}.lv .snd[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac)}
+.lvdesc{color:var(--mut);margin:2px 0 10px;min-height:1.5em}
+.stage{border-radius:var(--sg-radius);background:linear-gradient(180deg,#0d1f45,#071226);overflow:hidden;position:relative;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card)}
+#scene{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none;touch-action:pan-y}
+#scene .wag{cursor:grab;touch-action:none}
+#scene .wag:active{cursor:grabbing}
+.hud{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:8px 2px 0;font-size:15px;color:var(--mut)}
+.hud .btn{min-height:44px;font-size:15px;padding:0 14px}
+.hud output{flex:1 1 220px;min-height:1.5em}
+.hud output b{color:var(--ink)}
+.hud .upw{color:var(--up)}.hud .dnw{color:var(--down)}.hud .tpw{color:var(--gold2)}
+.tvwrap{margin:14px 0 0;padding:14px;border-radius:var(--sg-radius);background:var(--paper);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);text-align:center}
+.tvwrap .cap{display:block;text-align:left;font-size:14px;font-weight:600;color:var(--mut);margin:0 0 8px}
+.tvwrap svg{display:block;margin:auto;max-width:100%;height:auto}
+.q{font:600 clamp(20px,2.3vw,25px)/1.4 var(--sg-font);text-align:center;margin:16px 0 4px;text-wrap:balance}
+.q small{display:block;font-size:15px;font-weight:500;color:var(--mut);margin-top:4px}
+.msg{text-align:center;color:var(--mut);min-height:1.6em;margin:0 0 10px}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.opts.one{grid-template-columns:minmax(0,1fr)}
+.opts.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.opt{min-height:64px;padding:8px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:600 clamp(18px,2.1vw,22px)/1.3 var(--sg-font);cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:var(--acsoft)}
+.opt:disabled{cursor:default}
+.opt small{display:block;font:500 14px/1.35 var(--sg-font);color:var(--mut);margin-top:2px}
+.opt .ar{font-size:1.15em;margin-right:6px}
+.opt.no{opacity:.5;border-color:rgba(255,107,107,.45);text-decoration:line-through;text-decoration-color:var(--ko);text-decoration-thickness:2px}
+.opt.no svg{text-decoration:none}
+.opt.yes{border-color:var(--ok);background:rgba(95,210,124,.12);opacity:1}
+.opt svg.mini{display:block;width:100%;height:auto;border-radius:10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--sg-raise);color:var(--ink);font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s}
+.btn:hover:not(:disabled){border-color:var(--ac)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#7f9dff}
+.btn.gh{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0;align-items:center}
+.row.c{justify-content:center}
+/* phrase à trous */
+.sent{font:600 clamp(21px,2.5vw,27px)/1.9 var(--sg-font);text-align:center;margin:6px 0 10px}
+.slot{display:inline-flex;align-items:center;justify-content:center;min-width:64px;min-height:48px;margin:2px 4px;padding:0 10px;border-radius:12px;border:1.5px dashed var(--line);
+  background:var(--bg);color:var(--mut);font:700 clamp(21px,2.5vw,26px) var(--sg-font);cursor:pointer;vertical-align:middle}
+.slot.full{color:var(--ink);border-style:solid}
+.slot.act{border-color:var(--ac);border-style:solid;box-shadow:0 0 0 3px var(--acsoft)}
+.slot.bad{border-color:var(--ko);color:#ffb3b3}
+.slot.good{border-color:var(--ok);color:var(--ok)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0 2px}
+.chips button{min-height:48px;min-width:52px;padding:0 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:700 20px var(--sg-font);cursor:pointer}
+.chips button:hover:not(:disabled){border-color:var(--ac);background:var(--acsoft)}
+.chips button:disabled{opacity:.3;cursor:default}
+.chips .cl{flex-basis:100%;text-align:center;font-size:15px;font-weight:600;color:var(--mut)}
+/* constructeur de tableau */
+.tvb{display:grid;margin:8px auto 4px;border:1.5px solid rgba(160,185,255,.55);border-radius:12px;background:rgba(108,142,255,.05);overflow:hidden;max-width:640px}
+.tvb>div,.tvb>button{display:flex;align-items:center;justify-content:center}
+.tvb .lab{font-weight:700;font-style:italic;border-right:1.5px solid rgba(160,185,255,.55);padding:0 6px}
+.tvb .xr{border-bottom:1.5px solid rgba(160,185,255,.55);font-weight:700;font-size:19px;min-height:46px}
+.tvb .vc{margin:4px 2px;min-height:44px;min-width:44px;border-radius:10px;border:1.5px dashed var(--line);background:var(--bg);color:var(--mut);font:700 19px var(--sg-font);cursor:pointer;padding:0 4px}
+.tvb .vc.full{color:var(--ink);border-style:solid}
+.tvb .vc.act{border-color:var(--ac);border-style:solid;box-shadow:0 0 0 3px var(--acsoft)}
+.tvb .ac{margin:4px 2px;min-height:96px;border-radius:10px;border:1.5px dashed var(--line);background:transparent;color:var(--mut);cursor:pointer;font:700 22px var(--sg-font)}
+.tvb .ac svg{width:100%;height:84px;display:block}
+.tvb .ac.full{border-color:transparent}
+.tvb .bad{border-color:var(--ko)!important;border-style:solid!important;background:rgba(255,107,107,.08)}
+.tvb .good{border-color:rgba(95,210,124,.6)!important}
+/* retours */
+.fb{border-radius:14px;padding:12px 16px;margin:12px 0}
+.fbm{display:flex;gap:12px;align-items:flex-start}.fbm>div{flex:1}.mk{flex:none;width:64px;height:64px}.mk svg{width:100%;height:100%;display:block}
+@media(max-width:520px){.mk{width:48px;height:48px}}
+.fb.ko{border:1.5px solid rgba(255,107,107,.55);background:rgba(255,107,107,.08)}
+.fb.ko b.t{color:#ffb3b3}
+.fb b.t{font-size:18px;display:block}
+.fb p{margin:4px 0}
+.win{border-radius:var(--sg-radius);padding:18px 20px;margin:14px 0;background:linear-gradient(160deg,rgba(200,168,75,.12),rgba(200,168,75,.03));border:1.5px solid var(--gold);box-shadow:var(--sg-shadow-card)}
+.win .big{font:700 clamp(26px,3.4vw,38px)/1.15 var(--sg-font);color:var(--gold2)}
+.win p{margin:6px 0}
+/* carnet */
+.copy{background:var(--paper);border:1px solid var(--soft);border-radius:var(--sg-radius);box-shadow:var(--sg-shadow-card);padding:16px 18px 18px;position:sticky;top:10px}
+.copy h2{font-size:20px;margin:0 0 10px;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.copy h2 span{font-size:14px;color:var(--mut);font-weight:600}
+.rule{border-radius:12px;padding:10px 12px;background:var(--acsoft);border:1px solid rgba(108,142,255,.3);font-size:15.5px;line-height:1.5;margin:0 0 12px}
+.rule b:first-child{display:block;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#aebfff;margin-bottom:2px}
+.log{font-size:16.5px;line-height:1.5;min-height:120px;display:grid;gap:8px;align-content:start}
+.log div{overflow-wrap:anywhere;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.035);border-left:3px solid var(--line)}
+.log div.ok{border-left-color:var(--ok)}
+.log div.now{border-left-color:var(--ac);color:var(--mut)}
+.log svg{display:block;max-width:100%;height:auto;margin:6px auto 0}
+.dots{display:flex;gap:6px;margin:12px 0 0;align-items:center;flex-wrap:wrap}
+.dots span{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dots span.g{background:var(--ok)}.dots span.r{background:var(--ko)}.dots span.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}
+.dots em{font-style:normal;color:var(--mut);font-size:14px;margin-left:6px}
+.up{color:var(--up)}.dn{color:var(--down)}
+.pop{animation:pop .35s ease-out both}
+@keyframes pop{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:none}}
+#scene .twk{animation:tw 2.6s ease-in-out infinite}
+@keyframes tw{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.pop,#scene .twk{animation:none}}
+@media(max-width:900px){.app{grid-template-columns:minmax(0,1fr)}.copy{position:static}}
+@media(max-width:640px){header .back{margin-bottom:24px}.opts.three{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:420px){.opts{gap:8px}.opt{min-height:58px;padding:8px 10px}.lv button{padding:0 11px;font-size:14px}.chips button{min-width:48px;padding:0 8px}.slot{min-width:56px;margin:2px 2px}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Les Montagnes Russes de f</h1>
+<p>La courbe d'une fonction f, c'est la piste d'un grand huit. Le wagonnet de Maki roule toujours de gauche à droite, dans le sens des x croissants : quand il monte, f est croissante ; quand il descend, f est décroissante. Lis la piste, dresse son tableau de variations, trouve ses sommets… puis passe-toi de la piste !</p>
+</header>
+
+<main class="app">
+<section>
+<div class="lv" id="lv" role="group" aria-label="Niveaux"></div>
+<p class="lvdesc" id="lvdesc"></p>
+
+<div id="trackbox">
+<div class="stage" id="stage"><svg id="scene" viewBox="0 0 960 400" role="img" aria-label="Piste de grand huit dessinée comme la courbe de la fonction f dans un repère"></svg></div>
+<div class="hud"><button class="btn gh" id="ride" type="button">▶ Faire rouler le wagonnet</button><output id="hud">Glisse le wagonnet le long de la piste, ou fais-le rouler.</output></div>
+</div>
+
+<div class="tvwrap" id="tvbox" hidden><span class="cap" id="tvcap">Tableau de variations de f</span><div id="tv"></div></div>
+
+<div class="q" id="q" aria-live="polite"></div>
+<p class="msg" id="msg" aria-live="polite"></p>
+
+<div class="opts" id="z-ch" hidden></div>
+<div id="z-sl" hidden><div class="sent" id="sent"></div><div class="chips" id="chips"></div><div class="row c"><button class="btn gh" id="sclr" type="button">Effacer</button><button class="btn or" id="sval" type="button">Valider</button></div></div>
+<div id="z-bd" hidden><div class="tvb" id="tvb"></div><div class="chips" id="bchips"></div><div class="row c"><button class="btn or" id="bval" type="button">Valider le tableau</button></div></div>
+
+<div class="fb ko" id="fb" hidden></div>
+<div class="win" id="win" hidden><div class="fbm"><span class="mk" id="winmk"></span><div>
+<div class="big" id="winx"></div>
+<p id="winp"></p>
+<div class="row"><button class="btn or" id="next" type="button">Question suivante →</button><button class="btn gh" id="replay" type="button" hidden>Rejouer ce niveau</button></div>
+</div></div></div>
+</section>
+
+<aside class="copy">
+<h2>Mon carnet de bord <span id="lvname"></span></h2>
+<div class="rule" id="rule"></div>
+<div class="log" id="log"></div>
+<div class="dots" id="dots"></div>
+</aside>
+</main>
+
+<script>
+{
+const $=id=>document.getElementById(id);
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const PER=5;
+
+/* =============== écritures =============== */
+const MINUS='−';
+function N(v){let r=Math.round(v*100)/100;if(Object.is(r,-0)||Math.abs(r)<1e-9)r=0;return (r<0?MINUS:'')+String(Math.abs(r)).replace('.',',')}
+const I=(a,b)=>`[${N(a)} ; ${N(b)}]`;
+const fx=(v,l='f')=>`${l}(${N(v)})`;
+const SW={1:'croissante','-1':'décroissante',0:'ni croissante ni décroissante'};
+const VERB={1:'monte','-1':'descend'};
+const AR={1:'↗','-1':'↘'};
+const numA=v=>{const s=N(v);return [...new Set([s,s.replace(MINUS,'-'),s.replace(',','.'),s.replace(MINUS,'-').replace(',','.')])]};
+
+/* =============== modèle de fonction ===============
+   f est donnée par ses « nœuds » (abscisses xs, valeurs ys) ; entre deux nœuds la piste est
+   strictement monotone (raccord doux s(t) = 3t² − 2t³, strictement croissant sur [0 ; 1]). */
+function fval(f,x){const {xs,ys}=f;let i=0;while(i<xs.length-2&&x>xs[i+1])i++;
+  const t=Math.min(1,Math.max(0,(x-xs[i])/(xs[i+1]-xs[i]))),s=t*t*(3-2*t);return ys[i]+(ys[i+1]-ys[i])*s}
+const psense=(f,i)=>Math.sign(f.ys[i+1]-f.ys[i]);
+function senseOn(f,a,b){let s=null;for(let i=0;i<f.xs.length-1;i++){const lo=Math.max(a,f.xs[i]),hi=Math.min(b,f.xs[i+1]);
+  if(hi>lo){const p=psense(f,i);if(s===null)s=p;else if(s!==p)return 0}}return s}
+function pieceOf(f,a,b){for(let i=0;i<f.xs.length-1;i++)if(f.xs[i]<=a&&b<=f.xs[i+1])return i;return -1}
+function extOn(f,a,b,w){const c=[a,...f.xs.filter(x=>x>a&&x<b),b];let best=null;
+  for(const x of c){const v=fval(f,x);if(best===null||(w==='max'?v>best.v:v<best.v))best={x,v}}return best}
+function genF(np,o={}){
+  const ymin=o.ymin??-4,ymax=o.ymax??6;
+  for(let t=0;t<5000;t++){
+    const xs=[ri(o.x0min??-5,o.x0max??-1)];
+    for(let i=0;i<np;i++)xs.push(xs[i]+ri(o.gmin??2,o.gmax??4));
+    if(xs[np]>(o.xmax??6))continue;
+    let s=o.first??pick([1,-1]);const ys=[ri(ymin,ymax)];let ok=true;
+    for(let i=0;i<np;i++){const y=ys[i]+s*ri(o.dmin??2,o.dmax??5);if(y<ymin||y>ymax){ok=false;break}ys.push(y);s=-s}
+    if(!ok||new Set(ys).size!==ys.length)continue;
+    if(o.test&&!o.test({xs,ys}))continue;
+    return {xs,ys};
+  }
+  return {xs:[-2,1,4],ys:[-1,4,0]};
+}
+const nodeTop=(ys,k)=>k===0?ys[0]>ys[1]:k===ys.length-1?ys[k]>ys[k-1]:ys[k]>ys[k-1];
+
+/* =============== tableau de variations (SVG autonome, aussi utilisé par les épreuves) =============== */
+function tvSVG(xs,ys,o={}){
+  const n=xs.length,LW=58,PAD=34,G=o.gap||(n>4?70:80),H1=42,H2=110,W=LW+PAD*2+G*(n-1),H=H1+H2,lab=o.lab||'f',SW_=Math.round(W*(o.scale||1));
+  const F='font-family="Outfit,system-ui,sans-serif"',L='rgba(170,192,255,.6)';
+  const desc=xs.slice(0,-1).map((x,k)=>`${SW[Math.sign(ys[k+1]-ys[k])]} sur ${I(x,xs[k+1])}`).join(', ');
+  let s=`<svg class="tv" viewBox="0 0 ${W} ${H}" width="${SW_}" style="display:block;margin:6px auto 10px;max-width:100%;height:auto" role="img" aria-label="Tableau de variations : ${lab} est ${desc}" data-xs="${xs.join(',')}" data-ys="${ys.join(',')}">`;
+  s+=`<rect x=".75" y=".75" width="${W-1.5}" height="${H-1.5}" rx="8" fill="rgba(108,142,255,.07)" stroke="${L}" stroke-width="1.5"/>`;
+  s+=`<path d="M1 ${H1}H${W-1}M${LW} 1V${H-1}" stroke="${L}" stroke-width="1.5"/>`;
+  s+=`<text x="${LW/2}" y="${H1/2+7}" text-anchor="middle" ${F} font-size="20" font-style="italic" font-weight="600" fill="#f0f4ff">x</text>`;
+  s+=`<text x="${LW/2}" y="${H1+H2/2+7}" text-anchor="middle" ${F} font-size="18" font-weight="600" fill="#f0f4ff"><tspan font-style="italic">${lab}</tspan>(<tspan font-style="italic">x</tspan>)</text>`;
+  const cx=k=>LW+PAD+G*k,top=H1+28,bot=H-14;
+  for(let k=0;k<n;k++){
+    s+=`<text class="tvx" x="${cx(k)}" y="${H1/2+7}" text-anchor="middle" ${F} font-size="19" font-weight="600" fill="#f0f4ff">${N(xs[k])}</text>`;
+    s+=`<text class="tvy" x="${cx(k)}" y="${nodeTop(ys,k)?top:bot}" text-anchor="middle" ${F} font-size="19" font-weight="700" fill="#e8c766">${N(ys[k])}</text>`;
+  }
+  for(let k=0;k<n-1;k++){
+    const up=ys[k+1]>ys[k],x1=cx(k)+17,x2=cx(k+1)-17,y1=up?bot-24:top+8,y2=up?top+8:bot-24;
+    const a=Math.atan2(y2-y1,x2-x1),hx=x2,hy=y2,l=10,w=5.5;
+    const p1=[hx-l*Math.cos(a)+w*Math.sin(a),hy-l*Math.sin(a)-w*Math.cos(a)],p2=[hx-l*Math.cos(a)-w*Math.sin(a),hy-l*Math.sin(a)+w*Math.cos(a)];
+    s+=`<path d="M${x1} ${y1}L${(hx-6*Math.cos(a)).toFixed(1)} ${(hy-6*Math.sin(a)).toFixed(1)}" stroke="#8ea6ff" stroke-width="2.2" stroke-linecap="round"/>`;
+    s+=`<path class="tva" data-up="${up?1:0}" d="M${hx.toFixed(1)} ${hy.toFixed(1)}L${p1[0].toFixed(1)} ${p1[1].toFixed(1)}L${p2[0].toFixed(1)} ${p2[1].toFixed(1)}Z" fill="#8ea6ff"/>`;
+  }
+  return s+'</svg>';
+}
+/* mini-repère (choix « quelle courbe ? ») */
+function miniSVG(f){
+  const xlo=Math.min(f.xs[0],0)-1,xhi=Math.max(f.xs.at(-1),0)+1,ylo=Math.min(...f.ys,0)-1,yhi=Math.max(...f.ys,0)+1;
+  const W=260,H=170,L=10,R=10,T=10,B=10,sx=(W-L-R)/(xhi-xlo),sy=(H-T-B)/(yhi-ylo),X=x=>L+(x-xlo)*sx,Y=y=>T+(yhi-y)*sy;
+  let s=`<svg class="mini" viewBox="0 0 ${W} ${H}" aria-hidden="true" data-xs="${f.xs.join(',')}" data-ys="${f.ys.join(',')}"><rect width="${W}" height="${H}" fill="#081630"/>`;
+  for(let x=Math.ceil(xlo);x<=xhi;x++)s+=`<path d="M${X(x).toFixed(1)} ${T}V${H-B}" stroke="rgba(140,170,255,.13)"/>`;
+  for(let y=Math.ceil(ylo);y<=yhi;y++)s+=`<path d="M${L} ${Y(y).toFixed(1)}H${W-R}" stroke="rgba(140,170,255,.13)"/>`;
+  s+=`<path d="M${L} ${Y(0)}H${W-R}M${X(0)} ${T}V${H-B}" stroke="rgba(220,230,255,.7)" stroke-width="1.4"/>`;
+  s+=`<path d="M${X(1)} ${Y(0)-4}v8M${X(0)-4} ${Y(1)}h8" stroke="#f0f4ff" stroke-width="2"/>`;
+  s+=`<text x="${X(1)}" y="${Y(0)+15}" font-size="12" text-anchor="middle" fill="#c9d6ff" font-family="Outfit,sans-serif">1</text><text x="${X(0)-7}" y="${Y(1)+4}" font-size="12" text-anchor="end" fill="#c9d6ff" font-family="Outfit,sans-serif">1</text>`;
+  let d='';const x0=f.xs[0],x1=f.xs.at(-1);for(let k=0;k<=120;k++){const x=x0+(x1-x0)*k/120;d+=(k?'L':'M')+X(x).toFixed(1)+' '+Y(fval(f,x)).toFixed(1)}
+  s+=`<path d="${d}" fill="none" stroke="#dfe7ff" stroke-width="3" stroke-linejoin="round"/>`;
+  f.xs.forEach((x,k)=>{s+=`<circle cx="${X(x).toFixed(1)}" cy="${Y(f.ys[k]).toFixed(1)}" r="3.6" fill="#e8c766"/>`});
+  return s+'</svg>';
+}
+
+/* =============== niveaux =============== */
+const LV=[
+ {t:'1. Ça monte ?',n:'Ça monte ?',d:'Le wagonnet roule toujours de gauche à droite. Sur l\'intervalle surligné, monte-t-il ou descend-il ?',
+  rule:'<b>À retenir</b>On lit une courbe de gauche à droite, quand x augmente. Si la piste monte, f est <b class="up">croissante</b> ; si elle descend, f est <b class="dn">décroissante</b>.'},
+ {t:'2. Les tronçons',n:'Les tronçons',d:'Trouve le plus grand intervalle sur lequel f est croissante (ou décroissante). Les bornes se lisent sur l\'axe des abscisses.',
+  rule:'<b>Définition</b>f est croissante sur un intervalle I si, pour tous réels a et b de I tels que a ≤ b, on a f(a) ≤ f(b). Elle est décroissante sur I si a ≤ b entraîne f(a) ≥ f(b).'},
+ {t:'3. Le tableau',n:'Le tableau',d:'Dresse le tableau de variations de la piste : une flèche par tronçon, et la valeur de f à chaque sommet, à chaque creux et aux deux extrémités.',
+  rule:'<b>Tableau de variations</b>Ligne du haut : les abscisses x où la piste change de sens, et les extrémités. Ligne du bas : les valeurs f(x), reliées par des flèches ↗ (croissante) ou ↘ (décroissante).'},
+ {t:'4. Sans la piste',n:'Sans la piste',d:'Cette fois, seul le tableau de variations est affiché. Sauras-tu imaginer la piste ?',
+  rule:'<b>Lire un tableau</b>Une flèche ↗ entre a et b : f est croissante sur [a ; b]. Si un intervalle contient un changement de sens, f n\'est ni croissante ni décroissante sur cet intervalle.'},
+ {t:'5. Sommets et creux',n:'Sommets et creux',d:'Trouve le maximum ou le minimum de f sur l\'intervalle indiqué, et l\'abscisse où il est atteint.',
+  rule:'<b>Maximum, minimum</b>Le maximum de f sur I est la plus grande valeur de f(x) pour x dans I : c\'est une hauteur. Il est atteint en une abscisse x. On ne regarde que la partie de la piste au-dessus de I.'},
+ {t:'6. Le duel',n:'Le duel',d:'Deux wagons partent de deux abscisses. Sans la piste, lequel est le plus haut ? Le tableau de variations suffit… si les deux sont sur le même tronçon.',
+  rule:'<b>Comparer deux images</b>Si a et b sont dans un intervalle où f est croissante, a ≤ b donne f(a) ≤ f(b) : l\'ordre est conservé. Si f y est décroissante, a ≤ b donne f(a) ≥ f(b) : l\'ordre est inversé.'},
+ {t:'7. Grand huit',n:'Grand huit',d:'Tout mélangé, avec le tableau seul : sens de variation, extremums, comparaisons, encadrements.',
+  rule:'<b>Encadrer</b>Si M est le maximum et m le minimum de f sur I, alors pour tout x de I : m ≤ f(x) ≤ M.'}
+];
+
+/* ---------- générateurs des questions du jeu ---------- */
+const C=(h,ok,why)=>({h,ok:!!ok,why:why||''});
+function senseChoices(f,a,b,truth,within){
+  const it=I(a,b);
+  const why=s=>{
+    if(truth===0){const t=f.xs.filter(x=>x>a&&x<b);return `Entre ${N(a)} et ${N(b)}, la piste change de sens en x = ${t.map(N).join(' et en x = ')} : f monte puis descend (ou l'inverse). Elle n'est donc ni croissante ni décroissante sur ${it}.`}
+    const k=pieceOf(f,a,b);
+    if(s===0)return `${it} est contenu dans ${I(f.xs[k],f.xs[k+1])}, où la flèche ${truth>0?'monte':'descend'} sans changer de sens. f est donc ${SW[truth]} sur ${it}.`;
+    return `Entre ${N(f.xs[k])} et ${N(f.xs[k+1])}, la flèche ${truth>0?'monte ↗':'descend ↘'} : quand x augmente, f(x) ${truth>0?'augmente':'diminue'}.`};
+  return [1,-1,0].map(s=>C(`${SW[s]} sur ${it}`,s===truth,why(s)));
+}
+function qSens(i){
+  let f,pi;
+  for(let t=0;t<600;t++){
+    f=genF(ri(2,3),{gmin:2,gmax:4,dmin:2,dmax:5});pi=ri(0,f.xs.length-2);
+    if(i===2){const k=f.xs.slice(0,-1).findIndex((_,k)=>psense(f,k)>0&&Math.max(f.ys[k],f.ys[k+1])<0);if(k<0)continue;pi=k}
+    if(i===4){const k=f.xs.slice(0,-1).findIndex((_,k)=>psense(f,k)<0&&Math.min(f.ys[k],f.ys[k+1])>0);if(k<0)continue;pi=k}
+    break;
+  }
+  const x0=f.xs[pi],x1=f.xs[pi+1];let a=x0,b=x1;
+  if(i%2===1&&x1-x0>=2){a=ri(x0,x1-1);b=ri(a+1,x1);if(a===x0&&b===x1)b=x1-1}
+  const s=psense(f,pi),it=I(a,b),below=Math.max(fval(f,a),fval(f,b))<0,above=Math.min(fval(f,a),fval(f,b))>0;
+  const whyW=s>0?(below?`La piste est sous l'axe des abscisses : les valeurs f(x) sont négatives… mais elles augmentent quand x augmente ! Être négatif et décroître, ce n'est pas la même chose.`:`Lis la piste de gauche à droite, comme le wagonnet qui avance : de x = ${N(a)} à x = ${N(b)}, il monte.`)
+    :(above?`La piste est au-dessus de l'axe : les valeurs f(x) sont positives… mais elles diminuent quand x augmente. Être positif et croître, ce n'est pas la même chose.`:`Lis la piste de gauche à droite, comme le wagonnet qui avance : de x = ${N(a)} à x = ${N(b)}, il descend.`);
+  return {f,mode:'choice',show:{scene:1,band:[a,b]},cols:'two',meta:{k:'sens',xs:f.xs,ys:f.ys,a,b},
+    steps:[{prompt:`Sur l'intervalle ${it}, le wagonnet monte-t-il ou descend-il ?`,
+      choices:[C(`<span class="ar up">↗</span>Il monte<small>f est croissante sur ${it}</small>`,s>0,whyW),C(`<span class="ar dn">↘</span>Il descend<small>f est décroissante sur ${it}</small>`,s<0,whyW)]}],
+    ride:[a,b],done:`Sur ${it}, le wagonnet ${VERB[s]} : f est <b class="${s>0?'up':'dn'}">${SW[s]}</b> sur ${it}.`,
+    tip:s>0?`Quand x augmente de ${N(a)} à ${N(b)}, f(x) augmente : f est croissante sur ${it}.`:`Quand x augmente de ${N(a)} à ${N(b)}, f(x) diminue : f est décroissante sur ${it}.`};
+}
+function qItv(i){
+  const np=i<2?2:3,f=genF(np,{gmin:2,gmax:4,dmin:2,dmax:5}),k=np===2?ri(0,1):1,s=psense(f,k),A=f.xs[k],B=f.xs[k+1];
+  const yt=shuffle(f.ys.filter(y=>!f.xs.includes(y))).slice(0,2);
+  const chips=[...new Set([...f.xs,...yt])].sort((u,v)=>u-v);
+  const check=v=>{
+    const [u,w]=v;
+    if(u===A&&w===B)return {ok:true};
+    if(u===B&&w===A)return {why:`Les bonnes bornes, mais dans le mauvais ordre : un intervalle s'écrit de la plus petite borne à la plus grande, [${N(A)} ; ${N(B)}].`,bad:[0,1]};
+    if(u>=w)return {why:`Dans un intervalle [a ; b], on écrit d'abord la plus petite borne : il faut a < b.`,bad:[0,1]};
+    const ny=[u,w].map(z=>!f.xs.includes(z));
+    if(ny[0]||ny[1]){const z=ny[0]?u:w;return {why:`${N(z)} est une hauteur de la piste (une valeur de f(x), lue sur l'axe vertical). Les bornes d'un intervalle de variation sont des abscisses : on les lit sur l'axe horizontal, sous les sommets et les creux.`,bad:ny.map((b,j)=>b?j:-1).filter(j=>j>=0)}}
+    const t=senseOn(f,u,w);
+    if(t===-s)return {why:`Sur ${I(u,w)}, le wagonnet ${VERB[-s]} : f y est ${SW[-s]}. On cherche où il ${VERB[s]}.`,bad:[0,1]};
+    if(t===s)return {why:`C'est vrai, f est ${SW[s]} sur ${I(u,w)}. Mais le wagonnet ${VERB[s]} sur un intervalle plus grand : va d'un creux à un sommet (ou l'inverse).`,bad:[0,1]};
+    return {why:`Sur ${I(u,w)}, le wagonnet monte puis descend (ou l'inverse) : f n'est pas ${SW[s]} sur tout cet intervalle.`,bad:[0,1]};
+  };
+  return {f,mode:'slots',show:{scene:1,guides:1},meta:{k:'itv',xs:f.xs,ys:f.ys,s},
+    prompt:`Sur quel intervalle, le plus grand possible, f est-elle ${SW[s]} ?`,tpl:`f est ${SW[s]} sur [ {0} ; {1} ]`,ans:[A,B],chips,check,
+    hint:`Repère le tronçon où le wagonnet ${VERB[s]}, puis lis sur l'axe des abscisses les x de ses deux extrémités.`,
+    ride:[A,B],done:`f est <b class="${s>0?'up':'dn'}">${SW[s]}</b> sur ${I(A,B)}.`,tip:`Le wagonnet ${VERB[s]} de x = ${N(A)} à x = ${N(B)} : f est ${SW[s]} sur ${I(A,B)}.`};
+}
+function qBuild(i){
+  const f=genF(i<2?2:3,{gmin:2,gmax:i<2?4:3,dmin:1,dmax:5});
+  return {f,mode:'build',show:{scene:1,guides:1},meta:{k:'build',xs:f.xs,ys:f.ys},prompt:'Dresse le tableau de variations de f.',
+    done:`Tableau de variations de f :${tvSVG(f.xs,f.ys)}`,tip:'Une flèche par tronçon, une valeur à chaque extrémité de tronçon : le tableau résume toute la piste.',ride:[f.xs[0],f.xs.at(-1)]};
+}
+function itvChoices(f,s,yTrap=true){
+  const ks=f.xs.slice(0,-1).map((_,k)=>k).filter(k=>psense(f,k)===s),k=pick(ks),A=f.xs[k],B=f.xs[k+1];
+  const cand=[];
+  if(yTrap){const lo=Math.min(f.ys[k],f.ys[k+1]),hi=Math.max(f.ys[k],f.ys[k+1]);cand.push([lo,hi,`Ces nombres sont des valeurs de f(x), lues dans la ligne du bas du tableau. Un intervalle de variation se lit sur la ligne des x.`])}
+  f.xs.slice(0,-1).forEach((_,j)=>{if(psense(f,j)===-s)cand.push([f.xs[j],f.xs[j+1],`Sur ${I(f.xs[j],f.xs[j+1])}, la flèche ${s>0?'descend':'monte'} : f y est ${SW[-s]}.`])});
+  for(let j=0;j<f.xs.length-1;j++)for(let m=j+2;m<f.xs.length;m++)cand.push([f.xs[j],f.xs[m],`Sur ${I(f.xs[j],f.xs[m])}, f change de sens en x = ${N(f.xs[j+1])} : elle n'est pas ${SW[s]} sur tout cet intervalle.`]);
+  const seen=new Set([I(A,B)]),out=[C(I(A,B),true)];
+  for(const c of shuffle(cand.slice(1)).concat(cand.slice(0,1)).reverse()){ // le piège des valeurs passe en premier s'il est valable
+    const t=I(c[0],c[1]);if(seen.has(t)||!(c[0]<c[1])||senseOn(f,c[0],c[1])===s&&c[0]>=f.xs[0]&&c[1]<=f.xs.at(-1))continue;
+    seen.add(t);out.push(C(t,false,c[2]));if(out.length===4)break;
+  }
+  return {choices:out,A,B};
+}
+function valChoices(f,k,lab='f'){
+  const y=f.ys[k],x=f.xs[k],out=[C(N(y),true)],seen=new Set([y]);
+  if(!seen.has(x)){seen.add(x);out.push(C(N(x),false,`${N(x)} est l'abscisse (ligne des x). On demande ${lab}(${N(x)}) : c'est la valeur écrite dans la ligne de ${lab}(x), sous ${N(x)}.`))}
+  for(const j of shuffle(f.ys.map((_,j)=>j))){if(out.length>=4)break;const v=f.ys[j];if(seen.has(v))continue;seen.add(v);out.push(C(N(v),false,`${N(v)} = ${lab}(${N(f.xs[j])}) : c'est l'image d'un autre nombre. Cherche la colonne de x = ${N(x)}.`))}
+  let d=1;while(out.length<3){const v=y+d;if(!seen.has(v)){seen.add(v);out.push(C(N(v),false,`Lis la valeur placée sous x = ${N(x)}.`))}d=d>0?-d:-d+1}
+  return out;
+}
+function subInterval(f,span,half){
+  const n=f.xs.length;
+  if(span){const k=ri(1,n-2),a=ri(f.xs[k-1],f.xs[k]-1)+(half&&Math.random()<.5?.5:0),b=ri(f.xs[k]+1,f.xs[k+1])-(half&&Math.random()<.5?.5:0);return [Math.min(a,f.xs[k]-.5),Math.max(b,f.xs[k]+.5)]}
+  const k=ri(0,n-2);let a=ri(f.xs[k],f.xs[k+1]-1),b=ri(a+1,f.xs[k+1]);
+  if(half&&Math.random()<.6){if(Math.random()<.5)a+=.5;else b-=.5;if(a>=b){a=f.xs[k];b=f.xs[k+1]}}
+  return [a,b];
+}
+function qRead(i,kind){
+  kind=kind||['itvq','val','sub','curve','sub'][i];
+  const np=ri(2,3),f=genF(np,{gmin:2,gmax:np===2?4:3});
+  const base={f,mode:'choice',show:{table:1,reveal:1},cols:'two'};
+  if(kind==='itvq'){const s=pick([1,-1]),r=itvChoices(f,s);
+    return {...base,meta:{k:'itv',xs:f.xs,ys:f.ys,s},steps:[{prompt:`Sur lequel de ces intervalles f est-elle ${SW[s]} ?`,choices:r.choices}],ride:[r.A,r.B],
+      done:`f est <b class="${s>0?'up':'dn'}">${SW[s]}</b> sur ${I(r.A,r.B)}.`,tip:`Sous la flèche ${AR[s]}, on lit les abscisses ${N(r.A)} et ${N(r.B)} : f est ${SW[s]} sur ${I(r.A,r.B)}.`}}
+  if(kind==='val'){const k=ri(0,f.xs.length-1);
+    return {...base,meta:{k:'val',xs:f.xs,ys:f.ys,x:f.xs[k]},steps:[{prompt:`D'après le tableau, que vaut ${fx(f.xs[k])} ?`,choices:valChoices(f,k)}],ride:[f.xs[0],f.xs[k]],
+      done:`${fx(f.xs[k])} = ${N(f.ys[k])} : au point d'abscisse ${N(f.xs[k])}, la piste est à la hauteur ${N(f.ys[k])}.`,tip:`Dans la colonne de x = ${N(f.xs[k])}, on lit ${fx(f.xs[k])} = ${N(f.ys[k])}.`}}
+  if(kind==='sub'){const span=Math.random()<.4,[a,b]=subInterval(f,span,false),t=senseOn(f,a,b);
+    return {...base,cols:'one',meta:{k:'sens',xs:f.xs,ys:f.ys,a,b},steps:[{prompt:`D'après le tableau, sur ${I(a,b)}, la fonction f est…`,choices:senseChoices(f,a,b,t)}],ride:[a,b],
+      done:`Sur ${I(a,b)}, f est <b class="${t>0?'up':t<0?'dn':''}">${SW[t]}</b>.`,tip:t===0?`Sur ${I(a,b)}, la piste change de sens : f n'y est pas monotone.`:`${I(a,b)} est inclus dans un tronçon où la flèche ${t>0?'monte':'descend'}.`}}
+  // kind === 'curve'
+  const g1={xs:f.xs,ys:f.ys.map(y=>-y)};                       // sens inversés
+  let g2=null,g3=null;
+  for(let t=0;t<200&&!g2;t++){const k=ri(1,f.xs.length-2),d=pick([-1,1]),xs=f.xs.slice();xs[k]+=d;if(xs[k]>xs[k-1]&&xs[k]<xs[k+1])g2={xs,ys:f.ys}}
+  if(!g2){const xs=f.xs.map(x=>x+1);g2={xs,ys:f.ys}}
+  for(let t=0;t<200&&!g3;t++){const k=ri(0,f.ys.length-1),ys=f.ys.slice();ys[k]+=pick([-2,2,-3,3]);
+    if(ys[k]<-5||ys[k]>7)continue;
+    const g={xs:f.xs,ys};if(g.xs.slice(0,-1).every((_,j)=>psense(g,j)===psense(f,j))&&new Set(ys).size===ys.length)g3=g}
+  const ch=[C(miniSVG(f),true),C(miniSVG(g1),false,'Sur cette piste, les flèches seraient à l\'envers : compare d\'abord le sens de chaque tronçon.'),
+    C(miniSVG(g2),false,'Le changement de sens n\'est pas à la bonne abscisse : compte les carreaux sur l\'axe horizontal.')];
+  if(g3)ch.push(C(miniSVG(g3),false,'Les sens sont bons, mais une hauteur ne correspond pas au tableau : compte les carreaux sur l\'axe vertical.'));
+  return {...base,meta:{k:'curve',xs:f.xs,ys:f.ys},steps:[{prompt:'Quelle piste correspond à ce tableau de variations ?<small>Un carreau = 1 unité sur chaque axe.</small>',choices:ch}],ride:[f.xs[0],f.xs.at(-1)],
+    done:'J\'ai reconnu la piste à partir du tableau : mêmes sens, mêmes abscisses, mêmes hauteurs.',tip:'Un tableau de variations décrit la forme de la piste : sens de chaque tronçon et hauteurs aux extrémités.'};
+}
+function qExt(i){
+  const np=i<2?ri(2,3):3,f=genF(np,{gmin:2,gmax:3,dmin:2,dmax:5}),w=i===4?pick(['max','min']):(i%2?'min':'max'),n=f.xs.length;
+  let a=f.xs[0],b=f.xs.at(-1);
+  if(i>=2){for(let t=0;t<50;t++){const j=ri(0,n-2),m=ri(j+1,n-1);if(m-j===n-1)continue;a=f.xs[j];b=f.xs[m];if(t<40&&extOn(f,f.xs[0],f.xs.at(-1),w).x>=a&&extOn(f,f.xs[0],f.xs.at(-1),w).x<=b&&Math.random()<.7)continue;break}}
+  const e=extOn(f,a,b,w),g=extOn(f,f.xs[0],f.xs.at(-1),w),o=extOn(f,a,b,w==='max'?'min':'max');
+  const chips=[...new Set([...f.xs,...f.ys])].sort((u,v)=>u-v),W=w==='max'?'maximum':'minimum',whole=a===f.xs[0]&&b===f.xs.at(-1);
+  const check=v=>{const [u,z]=v;
+    if(u===e.v&&z===e.x)return {ok:true};
+    if(u===e.x&&z===e.v)return {why:`Attention à l'ordre : le ${W} est une hauteur, une valeur de f(x) ; il est atteint pour une abscisse x. Ici, les deux nombres sont inversés.`,bad:[0,1]};
+    if(u===e.v)return {why:`La valeur ${N(u)} est la bonne. Pour l'abscisse, descends verticalement du point le ${w==='max'?'plus haut':'plus bas'} jusqu'à l'axe horizontal.`,bad:[1]};
+    if(!whole&&u===g.v&&(g.x<a||g.x>b))return {why:`Ce ${w==='max'?'sommet':'creux'} est en dehors de ${I(a,b)} : on ne regarde que la partie de la piste au-dessus de cet intervalle (la bande surlignée).`,bad:[0,1]};
+    if(u===o.v)return {why:`${N(u)} est la valeur la plus ${w==='max'?'basse':'haute'} : c'est le ${w==='max'?'minimum':'maximum'}. On cherche le ${W}.`,bad:[0,1]};
+    if(f.xs.includes(u)&&!f.ys.includes(u))return {why:`${N(u)} est une abscisse. Le ${W} est une hauteur : lis-la sur l'axe vertical.`,bad:[0]};
+    return {why:`Repère le point le ${w==='max'?'plus haut':'plus bas'} de la piste au-dessus de ${I(a,b)} : sa hauteur est le ${W}, son abscisse est l'endroit où il est atteint.`,bad:[0,1]};
+  };
+  return {f,mode:'slots',show:{scene:1,guides:1,band:whole?null:[a,b]},meta:{k:'ext',xs:f.xs,ys:f.ys,a,b,w},
+    prompt:`Quel est le ${W} de f sur ${I(a,b)}${whole?' (toute la piste)':''} ?`,tpl:`Sur ${I(a,b)}, le ${W} de f est {0} ; il est atteint en x = {1}.`,ans:[e.v,e.x],chips,check,
+    hint:`Le ${W} est ${N(e.v)}, atteint en x = ${N(e.x)}.`,ride:[a,e.x],
+    done:`Sur ${I(a,b)}, le <b>${W}</b> de f est ${N(e.v)}, atteint en x = ${N(e.x)}.`,tip:`Pour tout x de ${I(a,b)}, f(x) ${w==='max'?'≤':'≥'} ${N(e.v)}, et ${fx(e.x)} = ${N(e.v)}.`};
+}
+function cmpChoices(f,p,q,lab='f'){
+  const k=pieceOf(f,Math.min(p,q),Math.max(p,q)),s=psense(f,k),le=(p<q)===(s>0),P=`${lab}(${N(p)})`,Q=`${lab}(${N(q)})`,it=I(f.xs[k],f.xs[k+1]);
+  const why=`${N(p)} et ${N(q)} sont dans ${it}, où ${lab} est ${SW[s]} : ${s>0?'l\'ordre est conservé':'l\'ordre est inversé'}. Comme ${N(Math.min(p,q))} ≤ ${N(Math.max(p,q))}, on a ${lab}(${N(Math.min(p,q))}) ${s>0?'≤':'≥'} ${lab}(${N(Math.max(p,q))}).`;
+  return [C(`${P} ≤ ${Q}`,le,why),C(`${P} ≥ ${Q}`,!le,why),C(`On ne peut pas comparer ${P} et ${Q}`,false,`Si, on peut : ${N(p)} et ${N(q)} sont tous les deux dans ${it}, où ${lab} est ${SW[s]}.`)];
+}
+function duelPts(f,k,half){
+  const A=f.xs[k],B=f.xs[k+1];let p,q;
+  for(let t=0;t<100;t++){const st=half?.5:1;const m=Math.round((B-A)/st);const u=ri(0,m),v=ri(0,m);if(u===v)continue;p=A+u*st;q=A+v*st;if(half&&p%1===0&&q%1===0&&t<60)continue;break}
+  return [p,q];
+}
+function qDuel(i){
+  const np=ri(2,3),f=genF(np,{gmin:2,gmax:np===2?4:3,dmin:2,dmax:5}),n=f.xs.length;
+  let k=ri(0,n-2);if(i===1||i===3){const d=f.xs.slice(0,-1).map((_,j)=>j).filter(j=>psense(f,j)<0);k=pick(d)}
+  const [p,q]=duelPts(f,k,i>=3),s=psense(f,k),lo=Math.min(p,q),hi=Math.max(p,q);
+  const pc=f.xs.slice(0,-1).map((_,j)=>{const ok=f.xs[j]<=lo&&hi<=f.xs[j+1];
+    return C(I(f.xs[j],f.xs[j+1]),ok,ok?'':`${[p,q].filter(z=>z<f.xs[j]||z>f.xs[j+1]).map(N).join(' et ')} n'${[p,q].filter(z=>z<f.xs[j]||z>f.xs[j+1]).length>1?'appartiennent':'appartient'} pas à ${I(f.xs[j],f.xs[j+1])}.`)});
+  if(np===2)pc.push(C(I(f.xs[0],f.xs[2]),false,`Sur ${I(f.xs[0],f.xs[2])}, f change de sens : il faut un intervalle où f est croissante ou décroissante.`));
+  const cc=cmpChoices(f,p,q),le=(p<q)===(s>0);
+  return {f,mode:'choice',show:{table:1,reveal:1},cols:'two',meta:{k:'cmp',xs:f.xs,ys:f.ys,p,q},duel:[p,q],
+    steps:[{prompt:`Duel : compare ${fx(p)} et ${fx(q)}.<small>Étape 1 : dans quel intervalle du tableau se trouvent ${N(p)} et ${N(q)} ?</small>`,choices:pc},
+      {prompt:`Sur ${I(f.xs[k],f.xs[k+1])}, f est ${SW[s]} ${AR[s]}.<small>Étape 2 : que peut-on en déduire ?</small>`,choices:cc,cols:'one'}],
+    ride:[lo,hi],done:`${N(p)} et ${N(q)} sont dans ${I(f.xs[k],f.xs[k+1])} où f est ${SW[s]}, donc <b>${fx(p)} ${le?'≤':'≥'} ${fx(q)}</b>.`,
+    tip:s>0?`f croissante conserve l'ordre : le wagon le plus à droite est le plus haut.`:`f décroissante inverse l'ordre : le wagon le plus à droite est le plus bas.`};
+}
+function boundChoices(f,a,b){
+  const M=extOn(f,a,b,'max').v,m=extOn(f,a,b,'min').v,useMax=Math.random()<.5;
+  const out=useMax?[C(`f(x) ≤ ${N(M)}`,true),C(`f(x) ≥ ${N(M)}`,false,`${N(M)} est le maximum : f(x) est toujours plus petit ou égal, pas plus grand.`),
+      C(`f(x) ≤ ${N(m)}`,false,`${N(m)} est le minimum : f(x) peut dépasser ${N(m)} (il atteint ${N(M)}).`)]
+    :[C(`f(x) ≥ ${N(m)}`,true),C(`f(x) ≤ ${N(m)}`,false,`${N(m)} est le minimum : f(x) est toujours plus grand ou égal, pas plus petit.`),
+      C(`f(x) ≥ ${N(M)}`,false,`${N(M)} est le maximum : f(x) descend jusqu'à ${N(m)}, il n'est pas toujours plus grand que ${N(M)}.`)];
+  const inner=f.xs.filter(x=>x>a&&x<b).map(x=>fval(f,x)).filter(v=>v!==M&&v!==m);
+  if(inner.length){const v=inner[0];out.push(useMax?C(`f(x) ≤ ${N(v)}`,false,`f atteint ${N(M)} sur cet intervalle, et ${N(M)} > ${N(v)}.`):C(`f(x) ≥ ${N(v)}`,false,`f descend jusqu'à ${N(m)} sur cet intervalle, et ${N(m)} < ${N(v)}.`))}
+  return {choices:out,M,m,useMax};
+}
+function extQChoices(f,a,b,w,lab='f'){
+  const e=extOn(f,a,b,w),g=extOn(f,f.xs[0],f.xs.at(-1),w),o=extOn(f,a,b,w==='max'?'min':'max'),W=w==='max'?'maximum':'minimum';
+  const t=(v,x)=>`${N(v)}, atteint en x = ${N(x)}`;
+  const out=[C(t(e.v,e.x),true)],seen=new Set([t(e.v,e.x)]),add=(v,x,why)=>{const h=t(v,x);if(!seen.has(h)&&!(v===e.v&&x===e.x)){seen.add(h);out.push(C(h,false,why))}};
+  add(e.x,e.v,`Le ${W} est une valeur de ${lab}(x) (ligne du bas) ; il est atteint pour une abscisse (ligne des x). Les deux nombres sont inversés.`);
+  if(g.x<a||g.x>b)add(g.v,g.x,`x = ${N(g.x)} n'appartient pas à ${I(a,b)} : ce ${w==='max'?'sommet':'creux'} est hors de l'intervalle étudié.`);
+  add(o.v,o.x,`C'est le ${w==='max'?'minimum':'maximum'} sur ${I(a,b)}, pas le ${W}.`);
+  for(const x of shuffle(f.xs.filter(x=>x>=a&&x<=b)))add(fval(f,x),x,`${lab}(${N(x)}) = ${N(fval(f,x))}, mais il y a ${w==='max'?'plus haut':'plus bas'} sur ${I(a,b)}.`);
+  return out.slice(0,4);
+}
+function qMix(i){
+  const kind=['sub','ext','cmp','bound',pick(['sub','ext','cmp','bound'])][i],np=ri(3,4),f=genF(np,{gmin:2,gmax:3,dmin:2,dmax:5,xmax:7}),n=f.xs.length;
+  const base={f,mode:'choice',show:{table:1,reveal:1},cols:'one'};
+  if(kind==='sub'){const span=Math.random()<.45,[a,b]=subInterval(f,span,true),t=senseOn(f,a,b);
+    return {...base,meta:{k:'sens',xs:f.xs,ys:f.ys,a,b},steps:[{prompt:`Sur ${I(a,b)}, la fonction f est…`,choices:senseChoices(f,a,b,t)}],ride:[a,b],
+      done:`Sur ${I(a,b)}, f est <b>${SW[t]}</b>.`,tip:t===0?`L'intervalle contient un changement de sens.`:`${I(a,b)} est inclus dans un seul tronçon.`}}
+  if(kind==='ext'){const w=pick(['max','min']);let a,b;for(let t=0;t<60;t++){const j=ri(0,n-2),m=ri(j+1,n-1);a=f.xs[j];b=f.xs[m];const g=extOn(f,f.xs[0],f.xs.at(-1),w);if((g.x<a||g.x>b)||t>40)break}
+    const e=extOn(f,a,b,w),W=w==='max'?'maximum':'minimum';
+    return {...base,meta:{k:'ext',xs:f.xs,ys:f.ys,a,b,w},steps:[{prompt:`Quel est le ${W} de f sur ${I(a,b)} ?`,choices:extQChoices(f,a,b,w)}],ride:[a,e.x],
+      done:`Sur ${I(a,b)}, le ${W} de f est <b>${N(e.v)}</b>, atteint en x = ${N(e.x)}.`,tip:`On ne garde que les colonnes de ${N(a)} à ${N(b)}, puis on prend la valeur la plus ${w==='max'?'grande':'petite'}.`}}
+  if(kind==='cmp'){const k=ri(0,n-2),[p,q]=duelPts(f,k,true),s=psense(f,k),le=(p<q)===(s>0);
+    return {...base,meta:{k:'cmp',xs:f.xs,ys:f.ys,p,q},duel:[p,q],steps:[{prompt:`Compare ${fx(p)} et ${fx(q)}.`,choices:cmpChoices(f,p,q)}],ride:[Math.min(p,q),Math.max(p,q)],
+      done:`<b>${fx(p)} ${le?'≤':'≥'} ${fx(q)}</b> car f est ${SW[s]} sur ${I(f.xs[k],f.xs[k+1])}.`,tip:s>0?'Croissante : l\'ordre est conservé.':'Décroissante : l\'ordre est inversé.'}}
+  let a,b;{const j=ri(0,n-3),m=ri(j+2,n-1);a=f.xs[j];b=f.xs[m]}
+  const r=boundChoices(f,a,b);
+  return {...base,meta:{k:'bound',xs:f.xs,ys:f.ys,a,b},steps:[{prompt:`Pour tout réel x de ${I(a,b)}, on a :`,choices:r.choices}],ride:[a,b],
+    done:`Sur ${I(a,b)} : ${N(r.m)} ≤ f(x) ≤ ${N(r.M)} (minimum ${N(r.m)}, maximum ${N(r.M)}).`,tip:`Sur ${I(a,b)}, le minimum est ${N(r.m)} et le maximum ${N(r.M)} : la piste reste entre ces deux hauteurs.`};
+}
+function genQ(l,i){return [qSens,qItv,qBuild,qRead,qExt,qDuel,qMix][l](i)}
+
+/* =============== scène =============== */
+const svg=$('scene');let G=null,wagX=0,rideTok=0;
+function drawScene(){
+  const f=Q.f,sh=Q.show,wide=$('stage').clientWidth>=620,W=wide?960:520,H=wide?400:440;
+  const xlo=Math.min(f.xs[0],0)-1,xhi=Math.max(f.xs.at(-1),0)+1,ylo=Math.min(...f.ys,0)-1,yhi=Math.max(...f.ys,0)+1;
+  const L=wide?44:40,R=wide?26:16,T=wide?22:22,B=wide?36:38,sx=(W-L-R)/(xhi-xlo),sy=(H-T-B)/(yhi-ylo);
+  const X=x=>L+(x-xlo)*sx,Y=y=>T+(yhi-y)*sy,fs=wide?15:19;
+  G={X,Y,W,H,xlo,xhi,ylo,yhi,L,R,T,B,sx,sy,wide};
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  let s=`<defs><linearGradient id="mr-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#10255a"/><stop offset=".7" stop-color="#0a1836"/><stop offset="1" stop-color="#071226"/></linearGradient>
+  <radialGradient id="mr-moon" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#e8c766" stop-opacity=".35"/><stop offset="1" stop-color="#e8c766" stop-opacity="0"/></radialGradient>
+  <linearGradient id="mr-car" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a6b"/><stop offset="1" stop-color="#c2412d"/></linearGradient></defs>`;
+  s+=`<rect width="${W}" height="${H}" fill="url(#mr-sky)"/><circle cx="${W-70}" cy="52" r="70" fill="url(#mr-moon)"/><circle cx="${W-70}" cy="52" r="15" fill="#f3e3a8" opacity=".85"/>`;
+  let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  for(let k=0;k<38;k++){const x=rnd()*W,y=rnd()*H*.8,r=rnd()*1.3+.4;s+=`<circle class="${k%5?'':'twk'}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}" fill="#dfe7ff" opacity="${(.25+rnd()*.45).toFixed(2)}" style="animation-delay:${(rnd()*2.6).toFixed(2)}s"/>`}
+  // bande de l'intervalle
+  if(sh.band){const [a,b]=sh.band;s+=`<rect x="${X(a)}" y="${T-6}" width="${X(b)-X(a)}" height="${H-T-B+12}" fill="rgba(108,142,255,.16)" stroke="rgba(108,142,255,.55)" stroke-dasharray="5 5"/>`}
+  // quadrillage
+  for(let x=Math.ceil(xlo);x<=xhi;x++)s+=`<path d="M${X(x).toFixed(1)} ${T}V${H-B}" stroke="rgba(140,170,255,.11)"/>`;
+  for(let y=Math.ceil(ylo);y<=yhi;y++)s+=`<path d="M${L} ${Y(y).toFixed(1)}H${W-R}" stroke="rgba(140,170,255,.11)"/>`;
+  // poteaux de la piste
+  const x0=f.xs[0],x1=f.xs.at(-1);
+  for(let x=x0;x<=x1+1e-9;x+=.5)s+=`<path d="M${X(x).toFixed(1)} ${Y(fval(f,x)).toFixed(1)}V${H-B+8}" stroke="rgba(200,168,75,.16)" stroke-width="2"/>`;
+  // axes
+  s+=`<g stroke="rgba(225,233,255,.78)" stroke-width="1.6" fill="none"><path d="M${L-6} ${Y(0)}H${W-R+2}M${X(0)} ${H-B+6}V${T-8}"/><path d="M${W-R-6} ${Y(0)-5}l8 5l-8 5M${X(0)-5} ${T-2}l5 -8l5 8"/></g>`;
+  const lt=`font-family="Outfit,system-ui,sans-serif" font-size="${fs}" fill="#c9d6ff" stroke="#0a1836" stroke-width="4" paint-order="stroke" stroke-linejoin="round"`;
+  for(let x=Math.ceil(xlo);x<=xhi-1;x++){if(x===0)continue;const bold=sh.band&&(x===sh.band[0]||x===sh.band[1]);
+    s+=`<path d="M${X(x)} ${Y(0)-4}v8" stroke="rgba(225,233,255,.78)" stroke-width="1.5"/><text x="${X(x)}" y="${Y(0)+fs+5}" text-anchor="middle" ${lt}${bold?' font-weight="700" fill="#aebfff"':''}>${N(x)}</text>`}
+  for(let y=Math.ceil(ylo);y<=yhi-1;y++){if(y===0)continue;s+=`<path d="M${X(0)-4} ${Y(y)}h8" stroke="rgba(225,233,255,.78)" stroke-width="1.5"/><text x="${X(0)-8}" y="${Y(y)+fs*.35}" text-anchor="end" ${lt}>${N(y)}</text>`}
+  s+=`<text x="${X(0)-7}" y="${Y(0)+fs+4}" text-anchor="end" ${lt}>0</text>`;
+  s+=`<text x="${W-R-2}" y="${Y(0)-10}" text-anchor="end" ${lt} font-style="italic" font-weight="600">x</text><text x="${X(0)+10}" y="${T+8}" ${lt} font-style="italic" font-weight="600">y</text>`;
+  // repères des sommets
+  if(sh.guides)f.xs.forEach((x,k)=>{const y=f.ys[k];s+=`<path d="M${X(x)} ${Y(y)}V${Y(0)}M${X(x)} ${Y(y)}H${X(0)}" stroke="rgba(232,199,102,.5)" stroke-width="1.4" stroke-dasharray="4 4"/>`});
+  // piste
+  let d='';for(let k=0;k<=240;k++){const x=x0+(x1-x0)*k/240;d+=(k?'L':'M')+X(x).toFixed(1)+' '+Y(fval(f,x)).toFixed(1)}
+  s+=`<path d="${d}" fill="none" stroke="#050b18" stroke-width="13" stroke-linejoin="round" stroke-linecap="round"/>`;
+  s+=`<path d="${d}" fill="none" stroke="#b08a3a" stroke-width="11" stroke-dasharray="2.5 9"/>`;
+  if(sh.band){const [a,b]=sh.band;let e='';for(let k=0;k<=80;k++){const x=a+(b-a)*k/80;e+=(k?'L':'M')+X(x).toFixed(1)+' '+Y(fval(f,x)).toFixed(1)}
+    s+=`<path d="${e}" fill="none" stroke="#6c8eff" stroke-width="9" stroke-linecap="round" opacity=".85"/>`}
+  s+=`<path d="${d}" fill="none" stroke="#e3eaff" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round"/>`;
+  f.xs.forEach((x,k)=>{s+=`<circle cx="${X(x).toFixed(1)}" cy="${Y(f.ys[k]).toFixed(1)}" r="${wide?5.5:7}" fill="#e8c766" stroke="#050b18" stroke-width="2"/>`});
+  // duel : deux fanions
+  if(Q.duel&&solved)Q.duel.forEach((p,j)=>{const px=X(p),py=Y(fval(f,p));s+=`<g transform="translate(${px.toFixed(1)} ${py.toFixed(1)})"><path d="M0 0V-34" stroke="#f0f4ff" stroke-width="2"/><path d="M0 -34h${j?-22:22}l${j?6:-6} 6l${j?-6:6} 6h${j?22:-22}z" fill="${j?'#8ea6ff':'#e8c766'}"/><text x="${j?-12:12}" y="${-24}" font-size="${wide?11:14}" text-anchor="middle" font-family="Outfit,sans-serif" font-weight="700" fill="#071022">${j?'B':'A'}</text></g>`});
+  s+=`<g id="wag" class="wag">${wagon()}</g>`;
+  svg.innerHTML=s;
+  svg.querySelector('#wag').addEventListener('pointerdown',dragStart);
+  placeWagon(wagX);
+}
+function wagon(){
+  const sc=G&&!G.wide?1.7:1.35;
+  const mk=(window.SigmaKit?SigmaKit.maki('neutre'):'').replace('viewBox="0 0 112 112"','x="-17" y="-47" width="34" height="28" viewBox="26 22 60 50"');
+  return `<g transform="scale(${sc})"><rect x="-34" y="-40" width="68" height="56" fill="transparent"/>${mk}
+  <path d="M-25 -6 L-29 -27 Q-29 -30 -26 -30 H26 Q29 -30 29 -27 L25 -6 Z" fill="url(#mr-car)" stroke="#5a1b10" stroke-width="1.6"/>
+  <path d="M-27 -23 H27" stroke="#e8c766" stroke-width="2.4"/><circle cx="0" cy="-15" r="4" fill="#e8c766" stroke="#5a1b10"/>
+  <circle cx="-15" cy="-4" r="5" fill="#1b2440" stroke="#c9d6ff" stroke-width="1.6"/><circle cx="15" cy="-4" r="5" fill="#1b2440" stroke="#c9d6ff" stroke-width="1.6"/></g>`;
+}
+function placeWagon(x){
+  if(!G)return;const f=Q.f;x=Math.min(f.xs.at(-1),Math.max(f.xs[0],x));wagX=x;
+  const h=.02,a=Math.max(f.xs[0],x-h),b=Math.min(f.xs.at(-1),x+h);
+  const ang=Math.atan2(G.Y(fval(f,b))-G.Y(fval(f,a)),G.X(b)-G.X(a))*180/Math.PI;
+  const w=svg.querySelector('#wag');if(w)w.setAttribute('transform',`translate(${G.X(x).toFixed(1)} ${G.Y(fval(f,x)).toFixed(1)}) rotate(${ang.toFixed(1)}) translate(0 -3)`);
+}
+function readout(x){
+  const f=Q.f,k=f.xs.findIndex(z=>Math.abs(z-x)<1e-6);
+  if(k>=0){const n=f.xs.length,kind=k===0?'départ':k===n-1?'arrivée':(f.ys[k]>f.ys[k-1]?'sommet':'creux');
+    $('hud').innerHTML=`x = <b>${N(x)}</b> · f(x) = <b>${N(f.ys[k])}</b> · <span class="tpw">${kind}${kind==='sommet'||kind==='creux'?' : la piste change de sens':''}</span>`;return}
+  const s=senseOn(f,x-1e-6,x+1e-6);
+  $('hud').innerHTML=`x = <b>${N(Math.round(x*10)/10)}</b> · f(x) ≈ <b>${N(Math.round(fval(f,x)*10)/10)}</b> · <span class="${s>0?'upw':'dnw'}">${s>0?'↗ ça monte':'↘ ça descend'}</span>`;
+}
+function svgX(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());return G.xlo+(q.x-G.L)/G.sx}
+let dragging=false;
+function dragStart(e){e.preventDefault();rideTok++;stopTone();dragging=true;try{svg.setPointerCapture(e.pointerId)}catch(_){}dragMove(e)}
+function dragMove(e){if(!dragging)return;let x=svgX(e);x=Math.round(x*10)/10;for(const z of Q.f.xs)if(Math.abs(z-x)<.16)x=z;placeWagon(x);readout(wagX)}
+svg.addEventListener('pointermove',dragMove);
+['pointerup','pointercancel'].forEach(t=>svg.addEventListener(t,e=>{dragging=false;try{svg.releasePointerCapture(e.pointerId)}catch(_){}}));
+svg.addEventListener('touchstart',e=>{if(e.target.closest&&e.target.closest('.wag'))e.preventDefault()},{passive:false});
+function ride(a,b){
+  const tok=++rideTok,f=Q.f;
+  if(reduceM){placeWagon(b);readout(b);return Promise.resolve()}
+  const dur=Math.min(2600,Math.max(700,Math.abs(b-a)*330)),t0=performance.now(),lo=Math.min(...f.ys),hi=Math.max(...f.ys);
+  startTone();
+  return new Promise(res=>{function st(t){if(tok!==rideTok){res();return}
+    const u=Math.min(1,(t-t0)/dur),e=u<.5?2*u*u:1-2*(1-u)*(1-u),x=a+(b-a)*e;placeWagon(x);readout(u>=1?b:x);toneAt((fval(f,x)-lo)/(hi-lo||1));
+    if(u<1)requestAnimationFrame(st);else{stopTone();res()}}requestAnimationFrame(st)});
+}
+$('ride').onclick=()=>{const f=Q.f;const a=wagX>=f.xs.at(-1)-1e-9?f.xs[0]:wagX;ride(a,f.xs.at(-1))};
+
+/* =============== sons =============== */
+let actx=null,snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type='sine',w=0){const a=ac();if(!a)return;const t=a.currentTime+w,o=a.createOscillator(),g=a.createGain();
+  o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0008,t+d);
+  o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const sPop=()=>{if(snd){tone(660,.12,.05,'triangle');tone(990,.08,.025,'sine',.03)}};
+const sSoft=()=>{if(snd){tone(392,.22,.05,'sine');tone(330,.3,.05,'sine',.12)}};
+const sWin=()=>{if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.45,.06,'triangle',i*.11))};
+let rideO=null,rideG=null;
+function startTone(){if(!snd)return;const a=ac();if(!a)return;stopTone();rideO=a.createOscillator();rideG=a.createGain();rideO.type='triangle';rideO.frequency.value=300;
+  rideG.gain.setValueAtTime(0,a.currentTime);rideG.gain.linearRampToValueAtTime(.022,a.currentTime+.08);rideO.connect(rideG).connect(a.destination);rideO.start()}
+function toneAt(u){if(rideO&&actx)rideO.frequency.setTargetAtTime(220*Math.pow(2,u*1.5),actx.currentTime,.03)}
+function stopTone(){if(rideO&&actx){const t=actx.currentTime;try{rideG.gain.setTargetAtTime(0,t,.04);rideO.stop(t+.2)}catch(_){}}rideO=null}
+
+/* =============== état et rendu des questions =============== */
+let lvl=0,run=[],Q=null,tries=0,solved=false,step=0,errs=0,slotV=[],slotA=0,BD=null;
+const resetRun=()=>{run=[]};
+function starsOf(i){try{const g=SigmaKit.passport().games['montagnes-russes'];return g&&g.levels[i+1]||0}catch(e){return 0}}
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const say=t=>{$('msg').innerHTML=t};
+function fbKo(title,html){const f=$('fb');f.innerHTML=`<div class="fbm"><span class="mk">${MAKI('pense')}</span><div><b class="t">${title}</b>${html}</div></div>`;f.hidden=false;sSoft()}
+const KOT=['Pas tout à fait…','Presque !','Regardons ensemble','Bonne tentative !'];
+let carnet=[];
+function logEmpty(){$('log').innerHTML='<div class="now">Tes conclusions s\'écriront ici, question après question.</div>'}
+function log(h,cls='ok'){carnet.push(`<div class="${cls} pop">${h}</div>`);if(carnet.length>6)carnet.shift();$('log').innerHTML=carnet.join('')}
+function dots(){$('dots').innerHTML=Array.from({length:PER},(_,i)=>`<span class="${i<run.length?(run[i]?'g':'r'):i===run.length?'c':''}"></span>`).join('')+`<em>${run.length} / ${PER}</em>`}
+function zones(z){for(const id of ['z-ch','z-sl','z-bd'])$(id).hidden=id!==z}
+
+function newQ(){
+  if(run.length>=PER)resetRun();
+  Q=genQ(lvl,run.length);tries=0;errs=0;solved=false;step=0;rideTok++;stopTone();
+  $('fb').hidden=true;$('win').hidden=true;say('');
+  const sh=Q.show;
+  $('trackbox').hidden=!sh.scene;
+  $('tvbox').hidden=!sh.table;
+  if(sh.table){$('tv').innerHTML=tvSVG(Q.f.xs,Q.f.ys,{scale:1.35});$('tvcap').textContent='Tableau de variations de f'}
+  wagX=Q.f.xs[0];
+  if(sh.scene){drawScene();$('hud').textContent='Glisse le wagonnet le long de la piste, ou fais-le rouler.'}
+  if(Q.mode==='choice')showStep();
+  else if(Q.mode==='slots')showSlots();
+  else showBuild();
+  dots();
+}
+/* ---- QCM (une ou deux étapes) ---- */
+function showStep(){
+  const S=Q.steps[step];$('q').innerHTML=S.prompt;zones('z-ch');
+  const box=$('z-ch'),cols=S.cols||Q.cols;box.className='opts'+(cols==='one'?' one':'');
+  const order=Q.meta.k==='sens'&&lvl===0?S.choices.map((_,j)=>j):shuffle(S.choices.map((_,j)=>j));
+  box.innerHTML=order.map(j=>`<button class="opt" type="button" data-j="${j}">${S.choices[j].h}</button>`).join('');
+  say(lvl===0?'Regarde la partie surlignée de la piste, de gauche à droite.':'');
+}
+$('z-ch').addEventListener('click',e=>{
+  const b=e.target.closest('.opt');if(!b||b.disabled||solved)return;
+  const S=Q.steps[step],c=S.choices[+b.dataset.j];
+  if(c.ok){b.classList.add('yes');$('fb').hidden=true;sPop();
+    if(step<Q.steps.length-1){step++;setTimeout(showStep,reduceM?0:450);return}
+    $('z-ch').querySelectorAll('.opt').forEach(x=>x.disabled=true);win();return}
+  b.classList.add('no');b.disabled=true;tries++;errs++;
+  fbKo(KOT[(errs-1)%KOT.length],`<p>${c.why}</p>`);
+  if(Q.show.scene&&Q.show.band&&lvl===0){ride(Q.show.band[0],Q.show.band[1])}
+  say('Lis l\'explication, puis choisis une autre réponse.');
+});
+/* ---- phrases à trous (niveaux 2 et 5) ---- */
+function showSlots(){
+  zones('z-sl');$('q').innerHTML=Q.prompt;slotV=Q.ans.map(()=>null);slotA=0;renderSlots();
+  say(lvl===1?'Touche une case, puis un nombre.':'Touche une case, puis un nombre. Les pointillés dorés t\'aident à lire les coordonnées.');
+}
+function renderSlots(bad=[]){
+  let k=0;$('sent').innerHTML=Q.tpl.replace(/\{(\d)\}/g,(_,n)=>{n=+n;const v=slotV[n];
+    return `<button type="button" class="slot${v!==null?' full':''}${n===slotA&&!solved?' act':''}${bad.includes(n)?' bad':''}${solved?' good':''}" data-n="${n}" aria-label="Case ${n+1}${v!==null?' : '+N(v):''}">${v===null?'?':N(v)}</button>`});
+  $('chips').innerHTML=`<span class="cl">Nombres lus sur les axes</span>`+Q.chips.map(c=>`<button type="button" data-v="${c}"${solved?' disabled':''}>${N(c)}</button>`).join('');
+  $('sval').disabled=solved;$('sclr').disabled=solved;
+}
+$('sent').addEventListener('click',e=>{const b=e.target.closest('.slot');if(!b||solved)return;slotA=+b.dataset.n;renderSlots()});
+$('chips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||solved)return;sPop();slotV[slotA]=+b.dataset.v;
+  const nx=slotV.findIndex(v=>v===null);slotA=nx>=0?nx:slotA;renderSlots()});
+$('sclr').onclick=()=>{slotV=Q.ans.map(()=>null);slotA=0;renderSlots()};
+$('sval').onclick=()=>{
+  if(slotV.some(v=>v===null)){say('Complète toutes les cases avant de valider.');return}
+  const r=Q.check(slotV);
+  if(r.ok){solved=true;renderSlots();win();return}
+  tries++;errs++;renderSlots(r.bad||[]);
+  fbKo(KOT[(errs-1)%KOT.length],`<p>${r.why}</p>${errs>=2?`<p><b>Coup de pouce :</b> ${Q.hint}</p>`:''}`);
+  say('Corrige les cases entourées en rouge, puis valide.');
+};
+/* ---- constructeur de tableau (niveau 3) ---- */
+function showBuild(){
+  zones('z-bd');$('q').innerHTML=Q.prompt+'<small>Touche une flèche pour la tourner, une case pour y placer une valeur.</small>';
+  const n=Q.f.xs.length;BD={arr:Array(n-1).fill(0),val:Array(n).fill(null),sel:0};renderBuild();
+  say('Les abscisses des sommets, des creux et des extrémités sont déjà placées.');
+}
+function renderBuild(badA=[],badV=[]){
+  const f=Q.f,n=f.xs.length,box=$('tvb'),done=solved;
+  box.style.gridTemplateColumns=`52px repeat(${2*n-1},minmax(0,1fr))`;box.style.gridTemplateRows='46px 52px 52px';
+  let h=`<div class="lab xr" style="grid-row:1;grid-column:1">x</div><div class="lab" style="grid-row:2/4;grid-column:1">f(x)</div>`;
+  for(let c=2;c<=2*n;c++)h+=`<div class="xr" style="grid-row:1;grid-column:${c}">${c%2===0?N(f.xs[c/2-1]):''}</div>`;
+  for(let k=0;k<n;k++){
+    const ar=BD.arr,top=k===0?ar[0]===-1:k===n-1?ar[n-2]===1:(ar[k-1]===1||(ar[k-1]===0&&ar[k]===-1)),bottom=k===0?ar[0]===1:k===n-1?ar[n-2]===-1:(ar[k-1]===-1||(ar[k-1]===0&&ar[k]===1));
+    const row=top?'2':bottom?'3':'2/4',v=BD.val[k];
+    h+=`<button type="button" class="vc${v!==null?' full':''}${BD.sel===k&&!done?' act':''}${badV.includes(k)?' bad':''}${done?' good':''}" data-k="${k}" style="grid-row:${row};grid-column:${2+2*k}" aria-label="Valeur de f(${N(f.xs[k])})${v!==null?' : '+N(v):''}">${v===null?'?':N(v)}</button>`;
+  }
+  for(let k=0;k<n-1;k++){const a=BD.arr[k];
+    h+=`<button type="button" class="ac${a?' full':''}${badA.includes(k)?' bad':''}" data-a="${k}" style="grid-row:2/4;grid-column:${3+2*k}" aria-label="Flèche entre ${N(f.xs[k])} et ${N(f.xs[k+1])} : ${a>0?'montante':a<0?'descendante':'à choisir'}">${a?`<svg viewBox="0 0 40 84" preserveAspectRatio="none"><path d="M6 ${a>0?74:10}L32 ${a>0?14:70}" stroke="#8ea6ff" stroke-width="2.6" stroke-linecap="round" vector-effect="non-scaling-stroke"/><path d="M${a>0?'26 13 L34 10 L33 19':'26 71 L34 74 L33 65'}" fill="none" stroke="#8ea6ff" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>`:'↗ ↘'}</button>`}
+  box.innerHTML=h;
+  const lo=Math.min(...f.ys,0)-1,hi=Math.max(...f.ys,0)+1;let c='';for(let v=lo;v<=hi;v++)c+=`<button type="button" data-v="${v}"${done?' disabled':''}>${N(v)}</button>`;
+  $('bchips').innerHTML=`<span class="cl">Valeur de f(${N(f.xs[BD.sel])})</span>`+c;$('bval').disabled=done;
+}
+$('tvb').addEventListener('click',e=>{if(solved)return;const a=e.target.closest('[data-a]'),v=e.target.closest('[data-k]');
+  if(a){const k=+a.dataset.a;BD.arr[k]=BD.arr[k]===1?-1:1;sPop();renderBuild()}else if(v){BD.sel=+v.dataset.k;renderBuild()}});
+$('bchips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||solved)return;BD.val[BD.sel]=+b.dataset.v;sPop();
+  const nx=BD.val.findIndex(z=>z===null);if(nx>=0)BD.sel=nx;renderBuild()});
+$('bval').onclick=()=>{
+  const f=Q.f,n=f.xs.length;
+  if(BD.arr.some(a=>!a)||BD.val.some(v=>v===null)){say('Place toutes les flèches et toutes les valeurs avant de valider.');return}
+  const badA=BD.arr.map((a,k)=>a!==psense(f,k)?k:-1).filter(k=>k>=0),badV=BD.val.map((v,k)=>v!==f.ys[k]?k:-1).filter(k=>k>=0);
+  if(!badA.length&&!badV.length){solved=true;renderBuild();win();return}
+  tries++;errs++;renderBuild(badA,badV);
+  let p='';
+  if(badA.length){const k=badA[0];p+=`<p>Entre x = ${N(f.xs[k])} et x = ${N(f.xs[k+1])}, le wagonnet ${VERB[psense(f,k)]} : la flèche doit ${psense(f,k)>0?'monter ↗':'descendre ↘'}.</p>`}
+  if(badV.length){const k=badV[0],v=BD.val[k];
+    p+=v===f.xs[k]?`<p>Dans la case sous ${N(f.xs[k])}, on écrit la hauteur f(${N(f.xs[k])}), pas l'abscisse ${N(f.xs[k])}.</p>`
+      :`<p>Relis f(${N(f.xs[k])}) : pars de x = ${N(f.xs[k])} sur l'axe horizontal, suis les pointillés jusqu'à la piste, puis lis la hauteur sur l'axe vertical.${errs>=2?` On trouve f(${N(f.xs[k])}) = ${N(f.ys[k])}.`:''}</p>`}
+  fbKo(KOT[(errs-1)%KOT.length],p);say('Les cases entourées en rouge sont à corriger.');
+};
+
+/* ---------- réussite ---------- */
+function win(){
+  solved=true;$('fb').hidden=true;sWin();
+  if(run.length<PER)run.push(tries===0);
+  const lvlDone=run.length>=PER,last=lvl>=LV.length-1;
+  $('winx').textContent=tries===0?pick(['Bravo !','Exactement !','Bien vu !','Parfait !']):pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(tries===0?'joie':'neutre');
+  $('winp').innerHTML=Q.tip;
+  $('next').textContent=lvlDone?(last?'Rejouer ce niveau':'Niveau suivant →'):'Question suivante →';
+  $('next').dataset.go=lvlDone?(last?'replay':'next'):'';
+  $('replay').hidden=!lvlDone||last;
+  $('win').hidden=false;say('');
+  log(Q.done);
+  if(Q.show.reveal){$('trackbox').hidden=false;drawScene();$('hud').textContent='Voici la piste qui correspond au tableau.'}
+  else if(Q.duel)drawScene();
+  if(Q.ride&&(Q.show.scene||Q.show.reveal)){wagX=Q.ride[0];placeWagon(wagX);setTimeout(()=>ride(Q.ride[0],Q.ride[1]),reduceM?0:250)}
+  dots();renderLv();
+  if(lvlDone&&window.SigmaKit){const L=lvl+1,sc=run.filter(Boolean).length;
+    setTimeout(()=>SigmaKit.levelComplete({level:L,score:sc,total:PER}).then(v=>{renderLv();
+      if(lvl+1!==L)return;if(v==='next')goNext();else if(v==='replay')replayLvl()}),reduceM?0:900)}
+}
+function goNext(){if(lvl<LV.length-1)lvl++;resetRun();carnet=[];logEmpty();renderLv();newQ();top_()}
+function replayLvl(){resetRun();renderLv();newQ();top_()}
+function top_(){const t=$('trackbox').hidden?$('q'):$('stage');t.scrollIntoView({block:'nearest',behavior:reduceM?'auto':'smooth'})}
+$('next').onclick=()=>{const g=$('next').dataset.go;if(g==='next')goNext();else if(g==='replay')replayLvl();else{newQ();top_()}};
+$('replay').onclick=replayLvl;
+
+/* ---------- niveaux ---------- */
+function renderLv(){
+  $('lv').innerHTML=LV.map((l,i)=>`<button type="button" data-l="${i}" aria-pressed="${i===lvl}">${l.t}${starsOf(i)?`<span class="ck" aria-label="${starsOf(i)} étoile${starsOf(i)>1?'s':''}">${'★'.repeat(starsOf(i))}</span>`:''}</button>`).join('')+
+    `<button type="button" class="snd" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`;
+  $('lvdesc').textContent=LV[lvl].d;$('rule').innerHTML=LV[lvl].rule;$('lvname').textContent=`· niveau ${lvl+1}`;
+}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('sigma-fanfare',snd?'1':'0')}catch(_){}renderLv();if(snd)sPop();return}
+  lvl=+b.dataset.l;resetRun();carnet=[];logEmpty();renderLv();newQ()});
+let rz=0;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(Q&&!$('trackbox').hidden)drawScene()},120)});
+
+/* =============== Épreuves finales =============== */
+const FIN=(()=>{
+  const QC=(level,prompt,choices,explain,meta)=>{if(typeof choices[0]==='object')choices=[...choices.filter(c=>c.ok),...choices.filter(c=>!c.ok)];return {type:'qcm',level,prompt,choices:choices.map(c=>typeof c==='string'?c:c.h),answer:0,explain,meta}};
+  const TR=(level,prompt,blanks,explain,meta)=>({type:'trous',level,prompt,blanks,explain,meta});
+  const W=s=>s===1?['croissante']:['décroissante','decroissante'];
+  const tab=f=>tvSVG(f.xs,f.ys);
+  const dom=f=>I(f.xs[0],f.xs.at(-1));
+  const intro=f=>`${tab(f)}Voici le tableau de variations d'une fonction f définie sur ${dom(f)}.`;
+  const F2=o=>genF(2,{gmin:2,gmax:4,dmin:2,dmax:5,...o}),F3=o=>genF(3,{gmin:2,gmax:3,dmin:2,dmax:5,...o}),F4=o=>genF(4,{gmin:2,gmax:3,dmin:2,dmax:5,xmax:7,...o});
+  const fmtAff=(m,p)=>`${m===1?'':m===-1?MINUS:N(m)}x${p>0?' + '+N(p):p<0?' '+MINUS+' '+N(-p):''}`;
+  const desc=(f,lab='f')=>f.xs.slice(0,-1).map((x,k)=>`${SW[psense(f,k)]} sur ${I(x,f.xs[k+1])}`).join(', ').replace(/, ([^,]*)$/,' et $1');
+  const vals=(f,lab='f')=>f.xs.map((x,k)=>`${lab}(${N(x)}) = ${N(f.ys[k])}`).join(', ').replace(/, ([^,]*)$/,' et $1');
+  const tierPick=(qg,tg)=>{const q=shuffle(qg).slice(0,6).map(g=>g()),t=shuffle(tg).slice(0,4).map(g=>g());return shuffle([...q,...t])};
+  const st=(m,n)=>({...m,steps:n});
+
+  const subQ=(f,half,steps)=>{const [a,b]=subInterval(f,Math.random()<.45,half),t=senseOn(f,a,b),k=pieceOf(f,a,b);
+    return QC(4,`${intro(f)} Sur ${I(a,b)}, la fonction f est :`,[SW[t],...[1,-1,0].filter(z=>z!==t).map(z=>SW[z])],
+      t===0?`${I(a,b)} contient x = ${f.xs.filter(x=>x>a&&x<b).map(N).join(' et x = ')}, où f change de sens : elle n'est ni croissante ni décroissante sur cet intervalle.`
+        :`${I(a,b)} est inclus dans ${I(f.xs[k],f.xs[k+1])}, où f est ${SW[t]} : elle l'est donc aussi sur ${I(a,b)}.`,st({k:'sens',xs:f.xs,ys:f.ys,a,b},steps))};
+  /* ---------------- BRONZE ---------------- */
+  const bq=[
+    ()=>{const s=pick([1,-1]),a=ri(-5,1),b=a+ri(2,5),pos=s>0?'sous':'au-dessus de';
+      return QC(1,`La courbe d'une fonction f est ${pos} l'axe des abscisses sur ${I(a,b)} et, lue de gauche à droite, elle ${s>0?'monte':'descend'}. Sur ${I(a,b)}, la fonction f est :`,
+        [SW[s],SW[-s],SW[0]],`On lit le sens de variation de gauche à droite : la courbe ${s>0?'monte':'descend'}, donc f est ${SW[s]} sur ${I(a,b)}. Être ${s>0?'sous':'au-dessus de'} l'axe renseigne sur le signe de f(x), pas sur son sens de variation.`,st({k:'word',s,a,b},1))},
+    ()=>{const s=pick([1,-1]);return QC(2,`Dire que f est ${SW[s]} sur un intervalle I signifie que, pour tous réels a et b de I tels que a ≤ b :`,
+        s>0?['f(a) ≤ f(b)','f(a) ≥ f(b)','f(a) = f(b)','a ≤ f(a)']:['f(a) ≥ f(b)','f(a) ≤ f(b)','f(a) = f(b)','a ≥ f(a)'],
+        s>0?'Croissante : les images sont rangées dans le même ordre que les nombres, f(a) ≤ f(b).':'Décroissante : les images sont rangées dans l\'ordre inverse des nombres, f(a) ≥ f(b).',st({k:'def',s},1))},
+    ()=>{const f=F2(),s=pick([1,-1]),r=itvChoices(f,s);return QC(2,`${intro(f)} Sur quel intervalle f est-elle ${SW[s]} ?`,r.choices,`La flèche ${AR[s]} va de x = ${N(r.A)} à x = ${N(r.B)} : f est ${SW[s]} sur ${I(r.A,r.B)}. Les bornes se lisent sur la ligne des x.`,st({k:'itv',xs:f.xs,ys:f.ys,s},1))},
+    ()=>{const f=F2(),k=ri(0,2);return QC(3,`${intro(f)} Que vaut ${fx(f.xs[k])} ?`,valChoices(f,k),`Dans la colonne de x = ${N(f.xs[k])}, la ligne de f(x) indique ${N(f.ys[k])} : ${fx(f.xs[k])} = ${N(f.ys[k])}.`,st({k:'val',xs:f.xs,ys:f.ys,x:f.xs[k]},1))},
+    ()=>{const f=F2(),k=ri(0,1),a=f.xs[k],b=f.xs[k+1],s=psense(f,k);return QC(4,`${intro(f)} Sur ${I(a,b)}, la fonction f est :`,[SW[s],SW[-s],SW[0]],`Entre ${N(a)} et ${N(b)}, la flèche ${s>0?'monte':'descend'} : f est ${SW[s]} sur ${I(a,b)}.`,st({k:'sens',xs:f.xs,ys:f.ys,a,b},1))},
+    ()=>{const f=F2(),w=pick(['max','min']),e=extOn(f,f.xs[0],f.xs[2],w),Wd=w==='max'?'maximum':'minimum';
+      const ch=[N(e.v)],seen=new Set([e.v]);if(!seen.has(e.x)){seen.add(e.x);ch.push(N(e.x))}for(const y of f.ys)if(!seen.has(y)){seen.add(y);ch.push(N(y))}
+      return QC(5,`${intro(f)} Quel est le ${Wd} de f sur ${dom(f)} ?`,ch.slice(0,4),`La plus ${w==='max'?'grande':'petite'} valeur de la ligne de f(x) est ${N(e.v)} (atteinte en x = ${N(e.x)}) : le ${Wd} est ${N(e.v)}. C'est une valeur de f(x), pas une abscisse.`,st({k:'ext',xs:f.xs,ys:f.ys,a:f.xs[0],b:f.xs[2],w,form:'v'},1))},
+    ()=>{const f=F2(),k=ri(0,1),[p,q]=duelPts(f,k,false),ch=cmpChoices(f,p,q);return QC(6,`${intro(f)} Que peut-on dire de ${fx(p)} et ${fx(q)} ?`,ch,ch[0].why,st({k:'cmp',xs:f.xs,ys:f.ys,p,q},1))}
+  ];
+  const bt=[
+    ()=>{const s=pick([1,-1]),a=ri(-4,1),b=a+ri(2,5);return TR(1,`Sur ${I(a,b)}, quand x augmente, f(x) ${s>0?'augmente':'diminue'}. La fonction f est donc {0} sur ${I(a,b)}.`,[{answers:W(s),size:9}],`Quand x augmente, f(x) ${s>0?'augmente : f est croissante':'diminue : f est décroissante'}.`,st({k:'word',s,a,b},1))},
+    ()=>{const f=F2(),k=ri(0,1),s=psense(f,k);return TR(2,`${intro(f)}<br>f est ${SW[s]} sur [{0} ; {1}].`,[{answers:numA(f.xs[k]),size:3},{answers:numA(f.xs[k+1]),size:3}],`La flèche ${AR[s]} va de x = ${N(f.xs[k])} à x = ${N(f.xs[k+1])}.`,st({k:'itv',xs:f.xs,ys:f.ys,s},1))},
+    ()=>{const f=F2(),k=ri(0,2);return TR(3,`${intro(f)}<br>${fx(f.xs[k])} = {0}`,[{answers:numA(f.ys[k]),size:3}],`Sous x = ${N(f.xs[k])}, on lit ${N(f.ys[k])}.`,st({k:'val',xs:f.xs,ys:f.ys,x:f.xs[k]},1))},
+    ()=>{const f=F2(),k=ri(0,1),s=psense(f,k);return TR(4,`${intro(f)}<br>Sur ${I(f.xs[k],f.xs[k+1])}, f est {0}.`,[{answers:W(s),size:9}],`La flèche ${s>0?'monte':'descend'} entre ${N(f.xs[k])} et ${N(f.xs[k+1])}.`,st({k:'sens',xs:f.xs,ys:f.ys,a:f.xs[k],b:f.xs[k+1]},1))},
+    ()=>{const f=F2(),w=pick(['max','min']),e=extOn(f,f.xs[0],f.xs[2],w);return TR(5,`${intro(f)}<br>Le ${w==='max'?'maximum':'minimum'} de f sur ${dom(f)} est {0}.`,[{answers:numA(e.v),size:3}],`La plus ${w==='max'?'grande':'petite'} valeur de f(x) est ${N(e.v)}, atteinte en x = ${N(e.x)}.`,st({k:'ext',xs:f.xs,ys:f.ys,a:f.xs[0],b:f.xs[2],w,form:'v'},1))}
+  ];
+  /* ---------------- ARGENT ---------------- */
+  const aq=[
+    ()=>{const f=F3(),s=psense(f,1),r=itvChoices(f,s);return QC(2,`${intro(f)} Sur quel intervalle f est-elle ${SW[s]} ?`,r.choices,`Seule la flèche entre ${N(r.A)} et ${N(r.B)} ${s>0?'monte':'descend'} : f est ${SW[s]} sur ${I(r.A,r.B)}. Les bornes sont des abscisses.`,st({k:'itv',xs:f.xs,ys:f.ys,s},1))},
+    ()=>subQ(F3(),false,2),
+    ()=>{const f=F3(),w=pick(['max','min']);let a,b;for(let t=0;t<60;t++){const j=ri(0,2),m=ri(j+1,3);if(m-j===3)continue;a=f.xs[j];b=f.xs[m];const g=extOn(f,f.xs[0],f.xs[3],w);if(g.x<a||g.x>b||t>40)break}
+      const e=extOn(f,a,b,w);return QC(5,`${intro(f)} Sur ${I(a,b)}, le ${w==='max'?'maximum':'minimum'} de f est :`,extQChoices(f,a,b,w),`On ne garde que les colonnes de ${N(a)} à ${N(b)} : la valeur la plus ${w==='max'?'grande':'petite'} est ${N(e.v)}, atteinte en x = ${N(e.x)}.`,st({k:'ext',xs:f.xs,ys:f.ys,a,b,w,form:'vx'},2))},
+    ()=>{const f=F3(),d=[0,1,2].filter(j=>psense(f,j)<0),k=pick(d),[p,q]=duelPts(f,k,true),ch=cmpChoices(f,p,q);return QC(6,`${intro(f)} Que peut-on dire de ${fx(p)} et ${fx(q)} ?`,ch,ch[0].why,st({k:'cmp',xs:f.xs,ys:f.ys,p,q},2))},
+    ()=>{const f=F3(),j=ri(0,1),m=ri(j+2,3),a=f.xs[j],b=f.xs[m],r=boundChoices(f,a,b);return QC(7,`${intro(f)} Pour tout réel x de ${I(a,b)}, on a :`,r.choices,`Sur ${I(a,b)}, le minimum de f est ${N(r.m)} et son maximum ${N(r.M)} : ${N(r.m)} ≤ f(x) ≤ ${N(r.M)}.`,st({k:'bound',xs:f.xs,ys:f.ys,a,b},2))},
+    ()=>{const s=pick([1,-1]);return QC(6,`f est ${SW[s]} sur [0 ; 10]. On sait que 2 ≤ 7. Que peut-on en déduire ?`,s>0?['f(2) ≤ f(7)','f(2) ≥ f(7)','2 ≤ f(7)','On ne peut rien en déduire']:['f(2) ≥ f(7)','f(2) ≤ f(7)','2 ≥ f(7)','On ne peut rien en déduire'],
+      s>0?'f croissante conserve l\'ordre : 2 ≤ 7 donne f(2) ≤ f(7).':'f décroissante inverse l\'ordre : 2 ≤ 7 donne f(2) ≥ f(7).',st({k:'def2',s},1))},
+    ()=>{const f=F3(),k=ri(0,3);return QC(3,`${intro(f)} Que vaut ${fx(f.xs[k])} ?`,valChoices(f,k),`Sous x = ${N(f.xs[k])}, on lit ${fx(f.xs[k])} = ${N(f.ys[k])}.`,st({k:'val',xs:f.xs,ys:f.ys,x:f.xs[k]},1))}
+  ];
+  const at=[
+    ()=>{const f=F3(),s=psense(f,1);return TR(2,`${intro(f)}<br>f est ${SW[s]} sur [{0} ; {1}].`,[{answers:numA(f.xs[1]),size:3},{answers:numA(f.xs[2]),size:3}],`Seule la flèche entre ${N(f.xs[1])} et ${N(f.xs[2])} ${s>0?'monte':'descend'}.`,st({k:'itv',xs:f.xs,ys:f.ys,s},1))},
+    ()=>{const f=F3(),w=pick(['max','min']),j=ri(0,1),m=ri(j+1,3),a=f.xs[j],b=f.xs[m],e=extOn(f,a,b,w);
+      return TR(5,`${intro(f)}<br>Sur ${I(a,b)}, le ${w==='max'?'maximum':'minimum'} de f est {0} ; il est atteint en x = {1}.`,[{answers:numA(e.v),size:3},{answers:numA(e.x),size:3}],`Entre ${N(a)} et ${N(b)}, la valeur la plus ${w==='max'?'grande':'petite'} de f(x) est ${N(e.v)}, sous x = ${N(e.x)}.`,st({k:'ext',xs:f.xs,ys:f.ys,a,b,w,form:'vx'},2))},
+    ()=>{const f=F3(),k=ri(0,2),[p,q]=duelPts(f,k,true),s=psense(f,k),le=(p<q)===(s>0);
+      return TR(6,`${intro(f)}<br>Complète par « inférieur » ou « supérieur » : ${fx(p)} est {0} ou égal à ${fx(q)}.`,[{answers:le?['inférieur','inferieur','inférieure','inferieure']:['supérieur','superieur','supérieure','superieure'],size:9}],cmpChoices(f,p,q)[0].why,st({k:'cmpw',xs:f.xs,ys:f.ys,p,q},2))},
+    ()=>{const f=F3(),[a,b]=subInterval(f,false,true),t=senseOn(f,a,b);return TR(4,`${intro(f)}<br>Sur ${I(a,b)}, f est {0}.`,[{answers:W(t),size:9}],`${I(a,b)} est inclus dans ${I(f.xs[pieceOf(f,a,b)],f.xs[pieceOf(f,a,b)+1])}, où f est ${SW[t]}.`,st({k:'sens',xs:f.xs,ys:f.ys,a,b},2))},
+    ()=>{const f=F3(),k=ri(1,2);return TR(3,`${intro(f)}<br>${fx(f.xs[k])} = {0}`,[{answers:numA(f.ys[k]),size:3}],`Sous x = ${N(f.xs[k])}, on lit ${N(f.ys[k])}.`,st({k:'val',xs:f.xs,ys:f.ys,x:f.xs[k]},1))}
+  ];
+  /* ---------------- OR ---------------- */
+  const story=()=>{for(;;){const ts=[0,ri(2,4)*5,0,60];ts[2]=ts[1]+ri(2,4)*5;if(ts[2]>=55)continue;const hs=[ri(1,4),ri(24,36),ri(5,12),ri(14,28)];if(hs[3]===hs[1]||hs[3]===hs[0])continue;return {xs:ts,ys:hs}}};
+  const storyTxt=g=>`Sur un manège imaginaire, la hauteur du wagonnet (en mètres) en fonction du temps t (en secondes) est donnée par une fonction h définie sur [0 ; 60]. h est ${desc(g)}. De plus ${vals(g,'h')}.`;
+  const oq=[
+    ()=>{const f=pick([F2,F3])(),w=pick(['max','min']),e=extOn(f,f.xs[0],f.xs.at(-1),w),Wd=w==='max'?'maximum':'minimum';
+      const ch=[`${N(e.v)}, atteint en x = ${N(e.x)}`],seen=new Set(ch);const add=h=>{if(!seen.has(h)){seen.add(h);ch.push(h)}};
+      add(`${N(e.x)}, atteint en x = ${N(e.v)}`);f.xs.forEach((x,k)=>add(`${N(f.ys[k])}, atteint en x = ${N(x)}`));
+      return QC(5,`Une fonction f est définie sur ${dom(f)}. Elle est ${desc(f)}. De plus ${vals(f)}. Quel est le ${Wd} de f sur ${dom(f)} ?`,ch.slice(0,4),
+        `En dressant le tableau de variations, les candidats sont les valeurs aux extrémités et aux changements de sens : la plus ${w==='max'?'grande':'petite'} est ${N(e.v)}, atteinte en x = ${N(e.x)}.`,st({k:'ext',xs:f.xs,ys:f.ys,a:f.xs[0],b:f.xs.at(-1),w,form:'vx',text:1},3))},
+    ()=>{const g=story(),k=pick([0,1,2]),A=g.xs[k],B=g.xs[k+1];let p,q;do{p=A+ri(1,(B-A)/5-1)*5||A+1;q=A+ri(0,(B-A)/5)*5}while(p===q||p<A||p>B);
+      const s=psense(g,k),le=(p<q)===(s>0),P=`h(${p})`,QQ=`h(${q})`;
+      return QC(6,`${storyTxt(g)} Compare ${P} et ${QQ}.`,[`${P} ${le?'≤':'≥'} ${QQ}`,`${P} ${le?'≥':'≤'} ${QQ}`,`On ne peut pas comparer ${P} et ${QQ}`],
+        `${p} et ${q} sont dans ${I(A,B)}, où h est ${SW[s]} : ${s>0?'l\'ordre est conservé':'l\'ordre est inversé'}, donc ${P} ${le?'≤':'≥'} ${QQ}.`,st({k:'cmp',xs:g.xs,ys:g.ys,p,q,lab:'h',text:1},3))},
+    ()=>{let m;do{m=ri(-5,5)}while(m===0);const p=ri(-6,6),u=ri(-30,30)/10,v=ri(-30,30)/10;if(u===v)return oq[2]();
+      const fu=m*u+p,fv=m*v+p,le=fu<=fv,s=m>0?1:-1;
+      return QC(6,`On considère la fonction affine f définie sur ℝ par f(x) = ${fmtAff(m,p)}. Sans calculer les images, compare ${fx(u)} et ${fx(v)}.`,[`${fx(u)} ${le?'<':'>'} ${fx(v)}`,`${fx(u)} ${le?'>':'<'} ${fx(v)}`,`${fx(u)} = ${fx(v)}`],
+        `Le coefficient de x est ${N(m)}, ${m>0?'positif : f est croissante':'négatif : f est décroissante'} sur ℝ. Comme ${N(Math.min(u,v))} < ${N(Math.max(u,v))}, ${s>0?'l\'ordre est conservé':'l\'ordre est inversé'} : ${fx(u)} ${le?'<':'>'} ${fx(v)}.`,st({k:'affine',m,p,u,v},2))},
+    ()=>{const neg=Math.random()<.5;let u,v;do{u=ri(1,40)/10;v=ri(1,40)/10}while(u===v||u%1===0&&v%1===0);if(neg){u=-u;v=-v}
+      const sq=z=>`(${N(z)})²`,lt=u*u<v*v;
+      return QC(6,`La fonction carré est décroissante sur ]${MINUS}∞ ; 0] et croissante sur [0 ; +∞[. Sans calculer, compare ${sq(u)} et ${sq(v)}.`,[`${sq(u)} ${lt?'<':'>'} ${sq(v)}`,`${sq(u)} ${lt?'>':'<'} ${sq(v)}`,`${sq(u)} = ${sq(v)}`],
+        neg?`${N(u)} et ${N(v)} sont négatifs ; la fonction carré est décroissante sur ]${MINUS}∞ ; 0] et inverse l'ordre : ${sq(u)} ${lt?'<':'>'} ${sq(v)}.`:`${N(u)} et ${N(v)} sont positifs ; la fonction carré est croissante sur [0 ; +∞[ et conserve l'ordre : ${sq(u)} ${lt?'<':'>'} ${sq(v)}.`,st({k:'carre',u,v},2))},
+    ()=>{const f=F3(),tops=[1,2].filter(k=>f.ys[k]>f.ys[k-1]),k=tops.length?pick(tops):1,isMax=f.ys[k]>f.ys[k-1];
+      const a=f.xs[k]-ri(1,2*(f.xs[k]-f.xs[k-1])-1)/2,b=f.xs[k]+ri(1,2*(f.xs[k+1]-f.xs[k])-1)/2,M=f.ys[k];
+      const ch=isMax?[`f(x) ≤ ${N(M)}`,`f(x) ≥ ${N(M)}`,`f(x) ≤ ${N(Math.max(f.ys[k-1],f.ys[k+1]))}`,`f(x) ≥ ${N(Math.min(f.ys[k-1],f.ys[k+1])+1)}`]
+        :[`f(x) ≥ ${N(M)}`,`f(x) ≤ ${N(M)}`,`f(x) ≥ ${N(Math.min(f.ys[k-1],f.ys[k+1]))}`,`f(x) ≤ ${N(Math.max(f.ys[k-1],f.ys[k+1])-1)}`];
+      return QC(7,`${intro(f)} Pour tout réel x de ${I(a,b)}, on a :`,ch.slice(0,3),
+        `${I(a,b)} contient x = ${N(f.xs[k])}, où f change de sens. f ${isMax?'monte jusqu\'à':'descend jusqu\'à'} ${N(M)} puis ${isMax?'redescend':'remonte'} : ${N(M)} est le ${isMax?'maximum':'minimum'} de f sur ${I(a,b)}, donc f(x) ${isMax?'≤':'≥'} ${N(M)}.`,st({k:'bound',xs:f.xs,ys:f.ys,a,b},3))},
+    ()=>{const f=F4(),w=pick(['max','min']);let a,b;for(let t=0;t<80;t++){const j=ri(0,2),m=ri(j+2,4);if(m-j===4)continue;a=f.xs[j];b=f.xs[m];const g=extOn(f,f.xs[0],f.xs[4],w),e=extOn(f,a,b,w);if((g.x<a||g.x>b)&&(e.x===a||e.x===b)||t>60)break}
+      const e=extOn(f,a,b,w);return QC(5,`${intro(f)} Sur ${I(a,b)}, le ${w==='max'?'maximum':'minimum'} de f est :`,extQChoices(f,a,b,w),`Sur ${I(a,b)}, on compare les valeurs aux bornes et aux changements de sens : la plus ${w==='max'?'grande':'petite'} est ${N(e.v)}, atteinte en x = ${N(e.x)}.`,st({k:'ext',xs:f.xs,ys:f.ys,a,b,w,form:'vx'},3))},
+    ()=>subQ(F4(),true,2)
+  ];
+  const ot=[
+    ()=>{let m;do{m=ri(-6,6)}while(m===0);const p=ri(-9,9);return TR(4,`La fonction affine f définie sur ℝ par f(x) = ${fmtAff(m,p)} est {0} sur ℝ.`,[{answers:W(m>0?1:-1),size:9}],`Le coefficient de x est ${N(m)} : il est ${m>0?'positif, donc f est croissante':'négatif, donc f est décroissante'} sur ℝ.`,st({k:'affw',m,p},2))},
+    ()=>{const f=F3(),w=pick(['max','min']),e=extOn(f,f.xs[0],f.xs[3],w);return TR(5,`Une fonction f est définie sur ${dom(f)}. Elle est ${desc(f)}. De plus ${vals(f)}.<br>Le ${w==='max'?'maximum':'minimum'} de f sur ${dom(f)} est {0} ; il est atteint en x = {1}.`,
+      [{answers:numA(e.v),size:3},{answers:numA(e.x),size:3}],`On compare les valeurs aux extrémités et aux changements de sens : la plus ${w==='max'?'grande':'petite'} est ${N(e.v)}, en x = ${N(e.x)}.`,st({k:'ext',xs:f.xs,ys:f.ys,a:f.xs[0],b:f.xs[3],w,form:'vx',text:1},3))},
+    ()=>{const g=story(),e=extOn(g,0,60,'max');return TR(5,`${storyTxt(g)}<br>La hauteur maximale du wagonnet est {0} m ; elle est atteinte à l'instant t = {1} s.`,[{answers:numA(e.v),size:3},{answers:numA(e.x),size:3}],
+      `Les candidats sont h(0), h(${g.xs[1]}), h(${g.xs[2]}) et h(60) : le plus grand est h(${e.x}) = ${e.v}.`,st({k:'ext',xs:g.xs,ys:g.ys,a:0,b:60,w:'max',form:'vx',text:1,lab:'h'},3))},
+    ()=>{const f=F4(),k=ri(0,3),[p,q]=duelPts(f,k,true),s=psense(f,k),le=(p<q)===(s>0);
+      return TR(6,`${intro(f)}<br>Complète par « inférieur » ou « supérieur » : ${fx(p)} est {0} ou égal à ${fx(q)}.`,[{answers:le?['inférieur','inferieur','inférieure','inferieure']:['supérieur','superieur','supérieure','superieure'],size:9}],cmpChoices(f,p,q)[0].why,st({k:'cmpw',xs:f.xs,ys:f.ys,p,q},2))},
+    ()=>{const f=F4({first:pick([1,-1])}),s=1,ks=[0,1,2,3].filter(j=>psense(f,j)===s);
+      return TR(2,`${intro(f)}<br>f est croissante sur [{0} ; {1}] et sur [{2} ; {3}].`,ks.flatMap(j=>[{answers:numA(f.xs[j]),size:3},{answers:numA(f.xs[j+1]),size:3}]),
+        `Les flèches ↗ vont de ${N(f.xs[ks[0]])} à ${N(f.xs[ks[0]+1])} et de ${N(f.xs[ks[1]])} à ${N(f.xs[ks[1]+1])}.`,st({k:'itv2',xs:f.xs,ys:f.ys,s},2))}
+  ];
+  return {bronze:()=>tierPick(bq,bt),argent:()=>tierPick(aq,at),or:()=>tierPick(oq,ot)};
+})();
+
+/* ---------- accès pour les tests automatiques ---------- */
+window.MR={genQ,fval,senseOn,extOn,tvSVG,N,I,finals:FIN,
+  state:()=>({lvl,solved,step,mode:Q&&Q.mode,run:run.slice(),meta:Q&&Q.meta,ans:Q&&Q.ans,steps:Q&&Q.steps&&Q.steps.map(s=>s.choices.map(c=>c.ok))}),
+  start:()=>{renderLv();logEmpty();newQ()}};
+window.MR_finals=FIN;
+}
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'montagnes-russes',title:'Les Montagnes Russes de f',levels:7,
+  levelNames:['Ça monte ?','Les tronçons','Le tableau','Sans la piste','Sommets et creux','Le duel','Grand huit'],
+  music:'aventure',finals:{bronze:()=>(window.MR_lastFinal=MR_finals.bronze()),argent:()=>(window.MR_lastFinal=MR_finals.argent()),or:()=>(window.MR_lastFinal=MR_finals.or())}});
+MR.start();
+(function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|INPUT|TEXTAREA)$/.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(fix)}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>
