@@ -1,0 +1,17 @@
+name: test-build
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - name: Check output
+        run: |
+          sudo ls _site | head -50
+          for p in index.html classes/index.html classes/ses/index.html classes/snt/index.html ressources/index.html mentions-legales/index.html 404.html sitemap.xml robots.txt search.json sigma-arcade/index.html classes/seconde220/chapitre4/index.html classes/premiere-spe-maths/chapitre1/index.html; do test -s "_site/$p" && echo "OK $p" || { echo "MANQUE $p"; exit 1; }; done
+          grep -c "En cours de construction" _site/classes/premiere-spe-maths/chapitre1/index.html || true
+          python3 -c "import json;d=json.load(open('_site/search.json'));print('search.json OK',len(d) if isinstance(d,list) else list(d)[:5])"
