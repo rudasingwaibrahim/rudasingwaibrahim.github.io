@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: premiere-spe-ch7-ds-03-sujet.pdf
 erreurs:
-- "Confondre uₙ (terme général) et u(x) (fonction continue) : une suite est définie sur ℕ"
-- "Mauvaise indexation : si u₀ est défini, u₁₀ est le 11ᵉ terme, pas le 10ᵉ"
-- Confondre définition explicite (uₙ = f(n)) et récurrente (uₙ₊₁ = g(uₙ))
-- "Étudier le sens de variation par f'(x) au lieu de uₙ₊₁ − uₙ ou uₙ₊₁/uₙ"
-- "Croire qu'une suite croissante converge : peut diverger vers +∞"
-- "Oublier le 1er terme (u₀ ou u₁ selon l'énoncé) dans une définition par récurrence"
+- "Confondre une suite et une fonction : une suite n'est définie que pour les entiers $n$"
+- "Mal compter les termes : si la suite commence à $u_0$, alors $u_{10}$ est le 11ᵉ terme"
+- "Confondre définition explicite ($u_n = f(n)$) et définition par récurrence ($u_{n+1} = f(u_n)$)"
+- "Étudier les variations de $(u_n)$ définie par $u_{n+1} = f(u_n)$ avec les variations de $f$ : on étudie le signe de $u_{n+1} - u_n$"
+- "Croire qu'une suite croissante a une limite finie : elle peut tendre vers $+\\infty$"
+- Oublier de donner le premier terme ($u_0$ ou $u_1$) dans une définition par récurrence
 liens:
 - nom: Jaicompris — Généralités sur les suites
   desc: "Méthode complète : définition, sens de variation"

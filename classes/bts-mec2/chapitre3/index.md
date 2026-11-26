@@ -34,13 +34,13 @@ ds_published: false
 ds: []
 erreurs:
 - Confondre intervalle de confiance et intervalle de fluctuation
-- "Oublier les conditions de validité : n ≥ 30, nf ≥ 5, n(1−f) ≥ 5"
-- "Interpréter l'IC comme « la vraie valeur est dans l'intervalle » au lieu de « on a 95 % de confiance »"
+- "Oublier les conditions de validité : $n \\geqslant 30$, $nf \\geqslant 5$ et $n(1 - f) \\geqslant 5$"
+- "Lire un intervalle de confiance comme « la vraie valeur est dans l'intervalle » au lieu de « la méthode le garantit dans 95 % des cas »"
 - "Utiliser la formule de l'IC proportion pour une moyenne (ou inversement)"
-- "Oublier de diviser par √n dans la formule de l'IC pour la moyenne"
-- Confondre test bilatéral et test unilatéral — mal poser H₁
+- "Oublier de diviser par $\\sqrt{n}$ dans l'intervalle de confiance d'une moyenne"
+- "Confondre test bilatéral et test unilatéral : mal poser l'hypothèse $H_1$"
 - "Conclure qu'une valeur est « impossible » alors qu'elle est simplement hors de l'IC à 95 %"
-- "Rejeter H₀ avec une p-valeur > α, ou ne pas rejeter avec p-valeur < α (inversion)"
+- "Inverser la règle de décision : on rejette $H_0$ quand la p-valeur est inférieure au seuil $\\alpha$"
 liens:
 - nom: GeoGebra — Intervalle de confiance et estimation
   desc: "Applet interactif : tirer N échantillons et observer les IC calculés"

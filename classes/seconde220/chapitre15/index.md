@@ -40,12 +40,12 @@ ds:
 - num: 3
   pdf: seconde-ch15-ds-03-sujet.pdf
 erreurs:
-- "Confondre le coefficient directeur et l'ordonnée à l'origine"
-- Oublier que deux droites parallèles ont le même coefficient directeur
-- "Mal calculer le coefficient directeur : m = (yB-yA)/(xB-xA) et non l'inverse"
-- "Oublier que la droite d'équation x = a est verticale (pas de coefficient directeur)"
-- "Confondre droites parallèles et droites perpendiculaires : m1 × m2 = -1"
-- "Mal lire l'équation d'une droite sous la forme ax + by + c = 0"
+- "Confondre le coefficient directeur $m$ et l'ordonnée à l'origine $p$ dans $y = mx + p$"
+- Oublier que deux droites non verticales sont parallèles si et seulement si elles ont le même coefficient directeur
+- "Se tromper de formule : $m = \\dfrac{y_B - y_A}{x_B - x_A}$, et non l'inverse"
+- "Oublier que la droite d'équation $x = c$ est verticale : elle n'a pas de coefficient directeur"
+- "Croire que deux droites de même ordonnée à l'origine sont parallèles : elles sont sécantes sur l'axe des ordonnées"
+- "Oublier qu'un vecteur directeur de la droite $ax + by + c = 0$ est $(-b\\,;a)$"
 liens:
 - nom: "Lumni — Équation d'une droite"
   desc: Comprendre la forme y = ax + b et ses paramètres

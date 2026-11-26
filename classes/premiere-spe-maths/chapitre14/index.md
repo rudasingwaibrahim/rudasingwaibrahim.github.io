@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: premiere-spe-ch14-ds-03-sujet.pdf
 erreurs:
-- "Confondre vecteur directeur et vecteur normal d'une droite ax + by + c = 0 : directeur (−b ; a), normal (a ; b)"
-- "Oublier de vérifier l'orientation : (−b ; a) ou (b ; −a) sont tous deux directeurs"
-- "Mal identifier le centre d'un cercle (x − a)² + (y − b)² = r² : centre (a ; b), pas (−a ; −b)"
-- Confondre équation cartésienne (ax + by + c = 0) et équation paramétrique (système avec t)
-- "Oublier d'extraire le rayon : r² = ... donc r = √(...), pas r = ..."
-- "Mal calculer une distance d'un point à une droite : utiliser la formule |ax₀ + by₀ + c| / √(a² + b²)"
+- "Pour la droite $ax + by + c = 0$, confondre vecteur directeur $(-b\\,;a)$ et vecteur normal $(a\\,;b)$"
+- "Croire qu'une droite n'a qu'un vecteur directeur : tout vecteur non nul colinéaire à $(-b\\,;a)$ convient"
+- "Se tromper de signe sur le centre : le cercle $(x - a)^2 + (y - b)^2 = r^2$ a pour centre $(a\\,;b)$, pas $(-a\\,;-b)$"
+- "Oublier de compléter les carrés : $x^2 - 4x = (x - 2)^2 - 4$ pour trouver le centre et le rayon d'un cercle"
+- "Oublier d'extraire le rayon : si $r^2 = 9$, alors $r = 3$ et non 9"
+- "Oublier qu'un point $M$ est sur le cercle de diamètre $[AB]$ si et seulement si $\\overrightarrow{MA}\\cdot\\overrightarrow{MB} = 0$"
 liens:
 - nom: Jaicompris — Équations de droite
   desc: Méthodes pour déterminer une équation cartésienne

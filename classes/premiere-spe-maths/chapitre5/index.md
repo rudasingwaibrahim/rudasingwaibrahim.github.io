@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: premiere-spe-ch5-ds-03-sujet.pdf
 erreurs:
-- "Confondre P(A∩B) et P(A|B) : sur un arbre, intersection = produit le long d'un chemin, conditionnelle = poids d'une branche"
-- "Oublier P(A|B) = P(A∩B) / P(B) (avec P(B) ≠ 0)"
-- "Croire que A et B indépendants signifie A et B incompatibles : c'est l'inverse !"
-- "Mauvaise utilisation de la formule des probabilités totales : oublier de couvrir tous les cas"
+- "Confondre $P(A \\cap B)$ et $P_A(B)$ : sur un arbre, on multiplie le long d'un chemin pour obtenir $P(A \\cap B)$"
+- "Oublier la définition $P_B(A) = \\dfrac{P(A \\cap B)}{P(B)}$, avec $P(B) \\neq 0$"
+- "Confondre indépendants et incompatibles : deux événements incompatibles de probabilités non nulles ne sont jamais indépendants"
+- "Mal utiliser la formule des probabilités totales : oublier une branche de la partition"
 - "Sur un arbre, la somme des poids partant d'un même nœud doit valoir 1"
-- "Confondre P(A|B) et P(B|A) (asymétrie de la conditionnelle)"
+- "Confondre $P_B(A)$ et $P_A(B)$ : en général, ils sont différents"
 liens:
 - nom: Jaicompris — Probabilités conditionnelles
   desc: "Méthode complète : arbre, formule des probas totales"

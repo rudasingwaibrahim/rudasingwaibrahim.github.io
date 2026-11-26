@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: seconde-ch2-ds-03-sujet.pdf
 erreurs:
-- Confondre a^m × a^n = a^(m+n) avec (a^m)^n = a^(m×n)
-- "Écrire sqrt(a+b) = sqrt(a) + sqrt(b) : FAUX en général"
-- "Oublier que sqrt(a²) = |a| et non simplement a"
-- Confondre a^(-n) = 1/a^n avec -a^n
-- Oublier de rationaliser le dénominateur quand il contient une racine
-- "Simplifier sqrt(a)/sqrt(b) sans vérifier que b > 0"
+- "Confondre $a^m \\times a^n = a^{m+n}$ et $(a^m)^n = a^{mn}$"
+- "Écrire $\\sqrt{a + b} = \\sqrt{a} + \\sqrt{b}$ : c'est faux en général ($\\sqrt{9 + 16} = 5 \\neq 7$)"
+- "Oublier que $\\sqrt{a^2} = |a|$, et non $a$"
+- "Confondre $a^{-n} = \\dfrac{1}{a^n}$ et $-a^n$"
+- "Laisser une racine carrée au dénominateur quand l'énoncé demande une écriture simplifiée"
+- "Écrire $\\dfrac{\\sqrt{a}}{\\sqrt{b}} = \\sqrt{\\dfrac{a}{b}}$ sans vérifier $a \\geqslant 0$ et $b > 0$"
 liens:
 - nom: Lumni — Les puissances
   desc: Comprendre et manipuler les puissances entières et de 10

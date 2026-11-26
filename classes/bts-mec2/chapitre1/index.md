@@ -33,14 +33,14 @@ ds_blancs:
 ds_published: false
 ds: []
 erreurs:
-- "Confondre P(A∩B) et P(A|B)"
-- "Oublier de vérifier les 4 conditions de la loi binomiale (n épreuves identiques, 2 issues, indépendance, X = nb succès)"
-- Confondre P(X = k) et P(X ≤ k) à la calculatrice (binomFRep / binomPDF)
-- Mal utiliser la formule des probabilités totales (oublier un événement du système complet)
-- "Inverser numérateur et dénominateur dans la formule de Bayes : P(A|B) = P(B|A)·P(A)/P(B)"
+- Confondre $P(A \cap B)$ et $P_B(A)$
+- "Appliquer la loi binomiale sans vérifier ses conditions : $n$ épreuves identiques et indépendantes, deux issues, $X$ compte les succès"
+- Confondre $P(X = k)$ et $P(X \leqslant k)$ à la calculatrice (binomFdp / binomFRép)
+- "Mal utiliser la formule des probabilités totales : oublier un événement de la partition"
+- "Se tromper dans la formule de Bayes : $P_B(A) = \\dfrac{P_A(B)\\,P(A)}{P(B)}$"
 - Confondre événements indépendants et événements incompatibles
-- "Oublier le coefficient binomial C(n,k) dans P(X = k)"
-- Calculer V(X) = np au lieu de np(1−p)
+- "Oublier le coefficient binomial : $P(X = k) = \\binom{n}{k}\\,p^k(1-p)^{n-k}$"
+- Écrire $V(X) = np$ au lieu de $V(X) = np(1 - p)$
 liens:
 - nom: GeoGebra — Loi binomiale interactive
   desc: Visualiser P(X=k) et P(X≤k) en faisant varier n et p

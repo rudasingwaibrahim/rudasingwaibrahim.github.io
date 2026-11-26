@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: premiere-spe-ch10-ds-03-sujet.pdf
 erreurs:
-- Confondre suite arithmétique (uₙ₊₁ = uₙ + r) et géométrique (uₙ₊₁ = q · uₙ)
-- "Mauvaise formule explicite : pour arithmétique uₙ = u₀ + nr (et non u₀ + r), pour géométrique uₙ = u₀ · qⁿ"
-- "Oublier la condition q ≠ 1 dans la somme géométrique : Sₙ = u₀ · (1 − qⁿ⁺¹)/(1 − q)"
-- "Confondre raison r d'une arithmétique avec raison q d'une géométrique"
-- "Mauvaise indexation dans la somme : combien de termes ? si on va de u₀ à uₙ il y a n+1 termes"
-- "Confondre évolution en pourcentage et raison : +5% par an = facteur 1,05 par an"
+- "Confondre suite arithmétique ($u_{n+1} = u_n + r$) et suite géométrique ($u_{n+1} = q\\,u_n$)"
+- "Se tromper de formule explicite : $u_n = u_0 + nr$ (arithmétique), $u_n = u_0\\,q^n$ (géométrique)"
+- "Oublier la condition $q \\neq 1$ dans $1 + q + \\dots + q^n = \\dfrac{1 - q^{n+1}}{1 - q}$"
+- "Confondre la raison $r$ d'une suite arithmétique et la raison $q$ d'une suite géométrique"
+- "Mal compter les termes d'une somme : de $u_0$ à $u_n$, il y a $n + 1$ termes"
+- "Confondre évolution en pourcentage et raison : une hausse de 5 % par an correspond à $q = 1{,}05$"
 liens:
 - nom: Jaicompris — Suites arithmétiques et géométriques
   desc: Méthode complète avec exercices corrigés

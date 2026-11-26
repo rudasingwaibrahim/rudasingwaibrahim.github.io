@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: premiere-spe-ch9-ds-03-sujet.pdf
 erreurs:
-- "Oublier le cosinus dans la définition : u·v = ‖u‖·‖v‖·cos(u,v), pas ‖u‖·‖v‖"
-- Confondre orthogonal (u·v = 0) et colinéaire (u·v = ±‖u‖·‖v‖)
-- "Mauvaise formule analytique : u·v = x·x' + y·y' (et non x·y' + y·x')"
-- "Oublier que le produit scalaire d'un vecteur nul avec n'importe quoi vaut 0"
-- "Confondre u² (= ‖u‖²) avec ‖u‖ : c'est le carré de la norme"
-- "Mal gérer les signes dans les projetés : projection orthogonale orientée"
+- "Oublier le cosinus : $\\vec u\\cdot\\vec v = \\lVert\\vec u\\rVert\\,\\lVert\\vec v\\rVert\\cos(\\vec u, \\vec v)$"
+- Confondre orthogonalité ($\vec u\cdot\vec v = 0$) et colinéarité
+- "Se tromper de formule en repère orthonormé : $\\vec u\\cdot\\vec v = xx' + yy'$, et non $xy' + yx'$"
+- Oublier que le produit scalaire avec le vecteur nul vaut 0
+- "Confondre $\\vec u^{\\,2} = \\lVert\\vec u\\rVert^2$ et $\\lVert\\vec u\\rVert$"
+- "Oublier le signe avec le projeté orthogonal : le produit scalaire est négatif si l'angle est obtus"
 liens:
 - nom: Jaicompris — Produit scalaire
   desc: Toutes les formules avec méthode et exercices corrigés

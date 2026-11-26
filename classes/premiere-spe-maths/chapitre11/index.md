@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: premiere-spe-ch11-ds-03-sujet.pdf
 erreurs:
-- Oublier les solutions modulo 2π lors de la résolution de cos x = a
-- "Confondre les solutions de cos x = a (deux familles : ±α + 2kπ) avec sin x = a (deux familles : α + 2kπ et π − α + 2kπ)"
-- "Confondre période 2π (cos, sin) et période π (tan)"
-- "Mauvaise lecture des courbes : amplitude vs période"
-- "Croire que cos est paire et sin paire : sin est impaire (sin(−x) = −sin(x))"
-- Oublier de restreindre les solutions à un intervalle donné
+- Oublier les solutions « modulo $2\pi$ » quand on cherche les réels associés à un point du cercle
+- "Croire que $\\cos x = \\cos a$ n'a qu'une solution sur $]-\\pi\\,;\\pi]$ : il y en a deux, $a$ et $-a$ (si $a \\neq 0$ et $a \\neq \\pi$)"
+- Oublier que $\cos$ et $\sin$ sont périodiques de période $2\pi$
+- "Lire une courbe de $\\cos$ ou de $\\sin$ sans repérer la période sur l'axe des abscisses"
+- "Croire que $\\sin$ est paire : $\\sin(-x) = -\\sin x$, seule la fonction $\\cos$ est paire"
+- "Oublier de se limiter à l'intervalle demandé par l'énoncé"
 liens:
 - nom: Jaicompris — Équations trigonométriques
   desc: Méthodes pour résoudre cos x = a et sin x = a

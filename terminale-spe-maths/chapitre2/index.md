@@ -32,11 +32,11 @@ ds:
 - num: 3
   pdf: terminale-spe-ch2-ds-03-sujet.pdf
 erreurs:
-- "Écrire une limite infinie comme une valeur : la limite n'existe pas dans R, on note lim = +∞"
-- "Conclure sur une forme indéterminée sans lever l'indétermination : ∞ − ∞, 0 × ∞, ∞/∞, 0/0"
+- "Écrire une limite infinie comme un nombre : on écrit $\\lim f = +\\infty$, mais $+\\infty$ n'est pas un réel"
+- "Conclure sur une forme indéterminée sans la lever : $\\infty - \\infty$, $0 \\times \\infty$, $\\dfrac{\\infty}{\\infty}$, $\\dfrac{0}{0}$"
 - "Oublier de distinguer les limites à gauche et à droite en un point où le dénominateur s'annule"
 - "Confondre limite d'un quotient nul et limite infinie : le signe du dénominateur au voisinage du point est déterminant"
 - Appliquer le théorème des gendarmes sans vérifier que les deux encadrants ont la même limite
-- "Factoriser par le terme de plus haut degré sans justifier que x ≠ 0 au voisinage de l'infini"
+- Factoriser par le terme de plus haut degré sans préciser que $x \neq 0$
 ---
 {% include cours-cards.html %}

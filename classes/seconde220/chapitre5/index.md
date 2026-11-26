@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: seconde-ch5-ds-03-sujet.pdf
 erreurs:
-- Confondre colinéarité et perpendicularité
-- Oublier que deux vecteurs sont colinéaires si et seulement si leur déterminant est nul
-- "Calculer le déterminant dans le mauvais ordre : det(u,v) = -det(v,u)"
-- Oublier de vérifier que les vecteurs ne sont pas nuls avant de conclure
-- Confondre vecteurs colinéaires et vecteurs de même direction
-- Erreur de signe dans le calcul du déterminant
+- Confondre colinéarité et orthogonalité
+- "Oublier le critère : $\\vec u$ et $\\vec v$ sont colinéaires si et seulement si $\\det(\\vec u, \\vec v) = 0$"
+- "Calculer le déterminant dans le mauvais ordre : $\\det(\\vec u, \\vec v) = xy' - x'y$"
+- Oublier que le vecteur nul est colinéaire à tout vecteur
+- "Croire que deux vecteurs colinéaires ont le même sens : ils peuvent être de sens contraires"
+- "Se tromper de signe dans le déterminant $xy' - x'y$"
 liens:
 - nom: Lumni — Opérations sur les vecteurs
   desc: "Colinéarité, déterminant et applications géométriques"

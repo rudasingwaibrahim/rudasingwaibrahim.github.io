@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: premiere-spe-ch8-ds-03-sujet.pdf
 erreurs:
-- "Confondre radians et degrés : π ≠ 180, mais π rad = 180°"
-- "Oublier le signe selon le quadrant : sin négatif dans le 3e et 4e quadrant"
-- "Mal placer une mesure principale : elle est dans ]−π ; π], pas dans [0 ; 2π["
-- "Confondre cos(π − x) = −cos(x) et cos(π + x) = −cos(x) : revoir les symétries"
-- "Croire que cos²(x) signifie cos(cos(x)) : c'est (cos(x))²"
-- "Oublier de vérifier qu'un angle est orienté (sens trigonométrique = sens direct)"
+- "Confondre radians et degrés : $\\pi$ rad correspond à $180^\\circ$, mais $\\pi \\neq 180$"
+- "Se tromper de signe : $\\sin x < 0$ quand le point associé est sous l'axe des abscisses"
+- "Placer la mesure principale dans $[0\\,;2\\pi[$ : elle appartient à $]-\\pi\\,;\\pi]$"
+- "Confondre $\\cos(\\pi - x) = -\\cos x$ et $\\sin(\\pi - x) = \\sin x$ : s'aider du cercle trigonométrique"
+- "Croire que $\\cos^2 x$ signifie $\\cos(\\cos x)$ : c'est $(\\cos x)^2$"
+- "Oublier l'orientation : le sens direct (trigonométrique) est le sens contraire des aiguilles d'une montre"
 liens:
 - nom: Jaicompris — Trigonométrie
   desc: Méthode pas à pas avec exercices corrigés en vidéo

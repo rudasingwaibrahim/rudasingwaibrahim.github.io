@@ -171,7 +171,11 @@ body.menu-open .site-header::before { background: #08111f; }
   background: transparent; border: 1px solid transparent; cursor: pointer;
 }
 .bar-link:hover, .bar-link[aria-expanded="true"] { color: var(--text); background: var(--hover); }
-.bar-link[aria-current="page"] { color: var(--text); border-color: var(--border-strong); }
+.bar-link[aria-current="page"], .bar-link.is-current { color: var(--text); position: relative; }
+.bar-link[aria-current="page"]::after, .bar-link.is-current::after {
+  content: ""; position: absolute; left: 14px; right: 14px; bottom: 4px; height: 2px; border-radius: 2px; background: var(--gold-bright);
+}
+.bar-link--arcade[aria-current="page"] { color: var(--gold-bright); }
 .bar-link--arcade { color: var(--gold-bright); }
 .bar-link--arcade:hover { color: #f6dd92; }
 .bar-link svg { width: 14px; height: 14px; transition: transform .2s; }
@@ -226,7 +230,9 @@ body.menu-open .site-header::before { background: #08111f; }
   border-radius: var(--radius-sm); color: var(--text); text-decoration: none; font-weight: 600;
 }
 .menu-link:hover { background: var(--hover); color: var(--text); }
-.menu-link[aria-current="page"] { background: var(--accent-soft); }
+.menu-link[aria-current] { background: var(--accent-soft); color: var(--text); box-shadow: inset 3px 0 0 var(--gold-bright); font-weight: 800; }
+.menu-link[aria-current]::before { content: "Ici"; order: 2; margin-left: auto; font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--gold-bright); }
+.menu-link[aria-current] .arrow { display: none; }
 .menu-link .ext { font-size: .8rem; color: var(--muted); font-weight: 500; }
 .menu-link .arrow { color: var(--accent-text); }
 .menu-foot { display: grid; gap: 10px; margin-top: 10px; }
@@ -460,11 +466,24 @@ a.card:hover { transform: translateY(-3px); border-color: var(--border-strong); 
 .ch-card.is-empty .ch-num { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .14); color: var(--muted); }
 
 /* ── 8. Pages de chapitre ──────────────────────────────────────────── */
+/* Barre des étapes : bande opaque pleine largeur, collée sous l'en-tête du site.
+   Le contenu qui défile passe dessous sans jamais transparaître. */
+.parcours-bar {
+  position: sticky; top: var(--bar-h); z-index: 60; isolation: isolate;
+  margin: -8px 0 30px; padding: 10px 0;
+}
+.parcours-bar::before {
+  content: ""; position: absolute; z-index: -1; top: 0; bottom: 0; left: -100vmax; right: -100vmax;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+}
+.parcours-bar::after {
+  content: ""; position: absolute; z-index: -1; top: 100%; height: 16px; left: -100vmax; right: -100vmax;
+  background: linear-gradient(rgba(3, 7, 15, .65), transparent); pointer-events: none;
+}
+.is-chapter main [id] { scroll-margin-top: calc(var(--bar-h) + 96px); }
 .parcours-nav {
-  position: sticky; top: calc(var(--bar-h) + 8px); z-index: 50;
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 0 0 34px; padding: 6px;
-  border-radius: var(--pill); background: rgba(8, 17, 31, .9); border: 1px solid var(--border);
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 6px;
+  border-radius: var(--pill); background: #0b1528; border: 1px solid var(--border);
 }
 .parcours-nav a {
   display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 6px 8px; border-radius: var(--pill);
@@ -664,12 +683,23 @@ a.card:hover { transform: translateY(-3px); border-color: var(--border-strong); 
 
 /* ── 11. Pied de page ──────────────────────────────────────────────── */
 .footer { border-top: 1px solid var(--line); background: #050b16; color: var(--muted); }
-.footer-inner { max-width: var(--max); margin: 0 auto; padding: 40px 20px calc(28px + env(safe-area-inset-bottom)); display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
-.footer h2 { font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gold-bright); margin: 0 0 10px; }
+.footer-inner {
+  max-width: var(--max); margin: 0 auto; padding: 36px 20px 24px;
+  display: grid; gap: 24px 20px; grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.footer-brand { grid-column: 1 / -1; }
+.footer h2 { font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gold-bright); margin: 0 0 8px; }
 .footer ul { list-style: none; margin: 0; padding: 0; }
-.footer li a { display: inline-flex; align-items: center; min-height: 36px; color: var(--text-2); text-decoration: none; }
+.footer li a { display: inline-flex; align-items: center; min-height: 40px; color: var(--text-2); text-decoration: none; font-size: .95rem; line-height: 1.3; }
 .footer li a:hover { color: var(--text); text-decoration: underline; }
-.footer-brand p { margin: 8px 0 0; font-size: .95rem; }
+.footer-brand p { margin: 6px 0 0; font-size: .95rem; max-width: 34ch; }
+@media (min-width: 760px) {
+  .footer-inner { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1100px) {
+  .footer-inner { grid-template-columns: 1.3fr repeat(5, minmax(0, 1fr)); gap: 20px 28px; padding-top: 44px; }
+  .footer-brand { grid-column: auto; }
+}
 .footer-bottom { max-width: var(--max); margin: 0 auto; padding: 16px 20px 28px; border-top: 1px solid var(--line); font-size: .88rem; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
 
 /* ── 12. Écrans ────────────────────────────────────────────────────── */
@@ -755,7 +785,7 @@ a.card:hover { transform: translateY(-3px); border-color: var(--border-strong); 
   body { background: #fff !important; color: #000; font-size: 11pt; }
   main *, .hero * { color: #111 !important; -webkit-text-fill-color: #111 !important; text-shadow: none !important; }
   .step--jouer .btn { display: none !important; }
-  .site-header, .menu-panel, .search-dialog, .constellation, .hero-search, .hero-cta, .parcours-nav, .chap-nav,
+  .site-header, .menu-panel, .search-dialog, .constellation, .hero-search, .hero-cta, .parcours-bar, .parcours-nav, .chap-nav,
   .footer, .skip-link, .math-controls, .doc-actions, .class-tools, .revoir { display: none !important; }
   .hero { border: 0; min-height: 0 !important; }
   .hero::before, .hero::after { display: none; }

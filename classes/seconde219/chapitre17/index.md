@@ -35,10 +35,10 @@ ds:
   pdf: seconde-ch17-ds-03-sujet.pdf
 erreurs:
 - Oublier de vérifier la solution dans les deux équations du système
-- "Mal appliquer la méthode de substitution : remplacer dans les DEUX membres"
-- Confondre système compatible (une solution) et incompatible (aucune solution)
+- "Substituer dans l'équation d'où l'on a tiré l'inconnue : on remplace dans l'autre équation"
+- "Croire qu'un système a toujours une unique solution : aucune si les droites sont parallèles distinctes, une infinité si elles sont confondues"
 - Oublier que deux droites parallèles distinctes forment un système sans solution
-- Erreur de signe lors de la combinaison des équations
+- "Se tromper de signe en combinant les équations : multiplier chaque membre entier, termes de droite compris"
 - "Confondre l'abscisse et l'ordonnée du point d'intersection"
 liens:
 - nom: "Mathrix — Systèmes d'équations"

@@ -54,11 +54,11 @@ ds:
 - num: 3
   pdf: tale-techno/tale-techno-commun-ch7-ds-03-sujet.pdf
 erreurs:
-- "Confondre les coordonnées du point moyen G : x barre est la moyenne des x, y barre est la moyenne des y"
+- "Se tromper sur le point moyen : $G(\\bar x\\,;\\bar y)$, moyennes des $x_i$ et des $y_i$"
 - Oublier de vérifier que la droite de régression passe par le point moyen G
 - "Inverser interpolation et extrapolation : interpoler c'est estimer entre les données, extrapoler c'est estimer au-delà"
 - Appliquer un ajustement affine à un nuage clairement non linéaire sans effectuer de changement de variable
-- "Se tromper dans le changement de variable : poser z = log(y) puis oublier de revenir à y = 10^z"
+- "Oublier de revenir à $y$ après le changement de variable $z = \\log y$ : $y = 10^z$"
 - "Confondre la méthode des moindres carrés et la méthode des points moyens : deux méthodes distinctes"
 - Extrapoler trop loin du domaine observé et présenter le résultat comme fiable sans esprit critique
 liens:

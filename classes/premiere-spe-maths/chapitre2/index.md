@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: premiere-spe-ch2-ds-03-sujet.pdf
 erreurs:
-- "Confondre f(a) (image) et f'(a) (nombre dérivé)"
-- "Oublier que le coefficient directeur de la tangente en a est f'(a)"
-- "Mal écrire l'équation de la tangente : y = f'(a)(x − a) + f(a)"
-- "Croire que (xⁿ)' = nxⁿ (oubli du −1) : la bonne formule est nxⁿ⁻¹"
-- "Confondre dérivée du produit et produit des dérivées : (uv)' = u'v + uv', pas u'v'"
-- "Oublier que la dérivée d'une constante vaut 0, pas la constante elle-même"
+- "Confondre l'image $f(a)$ et le nombre dérivé $f'(a)$"
+- "Oublier que le coefficient directeur de la tangente en $a$ est $f'(a)$"
+- "Se tromper dans l'équation de la tangente : $y = f'(a)(x - a) + f(a)$"
+- "Oublier le « moins 1 » : $(x^n)' = n\\,x^{n-1}$"
+- "Dériver un produit comme le produit des dérivées : $(uv)' = u'v + uv'$, pas $u'v'$"
+- "Oublier que la dérivée d'une constante est nulle"
 liens:
 - nom: Jaicompris — Dérivation
   desc: "Méthode complète : nombre dérivé, tangente, formules"

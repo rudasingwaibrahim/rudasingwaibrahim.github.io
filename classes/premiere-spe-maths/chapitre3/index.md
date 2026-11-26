@@ -43,9 +43,9 @@ ds:
 - num: 3
   pdf: premiere-spe-ch3-ds-03-sujet.pdf
 erreurs:
-- "Oublier le signe de a au-delà des racines : signe(a) à l'extérieur, signe(−a) à l'intérieur"
-- "Inverser le sens de l'inégalité quand on multiplie par un nombre négatif"
-- "Conclure trop vite quand Δ = 0 : signe constant (de a) sauf en x = α"
+- "Se tromper dans le signe du trinôme : signe de $a$ à l'extérieur des racines, signe de $-a$ entre elles"
+- "Oublier de changer le sens de l'inégalité quand on multiplie ou divise par un nombre négatif"
+- "Conclure trop vite quand $\\Delta = 0$ : le trinôme est du signe de $a$ et s'annule seulement en $\\alpha$"
 - "Mal poser le problème d'optimisation : oublier les contraintes (longueurs > 0, etc.)"
 - "Confondre maximum d'une fonction et valeur de x où ce maximum est atteint"
 - Oublier de vérifier les bornes du domaine dans un problème concret

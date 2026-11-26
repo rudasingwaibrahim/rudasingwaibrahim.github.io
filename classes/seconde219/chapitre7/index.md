@@ -35,12 +35,12 @@ ds:
 - num: 3
   pdf: seconde-ch7-ds-03-sujet.pdf
 erreurs:
-- "Confondre image et antécédent : f(x) est l'image de x, x est l'antécédent de f(x)"
-- "Oublier que plusieurs x peuvent avoir la même image (mais pas l'inverse pour une fonction)"
+- "Confondre image et antécédent : $f(x)$ est l'image de $x$ ; $x$ est un antécédent de $f(x)$"
+- "Oublier qu'un nombre peut avoir plusieurs antécédents, mais un réel n'a qu'une seule image"
 - Lire le tableau de valeurs dans le mauvais sens
-- "Confondre le domaine de définition et l'ensemble des images"
-- Oublier de vérifier que x est dans le domaine avant de calculer f(x)
-- Confondre la courbe de f et celle de -f ou 1/f
+- "Confondre l'ensemble de définition et l'ensemble des images"
+- "Calculer $f(x)$ pour un $x$ hors de l'ensemble de définition"
+- Confondre les courbes de $f$ et de $-f$
 liens:
 - nom: Mathrix — Notion de fonction
   desc: Cours vidéo complet sur les fonctions en Seconde

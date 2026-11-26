@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: premiere-spe-ch12-ds-03-sujet.pdf
 erreurs:
-- "Mauvais angle dans Al-Kashi : a² = b² + c² − 2bc·cos(Â) (Â est l'angle OPPOSÉ à a)"
-- "Confondre Al-Kashi et théorème de Pythagore : Pythagore n'est qu'un cas particulier (Â = 90°)"
-- "Oublier le signe − dans la formule d'addition : cos(a + b) = cos a·cos b − sin a·sin b"
-- Confondre cos(2x) = 2cos²(x) − 1 avec 2cos(x) (homogénéité)
-- Oublier que la loi des sinus marche aussi avec le diamètre du cercle circonscrit
-- "Mal orienter l'angle dans le calcul d'aire ½·b·c·sin(Â)"
+- "Se tromper d'angle dans Al-Kashi : dans $a^2 = b^2 + c^2 - 2bc\\cos\\widehat{A}$, l'angle $\\widehat{A}$ est opposé au côté $a$"
+- "Oublier que le théorème de Pythagore est le cas particulier $\\widehat{A} = 90^\\circ$ de la formule d'Al-Kashi"
+- "Écrire $\\vec u\\cdot\\vec v = \\lVert\\vec u\\rVert\\,\\lVert\\vec v\\rVert$ : il manque le facteur $\\cos(\\vec u, \\vec v)$"
+- "Utiliser $\\vec u\\cdot\\vec v = xx' + yy'$ dans un repère qui n'est pas orthonormé"
+- "Croire que $\\vec u\\cdot\\vec v = 0$ impose $\\vec u = \\vec 0$ ou $\\vec v = \\vec 0$ : les vecteurs peuvent être orthogonaux"
+- "Oublier que $\\overrightarrow{AB}\\cdot\\overrightarrow{AC} = AB \\times AH$ où $H$ est le projeté orthogonal de $C$ sur $(AB)$, avec un signe"
 liens:
 - nom: "Jaicompris — Théorème d'Al-Kashi"
   desc: Méthode complète avec exercices corrigés

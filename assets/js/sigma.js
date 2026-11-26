@@ -51,6 +51,16 @@
   });
   if (desktop.addEventListener) desktop.addEventListener('change', function () { if (panel && !panel.hidden) setMenu(false); });
 
+  /* ── Formules (KaTeX, chargé seulement sur les pages qui en contiennent) ── */
+  if (window.renderMathInElement) {
+    try {
+      window.renderMathInElement(doc.querySelector('main') || body, {
+        delimiters: [{ left: '$', right: '$', display: false }],
+        throwOnError: false, ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'input']
+      });
+    } catch (e) {}
+  }
+
   /* ── Liens PDF : nouvel onglet (contenus anciens) ─────────────────── */
   doc.querySelectorAll('a[href$=".pdf"]:not([target])').forEach(function (a) {
     a.target = '_blank'; a.rel = 'noopener';

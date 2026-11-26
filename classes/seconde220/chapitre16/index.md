@@ -79,9 +79,9 @@ erreurs:
 - "Confondre issue, événement et univers"
 - "Oublier qu'en équiprobabilité toutes les issues ont la même probabilité"
 - "Mal compter les issues favorables ou le nombre total d'issues"
-- "Oublier d'utiliser l'événement contraire : P(A) = 1 - P(non A)"
-- "Confondre intersection (ET, zone commune) et réunion (OU, zone totale)"
-- "Oublier de retirer l'intersection dans la formule : P(A union B) = P(A) + P(B) - P(A inter B)"
+- "Oublier l'événement contraire : $P(\\overline{A}) = 1 - P(A)$"
+- Confondre intersection $A \cap B$ (« A et B ») et réunion $A \cup B$ (« A ou B »)
+- "Oublier de retirer l'intersection : $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$"
 - Ne pas vérifier que la somme des probabilités vaut 1
 - Oublier une branche dans un arbre des possibles
 liens:

@@ -35,12 +35,12 @@ ds:
 - num: 3
   pdf: seconde-ch3-ds-03-sujet.pdf
 erreurs:
-- "Confondre vecteur et point : un vecteur a une direction et une norme, pas une position"
-- "Oublier que AB et BA sont opposés : BA = -AB"
-- "Mal appliquer la relation de Chasles : AC = AB + BC"
+- "Confondre vecteur et point : un vecteur est défini par une direction, un sens et une norme, pas par une position"
+- "Oublier que $\\overrightarrow{BA} = -\\overrightarrow{AB}$"
+- "Mal appliquer la relation de Chasles : $\\overrightarrow{AB} + \\overrightarrow{BC} = \\overrightarrow{AC}$"
 - "Confondre coordonnées d'un point et composantes d'un vecteur"
 - "Oublier que deux vecteurs égaux ont même direction, même sens et même norme"
-- "Additionner les normes au lieu des vecteurs : ||u+v|| ≠ ||u|| + ||v||"
+- "Additionner les normes au lieu des vecteurs : $\\lVert\\vec u + \\vec v\\rVert \\neq \\lVert\\vec u\\rVert + \\lVert\\vec v\\rVert$ en général"
 liens:
 - nom: Mathrix — Vecteurs Seconde
   desc: Cours vidéo sur les vecteurs et la relation de Chasles

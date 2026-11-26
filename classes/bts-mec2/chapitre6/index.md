@@ -33,12 +33,12 @@ ds_published: false
 ds: []
 erreurs:
 - "Confondre les compétences du référentiel CCF : S'informer, Chercher, Modéliser, Raisonner, Calculer, Communiquer"
-- Oublier que la sous-épreuve E31 est en CCF (2 situations × 55 min × /10)
-- "Confondre 1ère et 2e situation dans le calendrier (Sit.1 avant fin 1ère année, Sit.2 en 2e année)"
-- "Ne pas utiliser les outils numériques alors qu'au moins une question l'exige (présence examinateur)"
-- "Mal gérer le temps : 55 min sur 1-2 exercices à difficulté progressive"
+- "Oublier que la sous-épreuve E31 est évaluée en CCF : deux situations de 55 minutes, notées chacune sur 10"
+- "Confondre les deux situations du calendrier : la première avant la fin de la 1re année, la seconde en 2e année"
+- "Ne pas utiliser les outils numériques alors qu'au moins une question l'exige, en présence de l'examinateur"
+- "Mal gérer le temps : 55 minutes pour un ou deux exercices de difficulté progressive"
 - "Oublier de présenter les résultats numériques sur la fiche à compléter en présence de l'examinateur"
-- Ne pas vérifier les arrondis demandés (souvent 10⁻²ou 10⁻³)
+- "Ne pas respecter les arrondis demandés (souvent à $10^{-2}$ ou $10^{-3}$ près)"
 liens:
 - nom: APMEP — Annales BTS
   desc: "Toutes les annales APMEP par groupement (B, C, D) — sujets et corrigés"

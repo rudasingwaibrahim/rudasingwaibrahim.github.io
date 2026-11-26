@@ -47,7 +47,7 @@ erreurs:
 - "Confondre la grandeur à optimiser avec une variable libre : exprimer en fonction d'UNE variable"
 - "Mal utiliser le tableau de variations pour conclure (l'extremum est sur la fonction)"
 - "Ne pas vérifier si l'extremum trouvé respecte les contraintes du problème (longueurs positives, etc.)"
-- "Confondre minimum et maximum : un changement de + à − pour f' donne un maximum"
+- "Confondre minimum et maximum : si $f'$ passe de $+$ à $-$, $f$ admet un maximum"
 - "Oublier les bornes : l'extremum peut être atteint en un bord du domaine"
 liens:
 - nom: Jaicompris — Optimisation

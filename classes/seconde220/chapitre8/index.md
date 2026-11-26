@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: seconde-ch8-ds-03-sujet.pdf
 erreurs:
-- "Confondre crochet ouvert et fermé : 5 appartient à [2;5] mais pas à [2;5["
-- "Multiplier ou diviser par un négatif inverse le sens de l'inégalité"
-- "Oublier les deux solutions de |x-a| = r : x = a-r ET x = a+r"
-- "Confondre intersection (ET) et réunion (OU) d'intervalles"
-- "Écrire [-infini ; a] : l'infini n'est pas un réel, toujours ]-infini ; a]"
-- "Oublier que |x-a| inférieur ou égal à r donne un intervalle centré en a de demi-longueur r"
+- "Confondre crochet ouvert et fermé : $5 \\in [2\\,;5]$, mais $5 \\notin [2\\,;5[$"
+- "Oublier que multiplier ou diviser par un nombre négatif change le sens de l'inégalité"
+- "Oublier une solution : $|x - a| = r$ (avec $r > 0$) donne $x = a - r$ ou $x = a + r$"
+- "Confondre intersection (« et ») et réunion (« ou ») d'intervalles"
+- "Écrire $[-\\infty\\,;a]$ : $-\\infty$ n'est pas un réel, on écrit $]-\\infty\\,;a]$"
+- "Oublier que $|x - a| \\leqslant r$ équivaut à $x \\in [a - r\\,;a + r]$"
 liens:
 - nom: Lumni — Intervalles de réels
   desc: Notation et représentation des intervalles sur la droite réelle

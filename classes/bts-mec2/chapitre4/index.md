@@ -34,11 +34,11 @@ ds_published: false
 ds: []
 erreurs:
 - Confondre degrés et radians dans les calculs (calculatrice mal réglée)
-- Oublier que cos²x + sin²x = 1 (identité fondamentale)
-- Mal placer un point sur le cercle trigonométrique (sens direct vs inverse)
-- Appliquer Al-Kashi avec le mauvais angle (vérifier le couple côté/angle opposé)
+- Oublier la relation fondamentale $\cos^2 x + \sin^2 x = 1$
+- "Mal placer un point sur le cercle trigonométrique : le sens direct est le sens contraire des aiguilles d'une montre"
+- "Appliquer Al-Kashi avec le mauvais angle : dans $a^2 = b^2 + c^2 - 2bc\\cos\\widehat{A}$, l'angle $\\widehat{A}$ est opposé au côté $a$"
 - Confondre loi des sinus et loi des cosinus selon les données
-- Calculer une aire avec une formule euclidienne au lieu de ½ ab sin C
+- "Ne pas penser à la formule d'aire $\\mathcal{A} = \\frac{1}{2}\\,ab\\sin\\widehat{C}$ quand on connaît deux côtés et l'angle compris"
 - "Oublier de vérifier l'inégalité triangulaire avant de conclure qu'un triangle existe"
 liens:
 - nom: GeoGebra — Cercle trigonométrique interactif

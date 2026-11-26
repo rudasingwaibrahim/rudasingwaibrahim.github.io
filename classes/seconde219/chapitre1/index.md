@@ -35,12 +35,12 @@ ds:
 - num: 3
   pdf: seconde-ch1-ds-03-sujet.pdf
 erreurs:
-- "Oublier de distribuer le signe moins : -(a-b) = -a+b et non -a-b"
-- "Confondre réduire (developper) et factoriser : ce sont des opérations opposées"
-- Erreur dans (a-b)² = a² - 2ab + b² (pas a² + b²)
-- "Oublier les identités remarquables : (a+b)², (a-b)², (a+b)(a-b)"
-- "Annuler un facteur commun sans vérifier qu'il est non nul"
-- "Confondre le carré d'une somme et la somme des carrés : (a+b)² ≠ a²+b²"
+- "Oublier de distribuer le signe moins : $-(a - b) = -a + b$, et non $-a - b$"
+- "Confondre développer et factoriser : ce sont deux transformations inverses l'une de l'autre"
+- "Écrire $(a - b)^2 = a^2 - b^2$ : c'est faux, $(a - b)^2 = a^2 - 2ab + b^2$"
+- "Ne pas reconnaître une identité remarquable : $a^2 - b^2 = (a - b)(a + b)$ permet de factoriser"
+- "Simplifier une fraction en barrant un terme d'une somme : $\\dfrac{a + b}{a} \\neq b$, on ne simplifie que des facteurs"
+- "Confondre le carré d'une somme et la somme des carrés : $(a + b)^2 \\neq a^2 + b^2$"
 liens:
 - nom: Mathrix — Calcul algébrique
   desc: Cours vidéo complet avec exercices corrigés

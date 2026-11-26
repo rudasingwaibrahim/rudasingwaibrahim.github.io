@@ -42,13 +42,13 @@ ds:
 - num: 3
   pdf: tale-techno/tale-techno-commun-ch5-ds-03-sujet.pdf
 erreurs:
-- "Confondre P(A inter B) et P_A(B) : l'intersection est une probabilité absolue, la conditionnelle restreint l'univers"
-- Oublier de vérifier que P(A) est non nul avant de calculer P_A(B) = P(A inter B) / P(A)
-- "Inverser le conditionnement : P_A(B) n'est pas égal à P_B(A) en général"
-- "Confondre indépendance et incompatibilité : deux événements incompatibles ne sont presque jamais indépendants"
-- "Oublier la formule des probabilités totales : P(B) = P(A)*P_A(B) + P(Abar)*P_Abar(B)"
-- "Se tromper dans l'arbre pondéré : la somme des branches issues d'un même noeud doit toujours valoir 1"
-- "Multiplier les probabilités sur un chemin alors qu'il faut les additionner entre chemins menant au même événement"
+- "Confondre $P(A \\cap B)$ et $P_A(B)$ : la probabilité conditionnelle restreint l'univers à $A$"
+- "Oublier que $P_A(B) = \\dfrac{P(A \\cap B)}{P(A)}$ exige $P(A) \\neq 0$"
+- "Inverser le conditionnement : $P_A(B)$ n'est pas égal à $P_B(A)$ en général"
+- "Confondre indépendance et incompatibilité : deux événements incompatibles de probabilités non nulles ne sont jamais indépendants"
+- "Oublier la formule des probabilités totales : $P(B) = P(A)\\,P_A(B) + P(\\overline{A})\\,P_{\\overline{A}}(B)$"
+- "Se tromper dans l'arbre pondéré : la somme des probabilités issues d'un même nœud vaut 1"
+- "Confondre les règles de l'arbre : on multiplie le long d'un chemin, on additionne les chemins qui mènent au même événement"
 liens:
 - nom: Khan Academy — Probabilités conditionnelles
   desc: Cours vidéo complet sur les probabilités conditionnelles

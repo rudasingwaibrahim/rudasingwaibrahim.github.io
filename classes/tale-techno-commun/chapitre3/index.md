@@ -42,13 +42,13 @@ ds:
 - num: 3
   pdf: tale-techno/tale-techno-commun-ch3-ds-03-sujet.pdf
 erreurs:
-- "Confondre log(a*b) = log(a) + log(b) avec log(a+b) : le logarithme transforme les produits en sommes, pas les sommes"
-- "Écrire log(0) ou log d'un nombre négatif : le logarithme n'est défini que pour les nombres strictement positifs"
-- "Oublier que log(1) = 0 et log(10) = 1 : ce sont les deux valeurs de référence du log décimal"
-- "Confondre log (base 10) et ln (base e) : en Terminale Techno, on utilise le log décimal"
-- "Se tromper dans la formule log(a^n) = n * log(a) en oubliant que a doit être strictement positif"
-- Résoudre log(x) = a en écrivant x = a au lieu de x = 10^a
-- "Oublier de vérifier les conditions d'existence dans les équations logarithmiques : l'argument doit être strictement positif"
+- "Confondre $\\log(ab) = \\log a + \\log b$ et $\\log(a + b)$ : le logarithme transforme les produits en sommes"
+- "Écrire $\\log 0$ ou le logarithme d'un nombre négatif : $\\log x$ n'existe que pour $x > 0$"
+- "Oublier les valeurs de référence : $\\log 1 = 0$ et $\\log 10 = 1$"
+- "Confondre $\\log$ (logarithme décimal) et la touche « ln » de la calculatrice : en Terminale technologique, on utilise $\\log$"
+- "Appliquer $\\log(a^n) = n\\log a$ sans vérifier que $a > 0$"
+- "Résoudre $\\log x = a$ en écrivant $x = a$ : la solution est $x = 10^a$"
+- "Oublier les conditions d'existence : dans $\\log(u)$, il faut $u > 0$"
 liens:
 - nom: Khan Academy — Logarithmes
   desc: Introduction aux logarithmes et à leurs propriétés

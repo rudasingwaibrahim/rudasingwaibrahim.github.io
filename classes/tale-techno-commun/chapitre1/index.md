@@ -42,13 +42,13 @@ ds:
 - num: 3
   pdf: tale-techno/tale-techno-commun-ch1-ds-03-sujet.pdf
 erreurs:
-- "Confondre suite arithmétique et suite géométrique : additionner au lieu de multiplier (ou inversement)"
-- "Oublier que la raison d'une suite géométrique doit être non nulle et que les termes doivent rester de même signe"
-- Calculer u(n+1) - u(n) pour une suite géométrique au lieu de u(n+1) / u(n)
-- "Se tromper dans la formule du terme général : u(n) = u(0) + n*r et non u(n) = u(1) + n*r"
-- "Confondre le rang n et le terme u(n) : le rang est l'indice, le terme est la valeur"
-- Oublier de vérifier le sens de variation avant de conclure sur la convergence
-- "Appliquer la somme des termes d'une suite arithmétique sans adapter les bornes : S = (nombre de termes) * (premier + dernier) / 2"
+- "Confondre suite arithmétique et suite géométrique : on ajoute $r$ dans un cas, on multiplie par $q$ dans l'autre"
+- "Croire que les termes d'une suite géométrique gardent toujours le même signe : si $q < 0$, ils alternent"
+- "Calculer $u_{n+1} - u_n$ pour reconnaître une suite géométrique : on calcule $\\dfrac{u_{n+1}}{u_n}$"
+- "Se tromper de formule : $u_n = u_0 + nr$, mais $u_n = u_1 + (n - 1)r$ si la suite commence à $u_1$"
+- "Confondre le rang $n$ et le terme $u_n$ : le rang est l'indice, le terme est la valeur"
+- "Croire qu'une suite géométrique de raison $0 < q < 1$ finit par s'annuler : ses termes se rapprochent de 0 sans l'atteindre"
+- "Se tromper de nombre de termes dans $S = (\\text{nombre de termes}) \\times \\dfrac{\\text{premier} + \\text{dernier}}{2}$"
 liens:
 - nom: Khan Academy — Suites arithmétiques
   desc: Cours vidéo complet sur les suites arithmétiques avec exemples

@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: seconde-ch10-ds-03-sujet.pdf
 erreurs:
-- "Oublier d'inverser le sens de l'inégalité quand on multiplie/divise par un négatif"
-- "Confondre solution d'une équation et solution d'une inéquation"
-- Oublier de vérifier les solutions dans le domaine de définition
-- "Mal factoriser avant de résoudre : toujours ramener à A × B = 0 ou A × B > 0"
-- "Oublier d'étudier le signe de chaque facteur dans un tableau de signes"
-- "Confondre l'ensemble solution d'une inéquation produit et somme"
+- "Oublier de changer le sens de l'inégalité quand on multiplie ou divise par un nombre négatif"
+- "Donner une valeur comme solution d'une inéquation : l'ensemble des solutions est en général un intervalle"
+- "Oublier les valeurs interdites : dans $\\dfrac{A}{B} = 0$, il faut $B \\neq 0$"
+- "Développer au lieu de factoriser avant de résoudre : on se ramène à $A \\times B = 0$ ou à un tableau de signes"
+- "Oublier une ligne dans le tableau de signes : un facteur par ligne, puis la ligne du produit"
+- "Croire qu'un produit est nul si l'un des facteurs vaut 1 : $A \\times B = 0 \\iff A = 0$ ou $B = 0$"
 liens:
 - nom: Lumni — Résoudre une équation
   desc: Méthode pour résoudre une équation du premier degré

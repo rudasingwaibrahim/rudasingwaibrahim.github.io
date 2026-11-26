@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: premiere-spe-ch1-ds-03-sujet.pdf
 erreurs:
-- Confondre forme développée (ax² + bx + c) et forme canonique (a(x − α)² + β)
-- "Mauvais signe de α dans la forme canonique : α = −b/(2a), pas b/(2a)"
-- "Oublier que si Δ < 0, il n'y a pas de racines réelles (donc pas de factorisation classique)"
-- "Erreur sur le signe du trinôme : le signe est celui de a à l'extérieur des racines"
-- Confondre racines (où ax² + bx + c = 0) et sommet de la parabole
-- Croire que le discriminant donne directement les racines (il faut encore appliquer la formule)
+- Confondre forme développée $ax^2 + bx + c$ et forme canonique $a(x - \alpha)^2 + \beta$
+- "Se tromper de signe sur $\\alpha$ dans la forme canonique : $\\alpha = -\\dfrac{b}{2a}$"
+- "Oublier que si $\\Delta < 0$, le trinôme n'a pas de racine réelle et ne se factorise pas"
+- "Se tromper dans le signe du trinôme : il est du signe de $a$ à l'extérieur des racines"
+- Confondre les racines (solutions de $ax^2 + bx + c = 0$) et le sommet de la parabole
+- "Croire que le discriminant donne directement les racines : il faut encore appliquer $x = \\dfrac{-b \\pm \\sqrt{\\Delta}}{2a}$"
 liens:
 - nom: Jaicompris — Second degré
   desc: Méthodes pas à pas avec exercices corrigés en vidéo

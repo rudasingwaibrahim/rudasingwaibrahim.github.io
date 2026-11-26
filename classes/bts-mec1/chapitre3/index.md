@@ -93,13 +93,13 @@ ds_blancs:
   fichier: /assets/pdf/bts-mec1-ch03-dsblanc-03.pdf
 ds_published: false
 erreurs:
-- Oublier la constante + C dans les primitives indéfinies
+- "Oublier la constante dans une primitive : les primitives de $f$ sont les fonctions $F + C$"
 - "Confondre dérivée et primitive d'une fonction"
 - "Mal appliquer la linéarité de l'intégrale"
-- Inverser les bornes sans changer le signe
-- "Oublier la valeur absolue pour l'aire entre deux courbes"
-- Confondre aire algébrique et aire géométrique
-- "Erreurs dans les primitives usuelles : sin, cos, exp, puissances"
+- "Inverser les bornes sans changer le signe : $\\int_b^a f(x)\\,\\mathrm{d}x = -\\int_a^b f(x)\\,\\mathrm{d}x$"
+- "Oublier de distinguer la courbe du dessus pour l'aire entre deux courbes : on intègre $f - g$ là où $f \\geqslant g$"
+- "Confondre intégrale et aire : si $f \\leqslant 0$ sur $[a\\,;b]$, l'intégrale est négative et l'aire vaut son opposé"
+- "Se tromper dans les primitives usuelles : une primitive de $\\cos x$ est $\\sin x$, une primitive de $\\sin x$ est $-\\cos x$"
 liens:
 - nom: Wolfram Alpha
   desc: Calcule primitives et intégrales avec toutes les étapes détaillées

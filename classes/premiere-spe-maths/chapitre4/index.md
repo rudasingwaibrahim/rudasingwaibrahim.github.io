@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: premiere-spe-ch4-ds-03-sujet.pdf
 erreurs:
-- "Confondre f' > 0 (signe de la dérivée) et f croissante (sens de variation) — c'est lié, mais ne pas mélanger"
-- "Oublier que f'(a) = 0 ne suffit pas pour un extremum : il faut un changement de signe de f'"
+- "Confondre le signe de $f'$ et le signe de $f$ : $f' > 0$ signifie que $f$ est croissante, pas qu'elle est positive"
+- "Croire que $f'(a) = 0$ suffit pour un extremum : il faut que $f'$ change de signe en $a$"
 - Confondre extremum local et extremum global
-- "Oublier que le maximum est une valeur de f (ordonnée), pas une abscisse"
-- "Mal lire un tableau de variations : les flèches indiquent f, pas f'"
-- "Croire que f croissante implique f > 0 : faux (penser à f(x) = x − 5 sur [0; 4])"
+- "Confondre le maximum (une valeur de $f$) et l'abscisse où il est atteint"
+- "Mal lire un tableau de variations : les flèches décrivent $f$, les signes décrivent $f'$"
+- "Croire que $f$ croissante implique $f > 0$ : $x \\mapsto x - 5$ est croissante et négative sur $[0\\,;4]$"
 liens:
 - nom: Jaicompris — Variations et extrema
   desc: "Lien dérivée — variations, méthode des extrema"

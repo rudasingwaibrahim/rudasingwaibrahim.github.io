@@ -36,11 +36,11 @@ ds:
   pdf: seconde-ch6-ds-03-sujet.pdf
 erreurs:
 - Confondre nombre rationnel et nombre irrationnel
-- Oublier que sqrt(2) est irrationnel
-- "Mal écrire un intervalle : toujours ]-infini ; a] jamais [-infini ; a]"
-- "Confondre l'inclusion d'ensembles : N ⊂ Z ⊂ Q ⊂ R"
+- "Oublier que $\\sqrt{2}$ est irrationnel : $1{,}414$ n'en est qu'une valeur approchée"
+- "Mal écrire un intervalle : $]-\\infty\\,;a]$, jamais $[-\\infty\\,;a]$"
+- "Se tromper dans les inclusions : $\\mathbb{N} \\subset \\mathbb{Z} \\subset \\mathbb{D} \\subset \\mathbb{Q} \\subset \\mathbb{R}$"
 - Oublier que 0 est un entier naturel
-- Confondre valeur absolue et opposé
+- "Confondre valeur absolue et opposé : $|-3| = 3$, mais $|3| = 3$ aussi"
 liens:
 - nom: Mathrix — Ensembles de nombres
   desc: "Cours vidéo sur N, Z, Q, R et leurs propriétés"

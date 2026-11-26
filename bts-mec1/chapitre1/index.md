@@ -20,10 +20,10 @@ ds_blancs:
   fichier: /assets/pdf/terminale-suites-arith-dsblanc-02.pdf
 ds_published: false
 erreurs:
-- Confondre raison arithmétique r et raison géométrique q
-- Oublier de distinguer u₀ et u₁ dans la formule du terme général
-- Appliquer la formule de somme géométrique avec q = 1 (cas à traiter séparément)
-- "Confondre le nombre de termes et le dernier indice d'une somme"
+- "Confondre la raison $r$ d'une suite arithmétique et la raison $q$ d'une suite géométrique"
+- Oublier de distinguer $u_0$ et $u_1$ dans la formule du terme général
+- "Appliquer la formule de la somme géométrique avec $q = 1$ : ce cas se traite à part"
+- "Confondre le nombre de termes d'une somme et le dernier indice : de $u_0$ à $u_n$, il y a $n + 1$ termes"
 - "Oublier de vérifier la nature d'une suite avant d'appliquer une formule"
 liens:
 - nom: Bibmath — Suites numériques
@@ -32,5 +32,4 @@ liens:
   ico: 📚
   cat: cours
 ---
-
 {% include cours-cards.html %}

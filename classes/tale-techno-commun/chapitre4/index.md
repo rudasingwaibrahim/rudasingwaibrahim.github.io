@@ -42,13 +42,12 @@ ds:
 - num: 3
   pdf: tale-techno/tale-techno-commun-ch4-ds-03-sujet.pdf
 erreurs:
-- "Oublier que la fonction inverse n'est pas définie en 0 : toujours exclure 0 du domaine"
-- "Se tromper dans le sens de variation : la fonction inverse est décroissante sur chaque intervalle de son domaine"
-- "Écrire que 1/x est décroissante sur R* : elle est décroissante sur chaque intervalle séparément, pas globalement"
-- "Confondre 1/(a+b) avec 1/a + 1/b : la fonction inverse ne se distribue pas sur les sommes"
-- "Oublier de retourner l'inégalité en multipliant par un nombre négatif dans les équations avec 1/x"
-- "Se tromper dans la dérivée de 1/u : c'est -u'/u^2, pas 1/u^2"
-- "Confondre les asymptotes : x = 0 est asymptote verticale et y = 0 est asymptote horizontale"
+- "Oublier que la fonction inverse n'est pas définie en 0"
+- "Se tromper de sens de variation : $x \\mapsto \\dfrac{1}{x}$ est décroissante sur $]-\\infty\\,;0[$ et sur $]0\\,;+\\infty[$"
+- "Écrire que $x \\mapsto \\dfrac{1}{x}$ est décroissante sur $\\mathbb{R}^*$ : elle l'est sur chaque intervalle, pas globalement"
+- "Écrire $\\dfrac{1}{a + b} = \\dfrac{1}{a} + \\dfrac{1}{b}$ : c'est faux"
+- "Oublier de changer le sens de l'inégalité en multipliant par un nombre négatif"
+- "Se tromper dans la dérivée : $\\left(\\dfrac{1}{x}\\right)' = -\\dfrac{1}{x^2}$"
 liens:
 - nom: Khan Academy — Fonction inverse
   desc: Cours vidéo sur la fonction inverse et son graphe

@@ -36,11 +36,11 @@ ds:
   pdf: seconde-ch4-ds-03-sujet.pdf
 erreurs:
 - "Confondre multiple et diviseur : 6 est un multiple de 3, et 3 est un diviseur de 6"
-- "Oublier que 1 n'est pas un nombre premier (il a un seul diviseur)"
+- "Croire que 1 est premier : un nombre premier a exactement deux diviseurs, 1 et lui-même"
 - "Confondre nombre premier et nombre impair : 9 est impair mais pas premier"
 - Oublier que 2 est le seul nombre premier pair
 - Mal appliquer la décomposition en facteurs premiers
-- Confondre PGCD et PPCM dans les applications
+- "Oublier de simplifier une fraction jusqu'à sa forme irréductible"
 liens:
 - nom: Mathrix — Divisibilité
   desc: "Cours vidéo sur les multiples, diviseurs et nombres premiers"

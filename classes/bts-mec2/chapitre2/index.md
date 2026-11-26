@@ -33,13 +33,13 @@ ds_blancs:
 ds_published: false
 ds: []
 erreurs:
-- "Oublier de standardiser : Z = (X−μ)/σ avant de lire la table normale"
-- Confondre σ et σ² (variance) dans les énoncés
-- "Pour la moyenne empirique X̄, oublier que σ_X̄ = σ/√n (et non σ)"
-- "Pour une somme S_n, oublier que σ_S = σ·√n (et non σ/√n)"
-- Appliquer le TLC sans vérifier n ≥ 30
-- "Mauvaise lecture des intervalles : 68 % à ±1σ, 95 % à ±2σ, 99,7 % à ±3σ"
-- Confondre P(X ≤ a) et P(X ≥ a) — penser à la symétrie de la loi normale
+- "Oublier de centrer et réduire avant de lire la table : $Z = \\dfrac{X - \\mu}{\\sigma}$"
+- "Confondre l'écart type $\\sigma$ et la variance $\\sigma^2$ dans les énoncés"
+- "Pour la moyenne $\\overline{X}$ d'un échantillon, oublier que son écart type vaut $\\dfrac{\\sigma}{\\sqrt{n}}$ et non $\\sigma$"
+- "Pour une somme $S_n$ de $n$ variables, oublier que son écart type vaut $\\sigma\\sqrt{n}$"
+- Appliquer le théorème central limite sans vérifier que $n \geqslant 30$
+- "Mal retenir les intervalles « un, deux, trois sigmas » : environ 68 %, 95 % et 99,7 % des valeurs"
+- "Confondre $P(X \\leqslant a)$ et $P(X \\geqslant a)$ : penser à la symétrie de la loi normale"
 liens:
 - nom: GeoGebra — Loi normale interactive
   desc: Visualiser la courbe en cloche et les aires sous la courbe

@@ -35,12 +35,12 @@ ds:
 - num: 3
   pdf: seconde-ch9-ds-03-sujet.pdf
 erreurs:
-- "Confondre coordonnées d'un point M(x;y) et composantes du vecteur OM"
-- "Oublier la formule des coordonnées d'un vecteur : AB = (xB-xA ; yB-yA)"
-- "Mal calculer les coordonnées du milieu d'un segment"
-- "Confondre distance et norme d'un vecteur"
-- "Erreur dans la formule de la distance : oublier de prendre la racine carrée"
-- Confondre repère orthogonal et repère orthonormé
+- "Confondre le point $M(x\\,;y)$ et le vecteur $\\overrightarrow{OM}$, qui a pourtant les mêmes coordonnées"
+- "Se tromper de formule : $\\overrightarrow{AB}\\,(x_B - x_A\\,;y_B - y_A)$"
+- "Mal calculer le milieu : $I\\left(\\dfrac{x_A + x_B}{2}\\,;\\dfrac{y_A + y_B}{2}\\right)$"
+- "Confondre la distance $AB$ et la norme $\\lVert\\overrightarrow{AB}\\rVert$ : elles sont égales, mais l'une est une longueur, l'autre concerne un vecteur"
+- "Oublier la racine carrée : $AB = \\sqrt{(x_B - x_A)^2 + (y_B - y_A)^2}$ en repère orthonormé"
+- "Utiliser la formule de la distance dans un repère seulement orthogonal : il faut un repère orthonormé"
 liens:
 - nom: Mathrix — Repérage dans le plan
   desc: Cours vidéo sur les coordonnées et le repérage

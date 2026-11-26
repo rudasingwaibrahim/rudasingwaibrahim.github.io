@@ -56,12 +56,12 @@ ds:
 - num: 3
   pdf: seconde-ch12-ds-03-sujet.pdf
 erreurs:
-- "Confondre les courbes de x², x³, 1/x et sqrt(x)"
-- "Oublier le domaine de définition : sqrt(x) définie sur [0;+infini[, 1/x sur R*"
-- "Oublier que x² est décroissante sur ]-infini;0] et croissante sur [0;+infini["
-- "Confondre la parité : x² est paire, x³ est impaire"
+- "Confondre les courbes des fonctions carré, cube, inverse et racine carrée"
+- "Oublier les ensembles de définition : $\\sqrt{x}$ est définie sur $[0\\,;+\\infty[$, $\\dfrac{1}{x}$ sur $]-\\infty\\,;0[\\,\\cup\\,]0\\,;+\\infty[$"
+- "Oublier que $x \\mapsto x^2$ est décroissante sur $]-\\infty\\,;0]$ et croissante sur $[0\\,;+\\infty[$"
+- "Confondre les parités : $x \\mapsto x^2$ est paire, $x \\mapsto x^3$ est impaire"
 - "Mal lire les variations d'une fonction sur un graphique"
-- "Oublier que 1/x est décroissante sur chacun des intervalles ]-infini;0[ et ]0;+infini["
+- "Écrire que $x \\mapsto \\dfrac{1}{x}$ est décroissante sur $\\mathbb{R}^*$ : elle l'est sur $]-\\infty\\,;0[$ et sur $]0\\,;+\\infty[$, séparément"
 liens:
 - nom: Lumni — Fonctions de référence
   desc: "Carré, inverse, racine carrée : propriétés et courbes"

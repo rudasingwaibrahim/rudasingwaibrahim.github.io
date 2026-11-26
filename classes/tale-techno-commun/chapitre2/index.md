@@ -42,13 +42,12 @@ ds:
 - num: 3
   pdf: tale-techno/tale-techno-commun-ch2-ds-03-sujet.pdf
 erreurs:
-- "Confondre exp(a+b) = exp(a) * exp(b) avec exp(a*b) : la propriété fondamentale concerne la somme, pas le produit"
-- "Écrire exp(0) = 0 au lieu de exp(0) = 1 : l'exponentielle ne s'annule jamais"
-- "Oublier que exp(x) est toujours strictement positive : ne jamais écrire exp(x) = 0 ou exp(x) inférieur à 0"
-- "Se tromper dans la dérivée : la dérivée de exp(u) est u' * exp(u), pas simplement exp(u)"
-- Confondre croissance exponentielle et croissance linéaire dans les problèmes de modélisation
-- Résoudre exp(x) = a en écrivant x = ln(a) sans vérifier que a est strictement positif
-- "Oublier la croissance comparée : exp(x) l'emporte sur toute puissance de x quand x tend vers l'infini"
+- "Confondre $e^{a+b} = e^a \\times e^b$ et $e^{ab}$ : la propriété concerne la somme des exposants"
+- "Écrire $e^0 = 0$ : en réalité $e^0 = 1$"
+- "Oublier que $e^x > 0$ pour tout réel $x$ : l'équation $e^x = 0$ n'a pas de solution"
+- "Se tromper dans la dérivée : $\\left(e^{kx}\\right)' = k\\,e^{kx}$"
+- Confondre croissance exponentielle (taux constant) et croissance linéaire (accroissement constant)
+- "Résoudre $10^x = a$ en écrivant $x = \\dfrac{a}{10}$ : la solution est $x = \\log a$, pour $a > 0$"
 liens:
 - nom: Khan Academy — Fonction exponentielle
   desc: Cours vidéo sur la fonction exponentielle et ses propriétés

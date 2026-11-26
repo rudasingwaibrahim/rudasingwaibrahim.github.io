@@ -63,12 +63,12 @@ ds:
 - num: 3
   pdf: seconde-ch11-ds-03-sujet.pdf
 erreurs:
-- "Confondre taux d'évolution et coefficient multiplicateur : CM = 1 + t"
-- "Oublier que le taux global n'est pas la somme des taux successifs"
-- "Mal calculer un taux de variation : (f(b)-f(a))/f(a) et non (f(b)-f(a))/b"
-- "Confondre hausse de 20% puis baisse de 20% : on ne revient pas au départ"
-- Oublier de convertir le taux en décimal avant de calculer
-- "Confondre valeur absolue d'une variation et taux de variation"
+- "Confondre taux d'évolution et coefficient multiplicateur : $CM = 1 + t$ (ex. $+20\\,\\% \\to 1{,}2$)"
+- "Additionner des taux successifs : $+10\\,\\%$ puis $+10\\,\\%$ donne $+21\\,\\%$, car $1{,}1 \\times 1{,}1 = 1{,}21$"
+- "Se tromper de formule : le taux d'évolution est $t = \\dfrac{V_A - V_D}{V_D}$ (on divise par la valeur de départ)"
+- "Croire qu'une hausse de 20 % puis une baisse de 20 % ramène au départ : $1{,}2 \\times 0{,}8 = 0{,}96$"
+- "Oublier d'écrire le taux en écriture décimale : $5\\,\\% = 0{,}05$"
+- "Confondre la variation absolue $V_A - V_D$ et le taux d'évolution"
 liens:
 - nom: Lumni — Les pourcentages
   desc: "Comprendre et calculer des pourcentages d'évolution"

@@ -37,6 +37,6 @@ erreurs:
 - "Oublier de multiplier par l'expression conjuguée face à une différence de racines carrées"
 - "Confondre asymptote horizontale (limite finie en l'infini) et asymptote verticale (limite infinie en un point)"
 - "Affirmer qu'une courbe ne coupe jamais son asymptote horizontale"
-- Conclure à une asymptote oblique sans étudier la limite de f(x) − (ax + b)
+- "Conclure sur une limite à partir de quelques valeurs calculées : une table de valeurs ne démontre pas une limite"
 ---
 {% include cours-cards.html %}

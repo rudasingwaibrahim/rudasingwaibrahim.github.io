@@ -34,12 +34,12 @@ ds_published: false
 ds: []
 erreurs:
 - Confondre produit scalaire (nombre) et produit vectoriel (vecteur)
-- "Oublier le signe en utilisant la formule de polarisation : ½(AB² + AC² − BC²)"
-- "Pour une droite ax+by+c=0, confondre vecteur normal (a;b) et vecteur directeur (−b;a)"
+- "Se tromper de signe dans $\\overrightarrow{AB}\\cdot\\overrightarrow{AC} = \\frac{1}{2}\\left(AB^2 + AC^2 - BC^2\\right)$"
+- "Pour la droite $ax + by + c = 0$, confondre vecteur normal $(a\\,;b)$ et vecteur directeur $(-b\\,;a)$"
 - Oublier la valeur absolue dans la formule de la distance point-droite/plan
-- "Pour un cercle (x−a)² + (y−b)² = r², confondre signe du centre"
-- "Mal calculer le produit scalaire 3D : oublier la 3ème composante"
-- Conclure que des vecteurs sont orthogonaux sans vérifier u·v = 0
+- "Se tromper de signe sur le centre : le cercle $(x - a)^2 + (y - b)^2 = r^2$ a pour centre $(a\\,;b)$"
+- "Oublier la troisième coordonnée dans l'espace : $\\vec u\\cdot\\vec v = xx' + yy' + zz'$"
+- Conclure que deux vecteurs sont orthogonaux sans vérifier $\vec u\cdot\vec v = 0$
 liens:
 - nom: GeoGebra — Produit scalaire interactif
   desc: "Visualiser u·v selon l'angle entre vecteurs"

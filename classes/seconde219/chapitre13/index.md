@@ -55,9 +55,9 @@ ds:
 erreurs:
 - "Confondre moyenne, médiane et mode"
 - Oublier de pondérer chaque valeur par son effectif dans le calcul de la moyenne
-- "Mal déterminer la médiane quand l'effectif total est pair"
-- "Confondre quartile Q1, médiane Q2 et quartile Q3"
-- "Oublier que l'écart interquartile = Q3 - Q1 (et non Q3 seul)"
+- "Mal déterminer la médiane quand l'effectif total est pair : c'est la moyenne des deux valeurs centrales"
+- "Confondre les quartiles $Q_1$, $Q_3$ et la médiane"
+- "Oublier que l'écart interquartile vaut $Q_3 - Q_1$"
 - "Mal lire un histogramme : l'aire représente l'effectif, pas la hauteur seule"
 liens:
 - nom: Mathrix — Statistiques Seconde

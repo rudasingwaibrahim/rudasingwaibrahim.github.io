@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: premiere-spe-ch13-ds-03-sujet.pdf
 erreurs:
-- Confondre eˣ⁺ʸ = eˣ · eʸ avec eˣ⁺ʸ = eˣ + eʸ (faux)
-- "Croire que (eˣ)' = eˣ · x : NON, (eˣ)' = eˣ tout simplement"
-- "Oublier que (eᵘ)' = u' · eᵘ (dérivée d'une composée)"
-- "Confondre e⁻ˣ et 1/eˣ : ce sont égaux, mais bien justifier"
-- "Croire que exp(x) peut être négatif : NON, exp est strictement positive sur ℝ"
-- "Mauvaise transformation : eˣ = a ⇔ x = ln(a) — pas x = a/e"
+- "Écrire $e^{x+y} = e^x + e^y$ : c'est faux, $e^{x+y} = e^x \\times e^y$"
+- "Croire que $(e^x)' = x\\,e^x$ : la fonction exponentielle est sa propre dérivée"
+- "Oublier le facteur $a$ en dérivant : $\\left(e^{ax+b}\\right)' = a\\,e^{ax+b}$"
+- "Croire que $e^{-x}$ est négatif : $e^{-x} = \\dfrac{1}{e^x} > 0$"
+- "Croire que $e^x$ peut être négatif ou nul : $e^x > 0$ pour tout réel $x$"
+- Oublier que $e^a = e^b \iff a = b$ et $e^a < e^b \iff a < b$ (fonction strictement croissante)
 liens:
 - nom: Jaicompris — Fonction exponentielle
   desc: "Méthode complète : propriétés, équations, dérivée"

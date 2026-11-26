@@ -35,10 +35,10 @@ ds:
   pdf: seconde-ch18-ds-03-sujet.pdf
 erreurs:
 - "Confondre population, échantillon et individu"
-- Oublier que la fréquence observée dans un échantillon est différente de la probabilité réelle
-- "Mal appliquer l'intervalle de fluctuation : centré en p, de demi-longueur 1/sqrt(n)"
-- "Oublier que l'intervalle de fluctuation dépend de la taille n de l'échantillon"
-- Confondre intervalle de fluctuation et intervalle de confiance
+- "Oublier que la fréquence observée sur un échantillon varie d'un échantillon à l'autre (fluctuation d'échantillonnage)"
+- "Se tromper d'intervalle : pour $n$ assez grand, environ 95 % des fréquences sont dans $\\left[p - \\dfrac{1}{\\sqrt{n}}\\,;p + \\dfrac{1}{\\sqrt{n}}\\right]$"
+- "Oublier que la fluctuation diminue quand la taille $n$ de l'échantillon augmente"
+- "Croire qu'un échantillon plus grand donne toujours exactement la proportion $p$ : il réduit seulement la fluctuation"
 - "Conclure trop vite qu'un résultat est anormal sans utiliser l'intervalle de fluctuation"
 liens:
 - nom: Mathrix — Échantillonnage Seconde

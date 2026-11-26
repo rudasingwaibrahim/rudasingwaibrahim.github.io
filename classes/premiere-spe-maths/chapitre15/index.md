@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: premiere-spe-ch15-ds-03-sujet.pdf
 erreurs:
-- Confondre variable aléatoire X (fonction) et ses valeurs xᵢ
+- Confondre la variable aléatoire $X$ et ses valeurs $x_i$
 - "Oublier que la somme des probabilités d'une loi vaut 1"
-- "Mauvaise formule de l'espérance : E(X) = Σ xᵢ · P(X = xᵢ), pas la moyenne arithmétique des xᵢ"
-- "Confondre V(X) (variance) et σ(X) (écart-type) : σ(X) = √V(X)"
-- "Oublier la formule de König : V(X) = E(X²) − E(X)²"
-- "Croire que E(aX + b) = aE(X) + b·E(X) : NON, c'est aE(X) + b (linéarité)"
+- "Se tromper de formule : $E(X) = \\sum x_i\\,P(X = x_i)$, pas la moyenne simple des $x_i$"
+- "Confondre variance et écart type : $\\sigma(X) = \\sqrt{V(X)}$"
+- "Oublier la formule de König-Huygens : $V(X) = E(X^2) - E(X)^2$"
+- "Écrire $E(aX + b) = aE(X) + bE(X)$ : c'est faux, $E(aX + b) = aE(X) + b$"
 liens:
 - nom: Jaicompris — Variables aléatoires
   desc: "Méthode complète : loi, espérance, variance"
