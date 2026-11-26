@@ -17,21 +17,21 @@ planches:
 dm_published: false
 dm:
 - num: 1
-  contenu: Suites · Définitions explicite et par récurrence
+  contenu: "Suites explicites et récurrentes · Fibonacci · Seuil"
   duree: "1 semaine"
   pdf: premiere-spe-ch7-dm-01-sujet.pdf
 - num: 2
-  contenu: Sens de variation · Représentation graphique
+  contenu: "Sens de variation · Seuil · Somme des carrés"
   duree: "1 semaine"
   pdf: premiere-spe-ch7-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
 - num: 1
-  contenu: Calcul des premiers termes · Conjecture
+  contenu: "Premiers termes · Conjecture · Syracuse"
   duree: "55 min"
   pdf: premiere-spe-ch7-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Sens de variation · Etude
+  contenu: "Sens de variation · Seuils · Modélisation"
   duree: "55 min"
   pdf: premiere-spe-ch7-dsblanc-02-sujet.pdf
 ds_published: false

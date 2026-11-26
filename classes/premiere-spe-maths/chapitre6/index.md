@@ -17,21 +17,21 @@ planches:
 dm_published: false
 dm:
 - num: 1
-  contenu: "Modélisation · Étude complète d'une fonction"
+  contenu: "Modélisation · Coût marginal et bénéfice · Tangentes"
   duree: "1 semaine"
   pdf: premiere-spe-ch6-dm-01-sujet.pdf
 - num: 2
-  contenu: Optimisation · Problème concret
+  contenu: "Optimisation · Coût moyen · Problèmes concrets"
   duree: "1 semaine"
   pdf: premiere-spe-ch6-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
 - num: 1
-  contenu: Étude de fonction · Tangente
+  contenu: "Étude de fonction · Tangente · Position relative"
   duree: "55 min"
   pdf: premiere-spe-ch6-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Optimisation · Application
+  contenu: "Optimisation · Courbes de Lorenz · Volume maximal"
   duree: "55 min"
   pdf: premiere-spe-ch6-dsblanc-02-sujet.pdf
 ds_published: false

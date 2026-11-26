@@ -17,21 +17,21 @@ planches:
 dm_published: false
 dm:
 - num: 1
-  contenu: Variable aléatoire · Loi de probabilité
+  contenu: "Variable aléatoire · Loi de probabilité · Jeux"
   duree: "1 semaine"
   pdf: premiere-spe-ch15-dm-01-sujet.pdf
 - num: 2
-  contenu: Espérance · Variance · Écart-type
+  contenu: "Espérance · Variance · Écart type"
   duree: "1 semaine"
   pdf: premiere-spe-ch15-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
 - num: 1
-  contenu: Loi de probabilité · Espérance
+  contenu: "Loi de probabilité · Espérance"
   duree: "55 min"
   pdf: premiere-spe-ch15-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Variance · Écart-type · Linéarité
+  contenu: "Variance · Écart type · Linéarité de l'espérance"
   duree: "55 min"
   pdf: premiere-spe-ch15-dsblanc-02-sujet.pdf
 ds_published: false

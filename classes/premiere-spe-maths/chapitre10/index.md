@@ -17,21 +17,21 @@ planches:
 dm_published: false
 dm:
 - num: 1
-  contenu: Suites arithmétiques · Formule explicite · Somme
+  contenu: "Suites arithmétiques · Somme de Gauss · Modélisation"
   duree: "1 semaine"
   pdf: premiere-spe-ch10-dm-01-sujet.pdf
 - num: 2
-  contenu: Suites géométriques · Évolutions · Somme
+  contenu: "Suites géométriques · Évolutions · Somme"
   duree: "1 semaine"
   pdf: premiere-spe-ch10-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
 - num: 1
-  contenu: Suites arithmétiques · Reconnaissance · Calcul
+  contenu: "Suites arithmétiques · Reconnaissance · Calcul"
   duree: "55 min"
   pdf: premiere-spe-ch10-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Suites géométriques · Application financière
+  contenu: "Suites géométriques · Application financière"
   duree: "55 min"
   pdf: premiere-spe-ch10-dsblanc-02-sujet.pdf
 ds_published: false

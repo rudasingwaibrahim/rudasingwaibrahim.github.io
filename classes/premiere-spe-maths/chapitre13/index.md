@@ -17,21 +17,21 @@ planches:
 dm_published: false
 dm:
 - num: 1
-  contenu: Définition · Propriétés algébriques
+  contenu: "Définition · Propriétés algébriques · Somme de puissances de e"
   duree: "1 semaine"
   pdf: premiere-spe-ch13-dm-01-sujet.pdf
 - num: 2
-  contenu: Dérivée · Étude de la fonction exp
+  contenu: "Dérivée · Études de fonctions exponentielles · Modélisation"
   duree: "1 semaine"
   pdf: premiere-spe-ch13-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
 - num: 1
-  contenu: Calculs · Équations exponentielles
+  contenu: "Calculs · Équations et inéquations exponentielles"
   duree: "55 min"
   pdf: premiere-spe-ch13-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Dérivée · Variations · Tangente
+  contenu: "Dérivée · Variations · Tangente"
   duree: "55 min"
   pdf: premiere-spe-ch13-dsblanc-02-sujet.pdf
 ds_published: false
