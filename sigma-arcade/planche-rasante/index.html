@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La Planche rasante · Sigma Arcade</title>
+<meta name="description" content="Dérivation, point de vue local (Première spécialité) : taux de variation et pente d'une sécante, nombre dérivé comme limite du taux de variation, tangente, équation de la tangente, lecture graphique, vitesse instantanée, coût marginal et approximation de f(a + h). Une planche de skate posée sur la rampe : ses deux roues sont sur la courbe, c'est une sécante ; on rapproche les roues… et la planche devient tangente.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours, la réponse est donnée au deuxième essai.
+   IDEA : la courbe de f est la rampe d'un skatepark de nuit. Une planche posée avec ses deux roues sur la rampe,
+          en A et en M, est une SÉCANTE ; sa pente est le taux de variation. On fait rouler M vers A (h → 0) :
+          la planche pivote et se couche sur la rampe, c'est la TANGENTE ; sa pente est le nombre dérivé f′(a).
+          Prolongée, la planche devient un rayon (l'équation de la tangente) ; rouler sur la planche au lieu
+          de la rampe, c'est l'approximation f(a + h) ≈ f(a) + f′(a)h.
+   PICTURE : rampe en béton bleu nuit, arête lumineuse bleu clair ; planche sombre à liseré orangé (objet),
+          roues claires ; sécante en pointillés violet-bleu, tangente dorée.
+   COLOUR and TYPE : « océan profond » du site ; violet-bleu pour l'action ; or pour la tangente et les réussites ;
+          corail pour les erreurs ; Outfit partout.
+   LAYOUT : scène et légende à gauche (collées en haut sur téléphone), carnet de questions à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise)}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:78ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button,select,input{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible,#scene:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(340px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:linear-gradient(175deg,#0b1834 0%,#07101f 62%,#050b16 100%);user-select:none;-webkit-user-select:none}
+#scene{display:block;width:100%;height:auto;touch-action:pan-y}
+#scene.grab{cursor:grab}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(17px,1.8vw,21px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .4em}
+.capt .k{color:var(--gold2)}.capt .m{color:var(--mut);font-weight:600}.capt .s{color:#a9bbff}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 4px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+pre.code{margin:8px 0;padding:10px 12px;border-radius:10px;background:rgba(0,0,10,.35);border:1px solid var(--soft);font:600 14px/1.5 var(--sg-mono);color:#dfe7ff;overflow-x:auto;white-space:pre}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.55;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+table.tv{border-collapse:collapse;margin:8px 0 4px;font-variant-numeric:tabular-nums;font-size:16px}
+table.tv th,table.tv td{border:1px solid var(--line);padding:4px 10px;text-align:center}
+table.tv th{color:var(--mut);font-weight:600;text-align:left}
+.tvw{overflow-x:auto;max-width:100%}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.45 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(18px,2vw,22px)/2.3 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.2em;height:46px;margin:0 3px;padding:0 6px;font:700 20px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+/* puces de h, inclinaison */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}
+.chip{min-width:64px;min-height:48px;padding:0 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:700 16px var(--sg-font);cursor:pointer;font-variant-numeric:tabular-nums}
+.chip:hover:not(:disabled){border-color:var(--ac)}
+.chip[aria-pressed=true]{background:rgba(108,142,255,.18);border-color:var(--ac);color:#e6ebff}
+.chip.tg{border-style:dashed;border-color:rgba(232,199,102,.65)}
+.tiltc{display:flex;align-items:center;gap:8px;margin:0 0 12px;flex-wrap:wrap}
+.tiltc .stp{min-width:56px;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:700 22px var(--sg-font);cursor:pointer}
+.tiltc .stp:hover:not(:disabled){border-color:var(--ac)}
+.tiltc output{min-width:7.4em;min-height:48px;display:inline-flex;align-items:center;justify-content:center;padding:0 12px;border-radius:12px;background:rgba(108,142,255,.12);border:1.5px solid rgba(108,142,255,.55);color:#dfe6ff;font:800 20px var(--sg-font);font-variant-numeric:tabular-nums}
+/* écritures mathématiques */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+sub,sup{font-size:.68em;line-height:0}
+.sk-q .fr,.sk-ch .fr{font-size:.92em}
+.cf{font-family:serif;font-style:italic;font-weight:600}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb.rv{background:rgba(200,168,75,.09);border-left-color:var(--gold)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex;flex:none}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:15px;border-radius:10px}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .chip{min-width:56px;padding:0 8px;font-size:15px}
+  .tiltc{flex-wrap:nowrap;gap:6px}.tiltc .stp{min-width:48px;flex:none}.tiltc output{flex:1 1 auto;min-width:0;padding:0 6px;font-size:18px}
+  pre.code{font-size:12.5px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>La Planche rasante</h1>
+<p>La courbe est une rampe de skate. Pose une planche avec ses deux roues sur la rampe&nbsp;: c'est une sécante, et sa pente est un taux de variation. Rapproche les roues… la planche pivote et finit par raser la rampe en un seul point&nbsp;: c'est la tangente, et sa pente est le nombre dérivé.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage">
+    <svg id="scene" viewBox="0 0 1000 560" role="img" aria-label="La courbe de la fonction, une rampe sur laquelle est posée une planche" tabindex="-1"></svg>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+<script>
+/* ======================= LA PLANCHE RASANTE — noyau : nombres exacts, fonctions, scène ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const NB=' ',NN=' ',MINUS='−';
+const ab=x=>x<0n?-x:x;
+const gcd=(a,b)=>{a=ab(a);b=ab(b);while(b){const t=a%b;a=b;b=t}return a||1n};
+/* rationnels exacts */
+class Q{
+  constructor(n,d){n=BigInt(n);d=d===undefined?1n:BigInt(d);if(d===0n)throw new Error('division par 0');if(d<0n){n=-n;d=-d}const g=gcd(n,d);this.n=n/g;this.d=d/g}
+  static of(x){if(x instanceof Q)return x;if(typeof x==='bigint')return new Q(x,1n);if(typeof x==='number'){if(Number.isInteger(x))return new Q(BigInt(x),1n);return Q.parse(String(x))}return Q.parse(x)}
+  static parse(s){s=String(s).trim().replace(/[\s  ]/g,'').replace(/[−–—]/g,'-').replace(',','.').replace(/^\+/,'');
+    let m=/^(-?)(\d+)\/(\d+)$/.exec(s);if(m){if(m[3]==='0')return null;return new Q((m[1]?-1n:1n)*BigInt(m[2]),BigInt(m[3]))}
+    m=/^(-?)(\d*)(?:\.(\d+))?$/.exec(s);if(!m||(!m[2]&&!m[3]))return null;const f=m[3]||'',den=10n**BigInt(f.length);
+    return new Q((m[1]?-1n:1n)*(BigInt(m[2]||'0')*den+(f?BigInt(f):0n)),den)}
+  add(o){o=Q.of(o);return new Q(this.n*o.d+o.n*this.d,this.d*o.d)}
+  sub(o){o=Q.of(o);return new Q(this.n*o.d-o.n*this.d,this.d*o.d)}
+  mul(o){o=Q.of(o);return new Q(this.n*o.n,this.d*o.d)}
+  div(o){o=Q.of(o);return new Q(this.n*o.d,this.d*o.n)}
+  eq(o){o=Q.of(o);return o!==null&&this.n===o.n&&this.d===o.d}
+  cmp(o){o=Q.of(o);const a=this.n*o.d,b=o.n*this.d;return a<b?-1:a>b?1:0}
+  neg(){return new Q(-this.n,this.d)}
+  abs(){return new Q(ab(this.n),this.d)}
+  sgn(){return this.n<0n?-1:this.n>0n?1:0}
+  get v(){return Number(this.n)/Number(this.d)}
+  isInt(){return this.d===1n}
+  exact(){let d=this.d;while(d%2n===0n)d/=2n;while(d%5n===0n)d/=5n;return d===1n}
+  dec(){if(!this.exact())return null;let k=0;while(!this.mul(10n**BigInt(k)).isInt())k++;const i=this.mul(10n**BigInt(k)).n,s=i<0n?'-':'',a=String(ab(i)).padStart(k+1,'0');
+    return s+(k?a.slice(0,a.length-k)+'.'+a.slice(a.length-k):a)}
+  toString(){return this.d===1n?String(this.n):this.n+'/'+this.d}
+}
+const q=x=>Q.of(x);
+/* arrondi d'un réel (nombre JS) à d décimales, rendu exact */
+const rnd=(x,d)=>{const m=Math.pow(10,d);return new Q(BigInt(Math.round(x*m)),BigInt(m))};
+/* écriture française d'une chaîne décimale */
+function frS(s){let neg=s[0]==='-';if(neg)s=s.slice(1);let [ip,fp]=s.split('.');if(ip.length>=5)ip=ip.replace(/\B(?=(\d{3})+(?!\d))/g,NN);return (neg?MINUS:'')+ip+(fp?','+fp:'')}
+const frac=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+/* nombre exact → HTML : décimal si possible, sinon fraction */
+function D(x){x=q(x);const s=x.dec();if(s!==null&&(s.split('.')[1]||'').length<=6)return frS(s);return (x.n<0n?MINUS:'')+frac(String(ab(x.n)),String(x.d))}
+/* nombre exact → texte brut (scène, légende) */
+function Dt(x){x=q(x);const s=x.dec();if(s!==null&&(s.split('.')[1]||'').length<=6)return frS(s);return (x.n<0n?MINUS:'')+ab(x.n)+'/'+x.d}
+/* nombre arrondi à d décimales (zéros conservés) */
+function Dr(x,d){const r=rnd(x,d);let s=r.dec();let [i,f]=s.split('.');f=(f||'').padEnd(d,'0');return frS(d?i+'.'+f:i)}
+/* signe devant un terme : « + 3 », « − 3 » */
+const sgT=x=>{x=q(x);return (x.sgn()<0?' '+MINUS+' ':' + ')+D(x.abs())};
+/* « x − a » */
+const xm=(a,v)=>{a=q(a);v=v||'x';return a.sgn()===0?v:a.sgn()>0?`${v} ${MINUS} ${D(a)}`:`${v} + ${D(a.abs())}`};
+/* « a + h » écrit avec h donné */
+const aph=(a,h)=>{a=q(a);h=q(h);return `${D(a)}${h.sgn()<0?' '+MINUS+' ':' + '}${D(h.abs())}`};
+const par=x=>{x=q(x);return x.sgn()<0?`(${D(x)})`:D(x)};
+/* réponses acceptées pour un trou du kit */
+function writes(x){x=q(x);const out=[];const add=s=>{if(!out.includes(s))out.push(s)};const s=x.dec();
+  if(s!==null){add(frS(s).replace(/ /g,''));add(s);if(s.includes('.')){/* zéros finaux tolérés */}}
+  if(!x.isInt()){const f=(x.n<0n?MINUS:'')+ab(x.n)+'/'+x.d;add(f);add(f.replace(MINUS,'-'))}
+  if(s!==null&&s[0]==='-')add(frS(s).replace(MINUS,'-').replace(/ /g,''));
+  return out}
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* ---------------- fonctions ---------------- */
+/* fs = {t:'quad',p,q,r} | {t:'inv',k} | {t:'sqrt'} | {t:'abs'} | {t:'cube'} | {t:'pts',xs,ys} (chaînes exactes) */
+const FQ=(p,qq,r)=>({t:'quad',p:String(q(p)),q:String(q(qq)),r:String(q(r))});
+const FI=k=>({t:'inv',k:String(q(k===undefined?1:k))});
+const FS={t:'sqrt'},FA={t:'abs'},FC={t:'cube'};
+function sqrtQ(x){x=q(x);if(x.sgn()<0)return null;const r=v=>{if(v<0n)return null;let s=BigInt(Math.floor(Math.sqrt(Number(v))));while(s*s>v)s--;while((s+1n)*(s+1n)<=v)s++;return s*s===v?s:null};
+  const a=r(x.n),b=r(x.d);return a===null||b===null?null:new Q(a,b)}
+function fv(fs,x){x=q(x);switch(fs.t){
+  case 'quad':return q(fs.p).mul(x).mul(x).add(q(fs.q).mul(x)).add(q(fs.r));
+  case 'inv':return x.sgn()===0?null:q(fs.k).div(x);
+  case 'cube':return x.mul(x).mul(x);
+  case 'abs':return x.abs();
+  case 'sqrt':return sqrtQ(x);
+  case 'pts':{const i=fs.xs.findIndex(t=>q(t).eq(x));return i<0?null:q(fs.ys[i])}}}
+function fn(fs,x){switch(fs.t){
+  case 'quad':{if(!fs._n)Object.defineProperty(fs,'_n',{value:[q(fs.p).v,q(fs.q).v,q(fs.r).v]});const c=fs._n;return c[0]*x*x+c[1]*x+c[2]}
+  case 'inv':return q(fs.k).v/x;
+  case 'cube':return x*x*x;case 'abs':return Math.abs(x);case 'sqrt':return Math.sqrt(x);
+  case 'pts':{const X=fs.xs.map(t=>q(t).v),Y=fs.ys.map(t=>q(t).v);if(x<=X[0])return Y[0];for(let i=1;i<X.length;i++)if(x<=X[i])return Y[i-1]+(Y[i]-Y[i-1])*(x-X[i-1])/(X[i]-X[i-1]);return Y[Y.length-1]}}}
+function fdom(fs,x){return fs.t==='inv'?x>0.02:fs.t==='sqrt'?x>=0:fs.t==='pts'?(x>=q(fs.xs[0]).v-1e-9&&x<=q(fs.xs[fs.xs.length-1]).v+1e-9):true}
+/* nombre dérivé exact (sert à construire les questions ; l'audit le recalcule indépendamment) */
+function fd(fs,a){a=q(a);switch(fs.t){
+  case 'quad':return q(2).mul(fs.p).mul(a).add(fs.q);
+  case 'inv':return q(fs.k).neg().div(a.mul(a));
+  case 'cube':return q(3).mul(a).mul(a);
+  case 'sqrt':{const r=sqrtQ(a);return r&&r.sgn()>0?q(1).div(q(2).mul(r)):null}
+  default:return null}}
+function fdn(fs,a){const e=fd(fs,a);if(e)return e.v;const h=1e-6;return (fn(fs,a+h)-fn(fs,a-h))/(2*h)}
+const fT=(fs,a,h)=>{const u=fv(fs,q(a).add(h)),w=fv(fs,a);return u&&w?u.sub(w).div(h):null};
+const fTn=(fs,a,h)=>(fn(fs,q(a).v+q(h).v)-fn(fs,q(a).v))/q(h).v;
+/* écritures */
+function poly(cs,v,txt){let s='';for(const [c0,pw] of cs){const c=q(c0);if(c.sgn()===0)continue;const neg=c.sgn()<0,a=c.abs();
+    const vv=pw===0?'':pw===1?v:v+(txt?(pw===2?'²':'³'):`<sup>${pw}</sup>`);const cs1=(pw>0&&a.eq(1))?'':(txt?Dt(a):D(a));
+    const t=cs1+vv;s+=s?(neg?` ${MINUS} `:' + ')+t:(neg?MINUS:'')+t}return s||'0'}
+function fh(fs,v){v=v||'x';switch(fs.t){
+  case 'quad':return poly([[fs.p,2],[fs.q,1],[fs.r,0]],v);
+  case 'inv':{const k=q(fs.k);return (k.sgn()<0?MINUS:'')+frac(D(k.abs()),v)}
+  case 'sqrt':return '√'+v;case 'abs':return '|'+v+'|';case 'cube':return v+'<sup>3</sup>'}}
+function ft(fs,v){v=v||'x';switch(fs.t){
+  case 'quad':return poly([[fs.p,2],[fs.q,1],[fs.r,0]],v,true);
+  case 'inv':{const k=q(fs.k);return (k.sgn()<0?MINUS:'')+Dt(k.abs())+'/'+v}
+  case 'sqrt':return '√'+v;case 'abs':return '|'+v+'|';case 'cube':return v+'³';default:return ''}}
+/* combinaison linéaire écrite proprement : [[coef, suffixe]] (coefficient 1 omis devant un suffixe) */
+function lc(ts){let o='';for(const [c0,sf] of ts){const c=q(c0);if(c.sgn()===0)continue;const a=c.abs(),t=(sf&&a.eq(1)?'':D(a))+sf;o+=o?(c.sgn()<0?` ${MINUS} `:' + ')+t:(c.sgn()<0?MINUS:'')+t}return o||'0'}
+const fdef=(fs,n,v)=>`${n||'f'}(${v||'x'}) = ${fh(fs,v)}`;
+const Cf=n=>`𝒞<sub>${n||'f'}</sub>`;
+/* parabole de nombre dérivé connu : f(x) = s(x − a)² + m(x − a) + fa, développée */
+function para(s,a,m,fa){s=q(s);a=q(a);m=q(m);fa=q(fa);return FQ(s,m.sub(q(2).mul(s).mul(a)),s.mul(a).mul(a).sub(m.mul(a)).add(fa))}
+
+/* ---------------- bruitages ---------------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),gn=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(v,t+.015);gn.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(gn);gn.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+let lastTick=0;
+const SND={pop(){if(snd){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)}},
+  tick(){if(!snd)return;const n=performance.now();if(n-lastTick<45)return;lastTick=n;tone(1300,.03,.014,'square')},
+  soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  roll(){if(snd){tone(180,.25,.03,'sawtooth');tone(240,.2,.02,'triangle',.08)}},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))},
+  get on(){return snd},set on(v){snd=v}};
+
+/* ---------------- scène ---------------- */
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?1:ms));
+function anim(ms,fn){return new Promise(res=>{if(reduceM)ms=1;const t0=performance.now();
+  const step=t=>{let k=Math.min(1,(t-t0)/ms);fn(k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,k);if(k<1)requestAnimationFrame(step);else res()};requestAnimationFrame(step)})}
+const svg=$('scene');
+const VW=1000,VH=560,PL=58,PR=988,PT=16,PB=532;
+let st=null;
+function blank(){return{fs:null,v:{x0:-5,x1:5,y0:-3,y1:5},a:null,h:null,mode:null,m:null,tri:false,triLab:'h',pts:[],tans:[],ghosts:[],gap:null,
+  title:'',sub:'',drop:0,glow:0,lab:{A:'A',M:'M'},xl:'x',yl:'y',ramp:true,curve:true,laser:true,board:true,line2:null}}
+const X=x=>PL+(x-st.v.x0)/(st.v.x1-st.v.x0)*(PR-PL);
+const Y=y=>PB-(y-st.v.y0)/(st.v.y1-st.v.y0)*(PB-PT);
+const IX=px=>st.v.x0+(px-PL)/(PR-PL)*(st.v.x1-st.v.x0);
+function niceStep(r,n){n=n||11;for(const s of [0.001,0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.25,0.5,1,2,5,10,20,25,50,100,200,500,1000])if(r/s<=n)return s;return 2000}
+function tickLab(x,s){const d=s>=1?0:s>=.1?1:s>=.01?2:3;let t=(Math.round(x/s)*s).toFixed(d);if(t.includes('.'))t=t.replace(/0+$/,'').replace(/\.$/,'');if(/^-0(\.0+)?$/.test(t))t=t.slice(1);return t.replace('-',MINUS).replace('.',',')}
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+/* point courant de la scène */
+const Ax=()=>q(st.a).v,Ay=()=>fn(st.fs,Ax());
+function lineEnds(x0,y0,m){/* droite de pente m (unités) passant par (x0,y0), coupée au cadre */
+  const xa=st.v.x0-1,xb=st.v.x1+1;return [[X(xa),Y(y0+m*(xa-x0))],[X(xb),Y(y0+m*(xb-x0))]]}
+function deck(p1,p2,o){/* planche de p1 à p2 (écran), roues aux points o.w */
+  const dx=p2[0]-p1[0],dy=p2[1]-p1[1],L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L,nx=uy,ny=-ux;
+  const off=o.lift||0,cx=(p1[0]+p2[0])/2+nx*off,cy=(p1[1]+p2[1])/2+ny*off,len=Math.max(L+96,o.min||300)/2;
+  const a=[cx-ux*len,cy-uy*len],b=[cx+ux*len,cy+uy*len];
+  const n6=[0,0];/* la planche est posée sur la droite (sécante ou tangente) */
+  const A2=[a[0]+n6[0],a[1]+n6[1]],B2=[b[0]+n6[0],b[1]+n6[1]];
+  let s=`<g class="deck"${o.op!==undefined?` opacity="${o.op}"`:''}>`;
+  for(const w of o.w||[]){s+=`<circle cx="${(w[0]+nx*off).toFixed(1)}" cy="${(w[1]+ny*off).toFixed(1)}" r="10" fill="#e9edf6" stroke="#c8a84b" stroke-width="3"/><circle cx="${(w[0]+nx*off).toFixed(1)}" cy="${(w[1]+ny*off).toFixed(1)}" r="3.2" fill="#6b5a2a"/>`}
+  s+=`<line x1="${A2[0].toFixed(1)}" y1="${A2[1].toFixed(1)}" x2="${B2[0].toFixed(1)}" y2="${B2[1].toFixed(1)}" stroke="${o.gold?'#e8c766':'#ff9a3c'}" stroke-width="17" stroke-linecap="round"/>`+
+     `<line x1="${A2[0].toFixed(1)}" y1="${A2[1].toFixed(1)}" x2="${B2[0].toFixed(1)}" y2="${B2[1].toFixed(1)}" stroke="#151b2a" stroke-width="11" stroke-linecap="round"/>`+
+     `<line x1="${(A2[0]+ux*14).toFixed(1)}" y1="${(A2[1]+uy*14).toFixed(1)}" x2="${(B2[0]-ux*14).toFixed(1)}" y2="${(B2[1]-uy*14).toFixed(1)}" stroke="${o.gold?'rgba(232,199,102,.35)':'rgba(255,154,60,.28)'}" stroke-width="2" stroke-dasharray="3 5"/></g>`;
+  return s}
+function render(){if(!st)return;const v=st.v;let s='';const w=svg.clientWidth||1000,FK=Math.min(1.75,Math.max(1,600/w));
+  s+=`<defs><linearGradient id="pr-ramp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3f6e" stop-opacity=".78"/><stop offset="1" stop-color="#0d1730" stop-opacity=".25"/></linearGradient>`+
+     `<filter id="pr-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`+
+     `<clipPath id="pr-clip"><rect x="${PL}" y="${PT}" width="${PR-PL}" height="${PB-PT}"/></clipPath></defs>`;
+  /* ciel : quelques étoiles, un lampadaire */
+  s+=`<g fill="#dfe7ff" opacity=".35"><circle cx="120" cy="40" r="1.4"/><circle cx="300" cy="70" r="1.1"/><circle cx="520" cy="34" r="1.5"/><circle cx="700" cy="58" r="1.1"/><circle cx="880" cy="30" r="1.3"/><circle cx="420" cy="110" r="1"/></g>`;
+  /* quadrillage */
+  const sx=niceStep(v.x1-v.x0,Math.round(12/FK)),sy=niceStep(v.y1-v.y0,Math.round(9/Math.sqrt(FK)));let g='',lab='';
+  const yAx=Math.min(Math.max(v.x0<=0&&v.x1>=0?X(0):PL,PL),PR),xAy=Math.min(Math.max(v.y0<=0&&v.y1>=0?Y(0):PB,PT),PB);
+  for(let k=Math.ceil(v.x0/sx-1e-9);k*sx<=v.x1+1e-9;k++){const x=k*sx,px=X(x);g+=`M${px.toFixed(1)} ${PT}V${PB}`;
+    if((Math.abs(x)>1e-9||!(v.y0<=0&&v.y1>=0))&&px<PR-30)lab+=`<text x="${px.toFixed(1)}" y="${Math.min(xAy+8+20*FK,PB-6).toFixed(1)}" text-anchor="middle">${tickLab(x,sx)}</text>`}
+  for(let k=Math.ceil(v.y0/sy-1e-9);k*sy<=v.y1+1e-9;k++){const y=k*sy,py=Y(y);g+=`M${PL} ${py.toFixed(1)}H${PR}`;
+    if(Math.abs(y)>1e-9||!(v.x0<=0&&v.x1>=0))lab+=(v.x0<=0&&v.x1>=0)?`<text x="${(yAx-10).toFixed(1)}" y="${(py+8).toFixed(1)}" text-anchor="end">${tickLab(y,sy)}</text>`:`<text x="${PL+8}" y="${(py-6).toFixed(1)}">${tickLab(y,sy)}</text>`}
+  s+=`<path d="${g}" stroke="rgba(120,160,255,.13)" stroke-width="1.2" fill="none"/>`;
+  let axes='';if(v.y0<=0&&v.y1>=0)axes+=`M${PL} ${Y(0).toFixed(1)}H${PR}`;if(v.x0<=0&&v.x1>=0)axes+=`M${X(0).toFixed(1)} ${PT}V${PB}`;
+  s+=`<path d="${axes}" stroke="rgba(200,215,255,.55)" stroke-width="2" fill="none"/>`;
+  if(v.x0<=0&&v.x1>=0&&v.y0<=0&&v.y1>=0)lab+=`<text x="${(X(0)-10).toFixed(1)}" y="${(Y(0)+28).toFixed(1)}" text-anchor="end">0</text>`;
+  s+=`<g font-family="Outfit,system-ui,sans-serif" font-size="${(22*FK).toFixed(1)}" font-weight="600" fill="rgba(200,215,255,.72)">${lab}<text x="${PR-6}" y="${(Math.min(xAy,PB)-10).toFixed(1)}" text-anchor="end" font-style="italic">${esc(st.xl)}</text><text x="${(yAx+10).toFixed(1)}" y="${PT+24}" font-style="italic">${esc(st.yl)}</text></g>`;
+  s+=`<g clip-path="url(#pr-clip)">`;
+  /* rampe */
+  if(st.fs&&st.curve){const N=360;let pts=[];for(let i=0;i<=N;i++){const x=v.x0+(v.x1-v.x0)*i/N;if(!fdom(st.fs,x))continue;const y=fn(st.fs,x);if(!isFinite(y))continue;pts.push([X(x),Math.max(-2000,Math.min(2600,Y(y)))])}
+    if(st.fs.t==='pts'){const X0=st.fs.xs.map(t=>q(t).v),Y0=st.fs.ys.map(t=>q(t).v);pts=X0.map((x,i)=>[X(x),Y(Y0[i])])}
+    if(pts.length>1){const d='M'+pts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L');
+      if(st.ramp)s+=`<path d="${d}L${pts[pts.length-1][0].toFixed(1)} ${PB+4}L${pts[0][0].toFixed(1)} ${PB+4}Z" fill="url(#pr-ramp)"/>`;
+      s+=`<path d="${d}" fill="none" stroke="#7fb2ff" stroke-width="${st.fs.t==='pts'?3:5}" stroke-linejoin="round" filter="url(#pr-glow)"${st.fs.t==='pts'?' stroke-dasharray="2 8" opacity=".7"':''}/>`;
+      if(st.fs.t==='pts')for(const p of pts)s+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="7" fill="#7fb2ff"/>`}}
+  /* sécantes fantômes (positions précédentes) */
+  for(const gh of st.ghosts){const e=lineEnds(gh.x,gh.y,gh.m);s+=`<line x1="${e[0][0].toFixed(1)}" y1="${e[0][1].toFixed(1)}" x2="${e[1][0].toFixed(1)}" y2="${e[1][1].toFixed(1)}" stroke="rgba(142,166,255,.28)" stroke-width="2"/>`}
+  if(st.line2){const L2=st.line2,e=lineEnds(L2.x,L2.y,L2.m);s+=`<line x1="${e[0][0].toFixed(1)}" y1="${e[0][1].toFixed(1)}" x2="${e[1][0].toFixed(1)}" y2="${e[1][1].toFixed(1)}" stroke="${L2.col||'#ff9b7a'}" stroke-width="3" stroke-dasharray="10 8"/>`}
+  /* tangentes courtes en plusieurs points */
+  for(const t of st.tans){const x=q(t.x).v,y=fn(st.fs,x),m=t.m!==undefined?q(t.m).v:fdn(st.fs,x),k=Math.hypot(1,m*(PB-PT)/(v.y1-v.y0)/((PR-PL)/(v.x1-v.x0)));
+    const dxu=1.3*(v.x1-v.x0)/12/k;s+=`<line x1="${X(x-dxu).toFixed(1)}" y1="${Y(y-m*dxu).toFixed(1)}" x2="${X(x+dxu).toFixed(1)}" y2="${Y(y+m*dxu).toFixed(1)}" stroke="#e8c766" stroke-width="5" stroke-linecap="round"/>`}
+  /* planche, rayon, triangle */
+  let top='';
+  if(st.fs&&st.a!==null&&st.mode){const xa=Ax(),ya=st.fs.t==='pts'?q(fv(st.fs,st.a)).v:Ay(),pA=[X(xa),Y(ya)];let m,pM=null;
+    if(st.mode==='sec'){const h=q(st.h).v,xm2=xa+h,ym=st.fs.t==='pts'?q(fv(st.fs,q(st.a).add(st.h))).v:fn(st.fs,xm2);pM=[X(xm2),Y(ym)];m=(ym-ya)/h}
+    else m=q(st.m).v;
+    const gold=st.mode==='tan'||(st.mode==='tilt'&&st.glow>0);
+    if(st.laser){const e=lineEnds(xa,ya,m);s+=`<line x1="${e[0][0].toFixed(1)}" y1="${e[0][1].toFixed(1)}" x2="${e[1][0].toFixed(1)}" y2="${e[1][1].toFixed(1)}" stroke="${gold?'#e8c766':'#8ea6ff'}" stroke-width="${gold?3.5:3}"${gold?' filter="url(#pr-glow)"':' stroke-dasharray="12 9"'} opacity="${gold?.95:.9}"/>`}
+    if(st.mode==='sec'&&st.tri&&pM){const pC=[pM[0],pA[1]],h=q(st.h);
+      const dyv=fT(st.fs,st.a,st.h),dyy=dyv?dyv.mul(h):null;
+      s+=`<path d="M${pA[0].toFixed(1)} ${pA[1].toFixed(1)}H${pC[0].toFixed(1)}" stroke="#a9bbff" stroke-width="3.5"/><path d="M${pC[0].toFixed(1)} ${pC[1].toFixed(1)}V${pM[1].toFixed(1)}" stroke="${(pM[1]<pA[1])?'#7fb2ff':'#ff9b7a'}" stroke-width="3.5"/>`;
+      const hl=Math.abs(pC[0]-pA[0]),vl=Math.abs(pM[1]-pC[1]);
+      if(st.triLab&&hl>34)top+=`<text x="${((pA[0]+pC[0])/2).toFixed(1)}" y="${(pA[1]+(pM[1]<pA[1]?32:-14)).toFixed(1)}" text-anchor="middle" fill="#c9d4ff">${st.triLab==='d'?'Δx':'h'}${st.triLab==='d'||st.triLab==='dn'?'':' = '+esc(Dt(h))}</text>`;
+      if(st.triLab&&vl>30)top+=`<text x="${(pC[0]+(h.sgn()>0?12:-12)).toFixed(1)}" y="${((pC[1]+pM[1])/2+8).toFixed(1)}" text-anchor="${h.sgn()>0?'start':'end'}" fill="${(pM[1]<pA[1])?'#a9cbff':'#ffb59f'}">Δy</text>`}
+    if(st.board){const off=st.drop;
+      if(st.mode==='sec')top=deck(pA,Math.hypot(pM[0]-pA[0],pM[1]-pA[1])<2?[pA[0]+1,pA[1]-m*(PB-PT)/(v.y1-v.y0)/((PR-PL)/(v.x1-v.x0))]:pM,{w:[pA,pM],lift:off,gold:false})+top;
+      else{const k=(PB-PT)/(v.y1-v.y0)/((PR-PL)/(v.x1-v.x0)),d=[1,-m*k],L=Math.hypot(d[0],d[1]),p2=[pA[0]+d[0]/L,pA[1]+d[1]/L];top=deck(pA,p2,{w:[pA],lift:off,gold,min:320})+top}}
+    if(st.mode==='sec'&&pM)top+=`<circle cx="${pM[0].toFixed(1)}" cy="${pM[1].toFixed(1)}" r="5" fill="#fff"/><text x="${(pM[0]+14).toFixed(1)}" y="${(pM[1]+(m>0?36:-18)).toFixed(1)}" fill="#e6ebff" font-style="italic" font-weight="700">${esc(st.lab.M)}</text>`;
+    top+=`<circle cx="${pA[0].toFixed(1)}" cy="${pA[1].toFixed(1)}" r="7" fill="#e8c766" stroke="#3b2c00" stroke-width="2"/><text x="${(pA[0]-14).toFixed(1)}" y="${(pA[1]+(m>0?-18:36)).toFixed(1)}" text-anchor="end" fill="#e8c766" font-style="italic" font-weight="700">${esc(st.lab.A)}</text>`}
+  /* écart planche / rampe (approximation) */
+  if(st.gap&&st.fs&&st.a!==null){const xa=Ax(),ya=Ay(),m=q(st.m).v,xg=q(st.gap.x).v,yt=ya+m*(xg-xa),yc=fn(st.fs,xg);
+    s+=`<line x1="${X(xg).toFixed(1)}" y1="${PT}" x2="${X(xg).toFixed(1)}" y2="${PB}" stroke="rgba(200,215,255,.25)" stroke-dasharray="4 6" stroke-width="2"/>`;
+    top+=`<line x1="${X(xg).toFixed(1)}" y1="${Y(yt).toFixed(1)}" x2="${X(xg).toFixed(1)}" y2="${Y(yc).toFixed(1)}" stroke="#ff6b6b" stroke-width="4"/>`+
+      `<circle cx="${X(xg).toFixed(1)}" cy="${Y(yt).toFixed(1)}" r="7" fill="#e8c766"/><circle cx="${X(xg).toFixed(1)}" cy="${Y(yc).toFixed(1)}" r="7" fill="#7fb2ff" stroke="#fff" stroke-width="2"/>`;
+    if(st.gap.lab)top+=`<text x="${(X(xg)+14).toFixed(1)}" y="${((Y(yt)+Y(yc))/2+8).toFixed(1)}" fill="#ffb3b3">${esc(st.gap.lab)}</text>`}
+  /* points nommés */
+  for(const p of st.pts){const px=X(q(p.x).v),py=Y(p.y!==undefined?q(p.y).v:fn(st.fs,q(p.x).v));
+    top+=`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${p.r||7}" fill="${p.col||'#e6ebff'}" stroke="#0a1628" stroke-width="2"/>`+(p.lab?`<text x="${(px+(p.dx||12)).toFixed(1)}" y="${(py+(p.dy||-14)).toFixed(1)}" fill="${p.col||'#e6ebff'}" font-style="italic" font-weight="700"${(p.dx||12)<0?' text-anchor="end"':''}>${esc(p.lab)}</text>`:'')}
+  s+=`<g font-family="Outfit,system-ui,sans-serif" font-size="${(26*FK).toFixed(1)}">${top}</g></g>`;
+  /* titre */
+  if(st.title)s+=`<g font-family="Outfit,system-ui,sans-serif"><rect x="${PL+10}" y="${PT+10}" width="${Math.min(620,24+st.title.length*14.2*FK).toFixed(0)}" height="${(44*FK).toFixed(0)}" rx="12" fill="rgba(6,13,26,.78)" stroke="rgba(120,160,255,.3)"/><text x="${PL+22}" y="${(PT+10+30*FK).toFixed(0)}" font-size="${(24*FK).toFixed(1)}" font-weight="700" fill="#f0f4ff">${esc(st.title)}</text></g>`;
+  svg.innerHTML=s}
+addEventListener('resize',()=>render());
+function reset(o){st=Object.assign(blank(),o||{});render()}
+function set(o){Object.assign(st,o);render()}
+/* faire rouler M : h vers une valeur cible (échelle logarithmique si même signe) */
+async function rollH(to,ms,onf){const from=q(st.h).v,tv=q(to).v;SND.roll();
+  if(from*tv>0){const l0=Math.log(Math.abs(from)),l1=Math.log(Math.abs(tv)),sg=Math.sign(tv);
+    await anim(ms||800,k=>{st.h=String(sg*Math.exp(l0+(l1-l0)*k));render();if(onf)onf(k)})}
+  else await anim(ms||800,k=>{st.h=String(from+(tv-from)*k);render();if(onf)onf(k)});
+  st.h=String(q(to));render()}
+async function drop(){st.drop=-160;await anim(520,k=>{st.drop=-160*(1-k)*(1-k);render()});st.drop=0;render()}
+async function zoom(v2,ms){const v1=Object.assign({},st.v);await anim(ms||1100,k=>{const e=kk=>kk;st.v={x0:v1.x0+(v2.x0-v1.x0)*k,x1:v1.x1+(v2.x1-v1.x1)*k,y0:v1.y0+(v2.y0-v1.y0)*k,y1:v1.y1+(v2.y1-v1.y1)*k};render()});st.v=Object.assign({},v2);render()}
+async function tiltTo(m,ms){const m0=q(st.m).v,m1=q(m).v;await anim(ms||600,k=>{st.m=String(m0+(m1-m0)*k);render()});st.m=String(q(m));render()}
+async function glow(){st.glow=1;render();await sleep(450)}
+/* cadrage : y autour des valeurs utiles */
+function vfit(x0,x1,ys,pad){pad=pad===undefined?1.5:pad;let y0=Math.floor(Math.min(...ys)-pad),y1=Math.ceil(Math.max(...ys)+pad);const want=(x1-x0)*.55;
+  if(y1-y0<want){const e=(want-(y1-y0))/2;y0=Math.floor(y0-e);y1=Math.ceil(y1+e)}return{x0,x1,y0,y1}}
+/* glisser dans la scène */
+let dragH=null;
+function toWorldX(ev){const p=svg.createSVGPoint();p.x=ev.clientX;p.y=ev.clientY;const r=p.matrixTransform(svg.getScreenCTM().inverse());return{px:r.x,py:r.y}}
+svg.addEventListener('pointerdown',e=>{if(!dragH)return;e.preventDefault();svg.setPointerCapture(e.pointerId);dragH.move(toWorldX(e),true)});
+svg.addEventListener('pointermove',e=>{if(!dragH||!svg.hasPointerCapture(e.pointerId))return;dragH.move(toWorldX(e),false)});
+svg.addEventListener('pointerup',e=>{if(dragH&&svg.hasPointerCapture(e.pointerId)){svg.releasePointerCapture(e.pointerId);if(dragH.end)dragH.end()}});
+svg.addEventListener('keydown',e=>{if(!dragH||!dragH.key)return;const k={ArrowLeft:-1,ArrowDown:-1,ArrowRight:1,ArrowUp:1}[e.key];if(k){e.preventDefault();dragH.key(k)}});
+function setDrag(h){dragH=h;svg.classList.toggle('grab',!!h);svg.setAttribute('tabindex',h?'0':'-1')}
+
+window.PRK={lc,Q,q,rnd,frS,frac,D,Dt,Dr,sgT,xm,aph,par,writes,ri,pick,shuf,FQ,FI,FS,FA,FC,sqrtQ,fv,fn,fd,fdn,fT,fTn,poly,fh,ft,fdef,Cf,para,
+  SND,anim,sleep,reduceM,reset,set,render,rollH,drop,zoom,tiltTo,glow,vfit,setDrag,X,Y,IX,get st(){return st},NB,NN,MINUS,$};
+})();
+</script>
+<script>
+/* ======================= LA PLANCHE RASANTE — déroulé des questions ======================= */
+(function(){
+'use strict';
+const K=window.PRK,{Q,q,D,Dt,Dr,frac,ri,pick,shuf,SND,sleep,$}=K;
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+let lvl=0,qi=0,run=[],QN=null,pi=0,errs=0,busy=false,partState={};
+const LV=window.PR_LV=[];
+function starsOf(i){try{const g=SigmaKit.passport().games['planche-rasante'];return g&&g.levels[i+1]||0}catch(e){return 0}}
+const cap=h=>{$('capt').innerHTML=h||'&nbsp;'};
+K.cap=cap;
+
+/* ---------- retours ---------- */
+function fb(html,rv){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI(rv?'neutre':'pense');$('fbt').textContent=rv?'Voici la réponse.':'Pas tout à fait.';
+  $('fbp').innerHTML=html;$('fb').classList.toggle('rv',!!rv);$('fb').hidden=false;
+  const f=$('fb');if(innerWidth<=860&&f.getBoundingClientRect().bottom>innerHeight)setTimeout(()=>f.scrollIntoView({block:'end',behavior:K.reduceM?'auto':'smooth'}),30)}
+/* erreur : 1er essai → explication ; 2e essai → la réponse est donnée, on continue */
+function err(why,box,reveal,sol){errs++;partState.errors=(partState.errors||0)+1;SND.soft();
+  if(partState.errors>=2&&reveal){reveal();fb((why?why+' ':'')+(sol?'<br>'+sol:''),true);
+    const b=document.createElement('div');b.className='btns';b.style.marginTop='10px';b.innerHTML='<button type="button" class="btn or cont">Continuer →</button>';box.appendChild(b);
+    const c=b.querySelector('.cont');c.onclick=async()=>{if(busy)return;c.disabled=true;await finish(QN.parts[pi])};setTimeout(()=>c.focus({preventScroll:true}),30)}
+  else fb(why)}
+async function finish(p){fb('');if(p&&p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+const W={};
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);nextPart()}};
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  const all=[...box.querySelectorAll('.opt')];
+  all.forEach(b=>b.onclick=async()=>{if(busy||b.disabled)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){all.forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();await finish(p)}
+    else{b.classList.add('ko');b.disabled=true;err(c.why,box,()=>{all.forEach(x=>{x.disabled=true;if(p.ch[+x.dataset.j].ok)x.classList.add('ok')})},'La bonne réponse est en vert.')}})};
+/* trous : comparaison numérique exacte (virgule ou point, signe + facultatif, fractions a/b, unités ignorées) */
+function readNum(s){return Q.parse(String(s).replace(/[%€]/g,'').replace(/\s*(m\/s|km\/h|[a-zA-Zéèàù°]+)$/,''))}
+W.fill=(p,box)=>{
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const a=p.ans[+i],s=Dt(a.v);const w=Math.max(2.8,s.length*.62+1.7);
+    return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="${a.v.sgn()<0||!a.v.isInt()&&!a.v.exact()?'text':'decimal'}" aria-label="Case ${+i+1}" style="width:${w.toFixed(1)}em">`});
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+(p.note?`<p class="hint">${p.note}</p>`:'');
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy||f.dataset.done)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=v.map((x,i)=>{const z=readNum(x);return !!z&&z.eq(p.ans[+ins[i].dataset.i].v)});
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){f.dataset.done=1;ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();await finish(p)}
+    else err(typeof p.why==='function'?p.why(v.map(readNum),oks):p.why,box,()=>{f.dataset.done=1;ins.forEach(x=>{x.value=Dt(p.ans[+x.dataset.i].v).replace(/ /g,'');x.classList.remove('ko');x.classList.add('ok');x.disabled=true});f.querySelector('button').remove()},
+      'Réponse&nbsp;: '+p.ans.map(a=>'<b style="display:inline">'+D(a.v)+'</b>').join(' ; ')+'.')};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* faire rouler la roue M : puces de h, glisser dans la scène, flèches du clavier */
+W.slide=(p,box)=>{const st=K.st,chips=p.chips.slice().sort((a,b)=>q(a).cmp(b));
+  box.innerHTML=`<p class="ask">${p.ask}</p><div class="chips">${chips.map(h=>`<button type="button" class="chip${q(h).eq(p.target)?' tg':''}" data-h="${h}" aria-pressed="${q(st.h).eq(h)}">h = ${Dt(h)}</button>`).join('')}</div>`+
+    `<p class="hint">Fais glisser la roue M sur la rampe, ou choisis une valeur de h.</p>`;
+  let done=false;
+  const mark=()=>box.querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed',String(q(st.h).eq(b.dataset.h))));
+  const live=()=>{if(p.live)cap(p.live(st.h))};
+  async function check(){if(done)return;if(q(st.h).eq(p.target)){done=true;K.setDrag(null);box.querySelectorAll('.chip').forEach(b=>b.disabled=true);SND.pop();await finish(p)}}
+  async function go(h){if(busy||done)return;if(q(st.h).eq(h)){await check();return}busy=true;try{await K.rollH(h,700,()=>{})}finally{busy=false}mark();live();await check()}
+  box.querySelectorAll('.chip').forEach(b=>b.onclick=()=>go(b.dataset.h));
+  K.setDrag({move(pt){if(busy||done)return;let best=null,bd=1e9;for(const h of chips){const px=K.X(q(st.a).v+q(h).v),d=Math.abs(px-pt.px);if(d<bd){bd=d;best=h}}
+      if(best&&!q(st.h).eq(best)){st.h=best;K.render();SND.tick();mark();live()}},end(){check()},
+    key(d){if(busy||done)return;let i=chips.findIndex(h=>q(h).eq(st.h));if(i<0)i=0;const j=Math.max(0,Math.min(chips.length-1,i+d));if(j!==i){st.h=chips[j];K.render();SND.tick();mark();live();check()}}});
+  live()};
+/* incliner la planche en A : boutons, glisser dans la scène, flèches */
+W.tilt=(p,box)=>{const st=K.st,stp=q(p.step);let k=q(st.m);
+  const show=()=>{out.innerHTML='pente&nbsp;: '+Dt(k);st.m=String(k);K.render();if(p.live)cap(p.live(k))};
+  box.innerHTML=`<p class="ask">${p.ask}</p><div class="tiltc"><button type="button" class="stp" data-d="-1" aria-label="Diminuer la pente">−</button><output aria-live="polite"></output><button type="button" class="stp" data-d="1" aria-label="Augmenter la pente">+</button></div>`+
+    `<div class="btns"><button type="button" class="btn or val">Poser la planche</button></div><p class="hint">Fais pivoter la planche autour de A en la faisant glisser, ou utilise − et +.</p>`;
+  const out=box.querySelector('output');let done=false;
+  const setk=nk=>{if(nk.cmp(p.min)<0)nk=q(p.min);if(nk.cmp(p.max)>0)nk=q(p.max);if(!nk.eq(k)){k=nk;SND.tick();partState.k=String(k);show()}};
+  box.querySelectorAll('.stp').forEach(b=>b.onclick=()=>{if(busy||done)return;setk(k.add(stp.mul(+b.dataset.d)))});
+  K.setDrag({move(pt){if(busy||done)return;const xa=q(st.a).v,ya=K.fn(st.fs,xa),xw=K.IX(pt.px),yw=st.v.y0+(532-pt.py)/(532-16)*(st.v.y1-st.v.y0);
+      if(Math.abs(xw-xa)<(st.v.x1-st.v.x0)*.03)return;const mc=(yw-ya)/(xw-xa);setk(K.rnd(Math.round(mc/stp.v)*stp.v,4))},
+    key(d){if(busy||done)return;setk(k.add(stp.mul(d)))}});
+  box.querySelector('.val').onclick=async()=>{if(busy||done)return;
+    if(k.eq(p.target)){done=true;K.setDrag(null);box.querySelectorAll('button').forEach(x=>x.disabled=true);SND.pop();st.mode='tan';K.render();await finish(p)}
+    else err(p.why(k),box,()=>{done=true;K.setDrag(null);k=q(p.target);show();st.mode='tan';K.render();box.querySelectorAll('button').forEach(x=>x.disabled=true)},'La planche est maintenant posée avec la bonne pente.')};
+  show()};
+
+/* ---------- déroulé ---------- */
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;partState={};if(pi<QN.parts.length){const p=QN.parts[pi];if(p.on)p.on();const box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:K.reduceM?'auto':'smooth'})}}
+function newQ(){QN=LV[lvl].qs[qi]();pi=0;errs=0;partState={};K.setDrag(null);
+  QN.scene();cap(QN.cap0||'&nbsp;');
+  $('prompt').innerHTML=QN.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  const p=QN.parts[0];if(p.on)p.on();const box=partEl();W[p.t](p,box)}
+function dots(){const N=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:N},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+async function win(){fb('');K.setDrag(null);SND.win();run.push(errs===0);dots();
+  const N=LV[lvl].qs.length,lvlDone=run.length>=N;
+  $('winx').textContent=errs===0?pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=QN.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(QN.onWin){busy=true;try{await QN.onWin()}finally{busy=false}}
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lv=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lv,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lv)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if(busy)return;if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:K.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];$('chap').textContent=LV[l].chap;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('cours').open=false;renderLv();newQ()}
+function renderLv(){$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}" title="${l.t}">${i+1}. ${l.s||l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${SND.on}">♪ Bruitages : ${SND.on?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;
+  if(b.id==='snd'){SND.on=!SND.on;try{localStorage.setItem('sigma-fanfare',SND.on?'1':'0')}catch(_){}renderLv();SND.pop();return}
+  goLevel(+b.dataset.l)});
+
+/* ---------- fabriques de parties ---------- */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+/* choix : doublons retirés (même valeur ou même texte qu'un choix déjà présent) */
+const ch=(ask,list,o)=>{const seen=new Set(),key=c=>c.val!==undefined?'v'+String(q(c.val)):'h'+c.h;const ok=list.find(c=>c.ok);if(ok)seen.add(key(ok));
+  const out=list.filter(c=>{if(c.ok)return true;const k=key(c);if(seen.has(k))return false;seen.add(k);return true}).slice(0,(o&&o.max)||4);
+  return Object.assign({t:'choice',ask,ch:out},o||{})};
+const fill=(ask,tpl,ans,why,o)=>Object.assign({t:'fill',ask,tpl,ans:ans.map(a=>Object.assign({},a,{v:q(a.v)})),why},o||{});
+const slide=(ask,chips,target,o)=>Object.assign({t:'slide',ask,chips,target:String(q(target))},o||{});
+const tilt=(ask,target,o)=>Object.assign({t:'tilt',ask,target:String(q(target)),step:'1/2',min:-5,max:5},o||{});
+const OK=(h,x)=>Object.assign({h,ok:true},x||{}),NO=(h,why,x)=>Object.assign({h,why},x||{});
+Object.assign(K,{act,ch,fill,slide,tilt,OK,NO,goLevel,renderLv});
+
+/* ---------- crochets de test ---------- */
+function ser(p){const o={t:p.t,ask:p.ask||'',label:p.label||''};
+  if(p.t==='choice'){o.choices=p.ch.map(c=>({h:c.h,ok:!!c.ok,why:c.why||'',val:c.val!==undefined?String(q(c.val)):null,claim:c.claim||null,code:c.code||null}));o.q=p.q||null}
+  if(p.t==='fill'){o.tpl=p.tpl;o.ans=p.ans.map(a=>({v:String(a.v),txt:Dt(a.v).replace(/ /g,''),q:a.q||null}));o.why=typeof p.why==='function'?'':p.why||''}
+  if(p.t==='slide'){o.chips=p.chips;o.target=p.target}
+  if(p.t==='tilt'){o.target=p.target;o.step=p.step;o.q=p.q||null}
+  return o}
+window.PR={state(){const p=QN&&QN.parts[pi];return{lvl,qi,nq:LV[lvl].qs.length,pi,busy,np:QN?QN.parts.length:0,part:p?ser(p):null,h:K.st&&K.st.h,m:K.st&&K.st.m}},
+  sample(L,i){const Qx=LV[L].qs[i]();return{prompt:Qx.prompt,done:Qx.done,cap0:Qx.cap0||'',spec:Qx.spec||{},shown:Qx.shown||[],parts:Qx.parts.map(ser)}},
+  get busy(){return busy}};
+})();
+</script>
+<script>
+/* ======================= LA PLANCHE RASANTE — les sept niveaux ======================= */
+(function(){
+'use strict';
+const K=window.PRK,{lc,Q,q,D,Dt,Dr,frac,sgT,xm,aph,par,ri,pick,shuf,FQ,FI,FS,FA,FC,fv,fn,fd,fT,fTn,poly,fh,ft,fdef,Cf,para,vfit,act,ch,fill,slide,tilt,OK,NO,cap,sleep,MINUS,NB}=K;
+const LV=window.PR_LV;
+const s=x=>String(q(x));
+const TF=(m,a,fa)=>lc([[m,`(${xm(a)})`],[fa,'']]);
+/* étiquettes pour l'audit (recalcul indépendant en Python) */
+const tF=x=>['f',s(x)],tD=x=>['d',s(x)],tT=(a,h)=>['T',s(a),s(h)],tX=(a,b)=>['tx',s(a),s(b)],tN=x=>['n',s(x)],tSub=(a,b)=>['sub',a,b],tR=(d,t)=>['r',d,t];
+const tAp=(a,h)=>['ap',s(a),s(h)],tEr=(a,h)=>['err',s(a),s(h)],tTm=a=>['tm',s(a)],tTp=a=>['tp',s(a)],tTy=(a,x)=>['ty',s(a),s(x)],tTx0=a=>['tx0',s(a)];
+const tDev=(a,k)=>['dev',s(a),k],tDif=(a,k)=>['dif',s(a),k],tTc=a=>['Tc',s(a)],tTd=a=>['Td',s(a)];
+const cEq=(a,b)=>['eq',a,b],cGt=(a,b)=>['gt',a,b],cLt=(a,b)=>['lt',a,b],cOn=(a,x,y)=>['ontan',s(a),s(x),s(y)],cTan=(a,m,p)=>['eqtan',s(a),s(m),s(p)];
+const cNd=a=>['nd',s(a)],cDeq=(a,v)=>['deq',s(a),s(v)],cMaxd=(x,xs)=>['maxd',s(x),xs.map(s)],cSymDif=(a,e)=>['symdif',s(a),e],cSymT=(a,e)=>['symT',s(a),e],cErrGt=(a,h1,h2)=>['errgt',s(a),s(h1),s(h2)];
+Object.assign(K,{tF,tD,tT,tX,tN,tSub,tR,tAp,tEr,tTm,tTp,tTy,tTx0,tDev,tDif,tTc,tTd,cEq,cGt,cLt,cOn,cTan,cNd,cDeq,cMaxd,cSymDif,cSymT,cErrGt});
+const fa_=(fs,x)=>fv(fs,x);
+/* écritures fréquentes */
+const Th=`T(h) = ${frac('f(a + h) − f(a)','h')}`;
+const eqH=(m,p)=>{m=q(m);p=q(p);return 'y = '+(m.sgn()===0?D(p):poly([[m,1],[p,0]],'x'))};
+/* légende : taux de la planche pour le h courant */
+function capT(fs,a,h,o){o=o||{};h=q(h);const T=fT(fs,a,h);const hide=o.hide&&o.hide.some(x=>q(x).eq(h));
+  const val=hide?'<span class="k">?</span>':T&&T.exact()&&(T.dec().split('.')[1]||'').length<=6?`= <span class="k">${Dt(T)}</span>`:`≈ <span class="k">${Dr(fTn(fs,a,h),4)}</span>`;
+  return `<span class="m">h =</span> <span class="s">${Dt(h)}</span> <span class="m">·</span> T(${Dt(h)}) ${hide?'= ':''}${val}`}
+const sceneOf=(fs,v,o)=>()=>K.reset(Object.assign({fs,v,title:o&&o.title||''},o||{}));
+const tanNow=async(fs,a)=>{K.set({mode:'tan',m:s(fd(fs,a)),tri:false})};
+/* faire rouler jusqu'à h = 0,001 puis coucher la planche (tangente) */
+async function toTangent(fs,a,o){o=o||{};const h=q(K.st.h);await K.rollH(h.sgn()<0?'-0.001':'0.001',900);await tanNow(fs,a);await K.glow();if(o.cap)cap(o.cap)}
+
+/* =================================================================== */
+/* NIVEAU 1 · Le dénivelé : taux de variation, pente d'une sécante      */
+/* =================================================================== */
+const rule1=`<p>Le <b>taux de variation</b> de f entre a et b (a ≠ b) est ${frac('f(b) − f(a)','b − a')}.</p><p>C'est la <b>pente</b> (le coefficient directeur) de la sécante (AB), avec A(a&nbsp;; f(a)) et B(b&nbsp;; f(b))&nbsp;: Δy divisé par Δx. La planche posée en A et B a exactement cette pente.</p><p>Entre a et a + h, on le note T(h) = ${frac('f(a + h) − f(a)','h')}.</p>`;
+function l1q1(){let p,c,r,a,dx,b,fa,fb,dy;
+  do{p=pick([1,-1]);c=ri(-3,3);r=ri(-2,4);a=ri(-3,1);dx=pick([1,2,3]);b=a+dx;fa=p*a*a+c*a+r;fb=p*b*b+c*b+r;dy=fb-fa}while(dy%dx||!dy||Math.abs(fa)>6||Math.abs(fb)>6||dy/dx===1);
+  const fs=FQ(p,c,r),v=vfit(a-3,b+3,[fa,fb],2);
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'La rampe 𝒞f',pts:[{x:a,lab:'A',col:'#e8c766',dx:-12,dy:-14},{x:b,lab:'B'}]}),
+    prompt:`La rampe est la courbe ${Cf()} d'une fonction f. Les points A et B de ${Cf()} sont sur des nœuds du quadrillage.`,cap0:'Repère A et B sur le quadrillage.',
+    parts:[act('Poser la planche sur A et B',async()=>{K.set({pts:[],mode:'sec',a:s(a),h:s(dx),lab:{A:'A',M:'B'},tri:true,triLab:'d'});await K.drop();cap('La planche touche la rampe en A et en B&nbsp;: c\'est la sécante (AB).')},{ask:'Les deux roues de la planche se posent sur la rampe, l\'une en A, l\'autre en B.'}),
+      fill('Lis le quadrillage&nbsp;:',`Δx = x<sub>B</sub> − x<sub>A</sub> = {0} et Δy = y<sub>B</sub> − y<sub>A</sub> = {1}`,[{v:dx,q:tSub(tN(b),tN(a))},{v:dy,q:tSub(tF(b),tF(a))}],
+        `Lis l'abscisse et l'ordonnée de A et de B sur les axes. Δx se compte horizontalement de A vers B&nbsp;; Δy verticalement, et il est négatif si B est plus bas que A.`,
+        {onOk:()=>cap(`Δx = <span class="s">${dx}</span> <span class="m">·</span> Δy = <span class="s">${Dt(dy)}</span>`)}),
+      fill('Calcule la pente de la planche&nbsp;:',`taux de variation de f entre ${D(a)} et ${D(b)}&nbsp;: ${frac('Δy','Δx')} = {0}`,[{v:q(dy).div(dx),q:tX(a,b)}],
+        `La pente, c'est Δy divisé par Δx&nbsp;: ${frac(D(dy),D(dx))}. Attention à l'ordre (Δy en haut) et au signe.`,
+        {onOk:()=>cap(`pente de (AB) = ${frac(D(dy),D(dx))} = <span class="k">${D(q(dy).div(dx))}</span>`)})],
+    done:`Le taux de variation de f entre ${D(a)} et ${D(b)} vaut ${frac(`f(${D(b)}) − f(${D(a)})`,`${D(b)} − ${par(a)}`)} = ${D(q(dy).div(dx))}&nbsp;: c'est la pente de la sécante (AB).`}}
+const CTX1=[
+  {lab:'Altitude d\'un drone de prise de vue',v:'t',u:'altitude (m)',tu:'t (s)',xs:[0,2,4,6,8],rate:'m/s',dec:['s/m','m','m × s'],mean:'vitesse moyenne'},
+  {lab:'Abonnés d\'une chaîne de vidéos',v:'t',u:'abonnés (en milliers)',tu:'t (mois)',xs:[0,1,2,3,4,5],rate:'milliers d\'abonnés par mois',dec:['mois par millier d\'abonnés','milliers d\'abonnés','mois'],mean:'gain moyen d\'abonnés'},
+  {lab:'Température à Mamoudzou un matin',v:'t',u:'température (°C)',tu:'heure t (h)',xs:[6,7,8,9,10,11],rate:'°C par heure',dec:['heures par °C','°C','heures'],mean:'hausse moyenne de la température'}];
+function l1q2(){const C=pick(CTX1);let ys,i,j,dy,dx;
+  do{ys=[];let y=C.lab.startsWith('Temp')?ri(23,25):ri(4,20);for(const _ of C.xs){ys.push(y);y+=ri(C.lab.startsWith('Temp')?0:-3,C.lab.startsWith('Temp')?2:9)}
+    i=ri(0,C.xs.length-3);j=ri(i+1,C.xs.length-1);dx=C.xs[j]-C.xs[i];dy=ys[j]-ys[i]}while(!dy||!q(dy).div(dx).exact()||q(dy).div(dx).dec().length>5||dx<2);
+  const fs={t:'pts',xs:C.xs.map(String),ys:ys.map(String)},tv=q(dy).div(dx),v=vfit(C.xs[0]-.5,C.xs[C.xs.length-1]+.5,ys,2);
+  const tab=`<div class="tvw"><table class="tv"><tr><th>${C.tu}</th>${C.xs.map(x=>`<td>${x}</td>`).join('')}</tr><tr><th>${C.u}</th>${ys.map(y=>`<td>${y}</td>`).join('')}</tr></table></div>`;
+  const ta=C.xs[i],tb=C.xs[j];
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:C.lab,xl:'t',yl:'',mode:'sec',a:s(ta),h:s(dx),lab:{A:'A',M:'B'},tri:true,triLab:'d'}),
+    prompt:`${C.lab}&nbsp;:${tab}`,cap0:`La planche relie t = ${ta} et t = ${tb}.`,
+    parts:[fill(`Calcule le taux de variation entre t = ${ta} et t = ${tb}&nbsp;:`,`${frac(`${ys[j]} − ${ys[i]}`,`${tb} − ${ta}`)} = {0}`,[{v:tv,q:tX(ta,tb)}],
+        `On divise la variation de la grandeur (${ys[j]} − ${ys[i]}) par la durée (${tb} − ${ta}).`,{onOk:()=>cap(`pente de la planche = <span class="k">${Dt(tv)}</span>`)}),
+      ch(`Ce taux est la ${C.mean}. Son unité est&nbsp;:`,[OK(C.rate,{code:'ok'}),NO(C.dec[0],`On divise la grandeur par le temps, pas l'inverse&nbsp;: l'unité est «&nbsp;unité de la grandeur par unité de temps&nbsp;».`,{code:'no'}),
+        NO(C.dec[1],`C'est l'unité de la grandeur elle-même. Un taux de variation est un quotient&nbsp;: grandeur par unité de temps.`,{code:'no'}),NO(C.dec[2],`C'est l'unité du temps. Le taux est un quotient&nbsp;: grandeur par unité de temps.`,{code:'no'})])],
+    done:`Entre t = ${ta} et t = ${tb}, le taux de variation vaut ${D(tv)} ${C.rate}&nbsp;: en moyenne, c'est la pente de la planche posée sur ces deux points.`}}
+function l1q3(){let p,c,r,a,b,fa,fb;
+  do{p=pick([1,2,-1,-2]);c=ri(-4,4);r=ri(-5,5);a=ri(-3,2);b=a+ri(1,4);fa=p*a*a+c*a+r;fb=p*b*b+c*b+r}while(Math.abs(fa)>25||Math.abs(fb)>25||fa===fb||c===0);
+  const fs=FQ(p,c,r),tv=q(fb-fa).div(b-a),v=vfit(a-2,b+2,[fa,fb],2);
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'f(x) = '+ft(fs),pts:[{x:a,lab:'A',col:'#e8c766',dx:-12},{x:b,lab:'B'}]}),
+    prompt:`On considère la fonction f définie sur ℝ par ${fdef(fs)}.`,cap0:`A et B ont pour abscisses ${Dt(a)} et ${Dt(b)}.`,
+    parts:[fill('Calcule les images&nbsp;:',`f(${D(a)}) = {0} et f(${D(b)}) = {1}`,[{v:fa,q:tF(a)},{v:fb,q:tF(b)}],
+        `Remplace x par le nombre, en respectant les priorités&nbsp;: le carré d'abord (${par(a)}<sup>2</sup> = ${D(a*a)}), puis les produits, puis les sommes.`,
+        {onOk:async()=>{K.set({pts:[],mode:'sec',a:s(a),h:s(b-a),lab:{A:'A',M:'B'},tri:true,triLab:'d'});await K.drop()}}),
+      fill('Déduis-en le taux de variation de f entre ces deux nombres&nbsp;:',`${frac(`f(${D(b)}) − f(${D(a)})`,`${D(b)} − ${par(a)}`)} = {0}`,[{v:tv,q:tX(a,b)}],
+        `${frac(`${D(fb)} − ${par(fa)}`,`${D(b)} − ${par(a)}`)}&nbsp;: calcule le numérateur et le dénominateur séparément, puis divise.`,{onOk:()=>cap(`pente de (AB) = <span class="k">${Dt(tv)}</span>`)})],
+    done:`f(${D(a)}) = ${D(fa)} et f(${D(b)}) = ${D(fb)}, donc le taux vaut ${frac(D(fb-fa),D(b-a))} = ${D(tv)}&nbsp;: c'est la pente de la planche (AB).`}}
+function l1q4(){let p,c,r,a,dx,b,fa,fb,t;
+  do{p=pick([1,-1]);c=ri(-4,4);r=ri(-3,3);a=ri(-2,1);dx=pick([2,3,4]);b=a+dx;fa=p*a*a+c*a+r;fb=p*b*b+c*b+r;t=(fb-fa)/dx}while(!Number.isInteger(t)||!t||fb===t||fa-fb===t*dx||Math.abs(fa)>8||Math.abs(fb)>8);
+  const fs=FQ(p,c,r),v=vfit(a-2,b+2,[fa,fb],2);
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'La rampe 𝒞f',mode:'sec',a:s(a),h:s(dx),lab:{A:'A',M:'B'},tri:true,triLab:'d'}),
+    prompt:`Pour la fonction f dont la rampe est dessinée, le taux de variation entre ${D(a)} et ${D(b)} vaut <b>${D(t)}</b>.`,cap0:`pente de (AB) = <span class="k">${Dt(t)}</span>`,shown:[[tX(a,b),Dt(t)]],
+    parts:[ch('Que peut-on en déduire&nbsp;?',[OK(`f(${D(b)}) − f(${D(a)}) = ${D(t*dx)}`,{claim:cEq(tSub(tF(b),tF(a)),tN(t*dx))}),
+        NO(`f(${D(b)}) − f(${D(a)}) = ${D(t)}`,`Le taux, c'est la différence <b>divisée</b> par ${D(b)} − ${par(a)} = ${dx}. Donc la différence vaut ${D(t)} × ${dx}.`,{claim:cEq(tSub(tF(b),tF(a)),tN(t))}),
+        NO(`f(${D(b)}) = ${D(t)}`,`Le taux ne donne pas une image&nbsp;: il compare deux images, ${frac(`f(${D(b)}) − f(${D(a)})`,`${D(b)} − ${par(a)}`)} = ${D(t)}.`,{claim:cEq(tF(b),tN(t))}),
+        NO(`f(${D(a)}) − f(${D(b)}) = ${D(t*dx)}`,`Attention à l'ordre&nbsp;: c'est f(${D(b)}) − f(${D(a)}) qui vaut ${D(t)} × ${dx}, et f(${D(a)}) − f(${D(b)}) est son opposé.`,{claim:cEq(tSub(tF(a),tF(b)),tN(t*dx))})]),
+      ch('De gauche à droite, la planche (la sécante (AB))&nbsp;:',[OK(t>0?'monte':'descend',{claim:t>0?cGt(tX(a,b),tN(0)):cLt(tX(a,b),tN(0))}),
+        NO(t>0?'descend':'monte',`Le signe du taux donne le sens de la planche&nbsp;: ${t>0?'positif, elle monte':'négatif, elle descend'}.`,{claim:t>0?cLt(tX(a,b),tN(0)):cGt(tX(a,b),tN(0))}),
+        NO('est horizontale',`Une planche horizontale aurait une pente nulle. Ici la pente vaut ${D(t)}.`,{claim:cEq(tX(a,b),tN(0))})],{keep:true})],
+    done:`Taux = ${D(t)} entre ${D(a)} et ${D(b)}&nbsp;: f(${D(b)}) − f(${D(a)}) = ${D(t)} × ${dx} = ${D(t*dx)}, et la planche ${t>0?'monte':'descend'}. Le taux ne dit rien de ce qui se passe entre A et B.`}}
+function l1q5(){let p,c,r,xa,xb,ya,yb,sl;
+  do{p=pick([1,-1]);c=ri(-3,3);r=ri(-3,4);xa=ri(-3,1);xb=xa+ri(2,3);ya=p*xa*xa+c*xa+r;yb=p*xb*xb+c*xb+r;sl=q(yb-ya).div(xb-xa)}while(yb===ya||sl.abs().eq(1)||xa+xb===0||Math.abs(ya)>8||Math.abs(yb)>8||q(ya+yb).div(xa+xb).eq(sl));
+  const fs=FQ(p,c,r),v=vfit(xa-2,xb+2,[ya,yb],2);
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'La rampe 𝒞f',pts:[{x:xa,lab:'A',col:'#e8c766',dx:-12},{x:xb,lab:'B'}]}),
+    prompt:`Les points A(${D(xa)}&nbsp;; ${D(ya)}) et B(${D(xb)}&nbsp;; ${D(yb)}) appartiennent à ${Cf()}.`,cap0:'Quelle est la pente de la planche (AB)&nbsp;?',shown:[[tF(xa),Dt(ya)],[tF(xb),Dt(yb)]],
+    parts:[ch('La pente de la sécante (AB) vaut&nbsp;:',[OK(D(sl),{val:sl}),NO(D(q(xb-xa).div(yb-ya)),`Tu as divisé Δx par Δy. La pente, c'est ${frac('y<sub>B</sub> − y<sub>A</sub>','x<sub>B</sub> − x<sub>A</sub>')}&nbsp;: la variation verticale en haut.`,{val:q(xb-xa).div(yb-ya)}),
+        NO(D(sl.neg()),`Les deux différences doivent être prises dans le même ordre&nbsp;: ${frac(`${D(yb)} − ${par(ya)}`,`${D(xb)} − ${par(xa)}`)}. Mélanger les ordres change le signe.`,{val:sl.neg()}),
+        NO(D(q(ya+yb).div(xa+xb)),`On ne fait pas des sommes, mais des <b>différences</b>&nbsp;: ${frac('y<sub>B</sub> − y<sub>A</sub>','x<sub>B</sub> − x<sub>A</sub>')}.`,{val:q(ya+yb).div(xa+xb)})],
+        {q:tX(xa,xb),onOk:async()=>{K.set({pts:[],mode:'sec',a:s(xa),h:s(xb-xa),lab:{A:'A',M:'B'},tri:true,triLab:'d'});await K.drop();cap(`pente de (AB) = <span class="k">${Dt(sl)}</span>`)}}),
+      ch(`Et ${frac('y<sub>A</sub> − y<sub>B</sub>','x<sub>A</sub> − x<sub>B</sub>')}, en partant de B&nbsp;?`,[OK('C\'est la même pente&nbsp;: la planche ne change pas.',{code:'ok'}),
+        NO('C\'est l\'opposé de la pente.',`Les deux différences changent de signe en même temps&nbsp;: le quotient est le même. La planche (AB) est aussi la planche (BA).`,{code:'no'}),
+        NO('C\'est l\'inverse de la pente.',`On n'a pas échangé haut et bas du quotient, seulement l'ordre des points&nbsp;: numérateur et dénominateur changent tous deux de signe.`,{code:'no'})],{keep:true})],
+    done:`Pente de (AB) = ${frac(`${D(yb)} − ${par(ya)}`,`${D(xb)} − ${par(xa)}`)} = ${D(sl)}, dans un sens comme dans l'autre&nbsp;: c'est le taux de variation de f entre ${D(xa)} et ${D(xb)}.`}}
+LV.push({t:'Le dénivelé',s:'Dénivelé',chap:'Taux de variation',rule:rule1,qs:[l1q1,l1q2,l1q3,l1q4,l1q5]});
+
+/* =================================================================== */
+/* NIVEAU 2 · La planche raccourcit : h → 0                              */
+/* =================================================================== */
+const rule2=`<p>On rapproche M de A&nbsp;: h devient de plus en plus proche de 0 (en restant non nul, à droite ou à gauche de A).</p><p>Si T(h) = ${frac('f(a + h) − f(a)','h')} se rapproche d'un nombre réel quand h tend vers 0, f est <b>dérivable</b> en a et ce nombre est le <b>nombre dérivé</b> de f en a, noté <b>f′(a)</b>. On écrit f′(a) = lim<sub>h→0</sub> T(h).</p><p>Sinon (deux valeurs différentes à droite et à gauche, ou T(h) qui ne se rapproche d'aucun nombre), f n'est pas dérivable en a.</p>`;
+function l2q1(){const a=pick([1,2,3,-1,-2]),fs=FQ(1,0,0),v=vfit(a-2.2,a+2.2,[a*a,(a+1)*(a+1),(a-1)*(a-1)],1.2),chips=['1','0.5','0.1','0.01'];
+  const live=h=>capT(fs,a,h,{hide:['0.1']});const fa=q(a).add('0.1').mul(q(a).add('0.1')),T1=q(2*a).add('0.1');
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'f(x) = x²',mode:'sec',a:s(a),h:'1',tri:true,triLab:'h'}),
+    prompt:`${fdef(fs)} et A est le point de ${Cf()} d'abscisse a = ${D(a)}. La roue M est au point d'abscisse a + h.`,cap0:live('1'),
+    parts:[slide(`Fais rouler la roue M vers A jusqu'à h = 0,1.`,chips,'0.1',{live}),
+      fill('Calcule, sans la légende&nbsp;:',`f(${aph(a,'0.1')}) = {0}, donc T(0,1) = ${frac(`f(${aph(a,'0.1')}) − f(${D(a)})`,'0,1')} = {1}`,[{v:fa,q:tF(q(a).add('0.1'))},{v:T1,q:tT(a,'0.1')}],
+        `${aph(a,'0.1')} = ${D(q(a).add('0.1'))}, et f(${D(q(a).add('0.1'))}) = ${par(q(a).add('0.1'))}<sup>2</sup>. Puis on divise f(${D(q(a).add('0.1'))}) − ${par(a*a)} par 0,1 (diviser par 0,1, c'est multiplier par 10).`,
+        {onOk:()=>cap(capT(fs,a,'0.1'))}),
+      slide('Continue&nbsp;: h = 0,01. Regarde la planche pivoter et la légende.',chips,'0.01',{live:h=>capT(fs,a,h)}),
+      ch('Quand h se rapproche de 0, T(h) se rapproche de&nbsp;:',[OK(D(2*a),{val:2*a}),NO(D(q(2*a).add('0.01')),`${Dt(q(2*a).add('0.01'))}, c'est T(0,01)&nbsp;: une valeur de T(h), pas le nombre vers lequel T(h) se rapproche. Imagine h = 0,001, puis 0,0001…`,{val:q(2*a).add('0.01')}),
+        NO('0',`h se rapproche de 0, mais T(h) ne se rapproche pas de 0&nbsp;: la planche ne devient pas horizontale.`,{val:0}),NO(D(a*a),`${D(a*a)}, c'est f(${D(a)}), l'ordonnée de A, pas la pente de la planche.`,{val:a*a}),
+        NO(D(2*a+1),`${D(2*a+1)}, c'est T(1), la pente de la planche quand M est loin de A.`,{val:2*a+1})],{q:tD(a),onOk:()=>toTangent(fs,a,{cap:`f′(${Dt(a)}) = <span class="k">${Dt(2*a)}</span> <span class="m">· la planche rase la rampe en A</span>`})})],
+    done:`T(h) vaut ${D(2*a+1)}, puis ${D(T1)}, puis ${D(q(2*a).add('0.01'))}… et se rapproche de ${D(2*a)}&nbsp;: f′(${D(a)}) = ${D(2*a)}. La planche couchée sur la rampe en A, c'est la <b>tangente</b>.`}}
+function l2q2(){const a=pick([1,2]),fs=FI(1),v=a===1?{x0:0,x1:3.4,y0:-.4,y1:2.6}:{x0:0,x1:4.6,y0:-.3,y1:1.6},chips=['1','0.5','0.1','0.01','-0.01','-0.1','-0.5'];
+  const T01=-1/(a*(a+0.01)),fdv=q(-1).div(a*a);
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'f(x) = 1/x',mode:'sec',a:s(a),h:'1',tri:true,triLab:'h'}),
+    prompt:`f est la fonction inverse, f(x) = ${frac(1,'x')} sur ]0&nbsp;; +∞[, et a = ${D(a)}.`,cap0:capT(fs,a,'1'),
+    parts:[slide('Fais rouler M jusqu\'à h = 0,01.',chips,'0.01',{live:h=>capT(fs,a,h)}),
+      fill('Lis la légende&nbsp;:',`T(0,01) arrondi au millième&nbsp;: {0}`,[{v:K.rnd(T01,3),q:tR(3,tT(a,'0.01'))}],`La légende donne T(0,01) ≈ ${Dr(T01,4)}&nbsp;: garde trois décimales, en arrondissant.`),
+      slide('Passe M de l\'autre côté de A&nbsp;: h = −0,01.',chips,'-0.01',{live:h=>capT(fs,a,h)}),
+      ch('À droite comme à gauche, T(h) se rapproche de&nbsp;:',[OK(D(fdv),{val:fdv}),NO(D(fdv.neg()),`La planche descend (la rampe de la fonction inverse descend)&nbsp;: la pente est négative.`,{val:fdv.neg()}),
+        NO('0',`T(h) ne se rapproche pas de 0&nbsp;: regarde les valeurs de la légende pour h = 0,01 et h = −0,01.`,{val:0}),NO(D(q(-1).div(a)),`${Dt(q(-1).div(a))}… regarde les valeurs de la légende&nbsp;: elles encadrent un autre nombre.`,{val:q(-1).div(a)}),
+        NO(D(K.rnd(T01,3)),`C'est T(0,01) arrondi. Le nombre dérivé est la valeur dont T(h) se rapproche, à droite et à gauche.`,{val:K.rnd(T01,3)})],{q:tD(a),onOk:()=>toTangent(fs,a,{cap:`f′(${Dt(a)}) = <span class="k">${Dt(fdv)}</span>`})})],
+    done:`T(0,01) ≈ ${Dr(T01,4)} et T(−0,01) ≈ ${Dr(-1/(a*(a-0.01)),4)}&nbsp;: ces valeurs encadrent ${D(fdv)}. Donc f′(${D(a)}) = ${D(fdv)}.`}}
+function l2q3(){const a=pick([1,4]),fs=FS,v=a===1?{x0:-.3,x1:3.4,y0:-.4,y1:2.2}:{x0:-.4,x1:7.2,y0:-.4,y1:3.2},chips=['1','0.5','0.1','0.01','-0.01','-0.1','-0.5'];
+  const r=Math.sqrt(a),T01=(Math.sqrt(a+0.01)-r)/0.01,fdv=q(1).div(2*r);
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'f(x) = √x',mode:'sec',a:s(a),h:'1',tri:true,triLab:'h'}),
+    prompt:`f est la fonction racine carrée, f(x) = √x sur [0&nbsp;; +∞[, et a = ${D(a)}.`,cap0:capT(fs,a,'1'),
+    parts:[slide('Fais rouler M jusqu\'à h = 0,01.',chips,'0.01',{live:h=>capT(fs,a,h)}),
+      fill('Lis la légende&nbsp;:',`T(0,01) arrondi au millième&nbsp;: {0}`,[{v:K.rnd(T01,3),q:tR(3,tT(a,'0.01'))}],`La légende donne T(0,01) ≈ ${Dr(T01,4)}&nbsp;: garde trois décimales, en arrondissant.`),
+      slide('Passe M à gauche de A&nbsp;: h = −0,01.',chips,'-0.01',{live:h=>capT(fs,a,h)}),
+      ch('Le nombre dérivé f′('+D(a)+') semble égal à&nbsp;:',[OK(D(fdv),{val:fdv}),NO(D(2*r),`C'est l'inverse de la bonne valeur. Lis les valeurs de T(h) dans la légende.`,{val:2*r}),
+        NO(D(r),`${D(r)}, c'est f(${D(a)}) = √${D(a)}, l'ordonnée de A, pas la pente.`,{val:r}),NO('0',`La planche n'est pas horizontale&nbsp;: T(h) reste proche de ${Dr(T01,2)}.`,{val:0}),NO('1',`Les valeurs de T(h) sont loin de 1&nbsp;: regarde la légende.`,{val:1})],
+        {q:tD(a),onOk:()=>toTangent(fs,a,{cap:`f′(${Dt(a)}) = <span class="k">${Dt(fdv)}</span>`})})],
+    done:`T(0,01) ≈ ${Dr(T01,4)}, T(−0,01) ≈ ${Dr((Math.sqrt(a-0.01)-r)/-0.01,4)}&nbsp;: f′(${D(a)}) = ${D(fdv)}. La planche rase la rampe en A.`}}
+function l2q4(){let c,a;do{c=pick([-2,-1,1,2,3]);a=pick([1,2,3])}while(2*a+c===0||2*a+c===1);
+  const fs=FQ(1,c,0),d=2*a+c,v=vfit(a-2.5,a+2.5,[fn(fs,a-2),fn(fs,a+1.2),fn(fs,a),fn(fs,a-1)],1.2),list=['1','0.1','0.01','0.001'];
+  const code=`def f(x):\n    return x**2${c===0?'':c>0?` + ${c===1?'':c+'*'}x`:` - ${c===-1?'':-c+'*'}x`}\n\na = ${a}\nL = [(f(a + h) - f(a)) / h for h in [1, 0.1, 0.01, 0.001]]`;
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'f(x) = '+ft(fs),mode:'sec',a:s(a),h:'1',tri:true,triLab:'h'}),
+    prompt:`On étudie ${fdef(fs)} en a = ${a} avec ce programme Python&nbsp;:<pre class="code">${code.replace(/</g,'&lt;')}</pre>`,cap0:'La liste L contient les pentes des planches pour quatre valeurs de h.',
+    parts:[act('Exécuter le programme',async()=>{const vals=[];for(const h of list){await K.rollH(h,500);vals.push(Dt(fT(fs,a,h)));cap(`L ≈ [${vals.join(' ; ')}${vals.length<4?' ; …':''}]`);await sleep(250)}},{ask:'Pour chaque h de la liste, la planche se pose en A et en M&nbsp;: la liste contient les coefficients directeurs des sécantes.'}),
+      fill('Le premier élément est calculé avec h = 1&nbsp;:',`L[0] = ${frac(`f(${a+1}) − f(${a})`,'1')} = {0}`,[{v:d+1,q:tT(a,1)}],`f(${a+1}) = ${D((a+1)*(a+1)+c*(a+1))} et f(${a}) = ${D(a*a+c*a)}&nbsp;; on divise la différence par h = 1.`),
+      ch('Les valeurs de L se rapprochent de&nbsp;:',[OK(D(d),{val:d}),NO(D(d+1),`${D(d+1)}, c'est L[0], avec h = 1. Quand h diminue, les valeurs changent.`,{val:d+1}),
+        NO(D(q(d).add('0.001')),`C'est la dernière valeur de la liste, mais pas le nombre vers lequel elle se rapproche.`,{val:q(d).add('0.001')}),NO('0',`Ce n'est pas T(h) qui tend vers 0, c'est h.`,{val:0})],{q:tD(a),onOk:()=>toTangent(fs,a,{cap:`f′(${a}) = <span class="k">${d}</span>`})})],
+    done:`L ≈ [${d+1} ; ${Dt(q(d).add('0.1'))} ; ${Dt(q(d).add('0.01'))} ; ${Dt(q(d).add('0.001'))}] (Python affiche ces décimaux avec de petites erreurs d'arrondi)&nbsp;: on conjecture f′(${a}) = ${d}.`}}
+function l2q5(){const isAbs=Math.random()<.5;
+  if(isAbs){const fs=FA,v={x0:-2.6,x1:2.6,y0:-.6,y1:2.4},chips=['-1','-0.5','-0.1','0.1','0.5','1'];
+    return{spec:{f:fs},scene:sceneOf(fs,v,{title:'f(x) = |x|',mode:'sec',a:'0',h:'1',tri:true,triLab:'h'}),
+      prompt:`f est la fonction valeur absolue, f(x) = |x|, et a = 0. Sa rampe fait un angle en 0.`,cap0:capT(fs,0,'1'),
+      parts:[slide('Fais rouler M jusqu\'à h = 0,1.',chips,'0.1',{live:h=>capT(fs,0,h)}),slide('Passe M à gauche&nbsp;: h = −0,1.',chips,'-0.1',{live:h=>capT(fs,0,h)}),
+        ch('Que peut-on conclure&nbsp;?',[OK('T(h) vaut 1 à droite et −1 à gauche&nbsp;: aucun nombre unique, f n\'est pas dérivable en 0.',{claim:cNd(0)}),
+          NO('f′(0) = 0, la moyenne de 1 et −1.',`Le nombre dérivé n'est pas une moyenne&nbsp;: T(h) doit se rapprocher d'<b>un même</b> nombre, que h soit positif ou négatif.`,{claim:cDeq(0,0)}),
+          NO('f′(0) = 1.',`C'est vrai seulement à droite. À gauche, la planche a une pente de −1&nbsp;: pas de nombre unique.`,{claim:cDeq(0,1)}),
+          NO('f′(0) = −1.',`C'est vrai seulement à gauche. À droite, la planche a une pente de 1&nbsp;: pas de nombre unique.`,{claim:cDeq(0,-1)})])],
+      done:`Pour h ≠ 0, T(h) = ${frac('|h|','h')}&nbsp;: 1 si h &gt; 0, −1 si h &lt; 0. La planche bascule d'un côté à l'autre&nbsp;: |x| n'est pas dérivable en 0, il n'y a pas de tangente en ce point anguleux.`}}
+  const fs=FS,v={x0:-.15,x1:1.3,y0:-.15,y1:1.25},chips=['1','0.25','0.01','0.0001'];
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'f(x) = √x',mode:'sec',a:'0',h:'1',tri:true,triLab:'h'}),
+    prompt:`f est la fonction racine carrée et a = 0. Ici, M ne peut rouler qu'à droite de A (h &gt; 0).`,cap0:capT(fs,0,'1'),
+    parts:[slide('Fais rouler M jusqu\'à h = 0,01.',chips,'0.01',{live:h=>capT(fs,0,h)}),slide('Encore plus près&nbsp;: h = 0,0001.',chips,'0.0001',{live:h=>capT(fs,0,h)}),
+      ch('Que peut-on conclure&nbsp;?',[OK('T(h) grandit sans se rapprocher d\'aucun nombre (la planche se redresse)&nbsp;: f n\'est pas dérivable en 0.',{claim:cNd(0)}),
+        NO('f′(0) = 100.',`100, c'est T(0,0001). Pour h = 0,000001, T(h) vaut 1 000&nbsp;: les valeurs ne se stabilisent pas.`,{claim:cDeq(0,100)}),
+        NO('f′(0) = 0.',`La planche ne se couche pas, elle se redresse&nbsp;: T(h) devient de plus en plus grand.`,{claim:cDeq(0,0)}),
+        NO('f′(0) = 1.',`1, c'est T(1). Quand h diminue, T(h) vaut 2, 10, 100… et continue de grandir.`,{claim:cDeq(0,1)})])],
+    done:`Pour h &gt; 0, T(h) = ${frac('√h','h')} = ${frac(1,'√h')}&nbsp;: 10 pour h = 0,01, 100 pour h = 0,0001… T(h) devient aussi grand qu'on veut. La racine carrée n'est pas dérivable en 0 (la planche tend à devenir verticale).`}}
+LV.push({t:'La planche raccourcit',s:'h → 0',chap:'Nombre dérivé',rule:rule2,qs:[l2q1,l2q2,l2q3,l2q4,l2q5]});
+
+/* =================================================================== */
+/* NIVEAU 3 · Le calcul exact de T(h)                                    */
+/* =================================================================== */
+const rule3=`<p>Méthode (pour h ≠ 0)&nbsp;:</p><p>1. On calcule f(a + h) − f(a) et on simplifie.<br>2. On divise par h&nbsp;: T(h) = ${frac('f(a + h) − f(a)','h')} se simplifie (on factorise par h).<br>3. On regarde ce que devient T(h) quand h tend vers 0&nbsp;: les termes en h disparaissent.</p><p>Exemple du cours&nbsp;: f(x) = x<sup>2</sup> + 2x − 3, T(h) = 6 + h donc f′(2) = 6.</p><p>On ne remplace <b>jamais</b> h par 0 avant d'avoir simplifié&nbsp;: on obtiendrait ${frac(0,0)}, qui n'a pas de sens.</p>`;
+function l3q1(){const a=pick([2,3,4,5,-2,-3]),fs=FQ(1,0,0),v=vfit(a-2.5,a+2.5,[a*a,(a+1)*(a+1),(a-1)*(a-1)],1.5);
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'f(x) = x²',mode:'sec',a:s(a),h:'1',tri:true,triLab:'h'}),
+    prompt:`${fdef(fs)} et a = ${D(a)}. On calcule T(h) pour h ≠ 0.`,cap0:'T(h) = ?',
+    parts:[fill('Développe&nbsp;:',`f(${aph(a,1).replace(' 1',' h')}) = (${D(a)} + h)<sup>2</sup> = {0} + {1}h + h<sup>2</sup>`,[{v:a*a,q:tDev(a,0)},{v:2*a,q:tDev(a,1)}],`(u + v)<sup>2</sup> = u<sup>2</sup> + 2uv + v<sup>2</sup> avec u = ${D(a)} et v = h&nbsp;: ${par(a)}<sup>2</sup> = ${D(a*a)} et 2 × ${par(a)} × h.`),
+      fill('Simplifie le taux&nbsp;:',`T(h) = ${frac(`${D(a*a)} + ${D(2*a).replace(MINUS,'('+MINUS)+(a<0?')':'')}h + h<sup>2</sup> − ${D(a*a)}`,'h')} = ${frac(`${a<0?MINUS:''}${D(Math.abs(2*a))}h + h<sup>2</sup>`,'h')} = {0} + h`,[{v:2*a,q:tTc(a)}],
+        `On factorise le numérateur par h&nbsp;: ${D(2*a)}h + h<sup>2</sup> = h(${D(2*a)} + h), puis on simplifie par h (h ≠ 0).`,{onOk:()=>cap(`T(h) = <span class="k">${Dt(2*a)} + h</span>`)}),
+      fill('Fais tendre h vers 0&nbsp;:',`f′(${D(a)}) = {0}`,[{v:2*a,q:tD(a)}],`Quand h tend vers 0, ${D(2*a)} + h se rapproche de ${D(2*a)}.`,{onOk:()=>toTangent(fs,a,{cap:`f′(${Dt(a)}) = <span class="k">${Dt(2*a)}</span>`})})],
+    done:`T(h) = ${D(2*a)} + h, donc f′(${D(a)}) = ${D(2*a)}. Sans calculatrice et sans arrondi&nbsp;: c'est la force du calcul exact.`}}
+function l3q2(){let p,c,r,a;do{p=pick([1,2,3]);c=ri(-4,4);r=ri(-5,5);a=ri(-2,3)}while(2*p*a+c===0||c===0||a===0);
+  const fs=FQ(p,c,r),fa=p*a*a+c*a+r,d=2*p*a+c,v=vfit(a-2.5,a+2.5,[fa,fn(fs,a+1),fn(fs,a-1)],1.5);
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'f(x) = '+ft(fs),mode:'sec',a:s(a),h:'1',tri:true,triLab:'h'}),
+    prompt:`${fdef(fs)}. On veut démontrer que f est dérivable en a = ${D(a)} et calculer f′(${D(a)}).`,cap0:'Étape 1 : f(a).',
+    parts:[fill('Calcule&nbsp;:',`f(${D(a)}) = {0}`,[{v:fa,q:tF(a)}],`Remplace x par ${D(a)}&nbsp;: ${D(p)} × ${par(a)}<sup>2</sup> ${c<0?MINUS:'+'} ${Math.abs(c)} × ${par(a)} ${r<0?MINUS:'+'} ${Math.abs(r)}.`),
+      fill('On développe et on réduit (les termes sans h disparaissent)&nbsp;:',`f(${D(a)} + h) − f(${D(a)}) = {0}h + {1}h<sup>2</sup>`,[{v:d,q:tDif(a,1)},{v:p,q:tDif(a,2)}],
+        `f(${D(a)} + h) = ${lc([[p,`(${D(a)} + h)<sup>2</sup>`],[c,`(${D(a)} + h)`],[r,'']])}. Développe (${D(a)} + h)<sup>2</sup> = ${lc([[a*a,''],[2*a,'h'],[1,'h<sup>2</sup>']])}, multiplie, puis retire f(${D(a)}) = ${D(fa)}.`,
+        {onOk:()=>cap(`T(h) = <span class="k">${Dt(d)} ${p<0?MINUS:'+'} ${Math.abs(p)===1?'':Math.abs(p)}h</span>`)}),
+      fill('Divise par h, puis fais tendre h vers 0&nbsp;:',`f′(${D(a)}) = {0}`,[{v:d,q:tD(a)}],`T(h) = ${lc([[d,''],[p,'h']])} et ${lc([[p,'h']])} se rapproche de 0.`,{onOk:()=>toTangent(fs,a,{cap:`f′(${Dt(a)}) = <span class="k">${Dt(d)}</span>`})})],
+    done:`T(h) = ${D(d)} + ${p===1?'':D(p)}h a pour limite ${D(d)} quand h tend vers 0&nbsp;: f est dérivable en ${D(a)} et f′(${D(a)}) = ${D(d)}.`}}
+function l3q3(){const a=pick([1,2,3,4,5]),fs=FI(1),fdv=q(-1).div(a*a),v={x0:0,x1:a+3,y0:-.3,y1:Math.max(1.6,2.4/a)};
+  const den=a===1?'1 + h':`${a}(${a} + h)`,sd=a===1?'(1+h)':`(${a}*(${a}+h))`;
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'f(x) = 1/x',mode:'sec',a:s(a),h:'1',tri:true,triLab:'h'}),
+    prompt:`f(x) = ${frac(1,'x')} sur ]0&nbsp;; +∞[ et a = ${a}. Pour h ≠ 0 (avec ${a} + h &gt; 0), on calcule le taux de variation.`,cap0:'T(h) = ?',
+    parts:[ch(`Réduis au même dénominateur&nbsp;: ${frac(1,`${a} + h`)} − ${frac(1,a)} =`,[OK(MINUS+frac('h',den),{claim:cSymDif(a,'-h/'+sd)}),
+        NO(frac('h',den),`${frac(1,`${a} + h`)} − ${frac(1,a)} = ${frac(`${a} − (${a} + h)`,den)}&nbsp;: au numérateur, ${a} − ${a} − h = −h.`,{claim:cSymDif(a,'h/'+sd)}),
+        NO(frac(MINUS+'1','h'),`On ne peut pas soustraire les dénominateurs. Réduis au même dénominateur ${den}.`,{claim:cSymDif(a,'-1/h')}),
+        NO(frac('1','h'),`On ne soustrait pas les dénominateurs&nbsp;: le dénominateur commun est ${den}.`,{claim:cSymDif(a,'1/h')})]),
+      ch('Divise par h&nbsp;: T(h) =',[OK(MINUS+frac(1,den),{claim:cSymT(a,'-1/'+sd)}),NO(MINUS+frac('h',den),`C'est la différence f(${a} + h) − f(${a}), pas encore divisée par h.`,{claim:cSymT(a,'-h/'+sd)}),
+        NO(frac(1,den),`Le signe moins du numérateur −h reste devant.`,{claim:cSymT(a,'1/'+sd)}),NO(D(fdv),`C'est la limite de T(h). T(h) dépend encore de h.`,{claim:cSymT(a,s(fdv))})],{onOk:()=>cap(`T(h) = <span class="k">−1/${a===1?'(1 + h)':`(${a}(${a} + h))`}</span>`)}),
+      fill('Quand h tend vers 0, '+(a===1?'1 + h':`${a}(${a} + h)`)+' se rapproche de '+(a*a)+'&nbsp;:',`f′(${a}) = {0}`,[{v:fdv,q:tD(a)}],`T(h) = −1/(${den}) se rapproche de −1/${a*a}.`,{onOk:()=>toTangent(fs,a,{cap:`f′(${a}) = <span class="k">${Dt(fdv)}</span>`})})],
+    done:`T(h) = −${frac(1,den)} se rapproche de ${D(fdv)}&nbsp;: f′(${a}) = ${D(fdv)}. On retrouve la valeur observée au niveau 2${a<=2?'':' pour a = 1 et 2'}.`}}
+function l3q4(){let c,a,k;do{c=pick([-3,-2,-1,1,2,4]);a=pick([1,2,3,-1]);k=2*a+c}while(k===0||k===1);
+  const fs=FQ(1,c,0),v=vfit(a-2.5,a+2.5,[fn(fs,a),fn(fs,a+1),fn(fs,a-1)],1.5),kh=(k<0?MINUS:'+')+' '+(Math.abs(k)===1?'':Math.abs(k))+'h';
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'f(x) = '+ft(fs),mode:'sec',a:s(a),h:'1',tri:true,triLab:'h'}),
+    prompt:`Pour ${fdef(fs)} et a = ${D(a)}, un élève trouve, pour h ≠ 0&nbsp;: T(h) = ${frac(`h<sup>2</sup> ${kh}`,'h')}.`,cap0:'Comment trouver f′(a) ?',
+    parts:[ch('Quelle suite du calcul est juste&nbsp;?',[OK(`T(h) = h ${kh.replace('h','')} car h ≠ 0&nbsp;; et h ${kh.replace('h','')} se rapproche de ${D(k)} quand h tend vers 0.`.replace('  ',' '),{code:'ok'}),
+        NO(`On remplace h par 0&nbsp;: T(0) = ${frac(0,0)} = 0, donc f′(${D(a)}) = 0.`,`T(0) n'existe pas&nbsp;: ${frac(0,0)} n'a pas de sens. On simplifie d'abord par h, puis on fait tendre h vers 0.`,{code:'no'}),
+        NO(`On simplifie&nbsp;: ${frac(`h<sup>2</sup> ${kh}`,'h')} = h<sup>2</sup> ${kh.replace('h','')}.`,`On ne peut simplifier par h que si h est en facteur de <b>tout</b> le numérateur&nbsp;: h<sup>2</sup> ${kh} = h(h ${kh.replace('h','')}).`,{code:'no'}),
+        NO(`On remplace h par 0&nbsp;: ${frac(0,0)} = 1, donc f′(${D(a)}) = 1.`,`${frac(0,0)} n'est pas égal à 1&nbsp;: cette écriture n'a pas de sens. On factorise par h d'abord.`,{code:'no'})]),
+      fill('Conclus&nbsp;:',`f′(${D(a)}) = {0}`,[{v:k,q:tD(a)}],`T(h) = h ${kh.replace('h','')} se rapproche de ${D(k)}.`,{onOk:()=>toTangent(fs,a,{cap:`f′(${Dt(a)}) = <span class="k">${Dt(k)}</span>`})})],
+    done:`On factorise, on simplifie par h (h ≠ 0), et seulement ensuite on fait tendre h vers 0&nbsp;: f′(${D(a)}) = ${D(k)}.`}}
+function l3q5(){let p,c,r,a;do{p=pick([-1,-2,-3]);c=ri(-5,5);r=ri(-4,6);a=ri(-3,3)}while(2*p*a+c===0||a===0);
+  const fs=FQ(p,c,r),d=2*p*a+c,fa=p*a*a+c*a+r,v=vfit(a-2.5,a+2.5,[fa,fn(fs,a+1),fn(fs,a-1)],1.5);
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'f(x) = '+ft(fs),mode:'sec',a:s(a),h:'1',tri:true,triLab:'h'}),
+    prompt:`${fdef(fs)} et a = ${D(a)}. À toi de mener le calcul en entier, au brouillon.`,cap0:'T(h) = m + kh',
+    parts:[fill('Pour h ≠ 0, T(h) s\'écrit m + kh&nbsp;:',`m = {0} et k = {1}`,[{v:d,q:tTc(a)},{v:p,q:tTd(a)}],
+        `f(${D(a)}) = ${D(fa)}. Développe f(${D(a)} + h) = ${lc([[p,`(${D(a)} + h)<sup>2</sup>`],[c,`(${D(a)} + h)`],[r,'']])}, retire ${D(fa)}, factorise par h et simplifie.`),
+      fill('Conclus&nbsp;:',`f′(${D(a)}) = {0}`,[{v:d,q:tD(a)}],`T(h) = ${lc([[d,''],[p,'h']])} se rapproche de ${D(d)} quand h tend vers 0.`,{onOk:()=>toTangent(fs,a,{cap:`f′(${Dt(a)}) = <span class="k">${Dt(d)}</span>`})}),
+      ch('En A, la planche couchée sur la rampe (la tangente)&nbsp;:',[OK(d>0?'monte':'descend',{claim:d>0?cGt(tD(a),tN(0)):cLt(tD(a),tN(0))}),NO(d>0?'descend':'monte',`La pente de la tangente est f′(${D(a)}) = ${D(d)}&nbsp;: ${d>0?'positive':'négative'}.`,{claim:d>0?cLt(tD(a),tN(0)):cGt(tD(a),tN(0))}),
+        NO('est horizontale',`Horizontale voudrait dire une pente nulle&nbsp;; ici f′(${D(a)}) = ${D(d)}.`,{claim:cEq(tD(a),tN(0))})],{keep:true})],
+    done:`T(h) = ${D(d)} ${p<0?MINUS:'+'} ${Math.abs(p)===1?'':Math.abs(p)}h, donc f′(${D(a)}) = ${D(d)}&nbsp;: la tangente en A ${d>0?'monte':'descend'}.`}}
+LV.push({t:'Le calcul exact',s:'Calcul de T(h)',chap:'Nombre dérivé',rule:rule3,qs:[l3q1,l3q2,l3q3,l3q4,l3q5]});
+
+/* =================================================================== */
+/* NIVEAU 4 · Lire et poser la pente                                     */
+/* =================================================================== */
+const rule4=`<p>La <b>tangente</b> à ${Cf()} au point A(a&nbsp;; f(a)) est la droite passant par A de pente <b>f′(a)</b>, position limite des sécantes.</p><p><b>Lire f′(a)</b>&nbsp;: on prend deux points de la tangente, par exemple A et B, et on calcule ${frac('y<sub>B</sub> − y<sub>A</sub>','x<sub>B</sub> − x<sub>A</sub>')}.</p><p><b>Construire la tangente</b> connaissant f′(a)&nbsp;: depuis A, on avance de 1 vers la droite et on monte de f′(a) (on descend si f′(a) &lt; 0)&nbsp;; ou on avance de 2 et on monte de 2f′(a).</p>`;
+function tanScene(fs,a,v,o){return sceneOf(fs,v,Object.assign({mode:'tan',a:s(a),m:s(fd(fs,a)),title:'𝒞f et sa tangente en A'},o||{}))}
+function l4q1(){let sP,a,m,fa,dxB;do{sP=pick(['1/2','-1/2','1','-1']);a=ri(-2,2);m=pick([-3,-2,-1,1,2,3]);fa=ri(-1,3);dxB=Math.abs(m)<=1?2:1}while(Math.abs(fa+m*dxB)>6);
+  const fs=para(sP,a,m,fa),B=[a+dxB,fa+m*dxB],v=vfit(a-4,a+4,[fa,B[1],fa-2,fa+2],1.5);
+  return{spec:{f:fs},scene:tanScene(fs,a,v,{pts:[{x:B[0],y:B[1],lab:'B',col:'#e8c766'}]}),
+    prompt:`La planche dorée est la tangente à ${Cf()} au point A d'abscisse a = ${D(a)}. Elle passe aussi par le point B, sur un nœud du quadrillage.`,cap0:'Lis A et B sur le quadrillage.',
+    parts:[fill('Lis le graphique&nbsp;:',`f(${D(a)}) = {0} et f′(${D(a)}) = {1}`,[{v:fa,q:tF(a)},{v:m,q:tD(a)}],
+        `f(${D(a)}) est l'ordonnée de A. f′(${D(a)}) est la pente de la tangente&nbsp;: ${frac('y<sub>B</sub> − y<sub>A</sub>','x<sub>B</sub> − x<sub>A</sub>')} (compte les carreaux de A à B).`,{onOk:()=>cap(`f(${Dt(a)}) = <span class="s">${Dt(fa)}</span> <span class="m">·</span> f′(${Dt(a)}) = <span class="k">${Dt(m)}</span>`)})],
+    done:`A(${D(a)}&nbsp;; ${D(fa)}) et B(${D(B[0])}&nbsp;; ${D(B[1])})&nbsp;: f′(${D(a)}) = ${frac(`${D(B[1])} − ${par(fa)}`,`${D(B[0])} − ${par(a)}`)} = ${D(m)}.`}}
+function l4q2(){let sP,a,m,fa;do{sP=pick(['1/2','-1/2','1','-1']);a=ri(-2,2);m=pick(['-2','-3/2','-1','-1/2','1/2','1','3/2','2']);fa=ri(-1,3)}while(Math.abs(fa+2*q(m).v)>6);
+  const fs=para(sP,a,m,fa),mq=q(m),v=vfit(a-4,a+4,[fa,fa+2*mq.v,fa-2,fa+2],1.5);
+  const P=[[a+2,mq.mul(2).add(fa)],[a+2,mq.add(fa)],[a+1,mq.mul(2).add(fa)],[a+2,mq.mul(-2).add(fa)]];
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'𝒞f et la planche en A',mode:'tilt',a:s(a),m:'0'}),
+    prompt:`On sait que f′(${D(a)}) = <b>${D(mq)}</b>. Construis la tangente à ${Cf()} au point A d'abscisse ${D(a)}.`,cap0:'La planche pivote autour de A.',shown:[[tD(a),Dt(mq)]],
+    parts:[tilt('Incline la planche en A pour qu\'elle soit tangente à la rampe.',mq,{step:'1/2',min:-4,max:4,q:tD(a),live:k=>`pente de la planche&nbsp;: <span class="k">${Dt(k)}</span>`,
+        why:k=>`Ta planche a une pente de ${D(k)}. Pour une pente de ${D(mq)}&nbsp;: quand on avance de 2 carreaux vers la droite, on ${mq.sgn()>0?'monte':'descend'} de ${D(mq.mul(2).abs())} carreau${mq.mul(2).abs().cmp(1)>0?'x':''}.`,
+        onOk:async()=>{await K.glow();cap(`tangente en A&nbsp;: pente <span class="k">${Dt(mq)}</span>`)}}),
+      ch('La tangente passe aussi par le point&nbsp;:',[OK(`(${D(P[0][0])}&nbsp;; ${D(P[0][1])})`,{claim:cOn(a,P[0][0],P[0][1])}),NO(`(${D(P[1][0])}&nbsp;; ${D(P[1][1])})`,`En avançant de 2, on monte de 2 × ${par(mq)} = ${D(mq.mul(2))}, pas de ${D(mq)}.`,{claim:cOn(a,P[1][0],P[1][1])}),
+        NO(`(${D(P[2][0])}&nbsp;; ${D(P[2][1])})`,`En avançant de 1, on monte de ${D(mq)} seulement.`,{claim:cOn(a,P[2][0],P[2][1])}),NO(`(${D(P[3][0])}&nbsp;; ${D(P[3][1])})`,`Le signe est inversé&nbsp;: avec une pente ${mq.sgn()>0?'positive, on monte':'négative, on descend'}.`,{claim:cOn(a,P[3][0],P[3][1])})],
+        {onOk:()=>K.set({pts:[{x:P[0][0],y:s(P[0][1]),lab:'',col:'#e8c766'}]})})],
+    done:`Depuis A(${D(a)}&nbsp;; ${D(fa)}), on avance de 2 et on ${mq.sgn()>0?'monte':'descend'} de ${D(mq.mul(2).abs())}&nbsp;: la tangente passe par (${D(P[0][0])}&nbsp;; ${D(P[0][1])}).`}}
+function l4q3(){let sP,a,num,den,fa;do{sP=pick(['1/2','-1/2','1','-1']);a=ri(-3,1);den=pick([2,3]);num=pick([-5,-4,-2,-1,1,2,4,5]);fa=ri(-1,3)}while(num%den===0||Math.abs(fa+num)>6||(den===2&&Math.abs(num)>3));
+  const m=q(num).div(den),fs=para(sP,a,m,fa),B=[a+den,fa+num],v=vfit(a-3,a+5,[fa,B[1],fa-2,fa+2],1.5);
+  return{spec:{f:fs},scene:tanScene(fs,a,v,{pts:[{x:B[0],y:B[1],lab:'B',col:'#e8c766'}]}),
+    prompt:`La tangente à ${Cf()} au point A d'abscisse ${D(a)} passe par le point B. A et B sont sur des nœuds du quadrillage.`,cap0:'Compte les carreaux de A à B.',
+    parts:[fill('Lis la pente&nbsp;:',`f′(${D(a)}) = {0}`,[{v:m,q:tD(a)}],`De A à B, on avance de ${den} et on ${num>0?'monte':'descend'} de ${Math.abs(num)}&nbsp;: la pente est ${frac(num>0?num:MINUS+Math.abs(num),den)} (une fraction est acceptée).`),
+      ch('Donc, en A, la tangente&nbsp;:',[OK(num>0?'monte':'descend',{claim:num>0?cGt(tD(a),tN(0)):cLt(tD(a),tN(0))}),NO(num>0?'descend':'monte',`f′(${D(a)}) = ${D(m)} est ${num>0?'positif':'négatif'}.`,{claim:num>0?cLt(tD(a),tN(0)):cGt(tD(a),tN(0))})],{keep:true})],
+    done:`f′(${D(a)}) = ${D(m)}&nbsp;: une pente non entière se lit sur plusieurs carreaux (${den} vers la droite, ${Math.abs(num)} vers ${num>0?'le haut':'le bas'}).`}}
+function l4q4(){const sP=pick(['1/2','-1/2']),vx=ri(-1,1),k=ri(0,2),fs=para(sP,vx,0,k);const sp=q(sP).sgn();
+  let xs;do{const one=sp>0?vx-ri(1,3):vx+ri(1,3),two=shuf([1,2,3]).slice(0,2).map(d=>sp>0?vx+d:vx-d);xs=[one,...two]}while(new Set(xs).size<3);
+  const labs=shuf(['P','Q','R']),pts=xs.map((x,i)=>({x,lab:labs[i]})),dv=xs.map(x=>fd(fs,x).v);
+  const neg=pts.find((p,i)=>dv[i]<0),mx=pts[dv.indexOf(Math.max(...dv))];
+  const v=vfit(vx-4.5,vx+4.5,xs.map(x=>fn(fs,x)).concat([k]),1.5);
+  const P=pts.slice().sort((u,w)=>u.lab<w.lab?-1:1);
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'Trois planches posées sur 𝒞f',tans:xs.map(x=>({x:s(x)})),pts:pts.map(p=>({x:p.x,lab:p.lab,dy:-18}))}),
+    prompt:`Trois petites planches dorées sont posées sur ${Cf()}, tangentes en P, Q et R.`,cap0:'Compare les pentes des trois tangentes.',
+    parts:[ch('En quel point le nombre dérivé est-il négatif&nbsp;?',P.map(p=>p===neg?OK(p.lab,{claim:cLt(tD(p.x),tN(0))}):NO(p.lab,`En ${p.lab}, la planche monte de gauche à droite&nbsp;: le nombre dérivé y est positif. Cherche celle qui descend.`,{claim:cLt(tD(p.x),tN(0))})),{keep:true}),
+      ch('En quel point le nombre dérivé est-il le plus grand&nbsp;?',P.map(p=>p===mx?OK(p.lab,{claim:cMaxd(p.x,xs)}):NO(p.lab,`Le plus grand nombre dérivé correspond à la planche la plus pentue <b>qui monte</b>.`,{claim:cMaxd(p.x,xs)})),{keep:true})],
+    done:`f′ est négatif en ${neg.lab} (la planche descend) et le plus grand en ${mx.lab} (la planche monte le plus fort). Le signe et la taille de f′(a) se lisent sur la tangente.`}}
+function l4q5(){let sP,a,p0,fa,m;do{sP=pick(['1/2','-1/2','1','-1']);a=pick([1,2,3,4,-2,-3]);p0=ri(-3,3);fa=ri(-2,5);m=q(fa-p0).div(a)}while(m.sgn()===0||!m.mul(2).isInt()||m.abs().v>3);
+  const fs=para(sP,a,m,fa),v=vfit(Math.min(a,0)-2.5,Math.max(a,0)+2.5,[fa,p0,fa+m.v],1.5);
+  return{spec:{f:fs},scene:tanScene(fs,a,v,{pts:[{x:0,y:p0,lab:'B',col:'#e8c766'}]}),
+    prompt:`La tangente à ${Cf()} au point A(${D(a)}&nbsp;; ${D(fa)}) passe par le point B(0&nbsp;; ${D(p0)}).`,cap0:'Pente = (yA − yB)/(xA − xB)',shown:[[tF(a),Dt(fa)]],
+    parts:[fill('Calcule&nbsp;:',`f′(${D(a)}) = ${frac('y<sub>A</sub> − y<sub>B</sub>','x<sub>A</sub> − x<sub>B</sub>')} = {0}`,[{v:m,q:tD(a)}],`${frac(`${D(fa)} − ${par(p0)}`,`${D(a)} − 0`)}&nbsp;: calcule le numérateur, puis divise par ${D(a)}.`),
+      ch(`Le point C de la tangente d'abscisse ${D(a+1)} a pour ordonnée&nbsp;:`,[OK(D(m.add(fa)),{val:m.add(fa)}),NO(D(q(fa).sub(m)),`En avançant de 1 vers la droite, on ajoute la pente&nbsp;: ${D(fa)} + ${par(m)}.`,{val:q(fa).sub(m)}),
+        NO(D(fa+1),`On n'ajoute pas 1&nbsp;: on ajoute la pente ${D(m)} quand on avance de 1.`,{val:fa+1}),NO(D(m),`${D(m)}, c'est la pente. L'ordonnée de C est ${D(fa)} + ${par(m)}.`,{val:m})],{q:tTy(a,a+1)})],
+    done:`f′(${D(a)}) = ${frac(D(q(fa-p0)),D(a))} = ${D(m)}, et la tangente passe par C(${D(a+1)}&nbsp;; ${D(m.add(fa))}).`}}
+LV.push({t:'Lire et poser la pente',s:'Lecture graphique',chap:'Tangente',rule:rule4,qs:[l4q1,l4q2,l4q3,l4q4,l4q5]});
+
+/* =================================================================== */
+/* NIVEAU 5 · L'équation de la tangente                                  */
+/* =================================================================== */
+const rule5=`<p>La tangente à ${Cf()} au point d'abscisse a a pour équation&nbsp;: <b>y = f′(a)(x − a) + f(a)</b>.</p><p>Démonstration&nbsp;: c'est une droite de pente f′(a), donc y = f′(a)x + p&nbsp;; elle passe par A(a&nbsp;; f(a)), donc f(a) = f′(a) × a + p, soit p = f(a) − a f′(a).</p><p>On développe pour obtenir l'équation réduite y = mx + p. Vérification&nbsp;: en x = a, on doit retrouver y = f(a).</p>`;
+function l5q1(){let a,fa,m;do{a=ri(1,4);fa=ri(1,5);m=pick([-3,-2,-1,1,2,3])}while(fa-m*a===0);
+  const fs=para(pick(['1/2','-1/2','1','-1']),a,m,fa),p=fa-m*a,v=vfit(a-4,a+4,[fa,fa+2*m,fa-2*m],1.5);
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'𝒞f',mode:'tilt',a:s(a),m:'0',laser:false,board:false}),
+    prompt:`On sait que f(${a}) = <b>${fa}</b> et f′(${a}) = <b>${D(m)}</b>.`,cap0:'Équation de la tangente en A ?',shown:[[tF(a),Dt(fa)],[tD(a),Dt(m)]],
+    parts:[fill('Remplace dans la formule y = f′(a)(x − a) + f(a)&nbsp;:',`y = {0}(x − {1}) + {2}`,[{v:m,q:tD(a)},{v:a,q:tN(a)},{v:fa,q:tF(a)}],
+        `f′(a) va devant la parenthèse, a dans la parenthèse, f(a) à la fin. Ici a = ${a}.`,{onOk:async()=>{K.set({board:true,laser:true});await K.tiltTo(m,700);K.set({mode:'tan'});await K.glow();cap(`y = ${Dt(m)}(x − ${a}) + ${fa}`)}}),
+      fill('Développe et réduis&nbsp;: y = mx + p avec',`m = {0} et p = {1}`,[{v:m,q:tTm(a)},{v:p,q:tTp(a)}],`${lc([[m,`(x − ${a})`]])} = ${lc([[m,'x'],[-m*a,'']])}, puis on ajoute ${fa}.`,{onOk:()=>cap(`<span class="k">${eqH(m,p)}</span> <span class="m">· en x = ${a} : y = ${fa} ✓</span>`)})],
+    done:`y = ${TF(m,a,fa)}, soit ${eqH(m,p)}. Vérification&nbsp;: ${D(m)} × ${a} ${p<0?MINUS:'+'} ${Math.abs(p)} = ${fa} = f(${a}).`}}
+function l5q2(){let p,c,r,a,d,fa;do{p=pick([1,-1,2]);c=ri(-4,4);r=ri(-4,4);a=ri(-2,3);d=2*p*a+c;fa=p*a*a+c*a+r}while(d===0||fa-d*a===0||a===0);
+  const fs=FQ(p,c,r),pp=fa-d*a,v=vfit(a-3,a+3,[fa,fn(fs,a+1.5),fn(fs,a-1.5)],1.5);
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'f(x) = '+ft(fs),pts:[{x:a,lab:'A',col:'#e8c766',dx:-12}]}),
+    prompt:`${fdef(fs)}. On admet que f′(${D(a)}) = <b>${D(d)}</b> (calcul du niveau 3).`,cap0:'Il manque f(a).',shown:[[tD(a),Dt(d)]],
+    parts:[fill('Calcule d\'abord&nbsp;:',`f(${D(a)}) = {0}`,[{v:fa,q:tF(a)}],`Remplace x par ${D(a)} dans ${fh(fs)}.`),
+      fill(`Équation réduite de la tangente en A&nbsp;: y = mx + p avec`,`m = {0} et p = {1}`,[{v:d,q:tTm(a)},{v:pp,q:tTp(a)}],
+        `y = ${TF(d,a,fa)}&nbsp;: développe, puis regroupe les nombres.`,{onOk:async()=>{K.set({pts:[],mode:'tan',a:s(a),m:s(d)});await K.drop();await K.glow();cap(`<span class="k">${eqH(d,pp)}</span>`)}})],
+    done:`f(${D(a)}) = ${D(fa)} et f′(${D(a)}) = ${D(d)}&nbsp;: y = ${TF(d,a,fa)}, soit ${eqH(d,pp)}.`}}
+function l5q3(){let a,fa,m;do{a=pick([1,2,3,-1,-2]);fa=ri(-3,5);m=pick([-3,-2,-1,2,3,4])}while(fa===m||fa===0||m*a===0);
+  const fs=para(pick(['1/2','-1/2','1']),a,m,fa),v=vfit(a-4,a+4,[fa,fa+m,fa-m],1.5);
+  const C=[[m,fa-m*a,1],[fa,m-fa*a,0],[m,fa+m*a,0],[m,-m*a,0]];
+  const why=[``,`Tu as échangé f(a) et f′(a)&nbsp;: c'est f′(a) qui va devant (x − a).`,`Le signe dans la parenthèse&nbsp;: c'est x − a = ${xm(a)}.`,`Tu as oublié d'ajouter f(a) = ${D(fa)}.`];
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'𝒞f',pts:[{x:a,lab:'A',col:'#e8c766',dx:-12}]}),
+    prompt:`On sait que f(${D(a)}) = <b>${D(fa)}</b> et f′(${D(a)}) = <b>${D(m)}</b>.`,cap0:'Quelle droite est la tangente en A ?',shown:[[tF(a),Dt(fa)],[tD(a),Dt(m)]],
+    parts:[ch('La tangente à '+Cf()+' au point d\'abscisse '+D(a)+' a pour équation&nbsp;:',C.map((c,i)=>c[2]?OK(eqH(c[0],c[1]),{claim:cTan(a,c[0],c[1])}):NO(eqH(c[0],c[1]),why[i],{claim:cTan(a,c[0],c[1])})),
+        {onOk:async()=>{K.set({pts:[],mode:'tan',a:s(a),m:s(m)});await K.drop();await K.glow();cap(`<span class="k">${eqH(m,fa-m*a)}</span>`)}}),
+      fill('Cette tangente coupe l\'axe des ordonnées au point d\'ordonnée&nbsp;:',`{0}`,[{v:fa-m*a,q:tTp(a)}],`C'est p, l'ordonnée à l'origine&nbsp;: la valeur de y quand x = 0.`)],
+    done:`y = ${TF(m,a,fa)} = ${eqH(m,fa-m*a).slice(4)}. Elle coupe l'axe des ordonnées en (0&nbsp;; ${D(fa-m*a)}).`}}
+function l5q4(){let a,m,p;do{a=pick([1,2,3,-1,-2]);m=pick([-3,-2,-1,1,2,3]);p=ri(-4,4)}while(m*a+p===0||p===0);
+  const fa=m*a+p,fs=para(pick(['1/2','-1/2','1','-1']),a,m,fa),v=vfit(a-4,a+4,[fa,fa+m,fa-m,p],1.5);
+  return{spec:{f:fs},scene:tanScene(fs,a,v,{lab:{A:'A',M:'M'}}),
+    prompt:`La tangente à ${Cf()} au point A d'abscisse ${D(a)} a pour équation <b>${eqH(m,p)}</b>.`,cap0:eqH(m,p),shown:[[['tanEq',s(a)],eqH(m,p)]],
+    parts:[fill('Retrouve les deux nombres&nbsp;:',`f(${D(a)}) = {0} et f′(${D(a)}) = {1}`,[{v:fa,q:tF(a)},{v:m,q:tD(a)}],
+        `f′(${D(a)}) est le coefficient directeur de la tangente (devant x). Et A est sur la tangente&nbsp;: f(${D(a)}) = ${D(m)} × ${par(a)} ${p<0?MINUS:'+'} ${Math.abs(p)}.`,{onOk:()=>cap(`f(${Dt(a)}) = <span class="s">${Dt(fa)}</span> <span class="m">·</span> f′(${Dt(a)}) = <span class="k">${Dt(m)}</span>`)})],
+    done:`f′(${D(a)}) = ${D(m)} (le coefficient directeur) et f(${D(a)}) = ${D(m)} × ${par(a)} ${p<0?MINUS:'+'} ${Math.abs(p)} = ${D(fa)} (le point A est sur la tangente).`}}
+function l5q5(){let a,m,fa,x0,r0;do{a=pick([1,2,3,4]);m=pick([-2,-1,1,2,3]);fa=m*pick([-2,-1,1,2,3]);x0=a+pick([2,3,-2,-3,5]);r0=a-fa/m}while(r0===a||x0===r0||!Number.isInteger(r0)||Math.abs(m*(x0-a)+fa)>12);
+  const fs=para(pick(['1/2','-1/2']),a,m,fa),y0=m*(x0-a)+fa,v=vfit(Math.min(a,x0,r0)-1.5,Math.max(a,x0,r0)+1.5,[fa,y0,0],1.5);
+  return{spec:{f:fs},scene:tanScene(fs,a,v),
+    prompt:`On sait que f(${D(a)}) = <b>${D(fa)}</b> et f′(${D(a)}) = <b>${D(m)}</b>. Le rayon de la planche (la tangente en A) est prolongé.`,cap0:`y = ${Dt(m)}(x − ${a}) + ${Dt(fa)}`,shown:[[tF(a),Dt(fa)],[tD(a),Dt(m)]],
+    parts:[fill(`Au point d'abscisse ${D(x0)}, la tangente a pour ordonnée&nbsp;:`,`y = {0}`,[{v:y0,q:tTy(a,x0)}],`Remplace x par ${D(x0)} dans y = ${TF(m,a,fa)}.`,{onOk:()=>K.set({pts:[{x:x0,y:s(y0),lab:'',col:'#e8c766'}]})}),
+      fill('La tangente coupe l\'axe des abscisses au point d\'abscisse&nbsp;:',`x = {0}`,[{v:r0,q:tTx0(a)}],`On résout ${TF(m,a,fa)} = 0.`,{onOk:()=>{K.set({pts:[{x:x0,y:s(y0),lab:'',col:'#e8c766'},{x:r0,y:'0',lab:'',col:'#7fb2ff'}]});cap(`y = 0 pour x = <span class="k">${Dt(r0)}</span>`)}})],
+    done:`L'équation y = ${TF(m,a,fa)} permet de calculer n'importe quel point du rayon&nbsp;: (${D(x0)}&nbsp;; ${D(y0)}), et (${D(r0)}&nbsp;; 0) sur l'axe des abscisses.`}}
+LV.push({t:'L\'équation du rayon',s:'Équation',chap:'Équation de la tangente',rule:rule5,qs:[l5q1,l5q2,l5q3,l5q4,l5q5]});
+
+/* =================================================================== */
+/* NIVEAU 6 · Vitesse instantanée, coût marginal                         */
+/* =================================================================== */
+const rule6=`<p>Si d(t) est une distance (en m) au temps t (en s), le taux de variation entre t<sub>0</sub> et t<sub>0</sub> + h est une <b>vitesse moyenne</b>&nbsp;; le nombre dérivé d′(t<sub>0</sub>) est la <b>vitesse instantanée</b> (en m/s).</p><p>Si C(q) est le coût de fabrication de q objets, le nombre dérivé C′(q) est le <b>coût marginal</b>&nbsp;: c'est environ le coût de fabrication d'un objet de plus, C(q + 1) − C(q).</p><p>On note aussi ${frac('Δy','Δx')} un taux de variation et ${frac('dy','dx')} une dérivée.</p>`;
+function l6q1(){const k=pick([1,2,3,4]),t0=pick([2,3,4,5]),fs=FQ(k,0,0),T1=k*(2*t0+1),vit=2*k*t0,chips=['1','0.5','0.1','0.01'];
+  const v={x0:-.4,x1:t0+2.6,y0:-k*1.5,y1:Math.ceil(k*(t0+2.2)*(t0+2.2))};
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'d(t) = '+ft(fs,'t'),xl:'t',yl:'d',mode:'sec',a:s(t0),h:'1',tri:true,triLab:'h'}),
+    prompt:`Une trottinette électrique démarre. La distance parcourue (en m) au bout de t secondes est d(t) = ${fh(fs,'t')}.`,cap0:capT(fs,t0,'1',{hide:['1']}),
+    parts:[fill(`Vitesse moyenne entre t = ${t0} et t = ${t0+1}&nbsp;:`,`${frac(`d(${t0+1}) − d(${t0})`,'1')} = {0} m/s`,[{v:T1,q:tT(t0,1)}],`d(${t0+1}) = ${k===1?'':k+' × '}${t0+1}<sup>2</sup> = ${k*(t0+1)*(t0+1)} et d(${t0}) = ${k*t0*t0}.`,{onOk:()=>cap(capT(fs,t0,'1'))}),
+      slide('Rapproche les instants&nbsp;: fais rouler M jusqu\'à h = 0,01.',chips,'0.01',{live:h=>capT(fs,t0,h)}),
+      fill(`Pour h ≠ 0, T(h) = ${2*k*t0} + ${k===1?'':k}h. La vitesse instantanée à t = ${t0} est&nbsp;:`,`d′(${t0}) = {0} m/s`,[{v:vit,q:tD(t0)}],`Quand h tend vers 0, ${2*k*t0} + ${k===1?'':k}h se rapproche de ${2*k*t0}.`,
+        {onOk:()=>toTangent(fs,t0,{cap:`vitesse instantanée&nbsp;: <span class="k">${vit} m/s</span>`})})],
+    done:`Vitesse moyenne ${T1} m/s sur [${t0}&nbsp;; ${t0+1}]&nbsp;; vitesse instantanée d′(${t0}) = ${vit} m/s, c'est ce qu'affiche le compteur à t = ${t0} s.`,shown:[[['Tform',s(t0)],`${2*k*t0} + ${k===1?'':k}h`]]}}
+function l6q2(){let v0,t1,c;do{v0=pick([10,15,20,25]);t1=pick(['0.5','1','1.5','2','2.5','3']);c=q(v0).sub(q(10).mul(t1))}while(c.sgn()===0||q(t1).cmp(q(v0).div(5))>=0);
+  const fs=FQ(-5,v0,0),v={x0:-.3,x1:v0/5+.4,y0:-2,y1:Math.ceil(v0*v0/20)+3};
+  return{spec:{f:fs},scene:sceneOf(fs,v,{title:'z(t) = '+ft(fs,'t'),xl:'t',yl:'z',mode:'sec',a:s(t1),h:'0.5',tri:true,triLab:'h'}),
+    prompt:`Un ballon est lancé vers le haut. Son altitude (en m) au bout de t secondes est z(t) = ${fh(fs,'t')}. Entre t = ${D(t1)} et t = ${D(t1)} + h, le taux de variation vaut T(h) = ${D(c)} ${MINUS} 5h.`,
+    cap0:`T(h) = ${Dt(c)} − 5h`,shown:[[tTc(t1),Dt(c)],[tTd(t1),'−5']],
+    parts:[fill(`Vitesse instantanée du ballon à t = ${D(t1)}&nbsp;:`,`z′(${D(t1)}) = {0} m/s`,[{v:c,q:tD(t1)}],`Quand h tend vers 0, ${D(c)} − 5h se rapproche de ${D(c)}.`,{onOk:()=>toTangent(fs,t1,{cap:`z′(${Dt(t1)}) = <span class="k">${Dt(c)} m/s</span>`})}),
+      ch('À cet instant, le ballon&nbsp;:',[OK(c.sgn()>0?`monte, à ${D(c.abs())} m/s`:`redescend, à ${D(c.abs())} m/s`,{claim:c.sgn()>0?cGt(tD(t1),tN(0)):cLt(tD(t1),tN(0))}),
+        NO(c.sgn()>0?`redescend, à ${D(c.abs())} m/s`:`monte, à ${D(c.abs())} m/s`,`Le signe de z′(${D(t1)}) dit si l'altitude augmente ou diminue&nbsp;: ${c.sgn()>0?'positif, le ballon monte':'négatif, le ballon redescend'}.`,{claim:c.sgn()>0?cLt(tD(t1),tN(0)):cGt(tD(t1),tN(0))}),
+        NO('est immobile',`Immobile voudrait dire une vitesse nulle (une planche horizontale)&nbsp;; ici z′(${D(t1)}) = ${D(c)}.`,{claim:cEq(tD(t1),tN(0))})],{keep:true})],
+    done:`z′(${D(t1)}) = ${D(c)} m/s&nbsp;: ${c.sgn()>0?'positif, le ballon monte':'négatif, le ballon redescend'} à ${D(c.abs())} m/s. La planche ${c.sgn()>0?'monte':'descend'}.`}}
+function l6q3(){const al=pick(['0.01','0.02','0.05']),be=pick([1,2,3,4]),ga=pick([50,100,200]),q0=pick([50,100,200]);
+  const fs=FQ(al,be,ga),cm=q(2).mul(al).mul(q0).add(be),diff=fv(fs,q0+1).sub(fv(fs,q0)),v={x0:-q0*.08,x1:q0*2.1,y0:-fv(fs,q0*2).v*.06,y1:fv(fs,q0*2).v*1.08};
+  return{spec:{f:fs},scene:tanScene(fs,q0,v,{title:'C(q) = '+ft(fs,'q'),xl:'q',yl:'C'}),
+    prompt:`Un atelier du lycée fabrique des bracelets pour une kermesse. Le coût de fabrication de q bracelets est C(q) = ${fh(fs,'q')} euros. On admet que C′(${q0}) = <b>${D(cm)}</b>.`,cap0:`coût marginal C′(${q0}) = ${Dt(cm)} €`,shown:[[tD(q0),Dt(cm)]],
+    parts:[ch(`Le coût marginal C′(${q0}) = ${D(cm)} signifie que&nbsp;:`,[OK(`fabriquer le ${q0+1}<sup>e</sup> bracelet coûte environ ${D(cm)} €.`,{code:'ok'}),
+        NO(`fabriquer ${q0} bracelets coûte ${D(cm)} €.`,`Le coût de ${q0} bracelets, c'est C(${q0}) = ${D(fv(fs,q0))} €. C′(${q0}) mesure la vitesse à laquelle le coût augmente.`,{code:'no'}),
+        NO(`chaque bracelet coûte exactement ${D(cm)} €.`,`Le coût marginal change avec q, et ce n'est qu'une valeur approchée du coût d'un bracelet de plus.`,{code:'no'}),
+        NO(`le coût augmente de ${D(cm)} % par bracelet.`,`Le nombre dérivé n'est pas un pourcentage&nbsp;: c'est une pente, en euros par bracelet.`,{code:'no'})]),
+      fill('Vérifie avec la formule (calculatrice autorisée)&nbsp;:',`C(${q0+1}) − C(${q0}) = {0} €`,[{v:diff,q:tSub(tF(q0+1),tF(q0))}],`Calcule C(${q0+1}) et C(${q0}) avec la formule, puis la différence.`,{onOk:()=>cap(`C(${q0+1}) − C(${q0}) = <span class="k">${Dt(diff)}</span> ≈ C′(${q0}) = ${Dt(cm)}`)})],
+    done:`C(${q0+1}) − C(${q0}) = ${D(diff)} €, très proche de C′(${q0}) = ${D(cm)} €&nbsp;: le coût marginal est (environ) le coût du bracelet suivant.`}}
+const CTX6=[
+  {f:'V',v:'t',lab:'Le volume d\'eau (en L) dans une citerne au bout de t minutes',t0:5,val:12,ok:'à t = 5 min, la citerne se remplit à environ 12 litres par minute',
+    no:[['à t = 5 min, la citerne contient 12 L','12 L, ce serait V(5). V′(5) est une vitesse de remplissage, en L par minute.'],['la citerne sera pleine dans 12 minutes','Le nombre dérivé ne donne pas une durée&nbsp;: c\'est un taux, en L par minute.'],['la citerne se remplit de 5 L toutes les 12 minutes','Les rôles sont inversés&nbsp;: 12 est le nombre de litres par minute, à l\'instant t = 5.']],u:'L/min'},
+  {f:'N',v:'t',lab:'Le nombre de téléchargements d\'une application de révision, t jours après sa sortie',t0:10,val:350,ok:'au 10<sup>e</sup> jour, l\'application gagne environ 350 téléchargements par jour',
+    no:[['au bout de 10 jours, il y a eu 350 téléchargements','350 téléchargements au total, ce serait N(10). N′(10) est un rythme, en téléchargements par jour.'],['il faut 10 jours pour avoir 350 téléchargements','Le nombre dérivé n\'est pas une durée&nbsp;: c\'est un rythme à l\'instant t = 10.'],['l\'application gagne 10 téléchargements tous les 350 jours','Les rôles sont inversés&nbsp;: 350 est le rythme, en téléchargements par jour, au jour 10.']],u:'téléchargements par jour'},
+  {f:'x',v:'t',lab:'La distance (en km) parcourue par une pirogue à balancier dans le lagon, t heures après son départ',t0:2,val:8,ok:'à t = 2 h, la pirogue avance à environ 8 km/h',
+    no:[['au bout de 2 h, la pirogue a parcouru 8 km','8 km, ce serait x(2). x′(2) est une vitesse instantanée, en km/h.'],['la pirogue a roulé en moyenne à 8 km/h pendant 2 h','Une moyenne sur 2 h, c\'est un taux de variation entre 0 et 2. x′(2) est la vitesse à l\'instant t = 2.'],['la pirogue met 8 h pour faire 2 km','Les rôles sont inversés&nbsp;: 8 est une vitesse, en km par heure.']],u:'km/h'}];
+function l6q4(){const C=pick(CTX6),fs=para('-1/'+(C.t0*4),C.t0,C.val,C.val*C.t0*.75),v={x0:-C.t0*.1,x1:C.t0*2.2,y0:-C.val*C.t0*.1,y1:Math.max(...[0,.5,1,1.5,2,2.2].map(k=>fn(fs,C.t0*k)))*1.15};
+  return{spec:{f:fs},scene:tanScene(fs,C.t0,v,{title:C.f+'('+C.v+')',xl:C.v,yl:C.f}),
+    prompt:`${C.lab} est noté ${C.f}(t). On sait que ${C.f}′(${C.t0}) = <b>${C.val}</b>.`,cap0:`${C.f}′(${C.t0}) = ${C.val} ${C.u}`,shown:[[tD(C.t0),String(C.val)]],
+    parts:[ch('Cela signifie que&nbsp;:',[OK(C.ok,{code:'ok'}),...C.no.map(n=>NO(n[0],n[1],{code:'no'}))]),
+      ch('En physique, on note aussi ce nombre&nbsp;:',[OK(frac('d'+C.f,'dt')+' à t = '+C.t0,{code:'ok'}),NO(frac('dt','d'+C.f)+' à t = '+C.t0,`On divise la variation de ${C.f} par celle du temps&nbsp;: d${C.f} en haut, dt en bas.`,{code:'no'}),
+        NO('Δ'+C.f,`Δ${C.f} est une simple variation de ${C.f}, pas un taux.`,{code:'no'}),NO(C.f+'('+C.t0+')',`${C.f}(${C.t0}) est une valeur de la grandeur, pas sa vitesse de variation.`,{code:'no'})])],
+    done:`${C.f}′(${C.t0}) = ${C.val} ${C.u}&nbsp;: c'est la pente de la tangente, la vitesse de variation de ${C.f} à l'instant t = ${C.t0}. On écrit aussi ${frac('d'+C.f,'dt')} = ${C.f}′(t).`}}
+function l6q5(){let t0,vv,d0,sP;do{t0=pick([2,3,4]);vv=pick([1,2,3]);d0=pick([4,6,8]);sP=pick(['1/4','-1/4'])}while(d0+2*vv>16||(sP==='-1/4'&&vv<2));
+  const fs=para(sP,t0,vv,d0),B=[t0+2,d0+2*vv],v={x0:-.4,x1:t0+4.5,y0:-1,y1:18};
+  return{spec:{f:fs},scene:tanScene(fs,t0,v,{title:'Distance d(t) d\'un coureur',xl:'t',yl:'d',pts:[{x:B[0],y:B[1],lab:'B',col:'#e8c766'}]}),
+    prompt:`La courbe donne la distance d(t) (en m) parcourue par un coureur en fonction du temps t (en s). La planche dorée est la tangente au point A d'abscisse ${t0}&nbsp;; elle passe par B.`,cap0:'Une graduation verticale = 2 m.',
+    parts:[fill('Lis le graphique&nbsp;:',`d(${t0}) = {0} m`,[{v:d0,q:tF(t0)}],`d(${t0}) est l'ordonnée du point A. Attention&nbsp;: une graduation verticale vaut 2 m.`),
+      fill('Vitesse instantanée du coureur à t = '+t0+'&nbsp;:',`d′(${t0}) = {0} m/s`,[{v:vv,q:tD(t0)}],`C'est la pente de la tangente&nbsp;: ${frac('y<sub>B</sub> − y<sub>A</sub>','x<sub>B</sub> − x<sub>A</sub>')}, en m par s.`,{onOk:()=>cap(`d′(${t0}) = <span class="k">${vv} m/s</span>`)})],
+    done:`A(${t0}&nbsp;; ${d0}) et B(${B[0]}&nbsp;; ${B[1]})&nbsp;: d′(${t0}) = ${frac(`${B[1]} − ${d0}`,`${B[0]} − ${t0}`)} = ${vv} m/s.`}}
+LV.push({t:'Vitesse et coût marginal',s:'En contexte',chap:'Interpréter le nombre dérivé',rule:rule6,qs:[l6q1,l6q2,l6q3,l6q4,l6q5]});
+
+/* =================================================================== */
+/* NIVEAU 7 · Rouler sur la planche : approximation de f(a + h)          */
+/* =================================================================== */
+const rule7=`<p>Près de A, la rampe et la planche se confondent presque. La <b>fonction affine tangente</b> en a est x ↦ f(a) + f′(a)(x − a).</p><p>Pour h proche de 0&nbsp;: <b>f(a + h) ≈ f(a) + f′(a)h</b> (approximation linéaire). On «&nbsp;roule sur la planche&nbsp;» au lieu de la rampe.</p><p>Plus h est petit, plus l'écart entre la rampe et la planche est petit devant h.</p>`;
+async function zoomGap(fs,a,h,o){const m=fd(fs,a).v,w=Math.max(Math.abs(q(h).v)*3.2,1e-3),hh=w*.56*Math.max(1,Math.abs(m)*1.1),ya=fn(fs,q(a).v);
+  K.set({gap:{x:s(q(a).add(h))}});await K.zoom({x0:q(a).v-w,x1:q(a).v+w,y0:ya-hh,y1:ya+hh},1300)}
+function l7q1(){let sP,a,fa,m,h;do{sP=pick([1,-1,2,-2]);a=ri(1,3);fa=ri(-2,4);m=pick([-3,-2,-1,1,2,3]);h=pick(['0.1','0.2','-0.1','0.05'])}while(fa===0);
+  const fs=para(sP,a,m,fa),ap=q(m).mul(h).add(fa),ex=fv(fs,q(a).add(h)),v=vfit(a-3,a+3,[fa,fa+2*m,fa-2*m],1.5);
+  return{spec:{f:fs},scene:tanScene(fs,a,v,{title:'𝒞f et sa tangente en A'}),
+    prompt:`On sait que f(${a}) = <b>${D(fa)}</b> et f′(${a}) = <b>${D(m)}</b>. On cherche une valeur approchée de f(${D(q(a).add(h))}), soit h = ${D(h)}.`,cap0:'Près de A, la planche colle à la rampe.',shown:[[tF(a),Dt(fa)],[tD(a),Dt(m)]],
+    parts:[act('Zoomer sur A',()=>zoomGap(fs,a,h),{ask:`Regarde la rampe et la planche entre A et l'abscisse ${D(q(a).add(h))}.`}),
+      fill('Roule sur la planche au lieu de la rampe&nbsp;:',`f(${aph(a,h)}) ≈ f(${a}) + f′(${a}) × h = {0}`,[{v:ap,q:tAp(a,h)}],`${D(fa)} + ${par(m)} × ${par(h)}&nbsp;: d'abord le produit, puis la somme.`,
+        {onOk:()=>{K.set({gap:{x:s(q(a).add(h)),lab:'écart'}});cap(`planche&nbsp;: <span class="k">${Dt(ap)}</span> <span class="m">· rampe&nbsp;:</span> f(${Dt(q(a).add(h))}) = <span class="s">${Dt(ex)}</span>`)}})],
+    done:`f(${D(q(a).add(h))}) ≈ ${D(fa)} + ${par(m)} × ${par(h)} = ${D(ap)}. La vraie valeur est ${D(ex)}&nbsp;: l'écart, ${D(ex.sub(ap).abs())}, est minuscule devant h.`}}
+function l7q2(){const opt={1:['0.02','0.04','0.1','-0.02','0.2'],4:['0.04','0.08','0.2','-0.04','0.4'],9:['0.06','0.12','0.3','-0.06'],16:['0.08','0.16','0.4','-0.08'],25:['0.1','0.2','0.5','-0.1'],100:['0.2','0.4','1','-0.2','2']};
+  const a=pick([1,4,9,16,25,100]),h=pick(opt[a]),r=Math.sqrt(a),fdv=q(1).div(2*r),ap=fdv.mul(h).add(r),ex=Math.sqrt(a+q(h).v),fs=FS;
+  const v={x0:Math.max(-.5,a-a*.9-1),x1:a+a*.9+1,y0:-.3,y1:Math.sqrt(a*1.9+1)+.6};
+  return{spec:{f:fs},scene:tanScene(fs,a,v,{title:'f(x) = √x et sa tangente en A'}),
+    prompt:`f(x) = √x. On admet que f′(${a}) = <b>${D(fdv)}</b>. On cherche une valeur approchée de √${D(q(a).add(h))} sans calculatrice.`,cap0:`a = ${a}, h = ${Dt(h)}`,shown:[[tD(a),Dt(fdv)]],
+    parts:[act('Zoomer sur A',()=>zoomGap(fs,a,h)),
+      fill('Approximation&nbsp;:',`√${D(q(a).add(h))} ≈ √${a} + f′(${a}) × ${par(h)} = {0}`,[{v:ap,q:tAp(a,h)}],`√${a} = ${r}, puis ${r} + ${D(fdv)} × ${par(h)}.`,{onOk:()=>{K.set({gap:{x:s(q(a).add(h)),lab:'écart'}});cap(`planche&nbsp;: <span class="k">${Dt(ap)}</span> <span class="m">· calculatrice&nbsp;:</span> √${Dt(q(a).add(h))} ≈ <span class="s">${Dr(ex,5)}</span>`)}}),
+      ch(`La calculatrice donne √${D(q(a).add(h))} ≈ ${Dr(ex,5)}. L'approximation ${D(ap)} est&nbsp;:`,[OK('un peu trop grande&nbsp;: la planche passe au-dessus de la rampe',{claim:cGt(tAp(a,h),tF(q(a).add(h)))}),
+        NO('un peu trop petite&nbsp;: la planche passe au-dessous de la rampe',`Compare&nbsp;: ${D(ap)} et ${Dr(ex,5)}. Et regarde le zoom&nbsp;: la rampe de √x est sous sa tangente.`,{claim:cLt(tAp(a,h),tF(q(a).add(h)))}),
+        NO('exacte',`${D(ap)} n'est pas égal à ${Dr(ex,5)}&nbsp;: c'est une approximation, la rampe n'est pas une droite.`,{claim:cEq(tAp(a,h),tF(q(a).add(h)))})],{keep:true,shown:[[tR(5,tF(q(a).add(h))),Dr(ex,5)]]})],
+    done:`√${D(q(a).add(h))} ≈ ${r} + ${D(fdv)} × ${par(h)} = ${D(ap)} (valeur exacte ≈ ${Dr(ex,5)})&nbsp;: une très bonne approximation, sans calculatrice.`,shown:[[tR(5,tF(q(a).add(h))),Dr(ex,5)],[tD(a),Dt(fdv)]]}}
+function l7q3(){const opt={1:['0.01','0.02','0.05','-0.02','-0.05'],2:['0.04','0.08','0.1','-0.04','0.2'],4:['0.08','0.16','-0.08','0.32'],5:['0.1','0.05','-0.1','0.2','0.25']};
+  const a=pick([1,2,4,5]),h=pick(opt[a]),fs=FI(1),fdv=q(-1).div(a*a),ap=fdv.mul(h).add(q(1).div(a)),v={x0:0,x1:a*2.4,y0:-.2/a,y1:2.6/a};
+  return{spec:{f:fs},scene:tanScene(fs,a,v,{title:'f(x) = 1/x et sa tangente en A'}),
+    prompt:`f(x) = ${frac(1,'x')}. On a vu que f′(${a}) = <b>${D(fdv)}</b>. On cherche une valeur approchée de ${frac(1,D(q(a).add(h)))}.`,cap0:`a = ${a}, h = ${Dt(h)}`,shown:[[tD(a),Dt(fdv)]],
+    parts:[act('Zoomer sur A',()=>zoomGap(fs,a,h)),
+      fill('Approximation&nbsp;:',`${frac(1,D(q(a).add(h)))} ≈ f(${a}) + f′(${a}) × ${par(h)} = {0}`,[{v:ap,q:tAp(a,h)}],`f(${a}) = ${D(q(1).div(a))}, puis on ajoute ${D(fdv)} × ${par(h)}.`,{onOk:()=>{K.set({gap:{x:s(q(a).add(h)),lab:'écart'}});cap(`planche&nbsp;: <span class="k">${Dt(ap)}</span> <span class="m">· calculatrice&nbsp;:</span> ≈ <span class="s">${Dr(1/(a+q(h).v),5)}</span>`)}}),
+      ch(`Avec un h dix fois plus grand (h = ${D(q(h).mul(10))}), l'approximation serait&nbsp;:`,[OK('moins précise&nbsp;: plus on s\'éloigne de A, plus la planche quitte la rampe',{claim:cErrGt(a,q(h).mul(10),h)}),
+        NO('plus précise',`C'est le contraire&nbsp;: la planche ne colle à la rampe que près de A.`,{claim:cErrGt(a,h,q(h).mul(10))}),
+        NO('aussi précise',`L'écart dépend de h&nbsp;: loin de A, la rampe s'écarte de la planche.`,{code:'no'})],{keep:true})],
+    done:`${frac(1,D(q(a).add(h)))} ≈ ${D(q(1).div(a))} + ${par(fdv)} × ${par(h)} = ${D(ap)}. L'approximation n'est bonne que pour h proche de 0.`}}
+function l7q4(){const a=pick([2,3,4,5,10]),h=pick(['0.01','0.02','0.03','-0.01','-0.02']),fs=FQ(1,0,0),ap=q(2*a).mul(h).add(a*a),er=q(h).mul(h),v=vfit(a-2.5,a+2.5,[a*a,(a-1.5)*(a-1.5),(a+1.2)*(a+1.2)],1);
+  return{spec:{f:fs},scene:tanScene(fs,a,v,{title:'f(x) = x² et sa tangente en A'}),
+    prompt:`f(x) = x<sup>2</sup>. Au niveau 3, on a trouvé f′(${a}) = <b>${2*a}</b>. On veut ${D(q(a).add(h))}<sup>2</sup> de tête.`,cap0:`a = ${a}, h = ${Dt(h)}`,shown:[[tD(a),String(2*a)]],
+    parts:[act('Zoomer sur A',()=>zoomGap(fs,a,h)),
+      fill('Approximation&nbsp;:',`${D(q(a).add(h))}<sup>2</sup> ≈ ${a}<sup>2</sup> + ${2*a} × ${par(h)} = {0}`,[{v:ap,q:tAp(a,h)}],`${a*a} + ${2*a} × ${par(h)}&nbsp;: d'abord le produit.`),
+      fill('Écart entre la rampe et la planche&nbsp;:',`${D(q(a).add(h))}<sup>2</sup> − ${D(ap)} = {0}`,[{v:er,q:tEr(a,h)}],`Calcule ${D(q(a).add(h))}<sup>2</sup> exactement (ou développe (${a} + h)<sup>2</sup> = ${a*a} + ${2*a}h + h<sup>2</sup>)&nbsp;: l'écart est h<sup>2</sup>.`,
+        {onOk:()=>{K.set({gap:{x:s(q(a).add(h)),lab:'h²'}});cap(`écart = h² = <span class="k">${Dt(er)}</span>`)}})],
+    done:`(${a} + h)<sup>2</sup> = ${a*a} + ${2*a}h + h<sup>2</sup>&nbsp;: la planche donne ${a*a} + ${2*a}h, et l'écart h<sup>2</sup> = ${D(er)} est négligeable quand h est petit.`}}
+function l7q5(){const q0=pick([40,80,100]),m=pick(['1.25','1.5','2.5','3']),c0=pick([120,150,240]),dq=pick([1,2,3,-2]),fs=para('1/200',q0,m,c0),ap=q(m).mul(dq).add(c0);
+  const v={x0:-q0*.08,x1:q0*2,y0:-c0*.1,y1:fn(fs,q0*2)*1.1};
+  return{spec:{f:fs},scene:tanScene(fs,q0,v,{title:'C(q) et sa tangente',xl:'q',yl:'C'}),
+    prompt:`Pour une production de bracelets, C(q) est le coût (en €) de q bracelets. On sait que C(${q0}) = <b>${c0}</b> et C′(${q0}) = <b>${D(m)}</b>.`,cap0:`C(${q0}) = ${c0} € · C′(${q0}) = ${Dt(m)} €`,shown:[[tF(q0),String(c0)],[tD(q0),Dt(m)]],
+    parts:[fill(`Valeur approchée du coût de ${q0+dq} bracelets&nbsp;:`,`C(${q0+dq}) ≈ C(${q0}) + C′(${q0}) × ${par(dq)} = {0} €`,[{v:ap,q:tAp(q0,dq)}],`${c0} + ${D(m)} × ${par(dq)}.`,{onOk:()=>{K.set({gap:{x:s(q0+dq)}});cap(`C(${q0+dq}) ≈ <span class="k">${Dt(ap)} €</span>`)}}),
+      ch('La fonction affine tangente en a, qui sert à cette approximation, est&nbsp;:',[OK('x ↦ f(a) + f′(a)(x − a)',{code:'ok'}),NO('x ↦ f′(a) + f(a)(x − a)',`f(a) et f′(a) sont échangés&nbsp;: la pente f′(a) multiplie (x − a).`,{code:'no'}),
+        NO('x ↦ f(a) + f′(a)x',`En x = a, cette fonction vaut f(a) + a f′(a), pas f(a)&nbsp;: il faut f′(a)(x − a).`,{code:'no'}),NO('x ↦ f′(a)(x + a) + f(a)',`Le signe dans la parenthèse&nbsp;: c'est x − a.`,{code:'no'})])],
+    done:`C(${q0+dq}) ≈ ${c0} + ${D(m)} × ${par(dq)} = ${D(ap)} €&nbsp;: c'est la fonction affine tangente x ↦ C(${q0}) + C′(${q0})(x − ${q0}) évaluée en ${q0+dq}.`}}
+LV.push({t:'Rouler sur la planche',s:'Approximation',chap:'Approximation linéaire',rule:rule7,qs:[l7q1,l7q2,l7q3,l7q4,l7q5]});
+Object.assign(K,{eqH,capT});
+})();
+</script>
+<script>
+/* ======================= LA PLANCHE RASANTE — épreuves finales Bronze, Argent, Or ======================= */
+(function(){
+'use strict';
+const K=window.PRK,{lc,sgT,Q,q,D,Dt,Dr,frac,xm,aph,par,writes,ri,pick,shuf,FQ,FI,FS,FA,FC,fv,fn,fd,fT,fTn,poly,fh,fdef,Cf,para,MINUS,eqH}=K;
+const {tF,tD,tT,tX,tN,tSub,tR,tAp,tEr,tTm,tTp,tTy,tTx0,tDev,tDif,tTc,tTd,cEq,cGt,cLt,cOn,cTan,cNd,cDeq,cSymT}=K;
+const s=x=>String(q(x));
+const TF=(m,a,fa)=>lc([[m,`(${xm(a)})`],[fa,'']]);
+/* QCM : choix dédoublonnés (par valeur, sinon par texte), 3 ou 4 choix */
+function QCM(level,prompt,list,explain,o){const seen=new Set(),key=c=>c.val!==undefined?'v'+s(c.val):'h'+c.h;const out=[];
+  for(const c of list){const k=key(c);if(seen.has(k))continue;seen.add(k);out.push(c);if(out.length===4)break}
+  if(out.length<3)return null;
+  return Object.assign({type:'qcm',level,prompt,choices:out.map(c=>c.h),answer:out.findIndex(c=>c.ok),explain,
+    chk:out.map(c=>({val:c.val!==undefined?s(c.val):null,claim:c.claim||null,code:c.code||null}))},o||{})}
+const OK=(h,x)=>Object.assign({h,ok:true},x||{}),NO=(h,x)=>Object.assign({h},x||{});
+function TR(level,prompt,blanks,explain,o){return Object.assign({type:'trous',level,prompt,explain,
+  blanks:blanks.map(b=>({answers:(b.extra||[]).concat(writes(b.v)).filter((x,i,a)=>a.indexOf(x)===i),size:Math.max(3,Dt(b.v).length+1),q:b.q,v:s(b.v)}))},o||{})}
+const fa=(fs,x)=>fv(fs,x);
+
+/* ---------- niveau 1 : taux de variation ---------- */
+function G1(t,ty){
+  if(t==='bronze'){let a,dx,b,y0,tt;a=ri(0,3);dx=pick([2,3,4]);b=a+dx;y0=ri(-3,8);tt=pick([-3,-2,2,3,4,5]);const y1=y0+tt*dx,fs={t:'pts',xs:[s(a),s(b)],ys:[s(y0),s(y1)]};
+    const P=`f(${a}) = ${D(y0)} et f(${b}) = ${D(y1)}.`,ex=`${frac(`f(${b}) − f(${a})`,`${b} − ${a}`)} = ${frac(D(y1-y0),dx)} = ${D(tt)}.`;
+    if(ty==='qcm')return QCM(1,`${P} Le taux de variation de f entre ${a} et ${b} vaut&nbsp;:`,[OK(D(tt),{val:tt}),NO(D(tt*dx),{val:tt*dx}),NO(D(q(1).div(tt)),{val:q(1).div(tt)}),NO(D(-tt),{val:-tt})],ex+' On divise bien la différence des images par la différence des abscisses.',{q:tX(a,b),spec:{f:fs},steps:1});
+    return TR(1,`${P} Le taux de variation de f entre ${a} et ${b} est égal à {0}.`,[{v:tt,q:tX(a,b)}],ex,{spec:{f:fs},steps:1})}
+  if(t==='argent'){let p,c,r,a,b,y0,y1;do{p=pick([1,-1,2]);c=ri(-4,4);r=ri(-4,4);a=ri(-2,2);b=a+pick([2,3]);y0=p*a*a+c*a+r;y1=p*b*b+c*b+r}while(y0===y1||Math.abs(y1-y0)===Math.abs(b-a));
+    const fs=FQ(p,c,r),tv=q(y1-y0).div(b-a),ex=`f(${D(a)}) = ${D(y0)} et f(${D(b)}) = ${D(y1)}, donc ${frac(`${D(y1)} − ${par(y0)}`,`${D(b)} − ${par(a)}`)} = ${D(tv)}.`;
+    if(ty==='qcm')return QCM(1,`Soit ${fdef(fs)}. Le taux de variation de f entre ${D(a)} et ${D(b)} vaut&nbsp;:`,[OK(D(tv),{val:tv}),NO(D(y1-y0),{val:y1-y0}),NO(D(q(b-a).div(y1-y0)),{val:q(b-a).div(y1-y0)}),NO(D(tv.neg()),{val:tv.neg()})],ex,{q:tX(a,b),spec:{f:fs},steps:2});
+    return TR(1,`Soit ${fdef(fs)}. Le taux de variation de f entre ${D(a)} et ${D(b)} est égal à {0}.`,[{v:tv,q:tX(a,b)}],ex,{spec:{f:fs},steps:2})}
+  let p,c,t1,t2,vm;do{p=pick([-2,-1]);c=pick([10,12,15]);t1=pick(['0.5','1','1.5']);t2=q(t1).add(pick(['0.5','1','1.5']));vm=fT(FQ(p,c,0),t1,q(t2).sub(t1))}while(!vm.exact()||vm.dec().length>5);
+  const fs=FQ(p,c,0),d1=fv(fs,t1),d2=fv(fs,t2),P=`Une pirogue à balancier quitte la plage. La distance parcourue (en km) au bout de t heures est d(t) = ${fh(fs,'t')}.`,
+    ex=`d(${D(t1)}) = ${D(d1)} et d(${D(t2)}) = ${D(d2)}&nbsp;: la vitesse moyenne vaut ${frac(D(d2.sub(d1)),D(q(t2).sub(t1)))} = ${D(vm)} km/h.`;
+  if(ty==='qcm')return QCM(1,`${P} Sa vitesse moyenne entre t = ${D(t1)} et t = ${D(t2)} est&nbsp;:`,[OK(D(vm)+' km/h',{val:vm}),NO(D(d2.sub(d1))+' km/h',{val:d2.sub(d1)}),NO(D(d2.div(t2))+' km/h',{val:d2.div(t2)}),NO(D(vm.neg())+' km/h',{val:vm.neg()})],ex+' C\'est le taux de variation de d entre les deux instants.',{q:tX(t1,t2),spec:{f:fs},steps:3});
+  return TR(1,`${P} Sa vitesse moyenne entre t = ${D(t1)} et t = ${D(t2)} est égale à {0} km/h.`,[{v:vm,q:tX(t1,t2)}],ex,{spec:{f:fs},steps:3})}
+
+/* ---------- niveau 2 : nombre dérivé, approche numérique ---------- */
+function G2(t,ty){
+  if(t==='bronze'){const a=pick([1,2,3,4]),fs=FQ(1,0,0);
+    if(ty==='qcm'){const v=['0.1','0.01','0.001'].map(h=>q(2*a).add(h));
+      return QCM(2,`Pour f(x) = x<sup>2</sup> et a = ${a}, on a calculé T(0,1) = ${D(v[0])}, T(0,01) = ${D(v[1])} et T(0,001) = ${D(v[2])}. Le nombre dérivé f′(${a}) semble égal à&nbsp;:`,
+        [OK(D(2*a),{val:2*a}),NO(D(v[2]),{val:v[2]}),NO(D(a*a),{val:a*a}),NO('0',{val:0})],`Les valeurs de T(h) se rapprochent de ${2*a} quand h se rapproche de 0&nbsp;: f′(${a}) = ${2*a}. ${D(v[2])} n'est qu'une valeur de T(h).`,
+        {q:tD(a),spec:{f:fs},shown:[[tT(a,'0.1'),Dt(v[0])],[tT(a,'0.01'),Dt(v[1])],[tT(a,'0.001'),Dt(v[2])]],steps:1})}
+    const T1=q(2*a).add('0.1');return TR(2,`Pour f(x) = x<sup>2</sup>&nbsp;: T(0,1) = ${frac(`f(${a},1) − f(${a})`,'0,1')} = {0}.`,[{v:T1,q:tT(a,'0.1')}],`f(${a},1) = ${D(q(a).add('0.1').mul(q(a).add('0.1')))}, f(${a}) = ${a*a}&nbsp;: la différence vaut ${D(T1.mul('0.1'))}, divisée par 0,1 cela donne ${D(T1)}.`,{spec:{f:fs},steps:1})}
+  if(t==='argent'){
+    if(ty==='qcm'){const inv=Math.random()<.5,a=inv?pick([1,2,4]):pick([1,4,9]),fs=inv?FI(1):FS,dv=fd(fs,a),Tp=fTn(fs,a,0.01),Tm=fTn(fs,a,-0.01),nm=inv?`f(x) = ${frac(1,'x')}`:'f(x) = √x';
+      return QCM(2,`Pour ${nm} et a = ${a}, la calculatrice donne T(0,01) ≈ ${Dr(Tp,4)} et T(−0,01) ≈ ${Dr(Tm,4)}. On conjecture que f′(${a}) vaut&nbsp;:`,
+        [OK(D(dv),{val:dv}),NO(D(dv.neg()),{val:dv.neg()}),NO(D(fv(fs,a)||0),{val:fv(fs,a)}),NO(D(K.rnd(Tp,2)),{val:K.rnd(Tp,2)}),NO('0',{val:0})],`T(h) se rapproche de ${D(dv)} à droite comme à gauche&nbsp;: f′(${a}) = ${D(dv)}.`,
+        {q:tD(a),spec:{f:fs},shown:[[tR(4,tT(a,'0.01')),Dr(Tp,4)],[tR(4,tT(a,'-0.01')),Dr(Tm,4)]],steps:2})}
+    const a=pick([1,2]),fs=FC,T1=fT(fs,a,'0.1');
+    return TR(2,`Pour f(x) = x<sup>3</sup>&nbsp;: T(0,1) = ${frac(`f(${a},1) − f(${a})`,'0,1')} = {0}.`,[{v:T1,q:tT(a,'0.1')}],`${a},1<sup>3</sup> = ${D(fv(fs,q(a).add('0.1')))} et ${a}<sup>3</sup> = ${a*a*a}&nbsp;: ${frac(D(T1.mul('0.1')),'0,1')} = ${D(T1)}.`,{spec:{f:fs},steps:2})}
+  if(ty==='qcm'){const ab=Math.random()<.5;
+    if(ab)return QCM(2,`Pour f(x) = |x| en a = 0&nbsp;: T(h) = 1 si h &gt; 0 et T(h) = −1 si h &lt; 0. On peut affirmer que&nbsp;:`,[OK('f n\'est pas dérivable en 0',{claim:cNd(0)}),NO('f′(0) = 0',{claim:cDeq(0,0)}),NO('f′(0) = 1',{claim:cDeq(0,1)}),NO('f′(0) = −1',{claim:cDeq(0,-1)})],
+      `T(h) ne se rapproche pas d'un même nombre à droite et à gauche (1 et −1)&nbsp;: |x| n'est pas dérivable en 0.`,{spec:{f:FA},steps:3});
+    return QCM(2,`Pour f(x) = √x en a = 0 et h &gt; 0&nbsp;: T(h) = ${frac(1,'√h')}, donc T(0,01) = 10 et T(0,0001) = 100. On peut affirmer que&nbsp;:`,[OK('f n\'est pas dérivable en 0',{claim:cNd(0)}),NO('f′(0) = 100',{claim:cDeq(0,100)}),NO('f′(0) = 0',{claim:cDeq(0,0)}),NO('f′(0) = 10',{claim:cDeq(0,10)})],
+      `T(h) devient aussi grand qu'on veut quand h se rapproche de 0&nbsp;: il ne se rapproche d'aucun nombre, √x n'est pas dérivable en 0.`,{spec:{f:FS},shown:[[tT(0,'0.01'),'10'],[tT(0,'0.0001'),'100']],steps:3})}
+  const a=pick([1,4]),fs=FS,Tp=fTn(fs,a,0.01),r3=K.rnd(Tp,3),dv=fd(fs,a),r3s=Dr(Tp,3);
+  return TR(2,`Pour f(x) = √x et a = ${a}&nbsp;: T(0,01) arrondi au millième vaut {0}, et l'on conjecture que f′(${a}) = {1}.`,[{v:r3,q:tR(3,tT(a,'0.01')),extra:[r3s.replace(/ /g,'')]},{v:dv,q:tD(a)}],
+    `T(0,01) = ${frac(`√${D(q(a).add('0.01'))} − ${Math.sqrt(a)}`,'0,01')} ≈ ${Dr(Tp,5)}, et les valeurs de T(h) se rapprochent de ${D(dv)}.`,{spec:{f:fs},steps:3})}
+
+/* ---------- niveau 3 : calcul exact de T(h) ---------- */
+function G3(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){let c,k,a,r;do{c=ri(-6,8);k=pick([-3,-2,-1,1,2,3]);a=ri(-2,3);r=ri(-3,3)}while(c===0||c+k===0);const fs=FQ(k,c-2*k*a,r),kh=(k<0?MINUS:'+')+' '+(Math.abs(k)===1?'':Math.abs(k))+'h';
+      return QCM(3,`Pour une fonction f et a = ${D(a)}, on a obtenu, pour h ≠ 0, T(h) = ${D(c)} ${kh}. Alors f′(${D(a)}) est égal à&nbsp;:`,[OK(D(c),{val:c}),NO(D(c+k),{val:c+k}),NO(D(k),{val:k}),NO('0',{val:0})],
+        `Quand h tend vers 0, ${D(c)} ${kh} se rapproche de ${D(c)}&nbsp;: f′(${D(a)}) = ${D(c)}.`,{q:tD(a),spec:{f:fs},shown:[[['Tform',s(a)],`${Dt(c)} ${kh}`]],steps:1})}
+    const a=pick([2,3,4,5,6]),fs=FQ(1,0,0);return TR(3,`Pour tout réel h&nbsp;: (${a} + h)<sup>2</sup> = ${a*a} + {0}h + h<sup>2</sup>.`,[{v:2*a,q:tDev(a,1)}],`(${a} + h)<sup>2</sup> = ${a}<sup>2</sup> + 2 × ${a} × h + h<sup>2</sup>.`,{spec:{f:fs},steps:1})}
+  if(t==='argent'){
+    if(ty==='qcm'){let c,a;do{c=pick([-3,-2,-1,1,2,3]);a=pick([1,2,3,-1])}while(2*a+c===0||2*a+c===2*a);const k=2*a+c,fs=FQ(1,c,0);
+      const e=(m,hh)=>`${D(m)}${hh}`;
+      return QCM(3,`Soit ${fdef(fs)} et a = ${D(a)}. Pour h ≠ 0, le taux de variation T(h) entre ${D(a)} et ${D(a)} + h est égal à&nbsp;:`,
+        [OK(`${D(k)} + h`,{claim:cSymT(a,`${k}+h`)}),NO(D(k),{claim:cSymT(a,`${k}`)}),NO(lc([[k,'h'],[1,'h<sup>2</sup>']]),{claim:cSymT(a,`${k}*h+h**2`)}),NO(`${D(2*a)} + h`,{claim:cSymT(a,`${2*a}+h`)})],
+        `f(${D(a)} + h) − f(${D(a)}) = ${lc([[k,'h'],[1,'h<sup>2</sup>']])}, et en divisant par h&nbsp;: T(h) = ${D(k)} + h.`,{spec:{f:fs},steps:2})}
+    let c,r,a;do{c=ri(-4,4);r=ri(-5,5);a=pick([1,2,3,-1,-2])}while(2*a+c===0||c===0);const fs=FQ(1,c,r),k=2*a+c;
+    return TR(3,`Soit ${fdef(fs)}. Pour tout réel h&nbsp;: f(${D(a)} + h) − f(${D(a)}) = {0}h + h<sup>2</sup>, donc f′(${D(a)}) = {1}.`,[{v:k,q:tDif(a,1)},{v:k,q:tD(a)}],
+      `En développant, les termes sans h disparaissent&nbsp;: ${lc([[k,'h'],[1,'h<sup>2</sup>']])}. Puis T(h) = ${D(k)} + h se rapproche de ${D(k)}.`,{spec:{f:fs},steps:2})}
+  if(ty==='qcm'){const a=pick([2,3,4,5]),fs=FI(1),dv=q(-1).div(a*a);
+    return QCM(3,`Soit f(x) = ${frac(1,'x')} sur ]0&nbsp;; +∞[. Le nombre dérivé f′(${a}) est égal à&nbsp;:`,[OK(D(dv),{val:dv}),NO(D(dv.neg()),{val:dv.neg()}),NO(D(q(-1).div(a)),{val:q(-1).div(a)}),NO(D(q(-1).div(2*a)),{val:q(-1).div(2*a)})],
+      `T(h) = ${frac(`${frac(1,`${a} + h`)} − ${frac(1,a)}`,'h')} = ${MINUS}${frac(1,`${a}(${a} + h)`)}, qui se rapproche de ${MINUS}${frac(1,a*a)} quand h tend vers 0.`,{q:tD(a),spec:{f:fs},steps:3})}
+  let p,c,r,a;do{p=pick([-3,-2,2,3]);c=ri(-5,5);r=ri(-5,5);a=pick([-2,-1,1,2,3])}while(2*p*a+c===0||c===0);const fs=FQ(p,c,r),d=2*p*a+c;
+  return TR(3,`Soit ${fdef(fs)}. Pour h ≠ 0, T(h) s'écrit m + kh avec m = {0} et k = {1}&nbsp;; donc f′(${D(a)}) = {2}.`,[{v:d,q:tTc(a)},{v:p,q:tTd(a)},{v:d,q:tD(a)}],
+    `f(${D(a)} + h) − f(${D(a)}) = ${lc([[d,'h'],[p,'h<sup>2</sup>']])}&nbsp;: en divisant par h, T(h) = ${lc([[d,''],[p,'h']])}, qui se rapproche de ${D(d)}.`,{spec:{f:fs},steps:3})}
+
+/* ---------- niveau 4 : lecture graphique, construction ---------- */
+function G4(t,ty){
+  if(t==='bronze'){let a,fa0,m;do{a=ri(-2,3);fa0=ri(-2,5);m=pick([-3,-2,-1,2,3,4])}while(fa0===m||fa0+m===m||fa0+m===-m||fa0===-m);const fs=para('1',a,m,fa0),B=[a+1,fa0+m];
+    const P=`La tangente à ${Cf()} au point A(${D(a)}&nbsp;; ${D(fa0)}) passe par B(${D(B[0])}&nbsp;; ${D(B[1])}).`,ex=`f′(${D(a)}) est la pente de la tangente&nbsp;: ${frac(`${D(B[1])} − ${par(fa0)}`,`${D(B[0])} − ${par(a)}`)} = ${D(m)}.`;
+    if(ty==='qcm')return QCM(4,`${P} Alors f′(${D(a)}) vaut&nbsp;:`,[OK(D(m),{val:m}),NO(D(B[1]),{val:B[1]}),NO(D(fa0),{val:fa0}),NO(D(-m),{val:-m})],ex,{q:tD(a),spec:{f:fs},shown:[[tF(a),Dt(fa0)]],steps:1});
+    return TR(4,`${P} Donc f(${D(a)}) = {0} et f′(${D(a)}) = {1}.`,[{v:fa0,q:tF(a)},{v:m,q:tD(a)}],`f(${D(a)}) est l'ordonnée de A et `+ex,{spec:{f:fs},steps:1})}
+  if(t==='argent'){
+    if(ty==='qcm'){let a,fa0,n,d;do{a=ri(-2,2);fa0=ri(-2,4);d=pick([2,3,4]);n=pick([-3,-1,1,3,5])}while(Math.abs(n)===d||n%d===0||q(n).div(d).eq(n));const m=q(n).div(d),fs=para('-1/2',a,m,fa0);
+      return QCM(4,`La tangente à ${Cf()} au point A(${D(a)}&nbsp;; ${D(fa0)}) passe par B(${D(a+d)}&nbsp;; ${D(fa0+n)}). Alors f′(${D(a)}) vaut&nbsp;:`,[OK(D(m),{val:m}),NO(D(q(d).div(n)),{val:q(d).div(n)}),NO(D(m.neg()),{val:m.neg()}),NO(D(n),{val:n})],
+        `De A à B, on avance de ${d} et on ${n>0?'monte':'descend'} de ${Math.abs(n)}&nbsp;: f′(${D(a)}) = ${frac(D(n),d)} = ${D(m)}.`,{q:tD(a),spec:{f:fs},shown:[[tF(a),Dt(fa0)]],steps:2})}
+    let a,p0,fa0,m;do{a=pick([1,2,3,4,-2]);p0=ri(-4,3);fa0=ri(-2,6);m=q(fa0-p0).div(a)}while(m.sgn()===0||!m.mul(2).isInt());const fs=para('1/2',a,m,fa0);
+    return TR(4,`La tangente à ${Cf()} au point A(${D(a)}&nbsp;; ${D(fa0)}) passe par B(0&nbsp;; ${D(p0)}). Donc f′(${D(a)}) = {0}.`,[{v:m,q:tD(a)}],`f′(${D(a)}) = ${frac('y<sub>A</sub> − y<sub>B</sub>','x<sub>A</sub> − x<sub>B</sub>')} = ${frac(`${D(fa0)} − ${par(p0)}`,`${D(a)} − 0`)} = ${D(m)}.`,{spec:{f:fs},shown:[[tF(a),Dt(fa0)]],steps:2})}
+  let a,fa0,m;do{a=ri(-2,3);fa0=ri(-3,4);m=q(pick([-5,-3,-1,1,3,5])).div(2)}while(false);const fs=para('1',a,m,fa0);
+  if(ty==='qcm'){const P=[[a+2,m.mul(2).add(fa0)],[a+2,m.add(fa0)],[a+1,m.mul(2).add(fa0)],[a-2,m.mul(2).add(fa0)]];
+    return QCM(4,`On sait que f(${D(a)}) = ${D(fa0)} et f′(${D(a)}) = ${D(m)}. Lequel de ces points appartient à la tangente à ${Cf()} au point d'abscisse ${D(a)}&nbsp;?`,
+      P.map((p,i)=>(i?NO:OK)(`(${D(p[0])}&nbsp;; ${D(p[1])})`,{claim:cOn(a,p[0],p[1])})),`Depuis A(${D(a)}&nbsp;; ${D(fa0)}), en avançant de 2, on ${m.sgn()>0?'monte':'descend'} de 2 × ${D(m.abs())} = ${D(m.mul(2).abs())}&nbsp;: on arrive en (${D(a+2)}&nbsp;; ${D(P[0][1])}).`,{spec:{f:fs},shown:[[tF(a),Dt(fa0)],[tD(a),Dt(m)]],steps:3})}
+  const y=m.mul(3).add(fa0);
+  return TR(4,`On sait que f(${D(a)}) = ${D(fa0)} et f′(${D(a)}) = ${D(m)}. La tangente à ${Cf()} au point d'abscisse ${D(a)} passe par le point d'abscisse ${D(a+3)} et d'ordonnée {0}.`,[{v:y,q:tTy(a,a+3)}],
+    `En avançant de 3 depuis A, on ajoute 3 × ${par(m)} = ${D(m.mul(3))} à ${D(fa0)}.`,{spec:{f:fs},shown:[[tF(a),Dt(fa0)],[tD(a),Dt(m)]],steps:3})}
+
+/* ---------- niveau 5 : équation de la tangente ---------- */
+function G5(t,ty){
+  if(t==='bronze'){let a,fa0,m;do{a=ri(1,3);fa0=ri(1,6);m=pick([-3,-2,-1,2,3,4])}while(fa0===m||fa0-m*a===0);const fs=para('1',a,m,fa0);
+    if(ty==='qcm'){const C=[[`y = ${TF(m,a,fa0)}`,m,fa0-m*a],[`y = ${lc([[fa0,`(x − ${a})`],[m,'']])}`,fa0,m-fa0*a],[`y = ${lc([[m,`(x + ${a})`],[fa0,'']])}`,m,fa0+m*a],[`y = ${TF(m,a,0)}`,m,-m*a]];
+      return QCM(5,`On sait que f(${a}) = ${fa0} et f′(${a}) = ${D(m)}. La tangente à ${Cf()} au point d'abscisse ${a} a pour équation&nbsp;:`,C.map((c,i)=>(i?NO:OK)(c[0],{claim:cTan(a,c[1],c[2])})),
+        `y = f′(a)(x − a) + f(a) avec a = ${a}&nbsp;: y = ${TF(m,a,fa0)}.`,{spec:{f:fs},shown:[[tF(a),Dt(fa0)],[tD(a),Dt(m)]],steps:1})}
+    return TR(5,`On sait que f(${a}) = ${fa0} et f′(${a}) = ${D(m)}. La tangente à ${Cf()} au point d'abscisse ${a} a pour équation y = {0}(x − ${a}) + {1}.`,[{v:m,q:tD(a)},{v:fa0,q:tF(a)}],
+      `y = f′(${a})(x − ${a}) + f(${a}).`,{spec:{f:fs},shown:[[tF(a),Dt(fa0)],[tD(a),Dt(m)]],steps:1})}
+  if(t==='argent'){let a,fa0,m;do{a=pick([1,2,3,-1,-2]);fa0=ri(-3,5);m=pick([-3,-2,-1,2,3,4])}while(fa0===m||fa0===0||fa0-m*a===0);const fs=para('-1',a,m,fa0),pp=fa0-m*a;
+    if(ty==='qcm'){const C=[[m,pp],[fa0,m-fa0*a],[m,fa0+m*a],[m,-m*a]];
+      return QCM(5,`On sait que f(${D(a)}) = ${D(fa0)} et f′(${D(a)}) = ${D(m)}. L'équation réduite de la tangente à ${Cf()} au point d'abscisse ${D(a)} est&nbsp;:`,C.map((c,i)=>(i?NO:OK)(eqH(c[0],c[1]),{claim:cTan(a,c[0],c[1])})),
+        `y = ${TF(m,a,fa0)} = ${eqH(m,pp).slice(4)}.`,{spec:{f:fs},shown:[[tF(a),Dt(fa0)],[tD(a),Dt(m)]],steps:2})}
+    return TR(5,`On sait que f(${D(a)}) = ${D(fa0)} et f′(${D(a)}) = ${D(m)}. L'équation réduite de la tangente au point d'abscisse ${D(a)} est y = mx + p avec m = {0} et p = {1}.`,[{v:m,q:tTm(a)},{v:pp,q:tTp(a)}],
+      `y = ${TF(m,a,fa0)}&nbsp;: on développe et on réduit, y = ${eqH(m,pp).slice(4)}.`,{spec:{f:fs},shown:[[tF(a),Dt(fa0)],[tD(a),Dt(m)]],steps:2})}
+  let p,c,r,a,d,f0;do{p=pick([1,-1,2,-2]);c=ri(-4,4);r=ri(-5,5);a=pick([-2,-1,1,2,3]);d=2*p*a+c;f0=p*a*a+c*a+r}while(d===0||f0===0||f0-d*a===0||d===f0||f0===-p*a*a+c*a+r);
+  const fs=FQ(p,c,r),pp=f0-d*a,wf=-p*a*a+c*a+r;
+  if(ty==='qcm'){const C=[[d,pp],[d,wf-d*a],[f0,d-f0*a],[d,f0+d*a]];
+    return QCM(5,`Soit ${fdef(fs)}. On admet que f′(${D(a)}) = ${D(d)}. L'équation réduite de la tangente à ${Cf()} au point d'abscisse ${D(a)} est&nbsp;:`,C.map((c,i)=>(i?NO:OK)(eqH(c[0],c[1]),{claim:cTan(a,c[0],c[1])})),
+      `f(${D(a)}) = ${D(f0)}, puis y = ${TF(d,a,f0)} = ${eqH(d,pp).slice(4)}.`,{spec:{f:fs},shown:[[tD(a),Dt(d)]],steps:3})}
+  return TR(5,`Soit ${fdef(fs)}. On admet que f′(${D(a)}) = ${D(d)}. L'équation réduite de la tangente à ${Cf()} au point d'abscisse ${D(a)} est y = mx + p avec m = {0} et p = {1}.`,[{v:d,q:tTm(a)},{v:pp,q:tTp(a)}],
+    `f(${D(a)}) = ${D(f0)}, donc y = ${TF(d,a,f0)}, soit ${eqH(d,pp)}.`,{spec:{f:fs},shown:[[tD(a),Dt(d)]],steps:3})}
+
+/* ---------- niveau 6 : vitesse instantanée, coût marginal ---------- */
+function G6(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){const t0=pick([2,3,4,5]),v=pick([8,12,15,20]),fs=para('1/2',t0,v,v*t0);
+      return QCM(6,`Une voiture télécommandée roule&nbsp;; d(t) est la distance parcourue (en m) au bout de t secondes. On sait que d′(${t0}) = ${v}. Cela signifie que&nbsp;:`,
+        [OK(`à t = ${t0} s, sa vitesse instantanée est ${v} m/s`,{code:'ok'}),NO(`entre 0 et ${t0} s, sa vitesse moyenne est ${v} m/s`,{code:'no'}),NO(`au bout de ${t0} s, elle a parcouru ${v} m`,{code:'no'}),NO(`elle met ${v} s pour parcourir ${t0} m`,{code:'no'})],
+        `Le nombre dérivé de la distance est la vitesse instantanée&nbsp;: ${v} m/s à l'instant t = ${t0} s.`,{spec:{f:fs},shown:[[tD(t0),String(v)]],steps:1})}
+    const k=pick([1,2,3,5]),t0=pick([2,3,4]),fs=FQ(k,0,0);
+    return TR(6,`La distance (en m) parcourue par un vélo au bout de t secondes est d(t) = ${fh(fs,'t')}. Pour h ≠ 0, le taux de variation entre ${t0} et ${t0} + h vaut ${2*k*t0} + ${k===1?'':k}h. La vitesse instantanée à t = ${t0} est {0} m/s.`,[{v:2*k*t0,q:tD(t0)}],
+      `Quand h tend vers 0, ${2*k*t0} + ${k===1?'':k}h se rapproche de ${2*k*t0}&nbsp;: d′(${t0}) = ${2*k*t0} m/s.`,{spec:{f:fs},shown:[[['Tform',s(t0)],`${2*k*t0} + ${k===1?'':k}h`]],steps:1})}
+  if(t==='argent'){const al=pick(['0.01','0.02']),be=pick([2,3,5]),ga=pick([40,60,100]),q0=pick([50,100]),fs=FQ(al,be,ga),cm=q(2).mul(al).mul(q0).add(be);
+    if(ty==='qcm')return QCM(6,`Le coût de fabrication de q tee-shirts est C(q) = ${fh(fs,'q')} euros, et C′(${q0}) = ${D(cm)}. Le coût marginal C′(${q0}) s'interprète ainsi&nbsp;:`,
+      [OK(`fabriquer le ${q0+1}<sup>e</sup> tee-shirt coûte environ ${D(cm)} €`,{code:'ok'}),NO(`fabriquer ${q0} tee-shirts coûte ${D(cm)} €`,{code:'no'}),NO(`chaque tee-shirt coûte exactement ${D(cm)} €`,{code:'no'}),NO(`le coût augmente de ${D(cm)} % par tee-shirt`,{code:'no'})],
+      `Le coût marginal C′(q) est (environ) le coût d'une unité de plus&nbsp;: C(${q0+1}) − C(${q0}) ≈ C′(${q0}) = ${D(cm)} €.`,{spec:{f:fs},shown:[[tD(q0),Dt(cm)]],steps:2});
+    const dif=fv(fs,q0+1).sub(fv(fs,q0));
+    return TR(6,`Le coût de fabrication de q tee-shirts est C(q) = ${fh(fs,'q')} euros. Le coût de fabrication du ${q0+1}<sup>e</sup> tee-shirt est C(${q0+1}) − C(${q0}) = {0} €.`,[{v:dif,q:tSub(tF(q0+1),tF(q0))}],
+      `C(${q0+1}) = ${D(fv(fs,q0+1))} et C(${q0}) = ${D(fv(fs,q0))}&nbsp;: la différence vaut ${D(dif)} €, proche du coût marginal C′(${q0}) = ${D(cm)} €.`,{spec:{f:fs},steps:2})}
+  if(ty==='qcm'){let v0,t1,c;do{v0=pick([15,20,25,30]);t1=pick(['0.5','1','1.5','2']);c=q(v0).sub(q(10).mul(t1))}while(c.sgn()<=0);const fs=FQ(-5,v0,0),z1=fv(fs,t1);
+    return QCM(6,`Un ballon lancé vers le haut est à l'altitude z(t) = ${fh(fs,'t')} (en m) au bout de t secondes. Sa vitesse instantanée à t = ${D(t1)} est&nbsp;:`,
+      [OK(D(c)+' m/s',{val:c}),NO(D(v0)+' m/s',{val:v0}),NO(D(c.sub(5))+' m/s',{val:c.sub(5)}),NO(D(z1)+' m/s',{val:z1})],
+      `Pour h ≠ 0, T(h) = ${frac(`z(${D(t1)} + h) − z(${D(t1)})`,'h')} = ${D(c)} − 5h, qui se rapproche de ${D(c)}&nbsp;: z′(${D(t1)}) = ${D(c)} m/s.`,{q:tD(t1),spec:{f:fs},steps:3})}
+  const k=pick([1,2,3]),cc=pick([2,4,5]),t0=pick([1,2,3]),fs=FQ(k,cc,0),vm=fT(fs,t0,1),vi=fd(fs,t0);
+  return TR(6,`Un scooter démarre&nbsp;: la distance parcourue (en m) au bout de t secondes est d(t) = ${fh(fs,'t')}. Sa vitesse moyenne entre t = ${t0} et t = ${t0+1} est {0} m/s, et sa vitesse instantanée à t = ${t0} est {1} m/s.`,
+    [{v:vm,q:tT(t0,1)},{v:vi,q:tD(t0)}],`Vitesse moyenne&nbsp;: d(${t0+1}) − d(${t0}) = ${D(vm)}. Pour h ≠ 0, T(h) = ${D(vi)} + ${k===1?'':k}h, qui se rapproche de ${D(vi)}.`,{spec:{f:fs},steps:3})}
+
+/* ---------- niveau 7 : approximation de f(a + h) ---------- */
+function G7(t,ty){
+  if(t==='bronze'){let a,fa0,m,h;do{a=ri(1,4);fa0=ri(1,6);m=pick([2,3,4,5,-2,-3]);h=pick(['0.1','0.2'])}while(fa0===m);const fs=para('1',a,m,fa0),ap=q(m).mul(h).add(fa0);
+    const P=`On sait que f(${a}) = ${fa0} et f′(${a}) = ${D(m)}.`,ex=`f(${a} + ${D(h)}) ≈ f(${a}) + f′(${a}) × ${D(h)} = ${fa0} + ${par(m)} × ${D(h)} = ${D(ap)}.`;
+    if(ty==='qcm')return QCM(7,`${P} Une valeur approchée de f(${D(q(a).add(h))}) est&nbsp;:`,[OK(D(ap),{val:ap}),NO(D(q(fa0).add(h)),{val:q(fa0).add(h)}),NO(D(fa0+m),{val:fa0+m}),NO(D(q(fa0).mul(h).add(m)),{val:q(fa0).mul(h).add(m)})],ex,{q:tAp(a,h),spec:{f:fs},shown:[[tF(a),Dt(fa0)],[tD(a),Dt(m)]],steps:1});
+    return TR(7,`${P} Avec l'approximation f(a + h) ≈ f(a) + f′(a)h, on obtient f(${D(q(a).add(h))}) ≈ {0}.`,[{v:ap,q:tAp(a,h)}],ex,{spec:{f:fs},shown:[[tF(a),Dt(fa0)],[tD(a),Dt(m)]],steps:1})}
+  if(t==='argent'){const opt={1:['0.02','0.04','0.06'],4:['0.04','0.08','0.12'],25:['0.1','0.2','0.3']},a=pick([1,4,25]),h=pick(opt[a]),r=Math.sqrt(a),dv=q(1).div(2*r),ap=dv.mul(h).add(r),fs=FS;
+    const P=`f(x) = √x et f′(${a}) = ${D(dv)}.`,ex=`√${D(q(a).add(h))} ≈ √${a} + f′(${a}) × ${D(h)} = ${r} + ${D(dv)} × ${D(h)} = ${D(ap)} (la calculatrice donne ≈ ${Dr(Math.sqrt(a+q(h).v),5)}).`;
+    if(ty==='qcm')return QCM(7,`${P} Une valeur approchée de √${D(q(a).add(h))} est&nbsp;:`,[OK(D(ap),{val:ap}),NO(D(q(h).add(r)),{val:q(h).add(r)}),NO(D(q(h).mul(2*r).add(r)),{val:q(h).mul(2*r).add(r)}),NO(D(dv.mul(h)),{val:dv.mul(h)}),NO(D(q(r).add(dv)),{val:q(r).add(dv)})],ex,
+      {q:tAp(a,h),spec:{f:fs},shown:[[tD(a),Dt(dv)]],steps:2});
+    return TR(7,`${P} En utilisant l'approximation affine en ${a}, √${D(q(a).add(h))} ≈ {0}.`,[{v:ap,q:tAp(a,h)}],ex,{spec:{f:fs},shown:[[tD(a),Dt(dv)]],steps:2})}
+  if(ty==='qcm'){const a=pick([10,20,5]),h=pick(['0.03','0.02','-0.01','0.04']),fs=FQ(1,0,0),ap=q(2*a).mul(h).add(a*a);
+    return QCM(7,`En utilisant le nombre dérivé de la fonction carré en ${a}, la meilleure valeur approchée de ${D(q(a).add(h))}<sup>2</sup> est&nbsp;:`,
+      [OK(D(ap),{val:ap}),NO(D(q(a).mul(h).add(a*a)),{val:q(a).mul(h).add(a*a)}),NO(D(q(h).mul(h).add(a*a)),{val:q(h).mul(h).add(a*a)}),NO(D(q(2*a).mul(h)),{val:q(2*a).mul(h)})],
+      `Pour f(x) = x<sup>2</sup>, T(h) = ${2*a} + h donc f′(${a}) = ${2*a}&nbsp;; ${D(q(a).add(h))}<sup>2</sup> ≈ ${a*a} + ${2*a} × ${par(h)} = ${D(ap)} (valeur exacte ${D(fv(fs,q(a).add(h)))}).`,{q:tAp(a,h),spec:{f:fs},steps:3})}
+  const q0=pick([50,80,120]),m=pick(['1.5','2.5','0.8']),c0=pick([90,150,200]),dq=pick([2,3,4,-2]),fs=para('1/100',q0,m,c0),ap=q(m).mul(dq).add(c0);
+  return TR(7,`Le coût de fabrication de q gâteaux pour la kermesse est C(q) (en €). On sait que C(${q0}) = ${c0} et que le coût marginal vaut C′(${q0}) = ${D(m)}. Le coût de ${q0+dq} gâteaux est environ {0} €.`,[{v:ap,q:tAp(q0,dq)}],
+    `C(${q0+dq}) ≈ C(${q0}) + C′(${q0}) × ${par(dq)} = ${c0} + ${D(m)} × ${par(dq)} = ${D(ap)} €.`,{spec:{f:fs},shown:[[tF(q0),String(c0)],[tD(q0),Dt(m)]],steps:3})}
+
+const GEN=[G1,G2,G3,G4,G5,G6,G7];
+function build(tier){for(let tries=0;tries<50;tries++){
+  const extra=tier==='bronze'?shuf([1,2,3,5,7]).slice(0,3):tier==='or'?shuf([3,4,5,6,7]).slice(0,3):shuf([1,2,3,4,5,6,7]).slice(0,3);
+  const lv=shuf([1,2,3,4,5,6,7].concat(extra));const types=shuf(['qcm','qcm','qcm','qcm','qcm','qcm','trous','trous','trous','trous']);
+  const out=[];let ok=true;
+  for(let i=0;i<10;i++){let qn=null;for(let k=0;k<30&&!qn;k++)qn=GEN[lv[i]-1](tier,types[i]);if(!qn){ok=false;break}out.push(qn)}
+  /* pas deux énoncés identiques */
+  if(ok&&new Set(out.map(x=>x.prompt)).size===10)return out}
+  throw new Error('épreuve impossible à construire')}
+window.PR_FIN={bronze:()=>(window.PR_last=build('bronze')),argent:()=>(window.PR_last=build('argent')),or:()=>(window.PR_last=build('or')),GEN};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'planche-rasante',title:'La Planche rasante',levels:7,
+  levelNames:['Le dénivelé','La planche raccourcit','Le calcul exact','Lire et poser la pente','L\'équation du rayon','Vitesse et coût marginal','Rouler sur la planche'],
+  music:'aventure',finals:{bronze:PR_FIN.bronze,argent:PR_FIN.argent,or:PR_FIN.or}});
+PRK.goLevel(0);
+</script>
+</body>
+</html>
