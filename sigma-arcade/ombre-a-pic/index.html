@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>L'Ombre à pic · Sigma Arcade</title>
+<meta name="description" content="Produit scalaire, applications géométriques, en Première spécialité : la lumière tombe à pic sur une surface, l'ombre portée est la projection orthogonale, et le produit scalaire devient une aire, dorée si les ombres vont dans le même sens, corail sinon. Projection, coordonnées, orthogonalité, cercle de diamètre [AB].">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* IDÉE : la lumière tombe « à pic » (perpendiculairement) sur une surface. L'ombre d'un vecteur sur la droite (AB)
+   est sa projection orthogonale : AB·AC = AB × AH, signé selon le sens de l'ombre. On redresse alors [AB] : le
+   produit scalaire devient l'aire d'un rectangle, dorée (même sens) ou corail (sens contraires).
+   En repère orthonormé : une ombre au sol (abscisses), une ombre au mur (ordonnées) ; deux rectangles,
+   u·v = xx′ + yy′. Quand les deux aires se compensent, c'est l'éclipse : u·v = 0, l'angle droit apparaît.
+   Le cercle de diamètre [AB] est le lieu des points M d'où l'on voit [AB] à angle droit. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);
+--cu:#7fb2ff;--cv:#c3a6ff;--moon:#f3ecd2}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:76ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(340px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:800/600;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#040914;user-select:none;-webkit-user-select:none}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg text{font-family:var(--sg-font)}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,22px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .35em}
+.capt .k{color:var(--gold2)}.capt .m{color:var(--mut);font-weight:600}.capt .n{color:var(--ko)}.capt .g{color:var(--ok)}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin:8px 0 0;font-size:14px;color:var(--mut)}
+.legend i{display:inline-block;width:18px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.6;margin:0 0 12px}
+.prompt p{margin:0 0 8px}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1;box-shadow:none}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.5 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(19px,2.2vw,22px)/2.4 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.2em;height:46px;margin:0 3px;padding:0 6px;font:700 20px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}.in.rv{border-color:var(--gold);color:var(--gold2)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+.sl{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 12px;margin:4px 0 10px}
+.sl label{font-weight:600}
+.sl output{font:700 20px var(--sg-font);color:var(--gold2);font-variant-numeric:tabular-nums;min-width:3.2em;text-align:right}
+.sl input[type=range]{grid-column:1/-1;width:100%;height:44px;margin:0;accent-color:var(--ac);cursor:pointer}
+/* écritures mathématiques */
+.vec{display:inline-block;position:relative;padding-top:.36em;line-height:1;margin:0 .03em;min-width:.62em;text-align:center}
+.vec::before{content:"";position:absolute;left:.04em;right:.2em;top:.14em;border-top:.085em solid currentColor}
+.vec::after{content:"";position:absolute;right:0;top:.01em;border-left:.26em solid currentColor;border-top:.14em solid transparent;border-bottom:.14em solid transparent}
+.nw{white-space:nowrap}
+.cu{color:var(--cu)}.cv{color:var(--cv)}
+.sq{font-size:.7em;vertical-align:.55em;line-height:0}
+.ps{font-weight:800;margin:0 .12em}
+.sk-q .vec,.sk-ch .vec{padding-top:.34em}
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb.rv{background:rgba(200,168,75,.08);border-left-color:var(--gold)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.fb .sol{display:block;margin-top:6px;color:var(--gold2)}
+.fb .btns{margin-top:10px}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex;flex:none}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:#060d1a;border-bottom:1px solid var(--soft)}
+  .stage{max-height:38svh;margin:auto}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+  .legend{display:none}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .fill{font-size:18px}
+  .in{width:3.6em;font-size:19px}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>L'Ombre à pic</h1>
+<p>La nuit, la lumière tombe à pic sur le sol&nbsp;: l'ombre d'un vecteur est sa projection orthogonale. Redresse la règle&nbsp;: le produit scalaire devient une aire, dorée quand l'ombre va dans le même sens, corail sinon. Une ombre au sol, une ombre au mur… et quand les deux aires s'annulent, c'est l'éclipse&nbsp;: l'angle droit apparaît.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="La scène : une lumière tombe perpendiculairement sur une droite ; l'ombre portée est la projection orthogonale, le produit scalaire est l'aire d'un rectangle signé">
+    <svg id="scene" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+  <div class="legend" id="legend"><span><i style="background:rgba(232,199,102,.55)"></i>aire positive (même sens)</span><span><i style="background:rgba(255,107,107,.5)"></i>aire négative (sens contraires)</span><span><i style="background:#dfe8ff"></i>lumière à pic</span></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p><div id="fbx"></div></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+<script>
+/* ======================= nombres, écritures ======================= */
+window.OP_N=(function(){
+'use strict';
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t}return a};
+const r3=x=>{const v=Math.round(x*1000)/1000;return Object.is(v,-0)?0:v};
+/* écriture française : virgule décimale, vrai signe moins */
+function fmt(x){x=r3(x);const s=String(Math.abs(x)).replace('.',',');return (x<0?'−':'')+s}
+const par=x=>r3(x)<0?'('+fmt(x)+')':fmt(x);
+function parse(s){s=String(s).replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/^\+/,'');if(!s)return null;
+  const m=/^(-?\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)$/.exec(s);if(m){const d=+m[2];return d?+m[1]/d:null}
+  if(/^-?(\d+(\.\d*)?|\.\d+)$/.test(s))return +s;return null}
+const eq=(a,b)=>Math.abs(a-b)<1e-9;
+const V=(s,c)=>`<span class="vec${c?' '+c:''}">${s}</span>`;
+const U=V('u','cu'),W=V('v','cv');
+const PS=(a,b)=>`<span class="nw">${a}<span class="ps">·</span>${b}</span>`;
+const co=(x,y)=>`(${fmt(x)}&nbsp;; ${fmt(y)})`;
+const P=(n,x,y)=>`<span class="nw">${n}${co(x,y)}</span>`;
+const VC=(v,x,y)=>`<span class="nw">${v}${co(x,y)}</span>`;
+const NRM=v=>`<span class="nw">‖${v}‖</span>`;
+const sq=x=>`${x}<span class="sq">2</span>`;
+/* réponses acceptées pour un trou de l'épreuve */
+function ans(x){const a=[fmt(x),fmt(x).replace('−','-'),String(r3(x)),String(r3(x)).replace('.',',')];return a.filter((s,i)=>a.indexOf(s)===i)}
+return{ri,pick,shuf,r3,fmt,par,parse,eq,V,U,W,PS,co,P,VC,NRM,sq,ans};
+})();
+</script>
+<script>
+/* ======================= la scène : lumière à pic, ombres, aires signées ======================= */
+window.OP_S=(function(){
+'use strict';
+const N=window.OP_N,svg=document.getElementById('scene');
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const C={u:'#7fb2ff',v:'#c3a6ff',w:'#6fd3c1',gold:'#e8c766',ko:'#ff6b6b',ink:'#f0f4ff',mut:'rgba(200,215,255,.62)',beam:'#dfe8ff',ground:'rgba(210,225,255,.9)'};
+svg.innerHTML=`<defs>
+<linearGradient id="op-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#030713"/><stop offset="1" stop-color="#0b1834"/></linearGradient>
+<radialGradient id="op-moon"><stop offset="0" stop-color="#f3ecd2" stop-opacity=".35"/><stop offset="1" stop-color="#f3ecd2" stop-opacity="0"/></radialGradient>
+<linearGradient id="op-beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dfe8ff" stop-opacity=".05"/><stop offset="1" stop-color="#dfe8ff" stop-opacity=".55"/></linearGradient>
+<linearGradient id="op-beamh" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#dfe8ff" stop-opacity=".05"/><stop offset="1" stop-color="#dfe8ff" stop-opacity=".55"/></linearGradient>
+<filter id="op-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>
+</defs>
+<rect width="800" height="600" fill="url(#op-sky)"/>
+<g fill="#cdd8ff" opacity=".7">${Array.from({length:46},(_,i)=>{const x=(i*137.5)%800,y=(i*71.3+(i%5)*23)%600;return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(0.5+(i%3)*0.35).toFixed(2)}"/>`}).join('')}</g>
+<g id="op-moon-g"><circle cx="736" cy="58" r="70" fill="url(#op-moon)"/><circle cx="736" cy="58" r="24" fill="#f3ecd2"/><circle cx="728" cy="52" r="5" fill="#e2d8b6"/><circle cx="744" cy="66" r="3.5" fill="#e2d8b6"/></g>
+<g id="op-fg"></g>`;
+const fg=svg.querySelector('#op-fg');
+let view={s:40,ox:400,oy:300},st={},build=()=>[],busy=false,anims=0;
+/* monde → écran : rotation de st.rot degrés autour de l'origine du monde, puis échelle */
+function T(p){const a=(st.rot||0)*Math.PI/180,c=Math.cos(a),s=Math.sin(a);const X=p[0]*c-p[1]*s,Y=p[0]*s+p[1]*c;return[view.ox+view.s*X,view.oy-view.s*Y]}
+const f1=x=>(Math.round(x*10)/10).toString();
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function arrowHead(x1,y1,x2,y2,c,sz){const a=Math.atan2(y2-y1,x2-x1),L=sz||15,w=L*0.48;
+  const bx=x2-L*Math.cos(a),by=y2-L*Math.sin(a);
+  return `<path d="M${f1(x2)} ${f1(y2)}L${f1(bx-w*Math.sin(a))} ${f1(by+w*Math.cos(a))}L${f1(bx+w*Math.sin(a))} ${f1(by-w*Math.cos(a))}Z" fill="${c}"/>`}
+function label(x,y,s,o){o=o||{};const sz=o.size||26,c=o.c||C.ink,an=o.anchor||'middle',op=o.o===undefined?1:o.o;
+  let h=`<text x="${f1(x)}" y="${f1(y)}" font-size="${sz}" font-weight="${o.w||700}" fill="${c}" text-anchor="${an}" opacity="${op}" paint-order="stroke" stroke="#040914" stroke-width="${o.halo===false?0:5}" stroke-linejoin="round">${esc(s)}</text>`;
+  if(o.vec){const wd=sz*0.56*String(s).length,x0=an==='middle'?x-wd/2:an==='end'?x-wd:x,yy=y-sz*0.86;
+    h+=`<g opacity="${op}"><path d="M${f1(x0)} ${f1(yy)}H${f1(x0+wd-3)}" stroke="${c}" stroke-width="2.2"/>${arrowHead(x0,yy,x0+wd+2,yy,c,8)}</g>`}
+  return h}
+function grid(sh){const s=view.s,x0=Math.ceil((0-view.ox)/s),x1=Math.floor((800-view.ox)/s),y0=Math.ceil((view.oy-600)/s),y1=Math.floor(view.oy/s);
+  let h='<g>';const step=s<26?2:1;
+  for(let x=x0;x<=x1;x++){const X=view.ox+x*s;h+=`<path d="M${f1(X)} 0V600" stroke="rgba(120,160,255,${x===0?0:.1})" stroke-width="1"/>`}
+  for(let y=y0;y<=y1;y++){const Y=view.oy-y*s;h+=`<path d="M0 ${f1(Y)}H800" stroke="rgba(120,160,255,${y===0?0:.1})" stroke-width="1"/>`}
+  if(sh.axes!==false){
+    h+=`<path d="M0 ${f1(view.oy)}H800M${f1(view.ox)} 0V600" stroke="rgba(190,210,255,.55)" stroke-width="1.6"/>`;
+    for(let x=x0;x<=x1;x++)if(x&&x%step===0)h+=`<text x="${f1(view.ox+x*s)}" y="${f1(view.oy+20)}" font-size="15" fill="${C.mut}" text-anchor="middle">${N.fmt(x)}</text>`;
+    for(let y=y0;y<=y1;y++)if(y&&y%step===0)h+=`<text x="${f1(view.ox-8)}" y="${f1(view.oy-y*s+5)}" font-size="15" fill="${C.mut}" text-anchor="end">${N.fmt(y)}</text>`;
+    h+=`<text x="${f1(view.ox-8)}" y="${f1(view.oy+20)}" font-size="15" fill="${C.mut}" text-anchor="end">O</text>`}
+  return h+'</g>'}
+function shape(d){const o=d.o===undefined?1:d.o;if(o<=0.001)return '';
+  switch(d.k){
+  case 'grid':return grid(d);
+  case 'line':{const a=T(d.a),b=T(d.b);return `<path d="M${f1(a[0])} ${f1(a[1])}L${f1(b[0])} ${f1(b[1])}" stroke="${d.c||C.ink}" stroke-width="${d.w||2}" opacity="${o}" ${d.dash?`stroke-dasharray="${d.dash}"`:''} stroke-linecap="${d.cap||'round'}" fill="none"/>`}
+  case 'sline':return `<path d="M${f1(d.a[0])} ${f1(d.a[1])}L${f1(d.b[0])} ${f1(d.b[1])}" stroke="${d.c||C.beam}" stroke-width="${d.w||2}" opacity="${o}" ${d.dash?`stroke-dasharray="${d.dash}"`:''} stroke-linecap="round"/>`;
+  case 'strip':{const a=T(d.a),b=T(d.b);return `<g opacity="${o}"><path d="M${f1(a[0])} ${f1(a[1])}L${f1(b[0])} ${f1(b[1])}" stroke="rgba(190,210,255,.16)" stroke-width="16" stroke-linecap="round"/><path d="M${f1(a[0])} ${f1(a[1])}L${f1(b[0])} ${f1(b[1])}" stroke="${C.ground}" stroke-width="2.4" stroke-linecap="round"/></g>`}
+  case 'vec':{const a=T(d.a),b=T(d.b),len=Math.hypot(b[0]-a[0],b[1]-a[1]);if(len<2)return '';const c=d.c||C.u,w=d.w||4.5;
+    const k=Math.max(0,(len-12)/len),bx=a[0]+(b[0]-a[0])*k,by=a[1]+(b[1]-a[1])*k;
+    return `<g opacity="${o}"><path d="M${f1(a[0])} ${f1(a[1])}L${f1(bx)} ${f1(by)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>${arrowHead(a[0],a[1],b[0],b[1],c,17)}</g>`}
+  case 'pt':{const p=T(d.p);return `<g opacity="${o}"><circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="${(d.r||5)+3}" fill="#040914"/><circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="${d.r||5}" fill="${d.c||C.ink}"/></g>`}
+  case 'lab':{const p=T(d.p);return label(p[0]+(d.dx||0),p[1]+(d.dy||0),d.s,Object.assign({},d,{o}))}
+  case 'slab':return label(d.x,d.y,d.s,Object.assign({},d,{o}));
+  case 'poly':{const pts=d.pts.map(T).map(p=>f1(p[0])+','+f1(p[1])).join(' ');return `<polygon points="${pts}" fill="${d.fill||'none'}" fill-opacity="${d.fo===undefined?1:d.fo}" stroke="${d.stroke||'none'}" stroke-width="${d.sw||2}" opacity="${o}" stroke-linejoin="round" ${d.dash?`stroke-dasharray="${d.dash}"`:''}/>`}
+  case 'ra':{const p=T(d.p),q1=T([d.p[0]+d.d1[0],d.p[1]+d.d1[1]]),q2=T([d.p[0]+d.d2[0],d.p[1]+d.d2[1]]);
+    const u1=[q1[0]-p[0],q1[1]-p[1]],u2=[q2[0]-p[0],q2[1]-p[1]],n1=Math.hypot(...u1)||1,n2=Math.hypot(...u2)||1,L=d.size||17;
+    const a=[p[0]+u1[0]/n1*L,p[1]+u1[1]/n1*L],b=[p[0]+u2[0]/n2*L,p[1]+u2[1]/n2*L],m=[a[0]+u2[0]/n2*L,a[1]+u2[1]/n2*L];
+    return `<path d="M${f1(a[0])} ${f1(a[1])}L${f1(m[0])} ${f1(m[1])}L${f1(b[0])} ${f1(b[1])}" stroke="${d.c||C.gold}" stroke-width="2.6" fill="${d.fill||'none'}" opacity="${o}"/>`}
+  case 'circ':{const p=T(d.c),r=d.r*view.s,fr=d.frac===undefined?1:d.frac,L=2*Math.PI*r;
+    return `<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="${f1(r)}" fill="${d.fill||'none'}" stroke="${d.stroke||C.gold}" stroke-width="${d.w||2.5}" opacity="${o}" ${fr<1?`stroke-dasharray="${f1(L*fr)} ${f1(L)}"`:d.dash?`stroke-dasharray="${d.dash}"`:''} transform="rotate(-90 ${f1(p[0])} ${f1(p[1])})"/>`}
+  case 'beam':{/* lumière à pic : rayon vertical (du haut) ou horizontal (de la droite) jusqu'au point */
+    const p=T(d.p);if(d.h)return `<path d="M800 ${f1(p[1])}H${f1(p[0])}" stroke="url(#op-beamh)" stroke-width="${d.w||6}" opacity="${o}"/>`;
+    return `<path d="M${f1(p[0])} 0V${f1(p[1])}" stroke="url(#op-beam)" stroke-width="${d.w||6}" opacity="${o}"/>`}
+  case 'ring':{const p=T(d.p);return `<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="${f1(d.r)}" fill="none" stroke="${d.c||C.gold}" stroke-width="3" opacity="${o}" filter="url(#op-glow)"/>`}
+  }return ''}
+function render(){fg.innerHTML=build(st).map(shape).join('')}
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+function to(target,ms){if(ms===undefined)ms=700;if(reduceM||ms<=0||document.hidden){Object.assign(st,target);render();return Promise.resolve()}
+  const from={};for(const k in target)from[k]=st[k]===undefined?0:st[k];anims++;
+  return new Promise(res=>{const t0=performance.now();
+    function fr(now){const t=Math.min(1,(now-t0)/ms),e=ease(t);for(const k in target)st[k]=from[k]+(target[k]-from[k])*e;render();
+      if(t<1)requestAnimationFrame(fr);else{anims--;res()}}
+    requestAnimationFrame(fr)})}
+const wait=ms=>new Promise(r=>setTimeout(r,reduceM?0:ms));
+/* cadrage : tous les points (monde, rotations comprises) dans le cadre */
+function fit(pts,o){o=o||{};const rots=o.rots||[st.rot||0];let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  rots.forEach(r=>{const a=r*Math.PI/180,c=Math.cos(a),s=Math.sin(a);pts.forEach(p=>{const X=p[0]*c-p[1]*s,Y=p[0]*s+p[1]*c;x0=Math.min(x0,X);x1=Math.max(x1,X);y0=Math.min(y0,Y);y1=Math.max(y1,Y)})});
+  const padX=o.pad||70,padT=o.padT||(o.pad||70)+20,padB=o.padB||o.pad||70;
+  const s=Math.min(o.maxS||70,(800-2*padX)/Math.max(x1-x0,1e-6),(600-padT-padB)/Math.max(y1-y0,1e-6));
+  view={s,ox:400-s*(x0+x1)/2,oy:padT+(600-padT-padB)/2+s*(y0+y1)/2}}
+function set(b,s0,pts,o){build=b;st=Object.assign({rot:0},s0||{});if(pts)fit(pts,o);render()}
+function clear(){build=()=>[];st={};render()}
+return{set,to,wait,render,clear,fit,C,get st(){return st},get view(){return view},get busy(){return anims>0},reduceM,
+  state:()=>({anims,st:JSON.parse(JSON.stringify(st))})};
+})();
+</script>
+<script>
+/* ======================= fabriques de scènes ======================= */
+window.OP_SC=(function(){
+'use strict';
+const N=window.OP_N,S=window.OP_S,C=S.C;
+const add=(p,q)=>[p[0]+q[0],p[1]+q[1]];
+/* étiquettes placées à l'écart du centre de la figure */
+function labs(list,cen,o){return list.map(L=>{const dx=L.p[0]-cen[0],dy=L.p[1]-cen[1],n=Math.hypot(dx,dy)||1;
+  return {k:'lab',p:L.p,s:L.n,c:L.c||C.ink,size:L.size||27,dx:L.dx!==undefined?L.dx:dx/n*24,dy:L.dy!==undefined?L.dy:-dy/n*24+9,o:L.o===undefined?(o===undefined?1:o):L.o}})}
+/* ---- projection sur un sol : A origine, G sur le sol, P bout du bâton, H son ombre ---- */
+function proj(cfg){
+  const a=cfg.a,P=cfg.P,px=P[0],nm=Object.assign({A:'A',G:'B',P:'C',H:'H'},cfg.names||{}),figs=cfg.fig||[];
+  const H=[px,0],hNamed=cfg.hIs||null;
+  const xs=[0,a,px].concat(figs.map(f=>f.p[0])),xmin=Math.min(...xs)-1.2,xmax=Math.max(...xs)+1.2;
+  const allPts=[[0,0],[a,0],P,H,[xmin,0],[xmax,0],[0,a],[px,a]].concat(figs.map(f=>f.p));
+  const cen=(()=>{const q=[[0,0],[a,0],P].concat(figs.map(f=>f.p));return [q.reduce((s,p)=>s+p[0],0)/q.length,q.reduce((s,p)=>s+p[1],0)/q.length]})();
+  const sgn=Math.sign(px),area=a*px;
+  function build(st){const L=[],dim=1-0.55*(st.fill||0);
+    L.push({k:'strip',a:[xmin,0],b:[xmax,0]});
+    if(cfg.poly)L.push({k:'poly',pts:cfg.poly,fill:'rgba(120,160,255,.06)',stroke:'rgba(190,210,255,.45)',sw:2,o:dim});
+    (cfg.segs||[]).forEach(s=>L.push({k:'line',a:s[0],b:s[1],c:'rgba(190,210,255,.45)',w:2,o:dim}));
+    if(st.fill>0){L.push({k:'poly',pts:[[0,0],[px,0],[px,a],[0,a]],fill:area>0?C.gold:C.ko,fo:.3,stroke:area>0?C.gold:C.ko,sw:2.5,o:st.fill});
+      if(cfg.areaLab)L.push({k:'lab',p:[px/2,a/2],s:cfg.areaLab,c:area>0?C.gold:C.ko,size:28,dy:9,o:st.fill})}
+    (cfg.lens||[]).forEach(l=>L.push({k:'lab',p:l.p,s:l.s,c:l.c||C.mut,size:21,dx:l.dx||0,dy:l.dy||0,w:600,o:(l.when?st[l.when]:1)*(1-(st.fill||0))}));
+    if(st.light>0){
+      L.push({k:'beam',p:P,o:st.light*(st.stick===undefined?1:st.stick)});
+      if(P[1]!==0)L.push({k:'line',a:P,b:H,c:C.beam,w:2,dash:'6 6',o:st.light*(st.stick===undefined?1:st.stick)});
+      if(P[1]!==0)L.push({k:'ra',p:H,d1:[0,Math.sign(P[1])],d2:[px===0?1:-sgn,0],c:C.beam,o:st.light*(st.stick===undefined?1:st.stick)})}
+    if(st.shadow>0){if(px!==0)L.push({k:'line',a:[0,0],b:H,c:C.v,w:10,o:st.shadow*.9,cap:'butt'});
+      else L.push({k:'ring',p:[0,0],r:16,c:C.v,o:st.shadow})}
+    L.push({k:'vec',a:[0,0],b:[a,0],c:C.u,o:dim});
+    L.push({k:'vec',a:[0,0],b:P,c:C.v,o:dim*(st.stick===undefined?1:st.stick)});
+    if(st.rise>0){const t=st.rise*Math.PI/2;L.push({k:'vec',a:[0,0],b:[a*Math.cos(t),a*Math.sin(t)],c:C.gold,w:4,o:Math.min(1,st.rise*3)})}
+    const pl=[{n:nm.A,p:[0,0],dx:px>=0?-18:18,dy:32},{n:nm.G,p:[a,0],c:C.u,dx:px>a?-16:14,dy:32},{n:nm.P,p:P,c:C.v,o:st.stick===undefined?1:st.stick}].concat(figs.map(f=>({n:f.n,p:f.p})));
+    pl.forEach(q=>L.push({k:'pt',p:q.p,r:4.5,o:q.o===undefined?1:q.o}));
+    L.push(...labs(pl,cen));
+    if(st.light>0&&!hNamed&&!(px===a)){L.push({k:'pt',p:H,r:4.5,c:C.beam,o:st.light*(st.stick===undefined?1:st.stick)});
+      L.push({k:'lab',p:H,s:nm.H,c:C.beam,size:26,dx:px>=0&&px<a?0:(px<0?-4:4),dy:30,o:st.light*(st.stick===undefined?1:st.stick)})}
+    return L}
+  const rot0=cfg.rot0||0;
+  return{build,st:Object.assign({rot:rot0,light:0,shadow:0,rise:0,fill:0},cfg.st||{}),pts:allPts,opts:{rots:[rot0,rot0/2,0],pad:60,padT:80,maxS:62}}}
+/* ---- repère orthonormé : ombres au sol (abscisses) et au mur (ordonnées) ---- */
+function grid(cfg){
+  const val=(x,st)=>typeof x==='function'?x(st):x;
+  function build(st){const L=cfg.axes===false?[]:[{k:'grid'}];const lu=val(cfg.lu,st),lv=val(cfg.lv,st);
+    const P=val(cfg.P||[0,0],st),u=val(cfg.u,st),v=val(cfg.v,st);
+    (cfg.polys||[]).forEach(p=>L.push({k:'poly',pts:val(p,st),fill:'rgba(120,160,255,.07)',stroke:'rgba(190,210,255,.5)',sw:2}));
+    if(cfg.circle&&st.circ>0){const c=val(cfg.circle,st);L.push({k:'circ',c:c.c,r:c.r,stroke:C.gold,frac:Math.min(1,st.circ),w:3})}
+    if(cfg.rail){const y=cfg.rail.y;L.push({k:'line',a:[-40,y],b:[40,y],c:'rgba(111,211,193,.55)',w:3,dash:'2 9'})}
+    const fl=st.fl||0,wl=st.wl||0,eo=1-(st.ecl||0);
+    if(u&&v){
+      const xx=u[0]*v[0],yy=u[1]*v[1];
+      if(fl>0){L.push({k:'strip',a:[-40,P[1]],b:[40,P[1]],o:fl});
+        [[u,C.u],[v,C.v]].forEach(([w,c])=>{const t=add(P,w);L.push({k:'beam',p:t,o:fl*.9});if(w[1])L.push({k:'line',a:t,b:[t[0],P[1]],c:C.beam,w:1.8,dash:'5 6',o:fl})});
+        L.push({k:'line',a:P,b:[P[0]+u[0],P[1]],c:C.u,w:9,o:fl*.9,cap:'butt'})}
+      if((st.fr||0)>0||fl>0){const t=(st.fr||0)*Math.PI/2;L.push({k:'line',a:P,b:[P[0]+v[0]*Math.cos(t),P[1]+v[0]*Math.sin(t)],c:C.v,w:6,o:fl*.95,cap:'butt'})}
+      if((st.ff||0)>0&&xx!==0){L.push({k:'poly',pts:[P,[P[0]+u[0],P[1]],[P[0]+u[0],P[1]+v[0]],[P[0],P[1]+v[0]]],fill:xx>0?C.gold:C.ko,fo:.28,stroke:xx>0?C.gold:C.ko,sw:2,o:st.ff*eo});
+        L.push({k:'lab',p:[P[0]+u[0]/2,P[1]+v[0]/2],s:N.fmt(xx),c:xx>0?C.gold:C.ko,size:24,dy:8,o:st.ff*eo})}
+      if(wl>0){L.push({k:'strip',a:[P[0],-40],b:[P[0],40],o:wl});
+        [[u,C.u],[v,C.v]].forEach(([w,c])=>{const t=add(P,w);L.push({k:'beam',p:t,h:1,o:wl*.9});if(w[0])L.push({k:'line',a:t,b:[P[0],t[1]],c:C.beam,w:1.8,dash:'5 6',o:wl})});
+        L.push({k:'line',a:P,b:[P[0],P[1]+u[1]],c:C.u,w:9,o:wl*.9,cap:'butt'})}
+      if((st.wr||0)>0||wl>0){const t=(st.wr||0)*Math.PI/2;L.push({k:'line',a:P,b:[P[0]+v[1]*Math.sin(t),P[1]+v[1]*Math.cos(t)],c:C.v,w:6,o:wl*.95,cap:'butt'})}
+      if((st.wf||0)>0&&yy!==0){const ctr=[P[0]+v[1]/2,P[1]+u[1]/2],fc=[P[0]+u[0]/2,P[1]+v[0]/2],close=(st.ff||0)>0&&xx!==0&&Math.hypot(ctr[0]-fc[0],ctr[1]-fc[1])*S.view.s<44;
+        L.push({k:'poly',pts:[P,[P[0],P[1]+u[1]],[P[0]+v[1],P[1]+u[1]],[P[0]+v[1],P[1]]],fill:yy>0?C.gold:C.ko,fo:.28,stroke:yy>0?C.gold:C.ko,sw:2,o:st.wf*eo});
+        L.push({k:'lab',p:ctr,s:N.fmt(yy),c:yy>0?C.gold:C.ko,size:24,dy:close?36:8,o:st.wf*eo})}
+      if((st.ecl||0)>0)L.push({k:'ring',p:P,r:22+40*st.ecl,c:C.gold,o:Math.sin(Math.PI*Math.min(1,st.ecl))});
+      if((st.ra||0)>0&&(u[0]||u[1])&&(v[0]||v[1]))L.push({k:'ra',p:P,d1:u,d2:v,c:C.gold,size:20,o:st.ra});
+      L.push({k:'vec',a:P,b:add(P,u),c:C.u,o:st.uo===undefined?1:st.uo});
+      L.push({k:'vec',a:P,b:add(P,v),c:C.v,o:st.vo===undefined?1:st.vo});
+      if(lu){const t=add(P,u),n=Math.hypot(u[0],u[1])||1;L.push({k:'lab',p:t,s:lu,c:C.u,vec:true,size:27,dx:u[0]/n*20+(u[1]>=0?14:14),dy:-u[1]/n*20+8})}
+      if(lv){const t=add(P,v),n=Math.hypot(v[0],v[1])||1;L.push({k:'lab',p:t,s:lv,c:C.v,vec:true,size:27,dx:v[0]/n*20+14,dy:-v[1]/n*20+8})}}
+    (cfg.extra?cfg.extra(st):[]).forEach(d=>L.push(d));
+    const pts=val(cfg.pts||[],st);const cen=pts.length?[pts.reduce((s,q)=>s+q.p[0],0)/pts.length,pts.reduce((s,q)=>s+q.p[1],0)/pts.length]:[0,0];
+    pts.forEach(q=>L.push({k:'pt',p:q.p,r:4.5,c:q.c,o:q.o}));
+    L.push(...labs(pts,cen));
+    return L}
+  return{build,st:Object.assign({fl:0,fr:0,ff:0,wl:0,wr:0,wf:0,ecl:0,ra:0,circ:0},cfg.st||{}),pts:cfg.fitPts,opts:{pad:46,padT:56,padB:40,maxS:cfg.maxS||48}}}
+function show(sc){S.set(sc.build,sc.st,sc.pts,sc.opts)}
+/* enchaînements types */
+const floor=()=>S.to({fl:1},650).then(()=>S.to({fr:1},550)).then(()=>S.to({ff:1},450));
+const wall=()=>S.to({wl:1},650).then(()=>S.to({wr:1},550)).then(()=>S.to({wf:1},450));
+const eclipse=()=>S.to({ecl:1},1100).then(()=>S.to({ra:1},350));
+return{proj,grid,show,floor,wall,eclipse};
+})();
+</script>
+<script>
+/* ======================= bruitages ======================= */
+window.OP_SND=(function(){
+'use strict';
+let actx=null;
+const sound={get:()=>{try{return localStorage.getItem('sigma-fanfare')!=='0'}catch(e){return true}},set:v=>{try{localStorage.setItem('sigma-fanfare',v?'1':'0')}catch(e){}}};
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){if(!sound.get())return;const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),g=a.createGain();
+  o.type=type||'triangle';o.frequency.value=f;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(v||0.12,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+  o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+0.05)}
+return{sound,pop:()=>tone(660,.12,.08),soft:()=>tone(220,.25,.08,'sine'),win:()=>{tone(523,.18,.09);tone(659,.18,.09,'triangle',.1);tone(784,.3,.1,'triangle',.2)},
+  light:()=>{tone(880,.5,.04,'sine');tone(1320,.6,.03,'sine',.08)},ecl:()=>{tone(392,.6,.06,'sine');tone(587,.8,.05,'sine',.15)}};
+})();
+</script>
+<script>
+/* ======================= moteur : questions en étapes ; deuxième erreur = réponse donnée ======================= */
+window.OP_G=(function(){
+'use strict';
+const N=window.OP_N,S=window.OP_S,SND=window.OP_SND,$=id=>document.getElementById(id);
+const cap=h=>{$('capt').innerHTML=`<span>${h||'&nbsp;'}</span>`};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const knorm=s=>String(s).toLowerCase().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.');
+const GAME='ombre-a-pic';
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,busy=false;
+function starsOf(i){try{const g=SigmaKit.passport().games[GAME];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function fb(html,kind,extra){if(!html){$('fb').hidden=true;return}
+  $('fb').classList.toggle('rv',kind==='rv');$('fbt').textContent=kind==='rv'?'Voici la réponse.':'Pas tout à fait.';
+  $('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fbx').innerHTML='';if(extra)$('fbx').appendChild(extra);$('fb').hidden=false}
+function miss(p,why,reveal){p._e=(p._e||0)+1;errs++;SND.soft();
+  if(p._e<2){fb(why);setTimeout(()=>scrollPart($('fb')),40);return}
+  reveal();const b=document.createElement('div');b.className='btns';b.innerHTML='<button type="button" class="btn or" id="cont">Continuer →</button>';
+  fb(why+(p.solH?`<span class="sol">Réponse&nbsp;: ${p.solH}</span>`:''),'rv',b);
+  b.querySelector('button').onclick=async()=>{if(busy)return;fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()};
+  setTimeout(()=>{const c=$('cont');if(c&&matchMedia('(pointer:fine)').matches)c.focus({preventScroll:true});scrollPart($('fb'))},40)}
+const W={};
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.light();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);fb('');nextPart()};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)b.focus({preventScroll:true})},50)};
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):N.shuf(p.ch.map((_,j)=>j));
+  if(!p.solH)p.solH=p.ch.find(c=>c.ok).h;
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  const all=[...box.querySelectorAll('.opt')];const lock=()=>all.forEach(x=>x.disabled=true);
+  all.forEach(b=>b.onclick=async()=>{if(busy||b.disabled)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){lock();b.classList.add('ok');SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+    else{b.classList.add('ko');b.disabled=true;miss(p,c.why,()=>{lock();all.forEach(x=>{if(p.ch[+x.dataset.j].ok)x.classList.add('ok')})})}})};
+function okBlank(b,v){if(b.w)return b.w.some(a=>knorm(a)===knorm(v));const x=N.parse(v);return x!==null&&N.eq(x,b.r)}
+const shown=b=>b.w?b.w[0]:N.fmt(b.r);
+W.fill=(p,box)=>{
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const b=p.b[+i];return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" ${b.w?'':'inputmode="text"'} aria-label="Case ${+i+1}" style="width:${b.size||4.2}em">`});
+  if(!p.solH)p.solH=p.b.map(shown).join('&nbsp;; ');
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+
+    `<p class="hint">${p.hint||'Nombre entier ou décimal (virgule ou point), signe «&nbsp;-&nbsp;» accepté.'}</p>`;
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy||f.dataset.done)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    let oks;
+    if(p.anyOrder){const pool=p.b.map(b=>b.r),used=[];oks=v.map(x=>{const n=N.parse(x);const k=pool.findIndex((r,j)=>used.indexOf(j)<0&&n!==null&&N.eq(n,r));if(k>=0){used.push(k);return true}return false})}
+    else oks=v.map((x,i)=>okBlank(p.b[+ins[i].dataset.i],x));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){f.dataset.done=1;ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+    else miss(p,typeof p.why==='function'?p.why(v.map(N.parse),oks):p.why,()=>{f.dataset.done=1;ins.forEach((x,i)=>{const b=p.b[+x.dataset.i];x.value=shown(b);x.classList.remove('ko');x.classList.add(oks[i]&&!p.anyOrder?'ok':'rv');x.disabled=true});f.querySelector('button').remove()})};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* curseur : on déplace un point ou on règle un nombre, la scène suit en direct */
+W.slide=(p,box)=>{const st=p.step||1;let init=p.init;if(p.targets.some(t=>N.eq(t,init)))init=p.min;
+  if(!p.solH)p.solH=`${p.lab} = ${p.targets.map(N.fmt).join(' ou ')}`;
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="sl"><label for="sld">${p.lab}</label><output id="sldo">${N.fmt(init)}</output>`+
+    `<input type="range" id="sld" min="${p.min}" max="${p.max}" step="${st}" value="${init}" aria-label="${p.aria||p.lab}"></div><div class="btns"><button class="btn or" type="button" id="sldv">Valider</button></div>`;
+  const r=box.querySelector('#sld'),o=box.querySelector('#sldo'),b=box.querySelector('#sldv');
+  const upd=()=>{const v=+r.value;o.textContent=N.fmt(v);p.onInput(v)};
+  r.addEventListener('input',upd);upd();
+  b.onclick=async()=>{if(busy)return;const v=+r.value;
+    if(p.targets.some(t=>N.eq(t,v))){r.disabled=true;b.remove();SND.pop();fb('');p.got=v;if(p.onOk){busy=true;try{await p.onOk(v)}finally{busy=false}}nextPart()}
+    else miss(p,typeof p.why==='function'?p.why(v):p.why,()=>{r.value=p.targets[0];upd();r.disabled=true;b.remove();p.got=p.targets[0]})};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)r.focus({preventScroll:true})},50)};
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;if(pi<Q.parts.length){const p=Q.parts[pi];if(p.pre)p.pre();const box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860&&box){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-140)scrollTo({top:scrollY+r.top-top-12,behavior:S.reduceM?'auto':'smooth'})}}
+const LV=[];
+async function newQ(){busy=true;Q=LV[lvl].qs[qi]();pi=0;errs=0;
+  S.clear();cap(Q.cap0||'&nbsp;');
+  $('prompt').innerHTML=Q.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  try{if(Q.setup)await Q.setup()}finally{busy=false}
+  const p=Q.parts[0];if(p.pre)p.pre();const box=partEl();W[p.t](p,box)}
+function dots(){const n=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:n},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){fb('');SND.win();run.push(errs===0);dots();
+  const n=LV[lvl].qs.length,lvlDone=run.length>=n;
+  $('winx').textContent=errs===0?N.pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):N.pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=Q.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(Q.onWin)Q.onWin();
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lnum=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lnum,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lnum)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if(busy)return;if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:S.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];
+  $('chap').textContent=`Niveau ${l+1} sur ${LV.length} · ${LV[l].badge}`;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('cours').open=false;renderLv();newQ()}
+function renderLv(){const snd=SND.sound.get();$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;
+  if(b.id==='snd'){SND.sound.set(!SND.sound.get());renderLv();SND.pop();return}
+  goLevel(+b.dataset.l)});
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+const ch=(ask,list,o)=>Object.assign({t:'choice',ask,ch:list},o||{});
+const fill=(ask,tpl,b,why,o)=>Object.assign({t:'fill',ask,tpl,b,why},o||{});
+const slide=(ask,lab,o)=>Object.assign({t:'slide',ask,lab},o||{});
+const OK=(h,v,x)=>Object.assign({h,ok:true,v},x||{}),NO=(h,v,why,x)=>Object.assign({h,v,why},x||{});
+const B=(r,o)=>Object.assign({r},o||{});
+window.OP={start(){const m=/[?&]niveau=(\d)/.exec(location.search);goLevel(m?Math.min(+m[1]-1,LV.length-1):0)},
+  state:()=>{const p=Q&&Q.parts[pi];return{lvl,qi,nq:LV[lvl]&&LV[lvl].qs.length,busy:busy||S.busy,pi,win:!$('win').hidden,cont:!!$('cont')&&!$('fb').hidden,
+    part:p?{t:p.t,sol:p.b?p.b.map(shown):null,choices:p.ch?p.ch.map(c=>({ok:!!c.ok})):null,targets:p.targets||null,min:p.min,max:p.max,step:p.step||1}:null}},
+  /* pour l'audit : une question tirée, sans la jouer */
+  sample:(l,q)=>{const Qx=LV[l].qs[q]();return{meta:Qx.meta,prompt:Qx.prompt,done:Qx.done,parts:Qx.parts.map(p=>({t:p.t,key:p.key,why:typeof p.why==='function'?(()=>{try{return p.t==='slide'?p.why(p.min):p.why((p.b||[]).map(()=>null))}catch(e){return 'ERREUR '+e.message}})():(p.why||''),b:p.b?p.b.map(b=>({r:b.r,w:b.w})):null,anyOrder:!!p.anyOrder,
+    ch:p.ch?p.ch.map(c=>({h:c.h,ok:!!c.ok,v:c.v,why:c.why||''})):null,targets:p.targets||null,min:p.min,max:p.max,step:p.step||1,tpl:p.tpl||null,ask:p.ask||null}))}},
+  LV,goLevel,get Q(){return Q}};
+return{LV,W,act,ch,fill,slide,OK,NO,B,cap,MAKI,renderLv};
+})();
+</script>
+<script>
+/* ======================= les sept niveaux ======================= */
+(function(){
+'use strict';
+const N=window.OP_N,S=window.OP_S,SC=window.OP_SC,G=window.OP_G,SND=window.OP_SND;
+const {ri,pick,shuf,fmt,par,V,U,W,PS,co,P:PT,VC,NRM,eq,r3}=N;
+const {act,ch,fill,slide,OK,NO,B,cap,LV}=G;
+const sq=s=>`${s}<span class="sq">2</span>`;
+const poly2=(sm,pr)=>'x²'+(sm?` ${sm>0?'−':'+'} ${Math.abs(sm)===1?'':fmt(Math.abs(sm))}x`:'')+(pr?` ${pr<0?'−':'+'} ${fmt(Math.abs(pr))}`:'');
+const TR=[[3,4,5],[4,3,5],[6,8,10],[8,6,10],[1.5,2,2.5],[2,1.5,2.5],[4.5,6,7.5],[6,4.5,7.5],[2.5,6,6.5],[6,2.5,6.5]];
+const NAMES=[['A','B','C','H'],['E','F','G','H'],['R','S','T','K']];
+const rot0=()=>pick([-1,1])*ri(18,32);
+const rotate=()=>S.to({rot:0},900);
+const lightOn=()=>S.to({light:1},600).then(()=>S.to({shadow:1},450));
+const riseFill=()=>S.to({rise:1},750).then(()=>S.to({fill:1},450));
+const sub=(p,q)=>[p[0]-q[0],p[1]-q[1]],dot=(p,q)=>p[0]*q[0]+p[1]*q[1];
+const sg=x=>x>0?'pos':x<0?'neg':'zero';
+const valH=x=>`<span class="${x>0?'k':x<0?'n':'g'}">${fmt(x)}</span>`;
+function lensProj(nm,a,P,o){o=o||{};const px=P[0],c=P[1],L=[{p:[a/2,0],s:`${nm[0]}${nm[1]} = ${fmt(a)}`,dy:36}];
+  if(o.ac)L.push({p:[px/2,c/2],s:`${nm[0]}${nm[2]} = ${fmt(o.ac)}`,dx:px>=0?-58:58,dy:-4});
+  if(o.ch&&c)L.push({p:[px,c/2],s:`${nm[2]}${nm[3]} = ${fmt(c)}`,dx:px>=0?58:-58,dy:6,when:'light'});
+  if(o.ah&&px)L.push({p:[px/2,0],s:`${nm[0]}${nm[3]} = ${fmt(Math.abs(px))}`,dy:-16,when:'shadow'});
+  return L}
+/* figure → repère « sol » : X origine, (XY) devient le sol, Z est le bout du bâton */
+function figGround(F,X,Y,Z){const x=F[X],y=F[Y],dx=y[0]-x[0],dy=y[1]-x[1],L=Math.hypot(dx,dy),e=[dx/L,dy/L],n=[-e[1],e[0]];
+  const g=p=>[r3((p[0]-x[0])*e[0]+(p[1]-x[1])*e[1]),r3((p[0]-x[0])*n[0]+(p[1]-x[1])*n[1])];
+  const Gd={};for(const k in F)Gd[k]=g(F[k]);
+  if(Gd[Z][1]<0)for(const k in Gd)Gd[k][1]=-Gd[k][1];
+  const P=Gd[Z],hx=P[0];let hIs=null;for(const k in Gd)if(k!==Z&&eq(Gd[k][0],hx)&&eq(Gd[k][1],0))hIs=k;
+  return{G:Gd,a:r3(L),P,hx,hIs,val:r3(dot([dx,dy],sub(F[Z],x)))}}
+function figScene(fg,X,Y,Z,order,extra){const nm={A:X,G:Y,P:Z,H:fg.hIs||'I'};
+  return SC.proj(Object.assign({a:fg.a,P:fg.P,names:nm,hIs:fg.hIs,fig:Object.keys(fg.G).filter(k=>k!==X&&k!==Y&&k!==Z).map(k=>({n:k,p:fg.G[k]})),
+    poly:order.map(k=>fg.G[k]),areaLab:fmt(fg.val),rot0:rot0()},extra||{}))}
+
+/* ---------------------------------------------------------------- niveau 1 */
+function l1proj(mode){return()=>{
+  const nm=pick(NAMES);let a,t;
+  if(mode==='far'){do{a=ri(2,5);t=pick(TR)}while(t[0]<=a)}else{do{a=ri(4,9);t=pick(TR)}while(t[0]>=a)}
+  const [h,c,ac]=t,A=nm[0],Bn=nm[1],Cn=nm[2],Hn=nm[3],vAB=V(A+Bn),vAC=V(A+Cn),vAH=V(A+Hn);
+  const sc=SC.proj({a,P:[h,c],names:{A,G:Bn,P:Cn,H:Hn},rot0:rot0(),areaLab:fmt(a*h),lens:lensProj(nm,a,[h,c],{ac,ch:1,ah:1})});
+  const why=v=>{const x=v[0];if(x!==null&&eq(x,a*ac))return `Tu as multiplié par ${A}${Cn}, la longueur du bâton. On multiplie ${A}${Bn} par la longueur de son <b>ombre</b>, ${A}${Hn}.`;
+    if(x!==null&&eq(x,a*c))return `${Cn}${Hn} est la hauteur, c'est-à-dire le trajet de la lumière. L'ombre de ${vAC} sur le sol est ${vAH}.`;
+    return `${A}${Bn} × ${A}${Hn} = ${fmt(a)} × ${fmt(h)}. L'ombre ${vAH} va dans le même sens que ${vAB} : le produit est positif.`};
+  const psF=fill(mode==='guided'?'Le produit scalaire est l\'aire de ce rectangle :':`Calcule ${PS(vAB,vAC)}.`,`${PS(vAB,vAC)} = ${A}${Bn} × ${A}${Hn} = {0}`,[B(a*h)],why,{key:'ps',
+    onOk:mode==='guided'?null:()=>riseFill().then(()=>cap(`${PS(vAB,vAC)} = ${A}${Bn} × ${A}${Hn} = ${valH(a*h)}`))});
+  const parts=[];
+  if(mode==='guided')parts.push(
+    act(`Faire pivoter (${A}${Bn}) jusqu'au sol`,()=>rotate().then(()=>cap(`(${A}${Bn}) est devenue le sol`)),{ask:`La droite (${A}${Bn}) est penchée. Fais-la tourner&nbsp;: elle devient le sol.`,doneLabel:'La droite est au sol'}),
+    act('Allumer la lumière à pic',()=>lightOn().then(()=>cap(`La lumière tombe perpendiculairement au sol, de ${Cn} en ${Hn}`)),{ask:'La lumière tombe à angle droit sur le sol.',doneLabel:'Lumière allumée'}),
+    ch(`Sur le sol, l'ombre du vecteur ${vAC} est le vecteur&nbsp;:`,[OK(vAH,'AH'),NO(V(Hn+Cn),'HC',`${V(Hn+Cn)} est vertical&nbsp;: c'est le trajet de la lumière, pas l'ombre.`),
+      NO(vAC,'AC',`${vAC} est le bâton lui-même&nbsp;; son ombre est sa projection orthogonale sur le sol.`),NO(V(Hn+Bn),'HB',`L'ombre part du pied du bâton, ${A}, et s'arrête en ${Hn}, au pied du rayon.`)],{key:'shadow'}),
+    act(`Redresser [${A}${Bn}]`,()=>riseFill().then(()=>cap(`Rectangle de côtés ${A}${Bn} = ${fmt(a)} et ${A}${Hn} = ${fmt(h)}`)),{ask:`Redresse [${A}${Bn}] à angle droit&nbsp;: avec l'ombre [${A}${Hn}], il forme un rectangle doré.`,doneLabel:'Rectangle formé'}),psF);
+  else parts.push(psF);
+  return{meta:{k:'proj',a,h,s:1},
+    prompt:`<p>${Hn} est le projeté orthogonal de ${Cn} sur la droite (${A}${Bn}). On donne ${A}${Bn} = ${fmt(a)}, ${A}${Cn} = ${fmt(ac)}, ${Cn}${Hn} = ${fmt(c)} et ${A}${Hn} = ${fmt(h)}.</p>`+
+      (mode==='guided'?`<p>On cherche ${PS(vAB,vAC)}.</p>`:mode==='far'?`<p>Ici, l'ombre dépasse ${Bn}&nbsp;: aucune importance, seul son sens compte.</p>`:''),
+    cap0:mode==='guided'?`On cherche ${PS(vAB,vAC)}`:`Ombre de ${vAC} : ${vAH}`,
+    setup:async()=>{SC.show(sc);if(mode!=='guided'){await S.wait(200);await rotate();await lightOn()}},
+    parts,done:`${PS(vAB,vAC)} = ${A}${Bn} × ${A}${Hn} = ${fmt(a)} × ${fmt(h)} = ${fmt(a*h)}. Le produit scalaire est l'aire du rectangle formé par [${A}${Bn}] redressé et l'ombre [${A}${Hn}].`}}}
+function rectF(a,b){return{A:[0,0],B:[a,0],C:[a,b],D:[0,b]}}
+function l1fig(kind){return()=>{
+  let F,order,X='A',Y='B',Z='C',desc,foot;
+  if(kind==='rect'){const a=ri(3,7),b=pick([a,ri(2,6)]);F=rectF(a,b);order=['A','B','C','D'];desc=a===b?`ABCD est un carré de côté ${a}.`:`ABCD est un rectangle avec AB = ${a} et AD = ${b}.`}
+  else{const a=ri(2,8);if(kind==='equi'){F={A:[0,0],B:[a,0],C:[a/2,r3(a*Math.sqrt(3)/2)]};desc=`ABC est un triangle équilatéral de côté ${a}.`}
+    else{const hh=ri(2,6);F={A:[0,0],B:[a,0],C:[a/2,hh]};desc=`ABC est un triangle isocèle en C, avec AB = ${a}.`}order=['A','B','C']}
+  const fg=figGround(F,X,Y,Z),sc=figScene(fg,X,Y,Z,order),vAB=V('AB'),vAC=V('AC');
+  const footKey=fg.hIs||'mid';
+  const chs=kind==='rect'?[OK('le point B','B'),NO('le point A','A',`Si l'ombre de C tombait en A, [AC] serait vertical. Or (BC) est perpendiculaire à (AB)&nbsp;: la lumière tombe de C sur B.`),
+      NO('le point D','D','D n\'est pas sur la droite (AB)&nbsp;: une ombre tombe sur le sol.'),NO('le milieu de [AB]','mid',`(BC) est perpendiculaire à (AB)&nbsp;: la lumière à pic passe par C et tombe exactement en B.`)]
+    :[OK('le milieu I de [AB]','mid'),NO('le point B','B',`[BC] n'est pas perpendiculaire à (AB). La hauteur issue de C d'un triangle isocèle en C tombe au milieu de [AB].`),
+      NO('le point A','A','Le rayon partant de C ne tombe pas en A&nbsp;: [AC] n\'est pas perpendiculaire à (AB).'),NO('un point hors du segment [AB]','out','L\'angle en A est aigu&nbsp;: l\'ombre reste du côté de B, et même au milieu de [AB].')];
+  const val=fg.val;
+  return{meta:{k:'fig',F,X,Y,Z},prompt:`<p>${desc}</p><p>On cherche ${PS(vAB,vAC)}.</p>`,cap0:`On cherche ${PS(vAB,vAC)}`,
+    setup:async()=>{SC.show(sc);await S.wait(200);await rotate();await S.to({light:1},600)},
+    parts:[ch('Le projeté orthogonal de C sur la droite (AB) est&nbsp;:',chs,{key:'foot',onOk:()=>S.to({shadow:1},450)}),
+      fill(`Calcule ${PS(vAB,vAC)}.`,`${PS(vAB,vAC)} = {0}`,[B(val)],v=>{const x=v[0];
+        if(kind==='rect'&&x!==null&&eq(x,F.B[0]*F.D[1])&&F.B[0]!==F.D[1])return 'AB × AD n\'est pas le bon produit&nbsp;: l\'ombre de [AC] sur (AB) est [AB] tout entier.';
+        if(kind!=='rect'&&x!==null&&eq(x,F.B[0]*F.B[0]))return 'L\'ombre de [AC] n\'est pas [AB] mais [AI], la moitié de [AB].';
+        return kind==='rect'?`L'ombre de ${vAC} est ${vAB}&nbsp;: ${PS(vAB,vAC)} = AB × AB.`:`L'ombre de ${vAC} est ${V('AI')}, avec AI = AB/2&nbsp;: ${PS(vAB,vAC)} = AB × AI.`},
+        {key:'ps',onOk:()=>riseFill().then(()=>cap(`${PS(vAB,vAC)} = ${valH(val)}`))})],
+    done:kind==='rect'?`L'ombre de C tombe en B&nbsp;: ${PS(vAB,vAC)} = AB × AB = ${fmt(val)}.`:`L'ombre de C tombe au milieu I de [AB]&nbsp;: ${PS(vAB,vAC)} = AB × AI = ${fmt(F.B[0])} × ${fmt(F.B[0]/2)} = ${fmt(val)}.`}}}
+LV.push({t:'L\'ombre au sol',badge:'Projection orthogonale',
+  rule:`<p>Si H est le projeté orthogonal de C sur la droite (AB) et si H est sur la demi-droite [AB), alors</p><p><b>${PS(V('AB'),V('AC'))} = ${PS(V('AB'),V('AH'))} = AB × AH</b>.</p><p>Image&nbsp;: la lumière tombe à pic sur le sol (AB)&nbsp;; l'ombre de ${V('AC')} est ${V('AH')}. Le produit scalaire est l'aire du rectangle de côtés AB et AH.</p>`,
+  qs:[l1proj('guided'),l1proj('plain'),l1proj('far'),l1fig('rect'),l1fig(pick(['equi','iso']))]});
+
+/* ---------------------------------------------------------------- niveau 2 */
+function l2obtuse(){const nm=pick(NAMES),[A,Bn,Cn,Hn]=nm;let a,t;a=ri(3,8);t=pick(TR);const [h,c,ac]=t;
+  const sc=SC.proj({a,P:[-h,c],names:{A,G:Bn,P:Cn,H:Hn},rot0:rot0(),areaLab:fmt(-a*h),lens:lensProj(nm,a,[-h,c],{ac,ch:1,ah:1})});
+  const vAB=V(A+Bn),vAC=V(A+Cn),vAH=V(A+Hn);
+  return{meta:{k:'proj',a,h,s:-1},prompt:`<p>${Hn} est le projeté orthogonal de ${Cn} sur la droite (${A}${Bn}). On donne ${A}${Bn} = ${fmt(a)}, ${A}${Cn} = ${fmt(ac)} et ${A}${Hn} = ${fmt(h)}.</p><p>Regarde bien où tombe l'ombre.</p>`,
+    cap0:`On cherche ${PS(vAB,vAC)}`,setup:async()=>{SC.show(sc);await S.wait(200);await rotate()},
+    parts:[act('Allumer la lumière à pic',()=>lightOn().then(()=>cap(`L'ombre ${vAH} part à l'opposé de ${vAB}`)),{doneLabel:'Lumière allumée'}),
+      ch(`L'ombre ${vAH} va&nbsp;:`,[OK(`dans le sens contraire de ${vAB}&nbsp;: le produit scalaire est négatif`,'neg'),NO(`dans le même sens que ${vAB}&nbsp;: le produit scalaire est positif`,'pos',`Regarde la scène&nbsp;: ${Hn} est de l'autre côté de ${A} par rapport à ${Bn}.`),
+        NO(`nulle part&nbsp;: ${Hn} est en ${A}, le produit scalaire est nul`,'zero',`${Hn} n'est pas en ${A}&nbsp;: l'ombre a une longueur ${A}${Hn} = ${fmt(h)}.`)],{key:'sign'}),
+      act(`Redresser [${A}${Bn}]`,()=>riseFill().then(()=>cap(`Les deux sens sont contraires : l'aire compte en négatif`)),{ask:'Redresse le vecteur&nbsp;: le rectangle est corail, son aire compte en négatif.',doneLabel:'Rectangle formé'}),
+      fill(`Calcule ${PS(vAB,vAC)}.`,`${PS(vAB,vAC)} = {0}`,[B(-a*h)],v=>v[0]!==null&&eq(v[0],a*h)?`Bon calcul, mauvais signe&nbsp;: ${vAH} et ${vAB} sont de sens contraires, donc ${PS(vAB,vAC)} = −${A}${Bn} × ${A}${Hn}.`:`${PS(vAB,vAC)} = −${A}${Bn} × ${A}${Hn} = −${fmt(a)} × ${fmt(h)}.`,{key:'ps'})],
+    done:`Ombre de sens contraire&nbsp;: ${PS(vAB,vAC)} = −${A}${Bn} × ${A}${Hn} = −${fmt(a)} × ${fmt(h)} = ${fmt(-a*h)}.`}}
+function l2mixed(){const nm=pick(NAMES),[A,Bn,Cn,Hn]=nm;const s=pick([1,-1,0]);const a=ri(3,8);let h,c,ac;
+  if(s===0){h=0;c=ri(2,6);ac=c}else[h,c,ac]=pick(TR);
+  const px=s*h,val=s*a*h,sc=SC.proj({a,P:[px,c],names:{A,G:Bn,P:Cn,H:s===0?A:Hn},hIs:s===0?A:null,rot0:rot0(),areaLab:fmt(val),lens:lensProj(nm,a,[px,c],{ac,ah:1})});
+  const vAB=V(A+Bn),vAC=V(A+Cn);
+  const cands=[[val,null],[-val,`Le signe&nbsp;: regarde si l'ombre va dans le sens de ${vAB} ou dans le sens contraire.`],[a*ac,`${fmt(a*ac)} = ${A}${Bn} × ${A}${Cn}&nbsp;: on multiplie par l'ombre, pas par le bâton.`],
+    [0,`Le produit scalaire n'est nul que si l'ombre est réduite au point ${A}.`],[-a*ac,`On ne multiplie pas par ${A}${Cn}&nbsp;: c'est l'ombre qui compte.`],[a*c,`${Cn} est au-dessus de ${s===0?A:Hn}&nbsp;: ${fmt(c)} est la hauteur, pas l'ombre.`]];
+  const seen=[];const opts=[];cands.forEach(([v,w])=>{if(seen.some(x=>eq(x,v)))return;seen.push(v);opts.push([v,w])});
+  const chosen=[opts[0]].concat(shuf(opts.slice(1)).slice(0,3));
+  return{meta:{k:'proj',a,h,s},prompt:`<p>Sur la figure, ${s===0?`le projeté orthogonal de ${Cn} sur (${A}${Bn}) est ${A}`:`${Hn} est le projeté orthogonal de ${Cn} sur (${A}${Bn})`}. On donne ${A}${Bn} = ${fmt(a)}, ${A}${Cn} = ${fmt(ac)}${s===0?'':` et ${A}${Hn} = ${fmt(h)}`}.</p>`,
+    cap0:`On cherche ${PS(vAB,vAC)}`,setup:async()=>{SC.show(sc);await S.wait(200);await rotate();await lightOn();cap(s===0?`L'ombre de ${vAC} est réduite au point ${A}`:`Ombre de ${vAC} : ${V(A+Hn)}`)},
+    parts:[ch(`${PS(vAB,vAC)} est égal à&nbsp;:`,chosen.map(([v,w],i)=>i===0?OK(fmt(v),v):NO(fmt(v),v,w)),{key:'psc',onOk:()=>(s===0?S.to({fill:0},10):riseFill()).then(()=>cap(`${PS(vAB,vAC)} = ${valH(val)}`))})],
+    done:s===0?`L'ombre est réduite à un point&nbsp;: (${A}${Cn}) ⟂ (${A}${Bn}) et ${PS(vAB,vAC)} = 0.`:`${PS(vAB,vAC)} = ${s<0?'−':''}${A}${Bn} × ${A}${Hn} = ${fmt(val)}.`}}
+function l2rect(){const a=ri(3,7),b=ri(2,6);const F=rectF(a,b);
+  const T3=pick([['A','B','D'],['A','D','C'],['B','A','C'],['D','A','B'],['C','B','A'],['B','A','D'],['C','D','A'],['C','D','B'],['A','B','C']]);
+  const [X,Y,Z]=T3,fg=figGround(F,X,Y,Z),foot=fg.hIs,sc=figScene(fg,X,Y,Z,['A','B','C','D']),vXY=V(X+Y),vXZ=V(X+Z);
+  const opts=['A','B','C','D'].map(k=>k===foot?OK(`le point ${k}`,k):NO(`le point ${k}`,k,`Le rayon partant de ${Z} tombe à angle droit sur (${X}${Y})&nbsp;: dans un rectangle, il suit un côté. Regarde la scène.`));
+  return{meta:{k:'fig',F,X,Y,Z},prompt:`<p>ABCD est un rectangle avec AB = ${a} et AD = ${b}. On cherche ${PS(vXY,vXZ)}.</p>`,cap0:`On cherche ${PS(vXY,vXZ)}`,
+    setup:async()=>{SC.show(sc);await S.wait(200);await rotate();await S.to({light:1},600)},
+    parts:[ch(`Le projeté orthogonal de ${Z} sur la droite (${X}${Y}) est&nbsp;:`,opts,{key:'foot',onOk:()=>S.to({shadow:1},450)}),
+      fill(`Calcule ${PS(vXY,vXZ)}.`,`${PS(vXY,vXZ)} = {0}`,[B(fg.val)],foot===X?`L'ombre de ${vXZ} est réduite au point ${X}&nbsp;: le produit scalaire est nul.`:`L'ombre de ${vXZ} est ${V(X+foot)}, de même sens que ${vXY}&nbsp;: ${PS(vXY,vXZ)} = ${X}${Y} × ${X}${foot}.`,
+        {key:'ps',onOk:()=>(fg.val?riseFill():Promise.resolve()).then(()=>cap(`${PS(vXY,vXZ)} = ${valH(fg.val)}`))})],
+    done:foot===X?`${V(X+Z)} est perpendiculaire à ${vXY}&nbsp;: son ombre est un point, ${PS(vXY,vXZ)} = 0.`:`${PS(vXY,vXZ)} = ${X}${Y} × ${X}${foot} = ${fmt(fg.a)} × ${fmt(fg.a)} = ${fmt(fg.val)}.`}}
+function l2other(){const b=ri(3,9),[k,hB,ab]=pick(TR),s=pick([1,1,-1]),val=s*b*k;
+  const sc=SC.proj({a:b,P:[s*k,hB],names:{A:'A',G:'C',P:'B',H:'K'},rot0:rot0(),areaLab:fmt(val),
+    lens:[{p:[b/2,0],s:`AC = ${fmt(b)}`,dy:36},{p:[s*k/2,hB/2],s:`AB = ${fmt(ab)}`,dx:s>0?-58:58},{p:[s*k/2,0],s:`AK = ${fmt(k)}`,dy:-16,when:'shadow'}]});
+  const vAB=V('AB'),vAC=V('AC');
+  return{meta:{k:'projo',b,kk:k,s},prompt:`<p>Dans le triangle ABC, K est le projeté orthogonal de B sur la droite (AC). On donne AC = ${fmt(b)}, AB = ${fmt(ab)} et AK = ${fmt(k)}.</p><p>On cherche ${PS(vAB,vAC)}.</p>`,
+    cap0:`On cherche ${PS(vAB,vAC)} = ${PS(vAC,vAB)}`,setup:async()=>{SC.show(sc);await S.wait(200);await rotate()},
+    parts:[ch('Quelle ombre utilise-t-on&nbsp;?',[OK(`celle de ${vAB} sur la droite (AC)&nbsp;: c'est ${V('AK')}`,'BonAC'),
+        NO(`celle de ${vAC} sur la droite (AB)`,'ConAB','Le pied de cette projection n\'est pas donné&nbsp;: on ne connaît pas cette ombre. On projette B sur (AC), puisque K est connu.'),
+        NO(`celle de ${V('BC')} sur la droite (AC)`,'BC',`Le produit scalaire porte sur ${vAB} et ${vAC}&nbsp;: on projette l'un sur la droite qui porte l'autre.`)],{key:'which',onOk:()=>lightOn()}),
+      fill(`Calcule ${PS(vAB,vAC)}.`,`${PS(vAB,vAC)} = {0}`,[B(val)],v=>v[0]!==null&&eq(v[0],-val)&&val?'Attention au signe&nbsp;: compare le sens de l\'ombre et celui de '+vAC+'.':`${PS(vAB,vAC)} = ${PS(vAC,vAB)} = ${s<0?'−':''}AC × AK.`,{key:'ps',onOk:()=>riseFill().then(()=>cap(`${PS(vAB,vAC)} = ${valH(val)}`))})],
+    done:`On projette B sur (AC)&nbsp;: ${PS(vAB,vAC)} = ${s<0?'−':''}AC × AK = ${fmt(val)}${s<0?' (ombre de sens contraire)':''}.`}}
+function l2len(){const a=pick([2,4,5,6,8,10]);let h;do{h=ri(1,16)/2}while(!Number.isInteger(a*h*2)||h>9);const s=pick([1,-1]),ps=s*a*h,c=ri(2,5);
+  const sc=SC.proj({a,P:[s*h,c],rot0:0,areaLab:fmt(ps),st:{light:1,stick:0},lens:[{p:[a/2,0],s:`AB = ${fmt(a)}`,dy:36}]});
+  const vAB=V('AB'),vAC=V('AC');
+  return{meta:{k:'len',a,ps},prompt:`<p>On sait que AB = ${fmt(a)} et ${PS(vAB,vAC)} = ${fmt(ps)}. On note H le projeté orthogonal de C sur la droite (AB).</p><p>Retrouve l'ombre de ${vAC}.</p>`,
+    cap0:`${PS(vAB,vAC)} = ${valH(ps)} : où tombe l'ombre ?`,setup:async()=>{SC.show(sc)},
+    parts:[ch('Où se trouve H&nbsp;?',[OK(s>0?'sur la demi-droite [AB)':'sur la demi-droite opposée à [AB)',sg(ps)),NO(s>0?'sur la demi-droite opposée à [AB)':'sur la demi-droite [AB)',sg(-ps),`${PS(vAB,vAC)} est ${s>0?'positif':'négatif'}&nbsp;: l'ombre va ${s>0?'dans le même sens que':'dans le sens contraire de'} ${vAB}.`),
+        NO('en A','zero','Si H était en A, le produit scalaire serait nul.')],{key:'side'}),
+      fill('Calcule la longueur de l\'ombre.','AH = {0}',[B(h)],`${PS(vAB,vAC)} = ${s<0?'−':''}AB × AH, donc AH = ${fmt(Math.abs(ps))} ÷ ${fmt(a)}. Une longueur est positive.`,{key:'ah',
+        onOk:()=>S.to({stick:1},500).then(()=>S.to({shadow:1},400)).then(riseFill).then(()=>cap(`AB × AH = ${fmt(a)} × ${fmt(h)} = ${fmt(Math.abs(ps))}`))})],
+    done:`AH = ${fmt(Math.abs(ps))} ÷ ${fmt(a)} = ${fmt(h)}&nbsp;: le produit scalaire a permis de calculer une longueur.`}}
+LV.push({t:'Ombre à rebours',badge:'Signe et cas particuliers',
+  rule:`<p>H est le projeté orthogonal de C sur (AB)&nbsp;:</p><p>• si ${V('AH')} et ${V('AB')} ont le même sens, ${PS(V('AB'),V('AC'))} = AB × AH&nbsp;;</p><p>• s'ils sont de sens contraires, ${PS(V('AB'),V('AC'))} = −AB × AH&nbsp;;</p><p>• si H = A, ${PS(V('AB'),V('AC'))} = 0&nbsp;: (AC) ⟂ (AB).</p><p>On peut aussi projeter B sur (AC)&nbsp;: on choisit l'ombre que l'on connaît.</p>`,
+  qs:[l2obtuse,l2mixed,l2rect,l2other,l2len]});
+
+/* ---------------------------------------------------------------- niveau 3 : sol et mur */
+const nz=r=>{let x;do{x=ri(-r,r)}while(!x);return x};
+function uvFit(u,v){return[[0,0],u,v,[u[0],v[0]],[v[1],u[1]],[-1,-1],[1,1]]}
+function uvScene(u,v,o){o=o||{};return SC.grid(Object.assign({u,v,lu:'u',lv:'v',fitPts:o.fitPts||uvFit(u,v)},o))}
+const both=()=>SC.floor().then(SC.wall);
+function l3guided(){let u,v;do{u=[ri(1,5),ri(1,5)];v=[nz(5),nz(5)]}while(u[0]*v[0]===0||u[1]*v[1]===0||Math.sign(u[0]*v[0])===Math.sign(u[1]*v[1]));
+  const xx=u[0]*v[0],yy=u[1]*v[1],sc=uvScene(u,v);
+  return{meta:{k:'uv',u,v},prompt:`<p>Dans un repère orthonormé, ${VC(U,...u)} et ${VC(W,...v)}.</p>`,cap0:`On cherche ${PS(U,W)}`,setup:async()=>SC.show(sc),
+    parts:[act('Lumière à pic sur le sol',()=>SC.floor().then(()=>cap(`Au sol : ${fmt(u[0])} × ${par(v[0])} = ${valH(xx)}`)),{ask:`La lumière tombe à pic sur le sol, l'axe des abscisses&nbsp;: l'ombre de ${U} mesure x = ${fmt(u[0])}, celle de ${W} mesure x′ = ${fmt(v[0])}. On redresse l'ombre de ${W}&nbsp;: rectangle x × x′.`,doneLabel:'Sol éclairé'}),
+      act('Lumière à pic sur le mur',()=>SC.wall().then(()=>cap(`Au mur : ${fmt(u[1])} × ${par(v[1])} = ${valH(yy)}`)),{ask:'Même jeu sur le mur, l\'axe des ordonnées&nbsp;: rectangle y × y′.',doneLabel:'Mur éclairé'}),
+      fill('Le produit scalaire est la somme des deux aires signées&nbsp;:',`x × x′ = {0} &nbsp; y × y′ = {1} <br>${PS(U,W)} = {2}`,[B(xx),B(yy),B(xx+yy)],
+        v2=>`x × x′ = ${fmt(u[0])} × ${par(v[0])} et y × y′ = ${fmt(u[1])} × ${par(v[1])}&nbsp;: on ajoute les deux aires, la corail compte en négatif.`,{key:'xyps'})],
+    done:`${PS(U,W)} = x x′ + y y′ = ${fmt(xx)} + ${par(yy)} = ${fmt(xx+yy)}.`}}
+function l3plain(){const u=[nz(6),nz(6)],v=[nz(6),nz(6)],ps=dot(u,v),sc=uvScene(u,v);
+  return{meta:{k:'uv',u,v},prompt:`<p>Dans un repère orthonormé, ${VC(U,...u)} et ${VC(W,...v)}.</p>`,cap0:`On cherche ${PS(U,W)}`,setup:async()=>SC.show(sc),
+    parts:[act('Allumer le sol et le mur',()=>both().then(()=>cap(`Sol : ${valH(u[0]*v[0])} &nbsp; Mur : ${valH(u[1]*v[1])}`)),{doneLabel:'Sol et mur éclairés'}),
+      fill(`Calcule ${PS(U,W)}.`,`${PS(U,W)} = {0}`,[B(ps)],x=>`x x′ + y y′ = ${fmt(u[0])} × ${par(v[0])} + ${par(u[1])} × ${par(v[1])} = ${fmt(u[0]*v[0])} + ${par(u[1]*v[1])}.`,{key:'ps'})],
+    done:`${PS(U,W)} = ${fmt(u[0])} × ${par(v[0])} + ${par(u[1])} × ${par(v[1])} = ${fmt(ps)}.`}}
+function l3choice(){let u,v,L;for(;;){u=[nz(5),nz(5)];v=[nz(5),nz(5)];const ps=dot(u,v);
+    const c=[[u[0]*v[1]+u[1]*v[0],'On a croisé les coordonnées&nbsp;: on multiplie abscisse par abscisse et ordonnée par ordonnée.'],[u[0]*v[1]-u[1]*v[0],'x y′ − x′ y est le déterminant, qui teste la colinéarité, pas l\'orthogonalité.'],
+      [Math.abs(u[0]*v[0])+Math.abs(u[1]*v[1]),'Une aire corail compte en négatif&nbsp;: attention aux signes.'],[u[0]*v[0]-u[1]*v[1],'Les deux aires s\'ajoutent&nbsp;: x x′ <b>+</b> y y′.']];
+    const seen=[ps];L=[];c.forEach(([x,w])=>{if(!seen.some(s=>eq(s,x))){seen.push(x);L.push([x,w])}});if(L.length>=3){L=[[ps,null]].concat(shuf(L).slice(0,3));break}}
+  const sc=uvScene(u,v),ps=L[0][0];
+  return{meta:{k:'uv',u,v},prompt:`<p>Dans un repère orthonormé, ${VC(U,...u)} et ${VC(W,...v)}.</p>`,cap0:`On cherche ${PS(U,W)}`,setup:async()=>SC.show(sc),
+    parts:[ch(`${PS(U,W)} est égal à&nbsp;:`,L.map(([x,w],i)=>i===0?OK(fmt(x),x):NO(fmt(x),x,w)),{key:'psc',onOk:()=>both().then(()=>cap(`${PS(U,W)} = ${valH(u[0]*v[0])} + ${par(u[1]*v[1])} = ${valH(ps)}`))})],
+    done:`${PS(U,W)} = ${fmt(u[0])} × ${par(v[0])} + ${par(u[1])} × ${par(v[1])} = ${fmt(ps)}.`}}
+function l3ij(){const u=[nz(6),nz(6)],I=V('i'),J=V('j');
+  const sc=SC.grid({u,v:st=>st.vj?[0,1]:[1,0],lu:'u',lv:st=>st.vj?'j':'i',fitPts:[[0,0],u,[1,1],[-1,-1],[u[0],1],[1,u[1]]],extra:st=>st.vj?[]:[]});
+  return{meta:{k:'ui',u},prompt:`<p>Dans un repère orthonormé (O&nbsp;; ${I}, ${J}), on a ${VC(U,...u)}, ${VC(I,1,0)} et ${VC(J,0,1)}.</p>`,cap0:`Ombres de ${U} : au sol et au mur`,setup:async()=>SC.show(sc),
+    parts:[fill('Calcule les deux produits scalaires.',`${PS(U,I)} = {0} &nbsp; ${PS(U,J)} = {1}`,[B(u[0]),B(u[1])],`${PS(U,I)} = ${fmt(u[0])} × 1 + ${par(u[1])} × 0 et ${PS(U,J)} = ${fmt(u[0])} × 0 + ${par(u[1])} × 1.`,
+        {key:'ui',onOk:async()=>{await SC.floor();cap(`${PS(U,I)} = ${valH(u[0])} : l'ombre au sol`);await S.wait(500);S.st.vj=1;S.st.fl=0;S.st.fr=0;S.st.ff=0;S.render();await SC.wall();cap(`${PS(U,J)} = ${valH(u[1])} : l'ombre au mur`)}}),
+      ch(`Pour tout vecteur ${U}, ${PS(U,I)} est&nbsp;:`,[OK(`l'abscisse de ${U}`,'abs'),NO(`l'ordonnée de ${U}`,'ord',`${I} est porté par l'axe des abscisses&nbsp;: ${PS(U,I)} = x.`),NO(`la norme de ${U}`,'norm',`${PS(U,I)} est l'ombre de ${U} au sol, c'est-à-dire son abscisse.`)],{key:'what'})],
+    done:`En base orthonormée, les coordonnées sont des produits scalaires&nbsp;: x = ${PS(U,I)} et y = ${PS(U,J)}.`}}
+function l3norm(){const b=pick([[3,4],[4,3],[6,8],[8,6],[0,5],[5,0]]),u=[b[0]*pick([1,-1]),b[1]*pick([1,-1])],n=Math.hypot(u[0],u[1]),uu=n*n;
+  const sc=SC.grid({u,v:u,lu:'u',fitPts:[[0,0],u,[u[0],u[0]],[u[1],u[1]],[-1,-1],[1,1]],st:{vo:0}});
+  return{meta:{k:'norm',u},prompt:`<p>Dans un repère orthonormé, ${VC(U,...u)}.</p>`,cap0:`${PS(U,U)} : deux carrés`,setup:async()=>SC.show(sc),
+    parts:[fill(`Calcule ${PS(U,U)}.`,`${PS(U,U)} = x<span class="sq">2</span> + y<span class="sq">2</span> = {0}`,[B(uu)],`x² + y² = ${par(u[0])}² + ${par(u[1])}². Un carré est toujours positif.`,{key:'uu',onOk:()=>both().then(()=>cap(`${PS(U,U)} = ${fmt(u[0]*u[0])} + ${par(u[1]*u[1])} = ${valH(uu)}`))}),
+      fill('Déduis-en la norme.',`${NRM(U)} = {0}`,[B(n)],`${NRM(U)} = √(${PS(U,U)}) = √${fmt(uu)}.`,{key:'n'})],
+    done:`${NRM(U)} = √(x² + y²) = √${fmt(uu)} = ${fmt(n)}.`}}
+LV.push({t:'Le sol et le mur',badge:'Produit scalaire en repère orthonormé',
+  rule:`<p>Dans un repère orthonormé, si ${VC(U,'x','y')} et ${VC(W,"x′","y′")}&nbsp;:</p><p><b>${PS(U,W)} = x x′ + y y′</b> &nbsp;et&nbsp; <b>${NRM(U)} = √(x<span class="sq">2</span> + y<span class="sq">2</span>)</b>.</p><p>Image&nbsp;: x x′ est l'aire signée au sol (ombres sur l'axe des abscisses), y y′ celle au mur.</p><p>En base orthonormée (${V('i')}, ${V('j')})&nbsp;: x = ${PS(U,V('i'))} et y = ${PS(U,V('j'))}.</p>`,
+  qs:[l3guided,l3plain,l3choice,l3ij,l3norm]});
+
+/* ---------------------------------------------------------------- niveau 4 : éclipse */
+function l4test(){const u=[nz(4),nz(4)];let v;const orth=Math.random()<0.5;
+  if(orth){do{const k=pick([1,-1,2,-2]);v=[-u[1]*k,u[0]*k]}while(Math.abs(v[0])>6||Math.abs(v[1])>6)}
+  else do{v=pick([[u[1],u[0]],[-u[1]+pick([1,-1]),u[0]],[-u[1],u[0]+pick([1,-1])]])}while(dot(u,v)===0||!v[0]&&!v[1]);
+  const ps=dot(u,v),sc=uvScene(u,v);
+  return{meta:{k:'uv',u,v},prompt:`<p>Dans un repère orthonormé, ${VC(U,...u)} et ${VC(W,...v)}. Ces vecteurs sont-ils orthogonaux&nbsp;?</p>`,cap0:'Les deux aires vont-elles se compenser ?',setup:async()=>SC.show(sc),
+    parts:[fill(`Calcule ${PS(U,W)}.`,`${PS(U,W)} = {0}`,[B(ps)],`x x′ + y y′ = ${fmt(u[0])} × ${par(v[0])} + ${par(u[1])} × ${par(v[1])}.`,{key:'ps',
+        onOk:async()=>{await both();if(ps===0){SND.ecl();await SC.eclipse();cap(`Éclipse : ${PS(U,W)} = 0`)}else cap(`Pas d'éclipse : ${PS(U,W)} = ${valH(ps)}`)}}),
+      ch('Donc&nbsp;:',[ps===0?OK(`${U} et ${W} sont orthogonaux`,'yes'):NO(`${U} et ${W} sont orthogonaux`,'yes',`${PS(U,W)} = ${fmt(ps)} ≠ 0&nbsp;: pas d'angle droit.`),
+        ps!==0?OK(`${U} et ${W} ne sont pas orthogonaux`,'no'):NO(`${U} et ${W} ne sont pas orthogonaux`,'no',`${PS(U,W)} = 0&nbsp;: les deux aires se compensent, les vecteurs sont orthogonaux.`)],{key:'orth',keep:true})],
+    done:ps===0?`Les deux aires se compensent exactement&nbsp;: ${PS(U,W)} = 0, donc ${U} ⟂ ${W}.`:`${PS(U,W)} = ${fmt(ps)} ≠ 0&nbsp;: les vecteurs ne sont pas orthogonaux.${dot([u[1],u[0]],u)&&v[0]===u[1]&&v[1]===u[0]?` Échanger les coordonnées ne suffit pas&nbsp;: il faut aussi changer un signe.`:''}`}}
+function l4slider(){let u,c,k;do{u=[pick([1,-1,2,-2,3,-3]),nz(3)];c=nz(4);k=-u[1]*c/u[0]}while(!Number.isInteger(k)||Math.abs(k)>6||k===0||Math.abs(u[0])+Math.abs(u[1])<3);
+  const vf=st=>[Math.round(st.vx),c];
+  const sc=SC.grid({u,v:vf,lu:'u',lv:'v',fitPts:[[0,0],u,[-6,c],[6,c],[u[0],6],[u[0],-6],[c,u[1]],[-1,-1],[1,1]],st:{vx:0,fl:1,fr:1,ff:1,wl:1,wr:1,wf:1}});
+  const live=x=>{S.st.vx=x;const p=u[0]*x+u[1]*c;S.st.ra=p===0?1:0;S.render();cap(`${PS(U,W)} = ${fmt(u[0])} × ${par(x)} + ${par(u[1])} × ${par(c)} = ${valH(p)}`)};
+  return{meta:{k:'kx',u,c},prompt:`<p>Dans un repère orthonormé, ${VC(U,...u)} et ${W}(k&nbsp;; ${fmt(c)}). Règle k pour que ${U} et ${W} soient orthogonaux.</p>`,cap0:'Fais glisser k',setup:async()=>SC.show(sc),
+    parts:[slide('Déplace le curseur&nbsp;: les deux aires doivent se compenser.','k',{min:-6,max:6,step:1,init:k>0?-6:6,targets:[k],onInput:live,key:'k',
+      why:x=>`Avec k = ${fmt(x)}, ${PS(U,W)} = ${fmt(u[0]*x+u[1]*c)} ≠ 0. Il faut ${fmt(u[0])} × k + ${par(u[1]*c)} = 0.`,onOk:()=>{SND.ecl();return SC.eclipse()}})],
+    done:`${fmt(u[0])} × k + ${par(u[1])} × ${par(c)} = 0 donne k = ${fmt(k)}&nbsp;: c'est l'éclipse, ${U} ⟂ ${W}.`}}
+function l4fillk(){let u,c,k;do{u=[nz(5),pick([1,-1,2,-2,3,-3])];c=nz(5);k=-u[0]*c/u[1]}while(!Number.isInteger(k)||Math.abs(k)>8);
+  const v=[c,k],sc=uvScene(u,v,{st:{vo:0},fitPts:uvFit(u,v)});
+  return{meta:{k:'ky',u,c},prompt:`<p>Dans un repère orthonormé, ${VC(U,...u)} et ${W}(${fmt(c)}&nbsp;; k). Trouve k pour que ${U} ⟂ ${W}.</p>`,cap0:`${U} ⟂ ${W} ⇔ ${PS(U,W)} = 0`,setup:async()=>SC.show(sc),
+    parts:[fill('Résous x x′ + y y′ = 0.',`k = {0}`,[B(k)],`${fmt(u[0])} × ${par(c)} + ${par(u[1])} × k = 0, soit ${fmt(u[1])} × k = ${fmt(-u[0]*c)}.`,{key:'k',onOk:async()=>{await S.to({vo:1},400);await both();SND.ecl();await SC.eclipse();cap(`${PS(U,W)} = ${fmt(u[0]*c)} + ${par(u[1]*k)} = 0`)}})],
+    done:`${fmt(u[0]*c)} + ${par(u[1])}k = 0 donne k = ${fmt(k)}.`}}
+function slideScene(A,p,C,q,extraPts,polys){/* vecteur p d'origine A, vecteur q d'origine C, glissé jusqu'en A */
+  const all=[A,C,[A[0]+p[0],A[1]+p[1]],[C[0]+q[0],C[1]+q[1]],[A[0]+q[0],A[1]+q[1]],[A[0]+p[0],A[1]+q[0]],[A[0]+q[1],A[1]+p[1]],[0,0]].concat((typeof extraPts==='function'?extraPts({}):extraPts).map(e=>e.p));
+  return SC.grid({P:A,u:p,v:q,fitPts:all,pts:extraPts,polys,st:{vo:0,sl:0},
+    extra:st=>{const t=st.sl||0,o=[C[0]+(A[0]-C[0])*t,C[1]+(A[1]-C[1])*t];return st.vo>=1||st.hq?[]:[{k:'vec',a:o,b:[o[0]+q[0],o[1]+q[1]],c:S.C.v}]}})}
+async function slideIn(){await S.to({sl:1},800);S.st.vo=1;S.render()}
+function l4perp(){let A,Bp,Cp,Dp,p,q;const orth=Math.random()<0.5;
+  do{A=[ri(-5,1),ri(-4,2)];p=[nz(4),nz(3)];Cp=[ri(-1,4),ri(-5,1)];q=orth?[-p[1]*pick([1,-1]),p[0]*1]:[nz(4),nz(4)];if(orth&&Math.random()<.5)q=[q[0]*-1,q[1]*-1];
+    Bp=[A[0]+p[0],A[1]+p[1]];Dp=[Cp[0]+q[0],Cp[1]+q[1]]}while((!orth&&dot(p,q)===0)||[A,Bp,Cp,Dp].some(z=>Math.abs(z[0])>7||Math.abs(z[1])>6)||(Cp[0]===A[0]&&Cp[1]===A[1]));
+  const ps=dot(p,q),pts=[{n:'A',p:A},{n:'B',p:Bp},{n:'C',p:Cp},{n:'D',p:Dp}],sc=slideScene(A,p,Cp,q,pts,[]),vAB=V('AB'),vCD=V('CD');
+  return{meta:{k:'perp',A,B:Bp,C:Cp,D:Dp},prompt:`<p>Dans un repère orthonormé&nbsp;: ${PT('A',...A)}, ${PT('B',...Bp)}, ${PT('C',...Cp)} et ${PT('D',...Dp)}. Les droites (AB) et (CD) sont-elles perpendiculaires&nbsp;?</p>`,
+    cap0:`(AB) ⟂ (CD) ⇔ ${PS(vAB,vCD)} = 0`,setup:async()=>SC.show(sc),
+    parts:[fill('Coordonnées des vecteurs (arrivée moins départ)&nbsp;:',`${vAB}( {0} ; {1} ) &nbsp; ${vCD}( {2} ; {3} )`,[B(p[0],{size:3}),B(p[1],{size:3}),B(q[0],{size:3}),B(q[1],{size:3})],`${vAB}(x<sub>B</sub> − x<sub>A</sub>&nbsp;; y<sub>B</sub> − y<sub>A</sub>), et de même pour ${vCD}.`,
+        {key:'coords',onOk:()=>slideIn().then(()=>cap(`On fait glisser ${vCD} jusqu'en A`))}),
+      fill(`Calcule ${PS(vAB,vCD)}.`,`${PS(vAB,vCD)} = {0}`,[B(ps)],`${fmt(p[0])} × ${par(q[0])} + ${par(p[1])} × ${par(q[1])}.`,{key:'ps',onOk:async()=>{await both();if(!ps){SND.ecl();await SC.eclipse()}cap(`${PS(vAB,vCD)} = ${valH(ps)}`)}}),
+      ch('Les droites (AB) et (CD) sont&nbsp;:',[ps===0?OK('perpendiculaires','yes'):NO('perpendiculaires','yes',`${PS(vAB,vCD)} ≠ 0&nbsp;: elles ne sont pas perpendiculaires.`),
+        ps!==0?OK('non perpendiculaires','no'):NO('non perpendiculaires','no',`${PS(vAB,vCD)} = 0&nbsp;: les vecteurs directeurs sont orthogonaux.`)],{key:'orth',keep:true})],
+    done:`(AB) ⟂ (CD) ⇔ ${PS(vAB,vCD)} = 0. Ici ${PS(vAB,vCD)} = ${fmt(ps)}&nbsp;: elles ${ps?'ne sont pas':'sont'} perpendiculaires.`}}
+function l4which(){let a,b;do{a=nz(5);b=nz(5)}while(Math.abs(a)===Math.abs(b));const k=pick([1,-1,2]);let good=[-b*k,a*k];if(Math.abs(good[0])>8||Math.abs(good[1])>8)good=[-b,a];
+  const u=[a,b],opts=[[good,null],[[b,a],'Échanger les coordonnées ne suffit pas&nbsp;: '+fmt(a)+' × '+par(b)+' + '+par(b)+' × '+par(a)+' ≠ 0.'],[[-a,b],null],[[a,-b],null]];
+  opts[2][1]=`${fmt(a)} × ${par(-a)} + ${par(b)} × ${par(b)} = ${fmt(-a*a+b*b)} ≠ 0.`;opts[3][1]=`${fmt(a)} × ${par(a)} + ${par(b)} × ${par(-b)} = ${fmt(a*a-b*b)} ≠ 0.`;
+  const sc=SC.grid({u,v:st=>st.cv||[0,0],lu:'u',fitPts:[[0,0],u,good,[b,a],[-a,b],[a,-b],[a,good[0]],[good[1],b],[-1,-1],[1,1]],st:{vo:0}});
+  return{meta:{k:'whichorth',u},prompt:`<p>Dans un repère orthonormé, ${VC(U,a,b)}. Lequel de ces vecteurs est orthogonal à ${U}&nbsp;?</p>`,cap0:'Cherche l\'éclipse',setup:async()=>SC.show(sc),
+    parts:[ch('Vecteur orthogonal à '+U+'&nbsp;:',opts.map(([w,why],i)=>i===0?OK(VC(W,...w),w):NO(VC(W,...w),w,why)),{key:'which',onOk:async()=>{S.st.cv=good;await S.to({vo:1},400);await both();SND.ecl();await SC.eclipse();cap(`${PS(U,W)} = ${fmt(a*good[0])} + ${par(b*good[1])} = 0`)}})],
+    done:`${fmt(a)} × ${par(good[0])} + ${par(b)} × ${par(good[1])} = 0. Retiens&nbsp;: (−b&nbsp;; a) est orthogonal à (a&nbsp;; b).`}}
+LV.push({t:'Éclipse',badge:'Orthogonalité en coordonnées',
+  rule:`<p><b>${U} ⟂ ${W} ⇔ ${PS(U,W)} = 0</b>. En repère orthonormé&nbsp;: <b>${U} ⟂ ${W} ⇔ x x′ + y y′ = 0</b>.</p><p>Image&nbsp;: l'aire du sol et celle du mur se compensent, c'est l'éclipse.</p><p>Deux droites sont perpendiculaires si et seulement si leurs vecteurs directeurs sont orthogonaux.</p>`,
+  qs:[l4test,l4slider,l4fillk,l4perp,l4which]});
+
+/* ---------------------------------------------------------------- niveau 5 : l'angle droit caché */
+function rightTri(vx){for(;;){const V0=[ri(-4,4),ri(-4,3)],d1=[nz(4),nz(3)],t=pick([1,-1,2,-2]),d2=[-d1[1]*t,d1[0]*t];
+  const P1=[V0[0]+d1[0],V0[1]+d1[1]],P2=[V0[0]+d2[0],V0[1]+d2[1]];if([P1,P2].some(z=>Math.abs(z[0])>7||Math.abs(z[1])>6))continue;
+  const o={};if(vx==='A'){o.A=V0;o.B=P1;o.C=P2}else if(vx==='B'){o.B=V0;o.A=P1;o.C=P2}else{o.C=V0;o.A=P1;o.B=P2}return o}}
+function triVecs(T){return{A:[sub(T.B,T.A),sub(T.C,T.A)],B:[sub(T.A,T.B),sub(T.C,T.B)],C:[sub(T.A,T.C),sub(T.B,T.C)]}}
+function triScene(T,vi,fitV){const VV=triVecs(T),K=['A','B','C'];
+  return SC.grid({P:st=>T[K[st.vi||0]],u:st=>VV[K[st.vi||0]][0],v:st=>VV[K[st.vi||0]][1],pts:K.map(k=>({n:k,p:T[k]})),polys:[[T.A,T.B,T.C]],
+    fitPts:[T.A,T.B,T.C,[0,0]].concat(...(fitV||K).map(k=>{const [p,q]=VV[k],P=T[k];return[[P[0]+p[0],P[1]+q[0]],[P[0]+q[1],P[1]+p[1]]]})),st:{vi:vi||0}})}
+const rightOf=T=>{const VV=triVecs(T);return ['A','B','C'].find(k=>dot(...VV[k])===0)||'none'};
+function l5guided(){const T=rightTri('A'),VV=triVecs(T),[p,q]=VV.A,sc=triScene(T,0,['A']),vAB=V('AB'),vAC=V('AC');
+  return{meta:{k:'tri',A:T.A,B:T.B,C:T.C},prompt:`<p>Dans un repère orthonormé&nbsp;: ${PT('A',...T.A)}, ${PT('B',...T.B)} et ${PT('C',...T.C)}. Quelle est la nature du triangle ABC&nbsp;?</p>`,cap0:'Un angle droit se cache-t-il en A ?',setup:async()=>SC.show(sc),
+    parts:[fill('Coordonnées des vecteurs&nbsp;:',`${vAB}( {0} ; {1} ) &nbsp; ${vAC}( {2} ; {3} )`,[B(p[0],{size:3}),B(p[1],{size:3}),B(q[0],{size:3}),B(q[1],{size:3})],'Arrivée moins départ&nbsp;: x<sub>B</sub> − x<sub>A</sub>, puis y<sub>B</sub> − y<sub>A</sub>.',{key:'coords'}),
+      fill(`Calcule ${PS(vAB,vAC)}.`,`${PS(vAB,vAC)} = {0}`,[B(0)],`${fmt(p[0])} × ${par(q[0])} + ${par(p[1])} × ${par(q[1])}.`,{key:'ps',onOk:async()=>{await both();SND.ecl();await SC.eclipse();cap(`${PS(vAB,vAC)} = 0 : angle droit en A`)}}),
+      ch('Le triangle ABC est&nbsp;:',[OK('rectangle en A','A'),NO('rectangle en B','B','L\'angle droit est là où le produit scalaire s\'annule&nbsp;: en A.'),NO('rectangle en C','C','L\'angle droit est là où le produit scalaire s\'annule&nbsp;: en A.'),NO('non rectangle','none',`${PS(vAB,vAC)} = 0 prouve un angle droit en A.`)],{key:'right',keep:true})],
+    done:`${PS(vAB,vAC)} = 0, donc (AB) ⟂ (AC)&nbsp;: ABC est rectangle en A.`}}
+function l5which(){const vx=pick(['A','B','C']),T=rightTri(vx),VV=triVecs(T),sc=triScene(T,0,['A',vx]),ps=dot(...VV.A),vAB=V('AB'),vAC=V('AC');
+  const nmP={A:PS(V('AB'),V('AC')),B:PS(V('BA'),V('BC')),C:PS(V('CA'),V('CB'))};
+  return{meta:{k:'tri',A:T.A,B:T.B,C:T.C},prompt:`<p>Dans un repère orthonormé&nbsp;: ${PT('A',...T.A)}, ${PT('B',...T.B)} et ${PT('C',...T.C)}. Ce triangle est rectangle&nbsp;: en quel sommet&nbsp;?</p>`,cap0:'Cherche l\'éclipse sommet par sommet',setup:async()=>SC.show(sc),
+    parts:[fill(`Commence par A&nbsp;: calcule ${PS(vAB,vAC)}.`,`${PS(vAB,vAC)} = {0}`,[B(ps)],`${vAB}(${fmt(VV.A[0][0])}&nbsp;; ${fmt(VV.A[0][1])}) et ${vAC}(${fmt(VV.A[1][0])}&nbsp;; ${fmt(VV.A[1][1])}).`,{key:'ps',onOk:async()=>{await both();if(!ps){SND.ecl();await SC.eclipse()}cap(`${PS(vAB,vAC)} = ${valH(ps)}`)}}),
+      ch('Le triangle ABC est rectangle en&nbsp;:',['A','B','C'].map(k=>k===vx?OK(k,k):NO(k,k,`${nmP[k]} = ${fmt(dot(...VV[k]))} ≠ 0&nbsp;: pas d'angle droit en ${k}.`)),{key:'right',keep:true,
+        onOk:async()=>{if(vx!=='A'){await S.to({fl:0,wl:0,ff:0,wf:0,fr:0,wr:0,ecl:0,ra:0},300);S.st.vi=['A','B','C'].indexOf(vx);S.render();await both();SND.ecl();await SC.eclipse()}cap(`${nmP[vx]} = 0 : angle droit en ${vx}`)}})],
+    done:`${nmP[vx]} = 0&nbsp;: ABC est rectangle en ${vx}.`}}
+function l5perpk(){let A,Bp,Cp,d,k,p;do{A=[ri(-5,0),ri(-4,1)];p=[nz(3),pick([1,-1,2,-2])];Bp=[A[0]+p[0],A[1]+p[1]];Cp=[ri(0,4),ri(-3,2)];d=Cp[0]+nz(3);k=Cp[1]-p[0]*(d-Cp[0])/p[1]}
+  while(!Number.isInteger(k)||Math.abs(k)>6||[Bp].some(z=>Math.abs(z[0])>7||Math.abs(z[1])>6)||Math.abs(d)>7);
+  const Dp=[d,k],q=sub(Dp,Cp),pts=st=>[{n:'A',p:A},{n:'B',p:Bp},{n:'C',p:Cp},{n:'D',p:Dp,o:st.hq?0:1}],sc=slideScene(A,p,Cp,q,pts,[]),vAB=V('AB'),vCD=V('CD');
+  return{meta:{k:'perpk',A,B:Bp,C:Cp,d},prompt:`<p>${PT('A',...A)}, ${PT('B',...Bp)}, ${PT('C',...Cp)} et D(${fmt(d)}&nbsp;; k). Trouve k pour que (CD) soit perpendiculaire à (AB).</p>`,cap0:`(AB) ⟂ (CD) ⇔ ${PS(vAB,vCD)} = 0`,
+    setup:async()=>{SC.show(sc);S.st.hq=1;S.render()},
+    parts:[fill(`Écris ${PS(vAB,vCD)} = 0 avec ${vCD}(${fmt(d-Cp[0])}&nbsp;; k − ${par(Cp[1])}), puis résous.`,'k = {0}',[B(k)],`${fmt(p[0])} × ${par(d-Cp[0])} + ${par(p[1])} × (k − ${par(Cp[1])}) = 0.`,{key:'k',
+      onOk:async()=>{S.st.hq=0;S.render();await slideIn();await both();SND.ecl();await SC.eclipse();cap(`D(${fmt(d)} ; ${fmt(k)}) : (AB) ⟂ (CD)`)}})],
+    done:`Avec k = ${fmt(k)}, ${PS(vAB,vCD)} = ${fmt(p[0]*q[0])} + ${par(p[1]*q[1])} = 0.`}}
+function l5para(){let A,p,q;const rect=Math.random()<0.5;
+  do{A=[ri(-5,0),ri(-4,0)];p=[nz(4),nz(3)];const t=pick([1,-1]);q=rect?[-p[1]*t,p[0]*t]:[-p[1]*t+pick([1,-1]),p[0]*t]}
+  while([[A[0]+p[0],A[1]+p[1]],[A[0]+q[0],A[1]+q[1]],[A[0]+p[0]+q[0],A[1]+p[1]+q[1]]].some(z=>Math.abs(z[0])>7||Math.abs(z[1])>6)||(!rect&&dot(p,q)===0)||(!q[0]&&!q[1]));
+  const Bp=[A[0]+p[0],A[1]+p[1]],Dp=[A[0]+q[0],A[1]+q[1]],Cp=[Bp[0]+q[0],Bp[1]+q[1]],ps=dot(p,q),vAB=V('AB'),vAD=V('AD');
+  const sc=SC.grid({P:A,u:p,v:q,pts:[{n:'A',p:A},{n:'B',p:Bp},{n:'C',p:Cp},{n:'D',p:Dp}],polys:[[A,Bp,Cp,Dp]],fitPts:[A,Bp,Cp,Dp,[0,0],[A[0]+p[0],A[1]+q[0]],[A[0]+q[1],A[1]+p[1]]]});
+  return{meta:{k:'para',A,B:Bp,D:Dp},prompt:`<p>ABCD est un parallélogramme avec ${PT('A',...A)}, ${PT('B',...Bp)} et ${PT('D',...Dp)}. Est-ce un rectangle&nbsp;?</p>`,cap0:'Un parallélogramme avec un angle droit est un rectangle',setup:async()=>SC.show(sc),
+    parts:[fill(`Calcule ${PS(vAB,vAD)}.`,`${PS(vAB,vAD)} = {0}`,[B(ps)],`${vAB}(${fmt(p[0])}&nbsp;; ${fmt(p[1])}) et ${vAD}(${fmt(q[0])}&nbsp;; ${fmt(q[1])}).`,{key:'ps',onOk:async()=>{await both();if(!ps){SND.ecl();await SC.eclipse()}cap(`${PS(vAB,vAD)} = ${valH(ps)}`)}}),
+      ch('ABCD est-il un rectangle&nbsp;?',[ps===0?OK('oui','yes'):NO('oui','yes',`${PS(vAB,vAD)} ≠ 0&nbsp;: l'angle en A n'est pas droit.`),ps!==0?OK('non','no'):NO('non','no',`${PS(vAB,vAD)} = 0&nbsp;: angle droit en A, et un parallélogramme qui a un angle droit est un rectangle.`)],{key:'rect',keep:true})],
+    done:ps===0?'Angle droit en A&nbsp;: le parallélogramme ABCD est un rectangle.':`${PS(vAB,vAD)} = ${fmt(ps)} ≠ 0&nbsp;: ABCD n'est pas un rectangle.`}}
+function l5slider(){let A,p,c,k;do{A=[ri(-3,1),ri(-3,1)];p=[pick([1,-1,2,-2]),nz(4)];c=ri(-5,5);k=A[0]-p[1]*(c-A[1])/p[0]}
+  while(!Number.isInteger(k)||Math.abs(k)>7||c===A[1]||Math.abs(A[0]+p[0])>7||Math.abs(A[1]+p[1])>6);
+  const Bp=[A[0]+p[0],A[1]+p[1]];
+  const sc=SC.grid({P:A,u:p,v:st=>[Math.round(st.kx)-A[0],c-A[1]],pts:st=>[{n:'A',p:A},{n:'B',p:Bp},{n:'C',p:[Math.round(st.kx),c],c:'#6fd3c1'}],rail:{y:c},
+    fitPts:[A,Bp,[-7,c],[7,c],[0,0]],st:{kx:0}});
+  const live=x=>{S.st.kx=x;const v=[x-A[0],c-A[1]],pp=dot(p,v);S.st.ra=pp===0?1:0;S.render();cap(`${PS(V('AB'),V('AC'))} = ${valH(pp)}`)};
+  return{meta:{k:'rightk',A,B:Bp,c},prompt:`<p>${PT('A',...A)}, ${PT('B',...Bp)} et C(k&nbsp;; ${fmt(c)}) glisse sur la droite d'équation y = ${fmt(c)}. Place C pour que le triangle ABC soit rectangle en A.</p>`,cap0:'Fais glisser C',setup:async()=>SC.show(sc),
+    parts:[slide('Déplace C jusqu\'à l\'éclipse en A.','k',{min:-7,max:7,step:1,init:k>0?-7:7,targets:[k],onInput:live,key:'k',why:x=>`Avec k = ${fmt(x)}, ${PS(V('AB'),V('AC'))} = ${fmt(dot(p,[x-A[0],c-A[1]]))} ≠ 0.`,onOk:()=>{SND.ecl();return SC.eclipse()}})],
+    done:`Avec C(${fmt(k)}&nbsp;; ${fmt(c)}), ${PS(V('AB'),V('AC'))} = 0&nbsp;: ABC est rectangle en A.`}}
+LV.push({t:'L\'angle droit caché',badge:'Démontrer une orthogonalité',
+  rule:`<p>Pour démontrer qu'un triangle ABC est rectangle en A, on calcule ${PS(V('AB'),V('AC'))}&nbsp;: <b>${PS(V('AB'),V('AC'))} = 0 ⇔ (AB) ⟂ (AC)</b>.</p><p>Coordonnées d'un vecteur&nbsp;: ${V('AB')}(x<sub>B</sub> − x<sub>A</sub>&nbsp;; y<sub>B</sub> − y<sub>A</sub>).</p><p>Un parallélogramme qui a un angle droit est un rectangle.</p>`,
+  qs:[l5guided,l5which,l5perpk,l5para,l5slider]});
+
+/* ---------------------------------------------------------------- niveau 6 : le cercle des angles droits */
+function railData(){for(;;){const A=[ri(-6,6),ri(-5,5)],Bp=[ri(-6,6),ri(-5,5)],c=ri(-4,4);if(A[1]===c||Bp[1]===c||(A[0]===Bp[0]&&A[1]===Bp[1]))continue;
+  const s=A[0]+Bp[0],pr=A[0]*Bp[0]+(A[1]-c)*(Bp[1]-c),D=s*s-4*pr;if(D<=0)continue;const r=Math.round(Math.sqrt(D));if(r*r!==D||(s+r)%2)continue;
+  const t1=(s-r)/2,t2=(s+r)/2;if(t1<-8||t2>8||t2-t1<2)continue;const I=[(A[0]+Bp[0])/2,(A[1]+Bp[1])/2],R=Math.hypot(Bp[0]-A[0],Bp[1]-A[1])/2;
+  if(I[1]+R>7||I[1]-R<-6.5||I[0]+R>9||I[0]-R<-9)continue;return{A,B:Bp,c,t1,t2,I,R}}}
+function l6rail(){const D=railData(),{A,c,t1,t2,I,R}=D,Bp=D.B,MA=V('MA'),MB=V('MB');let init;do{init=ri(-8,8)}while(Math.abs(init-t1)<2||Math.abs(init-t2)<2);
+  const M=st=>[Math.round(st.mx),c];
+  const sc=SC.grid({P:M,u:st=>sub(A,M(st)),v:st=>sub(Bp,M(st)),pts:st=>[{n:'A',p:A},{n:'B',p:Bp},{n:'M',p:M(st),c:'#6fd3c1'}].concat(st.circ>.9?[{n:'I',p:I,c:S.C.gold}]:[]),rail:{y:c},
+    circle:{c:I,r:R},fitPts:[A,Bp,[-8,c],[8,c],[I[0]-R,I[1]-R],[I[0]+R,I[1]+R],[0,0]],st:{mx:init,uo:.85,vo:.85}});
+  const f=t=>(A[0]-t)*(Bp[0]-t)+(A[1]-c)*(Bp[1]-c);
+  const live=x=>{S.st.mx=x;S.st.ra=f(x)===0?1:0;S.render();cap(`${PS(MA,MB)} = ${valH(f(x))}`)};
+  return{meta:{k:'rail',A,B:Bp,c},prompt:`<p>${PT('A',...A)} et ${PT('B',...Bp)}. Le point M(x&nbsp;; ${fmt(c)}) glisse sur la droite d'équation y = ${fmt(c)}. Place M pour que ${PS(MA,MB)} = 0, c'est-à-dire pour que l'on voie [AB] depuis M sous un angle droit.</p>`,
+    cap0:'Fais glisser M',setup:async()=>SC.show(sc),
+    parts:[slide('Il y a deux positions possibles&nbsp;: trouves-en une.','x',{min:-8,max:8,step:1,init,targets:[t1,t2],onInput:live,key:'x',why:x=>`Avec x = ${fmt(x)}, ${PS(MA,MB)} = ${fmt(f(x))} ≠ 0. Cherche l'angle droit en M.`,
+      onOk:async v=>{SND.ecl();await S.to({ra:1},300);await S.to({circ:1},1300);const o=v===t1?t2:t1;cap(`L'autre position, x = ${fmt(o)}, est aussi sur le cercle`)}}),
+      ch(`L'ensemble des points M du plan tels que ${PS(MA,MB)} = 0 est&nbsp;:`,[OK('le cercle de diamètre [AB]','circle'),NO('la médiatrice de [AB]','med','Sur la médiatrice, MA = MB, mais l\'angle en M n\'est pas toujours droit.'),
+        NO('la droite (AB)','line','Si M est sur (AB) sans être en A ou en B, les vecteurs sont colinéaires&nbsp;: le produit n\'est pas nul.'),NO('le cercle de centre A passant par B','cA','Le centre est le milieu I de [AB], pas A.')],{key:'set'})],
+    done:`Les deux positions, x = ${fmt(t1)} et x = ${fmt(t2)}, sont sur le cercle de diamètre [AB]&nbsp;: c'est l'ensemble des points M tels que ${PS(MA,MB)} = 0.`}}
+function transScene(a,m){const th=ri(40,140)*Math.PI/180,M=[r3(m*Math.cos(th)),r3(m*Math.sin(th))],A=[-a/2,0],Bp=[a/2,0];
+  return SC.grid({axes:false,P:M,u:sub(A,M),v:sub(Bp,M),pts:[{n:'A',p:A},{n:'B',p:Bp},{n:'I',p:[0,0],c:S.C.gold},{n:'M',p:M,c:'#6fd3c1'}],circle:{c:[0,0],r:a/2},
+    fitPts:[A,Bp,M,[0,a/2],[0,-a/2],[0,-a/2-0.8]],maxS:70,st:{uo:.9,vo:.9},extra:st=>[{k:'line',a:[0,0],b:M,c:S.C.gold,w:2.5,dash:'7 6'},{k:'lab',p:[M[0]/2,M[1]/2],s:`MI = ${fmt(m)}`,c:S.C.gold,size:21,dx:30,dy:0},
+      {k:'lab',p:[0,-a/2],s:`AB = ${fmt(a)}`,c:S.C.mut,size:21,dy:30}]})}
+function l6trans(withAngle){return()=>{const a=pick([2,4,6,8,10,3,5]);let m=ri(1,7);if(withAngle&&Math.random()<0.34)m=a/2;if(!Number.isInteger(m))m=ri(1,7);
+  const val=r3(m*m-a*a/4),sc=transScene(a,m),MA=V('MA'),MB=V('MB'),fq=`MI${sq('')} − AB${sq('')}/4`;
+  const parts=[fill('Applique la transformation de '+PS(MA,MB)+'&nbsp;:',`${PS(MA,MB)} = MI<span class="sq">2</span> − <span class="nw">AB<span class="sq">2</span>/4</span> = {0}`,[B(val)],
+    v=>v[0]!==null&&eq(v[0],m*m-a*a)?'Tu as oublié de diviser AB² par 4.':v[0]!==null&&eq(v[0],m*m-a/2)?'C\'est AB² qu\'on divise par 4, pas AB par 2.':`${fmt(m)}² − ${fmt(a)}²/4 = ${fmt(m*m)} − ${fmt(a*a/4)}.`,
+    {key:'ps',onOk:()=>S.to({circ:1},1100).then(()=>cap(val>0?`${PS(MA,MB)} > 0 : M est hors du cercle de diamètre [AB]`:val<0?`${PS(MA,MB)} < 0 : M est dans le cercle`:`${PS(MA,MB)} = 0 : M est sur le cercle`))})];
+  if(withAngle)parts.push(ch('L\'angle AMB est donc&nbsp;:',[[1,'aigu'],[0,'droit'],[-1,'obtus']].map(([s,t])=>Math.sign(val)===s?OK(t,t):NO(t,t,`${PS(MA,MB)} = MA × MB × cos(AMB) a le signe du cosinus&nbsp;: ici ${PS(MA,MB)} ${val>0?'> 0':val<0?'< 0':'= 0'}.`)),{key:'angle',keep:true}));
+  return{meta:{k:'transfo',a,m},prompt:`<p>I est le milieu de [AB], avec AB = ${fmt(a)}. Le point M est tel que MI = ${fmt(m)}.</p><p>Pour tout point M&nbsp;: ${PS(MA,MB)} = ${fq}.</p>`,cap0:`${PS(MA,MB)} = ${fq}`,setup:async()=>SC.show(sc),parts,
+    done:`${PS(MA,MB)} = ${fmt(m*m)} − ${fmt(a*a/4)} = ${fmt(val)}.${withAngle?` ${val>0?'Positif&nbsp;: angle aigu, M est hors du cercle.':val<0?'Négatif&nbsp;: angle obtus, M est dans le cercle.':'Nul&nbsp;: angle droit, M est sur le cercle de diamètre [AB].'}`:''}`}}}
+const NSETS=[[[3,4],[4,3],[5,0],[0,5]],[[1,2],[2,1]],[[1,3],[3,1]],[[2,3],[3,2]],[[1,1]],[[2,2]],[[2,0],[0,2]],[[3,0],[0,3]]];
+function sgnV(w){return[w[0]*pick([1,-1]),w[1]*pick([1,-1])]}
+function l6on(){for(;;){const on=Math.random()<0.5,set=pick(NSETS),I=[ri(-2,2),ri(-2,1)],w=sgnV(pick(set));let w2=sgnV(pick(set));if((w2[0]===w[0]&&w2[1]===w[1])||(w2[0]===-w[0]&&w2[1]===-w[1]))continue;
+  if(!on)w2=[w2[0]+pick([1,-1]),w2[1]];const A=[I[0]+w[0],I[1]+w[1]],Bp=[I[0]-w[0],I[1]-w[1]],M=[I[0]+w2[0],I[1]+w2[1]];
+  const ps=dot(sub(A,M),sub(Bp,M));if(!on&&ps===0)continue;if((M[0]===A[0]&&M[1]===A[1])||(M[0]===Bp[0]&&M[1]===Bp[1]))continue;
+  const MA=V('MA'),MB=V('MB'),R=Math.hypot(...w);
+  const sc=SC.grid({P:M,u:sub(A,M),v:sub(Bp,M),pts:[{n:'A',p:A},{n:'B',p:Bp},{n:'M',p:M,c:'#6fd3c1'}],circle:{c:I,r:R},fitPts:[A,Bp,M,[I[0]-R,I[1]-R],[I[0]+R,I[1]+R],[0,0],[M[0]+A[0]-M[0],M[1]+Bp[0]-M[0]],[M[0]+Bp[1]-M[1],M[1]+A[1]-M[1]]]});
+  return{meta:{k:'oncircle',A,B:Bp,M},prompt:`<p>${PT('A',...A)}, ${PT('B',...Bp)} et ${PT('M',...M)}. Le point M appartient-il au cercle de diamètre [AB]&nbsp;?</p>`,cap0:`M ∈ cercle de diamètre [AB] ⇔ ${PS(MA,MB)} = 0`,setup:async()=>SC.show(sc),
+    parts:[fill(`Calcule ${PS(MA,MB)}.`,`${PS(MA,MB)} = {0}`,[B(ps)],`${MA}(${fmt(A[0]-M[0])}&nbsp;; ${fmt(A[1]-M[1])}) et ${MB}(${fmt(Bp[0]-M[0])}&nbsp;; ${fmt(Bp[1]-M[1])}).`,{key:'ps',onOk:async()=>{await both();if(!ps){SND.ecl();await SC.eclipse()}await S.to({circ:1},1000);cap(`${PS(MA,MB)} = ${valH(ps)}`)}}),
+      ch('M appartient-il au cercle de diamètre [AB]&nbsp;?',[ps===0?OK('oui','yes'):NO('oui','yes',`${PS(MA,MB)} ≠ 0&nbsp;: M n'est pas sur le cercle.`),ps!==0?OK('non','no'):NO('non','no',`${PS(MA,MB)} = 0&nbsp;: M est sur le cercle de diamètre [AB].`)],{key:'on',keep:true})],
+    done:ps===0?`${PS(MA,MB)} = 0&nbsp;: M voit [AB] sous un angle droit, il est sur le cercle de diamètre [AB].`:`${PS(MA,MB)} = ${fmt(ps)} ≠ 0&nbsp;: M n'est pas sur le cercle de diamètre [AB].`}}}
+function l6center(){for(;;){let d=pick([[6,8],[8,6],[0,6],[6,0],[0,8],[8,0],[3,4],[4,3],[0,4],[4,0],[0,10],[2,0],[0,2]]);d=sgnV(d);if(Math.random()<.5)d=[d[1],d[0]];
+  const A=[ri(-6,4),ri(-5,4)],Bp=[A[0]+d[0],A[1]+d[1]];if(Math.abs(Bp[0])>7||Math.abs(Bp[1])>6)continue;const I=[(A[0]+Bp[0])/2,(A[1]+Bp[1])/2],r=Math.hypot(...d)/2;
+  const sc=SC.grid({axes:true,u:null,v:null,pts:st=>[{n:'A',p:A},{n:'B',p:Bp}].concat(st.circ>.5?[{n:'I',p:I,c:S.C.gold}]:[]),circle:{c:I,r},fitPts:[A,Bp,[I[0]-r,I[1]-r],[I[0]+r,I[1]+r],[0,0]],extra:()=>[{k:'line',a:A,b:Bp,c:'rgba(190,210,255,.5)',w:2}]});
+  return{meta:{k:'center',A,B:Bp},prompt:`<p>${PT('A',...A)} et ${PT('B',...Bp)}. Donne le centre I et le rayon r du cercle de diamètre [AB].</p>`,cap0:'Le centre est le milieu, le rayon la moitié du diamètre',setup:async()=>SC.show(sc),
+    parts:[fill('Centre et rayon&nbsp;:',`I( {0} ; {1} ) &nbsp; r = {2}`,[B(I[0],{size:3}),B(I[1],{size:3}),B(r,{size:3})],`I est le milieu de [AB]&nbsp;: ((x<sub>A</sub> + x<sub>B</sub>)/2&nbsp;; (y<sub>A</sub> + y<sub>B</sub>)/2). r = AB/2 avec AB = √(${par(d[0])}² + ${par(d[1])}²) = ${fmt(2*r)}.`,
+      {key:'ir',onOk:()=>S.to({circ:1},1200).then(()=>cap(`Cercle de centre I(${fmt(I[0])} ; ${fmt(I[1])}) et de rayon ${fmt(r)}`))})],
+    done:`I(${fmt(I[0])}&nbsp;; ${fmt(I[1])}) et r = AB/2 = ${fmt(2*r)}/2 = ${fmt(r)}&nbsp;: tout point M de ce cercle (autre que A et B) voit [AB] sous un angle droit.`}}}
+LV.push({t:'Le cercle des angles droits',badge:'Ensemble des points M tels que MA·MB = 0',
+  rule:`<p>I milieu de [AB]&nbsp;: pour tout point M, <b>${PS(V('MA'),V('MB'))} = MI<span class="sq">2</span> − AB<span class="sq">2</span>/4</b>.</p><p><b>${PS(V('MA'),V('MB'))} = 0 ⇔ M appartient au cercle de diamètre [AB]</b> (centre I, rayon AB/2).</p><p>Image&nbsp;: depuis chaque point du cercle, on voit [AB] sous un angle droit.</p>`,
+  qs:[l6rail,l6trans(false),l6on,l6center,l6trans(true)]});
+
+/* ---------------------------------------------------------------- niveau 7 : problèmes à pic */
+const METH={coord:`les coordonnées&nbsp;: x x′ + y y′`,proj:'la projection orthogonale&nbsp;: ± AB × AH',cos:'les normes et l\'angle&nbsp;: ‖u‖ × ‖v‖ × cos θ',norm:'les normes seules&nbsp;: ½(AB² + AC² − BC²)'};
+function methodData(kind){if(kind==='coord'){const u=[nz(6),nz(6)],v=[nz(6),nz(6)];return{kind,u,v,val:dot(u,v),txt:`Dans un repère orthonormé, ${VC(U,...u)} et ${VC(W,...v)}. Calcule ${PS(U,W)}.`}}
+  if(kind==='proj'){const a=ri(3,9),h=ri(1,6),s=pick([1,-1]);return{kind,a,h,s,val:s*a*h,txt:`H est le projeté orthogonal de C sur (AB), ${s>0?'sur la demi-droite [AB)':'sur la demi-droite opposée à [AB)'}&nbsp;; AB = ${a} et AH = ${h}. Calcule ${PS(V('AB'),V('AC'))}.`}}
+  if(kind==='cos'){const p=ri(2,8),q=pick([2,4,6,8,3,5]),th=pick([60,120]);return{kind,p,q,th,val:(th===60?1:-1)*p*q/2,txt:`${NRM(U)} = ${p}, ${NRM(W)} = ${q} et l'angle θ entre ${U} et ${W} mesure ${th}°. Calcule ${PS(U,W)}.`}}
+  let x,y,z;do{x=ri(2,9);y=ri(2,9);z=ri(2,12)}while(z>=x+y||x>=y+z||y>=x+z);return{kind:'norm',x,y,z,val:(x*x+y*y-z*z)/2,txt:`Dans le triangle ABC, AB = ${x}, AC = ${y} et BC = ${z}. Calcule ${PS(V('AB'),V('AC'))}.`}}
+function l7method(){const kind=pick(['coord','proj','cos','norm']),D=methodData(kind);let sc;
+  if(kind==='coord')sc=uvScene(D.u,D.v);
+  else if(kind==='proj')sc=SC.proj({a:D.a,P:[D.s*D.h,ri(2,5)],rot0:rot0(),areaLab:fmt(D.val)});
+  else if(kind==='cos'){const t=D.th*Math.PI/180;sc=SC.proj({a:D.p,P:[r3(D.q*Math.cos(t)),r3(D.q*Math.sin(t))],names:{A:'O',G:'U',P:'V',H:'H'},rot0:rot0(),areaLab:fmt(D.val)})}
+  else{const cx=(D.x*D.x+D.y*D.y-D.z*D.z)/(2*D.x),cy=Math.sqrt(Math.max(0,D.y*D.y-cx*cx));sc=SC.proj({a:D.x,P:[r3(cx),r3(cy)],rot0:rot0(),areaLab:fmt(D.val),segs:[[[D.x,0],[r3(cx),r3(cy)]]]})}
+  const opts=['coord','proj','cos','norm'].map(k=>k===kind?OK(METH[k],k):NO(METH[k],k,'Regarde les données&nbsp;: '+({coord:'il faudrait des coordonnées.',proj:'il faudrait un projeté orthogonal.',cos:'il faudrait un angle.',norm:'il faudrait les trois longueurs du triangle.'})[k]));
+  const anim=()=>kind==='coord'?both():rotate().then(lightOn).then(riseFill);
+  return{meta:{k:'method',D},prompt:`<p>${D.txt}</p>`,cap0:'Choisis la méthode adaptée aux données',setup:async()=>SC.show(sc),
+    parts:[ch('La méthode la plus adaptée utilise&nbsp;:',opts,{key:'method',keep:true}),
+      fill('Calcule.',`Résultat&nbsp;: {0}`,[B(D.val)],({coord:`x x′ + y y′ = ${D.u?fmt(D.u[0])+' × '+par(D.v[0])+' + '+par(D.u[1])+' × '+par(D.v[1]):''}.`,proj:`${D.s<0?'−':''}AB × AH, signe selon le sens de l'ombre.`,cos:`‖u‖ × ‖v‖ × cos ${D.th}° avec cos ${D.th}° = ${D.th===60?'':'−'}1/2.`,norm:`½(AB² + AC² − BC²) = ½(${D.x*D.x} + ${D.y*D.y} − ${D.z*D.z}).`})[kind],
+        {key:'ps',onOk:()=>anim().then(()=>cap(`Quelle que soit la méthode : ${valH(D.val)}`))})],
+    done:`Résultat&nbsp;: ${fmt(D.val)}. Toutes les méthodes donnent le même produit scalaire&nbsp;: on choisit celle qui colle aux données.`}}
+function l7len(){for(;;){const d=sgnV(pick([[3,4],[4,3],[5,0],[0,5],[6,8],[8,6]])),A=[ri(-4,1),ri(-4,0)],Bp=[A[0]+d[0],A[1]+d[1]],Cp=[ri(-6,6),ri(-5,5)];
+  if(Math.abs(Bp[0])>7||Math.abs(Bp[1])>6)continue;const ab=Math.hypot(...d),w=sub(Cp,A),ps=dot(d,w),cr=d[0]*w[1]-d[1]*w[0];
+  if(!ps||!cr||!Number.isInteger(ps*2/ab)||Math.abs(ps/ab)>9)continue;const h=Math.abs(ps)/ab,rot=Math.atan2(d[1],d[0])*180/Math.PI;
+  const sc=SC.proj({a:ab,P:[ps/ab,Math.abs(cr)/ab],rot0:rot,areaLab:fmt(ps)});const vAB=V('AB'),vAC=V('AC');
+  return{meta:{k:'lencoord',A,B:Bp,C:Cp},prompt:`<p>${PT('A',...A)}, ${PT('B',...Bp)} et ${PT('C',...Cp)}&nbsp;; on a AB = ${fmt(ab)}. H est le projeté orthogonal de C sur (AB). Calcule la longueur AH.</p>`,cap0:'Coordonnées, puis projection',setup:async()=>SC.show(sc),
+    parts:[fill(`Calcule ${PS(vAB,vAC)} avec les coordonnées.`,`${PS(vAB,vAC)} = {0}`,[B(ps)],`${vAB}(${fmt(d[0])}&nbsp;; ${fmt(d[1])}) et ${vAC}(${fmt(w[0])}&nbsp;; ${fmt(w[1])}).`,{key:'ps',onOk:()=>rotate().then(lightOn).then(()=>cap(`(AB) devient le sol ; ombre de ${vAC} : ${V('AH')}`))}),
+      ch('Le point H est&nbsp;:',[OK(ps>0?'sur la demi-droite [AB)':'sur la demi-droite opposée à [AB)',sg(ps)),NO(ps>0?'sur la demi-droite opposée à [AB)':'sur la demi-droite [AB)',sg(-ps),`Le produit scalaire est ${ps>0?'positif':'négatif'}&nbsp;: l'ombre va ${ps>0?'dans le sens de':'à l\'opposé de'} ${vAB}.`)],{key:'side'}),
+      fill('Déduis-en AH.','AH = {0}',[B(h)],`${PS(vAB,vAC)} = ${ps>0?'':'−'}AB × AH, donc AH = ${fmt(Math.abs(ps))} ÷ ${fmt(ab)}.`,{key:'ah',onOk:()=>riseFill().then(()=>cap(`AH = ${fmt(Math.abs(ps))} ÷ ${fmt(ab)} = ${fmt(h)}`))})],
+    done:`${PS(vAB,vAC)} = ${fmt(ps)} et AB = ${fmt(ab)}&nbsp;: AH = ${fmt(h)}.`}}}
+function angleData(){for(;;){const u=[ri(-4,4),ri(-4,4)],v=[ri(-4,4),ri(-4,4)],ps=dot(u,v),n1=dot(u,u),n2=dot(v,v);if(!n1||!n2||!ps)continue;if(2*ps*ps===n1*n2)return{u,v,ps,n1,n2,ang:ps>0?45:135}}}
+function l7angle(){const {u,v,ps,n1,n2,ang}=angleData(),sc=uvScene(u,v);
+  return{meta:{k:'angle',u,v},prompt:`<p>Dans un repère orthonormé, ${VC(U,...u)} et ${VC(W,...v)}. On cherche l'angle θ entre ${U} et ${W}, sachant que ${PS(U,W)} = ${NRM(U)} × ${NRM(W)} × cos θ.</p>`,cap0:'cos θ = u·v / (‖u‖ × ‖v‖)',setup:async()=>SC.show(sc),
+    parts:[fill(`Calcule ${PS(U,W)}.`,`${PS(U,W)} = {0}`,[B(ps)],`${fmt(u[0])} × ${par(v[0])} + ${par(u[1])} × ${par(v[1])}.`,{key:'ps',onOk:()=>both().then(()=>cap(`${PS(U,W)} = ${valH(ps)}`))}),
+      fill('Calcule les carrés des normes.',`${NRM(U)}<span class="sq">2</span> = {0} &nbsp; ${NRM(W)}<span class="sq">2</span> = {1}`,[B(n1),B(n2)],'‖u‖² = x² + y².',{key:'nn'}),
+      ch(`cos θ = ${fmt(ps)} / √(${n1} × ${n2}) = ${fmt(ps)} / √${n1*n2}. L'angle θ mesure&nbsp;:`,[[45,`cos θ = √2/2`],[135,`cos θ = −√2/2`],[60,'cos 60° = 1/2'],[90,'cos 90° = 0']].map(([t,w])=>t===ang?OK(t+'°',t):NO(t+'°',t,`√${n1*n2} = ${fmt(Math.abs(ps))}√2, donc cos θ = ${ps>0?'':'−'}1/√2 = ${ps>0?'':'−'}√2/2. Or ${w}.`)),{key:'angle',keep:true})],
+    done:`cos θ = ${fmt(ps)}/(${fmt(Math.abs(ps))}√2) = ${ps>0?'':'−'}√2/2, donc θ = ${ang}°.`}}
+function l7quad(){const pairs=[[1,-4,2],[-1,4,2],[4,-1,2],[-4,1,2],[2,-2,2],[-2,2,2],[3,-3,3],[-3,3,3],[4,-4,4],[-4,4,4],[1,-1,1],[-1,1,1],[1,-9,3],[2,-8,4],[-2,8,4]],[a,b,t]=pick(pairs);
+  const sc=SC.grid({u:st=>[st.kk,a],v:st=>[st.kk,b],lu:'u',lv:'v',fitPts:[[0,0],[t,a],[t,b],[-t,a],[t,t],[-t,-t],[b,a],[-1,-1],[1,1]],st:{kk:0}});
+  return{meta:{k:'quadk',a,b},prompt:`<p>Dans un repère orthonormé, ${U}(k&nbsp;; ${fmt(a)}) et ${W}(k&nbsp;; ${fmt(b)}). Trouve toutes les valeurs de k pour lesquelles ${U} ⟂ ${W}.</p>`,cap0:`${PS(U,W)} = k² + ${par(a*b)}`,setup:async()=>SC.show(sc),
+    parts:[fill('Résous k<span class="sq">2</span> + '+par(a*b)+' = 0 (dans l\'ordre que tu veux).','k = {0} ou k = {1}',[B(t),B(-t)],`k × k + ${par(a)} × ${par(b)} = 0, soit k² = ${fmt(-a*b)}&nbsp;: deux solutions opposées.`,{key:'k',anyOrder:true,
+      onOk:async()=>{await S.to({kk:t},800);await both();SND.ecl();await SC.eclipse();cap(`k = ${fmt(t)} : éclipse. Et k = ${fmt(-t)} aussi.`)}})],
+    done:`k² = ${fmt(-a*b)} donne k = ${fmt(t)} ou k = ${fmt(-t)}.`}}
+function l7axis(){for(;;){const D0=railData();if(D0.c!==0)continue;const {A,t1,t2,I,R}=D0,Bp=D0.B,MA=V('MA'),MB=V('MB');
+  const sc=SC.grid({u:null,v:null,pts:st=>[{n:'A',p:A},{n:'B',p:Bp}].concat(st.circ>.8?[{n:'M₁',p:[t1,0],c:'#6fd3c1'},{n:'M₂',p:[t2,0],c:'#6fd3c1'}]:[]),circle:{c:I,r:R},
+    fitPts:[A,Bp,[I[0]-R,I[1]-R],[I[0]+R,I[1]+R],[0,0],[t1,0],[t2,0]],extra:st=>st.circ>.8?[{k:'ra',p:[t1,0],d1:sub(A,[t1,0]),d2:sub(Bp,[t1,0]),c:S.C.gold,o:1},{k:'ra',p:[t2,0],d1:sub(A,[t2,0]),d2:sub(Bp,[t2,0]),c:S.C.gold,o:1},
+      {k:'line',a:A,b:[t1,0],c:S.C.u,w:2},{k:'line',a:Bp,b:[t1,0],c:S.C.v,w:2},{k:'line',a:A,b:[t2,0],c:S.C.u,w:2},{k:'line',a:Bp,b:[t2,0],c:S.C.v,w:2}]:[]});
+  return{meta:{k:'axis',A,B:Bp},prompt:`<p>${PT('A',...A)} et ${PT('B',...Bp)}. On cherche les points M(x&nbsp;; 0) de l'axe des abscisses tels que le triangle AMB soit rectangle en M.</p><p>${PS(MA,MB)} = 0 conduit à une équation du second degré.</p>`,cap0:`AMB rectangle en M ⇔ ${PS(MA,MB)} = 0`,setup:async()=>SC.show(sc),
+    parts:[fill('Les deux solutions (dans l\'ordre que tu veux)&nbsp;:','x = {0} ou x = {1}',[B(t1),B(t2)],`${MA}(${fmt(A[0])} − x&nbsp;; ${fmt(A[1])}) et ${MB}(${fmt(Bp[0])} − x&nbsp;; ${fmt(Bp[1])})&nbsp;: (${fmt(A[0])} − x)(${fmt(Bp[0])} − x) + ${par(A[1])} × ${par(Bp[1])} = 0, soit ${poly2(A[0]+Bp[0],t1*t2)} = 0.`,
+      {key:'x',anyOrder:true,onOk:()=>S.to({circ:1},1300).then(()=>cap('Les deux points sont sur le cercle de diamètre [AB]'))})],
+    done:`x = ${fmt(t1)} ou x = ${fmt(t2)}&nbsp;: ce sont les points où le cercle de diamètre [AB] coupe l'axe des abscisses.`}}}
+LV.push({t:'Problèmes à pic',badge:'Choisir la bonne méthode',
+  rule:`<p>Pour calculer un produit scalaire, choisis la méthode adaptée aux données&nbsp;:</p><p>• coordonnées&nbsp;: x x′ + y y′&nbsp;; • projection&nbsp;: ± AB × AH&nbsp;; • normes et angle&nbsp;: ${NRM(U)} × ${NRM(W)} × cos θ&nbsp;; • normes seules&nbsp;: ½(AB² + AC² − BC²).</p><p>Le produit scalaire sert à démontrer une orthogonalité, à calculer une longueur ou un angle.</p>`,
+  qs:[l7method,l7len,l7angle,l7quad,l7axis]});
+})();
+</script>
+<script>
+/* ======================= épreuves finales : Bronze, Argent, Or (6 QCM + 4 trous, tirés à chaque appel) ======================= */
+window.OP_FIN=(function(){
+'use strict';
+const N=window.OP_N,{ri,pick,shuf,fmt,par,V,U,W,PS,VC,NRM,ans,r3}=N;
+const TR=[[3,4,5],[4,3,5],[6,8,10],[8,6,10],[1.5,2,2.5],[2,1.5,2.5],[4.5,6,7.5],[6,4.5,7.5],[2.5,6,6.5],[6,2.5,6.5]];
+const nz=r=>{let x;do{x=ri(-r,r)}while(!x);return x};
+const dot=(p,q)=>p[0]*q[0]+p[1]*q[1],sub=(p,q)=>[p[0]-q[0],p[1]-q[1]];
+const P=(n,p)=>N.P(n,p[0],p[1]);
+const vAB=V('AB'),vAC=V('AC'),vAD=V('AD'),vMA=V('MA'),vMB=V('MB');
+/* QCM : list = [[html, valeur, juste?], …] */
+function qcm(level,prompt,list,explain,meta){const L=list.map(x=>x);
+  return{type:'qcm',level,prompt,choices:L.map(x=>x[0]),answer:L.findIndex(x=>x[2]),explain,meta,vals:L.map(x=>x[1])}}
+function trous(level,prompt,nums,explain,meta,size){return{type:'trous',level,prompt,blanks:nums.map(x=>({answers:ans(x),size:size||4})),explain,meta,exp:nums}}
+const distinct=a=>a.every((x,i)=>a.findIndex(y=>N.eq(+y,+x))===i);
+/* leurres classiques pour x x′ + y y′ */
+function uvLeurres(r){for(;;){const u=[nz(r),nz(r)],v=[nz(r),nz(r)],ps=dot(u,v);
+  const c=[u[0]*v[1]+u[1]*v[0],u[0]*v[1]-u[1]*v[0],Math.abs(u[0]*v[0])+Math.abs(u[1]*v[1]),u[0]*v[0]-u[1]*v[1],u[0]+v[0]+u[1]+v[1]];
+  const L=[];c.forEach(x=>{if(!N.eq(x,ps)&&!L.some(y=>N.eq(x,y)))L.push(x)});if(L.length>=3)return{u,v,ps,L:shuf(L).slice(0,3)}}}
+function rightTri(vx,R){for(;;){const V0=[ri(-R,R),ri(-R,R)],d1=[nz(4),nz(4)],t=pick([1,-1,2,-2]),d2=[-d1[1]*t,d1[0]*t];
+  const P1=[V0[0]+d1[0],V0[1]+d1[1]],P2=[V0[0]+d2[0],V0[1]+d2[1]];if([P1,P2].some(z=>Math.abs(z[0])>9||Math.abs(z[1])>9))continue;
+  if(vx==='A')return{A:V0,B:P1,C:P2};if(vx==='B')return{B:V0,A:P1,C:P2};return{C:V0,A:P1,B:P2}}}
+function anyTri(){for(;;){const A=[ri(-5,5),ri(-5,5)],B=[ri(-5,5),ri(-5,5)],C=[ri(-5,5),ri(-5,5)];const k=[dot(sub(B,A),sub(C,A)),dot(sub(A,B),sub(C,B)),dot(sub(A,C),sub(B,C))];
+  const cr=(B[0]-A[0])*(C[1]-A[1])-(B[1]-A[1])*(C[0]-A[0]);if(cr&&k.every(x=>x))return{A,B,C}}}
+const rightOf=T=>{const k={A:dot(sub(T.B,T.A),sub(T.C,T.A)),B:dot(sub(T.A,T.B),sub(T.C,T.B)),C:dot(sub(T.A,T.C),sub(T.B,T.C))};return['A','B','C'].find(x=>k[x]===0)||'none'};
+function railData(c0,R){for(;;){const A=[ri(-6,6),ri(-5,5)],B=[ri(-6,6),ri(-5,5)],c=c0===undefined?ri(-4,4):c0;if(A[1]===c||B[1]===c||(A[0]===B[0]&&A[1]===B[1]))continue;
+  const s=A[0]+B[0],pr=A[0]*B[0]+(A[1]-c)*(B[1]-c),D=s*s-4*pr;if(D<=0)continue;const r=Math.round(Math.sqrt(D));if(r*r!==D||(s+r)%2)continue;
+  const t1=(s-r)/2,t2=(s+r)/2;if(t1<-(R||9)||t2>(R||9))continue;return{A,B,c,t1,t2}}}
+const NSETS=[[[3,4],[4,3],[5,0],[0,5]],[[1,2],[2,1]],[[1,3],[3,1]],[[2,3],[3,2]],[[2,0],[0,2]],[[3,0],[0,3]]];
+const sgnV=w=>[w[0]*pick([1,-1]),w[1]*pick([1,-1])];
+function onCircle(on){for(;;){const set=pick(NSETS),I=[ri(-3,3),ri(-3,3)],w=sgnV(pick(set));let w2=sgnV(pick(set));if((w2[0]===w[0]&&w2[1]===w[1])||(w2[0]===-w[0]&&w2[1]===-w[1]))continue;
+  if(!on)w2=[w2[0]+pick([1,-1]),w2[1]];const A=[I[0]+w[0],I[1]+w[1]],B=[I[0]-w[0],I[1]-w[1]],M=[I[0]+w2[0],I[1]+w2[1]];const ps=dot(sub(A,M),sub(B,M));
+  if((M[0]===A[0]&&M[1]===A[1])||(M[0]===B[0]&&M[1]===B[1]))continue;if(!on&&ps===0)continue;return{A,B,M,ps}}}
+function angleData(R){for(;;){const u=[ri(-R,R),ri(-R,R)],v=[ri(-R,R),ri(-R,R)],ps=dot(u,v),n1=dot(u,u),n2=dot(v,v);if(n1&&n2&&ps&&2*ps*ps===n1*n2)return{u,v,ps,n1,n2,ang:ps>0?45:135}}}
+const ANG=[45,135,60,90];
+const METH={coord:'les coordonnées des vecteurs',proj:'un projeté orthogonal',cos:'les normes et l\'angle',norm:'les trois longueurs du triangle'};
+
+/* ======================= BRONZE ======================= */
+const BQ=[
+ ()=>{let a,t;do{a=ri(4,9);t=pick(TR)}while(t[0]>=a||!Number.isInteger(t[0]));const [h,c,ac]=t;
+   return qcm(1,`H est le projeté orthogonal de C sur la droite (AB), et H appartient au segment [AB]. On donne AB = ${a}, AC = ${fmt(ac)}, CH = ${fmt(c)} et AH = ${fmt(h)}. Alors ${PS(vAB,vAC)} =`,
+     [[fmt(a*h),a*h,1],[fmt(a*ac),a*ac,0],[fmt(a*c),a*c,0],[fmt(-a*h),-a*h,0]],`${PS(vAB,vAC)} = AB × AH = ${a} × ${fmt(h)} = ${fmt(a*h)}&nbsp;: on multiplie par la longueur de l'ombre AH, pas par AC.`,{k:'proj',a,h,s:1})},
+ ()=>{let a,b;do{a=ri(2,8);b=ri(2,8)}while(a===b);
+   return qcm(2,`ABCD est un rectangle avec AB = ${a} et AD = ${b}. Alors ${PS(vAB,vAD)} =`,[['0',0,1],[fmt(a*b),a*b,0],[fmt(a*a),a*a,0],[fmt(b*b),b*b,0]],
+     `(AB) ⟂ (AD) dans un rectangle&nbsp;: le projeté de D sur (AB) est A, donc ${PS(vAB,vAD)} = 0.`,{k:'fig',F:{A:[0,0],B:[a,0],C:[a,b],D:[0,b]},X:'A',Y:'B',Z:'D'})},
+ ()=>{const {u,v,ps,L}=uvLeurres(4);
+   return qcm(3,`Dans un repère orthonormé, ${VC(U,...u)} et ${VC(W,...v)}. Alors ${PS(U,W)} =`,[[fmt(ps),ps,1]].concat(L.map(x=>[fmt(x),x,0])),
+     `${PS(U,W)} = x x′ + y y′ = ${fmt(u[0])} × ${par(v[0])} + ${par(u[1])} × ${par(v[1])} = ${fmt(ps)}.`,{k:'uv',u,v})},
+ ()=>{let a,b;do{a=nz(5);b=nz(5)}while(Math.abs(a)===Math.abs(b));
+   return qcm(4,`Dans un repère orthonormé, ${VC(U,a,b)}. Lequel de ces vecteurs est orthogonal à ${U}&nbsp;?`,[[VC(W,-b,a),[-b,a],1],[VC(W,b,a),[b,a],0],[VC(W,-a,b),[-a,b],0],[VC(W,a,-b),[a,-b],0]],
+     `${fmt(a)} × ${par(-b)} + ${par(b)} × ${par(a)} = 0&nbsp;: le vecteur (−b&nbsp;; a) est orthogonal à (a&nbsp;; b)&nbsp;; échanger les coordonnées sans changer de signe ne suffit pas.`,{k:'whichorth',u:[a,b]})},
+ ()=>qcm(5,`ABC est un triangle tel que ${PS(vAB,vAC)} = 0. Alors&nbsp;:`,[['ABC est rectangle en A','A',1],['ABC est rectangle en B','B',0],['ABC est rectangle en C','C',0],['ABC est isocèle en A','iso',0]],
+     `${PS(vAB,vAC)} = 0 signifie (AB) ⟂ (AC)&nbsp;: l'angle droit est en A, le sommet commun aux deux vecteurs.`,{k:'concept',key:'A'}),
+ ()=>qcm(6,`A et B sont deux points distincts. L'ensemble des points M du plan tels que ${PS(vMA,vMB)} = 0 est&nbsp;:`,[['le cercle de diamètre [AB]','circle',1],['la médiatrice de [AB]','med',0],['le cercle de centre A passant par B','cA',0],['la droite (AB)','line',0]],
+     `${PS(vMA,vMB)} = 0 ⇔ M voit [AB] sous un angle droit (ou M = A, M = B)&nbsp;: c'est le cercle de diamètre [AB].`,{k:'concept',key:'circle'}),
+ ()=>{const u=[nz(5),nz(5)],v=[nz(5),nz(5)];
+   return qcm(7,`On connaît ${VC(U,...u)} et ${VC(W,...v)} dans un repère orthonormé. Pour calculer ${PS(U,W)}, la méthode la plus directe utilise&nbsp;:`,['coord','proj','cos','norm'].map(k=>[METH[k],k,k==='coord'?1:0]),
+     `Avec des coordonnées en repère orthonormé, on calcule directement x x′ + y y′ = ${fmt(dot(u,v))}.`,{k:'concept',key:'coord'})}];
+const BT=[
+ ()=>{const a=ri(2,9);return trous(1,`ABCD est un carré de côté ${a}. Alors ${PS(vAB,vAC)} = {0}.`,[a*a],`Le projeté orthogonal de C sur (AB) est B&nbsp;: ${PS(vAB,vAC)} = AB × AB = ${a*a}.`,{k:'fig',F:{A:[0,0],B:[a,0],C:[a,a],D:[0,a]},X:'A',Y:'B',Z:'C'})},
+ ()=>{const u=[nz(4),nz(4)],v=[nz(4),nz(4)];return trous(3,`Dans un repère orthonormé, ${VC(U,...u)} et ${VC(W,...v)}. Alors ${PS(U,W)} = {0}.`,[dot(u,v)],`x x′ + y y′ = ${fmt(u[0])} × ${par(v[0])} + ${par(u[1])} × ${par(v[1])} = ${fmt(dot(u,v))}.`,{k:'uv',u,v})},
+ ()=>{const b=pick([[3,4],[4,3],[6,8],[8,6],[5,12],[12,5]]),u=sgnV(b),n=Math.hypot(...u);return trous(3,`Dans un repère orthonormé, ${VC(U,...u)}. Alors ${NRM(U)} = {0}.`,[n],`${NRM(U)} = √(x² + y²) = √(${u[0]*u[0]} + ${u[1]*u[1]}) = ${n}.`,{k:'norm',u})},
+ ()=>{let u,c,k;do{u=[pick([1,-1,2,-2]),nz(4)];c=nz(4);k=-u[1]*c/u[0]}while(!Number.isInteger(k));
+   return trous(4,`Dans un repère orthonormé, ${VC(U,...u)} et ${W}(k&nbsp;; ${fmt(c)}). ${U} et ${W} sont orthogonaux pour k = {0}.`,[k],`${fmt(u[0])} × k + ${par(u[1])} × ${par(c)} = 0 donne k = ${fmt(k)}.`,{k:'kx',u,c})},
+ ()=>{const d=pick([2,4,6,8,10,3,5,7]),A=[ri(-5,2),ri(-5,3)],hor=Math.random()<.5,B=hor?[A[0]+d,A[1]]:[A[0],A[1]+d];
+   return trous(6,`On donne ${P('A',A)} et ${P('B',B)}. Le cercle de diamètre [AB] a pour rayon r = {0}.`,[d/2],`AB = ${d}, donc le rayon vaut AB/2 = ${fmt(d/2)}.`,{k:'radius',A,B})},
+ ()=>{const a=ri(2,9),h=ri(1,6);return trous(2,`H est le projeté orthogonal de C sur (AB), situé sur la demi-droite opposée à [AB). On donne AB = ${a} et AH = ${h}. Alors ${PS(vAB,vAC)} = {0}.`,[-a*h],
+   `L'ombre ${V('AH')} va dans le sens contraire de ${vAB}&nbsp;: ${PS(vAB,vAC)} = −AB × AH = ${fmt(-a*h)}.`,{k:'proj',a,h,s:-1})}];
+
+/* ======================= ARGENT ======================= */
+const AQ=[
+ ()=>{const a=ri(2,9);const F={A:[0,0],B:[a,0],C:[a/2,a*Math.sqrt(3)/2]};
+   return qcm(1,`ABC est un triangle équilatéral de côté ${a}. Alors ${PS(vAB,vAC)} =`,[[fmt(a*a/2),a*a/2,1],[fmt(a*a),a*a,0],[fmt(a*a/4),a*a/4,0],[fmt(-a*a/2),-a*a/2,0]],
+     `Le projeté orthogonal de C sur (AB) est le milieu I de [AB]&nbsp;: ${PS(vAB,vAC)} = AB × AI = ${a} × ${fmt(a/2)} = ${fmt(a*a/2)}.`,{k:'fig',F,X:'A',Y:'B',Z:'C'})},
+ ()=>{const a=ri(2,9),[h,c,ac]=pick(TR);
+   return qcm(2,`H est le projeté orthogonal de C sur (AB)&nbsp;; H n'appartient pas à la demi-droite [AB). On donne AB = ${a}, AC = ${fmt(ac)} et AH = ${fmt(h)}. Alors ${PS(vAB,vAC)} =`,
+     [[fmt(-a*h),-a*h,1],[fmt(a*h),a*h,0],[fmt(-a*ac),-a*ac,0],[fmt(a*ac),a*ac,0]],`L'ombre ${V('AH')} est de sens contraire à ${vAB}&nbsp;: ${PS(vAB,vAC)} = −AB × AH = ${fmt(-a*h)}.`,{k:'proj',a,h,s:-1})},
+ ()=>{let b,t;do{b=ri(3,9);t=pick(TR)}while(N.eq(t[2]*b,t[0]*b));const [k,hb,ab]=t;const L=[[fmt(b*k),b*k,1]];[[ab*b,0],[ab*k,0],[b*b,0],[-b*k,0]].forEach(([x])=>{if(!L.some(y=>N.eq(y[1],x)))L.push([fmt(x),x,0])});
+   return qcm(2,`Dans le triangle ABC, K est le projeté orthogonal de B sur (AC), et K appartient au segment [AC]. On donne AC = ${b}, AB = ${fmt(ab)} et AK = ${fmt(k)}. Alors ${PS(vAB,vAC)} =`,L.slice(0,4),
+     `On projette B sur (AC)&nbsp;: ${PS(vAB,vAC)} = AC × AK = ${b} × ${fmt(k)} = ${fmt(b*k)}.`,{k:'projo',b,kk:k,s:1})},
+ ()=>{const {u,v,ps,L}=uvLeurres(7);
+   return qcm(3,`Dans un repère orthonormé, ${VC(U,...u)} et ${VC(W,...v)}. Alors ${PS(U,W)} =`,[[fmt(ps),ps,1]].concat(L.map(x=>[fmt(x),x,0])),`x x′ + y y′ = ${fmt(u[0])} × ${par(v[0])} + ${par(u[1])} × ${par(v[1])} = ${fmt(ps)}.`,{k:'uv',u,v})},
+ ()=>{let u,v;const kind=pick(['orth','col','none']);
+   do{u=[nz(5),nz(5)];const t=pick([1,-1,2,-2]);v=kind==='orth'?[-u[1]*t,u[0]*t]:kind==='col'?[u[0]*t,u[1]*t]:pick([[u[1],u[0]],[-u[1],u[0]+1],[u[0]+1,u[1]]])}
+   while(Math.abs(v[0])>9||Math.abs(v[1])>9||(kind==='none'&&(dot(u,v)===0||u[0]*v[1]-u[1]*v[0]===0))||(!v[0]&&!v[1]));
+   const key=dot(u,v)===0?'orth':u[0]*v[1]-u[1]*v[0]===0?'col':'none';
+   return qcm(4,`Dans un repère orthonormé, ${VC(U,...u)} et ${VC(W,...v)}. Ces deux vecteurs sont&nbsp;:`,[['orthogonaux','orth',key==='orth'],['colinéaires','col',key==='col'],['ni orthogonaux ni colinéaires','none',key==='none']],
+     `x x′ + y y′ = ${fmt(dot(u,v))} et x y′ − x′ y = ${fmt(u[0]*v[1]-u[1]*v[0])}&nbsp;: le premier teste l'orthogonalité, le second la colinéarité.`,{k:'rel',u,v})},
+ ()=>{const vx=pick(['A','B','C']),T=rightTri(vx,4);
+   return qcm(5,`Dans un repère orthonormé, ${P('A',T.A)}, ${P('B',T.B)} et ${P('C',T.C)}. Le triangle ABC est rectangle en&nbsp;:`,[['A','A',vx==='A'],['B','B',vx==='B'],['C','C',vx==='C'],['il n\'est pas rectangle','none',0]],
+     `On cherche le sommet où le produit scalaire s'annule&nbsp;: ici en ${vx}.`,{k:'tri',A:T.A,B:T.B,C:T.C})},
+ ()=>{let a,m,L;do{a=pick([2,4,6,8,10]);m=ri(1,7);const c=[m*m-a*a/4,m*m-a*a,m*m-a/2,(m-a/2)*(m-a/2)];L=c.map((x,i)=>[fmt(x),x,i===0])}while(!distinct(L.map(x=>x[1])));
+   return qcm(6,`I est le milieu de [AB], AB = ${a} et MI = ${m}. Alors ${PS(vMA,vMB)} =`,L,`${PS(vMA,vMB)} = MI² − AB²/4 = ${m*m} − ${fmt(a*a/4)} = ${fmt(m*m-a*a/4)}.`,{k:'transfo',a,m})},
+ ()=>{const D=angleData(4);
+   return qcm(7,`Dans un repère orthonormé, ${VC(U,...D.u)} et ${VC(W,...D.v)}. L'angle θ entre ${U} et ${W} mesure&nbsp;:`,ANG.map(t=>[t+'°',t,t===D.ang]),
+     `${PS(U,W)} = ${fmt(D.ps)}, ${NRM(U)} = √${D.n1}, ${NRM(W)} = √${D.n2}&nbsp;: cos θ = ${fmt(D.ps)}/√${D.n1*D.n2} = ${D.ps>0?'':'−'}√2/2, donc θ = ${D.ang}°.`,{k:'angle',u:D.u,v:D.v})}];
+const AT=[
+ ()=>{const a=pick([2,3,4,5,6,7,8]);return trous(1,`ABC est un triangle isocèle en C avec AB = ${a}. Alors ${PS(vAB,vAC)} = {0}.`,[a*a/2],`La hauteur issue de C tombe au milieu I de [AB]&nbsp;: ${PS(vAB,vAC)} = AB × AI = ${fmt(a*a/2)}.`,{k:'fig',F:{A:[0,0],B:[a,0],C:[a/2,ri(2,6)]},X:'A',Y:'B',Z:'C'})},
+ ()=>{const a=pick([2,4,5,6,8,10]),h=pick([1,1.5,2,2.5,3,4,5,6]),s=pick([1,-1]),ps=s*a*h;
+   return trous(2,`On sait que AB = ${a} et ${PS(vAB,vAC)} = ${fmt(ps)}. H est le projeté orthogonal de C sur (AB). Alors AH = {0}.`,[h],`AB × AH = |${PS(vAB,vAC)}| = ${fmt(Math.abs(ps))}, donc AH = ${fmt(Math.abs(ps))} ÷ ${a} = ${fmt(h)} (une longueur est positive).`,{k:'len',a,ps})},
+ ()=>{const u=[nz(7),nz(7)],v=[nz(7),nz(7)];return trous(3,`Dans un repère orthonormé, ${VC(U,...u)} et ${VC(W,...v)}. Alors ${PS(U,W)} = {0}.`,[dot(u,v)],`${fmt(u[0])} × ${par(v[0])} + ${par(u[1])} × ${par(v[1])} = ${fmt(dot(u,v))}.`,{k:'uv',u,v})},
+ ()=>{let u,c,k;do{u=[nz(6),pick([1,-1,2,-2,3,-3])];c=nz(6);k=-u[0]*c/u[1]}while(!Number.isInteger(k));
+   return trous(4,`Dans un repère orthonormé, ${VC(U,...u)} et ${W}(${fmt(c)}&nbsp;; k). ${U} ⟂ ${W} pour k = {0}.`,[k],`${fmt(u[0])} × ${par(c)} + ${par(u[1])}k = 0 donne k = ${fmt(k)}.`,{k:'ky',u,c})},
+ ()=>{let A,p,c,k;do{A=[ri(-4,4),ri(-4,4)];p=[pick([1,-1,2,-2]),nz(4)];c=ri(-5,5);k=A[0]-p[1]*(c-A[1])/p[0]}while(!Number.isInteger(k)||c===A[1]);const B=[A[0]+p[0],A[1]+p[1]];
+   return trous(5,`On donne ${P('A',A)}, ${P('B',B)} et C(k&nbsp;; ${fmt(c)}). Le triangle ABC est rectangle en A pour k = {0}.`,[k],`${PS(vAB,vAC)} = ${fmt(p[0])} × (k − ${par(A[0])}) + ${par(p[1])} × ${par(c-A[1])} = 0 donne k = ${fmt(k)}.`,{k:'rightk',A,B,c})},
+ ()=>{const D=onCircle(Math.random()<.5);return trous(6,`On donne ${P('A',D.A)}, ${P('B',D.B)} et ${P('M',D.M)}. Alors ${PS(vMA,vMB)} = {0}.`,[D.ps],`${vMA}(${fmt(D.A[0]-D.M[0])}&nbsp;; ${fmt(D.A[1]-D.M[1])}) et ${vMB}(${fmt(D.B[0]-D.M[0])}&nbsp;; ${fmt(D.B[1]-D.M[1])})&nbsp;: produit ${fmt(D.ps)}.`,{k:'oncircle',A:D.A,B:D.B,M:D.M})},
+ ()=>{const d=sgnV(pick([[6,8],[8,6],[0,6],[6,0],[0,4],[4,0],[0,8],[3,4],[4,3]]));const A=[ri(-5,3),ri(-5,3)],B=[A[0]+d[0],A[1]+d[1]],I=[(A[0]+B[0])/2,(A[1]+B[1])/2],r=Math.hypot(...d)/2;
+   return trous(6,`On donne ${P('A',A)} et ${P('B',B)}. Le cercle de diamètre [AB] a pour centre I({0}&nbsp;; {1}) et pour rayon r = {2}.`,[I[0],I[1],r],`I est le milieu de [AB] et r = AB/2 = ${fmt(2*r)}/2 = ${fmt(r)}.`,{k:'center',A,B},3)},
+ ()=>{const p=ri(2,8),q=pick([2,4,6,8]),th=pick([60,120]),val=(th===60?1:-1)*p*q/2;
+   return trous(7,`${NRM(U)} = ${p}, ${NRM(W)} = ${q} et l'angle entre ${U} et ${W} mesure ${th}°. Alors ${PS(U,W)} = {0}.`,[val],`${PS(U,W)} = ${p} × ${q} × cos ${th}° = ${p*q} × ${th===60?'':'('}${th===60?'':'−'}1/2${th===60?'':')'} = ${fmt(val)}.`,{k:'method',D:{kind:'cos',p,q,th}})}];
+
+/* ======================= OR ======================= */
+const OQ=[
+ ()=>{const [ac,bc,ab]=pick([[3,4,5],[4,3,5],[6,8,10],[8,6,10],[5,12,13],[12,5,13]]);
+   return qcm(1,`ABC est un triangle rectangle en C avec AC = ${ac}, BC = ${bc} et AB = ${ab}. Alors ${PS(vAB,vAC)} =`,[[String(ac*ac),ac*ac,1],[String(ab*ac),ab*ac,0],[String(ab*ab),ab*ab,0],[String(bc*bc),bc*bc,0]],
+     `Le projeté orthogonal de B sur (AC) est C (angle droit en C)&nbsp;: ${PS(vAB,vAC)} = AC × AC = ${ac*ac}.`,{k:'rightC',ac,bc})},
+ ()=>{const a=ri(2,9);
+   return qcm(2,`ABC est un triangle équilatéral de côté ${a}. Alors ${PS(vAB,V('BC'))} =`,[[fmt(-a*a/2),-a*a/2,1],[fmt(a*a/2),a*a/2,0],[fmt(-a*a),-a*a,0],[fmt(a*a),a*a,0]],
+     `${PS(vAB,V('BC'))} = −${PS(V('BA'),V('BC'))}. Le projeté de C sur (AB) est le milieu I de [AB]&nbsp;: ${PS(V('BA'),V('BC'))} = BA × BI = ${a} × ${fmt(a/2)}, d'où ${fmt(-a*a/2)}. Attention&nbsp;: ${vAB} et ${V('BC')} n'ont pas la même origine.`,{k:'eqBC',a})},
+ ()=>{for(;;){const A=[ri(-5,5),ri(-5,5)],B=[ri(-5,5),ri(-5,5)],C=[ri(-5,5),ri(-5,5)],D=[ri(-5,5),ri(-5,5)],p=sub(B,A),q=sub(D,C);if((!p[0]&&!p[1])||(!q[0]&&!q[1]))continue;
+   const ps=dot(p,q),c=[-ps,p[0]*q[1]+p[1]*q[0],p[0]*q[0],p[1]*q[1]];const L=[[fmt(ps),ps,1]];
+   c.forEach(x=>{if(!L.some(y=>N.eq(y[1],x)))L.push([fmt(x),x,0])});if(L.length<4)continue;
+   return qcm(4,`On donne ${P('A',A)}, ${P('B',B)}, ${P('C',C)} et ${P('D',D)}. Alors ${PS(vAB,V('CD'))} =`,L.slice(0,4),
+     `${vAB}(${fmt(p[0])}&nbsp;; ${fmt(p[1])}) et ${V('CD')}(${fmt(q[0])}&nbsp;; ${fmt(q[1])}) (arrivée moins départ)&nbsp;: ${PS(vAB,V('CD'))} = ${fmt(ps)}.`,{k:'abcd',A,B,C,D})}},
+ ()=>{const T=Math.random()<.25?anyTri():rightTri(pick(['A','B','C']),5),r=rightOf(T);
+   return qcm(5,`Dans un repère orthonormé, ${P('A',T.A)}, ${P('B',T.B)} et ${P('C',T.C)}. Le triangle ABC&nbsp;:`,[['est rectangle en A','A',r==='A'],['est rectangle en B','B',r==='B'],['est rectangle en C','C',r==='C'],['n\'est pas rectangle','none',r==='none']],
+     `On calcule les produits scalaires aux trois sommets&nbsp;: ${r==='none'?'aucun n\'est nul, le triangle n\'est pas rectangle':'seul celui en '+r+' est nul'}.`,{k:'tri',A:T.A,B:T.B,C:T.C})},
+ ()=>{const kind=pick([1,0,-1]);let D;for(;;){D=kind===0?onCircle(true):onCircle(false);if(Math.sign(D.ps)===kind)break}
+   const key=D.ps>0?'aigu':D.ps<0?'obtus':'droit';
+   return qcm(6,`On donne ${P('A',D.A)}, ${P('B',D.B)} et ${P('M',D.M)}. L'angle géométrique AMB est&nbsp;:`,[['aigu','aigu',key==='aigu'],['droit','droit',key==='droit'],['obtus','obtus',key==='obtus']],
+     `${PS(vMA,vMB)} = ${fmt(D.ps)}&nbsp;: il a le signe de cos(AMB), donc l'angle est ${key}.`,{k:'oncircle',A:D.A,B:D.B,M:D.M})},
+ ()=>{for(;;){const A=[ri(-4,4),ri(-4,4)],D=angleData(4),B=[A[0]+D.u[0],A[1]+D.u[1]],C=[A[0]+D.v[0],A[1]+D.v[1]];
+   return qcm(7,`On donne ${P('A',A)}, ${P('B',B)} et ${P('C',C)}. L'angle géométrique BAC mesure&nbsp;:`,ANG.map(t=>[t+'°',t,t===D.ang]),
+     `${vAB}(${fmt(D.u[0])}&nbsp;; ${fmt(D.u[1])}), ${vAC}(${fmt(D.v[0])}&nbsp;; ${fmt(D.v[1])})&nbsp;: cos(BAC) = ${fmt(D.ps)}/√${D.n1*D.n2} = ${D.ps>0?'':'−'}√2/2, donc ${D.ang}°.`,{k:'angle',u:D.u,v:D.v})}},
+ ()=>{const b=pick([[3,4],[4,3],[6,8],[8,6],[5,12],[12,5]]),u=sgnV(b),n=Math.hypot(...u);const L=[[String(n),n,1]];[Math.abs(u[0])+Math.abs(u[1]),n*n,Math.abs(u[0]*u[1])].forEach(x=>{if(!L.some(y=>N.eq(y[1],x)))L.push([String(x),x,0])});
+   return qcm(3,`(${V('i')}, ${V('j')}) est une base orthonormée et ${U} est un vecteur tel que ${PS(U,V('i'))} = ${fmt(u[0])} et ${PS(U,V('j'))} = ${fmt(u[1])}. Alors ${NRM(U)} =`,L,
+     `Les coordonnées de ${U} sont (${PS(U,V('i'))}&nbsp;; ${PS(U,V('j'))}) = (${fmt(u[0])}&nbsp;; ${fmt(u[1])}), donc ${NRM(U)} = √(${u[0]*u[0]} + ${u[1]*u[1]}) = ${n}.`,{k:'ij',u})}];
+const OT=[
+ ()=>{for(;;){const d=sgnV(pick([[3,4],[4,3],[5,0],[0,5],[6,8],[8,6]])),A=[ri(-4,3),ri(-4,3)],B=[A[0]+d[0],A[1]+d[1]],C=[ri(-6,6),ri(-6,6)];const ab=Math.hypot(...d),w=sub(C,A),ps=dot(d,w),cr=d[0]*w[1]-d[1]*w[0];
+   if(!ps||!cr||!Number.isInteger(ps*2/ab))continue;return trous(2,`On donne ${P('A',A)}, ${P('B',B)} et ${P('C',C)}. H est le projeté orthogonal de C sur (AB). Alors AH = {0}.`,[Math.abs(ps)/ab],
+     `${PS(vAB,vAC)} = ${fmt(ps)} et AB = ${fmt(ab)}&nbsp;; comme |${PS(vAB,vAC)}| = AB × AH, AH = ${fmt(Math.abs(ps))} ÷ ${fmt(ab)} = ${fmt(Math.abs(ps)/ab)}.`,{k:'lencoord',A,B,C})}},
+ ()=>{const [a,b,t]=pick([[1,-4,2],[-1,4,2],[4,-1,2],[2,-2,2],[3,-3,3],[1,-9,3],[-3,3,3],[4,-4,4],[2,-8,4],[1,-16,4],[5,-5,5],[1,-25,5]]);
+   return trous(4,`Dans un repère orthonormé, ${U}(k&nbsp;; ${fmt(a)}) et ${W}(k&nbsp;; ${fmt(b)}), avec k > 0. ${U} ⟂ ${W} pour k = {0}.`,[t],`k² + ${par(a)} × ${par(b)} = 0 donne k² = ${-a*b}, et k > 0 donc k = ${t}.`,{k:'quadk',a,b,pos:1})},
+ ()=>{let A,p,c,k;do{A=[ri(-4,4),ri(-4,4)];p=[pick([1,-1,2,-2,3]),nz(5)];c=ri(-6,6);k=A[0]-p[1]*(c-A[1])/p[0]}while(!Number.isInteger(k)||c===A[1]||Math.abs(k)>12);const B=[A[0]+p[0],A[1]+p[1]];
+   return trous(5,`ABCD est un parallélogramme avec ${P('A',A)}, ${P('B',B)} et D(k&nbsp;; ${fmt(c)}). ABCD est un rectangle pour k = {0}.`,[k],`Il faut un angle droit en A&nbsp;: ${PS(vAB,vAD)} = ${fmt(p[0])} × (k − ${par(A[0])}) + ${par(p[1])} × ${par(c-A[1])} = 0, d'où k = ${fmt(k)}.`,{k:'rightk',A,B,c})},
+ ()=>{const D=railData(0);return trous(6,`On donne ${P('A',D.A)} et ${P('B',D.B)}. Les points M(x&nbsp;; 0) tels que AMB soit rectangle en M ont pour abscisses x₁ = {0} et x₂ = {1}, avec x₁ < x₂.`,[D.t1,D.t2],
+   `${PS(vMA,vMB)} = (${fmt(D.A[0])} − x)(${fmt(D.B[0])} − x) + ${par(D.A[1])} × ${par(D.B[1])} = 0 a pour solutions ${fmt(D.t1)} et ${fmt(D.t2)}.`,{k:'axis',A:D.A,B:D.B},3)},
+ ()=>{const d=sgnV(pick([[3,4],[4,3],[0,5],[5,0],[0,3],[3,0],[0,7],[1,0]].concat([[6,8],[8,6]]))),A=[ri(-5,4),ri(-5,4)],B=[A[0]+d[0],A[1]+d[1]],I=[(A[0]+B[0])/2,(A[1]+B[1])/2],r=Math.hypot(...d)/2;
+   return trous(6,`On donne ${P('A',A)} et ${P('B',B)}. Le cercle formé des points M tels que ${PS(vMA,vMB)} = 0 a pour centre I({0}&nbsp;; {1}) et pour rayon r = {2}.`,[I[0],I[1],r],`C'est le cercle de diamètre [AB]&nbsp;: I milieu de [AB] et r = AB/2 = ${fmt(r)}.`,{k:'center',A,B},3)},
+ ()=>{let x,y,z;do{x=ri(2,9);y=ri(2,9);z=ri(2,12)}while(z>=x+y||x>=y+z||y>=x+z);const val=(x*x+y*y-z*z)/2;
+   return trous(7,`Dans un triangle ABC, AB = ${x}, AC = ${y} et BC = ${z}. Alors ${PS(vAB,vAC)} = {0}.`,[val],`${PS(vAB,vAC)} = ½(AB² + AC² − BC²) = ½(${x*x} + ${y*y} − ${z*z}) = ${fmt(val)}.`,{k:'method',D:{kind:'norm',x,y,z}})},
+ ()=>{const a=ri(2,9);return trous(1,`ABCD est un carré de côté ${a} et I est le milieu de [BC]. Alors ${PS(vAB,V('AI'))} = {0}.`,[a*a],`Le projeté orthogonal de I sur (AB) est B&nbsp;: ${PS(vAB,V('AI'))} = AB × AB = ${a*a}.`,{k:'fig',F:{A:[0,0],B:[a,0],C:[a,a],D:[0,a],I:[a,a/2]},X:'A',Y:'B',Z:'I'})},
+ ()=>{let A,B,C,d,k,p;do{A=[ri(-5,5),ri(-5,5)];p=[nz(4),pick([1,-1,2,-2])];B=[A[0]+p[0],A[1]+p[1]];C=[ri(-5,5),ri(-5,5)];d=C[0]+nz(4);k=C[1]-p[0]*(d-C[0])/p[1]}while(!Number.isInteger(k));
+   return trous(4,`On donne ${P('A',A)}, ${P('B',B)}, ${P('C',C)} et D(${fmt(d)}&nbsp;; k). Les droites (AB) et (CD) sont perpendiculaires pour k = {0}.`,[k],`${PS(vAB,V('CD'))} = ${fmt(p[0])} × ${par(d-C[0])} + ${par(p[1])}(k − ${par(C[1])}) = 0 donne k = ${fmt(k)}.`,{k:'perpk',A,B,C,d})}];
+
+function build(Q,T){let best=null,bs=-1;for(let n=0;n<300;n++){const q=shuf(Q.slice()).slice(0,6).map(f=>f()),t=shuf(T.slice()).slice(0,4).map(f=>f());
+  const s=new Set(q.concat(t).map(x=>x.level)).size;if(s>bs){bs=s;best=q.concat(t)}if(s>=7)break}return shuf(best)}
+return{bronze:()=>build(BQ,BT),argent:()=>build(AQ,AT),or:()=>build(OQ,OT),pools:{BQ,BT,AQ,AT,OQ,OT}};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'ombre-a-pic',title:'L\'Ombre à pic',levels:7,
+  levelNames:['L\'ombre au sol','Ombre à rebours','Le sol et le mur','Éclipse','L\'angle droit caché','Le cercle des angles droits','Problèmes à pic'],
+  music:'aventure',finals:{bronze:()=>(window.OP_lastFinal=OP_FIN.bronze()),argent:()=>(window.OP_lastFinal=OP_FIN.argent()),or:()=>(window.OP_lastFinal=OP_FIN.or())}});
+OP.start();
+(function(){ /* espace insécable avant « : ; ! ? » et après « dans tout le texte affiché */
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|TEXTAREA|INPUT|svg)$/i.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>ms.forEach(m=>{m.addedNodes.forEach(fix);if(m.type==='characterData')fix(m.target)})).observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>
