@@ -1,0 +1,48 @@
+---
+title: Hors ligne
+permalink: /offline/
+hero_title: Pas de connexion
+hero_subtitle: Sigma reste utilisable avec ce que tu as déjà ouvert sur cet appareil.
+sitemap: false
+noindex: true
+---
+<div class="offline">
+  <p class="lead">La page demandée n'est pas encore enregistrée sur ton téléphone. Dès que la connexion revient, recharge la page.</p>
+  <p><button class="btn" type="button" onclick="location.reload()">Réessayer</button> <a class="btn btn--ghost" href="/">Accueil</a></p>
+  <section aria-labelledby="off-docs">
+    <h2 id="off-docs">Documents disponibles hors ligne</h2>
+    <ul class="links" id="offline-docs"><li><span class="muted">Recherche des documents enregistrés…</span></li></ul>
+  </section>
+  <section aria-labelledby="off-pages">
+    <h2 id="off-pages">Pages déjà consultées</h2>
+    <ul class="links" id="offline-pages"></ul>
+  </section>
+</div>
+<script>
+(function () {
+  if (!('caches' in window)) return;
+  function li(href, title, sub) {
+    var a = document.createElement('a'); a.href = href;
+    a.innerHTML = '<span class="l-ico" aria-hidden="true">' + (sub === 'PDF' ? '📄' : '🔖') + '</span><span><b></b><small></small></span>';
+    a.querySelector('b').textContent = title; a.querySelector('small').textContent = sub;
+    var l = document.createElement('li'); l.appendChild(a); return l;
+  }
+  caches.keys().then(function (keys) {
+    var docs = document.getElementById('offline-docs'), pages = document.getElementById('offline-pages');
+    var jobs = keys.filter(function (k) { return k.indexOf('sigma-pdf') === 0 || k.indexOf('sigma-pages') === 0; }).map(function (k) {
+      return caches.open(k).then(function (c) { return c.keys(); }).then(function (reqs) { return { k: k, reqs: reqs }; });
+    });
+    Promise.all(jobs).then(function (all) {
+      docs.innerHTML = ''; var nd = 0;
+      all.forEach(function (g) {
+        g.reqs.forEach(function (r) {
+          var u = new URL(r.url), name = decodeURIComponent(u.pathname.split('/').pop());
+          if (g.k.indexOf('sigma-pdf') === 0) { docs.appendChild(li(u.pathname, name.replace(/\.pdf$/, '').replace(/-/g, ' '), 'PDF')); nd++; }
+          else if (u.pathname !== '/offline/') pages.appendChild(li(u.pathname, u.pathname === '/' ? 'Accueil' : u.pathname.replace(/^\/classes\//, '').replace(/\/$/, '').replace(/\//g, ' › '), 'Page'));
+        });
+      });
+      if (!nd) docs.innerHTML = '<li><span class="muted">Aucun document pour l’instant : ouvre un PDF une fois avec la connexion, il restera disponible ici.</span></li>';
+    });
+  });
+})();
+</script>

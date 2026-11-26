@@ -276,6 +276,132 @@
     show(cur);
   })();
 
+
+  /* ── Ma progression (sur cet appareil, sans compte) ─────────────────── */
+  var PKEY = 'sigma-progression-v1';
+  function pload() { try { return JSON.parse(localStorage.getItem(PKEY)) || { ch: {} }; } catch (e) { return { ch: {} }; } }
+  function psave(d) { try { localStorage.setItem(PKEY, JSON.stringify(d)); } catch (e) {} }
+  function pcount(r) { return r ? (r.c ? 1 : 0) + (r.e ? 1 : 0) + (r.v ? 1 : 0) : 0; }
+  (function () {
+    var chap = doc.querySelector('.chap[data-chap-url]');
+    var P = pload();
+    if (chap) {
+      var url = chap.getAttribute('data-chap-url');
+      var rec = P.ch[url] || {};
+      rec.title = chap.getAttribute('data-chap-title'); rec.classe = chap.getAttribute('data-chap-classe'); rec.t = Date.now();
+      P.ch[url] = rec; P.last = url; psave(P);
+      var map = { c: '1', e: '2', v: '4' };
+      function paint() {
+        chap.querySelectorAll('.prog-btn').forEach(function (b) { b.setAttribute('aria-pressed', rec[b.getAttribute('data-prog')] ? 'true' : 'false'); });
+        Object.keys(map).forEach(function (k) {
+          var a = doc.querySelector('.parcours-nav a[data-step="' + map[k] + '"]'); if (a) a.classList.toggle('is-done', !!rec[k]);
+        });
+      }
+      chap.querySelectorAll('.prog-btn').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var k = b.getAttribute('data-prog'); rec[k] = rec[k] ? 0 : 1; rec.t = Date.now();
+          P = pload(); P.ch[url] = rec; P.last = url; psave(P); paint();
+        });
+      });
+      paint();
+    }
+    // page de classe : points de progression + barre globale
+    var metas = doc.querySelectorAll('[data-prog-url]');
+    if (metas.length) {
+      var done = 0, total = metas.length * 3, any = false;
+      metas.forEach(function (m) {
+        var r = P.ch[m.getAttribute('data-prog-url')], n = pcount(r);
+        done += n; if (r) any = true;
+        var d = doc.createElement('span'); d.className = 'ch-dots'; d.setAttribute('aria-label', n + ' étape' + (n > 1 ? 's' : '') + ' sur 3 cochée' + (n > 1 ? 's' : ''));
+        d.innerHTML = '<i' + (r && r.c ? ' class="on"' : '') + '></i><i' + (r && r.e ? ' class="on"' : '') + '></i><i' + (r && r.v ? ' class="on"' : '') + '></i>';
+        m.appendChild(d);
+      });
+      var box = doc.getElementById('class-prog');
+      if (box && any) {
+        var pc = Math.round(100 * done / total);
+        box.hidden = false;
+        doc.getElementById('class-prog-txt').textContent = done + ' étape' + (done > 1 ? 's' : '') + ' sur ' + total + ' (' + pc + ' %)';
+        doc.getElementById('class-prog-bar').style.width = pc + '%';
+        box.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', pc);
+      }
+    }
+    // accueil : reprendre
+    var res = doc.getElementById('reprendre');
+    if (res && P.last && P.ch[P.last]) {
+      var r = P.ch[P.last], n = pcount(r);
+      doc.getElementById('resume-title').textContent = (r.classe ? r.classe + ' · ' : '') + (r.title || '') + ' — ' + n + ' étape' + (n > 1 ? 's' : '') + ' sur 3';
+      doc.getElementById('resume-bar').style.width = Math.round(100 * n / 3) + '%';
+      res.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', n);
+      doc.getElementById('resume-link').href = P.last;
+      res.hidden = false;
+    }
+  })();
+
+  /* ── Thème clair / sombre ─────────────────────────────────────────── */
+  (function () {
+    var btn = doc.getElementById('theme-toggle');
+    if (!btn) return;
+    function cur() { return doc.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark'; }
+    function sync() {
+      var light = cur() === 'light';
+      btn.setAttribute('aria-pressed', light ? 'true' : 'false');
+      btn.setAttribute('aria-label', light ? 'Passer en thème sombre' : 'Passer en thème clair');
+      var m = doc.querySelector('meta[name="theme-color"]'); if (m) m.content = light ? '#f5f7fc' : '#060d1a';
+    }
+    btn.addEventListener('click', function () {
+      var next = cur() === 'light' ? 'dark' : 'light';
+      doc.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('sigma-theme', next); } catch (e) {}
+      sync();
+    });
+    sync();
+  })();
+
+  /* ── Application installable (PWA) ─────────────────────────────────── */
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    var wantReload = false;
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js').then(function (reg) {
+        function offer(w) {
+          if (!w || !navigator.serviceWorker.controller) return;
+          var t = doc.getElementById('update-toast'); if (!t) return;
+          t.hidden = false;
+          t.querySelector('button').onclick = function () { wantReload = true; w.postMessage({ type: 'SKIP_WAITING' }); };
+        }
+        if (reg.waiting) offer(reg.waiting);
+        reg.addEventListener('updatefound', function () {
+          var w = reg.installing;
+          if (w) w.addEventListener('statechange', function () { if (w.state === 'installed') offer(w); });
+        });
+      }).catch(function () {});
+      // recharge seulement si l'élève a demandé la mise à jour (pas lors de la première installation)
+      navigator.serviceWorker.addEventListener('controllerchange', function () { if (wantReload) { wantReload = false; location.reload(); } });
+    });
+  }
+  (function () {
+    var btns = doc.querySelectorAll('[data-install]');
+    var guide = doc.getElementById('install-guide');
+    if (!btns.length) return;
+    var standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+    if (standalone) return;
+    var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var deferred = null;
+    function show() { btns.forEach(function (b) { b.hidden = false; }); }
+    window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; show(); });
+    if (ios) show();
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (deferred) { deferred.prompt(); deferred.userChoice.then(function () { deferred = null; btns.forEach(function (x) { x.hidden = true; }); }); }
+        else if (guide) { guide.hidden = false; var c = guide.querySelector('button'); if (c) c.focus(); }
+      });
+    });
+    if (guide) {
+      guide.querySelector('button').addEventListener('click', function () { guide.hidden = true; });
+      guide.addEventListener('keydown', function (e) { if (e.key === 'Escape') guide.hidden = true; });
+    }
+    window.addEventListener('appinstalled', function () { btns.forEach(function (x) { x.hidden = true; }); });
+  })();
+
   /* ── Constellation de l'accueil ───────────────────────────────────────
      Des symboles mathématiques dérivent comme des étoiles et se relient ;
      régulièrement, quelques étoiles se rangent en figure (polygone régulier,
