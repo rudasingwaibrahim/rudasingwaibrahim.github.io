@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le Carrefour des parcours · Sigma Arcade</title>
+<meta name="description" content="SES Seconde : diplôme, emploi et salaire. Chaque parcours d'études s'affiche sur le tableau de bord (salaire escompté, accès à l'emploi, risque de chômage) ; la frise montre le coût d'opportunité puis le point de rentabilité. Données INSEE et Céreq datées et sourcées.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours, la réponse est donnée au deuxième essai.
+   IDEA : un carrefour de parcours d'études. Chaque route mène à un tableau de bord lumineux (salaire médian,
+          risque de chômage, accès à l'emploi) ; la frise de vie descend pendant les études (salaire renoncé)
+          puis remonte avec le gain annuel jusqu'au point de rentabilité.
+   COLOUR : nuit « océan profond » ; or = salaire et réussite ; corail = chômage, coût ; bleu clair = emploi ;
+          violet-bleu = action ; Outfit partout. Données réelles uniquement, source sous chaque scène. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);
+--emp:#7fb2ff;--cho:#ff8a7a;--ina:#9aa6c4;--frm:#c3a6ff}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:76ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible,#scene:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:linear-gradient(170deg,#0b1730,#050b18 70%);user-select:none;-webkit-user-select:none}
+#scene{display:block;width:100%;height:auto;touch-action:pan-y}
+.src{margin:8px 2px 0;color:var(--mut);font-size:13.5px;line-height:1.4}
+.src b{color:var(--ink);font-weight:600}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 4px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.5;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:600 19px/2.3 var(--sg-font);font-variant-numeric:tabular-nums;margin:0 0 12px}
+.in{width:5.4em;height:46px;margin:0 3px;padding:0 6px;font:700 20px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+.stepc{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+.stepc .stp{min-width:54px;min-height:48px;padding:0 10px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:700 16px var(--sg-font);cursor:pointer;font-variant-numeric:tabular-nums}
+.stepc .stp:hover:not(:disabled){border-color:var(--ac)}
+.stepc output{min-width:7.5em;min-height:48px;display:inline-flex;align-items:center;justify-content:center;padding:0 12px;border-radius:12px;background:rgba(232,199,102,.1);border:1.5px solid rgba(232,199,102,.55);color:#f6dc8a;font:800 20px var(--sg-font);font-variant-numeric:tabular-nums}
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win.fail{border-color:rgba(108,142,255,.5);background:linear-gradient(150deg,rgba(108,142,255,.12),rgba(108,142,255,.03))}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win.fail .big{color:#c9d6ff}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+/* scène */
+.t{font-family:var(--sg-font)}
+.grow{transform-box:fill-box;transform-origin:0 50%;animation:grow .7s cubic-bezier(.2,.9,.3,1) backwards}
+.growv{transform-box:fill-box;transform-origin:50% 100%;animation:growv .6s cubic-bezier(.2,.9,.3,1) backwards}
+.growd{transform-box:fill-box;transform-origin:50% 0;animation:growv .6s cubic-bezier(.2,.9,.3,1) backwards}
+@keyframes grow{from{transform:scaleX(0)}}
+@keyframes growv{from{transform:scaleY(0)}}
+.pop{transform-box:fill-box;transform-origin:50% 50%;animation:dpop .35s ease-out backwards}
+@keyframes dpop{from{transform:scale(0);opacity:0}}
+.fade{animation:fade .5s ease-out backwards}
+@keyframes fade{from{opacity:0}}
+.pk{cursor:pointer}
+.pk:hover .pkbg{stroke:var(--ac);stroke-width:2.5}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .src{font-size:11.5px;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 10px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .fill{font-size:17px}
+  .in{width:4.8em;font-size:18px}
+  .stepc{flex-wrap:nowrap;gap:6px}
+  .stepc .stp{min-width:46px;padding:0 4px;font-size:15px;flex:none}
+  .stepc output{flex:1 1 auto;min-width:0;padding:0 6px;font-size:17px;white-space:nowrap}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win,.grow,.growv,.growd,.pop,.fade{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Le Carrefour des parcours</h1>
+<p>Chaque parcours d'études s'allume sur le tableau de bord&nbsp;: salaire escompté, accès à l'emploi, risque de chômage. Sur la frise, les années d'études creusent le coût d'opportunité… puis le gain annuel remonte jusqu'au point de rentabilité. Toutes les données sont réelles, datées et sourcées.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage">
+    <svg id="scene" viewBox="0 0 800 470" role="img" aria-label="Tableau de bord des parcours" tabindex="-1"></svg>
+  </div>
+  <p class="src" id="src"></p>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+
+<script>
+/* =================== LE CARREFOUR DES PARCOURS — données (sources officielles, vérifiées en ligne en novembre 2026) ===================
+   SAL : Insee Références « Formations et emploi », éd. 2025 (12/02/2025), fiche 2.7 « Salaires », fig. 1 — salaire mensuel net
+         médian, tous temps de travail confondus ; enquêtes Emploi 2021, 2022 et 2023 ; France hors Mayotte, salariés.
+   CHO : même ouvrage, fiche 2.3 « Chômage en phase d'insertion professionnelle », fig. 1 — taux de chômage en 2023 ;
+         enquête Emploi 2023 ; France hors Mayotte, actifs sortis de formation initiale depuis 1 an ou plus.
+   C24 : Insee Références « Emploi, chômage, revenus du travail », éd. 2025 (26/06/2025), « Inégalités face au chômage », fig. 1 ;
+         enquête Emploi 2024.
+   GEN : Céreq, enquête 2023 auprès de la Génération 2017 (sortis de formation initiale en 2017), publiée dans « Formations et
+         emploi », éd. 2025 : fiche 2.12, fig. 1 (part du temps passé dans chaque situation jusqu'à l'automne 2023, délai moyen
+         d'accès au premier emploi) et fiche 2.11, tableau 2 (part en emploi 3 ans et 6 ans après la sortie).
+   MAY : Insee Flash Mayotte n° 193 (13/06/2025), enquête Emploi Mayotte 2024 ; Insee Analyses Mayotte n° 21 (24/09/2019),
+         enquête Emploi Mayotte 2018 (personnes de 15 ans ou plus sorties du système scolaire). */
+const D={
+ SAL:{src:'<b>INSEE</b>, Formations et emploi, édition 2025 · salaire mensuel net médian · enquêtes Emploi 2021 à 2023 · France hors Mayotte',
+   s:['Sans diplôme','CAP, BEP','Bac','Bac+2','Bac+3 et plus'],
+   l:['aucun diplôme ou brevet','CAP ou BEP','baccalauréat','bac+2','diplôme du supérieur long (bac+3 ou plus)'],
+   g:['salariés sans diplôme (ou avec le seul brevet)','salariés titulaires d\'un CAP ou d\'un BEP','salariés bacheliers','salariés diplômés d\'un bac+2','salariés diplômés du supérieur long'],
+   r:[1200,1380,1370,1500,2000],a:[1500,1700,1800,2100,2650],er:1600,ea:1900},
+ CHO:{src:'<b>INSEE</b>, Formations et emploi, édition 2025 · taux de chômage en 2023 · enquête Emploi 2023 · France hors Mayotte',
+   s:['Sans diplôme','CAP, BEP','Bac','Bac+2','Bac+3/4','Bac+5 et plus'],
+   l:['aucun diplôme ou brevet','CAP ou BEP','baccalauréat','bac+2','bac+3 ou bac+4','bac+5 ou plus'],
+   r:[42.4,17.5,18.2,11.0,10.7,6.8],a:[10.1,6.4,5.7,3.9,3.8,3.6],er:14.2,ea:5.6},
+ C24:{src:'<b>INSEE</b>, Emploi, chômage, revenus du travail, édition 2025 · enquête Emploi 2024',
+   s:['Sans diplôme','CAP, BEP','Bac','Bac+2 et plus'],v:[13.8,7.3,8.9,5.0],e:7.4},
+ GEN:{src:'<b>Céreq</b>, enquête 2023 auprès de la Génération 2017 (sortie de formation en 2017), publiée par l\'INSEE, Formations et emploi, édition 2025',
+   s:['Sans diplôme','CAP, BEP ou bac','Supérieur'],
+   l:['sans diplôme (ou avec le seul brevet)','titulaires d\'un CAP, d\'un BEP ou du bac','diplômés du supérieur'],
+   emp:[36,68,85],cho:[39,18,9],ina:[20,9,5],frm:[5,5,1],del:[22,8,4],e3:[39,68,84],e6:[46,75,89],
+   ens:{emp:72,cho:17,ina:8,frm:3,del:7,e3:72,e6:78}},
+ MAY:{src24:'<b>INSEE</b>, Insee Flash Mayotte n° 193, juin 2025 · enquête Emploi Mayotte 2024',emp:55000,cho:22000,taux:29,
+   src18:'<b>INSEE</b>, Insee Analyses Mayotte n° 21, septembre 2019 · enquête Emploi Mayotte 2018 · personnes de 15 ans ou plus sorties du système scolaire',
+   t18:{s:['Sans diplôme (scolarisés)','CAP, BEP','Bac','Supérieur'],v:[34,55,61,81]}}
+};
+const NB=' ',NNB=' ';
+const fN=x=>{const s=String(Math.round(Math.abs(x)));return (x<0?'−':'')+s.replace(/\B(?=(\d{3})+(?!\d))/g,NNB)};
+const fD=(x,d=1)=>{let s=Math.abs(x).toFixed(d);let [i,f]=s.split('.');i=i.replace(/\B(?=(\d{3})+(?!\d))/g,NNB);return (x<0?'−':'')+i+(f?','+f:'')};
+const fX=x=>Number.isInteger(x)?fN(x):fD(x,1);            // entier ou un décimal
+const eur=x=>fN(x)+NB+'€';
+const pc=x=>fD(x,1)+NB+'%';                                  /* taux de chômage : toujours au dixième (11,0 %) */
+const pts=x=>fX(x)+NB+(Math.abs(x)>=2?'points':'point');
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick2=n=>{const i=Math.floor(Math.random()*n);let j;do{j=Math.floor(Math.random()*n)}while(j===i);return i<j?[i,j]:[j,i]};
+const r10=x=>Math.round(x*10)/10, r1=x=>Math.round(x);
+/* numérique exact : les données ont au plus une décimale → calculs en dixièmes entiers */
+const T10=x=>Math.round(x*10);
+/* typographie française : espace insécable avant : ; ! ? et dans les guillemets */
+const ty=s=>typeof s!=='string'?s:s.replace(/ ([:;!?])/g,NB+'$1').replace(/« /g,'«'+NB).replace(/ »/g,NB+'»');
+</script>
+
+<script>
+/* =================== Scènes (SVG 800 × 470) =================== */
+(function(){
+'use strict';
+const S=document.getElementById('scene');
+const C={bg1:'#0b1730',gold:'#e8c766',gold2:'#f6dc8a',emp:'#7fb2ff',cho:'#ff8a7a',ina:'#9aa6c4',frm:'#c3a6ff',ink:'#f0f4ff',mut:'rgba(200,215,255,.72)',line:'rgba(120,160,255,.22)',ac:'#6c8eff'};
+const T=(x,y,s,o={})=>(s=ty(String(s)).replace(/\u202f/g,'\u00a0'),`<text class="t" x="${x}" y="${y}" font-size="${o.fs||24}" font-weight="${o.fw||600}" fill="${o.c||C.ink}" text-anchor="${o.a||'start'}"${o.cls?` class="t ${o.cls}"`:''}${o.st?` style="${o.st}"`:''}>${s}</text>`);
+function head(t,r){return T(26,40,t,{fs:26,fw:800,c:C.ink})+(r?T(26,68,r,{fs:19,fw:600,c:C.mut}):'')}
+function stars(){let s='';const P=[[60,450],[210,462],[380,455],[540,462],[700,452],[760,20],[640,14],[30,16]];P.forEach(p=>s+=`<circle cx="${p[0]}" cy="${p[1]}" r="1.3" fill="#fff" opacity=".35"/>`);return s}
+function frame(inner){return `<defs><linearGradient id="cpsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0c1a36"/><stop offset="1" stop-color="#050b18"/></linearGradient>
+ <linearGradient id="cpgold" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#a8862c"/><stop offset="1" stop-color="#f6dc8a"/></linearGradient>
+ <linearGradient id="cpcho" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b8473e"/><stop offset="1" stop-color="#ff9b8c"/></linearGradient>
+ <radialGradient id="cphalo"><stop offset="0" stop-color="#6c8eff" stop-opacity=".16"/><stop offset="1" stop-color="#6c8eff" stop-opacity="0"/></radialGradient></defs>
+ <rect width="800" height="470" fill="url(#cpsky)"/><ellipse cx="560" cy="120" rx="420" ry="220" fill="url(#cphalo)"/>${stars()}${inner}`}
+
+/* 1. barres horizontales (salaires médians ou taux de chômage) */
+function bars(o){
+  const n=o.vals.length, top=88, h=Math.min(64,(384-top)/n), bw=Math.min(40,h*0.62), x0=232, W=440, max=o.max;
+  let s=head(o.title,o.right);
+  if(o.ref!=null){const xr=x0+o.ref/max*W;s+=`<line x1="${xr}" y1="${top-8}" x2="${xr}" y2="${top+n*h}" stroke="${C.mut}" stroke-dasharray="5 6" stroke-width="2"/>`+T(xr,top+n*h+30,o.refLabel,{fs:20,c:C.mut,a:'middle'})}
+  o.vals.forEach((v,i)=>{const y=top+i*h, on=!o.hl||o.hl.includes(i), wv=Math.max(3,v/max*W);
+    s+=`<g class="${o.pick?'pk':''}" data-pick="${i}" opacity="${on?1:.38}">`+
+      `<rect class="pkbg" x="10" y="${y+2}" width="780" height="${h-4}" rx="12" fill="${o.hl&&o.hl.includes(i)?'rgba(108,142,255,.10)':'transparent'}" stroke="${o.hl&&o.hl.includes(i)?'rgba(108,142,255,.55)':'transparent'}" stroke-width="1.5"/>`+
+      T(x0-16,y+h/2+9,o.labels[i],{fs:25,fw:700,a:'end'})+
+      `<rect class="grow" style="animation-delay:${i*90}ms" x="${x0}" y="${y+(h-bw)/2}" width="${wv}" height="${bw}" rx="${bw/2}" fill="url(#${o.kind==='cho'?'cpcho':'cpgold'})"/>`+
+      T(x0+wv+12,y+h/2+9,o.fmt(v),{fs:25,fw:800,c:o.kind==='cho'?'#ffb3a8':C.gold2,cls:'fade',st:`animation-delay:${300+i*90}ms`})+'</g>'});
+  return frame(s);
+}
+/* 2. grilles de 100 actifs */
+function grids(o){
+  let s=head(o.title,o.right);
+  const G=o.items.length, cell=27, gw=cell*10, gap=G===1?0:(800-2*gw)/3;
+  o.items.forEach((it,k)=>{const x0=G===1?(800-gw)/2:gap+k*(gw+gap), y0=122, nc=Math.round(it.v);
+    s+=T(x0+gw/2,106,it.label,{fs:25,fw:800,a:'middle'});
+    for(let i=0;i<100;i++){const r=Math.floor(i/10), c=i%10, ch=i<nc;
+      s+=`<circle class="${ch?'pop':''}" style="${ch?`animation-delay:${i*12}ms`:''}" cx="${x0+c*cell+cell/2}" cy="${y0+r*cell+cell/2}" r="${cell*0.36}" fill="${ch?C.cho:'rgba(127,178,255,.55)'}"/>`}
+    s+=T(x0+gw/2,y0+10*cell+36,`${fD(it.v,1)}${NB}% au chômage`,{fs:24,fw:800,c:'#ffb3a8',a:'middle'});
+  });
+  s+=`<circle cx="268" cy="452" r="8" fill="${C.cho}"/>`+T(284,459,'chômeur',{fs:20,c:C.mut})+`<circle cx="418" cy="452" r="8" fill="rgba(127,178,255,.75)"/>`+T(434,459,'actif en emploi',{fs:20,c:C.mut});
+  return frame(s);
+}
+/* 3. barres empilées (part du temps passé dans chaque situation, Céreq) ou population active de Mayotte */
+function stack(o){
+  let s=head(o.title,o.right);
+  const x0=232,W=520;
+  if(o.mayotte){const e=D.MAY.emp,c=D.MAY.cho,t=e+c,y=160,h=70,we=e/t*W,wc=c/t*W;
+    s+=T(x0-16,y+46,'Mayotte',{fs:26,fw:800,a:'end'});
+    s+=`<rect class="grow" x="${x0}" y="${y}" width="${we}" height="${h}" rx="12" fill="${C.emp}" opacity=".85"/><rect class="grow" style="animation-delay:200ms" x="${x0+we}" y="${y}" width="${wc}" height="${h}" rx="12" fill="${C.cho}"/>`;
+    s+=T(x0+we/2,y+44,o.hideE?'?':fN(e)+' en emploi',{fs:24,fw:800,c:'#0a1628',a:'middle'})+T(x0+we+wc/2,y+44,o.hideC?'?':fN(c),{fs:24,fw:800,c:'#2a0d08',a:'middle'});
+    s+=`<path d="M${x0} ${y+h+18} v14 h${W} v-14" fill="none" stroke="${C.gold}" stroke-width="2.5"/>`+T(x0+W/2,y+h+64,o.showT?`population active : ${fN(t)}`:'population active = emploi + chômeurs',{fs:24,fw:700,c:C.gold2,a:'middle'});
+    if(o.showRate)s+=T(400,410,`taux de chômage = ${fN(c)} ÷ ${fN(t)} ≈ ${D.MAY.taux}${NB}%`,{fs:25,fw:800,c:'#ffb3a8',a:'middle'});
+    return frame(s)}
+  const G=D.GEN, rows=[0,1,2], top=100, h=86, bh=40;
+  rows.forEach(i=>{const y=top+i*h, on=!o.hl||o.hl.includes(i);let x=x0;
+    s+=`<g opacity="${on?1:.35}">`+T(x0-16,y+bh/2+9,G.s[i],{fs:24,fw:700,a:'end'});
+    [['emp',C.emp],['cho',C.cho],['ina',C.ina],['frm',C.frm]].forEach(([k,col],j)=>{const w=G[k][i]/100*W;
+      s+=`<rect class="grow" style="animation-delay:${j*120}ms" x="${x}" y="${y}" width="${w}" height="${bh}" fill="${col}" opacity="${k==='emp'||k==='cho'?.92:.6}"/>`;
+      if(w>40)s+=T(x+w/2,y+bh/2+8,G[k][i]+NB+'%',{fs:21,fw:800,c:'#081224',a:'middle',cls:'fade',st:'animation-delay:500ms'});x+=w});
+    if(o.bracket&&o.hl&&o.hl.includes(i)){const wa=(G.emp[i]+G.cho[i])/100*W;s+=`<path d="M${x0} ${y+bh+8} v10 h${wa} v-10" fill="none" stroke="${C.gold}" stroke-width="2.5"/>`+T(x0+wa/2,y+bh+40,'temps passé comme actif',{fs:20,fw:700,c:C.gold2,a:'middle'})}
+    s+='</g>'});
+  [['emploi',C.emp],['chômage',C.cho],['inactivité',C.ina],['formation',C.frm]].forEach(([t,c],j)=>{const x=120+j*160;s+=`<rect x="${x}" y="430" width="20" height="20" rx="4" fill="${c}"/>`+T(x+28,447,t,{fs:20,c:C.mut})});
+  return frame(s);
+}
+/* 4. frise de vie : coût d'opportunité puis gains cumulés */
+function timeline(o){
+  const n=o.n, cost=o.base*12*n, g12=o.gain*12, Y=o.years, x0=86, x1=772, yT=112, yB=384;
+  const maxUp=Math.max(g12*Y-cost,cost*0.35), lo=-cost, hi=maxUp, sy=v=>yT+(hi-v)/(hi-lo)*(yB-yT), tot=n+Y, sx=t=>x0+t/tot*(x1-x0);
+  let s=head(o.title,o.right);
+  const z=sy(0);
+  s+=`<line x1="${x0}" y1="${z}" x2="${x1}" y2="${z}" stroke="${C.mut}" stroke-width="2"/>`+T(x0-10,z+8,'0',{fs:21,c:C.mut,a:'end'});
+  s+=`<line x1="${sx(n)}" y1="${yT-10}" x2="${sx(n)}" y2="${yB+6}" stroke="${C.line}" stroke-width="2" stroke-dasharray="4 6"/>`;
+  s+=T((x0+sx(n))/2,z-12,'études',{fs:21,fw:700,c:'#ffb3a8',a:'middle'})+T(x1,yB+34,'années de travail →',{fs:21,fw:700,c:C.emp,a:'end'});
+  /* années d'études : chaque année creuse le salaire renoncé */
+  for(let k=0;k<n;k++){const ya=sy(-o.base*12*k), yb=sy(-o.base*12*(k+1));
+    s+=`<rect class="growd" style="animation-delay:${k*160}ms" x="${sx(k)+3}" y="${ya}" width="${sx(k+1)-sx(k)-6}" height="${yb-ya}" rx="4" fill="${C.cho}" opacity=".78"/>`}
+  s+=`<path d="M${x0} ${z} L${sx(n)} ${sy(-cost)}" stroke="${C.cho}" stroke-width="3" fill="none"/>`;
+  s+=T(sx(n)+10,sy(-cost)+26,`−${fN(cost)}${NB}€`,{fs:23,fw:800,c:'#ffb3a8'});
+  if(o.showGain){const kmax=o.cursor!=null?o.cursor:(o.full?Y:0);
+    let p=`M${sx(n)} ${sy(-cost)}`;for(let k=1;k<=kmax;k++)p+=` L${sx(n+k)} ${sy(g12*k-cost)}`;
+    s+=`<path d="${p}" stroke="${C.gold}" stroke-width="3.5" fill="none" stroke-linejoin="round"/>`;
+    for(let k=1;k<=kmax;k++){const v=g12*k-cost;s+=`<circle cx="${sx(n+k)}" cy="${sy(v)}" r="5.5" fill="${v>=0?C.gold2:'#a8862c'}"/>`}
+    if(o.cursor!=null){const xc=sx(n+o.cursor), v=g12*o.cursor-cost;
+      s+=`<line x1="${xc}" y1="${yT-6}" x2="${xc}" y2="${yB}" stroke="${C.ac}" stroke-width="2.5"/>`;
+      s+=`<rect x="${Math.min(Math.max(xc-118,8),554)}" y="${yT-38}" width="236" height="34" rx="10" fill="rgba(6,12,26,.92)" stroke="${C.ac}"/>`+
+        T(Math.min(Math.max(xc,126),672),yT-14,`année ${o.cursor} : ${v>=0?'+':''}${fN(v)}${NB}€`,{fs:20,fw:800,c:v>=0?C.gold2:'#ffb3a8',a:'middle'})}
+    if(o.mark){const xc=sx(n+o.mark);s+=`<circle class="pop" cx="${xc}" cy="${sy(g12*o.mark-cost)}" r="13" fill="none" stroke="${C.gold2}" stroke-width="3"/>`}}
+  s+=T(x0,yB+62,`Bac : ${eur(o.base)} par mois${o.showGain?`  ·  après le diplôme : ${eur(o.base+o.gain)}`:''}`,{fs:20,c:C.mut});
+  return frame(s);
+}
+/* 5. tableau de bord Céreq : trois parcours × trois jauges */
+function dash(o){
+  const G=D.GEN;let s=head(o.title,o.right);
+  const M=[['Attente du 1er emploi','del',24,v=>v+NB+'mois',C.cho],['Temps au chômage','cho',50,v=>v+NB+'%',C.cho],['En emploi après 6 ans','e6',100,v=>v+NB+'%',C.emp]];
+  const cw=244, x0=24;
+  [0,1,2].forEach(i=>{const x=x0+i*(cw+6), on=!o.hl||o.hl.includes(i);
+    s+=`<g opacity="${on?1:.38}"><rect x="${x}" y="86" width="${cw}" height="356" rx="16" fill="rgba(255,255,255,.035)" stroke="${o.hl&&o.hl.includes(i)?C.ac:C.line}" stroke-width="1.5"/>`+T(x+cw/2,122,G.s[i],{fs:24,fw:800,a:'middle'});
+    M.forEach(([lab,k,max,f,col],j)=>{const y=152+j*96, v=G[k][i], w=v/max*(cw-36);
+      s+=T(x+18,y+8,lab,{fs:17,c:C.mut})+`<rect x="${x+18}" y="${y+20}" width="${cw-36}" height="22" rx="11" fill="rgba(255,255,255,.07)"/>`+
+       `<rect class="grow" style="animation-delay:${j*140}ms" x="${x+18}" y="${y+20}" width="${w}" height="22" rx="11" fill="${col}"/>`+T(x+18,y+72,f(v),{fs:24,fw:800,c:col===C.emp?'#bcd6ff':'#ffb3a8'})});
+    s+='</g>'});
+  return frame(s);
+}
+/* 6. deux nuages : corrélation positive (salaires) et négative (chômage) */
+function corr(o){
+  let s=head(o.title,o.right);
+  const P=[{x0:40,w:340,vals:D.SAL.r,labs:['Sans','CAP','Bac','+2','+3'],max:2600,col:C.gold,t:'Salaire médian',f:v=>fN(v)},
+           {x0:420,w:340,vals:D.CHO.r,labs:['Sans','CAP','Bac','+2','+3/4','+5'],max:55,col:C.cho,t:'Taux de chômage',f:v=>fD(v,1)}];
+  P.forEach((p,k)=>{const on=!o.hl||o.hl.includes(k), yT=118, yB=372, n=p.vals.length, sx=i=>p.x0+30+i*(p.w-60)/(n-1), sy=v=>yB-v/p.max*(yB-yT);
+    s+=`<g opacity="${on?1:.3}"><rect x="${p.x0}" y="${yT-26}" width="${p.w}" height="${yB-yT+80}" rx="14" fill="rgba(255,255,255,.03)" stroke="${C.line}"/>`+T(p.x0+p.w/2,yT,p.t,{fs:22,fw:800,a:'middle',c:k?'#ffb3a8':C.gold2});
+    s+=`<line x1="${p.x0+16}" y1="${yB}" x2="${p.x0+p.w-16}" y2="${yB}" stroke="${C.mut}" stroke-width="1.5"/>`;
+    p.vals.forEach((v,i)=>{s+=`<circle class="pop" style="animation-delay:${i*90}ms" cx="${sx(i)}" cy="${sy(v)}" r="9" fill="${p.col}"/>`+T(sx(i),sy(v)-16,p.f(v),{fs:16,fw:700,c:C.ink,a:'middle'})+T(sx(i),yB+26,p.labs[i],{fs:17,c:C.mut,a:'middle'})});
+    if(o.trend){const a=sy(p.vals[0]),b=sy(p.vals[n-1]);s+=`<path class="fade" style="animation-delay:600ms" d="M${sx(0)} ${a} L${sx(n-1)} ${b}" stroke="${p.col}" stroke-width="3" stroke-dasharray="8 7" opacity=".7"/>`+
+      T(p.x0+p.w/2,yB+50,k?'corrélation négative':'corrélation positive',{fs:20,fw:800,c:p.col,a:'middle',cls:'fade',st:'animation-delay:700ms'})}
+    s+='</g>'});
+  return frame(s);
+}
+/* 7. Mayotte 2018 : part en emploi selon le diplôme */
+function may18(o){
+  const M=D.MAY.t18;return bars({title:o.title,right:o.right,vals:M.v,labels:['Sans dipl.','CAP, BEP','Bac','Supérieur'],max:100,kind:'emp',fmt:v=>v+NB+'%',hl:o.hl});
+}
+window.CPS={render(sc){const f={bars,grids,stack,timeline,dash,corr,may18}[sc.type];S.innerHTML=f(sc);S.setAttribute('aria-label',sc.title.replace(/<[^>]+>/g,''))},el:S};
+})();
+</script>
+
+<script>
+/* =================== Niveaux et générateurs de questions =================== */
+(function(){
+'use strict';
+const SAL=D.SAL,CHO=D.CHO,GEN=D.GEN,MAY=D.MAY;
+const scSal=(per,hl,pick)=>({type:'bars',title:'Salaire mensuel net médian',right:per==='r'?'sortis depuis 1 à 4 ans':'sortis depuis 11 ans ou plus',vals:SAL[per],labels:SAL.s,max:2700,kind:'sal',fmt:eur,hl,pick,src:SAL.src});
+const scCho=(per,hl)=>({type:'bars',title:'Taux de chômage selon le diplôme',right:per==='r'?'actifs sortis depuis 1 à 4 ans':'sortis depuis 11 ans ou plus',vals:CHO[per],labels:CHO.s,max:46,kind:'cho',fmt:pc,hl,src:CHO.src});
+const scGrid=(per,ids)=>({type:'grids',title:'Sur 100 actifs',right:per==='r'?'sortis depuis 1 à 4 ans · 2023':'sortis depuis 11 ans ou plus · 2023',items:ids.map(i=>({label:CHO.s[i],v:CHO[per][i]})),src:CHO.src});
+const perTxt=p=>p==='r'?'sortis de formation depuis 1 à 4 ans':'sortis de formation depuis 11 ans ou plus';
+/* choix : [texte, juste] → mélange */
+const ch=(good,...bad)=>shuffle([{t:good,ok:true},...bad.map(t=>({t,ok:false}))]);
+const nums=a=>a.map(x=>typeof x==='number'?x:x);
+
+/* ---------- Niveau 1 · Le tableau des salaires ---------- */
+const L1=[
+ function med(){const per=rnd(['r','a']),i=Math.floor(Math.random()*5),v=SAL[per][i];
+  return {kind:'choice',scene:scSal(per,[i]),prompt:`Sur le tableau de bord, la barre «${NB}${SAL.s[i]}${NB}» indique <b>${eur(v)}</b> (salariés ${perTxt(per)}). Que signifie ce nombre&nbsp;?`,
+   choices:ch(`La moitié de ces salariés gagne moins de ${eur(v)} net par mois, l'autre moitié gagne plus.`,`Tous ces salariés gagnent ${eur(v)} net par mois.`,`Ces salariés gagnent en moyenne ${eur(v)} net par mois.`,`${eur(v)} est le salaire le plus fréquent parmi eux.`),
+   hint:'Un salaire <b>médian</b> partage les salariés en deux groupes de même effectif.',expl:`La médiane partage les salariés en deux moitiés&nbsp;: ce n'est ni une moyenne, ni le salaire de tous.`,meta:{k:'med',per,i}}},
+ function top(){const per=rnd(['r','a']);const i=4;
+  return {kind:'choice',pick:true,scene:scSal(per,null,true),prompt:`Quel diplôme correspond au salaire médian le plus élevé (salariés ${perTxt(per)})&nbsp;? Touche la barre ou choisis ci-dessous.`,
+   choices:SAL.s.map((t,k)=>({t,ok:k===i,pick:k})),hint:'Compare la longueur des barres dorées.',expl:`Le diplôme du supérieur long donne le salaire médian le plus élevé&nbsp;: ${eur(SAL[per][4])}. C'est une corrélation positive entre diplôme et salaire.`,meta:{k:'top',per}}},
+ function capbac(){
+  return {kind:'choice',scene:scSal('r',[1,2]),prompt:`Chez les jeunes salariés sortis depuis 1 à 4 ans, qui a le salaire médian le plus élevé&nbsp;: CAP-BEP ou bac&nbsp;?`,
+   choices:ch(`CAP, BEP (${eur(1380)} contre ${eur(1370)}), mais l'écart est minime`,`Le bac, nettement`,`Ils sont exactement égaux`,`On ne peut pas comparer des médianes`),
+   hint:'Lis les deux valeurs exactes au bout des barres.',expl:`${eur(1380)} pour le CAP-BEP, ${eur(1370)} pour le bac&nbsp;: 10${NB}€ d'écart. La hiérarchie n'est pas parfaitement régulière entre ces deux niveaux, mais le salaire monte nettement avec le supérieur.`,meta:{k:'capbac'}}},
+ function ecart(){const per=rnd(['r','a']);const [i,j]=pick2(5);const d=SAL[per][j]-SAL[per][i];
+  return {kind:'fill',scene:scSal(per,[i,j]),prompt:`Calcule l'écart de salaire médian mensuel entre «${NB}${SAL.s[j]}${NB}» et «${NB}${SAL.s[i]}${NB}» (salariés ${perTxt(per)}).`,
+   tpl:`${eur(SAL[per][j])} − ${eur(SAL[per][i])} = {0} €`,ans:[[d]],hint:'Un écart absolu se calcule par une soustraction.',expl:`${fN(SAL[per][j])} − ${fN(SAL[per][i])} = ${fN(d)}${NB}€ par mois.`,meta:{k:'ecart',per,i,j}}},
+ function taux(){const per=rnd(['r','a']);const [i,j]=rnd([[2,4],[0,4],[0,3],[1,4]]);const a=SAL[per][i],b=SAL[per][j],t=(b-a)/a*100,tr=Math.round(t);
+  const wrong=Math.round((b-a)/b*100);
+  return {kind:'choice',scene:scSal(per,[i,j]),prompt:`De combien de pourcents le salaire médian «${NB}${SAL.s[j]}${NB}» (${eur(b)}) dépasse-t-il le salaire médian «${NB}${SAL.s[i]}${NB}» (${eur(a)})&nbsp;?`,
+   choices:ch(`environ ${tr}${NB}%`,`environ ${wrong}${NB}%`,`${fN(b-a)}${NB}%`,`environ ${tr+100}${NB}%`),
+   hint:`Taux d'évolution = (valeur d'arrivée − valeur de référence) ÷ valeur de référence. Ici, la référence est ${eur(a)}.`,expl:`(${fN(b)} − ${fN(a)}) ÷ ${fN(a)} ≈ ${fD(t/100,2)}, soit environ ${tr}${NB}%.`,meta:{k:'taux',per,i,j,tr}}},
+ function lect(){const per=rnd(['r','a']);const i=Math.floor(Math.random()*5);const v=SAL[per][i];
+  return {kind:'fill',scene:scSal(per,[i]),prompt:`Complète la phrase de lecture.`,
+   tpl:`La {0} des ${SAL.g[i]} ${perTxt(per)} gagne moins de ${eur(v)} net par mois.`,ans:[['moitié','moitie']],hint:'Médiane : un partage en deux.',expl:`Médiane&nbsp;: la moitié gagne moins, l'autre moitié gagne plus.`,meta:{k:'lect',per,i}}}
+];
+/* ---------- Niveau 2 · Le risque de chômage ---------- */
+const L2=[
+ function sur100(){const per=rnd(['r','a']);const i=Math.floor(Math.random()*6);const v=CHO[per][i];
+  return {kind:'fill',scene:scGrid(per,[i]),prompt:`Taux de chômage des actifs «${NB}${CHO.s[i]}${NB}» ${perTxt(per)}&nbsp;: <b>${pc(v)}</b>. Sur 100 de ces actifs, combien sont au chômage, environ (arrondi à l'unité)&nbsp;?`,
+   tpl:`Environ {0} actifs sur 100.`,ans:[[Math.round(v)]],hint:'Un taux en % se lit «&nbsp;sur 100&nbsp;».',expl:`${pc(v)}&nbsp;: environ ${Math.round(v)} actifs sur 100 sont au chômage. Les inactifs ne comptent pas&nbsp;: on raisonne sur 100 <b>actifs</b>.`,meta:{k:'sur100',per,i}}},
+ function points(){const per='r';const [i,j]=rnd([[0,5],[0,3],[2,5],[1,4],[0,2],[2,3]]);const a=CHO[per][i],b=CHO[per][j],d=(T10(a)-T10(b))/10;
+  return {kind:'fill',scene:scGrid(per,[i,j]),prompt:`Écart entre le taux de chômage «${NB}${CHO.s[i]}${NB}» (${pc(a)}) et «${NB}${CHO.s[j]}${NB}» (${pc(b)}), actifs ${perTxt(per)}.`,
+   tpl:`${fD(a,1)} − ${fD(b,1)} = {0} points de pourcentage`,ans:[[d]],hint:'La différence de deux pourcentages s\'exprime en points.',expl:`${fD(a,1)} − ${fD(b,1)} = ${fX(d)} points.`,meta:{k:'points',i,j}}},
+ function fois(){const per='r';const [i,j]=rnd([[0,5],[0,3],[0,4],[2,5]]);const a=CHO[per][i],b=CHO[per][j],q=a/b,qr=r10(q),d=(T10(a)-T10(b))/10;
+  return {kind:'choice',scene:scGrid(per,[i,j]),prompt:`${pc(a)} de chômage pour «${NB}${CHO.s[i]}${NB}», ${pc(b)} pour «${NB}${CHO.s[j]}${NB}» (actifs ${perTxt(per)}). Quelle phrase est juste&nbsp;?`,
+   choices:ch(`Le premier taux est environ ${fD(qr)} fois plus élevé.`,`Le premier taux est ${fX(d)} fois plus élevé.`,`Le premier taux est plus élevé de ${fX(d)}${NB}%.`,`Le premier taux est plus élevé de ${fD(qr)} points.`),
+   hint:'«&nbsp;Combien de fois&nbsp;» → une division. Une différence de pourcentages → des points.',expl:`${fD(a,1)} ÷ ${fD(b,1)} ≈ ${fD(qr)}&nbsp;; et ${fD(a,1)} − ${fD(b,1)} = ${fX(d)} <b>points</b> (pas %).`,meta:{k:'fois',i,j,qr}}},
+ function ref(){const i=rnd([0,2,3]);const v=CHO.r[i];
+  return {kind:'choice',scene:scGrid('r',[i]),prompt:`«${NB}En 2023, le taux de chômage des actifs ${['sans diplôme (ou avec le seul brevet)','','bacheliers','diplômés d\'un bac+2'][i]} sortis depuis 1 à 4 ans est de ${pc(v)}.${NB}» Quelle lecture est juste&nbsp;?`,
+   choices:ch(`Sur 100 de ces jeunes actifs, environ ${Math.round(v)} sont au chômage.`,`Sur 100 jeunes de ce niveau, actifs ou non, environ ${Math.round(v)} sont au chômage.`,`${pc(v)} des chômeurs ont ce niveau de diplôme.`,`${pc(v)} de ces jeunes actifs ont un emploi.`),
+   hint:'Le taux de chômage se calcule parmi les <b>actifs</b> du groupe.',expl:`Taux de chômage = chômeurs ÷ actifs. On ne compte ni les inactifs, ni les chômeurs des autres diplômes.`,meta:{k:'ref',i}}},
+ function anc(){const i=rnd([0,1,2]);const a=CHO.r[i],b=CHO.a[i];
+  return {kind:'choice',scene:{...scCho('a',[i,5]),title:'Taux de chômage selon le diplôme'},prompt:`«${NB}${CHO.s[i]}${NB}»&nbsp;: ${pc(a)} de chômage chez les actifs sortis depuis 1 à 4 ans, ${pc(b)} chez ceux sortis depuis 11 ans ou plus, contre ${pc(CHO.a[5])} pour les bac+5 sortis depuis 11 ans ou plus (2023). Que conclure&nbsp;?`,
+   choices:ch(`Le chômage est plus faible chez les plus anciens, mais reste plus élevé que pour les bac+5.`,`Après 11 ans, le diplôme ne joue plus aucun rôle.`,`Le taux de chômage a baissé de ${fX((T10(a)-T10(b))/10)}${NB}%.`,`Tous finissent par trouver un emploi.`),
+   hint:'Compare aussi avec la barre des bac+5. Et une différence de taux s\'exprime en points.',expl:`${pc(b)} contre ${pc(CHO.a[5])}&nbsp;: l'écart se réduit mais persiste. Ce sont deux groupes différents observés la même année, pas une évolution dans le temps.`,meta:{k:'anc',i}}}
+];
+/* ---------- Niveau 3 · Actifs, inactifs, chômeurs ---------- */
+const PERS=[
+ ['Nadia, 24 ans, infirmière à l\'hôpital de Mamoudzou','emploi'],['Kevin, 22 ans, vendeur en CDD dans une boutique','emploi'],
+ ['Inès, 19 ans, apprentie en BTS, payée par son entreprise','emploi'],['Saïd, 19 ans, a fini son CAP ; il envoie des candidatures chaque semaine et peut commencer demain','chomeur'],
+ ['Zaïna, 27 ans, a perdu son emploi ; elle en cherche activement un et est disponible','chomeur'],['Fatima, 16 ans, lycéenne, ne cherche pas d\'emploi','inactif'],
+ ['Ali, 66 ans, retraité','inactif'],['Mariam, 30 ans, reste au foyer et ne cherche pas d\'emploi','inactif'],['Hamid, 20 ans, étudiant à l\'université, ne cherche pas d\'emploi','inactif']];
+const L3=[
+ function pers(){const [p,c]=rnd(PERS);
+  return {kind:'choice',scene:{type:'stack',title:'Les situations face à l\'emploi',right:'Génération 2017',hl:null,src:GEN.src},prompt:`${p}. Pour l'INSEE, cette personne est…`,
+   choices:[{t:'en emploi (active occupée)',ok:c==='emploi'},{t:'au chômage (active)',ok:c==='chomeur'},{t:'inactive',ok:c==='inactif'}],
+   hint:'Emploi = activité rémunérée et déclarée. Chômeur = sans emploi, en recherche active, disponible. Sinon : inactif.',expl:c==='emploi'?'Activité rémunérée et déclarée&nbsp;: elle est en emploi, donc active.':c==='chomeur'?'Sans emploi, en recherche active et disponible&nbsp;: c\'est un chômeur, qui fait partie de la population active.':'Sans emploi et sans recherche d\'emploi&nbsp;: inactif, hors de la population active.',meta:{k:'pers',p,c}}},
+ function actifs(){
+  return {kind:'fill',scene:{type:'stack',mayotte:true,title:'Population active de Mayotte',right:'2024',src:MAY.src24},prompt:`À Mayotte en 2024, l'INSEE compte ${fN(MAY.emp)} personnes en emploi et ${fN(MAY.cho)} chômeurs. Combien d'actifs cela fait-il&nbsp;?`,
+   tpl:`Population active = {0}`,ans:[[MAY.emp+MAY.cho]],hint:'Les actifs, ce sont les personnes en emploi ET les chômeurs.',expl:`${fN(MAY.emp)} + ${fN(MAY.cho)} = ${fN(MAY.emp+MAY.cho)} actifs.`,meta:{k:'actifs'}}},
+ function tauxMay(){
+  return {kind:'fill',scene:{type:'stack',mayotte:true,showT:true,title:'Population active de Mayotte',right:'2024',src:MAY.src24},prompt:`Mayotte, 2024&nbsp;: ${fN(MAY.cho)} chômeurs pour ${fN(MAY.emp+MAY.cho)} actifs. Calcule le taux de chômage (arrondi à l'unité).`,
+   tpl:`${fN(MAY.cho)} ÷ ${fN(MAY.emp+MAY.cho)} × 100 ≈ {0} %`,ans:[[29]],hint:'Taux de chômage = chômeurs ÷ population active × 100.',expl:`${fN(MAY.cho)} ÷ ${fN(MAY.emp+MAY.cho)} ≈ 0,286, soit environ 29${NB}%, le taux publié par l'INSEE.`,meta:{k:'tauxMay'}}},
+ function piege(){
+  return {kind:'choice',scene:{type:'stack',mayotte:true,title:'Population active de Mayotte',right:'2024',src:MAY.src24},prompt:`Mayotte, 2024&nbsp;: ${fN(MAY.emp)} personnes en emploi, ${fN(MAY.cho)} chômeurs. Quel calcul donne le taux de chômage&nbsp;?`,
+   choices:ch(`${fN(MAY.cho)} ÷ (${fN(MAY.emp)} + ${fN(MAY.cho)}) × 100`,`${fN(MAY.cho)} ÷ ${fN(MAY.emp)} × 100`,`${fN(MAY.emp)} ÷ (${fN(MAY.emp)} + ${fN(MAY.cho)}) × 100`,`(${fN(MAY.emp)} − ${fN(MAY.cho)}) ÷ 100`),
+   hint:'On divise par la population active tout entière.',expl:`Le dénominateur est la population active (${fN(MAY.emp+MAY.cho)})&nbsp;: 22${NNB}000 ÷ 55${NNB}000 = 40${NB}% serait une erreur.`,meta:{k:'piege'}}},
+ function tempsActif(){const i=Math.floor(Math.random()*3);const a=GEN.emp[i]+GEN.cho[i];
+  return {kind:'fill',scene:{type:'stack',title:'Part du temps passé dans chaque situation',right:'2017 → 2023',hl:[i],bracket:true,src:GEN.src},prompt:`Génération 2017, «${NB}${GEN.s[i]}${NB}»&nbsp;: ${GEN.emp[i]}${NB}% du temps en emploi, ${GEN.cho[i]}${NB}% au chômage, ${GEN.ina[i]}${NB}% en inactivité, ${GEN.frm[i]}${NB}% en formation. Quelle part de leur temps ont-ils passée comme <b>actifs</b>&nbsp;?`,
+   tpl:`{0} % du temps`,ans:[[a]],hint:'Être actif, c\'est être en emploi ou au chômage.',expl:`${GEN.emp[i]} + ${GEN.cho[i]} = ${a}${NB}% du temps comme actifs (en emploi ou au chômage).`,meta:{k:'tempsActif',i}}},
+ function pas61(){
+  return {kind:'choice',scene:{type:'stack',title:'Part du temps passé dans chaque situation',right:'2017 → 2023',hl:[0],src:GEN.src},prompt:`Génération 2017&nbsp;: 3 ans après leur sortie, ${GEN.e3[0]}${NB}% des sans-diplôme occupent un emploi. Peut-on dire que ${100-GEN.e3[0]}${NB}% sont au chômage&nbsp;?`,
+   choices:ch(`Non : les autres sont au chômage, inactifs ou en formation.`,`Oui : on est soit en emploi, soit au chômage.`,`Oui : c'est la définition du taux de chômage.`,`Non : ${GEN.e3[0]}${NB}% est déjà un taux de chômage.`),
+   hint:'Regarde les couleurs de la barre : il y a quatre situations.',expl:`Sans emploi ne veut pas dire chômeur&nbsp;: il faut chercher activement un emploi et être disponible.`,meta:{k:'pas61'}}}
+];
+/* ---------- Niveau 4 · Le coût d'opportunité ---------- */
+const SCEN=[{n:3,gain:630,to:'un diplôme du supérieur long (bac+3 ou plus)',toS:'Bac+3 et plus'},{n:4,gain:630,to:'un diplôme du supérieur long (bac+3 ou plus)',toS:'Bac+3 et plus'},{n:5,gain:630,to:'un diplôme du supérieur long (bac+3 ou plus)',toS:'Bac+3 et plus'},{n:2,gain:130,to:'un bac+2',toS:'Bac+2'}];
+const NAMES=['Lina','Yanis','Anfane','Chloé','Ibrahima','Maëva','Soilihi','Naïma'];
+const scTL=(sc,o={})=>({type:'timeline',title:o.title||'La frise des études',right:o.right||`${sc.n} ans d'études`,n:sc.n,base:1370,gain:sc.gain,years:sc.gain>200?12:24,src:SAL.src,...o});
+const L4=[
+ function def(){const sc=rnd(SCEN);
+  return {kind:'choice',scene:scTL(sc),prompt:`Pendant ses ${sc.n} années d'études après le bac, ${rnd(NAMES)} ne travaille pas. Sur la frise, les barres corail représentent…`,
+   choices:ch(`le salaire auquel il ou elle renonce : le coût d'opportunité`,`les frais d'inscription`,`le salaire escompté après le diplôme`,`le capital humain perdu`),
+   hint:'Ce que l\'on aurait gagné en travaillant pendant ce temps…',expl:`Chaque année d'études, on renonce au salaire du bac (${eur(1370)} par mois, salaire médian des jeunes bacheliers)&nbsp;: c'est le coût d'opportunité.`,meta:{k:'def'}}},
+ function an(){const sc=rnd(SCEN);
+  return {kind:'fill',scene:scTL(sc),prompt:`Le salaire médian des jeunes bacheliers est de ${eur(1370)} net par mois. À combien renonce-t-on en <b>une</b> année d'études&nbsp;?`,
+   tpl:`${fN(1370)} × 12 = {0} €`,ans:[[1370*12]],hint:'Une année = 12 mois.',expl:`${fN(1370)} × 12 = ${fN(16440)}${NB}€ par an.`,meta:{k:'an'}}},
+ function cout(){const sc=rnd(SCEN),c=1370*12*sc.n;
+  return {kind:'fill',scene:scTL(sc),prompt:`${rnd(NAMES)} fait ${sc.n} ans d'études après le bac pour obtenir ${sc.to} et renonce chaque mois à ${eur(1370)}. Calcule son coût d'opportunité total.`,
+   tpl:`${fN(1370)} × 12 × ${sc.n} = {0} €`,ans:[[c]],hint:'Salaire mensuel × 12 mois × nombre d\'années.',expl:`${fN(1370)} × 12 × ${sc.n} = ${fN(c)}${NB}€.`,meta:{k:'cout',n:sc.n}}},
+ function direct(){const sc=rnd(SCEN);
+  return {kind:'choice',scene:scTL(sc),prompt:`Lequel de ces coûts des études n'est <b>pas</b> une dépense directe, mais un coût d'opportunité&nbsp;?`,
+   choices:ch(`le salaire que l'on aurait touché en travaillant`,`les frais d'inscription`,`le loyer d'un logement étudiant`,`l'achat d'un ordinateur pour les cours`),
+   hint:'Une dépense directe se paie. Un coût d\'opportunité, c\'est un gain auquel on renonce.',expl:`On ne le paie pas, on y renonce&nbsp;: c'est le coût d'opportunité. Les trois autres sont des dépenses directes.`,meta:{k:'direct'}}},
+ function piegeCout(){const sc=rnd(SCEN.slice(0,3)),c=1370*12*sc.n;
+  return {kind:'choice',scene:scTL(sc),prompt:`${rnd(NAMES)} renonce à ${eur(1370)} par mois pendant ${sc.n} ans d'études. Son coût d'opportunité vaut…`,
+   choices:ch(eur(c),eur(1370*sc.n),eur(1370*12),eur(1370*12*(sc.n+1))),hint:'N\'oublie ni les 12 mois, ni le nombre d\'années.',expl:`${fN(1370)} × 12 × ${sc.n} = ${eur(c)}.`,meta:{k:'piegeCout',n:sc.n}}}
+];
+/* ---------- Niveau 5 · Le point de rentabilité ---------- */
+const kOf=sc=>{const c=1370*12*sc.n,g=sc.gain*12;return Math.floor(c/g)+1};       // c/g n'est jamais entier ici
+const L5=[
+ function gainM(){const sc=rnd(SCEN);
+  return {kind:'fill',scene:scTL(sc,{showGain:true,full:true}),prompt:`Après ses études, ${rnd(NAMES)} espère le salaire médian des jeunes «${NB}${sc.toS}${NB}» (${eur(1370+sc.gain)}) au lieu de ${eur(1370)} avec le bac. Quel est son gain mensuel&nbsp;?`,
+   tpl:`${fN(1370+sc.gain)} − ${fN(1370)} = {0} € par mois`,ans:[[sc.gain]],hint:'Gain = salaire escompté − salaire auquel on aurait eu droit sans ces études.',expl:`${fN(1370+sc.gain)} − ${fN(1370)} = ${fN(sc.gain)}${NB}€ par mois.`,meta:{k:'gainM',g:sc.gain}}},
+ function gainA(){const sc=rnd(SCEN);
+  return {kind:'fill',scene:scTL(sc,{showGain:true,full:true}),prompt:`Le diplôme rapporte ${eur(sc.gain)} de plus par mois. Quel est le gain annuel&nbsp;?`,
+   tpl:`${fN(sc.gain)} × 12 = {0} €`,ans:[[sc.gain*12]],hint:'12 mois par an.',expl:`${fN(sc.gain)} × 12 = ${fN(sc.gain*12)}${NB}€ par an.`,meta:{k:'gainA',g:sc.gain}}},
+ function point(){const sc=rnd(SCEN),k=kOf(sc),c=1370*12*sc.n;
+  return {kind:'step',scene:scTL(sc,{showGain:true,cursor:1}),sc,prompt:`Coût d'opportunité&nbsp;: <b>${eur(c)}</b>. Gain annuel&nbsp;: <b>${eur(sc.gain*12)}</b>. Déplace le curseur sur la première année de travail où les gains cumulés dépassent le coût, puis valide.`,
+   min:1,max:sc.gain>200?12:24,start:1,target:k,hint:'La courbe dorée doit repasser au-dessus de la ligne 0.',expl:`${fN(c)} ÷ ${fN(sc.gain*12)} ≈ ${fD(c/(sc.gain*12),2)}&nbsp;: après ${k-1} ans, les gains (${eur(sc.gain*12*(k-1))}) restent sous le coût&nbsp;; le diplôme devient rentable au cours de la ${k}<sup>e</sup> année.`,meta:{k:'point',n:sc.n,g:sc.gain,t:k}}},
+ function cumul(){const sc=rnd(SCEN.slice(0,3)),y=rnd([3,4,5,6]);
+  return {kind:'fill',scene:scTL(sc,{showGain:true,cursor:y}),prompt:`Gain annuel&nbsp;: ${eur(sc.gain*12)}. Quels sont les gains cumulés après ${y} années de travail&nbsp;?`,
+   tpl:`${fN(sc.gain*12)} × ${y} = {0} €`,ans:[[sc.gain*12*y]],hint:'On additionne le gain de chaque année.',expl:`${fN(sc.gain*12)} × ${y} = ${fN(sc.gain*12*y)}${NB}€.`,meta:{k:'cumul',g:sc.gain,y}}},
+ function annee(){const sc=rnd(SCEN),k=kOf(sc),c=1370*12*sc.n,q=c/(sc.gain*12);
+  return {kind:'choice',scene:scTL(sc,{showGain:true,full:true}),prompt:`Coût d'opportunité&nbsp;: ${eur(c)}&nbsp;; gain annuel&nbsp;: ${eur(sc.gain*12)}. Avec ce calcul simplifié, le diplôme devient rentable…`,
+   choices:ch(`au cours de la ${k}e année de travail`,`au bout de ${k-1} ans exactement`,`au cours de la ${k+sc.n}e année de travail`,`dès la première année de travail`),
+   hint:'Divise le coût par le gain annuel, puis cherche la première année entière qui suffit.',expl:`${fN(c)} ÷ ${fN(sc.gain*12)} ≈ ${fD(q,2)}&nbsp;: ${k-1} années ne suffisent pas, la ${k}<sup>e</sup> si. Les années d'études ne comptent pas comme années de travail.`,meta:{k:'annee',n:sc.n,g:sc.gain,t:k}}}
+];
+/* ---------- Niveau 6 · Trois façons d'être rentable ---------- */
+const FACTS=[
+ [`Un salaire médian de ${eur(2000)} pour les jeunes diplômés du supérieur long`,'sal'],[`Un salaire médian de ${eur(2650)} pour les diplômés du supérieur long sortis depuis 11 ans ou plus`,'sal'],
+ [`Un premier emploi trouvé en 4 mois en moyenne par les diplômés du supérieur (Génération 2017)`,'emp'],[`${pc(6.8)} de chômage chez les jeunes actifs bac+5, contre ${pc(42.4)} sans diplôme`,'emp'],
+ [`${GEN.e6[2]}${NB}% des diplômés du supérieur en emploi 6 ans après leur sortie`,'emp'],
+ [`Pouvoir choisir entre davantage de métiers et se réorienter`,'cap'],[`Mieux comprendre ses droits et participer à la vie citoyenne`,'cap'],[`Avoir plus d'options réelles pour mener la vie que l'on souhaite`,'cap']];
+const scDash=hl=>({type:'dash',title:'Accès à l\'emploi selon le diplôme',right:'Génération 2017',hl,src:GEN.src});
+const L6=[
+ function dim(){const [f,c]=rnd(FACTS);
+  return {kind:'choice',scene:scDash(null),prompt:`«${NB}${f}${NB}» : quelle dimension de la rentabilité des études ce constat illustre-t-il&nbsp;?`,
+   choices:[{t:'le salaire escompté',ok:c==='sal'},{t:'l\'accès à l\'emploi',ok:c==='emp'},{t:'la réalisation de ses capabilités',ok:c==='cap'}],
+   hint:'Trois dimensions : combien on gagne, si l\'on trouve un emploi, ce que l\'on peut choisir de faire.',expl:c==='sal'?'Il s\'agit du salaire que l\'on peut espérer&nbsp;: le salaire escompté.':c==='emp'?'Il s\'agit de trouver et garder un emploi&nbsp;: l\'accès à l\'emploi.':'Il s\'agit des possibilités réelles de choisir sa vie&nbsp;: les capabilités (Amartya Sen).',meta:{k:'dim',f,c}}},
+ function delai(){
+  return {kind:'fill',scene:scDash([0,2]),prompt:`Génération 2017&nbsp;: premier emploi trouvé en moyenne au bout de ${GEN.del[0]} mois sans diplôme, de ${GEN.del[2]} mois avec un diplôme du supérieur. Combien de mois plus tôt pour les diplômés du supérieur&nbsp;?`,
+   tpl:`${GEN.del[0]} − ${GEN.del[2]} = {0} mois`,ans:[[GEN.del[0]-GEN.del[2]]],hint:'Un écart absolu : une soustraction.',expl:`${GEN.del[0]} − ${GEN.del[2]} = ${GEN.del[0]-GEN.del[2]} mois plus tôt en moyenne.`,meta:{k:'delai'}}},
+ function e6(){const [i,j]=rnd([[0,2],[0,1],[1,2]]);
+  return {kind:'fill',scene:scDash([i,j]),prompt:`6 ans après la sortie, ${GEN.e6[j]}${NB}% des «${NB}${GEN.s[j]}${NB}» et ${GEN.e6[i]}${NB}% des «${NB}${GEN.s[i]}${NB}» occupent un emploi. Quel est l'écart&nbsp;?`,
+   tpl:`${GEN.e6[j]} − ${GEN.e6[i]} = {0} points`,ans:[[GEN.e6[j]-GEN.e6[i]]],hint:'Différence de deux pourcentages : des points.',expl:`${GEN.e6[j]} − ${GEN.e6[i]} = ${GEN.e6[j]-GEN.e6[i]} points.`,meta:{k:'e6',i,j}}},
+ function capab(){
+  return {kind:'choice',scene:scDash(null),prompt:`Pour Amartya Sen, les capabilités d'une personne désignent…`,
+   choices:ch(`l'éventail des possibilités réelles qui lui sont offertes : ce qu'elle peut ou ne peut pas faire`,`son niveau de diplôme`,`son salaire escompté`,`le coût de ses études`),
+   hint:'Sen s\'intéresse aux libertés réelles, au-delà des ressources.',expl:`L'éducation élargit ces possibilités réelles&nbsp;: c'est un rendement des études qui ne se mesure pas seulement en euros.`,meta:{k:'capab'}}},
+ function may(){
+  return {kind:'choice',scene:{type:'may18',title:'Mayotte : part en emploi selon le diplôme',right:'2018',hl:null,src:MAY.src18},prompt:`À Mayotte en 2018, parmi les personnes de 15 ans ou plus sorties du système scolaire, ${D.MAY.t18.v[3]}${NB}% des diplômés du supérieur ont un emploi, contre ${D.MAY.t18.v[0]}${NB}% des personnes scolarisées sorties sans diplôme. Que montre ce constat&nbsp;?`,
+   choices:ch(`À Mayotte aussi, le diplôme favorise l'accès à l'emploi.`,`Le diplôme garantit un emploi à Mayotte.`,`${100-D.MAY.t18.v[0]}${NB}% des sans-diplôme sont au chômage.`,`Le diplôme ne joue aucun rôle à Mayotte.`),
+   hint:'Favoriser n\'est pas garantir ; sans emploi ne veut pas dire chômeur.',expl:`La part en emploi monte avec le diplôme (${D.MAY.t18.v.join(', ')}${NB}%), sans atteindre 100${NB}%.`,meta:{k:'may'}}}
+];
+/* ---------- Niveau 7 · Corrélation ou causalité ? ---------- */
+const PAIRS=[['le niveau de diplôme et le salaire médian','pos'],['le niveau de diplôme et le taux de chômage','neg'],['le niveau de diplôme et le délai d\'accès au premier emploi','neg'],['le niveau de diplôme et la part en emploi 6 ans après la sortie','pos']];
+const MECA=[
+ ['Les diplômés du supérieur ont des salaires médians plus élevés.','corr'],['Les jeunes sans diplôme sont plus souvent au chômage.','corr'],
+ ['Les études accroissent les compétences, ce qui rend le travailleur plus efficace et mieux payé.','meca'],
+ ['Sans qualification, on accède plus difficilement aux emplois qui exigent des compétences, d\'où plus de chômage.','meca'],
+ ['Le capital humain accumulé pendant les études augmente l\'efficacité au travail, donc le salaire.','meca']];
+const L7=[
+ function signe(){const [p,c]=rnd(PAIRS);const sc=/délai|6 ans/.test(p)?scDash(null):{type:'corr',title:'Deux corrélations',right:'jeunes sortis de formation depuis 1 à 4 ans',hl:/chômage/.test(p)?[1]:[0],trend:false,src:SAL.src+' · '+CHO.src.replace('<b>INSEE</b>, ','')};
+  return {kind:'choice',scene:sc,prompt:`La corrélation entre ${p} est…`,
+   choices:[{t:'positive',ok:c==='pos'},{t:'négative',ok:c==='neg'},{t:'nulle',ok:false}],hint:'Même sens → positive ; sens contraires → négative.',expl:c==='pos'?'Les deux augmentent ensemble&nbsp;: corrélation positive.':'Quand le diplôme augmente, l\'autre variable diminue&nbsp;: corrélation négative.',meta:{k:'signe',p,c}}},
+ function meca(){const [m,c]=rnd(MECA);
+  return {kind:'choice',scene:{type:'corr',title:'Deux corrélations',right:'jeunes sortis de formation depuis 1 à 4 ans',trend:true,src:SAL.src+' · '+CHO.src.replace('<b>INSEE</b>, ','')},prompt:`«${NB}${m}${NB}» Cette phrase…`,
+   choices:[{t:'constate seulement une corrélation',ok:c==='corr'},{t:'explique un mécanisme causal',ok:c==='meca'}],hint:'Un mécanisme dit <b>comment</b> une variable agit sur l\'autre.',expl:c==='corr'?'Elle décrit un lien statistique sans dire pourquoi.':'Elle explique comment le diplôme agit (compétences, qualification)&nbsp;: c\'est un mécanisme causal.',meta:{k:'meca',m,c}}},
+ function garantit(){
+  return {kind:'choice',scene:scCho('r',[5]),prompt:`Un article affirme&nbsp;: «${NB}Avec un bac+5, on n'est jamais au chômage.${NB}» Qu'en dis-tu&nbsp;?`,
+   choices:ch(`Faux : ${pc(6.8)} des jeunes actifs bac+5 sont au chômage en 2023. Le diplôme protège sans garantir.`,`Vrai : le taux de chômage des bac+5 est nul.`,`Vrai : la corrélation est négative.`,`Faux : les bac+5 sont plus au chômage que les sans-diplôme.`),
+   hint:'Lis la barre des bac+5.',expl:`Un taux plus faible n'est pas un taux nul&nbsp;: ${pc(6.8)} contre ${pc(42.4)} sans diplôme.`,meta:{k:'garantit'}}},
+ function declass(){
+  return {kind:'choice',scene:scCho('r',null),prompt:`Un docteur en physique accepte un emploi de ménage, faute de poste correspondant à sa formation. Cette situation illustre…`,
+   choices:ch(`le déclassement : le diplôme ne garantit pas un emploi à la hauteur de sa qualification`,`le manque de qualification`,`une hausse de ses capabilités`,`son coût d'opportunité`),
+   hint:'Très qualifié… dans un emploi peu qualifié.',expl:`C'est le déclassement&nbsp;: une limite du diplôme, qui favorise l'emploi mais ne garantit pas l'emploi correspondant.`,meta:{k:'declass'}}},
+ function cause(){
+  return {kind:'choice',scene:{type:'corr',title:'Deux corrélations',right:'jeunes sortis de formation depuis 1 à 4 ans',hl:[1],trend:true,src:SAL.src+' · '+CHO.src.replace('<b>INSEE</b>, ','')},prompt:`Le programme affirme que le manque de qualification est une <b>cause</b> du chômage. Quel mécanisme l'explique&nbsp;?`,
+   choices:ch(`Beaucoup d'emplois exigent des compétences certifiées que les peu qualifiés ne peuvent pas faire valoir.`,`Les peu qualifiés ne veulent pas travailler.`,`Le chômage ne touche que les personnes sans diplôme.`,`Les diplômés prennent tous les emplois.`),
+   hint:'Cherche un lien entre qualification et embauche.',expl:`La corrélation (${pc(42.4)} contre ${pc(6.8)}) s'explique par ce mécanisme&nbsp;: les employeurs recherchent des compétences.`,meta:{k:'cause'}}}
+];
+const LV=[
+ {name:'Le tableau des salaires',gens:L1,rule:`<p>Un <b>salaire médian</b> partage les salariés en deux moitiés&nbsp;: 50&nbsp;% gagnent moins, 50&nbsp;% gagnent plus.</p><p>Plus le diplôme est élevé, plus le salaire médian est élevé&nbsp;: c'est une <b>corrélation positive</b>. Le salaire est déterminé par le niveau de formation.</p>`},
+ {name:'Le risque de chômage',gens:L2,rule:`<p><b>Taux de chômage</b> = chômeurs ÷ population active × 100&nbsp;: il se lit «&nbsp;sur 100 actifs&nbsp;».</p><p>Différence de deux taux → des <b>points</b>&nbsp;; rapport de deux taux → «&nbsp;… fois plus&nbsp;». Le manque de qualification est une cause du chômage.</p>`},
+ {name:'Actifs et inactifs',gens:L3,rule:`<p><b>Emploi</b>&nbsp;: activité rémunérée et déclarée. <b>Chômage</b>&nbsp;: sans emploi, en recherche active, disponible.</p><p>Population active = personnes en emploi + chômeurs. Les inactifs n'ont pas d'emploi et n'en cherchent pas.</p>`},
+ {name:'Le coût d\'opportunité',gens:L4,rule:`<p>Poursuivre ses études a un coût&nbsp;: les dépenses directes et le <b>salaire auquel on renonce</b> (coût d'opportunité).</p><p>Ici, on renonce au salaire médian des jeunes bacheliers&nbsp;: 1&#8239;370&nbsp;€ par mois.</p>`},
+ {name:'Le point de rentabilité',gens:L5,rule:`<p>Les études sont un <b>investissement en capital humain</b>&nbsp;: elles deviennent rentables quand les gains cumulés dépassent le coût total.</p><p>Calcul simplifié&nbsp;: salaires constants, ni frais ni impôts.</p>`},
+ {name:'Trois façons d\'être rentable',gens:L6,rule:`<p>La rentabilité des études s'apprécie en termes de <b>salaire escompté</b>, d'<b>accès à l'emploi</b> et de réalisation de ses <b>capabilités</b>&nbsp;: l'éventail des possibilités réelles offertes à un individu (Amartya Sen).</p>`},
+ {name:'Corrélation ou causalité ?',gens:L7,rule:`<p>Une <b>corrélation</b> constate que deux variables évoluent ensemble (même sens&nbsp;: positive&nbsp;; sens contraires&nbsp;: négative).</p><p>Pour parler de <b>causalité</b>, il faut un mécanisme&nbsp;: ici, le capital humain et la qualification. Le diplôme protège du chômage sans le garantir.</p>`}
+];
+window.CPL={LV,L:[L1,L2,L3,L4,L5,L6,L7],kOf,SCEN,PERS,FACTS,PAIRS,MECA};
+})();
+</script>
+
+<script>
+/* =================== Moteur de jeu =================== */
+(function(){
+'use strict';
+const {LV}=window.CPL, NQ=5, GAME='carrefour-des-parcours';
+const $=id=>document.getElementById(id);
+let lvl=0,qi=0,Qs=[],cur=null,tries=0,score=0,res=[],busy=false,stepV=1;
+function tyQ(q){['prompt','hint','expl','tpl'].forEach(k=>q[k]=ty(q[k]));if(q.choices)q.choices.forEach(c=>c.t=ty(c.t));return q}
+function makeLevel(L){const g=shuffle(LV[L].gens);const out=[];for(let k=0;k<NQ;k++)out.push(tyQ(g[k%g.length]()));return out}
+function renderLv(){let pp={};try{pp=(SigmaKit.passport().games[GAME]||{}).levels||{}}catch(e){}
+  $('lv').innerHTML=LV.map((l,i)=>`<button type="button" data-l="${i}" aria-pressed="${i===lvl}">Niveau ${i+1}${pp[i+1]?`<span class="ck" aria-label="${pp[i+1]} étoile${pp[i+1]>1?'s':''}">${'★'.repeat(pp[i+1])}</span>`:''}</button>`).join('');
+  $('lv').querySelectorAll('button').forEach(b=>b.onclick=()=>goLevel(+b.dataset.l))}
+function goLevel(L){lvl=L;qi=0;score=0;res=[];Qs=makeLevel(L);renderLv();$('chap').textContent=`Niveau ${L+1} sur ${LV.length}`;$('lvt').textContent=LV[L].name;$('rule').innerHTML=LV[L].rule;showQ()}
+function dots(){$('dots').innerHTML=Qs.map((_,k)=>`<span class="dot ${k<res.length?(res[k]?'g':'r'):k===qi?'c':''}"></span>`).join('');$('qn').textContent=`Question ${qi+1} sur ${NQ}`}
+function scene(sc){CPS.render(sc);$('src').innerHTML='Source&nbsp;: '+sc.src+'.';
+  if(cur&&cur.pick)CPS.el.querySelectorAll('[data-pick]').forEach(g=>g.onclick=()=>{const b=document.querySelector(`#work .opt[data-p="${g.dataset.pick}"]`);if(b&&!b.disabled)b.click()})}
+function showQ(){cur=Qs[qi];tries=0;$('fb').hidden=true;$('win').hidden=true;dots();$('prompt').innerHTML=cur.prompt;scene(cur.scene);
+  const w=$('work');
+  if(cur.kind==='choice'){w.innerHTML='<div class="opts">'+cur.choices.map((c,j)=>`<button class="opt" type="button" data-j="${j}"${c.pick!=null?` data-p="${c.pick}"`:''}>${c.t}</button>`).join('')+'</div>';
+    w.querySelectorAll('.opt').forEach(b=>b.onclick=()=>answerChoice(+b.dataset.j,b))}
+  else if(cur.kind==='fill'){const t=cur.tpl.replace(/\{(\d)\}/g,(_,n)=>`<input class="in" data-i="${n}" inputmode="${typeof cur.ans[+n][0]==='number'?'decimal':'text'}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Réponse ${+n+1}">`);
+    w.innerHTML=`<form id="ff"><p class="fill">${t}</p><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`;
+    $('ff').onsubmit=e=>{e.preventDefault();answerFill()}}
+  else if(cur.kind==='step'){stepV=cur.start;
+    w.innerHTML=`<div class="stepc"><button class="stp" type="button" data-d="-1" aria-label="Année précédente">−1</button><output id="sv" aria-live="polite"></output><button class="stp" type="button" data-d="1" aria-label="Année suivante">+1</button></div><div class="btns"><button class="btn or val" type="button">Valider cette année</button></div>`;
+    w.querySelectorAll('.stp').forEach(b=>b.onclick=()=>setStep(stepV+ +b.dataset.d));w.querySelector('.val').onclick=answerStep;setStep(stepV)}
+  const f=w.querySelector('.opt,.in,.stp');if(f&&matchMedia('(min-width:861px)').matches)f.focus({preventScroll:true});
+}
+function setStep(v){stepV=Math.max(cur.min,Math.min(cur.max,v));$('sv').textContent=`Année ${stepV}`;cur.scene.cursor=stepV;scene(cur.scene)}
+CPS.el.addEventListener('keydown',e=>{if(!cur||cur.kind!=='step'||$('win').hidden===false)return;if(e.key==='ArrowRight'||e.key==='ArrowUp'){setStep(stepV+1);e.preventDefault()}else if(e.key==='ArrowLeft'||e.key==='ArrowDown'){setStep(stepV-1);e.preventDefault()}});
+const normNum=s=>String(s).replace(/[\s  €%]/g,'').replace(/points?$/,'').replace(/[−–]/g,'-').replace(',','.');
+function okFill(v,acc){const a=normNum(v).toLowerCase();if(!a)return false;return acc.some(x=>typeof x==='number'?(/^-?\d+(\.\d+)?$/.test(a)&&Math.abs(parseFloat(a)-x)<1e-9):a.normalize('NFD').replace(/[̀-ͯ]/g,'')===String(x).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''))}
+function fbShow(t,p){$('fbmk').innerHTML=SigmaKit.maki('pense');$('fbt').textContent=t;$('fbp').innerHTML=p;$('fb').hidden=false}
+function win(how){const ok=how==='first',shown=how==='shown';busy=false;$('fb').hidden=true;res.push(ok);if(ok)score++;dots();const W=$('win');W.classList.toggle('fail',shown);$('winmk').innerHTML=SigmaKit.maki(shown?'neutre':'joie');
+  $('winx').textContent=ok?rnd(['Exact !','Bien lu !','C\'est ça !','Parfait !']).replace(' !',NB+'!'):shown?'Voici la bonne réponse.':'Bien corrigé'+NB+'!';$('winp').innerHTML=cur.expl;
+  $('next').textContent=qi<NQ-1?'Question suivante →':'Terminer le niveau →';W.hidden=false;if(!shown)SigmaKit.fanfare('ok');
+  if(cur.kind==='step'){cur.scene.mark=cur.target;cur.scene.cursor=cur.target;scene(cur.scene)}
+  if(cur.scene.type==='corr'){cur.scene.trend=true;scene(cur.scene)}
+  $('next').focus({preventScroll:!matchMedia('(min-width:861px)').matches})}
+function answerChoice(j,b){const c=cur.choices[j];if(c.ok){b.classList.add('ok');$('work').querySelectorAll('.opt').forEach(x=>x.disabled=true);win(tries===0?'first':'retry');return}
+  tries++;b.classList.add('ko');b.disabled=true;
+  if(tries>=2){$('work').querySelectorAll('.opt').forEach((x,k)=>{x.disabled=true;if(cur.choices[k].ok)x.classList.add('ok')});win('shown')}
+  else fbShow('Pas tout à fait.',cur.hint+' Essaie encore.')}
+function answerFill(){const ins=[...$('work').querySelectorAll('.in')];if(ins.some(i=>!i.value.trim())){fbShow('Il manque une réponse.','Remplis chaque case avant de valider.');return}
+  let all=true;ins.forEach(i=>{const ok=okFill(i.value,cur.ans[+i.dataset.i]);i.classList.toggle('ok',ok);i.classList.toggle('ko',!ok);if(!ok)all=false});
+  if(all){ins.forEach(i=>i.disabled=true);$('work').querySelector('button[type=submit]').disabled=true;win(tries===0?'first':'retry');return}
+  tries++;if(tries>=2){ins.forEach(i=>{const a=cur.ans[+i.dataset.i][0];i.value=typeof a==='number'?fX(a):a;i.classList.remove('ko');i.classList.add('ok');i.disabled=true});$('work').querySelector('button[type=submit]').disabled=true;win('shown')}
+  else fbShow('Pas tout à fait.',cur.hint+' Corrige la case en rouge.')}
+function answerStep(){if(stepV===cur.target){$('work').querySelectorAll('button').forEach(b=>b.disabled=true);win(tries===0?'first':'retry');return}
+  tries++;const g=cur.sc.gain*12,c=1370*12*cur.sc.n,v=g*stepV;
+  const msg=v<c?`Après ${stepV} an${stepV>1?'s':''}, les gains cumulés (${eur(v)}) restent inférieurs au coût (${eur(c)}).`:`Après ${stepV-1} an${stepV>2?'s':''}, les gains (${eur(g*(stepV-1))}) dépassent déjà le coût&nbsp;: cherche plus tôt.`;
+  if(tries>=2){setStep(cur.target);$('work').querySelectorAll('button').forEach(b=>b.disabled=true);win('shown')}else fbShow('Pas encore.',msg+' '+cur.hint)}
+$('next').onclick=()=>{if(qi<NQ-1){qi++;showQ();if(!matchMedia('(min-width:861px)').matches)$('panel').scrollIntoView({block:'start'})}else finishLevel()};
+function finishLevel(){busy=true;const L=lvl+1;
+  SigmaKit.levelComplete({level:L,score,total:NQ}).then(v=>{busy=false;renderLv();if(lvl+1!==L)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+window.CPC={state:()=>({lvl,qi,nq:NQ,busy,score,q:cur&&{kind:cur.kind,choices:cur.choices&&cur.choices.map(c=>({ok:c.ok,t:c.t})),ans:cur.ans,target:cur.target,min:cur.min,max:cur.max,step:stepV,meta:cur.meta,prompt:cur.prompt}}),goLevel,gen:(L,k)=>tyQ(window.CPL.L[L][k]()),nGen:L=>window.CPL.L[L].length};
+document.addEventListener('DOMContentLoaded',()=>goLevel(0));
+})();
+</script>
+
+<script>
+/* =================== Épreuves finales : Bronze, Argent, Or (6 QCM + 4 trous, questions nouvelles) =================== */
+(function(){
+'use strict';
+const SAL=D.SAL,CHO=D.CHO,GEN=D.GEN,MAY=D.MAY,{kOf,SCEN,PERS,FACTS,PAIRS,MECA}=window.CPL;
+const qcm=(level,prompt,good,bad,explain,meta)=>{const ch=shuffle([good,...bad]);return {type:'qcm',level,prompt,choices:ch,answer:ch.indexOf(good),explain,meta}};
+const tr=(level,prompt,blanks,explain,meta)=>({type:'trous',level,prompt,blanks,explain,meta});
+const numA=x=>{const s=fX(x);const out=[s,s.replace(/ /g,''),s.replace(/ /g,' ')];if(s.includes(','))out.push(s.replace(',','.'));return [...new Set(out)]};
+const B=(x,size)=>({answers:numA(x),size:size||Math.max(3,fX(x).length)});
+const W=(...w)=>({answers:w,size:Math.max(...w.map(x=>x.length))});
+const per=()=>rnd(['r','a']);
+const G={
+ /* niveau 1 */
+ F1a:{L:1,t:'q',tiers:['bronze','argent'],st:1,f(){const p=per(),i=Math.floor(Math.random()*5),v=SAL[p][i];return qcm(1,`Le salaire mensuel net médian des ${SAL.g[i]} ${p==='r'?'sortis de formation depuis 1 à 4 ans':'sortis de formation depuis 11 ans ou plus'} est de ${eur(v)} (INSEE). Cela signifie que…`,
+   `la moitié d'entre eux gagne moins de ${eur(v)}, l'autre moitié plus`,[`tous gagnent ${eur(v)}`,`ils gagnent en moyenne ${eur(v)}`,`${eur(v)} est leur salaire le plus fréquent`],'La médiane partage les salariés en deux moitiés.',{k:'F1a',p,i})}},
+ F1b:{L:1,t:'q',tiers:['argent','or'],st:2,f(){const [i,j]=rnd([[2,4],[0,4],[0,3],[1,4]]),p=rnd(['r','a']),a=SAL[p][i],b=SAL[p][j],t=Math.round((b-a)/a*100),w=Math.round((b-a)/b*100);
+   return qcm(1,`Salaire mensuel net médian des salariés ${p==='r'?'sortis depuis 1 à 4 ans':'sortis depuis 11 ans ou plus'}&nbsp;: ${eur(a)} (${SAL.l[i]}), ${eur(b)} (${SAL.l[j]}). Le second dépasse le premier d'environ…`,
+   `${t}${NB}%`,[`${w}${NB}%`,`${t+100}${NB}%`,`${fN(b-a)}${NB}%`],`(${fN(b)} − ${fN(a)}) ÷ ${fN(a)} ≈ ${fD((b-a)/a,2)}&nbsp;: on divise par la valeur de référence.`,{k:'F1b',p,i,j,t})}},
+ F1c:{L:1,t:'t',tiers:['bronze','argent'],st:1,f(){const p=per(),[i,j]=pick2(5),d=SAL[p][j]-SAL[p][i];return tr(1,`Salaire médian (salariés ${p==='r'?'sortis depuis 1 à 4 ans':'sortis depuis 11 ans ou plus'})&nbsp;: ${eur(SAL[p][j])} (${SAL.l[j]}) contre ${eur(SAL[p][i])} (${SAL.l[i]}). L'écart est de {0} € par mois.`,[B(d)],`${fN(SAL[p][j])} − ${fN(SAL[p][i])} = ${fN(d)}.`,{k:'F1c',p,i,j})}},
+ F1d:{L:1,t:'t',tiers:['or'],st:3,f(){const [i,j]=rnd([[0,4],[2,4],[0,3]]),p=rnd(['r','a']),a=SAL[p][i],b=SAL[p][j],q=r10(b/a),d=b-a;
+   return tr(1,`Salaires médians (salariés ${p==='r'?'sortis depuis 1 à 4 ans':'sortis depuis 11 ans ou plus'})&nbsp;: ${eur(a)} (${SAL.l[i]}) et ${eur(b)} (${SAL.l[j]}). L'écart est de {0} €, et le second est environ {1} fois plus élevé que le premier (arrondi au dixième).`,[B(d),B(q)],`${fN(b)} − ${fN(a)} = ${fN(d)}&nbsp;; ${fN(b)} ÷ ${fN(a)} ≈ ${fD(q)}.`,{k:'F1d',p,i,j,q})}},
+ F1e:{L:1,t:'q',tiers:['argent'],st:2,f(){return qcm(1,`Jeunes salariés sortis depuis 1 à 4 ans&nbsp;: salaire médian de ${eur(1380)} (CAP-BEP), ${eur(1370)} (bac), ${eur(2000)} (supérieur long). Quelle conclusion est juste&nbsp;?`,
+   `Le salaire monte nettement avec le supérieur long ; entre CAP-BEP et bac, l'écart est presque nul.`,[`Le CAP rapporte toujours beaucoup plus que le bac.`,`Le bac ne vaut plus rien.`,`Le salaire ne dépend pas du diplôme.`],`10${NB}€ d'écart entre CAP-BEP et bac, 630${NB}€ entre bac et supérieur long.`,{k:'F1e'})}},
+ /* niveau 2 */
+ F2a:{L:2,t:'t',tiers:['bronze'],st:1,f(){const i=Math.floor(Math.random()*6),v=CHO.r[i];return tr(2,`En 2023, le taux de chômage des actifs (${CHO.l[i]}) sortis de formation depuis 1 à 4 ans est de ${pc(v)}&nbsp;: sur 100 de ces actifs, environ {0} sont au chômage.`,[B(Math.round(v))],`${pc(v)}, soit environ ${Math.round(v)} sur 100 actifs.`,{k:'F2a',i})}},
+ F2b:{L:2,t:'t',tiers:['bronze','argent'],st:1,f(){const p=per(),[i,j]=rnd([[0,5],[0,3],[2,5],[0,2],[1,5]]),a=CHO[p][i],b=CHO[p][j],d=(T10(a)-T10(b))/10;return tr(2,`Taux de chômage en 2023 (actifs ${p==='r'?'sortis depuis 1 à 4 ans':'sortis depuis 11 ans ou plus'})&nbsp;: ${pc(a)} (${CHO.l[i]}) et ${pc(b)} (${CHO.l[j]}). L'écart est de {0} points de pourcentage.`,[B(d)],`${fD(a,1)} − ${fD(b,1)} = ${fX(d)} points.`,{k:'F2b',p,i,j})}},
+ F2c:{L:2,t:'q',tiers:['argent','or'],st:2,f(){const [i,j]=rnd([[0,5],[0,3],[0,4],[2,5]]),a=CHO.r[i],b=CHO.r[j],q=r10(a/b),d=(T10(a)-T10(b))/10;
+   return qcm(2,`En 2023, taux de chômage des actifs sortis depuis 1 à 4 ans&nbsp;: ${pc(a)} (${CHO.l[i]}), ${pc(b)} (${CHO.l[j]}). Quelle phrase est juste&nbsp;?`,
+   `Le premier taux est environ ${fD(q)} fois plus élevé.`,[`Le premier taux est ${fX(d)} fois plus élevé.`,`Le premier taux est plus élevé de ${fX(d)}${NB}%.`,`Le premier taux est plus élevé de ${fD(q)} points.`],`${fD(a,1)} ÷ ${fD(b,1)} ≈ ${fD(q)}&nbsp;; ${fD(a,1)} − ${fD(b,1)} = ${fX(d)} points (pas %).`,{k:'F2c',i,j,q})}},
+ F2d:{L:2,t:'q',tiers:['argent'],st:2,f(){const v=42.4;return qcm(2,`«${NB}En 2023, le taux de chômage des actifs sans diplôme (ou avec le seul brevet) sortis depuis 1 à 4 ans est de ${pc(v)}.${NB}» Quelle lecture est juste&nbsp;?`,
+   `Sur 100 de ces jeunes actifs, environ 42 sont au chômage.`,[`Sur 100 jeunes sans diplôme, actifs ou non, environ 42 sont au chômage.`,`${pc(v)} des chômeurs sont sans diplôme.`,`${pc(v)} de ces jeunes actifs ont un emploi.`],'Le taux de chômage se calcule parmi les actifs du groupe.',{k:'F2d'})}},
+ F2e:{L:2,t:'q',tiers:['or'],st:3,f(){const i=rnd([0,1,2]),a=CHO.r[i],b=CHO.a[i];return qcm(2,`Taux de chômage en 2023 des actifs (${CHO.l[i]})&nbsp;: ${pc(a)} pour ceux sortis depuis 1 à 4 ans, ${pc(b)} pour ceux sortis depuis 11 ans ou plus&nbsp;; ${pc(CHO.a[5])} pour les bac+5 sortis depuis 11 ans ou plus. Quelle conclusion est juste&nbsp;?`,
+   `Le chômage est plus faible chez les plus anciens, mais reste plus élevé que pour les bac+5.`,[`Le taux de chômage a baissé de ${fX((T10(a)-T10(b))/10)}${NB}% entre leur sortie et 2023.`,`Après 11 ans, le diplôme ne joue plus aucun rôle.`,`Ceux sortis depuis longtemps ne connaissent plus le chômage.`],`Deux groupes différents observés la même année&nbsp;: l'écart avec les bac+5 persiste (${pc(b)} contre ${pc(CHO.a[5])}).`,{k:'F2e',i})}},
+ F2f:{L:2,t:'t',tiers:['or'],st:3,f(){const [i,j]=rnd([[0,5],[0,3],[2,5]]),a=CHO.r[i],b=CHO.r[j],d=(T10(a)-T10(b))/10,q=r10(a/b);return tr(2,`En 2023, ${pc(a)} de chômage (${CHO.l[i]}) contre ${pc(b)} (${CHO.l[j]}) chez les actifs sortis depuis 1 à 4 ans&nbsp;: écart de {0} points, taux environ {1} fois plus élevé (au dixième).`,[B(d),B(q)],`${fD(a,1)} − ${fD(b,1)} = ${fX(d)}&nbsp;; ${fD(a,1)} ÷ ${fD(b,1)} ≈ ${fD(q)}.`,{k:'F2f',i,j,q})}},
+ /* niveau 3 */
+ F3a:{L:3,t:'q',tiers:['bronze','argent'],st:1,f(){const [p,c]=rnd(PERS);const L={emploi:'en emploi (active occupée)',chomeur:'au chômage (active)',inactif:'inactive'};return qcm(3,`${p}. Pour l'INSEE, cette personne est…`,L[c],Object.keys(L).filter(k=>k!==c).map(k=>L[k]),c==='inactif'?'Sans emploi et sans recherche&nbsp;: inactive.':c==='chomeur'?'Sans emploi, en recherche active et disponible&nbsp;: chômeuse ou chômeur, donc active.':'Activité rémunérée et déclarée&nbsp;: en emploi.',{k:'F3a',p,c})}},
+ F3b:{L:3,t:'t',tiers:['bronze'],st:1,f(){return tr(3,`Mayotte, 2024&nbsp;: ${fN(MAY.emp)} personnes en emploi et ${fN(MAY.cho)} chômeurs. La population active compte {0} personnes.`,[B(MAY.emp+MAY.cho)],`${fN(MAY.emp)} + ${fN(MAY.cho)} = ${fN(MAY.emp+MAY.cho)}.`,{k:'F3b'})}},
+ F3c:{L:3,t:'t',tiers:['argent','or'],st:2,f(){return tr(3,`Mayotte, 2024&nbsp;: ${fN(MAY.emp)} personnes en emploi et ${fN(MAY.cho)} chômeurs. Taux de chômage ≈ {0} % (arrondi à l'unité).`,[B(29)],`${fN(MAY.cho)} ÷ ${fN(MAY.emp+MAY.cho)} ≈ 0,286, soit environ 29${NB}% (taux publié par l'INSEE).`,{k:'F3c'})}},
+ F3d:{L:3,t:'t',tiers:['argent'],st:2,f(){const i=Math.floor(Math.random()*3);return tr(3,`Génération 2017, ${GEN.l[i]}&nbsp;: de leur sortie à 2023, ${GEN.emp[i]}${NB}% du temps en emploi, ${GEN.cho[i]}${NB}% au chômage, ${GEN.ina[i]}${NB}% en inactivité, ${GEN.frm[i]}${NB}% en formation. Ils ont passé {0} % de leur temps comme actifs.`,[B(GEN.emp[i]+GEN.cho[i])],`Actif = en emploi ou au chômage&nbsp;: ${GEN.emp[i]} + ${GEN.cho[i]} = ${GEN.emp[i]+GEN.cho[i]}.`,{k:'F3d',i})}},
+ F3e:{L:3,t:'q',tiers:['argent','or'],st:2,f(){return qcm(3,`Génération 2017&nbsp;: 3 ans après leur sortie, ${GEN.e3[0]}${NB}% des sans-diplôme occupent un emploi. Peut-on en déduire que ${100-GEN.e3[0]}${NB}% d'entre eux sont au chômage&nbsp;?`,
+   `Non : les autres peuvent aussi être inactifs ou en formation.`,[`Oui : on est soit en emploi, soit au chômage.`,`Oui : c'est la définition du taux de chômage.`,`Non : ${GEN.e3[0]}${NB}% est un taux de chômage.`],'Sans emploi ne veut pas dire chômeur.',{k:'F3e'})}},
+ F3f:{L:3,t:'q',tiers:['or'],st:3,f(){return qcm(3,`Mayotte, 2024&nbsp;: ${fN(MAY.emp)} personnes en emploi, ${fN(MAY.cho)} chômeurs. Un élève calcule ${fN(MAY.cho)} ÷ ${fN(MAY.emp)} ≈ 40${NB}%. Quelle est son erreur&nbsp;?`,
+   `Il divise par les personnes en emploi au lieu de la population active (${fN(MAY.emp+MAY.cho)}).`,[`Il aurait dû diviser par la population totale de Mayotte.`,`Il aurait dû soustraire au lieu de diviser.`,`Il n'y a pas d'erreur : le taux est de 40${NB}%.`],`${fN(MAY.cho)} ÷ ${fN(MAY.emp+MAY.cho)} ≈ 29${NB}%.`,{k:'F3f'})}},
+ /* niveau 4 */
+ F4a:{L:4,t:'q',tiers:['bronze','argent'],st:1,f(){return qcm(4,`Le coût d'opportunité d'une année d'études correspond…`,`au salaire auquel on renonce en étudiant au lieu de travailler`,[`aux frais d'inscription`,`au loyer d'un logement étudiant`,`au salaire espéré après le diplôme`],'C\'est un gain sacrifié, pas une dépense.',{k:'F4a'})}},
+ F4b:{L:4,t:'t',tiers:['bronze'],st:1,f(){return tr(4,`Un jeune bachelier renonce au salaire médian de ${eur(1370)} par mois pour étudier. En un an, il renonce à {0} €.`,[B(16440)],`${fN(1370)} × 12 = ${fN(16440)}.`,{k:'F4b'})}},
+ F4c:{L:4,t:'t',tiers:['argent'],st:2,f(){const n=rnd([2,3,4,5]);return tr(4,`${rnd(['Lina','Yanis','Anfane','Chloé'])} renonce à ${eur(1370)} par mois pendant ${n} ans d'études. Son coût d'opportunité total est de {0} €.`,[B(1370*12*n)],`${fN(1370)} × 12 × ${n} = ${fN(1370*12*n)}.`,{k:'F4c',n})}},
+ F4d:{L:4,t:'q',tiers:['argent'],st:2,f(){return qcm(4,`Yanis prépare un BTS en 2 ans dans un lycée public, sans frais d'inscription, et ne travaille pas pendant ce temps. Le principal coût de ses études est…`,
+   `le salaire auquel il renonce (coût d'opportunité)`,[`nul, puisque la formation est gratuite`,`le salaire qu'il touchera après son BTS`,`le prix de son diplôme`],'Même sans frais, étudier coûte le salaire sacrifié.',{k:'F4d'})}},
+ F4e:{L:4,t:'q',tiers:['or'],st:3,f(){const n=rnd([3,4,5]),c=1370*12*n;return qcm(4,`${rnd(['Naïma','Soilihi','Maëva'])} renonce au salaire médian d'un jeune bachelier (${eur(1370)} par mois) pendant ${n} ans d'études. Son coût d'opportunité vaut…`,
+   eur(c),[eur(1370*n),eur(1370*12),eur(1370*12*(n+1))],`${fN(1370)} × 12 × ${n} = ${eur(c)}.`,{k:'F4e',n})}},
+ F4f:{L:4,t:'t',tiers:['or'],st:3,f(){const n=rnd([4,5]);return tr(4,`Avec ${eur(1370)} renoncés par mois, ${n} ans d'études coûtent {0} €, soit {1} € de plus que 3 ans d'études.`,[B(1370*12*n),B(1370*12*(n-3))],`${fN(1370)} × 12 × ${n} = ${fN(1370*12*n)}&nbsp;; ${fN(1370*12*n)} − ${fN(1370*36)} = ${fN(1370*12*(n-3))}.`,{k:'F4f',n})}},
+ /* niveau 5 */
+ F5a:{L:5,t:'t',tiers:['argent'],st:2,f(){const sc=rnd(SCEN);return tr(5,`Salaire médian des jeunes&nbsp;: ${eur(1370)} avec le bac, ${eur(1370+sc.gain)} avec ${sc.to}. Le gain est de {0} € par mois, soit {1} € par an.`,[B(sc.gain),B(sc.gain*12)],`${fN(1370+sc.gain)} − ${fN(1370)} = ${fN(sc.gain)}&nbsp;; × 12 = ${fN(sc.gain*12)}.`,{k:'F5a',g:sc.gain})}},
+ F5b:{L:5,t:'t',tiers:['argent'],st:2,f(){const y=rnd([3,4,5,6]);return tr(5,`Avec un gain annuel de ${eur(7560)}, les gains cumulés après ${y} années de travail sont de {0} €.`,[B(7560*y)],`${fN(7560)} × ${y} = ${fN(7560*y)}.`,{k:'F5b',y})}},
+ F5c:{L:5,t:'q',tiers:['argent','or'],st:2,f(){const sc=rnd(SCEN),k=kOf(sc),c=1370*12*sc.n;return qcm(5,`Coût d'opportunité des études&nbsp;: ${eur(c)}&nbsp;; gain annuel ensuite&nbsp;: ${eur(sc.gain*12)}. Dans ce calcul simplifié, le diplôme devient rentable…`,
+   `au cours de la ${k}e année de travail`,[`au bout de ${k-1} ans exactement`,`au cours de la ${k+sc.n}e année de travail`,`dès la première année de travail`],`${fN(c)} ÷ ${fN(sc.gain*12)} ≈ ${fD(c/(sc.gain*12),2)}&nbsp;: ${k-1} années ne suffisent pas.`,{k:'F5c',n:sc.n,g:sc.gain,t:k})}},
+ F5d:{L:5,t:'t',tiers:['or'],st:3,f(){const sc=rnd(SCEN),k=kOf(sc),c=1370*12*sc.n;return tr(5,`Bac&nbsp;: ${eur(1370)} par mois&nbsp;; après ${sc.n} ans d'études, ${eur(1370+sc.gain)} par mois (salaires médians des jeunes). Coût d'opportunité&nbsp;: {0} €&nbsp;; gain annuel&nbsp;: {1} €&nbsp;; rentable au cours de la {2}<sup>e</sup> année de travail.`,[B(c),B(sc.gain*12),B(k)],`${fN(1370)} × 12 × ${sc.n} = ${fN(c)}&nbsp;; ${fN(sc.gain)} × 12 = ${fN(sc.gain*12)}&nbsp;; ${fN(c)} ÷ ${fN(sc.gain*12)} ≈ ${fD(c/(sc.gain*12),2)}.`,{k:'F5d',n:sc.n,g:sc.gain,t:k})}},
+ F5e:{L:5,t:'q',tiers:['bronze','argent'],st:1,f(){return qcm(5,`Un investissement en capital humain est rentable lorsque…`,`les gains cumulés dépassent le coût total des études`,[`le diplôme est obtenu`,`le salaire du premier mois dépasse le coût total`,`les frais d'inscription sont nuls`],'On compare la somme des gains au coût total.',{k:'F5e'})}},
+ F5f:{L:5,t:'q',tiers:['or'],st:3,f(){return qcm(5,`Le calcul simplifié du BTS de Yanis (gain de ${eur(130)} par mois, rentable au cours de la 22e année) sous-estime l'intérêt du diplôme. Pourquoi&nbsp;?`,
+   `Il oublie que le risque de chômage est plus faible avec un bac+2 (${pc(11.0)} contre ${pc(18.2)} avec le bac, jeunes actifs, 2023).`,[`Il compte des frais d'inscription trop élevés.`,`Il suppose que Yanis travaille pendant ses études.`,`Il oublie le prix du diplôme.`],`La rentabilité se juge aussi à l'accès à l'emploi&nbsp;; et l'écart de salaire est plus grand chez les salariés sortis depuis 11 ans ou plus (${eur(2100)} contre ${eur(1800)}).`,{k:'F5f'})}},
+ /* niveau 6 */
+ F6a:{L:6,t:'q',tiers:['bronze','argent'],st:1,f(){const [f,c]=rnd(FACTS);const L={sal:'de salaire escompté',emp:'d\'accès à l\'emploi',cap:'de réalisation de ses capabilités'};return qcm(6,`«${NB}${f}${NB}» illustre surtout la rentabilité des études en termes…`,L[c],Object.keys(L).filter(k=>k!==c).map(k=>L[k]).concat(['de coût d\'opportunité']),'Trois dimensions&nbsp;: salaire escompté, accès à l\'emploi, capabilités.',{k:'F6a',f,c})}},
+ F6b:{L:6,t:'q',tiers:['bronze','argent'],st:1,f(){return qcm(6,`Selon Amartya Sen, les capabilités désignent…`,`l'éventail des possibilités réelles offertes à un individu`,[`le niveau de diplôme`,`le salaire escompté`,`le coût des études`],'Ce qu\'une personne peut ou ne peut pas faire réellement.',{k:'F6b'})}},
+ F6c:{L:6,t:'t',tiers:['argent','or'],st:2,f(){return tr(6,`Génération 2017&nbsp;: premier emploi trouvé en moyenne en ${GEN.del[0]} mois sans diplôme, en ${GEN.del[2]} mois avec un diplôme du supérieur&nbsp;: {0} mois de moins, soit un délai {1} fois plus court.`,[B(GEN.del[0]-GEN.del[2]),B(5.5)],`${GEN.del[0]} − ${GEN.del[2]} = ${GEN.del[0]-GEN.del[2]}&nbsp;; ${GEN.del[0]} ÷ ${GEN.del[2]} = 5,5.`,{k:'F6c'})}},
+ F6d:{L:6,t:'q',tiers:['argent'],st:2,f(){const v=D.MAY.t18.v;return qcm(6,`À Mayotte en 2018, parmi les personnes de 15 ans ou plus sorties du système scolaire, ${v[3]}${NB}% des diplômés du supérieur, ${v[2]}${NB}% des bacheliers et ${v[0]}${NB}% des scolarisés sortis sans diplôme ont un emploi. Quelle conclusion est juste&nbsp;?`,
+   `À Mayotte aussi, plus le diplôme est élevé, plus la part en emploi est élevée.`,[`Le bac suffit pour avoir un emploi.`,`${100-v[0]}${NB}% des sans-diplôme sont au chômage.`,`Le diplôme n'a pas d'effet à Mayotte.`],'La part en emploi croît avec le diplôme&nbsp;; sans emploi ne veut pas dire chômeur.',{k:'F6d'})}},
+ F6e:{L:6,t:'t',tiers:['bronze'],st:1,f(){return tr(6,`Génération 2017&nbsp;: 6 ans après la sortie, ${GEN.e6[2]}${NB}% des diplômés du supérieur et ${GEN.e6[0]}${NB}% des sans-diplôme occupent un emploi, soit un écart de {0} points.`,[B(GEN.e6[2]-GEN.e6[0])],`${GEN.e6[2]} − ${GEN.e6[0]} = ${GEN.e6[2]-GEN.e6[0]}.`,{k:'F6e'})}},
+ /* niveau 7 */
+ F7a:{L:7,t:'q',tiers:['bronze','argent'],st:1,f(){const [p,c]=rnd(PAIRS);return qcm(7,`La corrélation entre ${p} est…`,c==='pos'?'positive':'négative',[c==='pos'?'négative':'positive','nulle','impossible à définir'],c==='pos'?'Les deux augmentent ensemble.':'Quand le diplôme augmente, l\'autre diminue.',{k:'F7a',p,c})}},
+ F7b:{L:7,t:'q',tiers:['argent','or'],st:2,f(){const corr=MECA.filter(m=>m[1]==='corr'),meca=MECA.filter(m=>m[1]==='meca');const g=rnd(corr)[0];return qcm(7,`Laquelle de ces phrases décrit une simple corrélation, sans mécanisme explicatif&nbsp;?`,g,shuffle(meca).slice(0,3).map(m=>m[0]),'Les autres phrases expliquent comment le diplôme agit&nbsp;: ce sont des mécanismes.',{k:'F7b',g})}},
+ F7c:{L:7,t:'q',tiers:['argent'],st:2,f(){return qcm(7,`Un article affirme&nbsp;: «${NB}Avec un bac+5, on n'est jamais au chômage.${NB}» Où est l'erreur&nbsp;?`,`Un taux plus faible n'est pas un taux nul : ${pc(6.8)} des jeunes actifs bac+5 sont au chômage en 2023.`,[`Il confond salaire et emploi.`,`Les bac+5 sont plus souvent au chômage que les sans-diplôme.`,`Il n'y a pas d'erreur.`],'Le diplôme protège du chômage sans garantir l\'emploi.',{k:'F7c'})}},
+ F7d:{L:7,t:'q',tiers:['argent'],st:2,f(){return qcm(7,`Un docteur en physique accepte un emploi de ménage, faute de poste correspondant à sa formation. Cette situation illustre…`,`le déclassement`,[`le manque de qualification`,`une hausse de ses capabilités`,`son coût d'opportunité`],'Très qualifié dans un emploi peu qualifié&nbsp;: le déclassement.',{k:'F7d'})}},
+ F7e:{L:7,t:'t',tiers:['bronze','argent'],st:1,f(){return tr(7,`Plus le diplôme est élevé, plus le salaire médian est élevé&nbsp;: la corrélation est {0}. Plus le diplôme est élevé, plus le taux de chômage est faible&nbsp;: la corrélation est {1}.`,[W('positive'),W('négative','negative')],'Même sens&nbsp;: positive&nbsp;; sens contraires&nbsp;: négative.',{k:'F7e'})}},
+ F7f:{L:7,t:'q',tiers:['or'],st:3,f(){return qcm(7,`Pour passer de la corrélation «${NB}moins de chômage chez les diplômés${NB}» à l'affirmation «${NB}le manque de qualification est une cause du chômage${NB}», il faut…`,`un mécanisme : les employeurs recherchent des compétences que les peu qualifiés ne peuvent pas faire valoir`,[`seulement constater que les deux taux sont différents`,`montrer que les diplômés ne sont jamais au chômage`,`calculer le salaire médian des diplômés`],'Une causalité s\'appuie sur un mécanisme explicatif, pas seulement sur un écart statistique.',{k:'F7f'})}}
+};
+function build(tier){
+  const pool=Object.entries(G).filter(([,g])=>g.tiers.includes(tier));
+  const need=tier==='argent'?7:tier==='bronze'?6:6;
+  for(let a=0;a<4000;a++){const sel=shuffle(pool).slice(0,10);
+    if(sel.filter(([,g])=>g.t==='q').length!==6)continue;
+    if(new Set(sel.map(([,g])=>g.L)).size<need)continue;
+    return shuffle(sel.map(([id,g])=>{const q=g.f();q.meta.id=id;q.meta.st=g.st;q.prompt=ty(q.prompt);q.explain=ty(q.explain);if(q.choices)q.choices=q.choices.map(ty);return q}))}
+  throw new Error('tirage impossible')}
+window.CP_FIN={bronze:()=>build('bronze'),argent:()=>build('argent'),or:()=>build('or'),G};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'carrefour-des-parcours',title:'Le Carrefour des parcours',levels:7,
+  levelNames:['Le tableau des salaires','Le risque de chômage','Actifs et inactifs','Le coût d\'opportunité','Le point de rentabilité','Trois façons d\'être rentable','Corrélation ou causalité ?'],
+  music:'aventure',finals:{bronze:()=>(window.CP_last=CP_FIN.bronze()),argent:()=>(window.CP_last=CP_FIN.argent()),or:()=>(window.CP_last=CP_FIN.or())}});
+</script>
+</body>
+</html>
