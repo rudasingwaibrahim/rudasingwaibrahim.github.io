@@ -35,7 +35,14 @@
 {%- assign _n_ex = page.planches | size -%}{%- if page.dm_published != false -%}{%- assign _n_dm = page.dm | size -%}{%- assign _n_ex = _n_ex | plus: _n_dm -%}{%- endif -%}
 {%- assign _n_games = _games | size -%}
 
-<div class="chap" data-chap-url="{{ page.url }}" data-chap-title="{{ page.hero_title | escape }} — {{ page.hero_subtitle | escape }}" data-chap-classe="{% if _cls %}{{ _cls.nom | escape }}{% endif %}">
+{%- comment -%} Entraînement interactif (Seconde) : affiché seulement si /assets/quiz/seconde/chN.json existe. {%- endcomment -%}
+{%- assign _quiz = nil -%}
+{%- if _is_chap and _base == "/classes/seconde220/" or _is_chap and _base == "/classes/seconde219/" -%}
+  {%- capture _qp -%}/assets/quiz/seconde/ch{{ _chnum }}.json{%- endcapture -%}
+  {%- if _sf contains _qp -%}{%- assign _quiz = _qp -%}{%- endif -%}
+{%- endif -%}
+
+<div class="chap"{% if _quiz %} data-quiz="{{ _quiz }}" data-quiz-ch="{{ _chnum }}"{% endif %} data-chap-url="{{ page.url }}" data-chap-title="{{ page.hero_title | escape }} — {{ page.hero_subtitle | escape }}" data-chap-classe="{% if _cls %}{{ _cls.nom | escape }}{% endif %}">
 {%- if page.canonical_url and page.canonical_url != page.url %}
 <p class="callout note-legacy">Cette page reprend le chapitre publié dans <a href="{{ page.canonical_url }}">{% if _cls %}{{ _cls.nom }} — {% endif %}{{ page.title | replace: " - ", " — " }}</a>.</p>
 {%- endif %}
@@ -70,6 +77,13 @@
 {%- comment -%} ── 2 S'ENTRAÎNER ── {%- endcomment -%}
 <section class="step step--entrainer" id="entrainer" aria-labelledby="t-entrainer">
   <div class="step-head"><span class="n" aria-hidden="true">2</span><div><h2 id="t-entrainer">S'entraîner</h2><p>Cherche d'abord seul, puis compare avec le corrigé.</p></div></div>
+  {%- if _quiz %}
+  <div class="qz-shortcut" data-qz-item>
+    <span class="qz-ico qz-ico--flash" aria-hidden="true">⚡</span>
+    <p><b>Échauffement&nbsp;: Questions flash</b><small>10 questions en 5&nbsp;minutes pour réveiller les automatismes.</small></p>
+    <button class="btn btn--gold btn--sm" type="button" data-qz-open="flash">Lancer</button>
+  </div>
+  {%- endif %}
   {%- if _sections contains "planches" %}
   <div class="block">
     <h3 class="block-title">{% if _ses %}Exercices{% else %}Planches d'exercices{% endif %}</h3>
@@ -120,6 +134,18 @@
 {%- comment -%} ── 4 VÉRIFIER ── {%- endcomment -%}
 <section class="step step--verifier" id="verifier" aria-labelledby="t-verifier">
   <div class="step-head"><span class="n" aria-hidden="true">{% if _ses %}3{% else %}4{% endif %}</span><div><h2 id="t-verifier">Vérifier</h2><p>Fais un sujet en temps limité, sans le cours, puis corrige-toi.</p></div></div>
+  {%- if _quiz %}
+  <div class="block" data-qz-block>
+    <h3 class="block-title">Entraînement interactif <span class="count">sur cet appareil, sans compte</span></h3>
+    <ul class="qz-cards">
+      <li data-qz-item><button class="qz-card qz-card--flash" type="button" data-qz-open="flash"><span class="qz-ico" aria-hidden="true">⚡</span><span class="qz-card-t"><b>Questions flash</b><small>10 questions · 5&nbsp;min</small><span class="qz-best" data-qz-best="flash"></span></span></button></li>
+      <li data-qz-item><button class="qz-card qz-card--inter" type="button" data-qz-open="qcm_inter"><span class="qz-ico" aria-hidden="true">?</span><span class="qz-card-t"><b>QCM intermédiaire</b><small>8 questions · correction immédiate</small><span class="qz-best" data-qz-best="qcm_inter"></span></span></button></li>
+      <li data-qz-item><button class="qz-card qz-card--trous" type="button" data-qz-open="trous"><span class="qz-ico" aria-hidden="true">…</span><span class="qz-card-t"><b>Texte à trous</b><small>Définitions et méthodes du cours</small><span class="qz-best" data-qz-best="trous"></span></span></button></li>
+      <li data-qz-item><button class="qz-card qz-card--final" type="button" data-qz-open="qcm_final"><span class="qz-ico" aria-hidden="true">✓</span><span class="qz-card-t"><b>QCM final</b><small>12 questions · réussi à partir de 9/12</small><span class="qz-best" data-qz-best="qcm_final"></span></span></button></li>
+    </ul>
+  </div>
+  <script src="/assets/js/quiz.js?v=1" defer></script>
+  {%- endif %}
   {%- if _sections contains "ds_blancs" %}
   <div class="block">
     <h3 class="block-title">Devoirs surveillés blancs</h3>
