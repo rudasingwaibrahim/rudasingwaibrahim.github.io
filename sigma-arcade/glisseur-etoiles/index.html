@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le Glisseur d'étoiles · Sigma Arcade</title>
+<meta name="description" content="Vecteurs en Seconde, sans repère : translation, vecteurs égaux et parallélogramme, vecteur nul et opposés, démonstrations, somme et relation de Chasles, soustraction et construction de points. Tu fais glisser des constellations dans le ciel nocturne.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, exact, jamais enfantin ; on peut toujours réessayer.
+   IDEA : une translation fait GLISSER une constellation entière sans la déformer ; deux glissades enchaînées n'en font qu'une.
+   PICTURE : le ciel de nuit quadrillé comme une carte céleste ; les étoiles glissent et laissent des traînées parallèles.
+   COLOUR and TYPE : nuit « océan profond », accent violet-bleu pour l'action, or pour les réussites, corail pour les erreurs ; Outfit.
+   LAYOUT : ciel à gauche (collé en haut sur téléphone), carnet de bord à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);
+--cu:#8ea6ff;--cv:#e8c766;--cw:#4fd1c5;--ci:#c4adff;--cs:#f4efe0}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px;padding-right:max(150px,3vw)}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:72ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible,#sky:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;min-width:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#2c2200}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 12px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#040a17;user-select:none;-webkit-user-select:none}
+#sky{display:block;width:100%;height:auto;aspect-ratio:11.2/8.2;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#sky.pick{cursor:crosshair}
+.badge{position:absolute;left:10px;top:10px;z-index:2;font:600 13px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.78);color:var(--mut);border:1px solid var(--soft);pointer-events:none;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,22px)/1.6 var(--sg-font);text-align:center;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .35em}
+.capt .m{color:var(--mut);font-weight:600}.capt .g{color:var(--gold2)}.capt .u{color:var(--cu)}.capt .v{color:var(--cv)}.capt .w{color:var(--cw)}.capt .i{color:var(--ci)}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 4px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px;line-height:1.8}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.8;margin:0 0 12px}
+.hist{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:4px}
+.hist li{font-size:15px;color:var(--mut);line-height:1.8}
+.hist li::before{content:"✓";color:var(--ok);font-weight:700;margin-right:8px}
+.ask{font-weight:600;margin:0 0 12px;line-height:1.8;font-size:18px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:8px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 18px/1.8 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.pick{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center}
+.pad{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,44px);gap:4px}
+.pad button{border-radius:10px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:700 19px var(--sg-font);cursor:pointer;padding:0}
+.pad button:hover{border-color:var(--ac);background:rgba(108,142,255,.1)}
+.pad .u{grid-column:2;grid-row:1}.pad .l{grid-column:1;grid-row:2}.pad .r{grid-column:3;grid-row:2}.pad .d{grid-column:2;grid-row:3}
+.pad .o{grid-column:2;grid-row:2;font-size:13px;color:var(--mut);display:grid;place-items:center;border:0;background:transparent;cursor:default}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0;line-height:1.6}
+/* écritures mathématiques */
+.vec{display:inline-block;position:relative;padding-top:.36em;line-height:1;font-style:normal}
+.vec.it{font-style:italic;padding-right:.08em}
+.vec::before{content:"";position:absolute;left:.04em;right:.1em;top:.14em;border-top:.085em solid currentColor}
+.vec::after{content:"";position:absolute;right:.06em;top:.03em;width:.22em;height:.22em;border-top:.085em solid currentColor;border-right:.085em solid currentColor;transform:rotate(45deg)}
+.vec.vb{padding-top:.5em}.vec.vb::before{top:.22em}.vec.vb::after{top:.11em}
+.nw{white-space:nowrap}
+.sk-q,.sk-ch{line-height:1.8}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb #fbt{display:block;font-size:18px}
+.fb p{margin:2px 0 0;line-height:1.8}
+.cl{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px 14px;font-weight:600;font-size:15px}
+.cl .y{color:var(--ok)}.cl .n{color:var(--ko)}.cl .x{color:var(--mut)}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px;line-height:1.8}
+.mk{display:inline-flex;flex:none}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+/* ciel libre et mémo */
+.memo h3{font-size:17px;margin:16px 0 4px;color:#aebfff;letter-spacing:.02em}
+.memo p{margin:4px 0;line-height:1.85}
+.memo .box{border-left:4px solid var(--gold);padding:2px 0 2px 12px;margin:8px 0}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{min-height:44px;min-width:64px;padding:0 14px;border:0;background:transparent;color:var(--ink);font:700 18px var(--sg-font);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--acsoft);box-shadow:inset 0 -3px 0 var(--ac)}
+.frow{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:10px 0}
+/* ciel SVG */
+#sky text{font-family:var(--sg-font)}
+.grid{stroke:rgba(120,160,255,.12);stroke-width:1}
+.node{fill:rgba(200,215,255,.28)}
+.edge{fill:none;stroke-linejoin:round;stroke-width:2.4}
+.edge.s{stroke:rgba(225,232,255,.62)}.edge.i{stroke:var(--ci);opacity:.95}.edge.g{stroke:var(--gold2)}.edge.e{stroke:var(--ko);stroke-dasharray:7 6}.edge.c{stroke:var(--ac);stroke-dasharray:7 6}
+.fillp{stroke:none}.fillp.g{fill:rgba(232,199,102,.12)}.fillp.i{fill:rgba(196,173,255,.08)}
+.ar{stroke-width:3.4;stroke-linecap:round;fill:none}
+.ar.u{stroke:var(--cu)}.ar.v{stroke:var(--cv)}.ar.w{stroke:var(--cw);stroke-dasharray:9 7}.ar.e{stroke:var(--ko);stroke-dasharray:8 6}.ar.c{stroke:var(--ac);stroke-dasharray:6 5;stroke-width:3}
+.ar.g{stroke:var(--gold2)}.ar.r{stroke:#dfe6ff}.ar.tr{stroke:var(--ci);stroke-width:2;opacity:.6}.ar.h{stroke:#7f8fb3;stroke-dasharray:6 6;stroke-width:2.6}
+.hd.u{fill:var(--cu)}.hd.v{fill:var(--cv)}.hd.w{fill:var(--cw)}.hd.e{fill:var(--ko)}.hd.c{fill:var(--ac)}.hd.g{fill:var(--gold2)}.hd.r{fill:#dfe6ff}.hd.tr{fill:var(--ci);opacity:.6}.hd.h{fill:#7f8fb3}
+.lab{font-weight:700;font-size:19px;paint-order:stroke;stroke:#040a17;stroke-width:5px;stroke-linejoin:round}
+.lab.s{fill:var(--cs)}.lab.i{fill:var(--ci)}.lab.u{fill:var(--cu)}.lab.v{fill:var(--cv)}.lab.w{fill:var(--cw)}.lab.r{fill:#dfe6ff}.lab.g{fill:var(--gold2)}.lab.e{fill:var(--ko)}
+.vl path{fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.vl.u path{stroke:var(--cu)}.vl.v path{stroke:var(--cv)}.vl.w path{stroke:var(--cw)}.vl.r path{stroke:#dfe6ff}.vl.g path{stroke:var(--gold2)}.vl.e path{stroke:var(--ko)}
+.vl text{font-style:italic}
+.star.s{fill:var(--cs)}.star.i{fill:var(--ci)}.star.g{fill:var(--gold2)}
+.halo.s{fill:rgba(244,239,224,.16)}.halo.i{fill:rgba(196,173,255,.18)}.halo.g{fill:rgba(232,199,102,.25)}
+.dotp{stroke:#040a17;stroke-width:2}.dotp.u{fill:var(--cu)}.dotp.v{fill:var(--cv)}.dotp.r{fill:#dfe6ff}.dotp.w{fill:var(--cw)}.dotp.g{fill:var(--gold2)}.dotp.i{fill:var(--ci)}
+.cur circle.ring{fill:rgba(108,142,255,.14);stroke:var(--ac);stroke-width:3}
+.cur path{stroke:var(--ac);stroke-width:2}
+.pulse{fill:none;stroke:var(--gold2);stroke-width:3;transform-box:fill-box;transform-origin:center;animation:puls 1.1s ease-out infinite}
+@keyframes puls{0%{opacity:.95;transform:scale(.6)}100%{opacity:0;transform:scale(1.8)}}
+.flash{fill:none;stroke:var(--gold2);stroke-width:3;transform-box:fill-box;transform-origin:center;animation:fl .9s ease-out forwards}
+@keyframes fl{0%{opacity:1;transform:scale(.5)}100%{opacity:0;transform:scale(2.2)}}
+.band{fill:rgba(232,199,102,.16)}
+.twk{animation:twk 3.6s ease-in-out infinite}
+@keyframes twk{50%{opacity:.25}}
+.drag{fill:rgba(108,142,255,.18);stroke:var(--ac);stroke-width:2.5;cursor:grab}
+@media(prefers-reduced-motion:reduce){.twk,.pulse,.win{animation:none}}
+@media (max-width:860px){
+  .lv .nm{display:none}
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,10px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .stage{border-radius:14px;max-width:min(100%,calc(40svh * 11.2 / 8.2));margin:0 auto}
+  .capt{margin-top:6px;min-height:40px;padding:4px 10px;font-size:16px;border-radius:10px}
+  header{padding-right:max(3vw,16px)}
+  header h1{padding-right:120px}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt,.ask{font-size:17px}
+  .opt{font-size:17px}
+  .badge{font-size:12px;top:6px;left:6px}
+  header p{font-size:15px}
+  .sk-final-btn .s{display:inline!important}
+}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Le Glisseur d'étoiles</h1>
+<p>Cette nuit, tu fais voyager les constellations dans le ciel. Règle d'or du glisseur&nbsp;: une translation fait glisser toute la figure d'un seul mouvement, sans la tourner ni la déformer. Chaque étoile suit la même flèche&nbsp;: le vecteur.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage">
+    <svg id="sky" role="img" aria-label="Ciel de nuit quadrillé, constellations et vecteurs"></svg>
+    <span class="badge" id="badge" hidden></span>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+</div>
+<section class="panel" id="panel">
+ <div id="vplay">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <ul class="hist" id="hist"></ul>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><div id="fbp"></div></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+ </div>
+ <div id="vfree" hidden>
+  <div class="chap">Atelier</div>
+  <h2>Ciel libre&nbsp;: deux glissades, une seule</h2>
+  <p class="prompt">Règle les flèches <span class="vec it" style="color:var(--cu)">u</span> et <span class="vec it" style="color:var(--cv)">v</span> (fais glisser leur pointe, ou utilise les flèches ci-dessous), puis lance les glissades. La flèche en pointillés turquoise est la somme <span class="nw"><span class="vec it">u</span> + <span class="vec it">v</span></span>, construite bout à bout.</p>
+  <div class="frow"><span style="font-weight:600">Je règle</span><div class="seg" role="group" aria-label="Flèche à régler"><button type="button" id="fu" aria-pressed="true"><span class="vec it">u</span></button><button type="button" id="fv" aria-pressed="false"><span class="vec it">v</span></button></div>
+   <div class="pad" id="fpad"><button class="u" data-m="0,1" aria-label="Pointe vers le haut">↑</button><button class="l" data-m="-1,0" aria-label="Pointe vers la gauche">←</button><span class="o">pointe</span><button class="r" data-m="1,0" aria-label="Pointe vers la droite">→</button><button class="d" data-m="0,-1" aria-label="Pointe vers le bas">↓</button></div></div>
+  <div class="btns" style="margin-top:6px">
+   <button class="btn or" id="g1" type="button">① Glisser selon <span class="vec it">u</span></button>
+   <button class="btn" id="g2" type="button">② puis selon <span class="vec it">v</span></button>
+   <button class="btn" id="g3" type="button">③ En une seule glissade</button>
+   <button class="btn gh" id="g0" type="button">Revenir au départ</button>
+  </div>
+  <p class="hint" id="fmsg"></p>
+ </div>
+ <div id="vmemo" hidden class="memo">
+  <div class="chap">Mémo</div>
+  <h2>L'essentiel du chapitre</h2>
+  <div id="memo"></div>
+ </div>
+</section>
+</main>
+
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+(function(){
+'use strict';
+/* ====================== outils ====================== */
+const GW=10,GH=7,U=50,NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const add=(p,v)=>[p[0]+v[0],p[1]+v[1]],sub=(a,b)=>[a[0]-b[0],a[1]-b[1]],neg=v=>[-v[0],-v[1]];
+const same=(a,b)=>Math.abs(a[0]-b[0])<1e-9&&Math.abs(a[1]-b[1])<1e-9;
+const cross=(a,b)=>a[0]*b[1]-a[1]*b[0],dot=(a,b)=>a[0]*b[0]+a[1]*b[1],l2=v=>v[0]*v[0]+v[1]*v[1];
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const inG=p=>p[0]>=0&&p[0]<=GW&&p[1]>=0&&p[1]<=GH;
+const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+const far=(p,list,d)=>list.every(q=>dist(p,q)>=d-1e-9);
+function distPS(p,a,b){const ab=sub(b,a),L=l2(ab);if(!L)return dist(p,a);let t=dot(sub(p,a),ab)/L;t=Math.max(0,Math.min(1,t));return dist(p,add(a,[ab[0]*t,ab[1]*t]))}
+function segX(a,b,c,d){const o=(p,q,r)=>Math.sign(cross(sub(q,p),sub(r,p)));return o(a,b,c)*o(a,b,d)<0&&o(c,d,a)*o(c,d,b)<0}
+function segDist(a,b,c,d){if(segX(a,b,c,d))return 0;return Math.min(distPS(a,c,d),distPS(b,c,d),distPS(c,a,b),distPS(d,a,b))}
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const GE={speed:1};
+const D=ms=>reduce?1:Math.max(1,ms*GE.speed);
+const wait=ms=>new Promise(r=>setTimeout(r,D(ms)));
+const EZ='cubic-bezier(.45,.05,.25,1)';
+
+/* ---------- écriture des vecteurs ---------- */
+const V=s=>`<span class="vec">${s}</span>`;
+const Vi=s=>`<span class="vec it">${s}</span>`;
+const Z0=`<span class="vec">0</span>`;
+const BL=n=>`<span class="vec vb">{${n}}</span>`;
+function tok(s){
+  s=s.replace(/−/g,'-').replace(/\s+/g,'');const out=[];let i=0;
+  const pr=()=>{let p=s[i++];if(s[i]==='′'||s[i]==='″'){p+=s[i++]}return p};
+  while(i<s.length){const c=s[i];
+    if('+-()'.includes(c)){out.push({k:c});i++;continue}
+    if(c==='0'){out.push({k:'0'});i++;continue}
+    if(/[a-z]/.test(c)){out.push({k:'v',s:c,f:c});i++;continue}
+    if(/[A-Z]/.test(c)){const a=pr(),b=pr();out.push({k:'v',s:a+b,a,b});continue}
+    throw new Error('écriture inconnue : '+s)}
+  return out}
+function E(s){
+  if(s==='0')return Z0;
+  let h='',prev=null;
+  for(const x of tok(s)){
+    if(x.k==='v')h+=x.f?Vi(x.f):V(x.s);
+    else if(x.k==='0')h+=Z0;
+    else if(x.k==='+')h+=' + ';
+    else if(x.k==='-')h+=(prev&&(prev.k==='v'||prev.k==='0'||prev.k===')'))?' − ':'−';
+    else h+=x.k;
+    prev=x}
+  return `<span class="nw">${h}</span>`}
+const EQ=(a,b)=>`<span class="nw">${E(a)} = ${E(b)}</span>`;
+function ev(s,env){
+  const t=tok(s);let i=0;
+  function ex(){let v=te();while(i<t.length&&(t[i].k==='+'||t[i].k==='-')){const op=t[i++].k,w=te();v=op==='+'?add(v,w):sub(v,w)}return v}
+  function te(){const x=t[i];
+    if(x.k==='-'){i++;return neg(te())}
+    if(x.k==='('){i++;const v=ex();i++;return v}
+    i++;if(x.k==='0')return[0,0];
+    if(x.f){const v=env.vecs&&env.vecs[x.f];if(!v)throw new Error('vecteur '+x.f);return v}
+    const A=env.pts[x.a],B=env.pts[x.b];if(!A||!B)throw new Error('point '+x.s);return sub(B,A)}
+  const v=ex();if(i!==t.length)throw new Error('reste '+s);return v}
+/* termes de premier niveau, avec leur signe (pour animer une construction bout à bout) */
+function termsOf(s){
+  const t=tok(s),out=[];let depth=0,cur='',sg=1;
+  const txt=x=>x.k==='v'?x.s:x.k;
+  for(let i=0;i<t.length;i++){const x=t[i];
+    if(depth===0&&(x.k==='+'||x.k==='-')&&cur!==''){out.push([sg,cur]);cur='';sg=x.k==='-'?-1:1;continue}
+    if(depth===0&&cur===''&&x.k==='-'&&!(t[i+1]&&t[i+1].k==='(')){sg=-sg;continue}
+    if(x.k==='(')depth++;if(x.k===')')depth--;
+    cur+=txt(x)}
+  if(cur)out.push([sg,cur]);
+  return out}
+const nTerms=s=>tok(s).filter(x=>x.k==='v').length;
+function splitPts(s){const o=[];for(let i=0;i<s.length;i++){let p=s[i];if(s[i+1]==='′'||s[i+1]==='″'){p+=s[++i]}o.push(p)}return o}
+/* vérité d'une affirmation, dans une configuration chiffrée (contrôle interne ; l'audit Python refait tout) */
+const TXT={dsn:1,dn:0,sn:0,ds:0,eq_dsn:1,eq_n:0,eq_dn:0,eq_ds:0,rep_inf:1,rep_1:0,rep_2:0,sens_p:1,sens_m:0,sens_0:0,norm_l:1,norm_d:0,norm_s:0,nombre0:0};
+function claim(c,env){
+  const k=c.slice(0,c.indexOf(':')),r=c.slice(c.indexOf(':')+1);
+  if(k==='eq'){const[a,b]=r.split('|');return same(ev(a,env),ev(b,env))}
+  if(k==='par'){const p=splitPts(r);return same(sub(env.pts[p[1]],env.pts[p[0]]),sub(env.pts[p[2]],env.pts[p[3]]))}
+  if(k==='mid'){const[m,s]=r.split(':'),p=splitPts(s),A=env.pts[p[0]],B=env.pts[p[1]];return same([2*env.pts[m][0],2*env.pts[m][1]],add(A,B))}
+  if(k==='pt'){const[a,b]=r.split('|');return same(env.pts[a],env.pts[b])}
+  if(k==='t')return !!TXT[r];
+  throw new Error('affirmation '+c)}
+
+/* ====================== le ciel (SVG) ====================== */
+const svg=$('sky');
+svg.setAttribute('viewBox',`${-0.6*U} ${-0.6*U} ${(GW+1.2)*U} ${(GH+1.2)*U}`);
+const sx=x=>x*U,sy=y=>(GH-y)*U;
+let st={pts:{},arrows:[],polys:[],tmp:[]};
+let LAY,FX,CUR;
+(function base(){
+  let rs=7;const rnd=()=>(rs=rs*16807%2147483647)/2147483647;
+  let stars='';for(let i=0;i<120;i++){const x=(-0.6+rnd()*(GW+1.2))*U,y=(-0.6+rnd()*(GH+1.2))*U,r=(.4+rnd()*1.1).toFixed(2);stars+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="#fff" opacity="${(.15+rnd()*.5).toFixed(2)}"${i%7===0?' class="twk" style="animation-delay:'+(rnd()*3).toFixed(2)+'s"':''}/>`}
+  let g='';for(let x=0;x<=GW;x++)g+=`<line class="grid" x1="${sx(x)}" y1="${sy(0)}" x2="${sx(x)}" y2="${sy(GH)}"/>`;
+  for(let y=0;y<=GH;y++)g+=`<line class="grid" x1="${sx(0)}" y1="${sy(y)}" x2="${sx(GW)}" y2="${sy(y)}"/>`;
+  let n='';for(let x=0;x<=GW;x++)for(let y=0;y<=GH;y++)n+=`<circle class="node" cx="${sx(x)}" cy="${sy(y)}" r="2.2"/>`;
+  svg.innerHTML=`<defs><linearGradient id="gsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#030816"/><stop offset=".6" stop-color="#071531"/><stop offset="1" stop-color="#0c1d3d"/></linearGradient>
+  <radialGradient id="gneb" cx=".78" cy=".18" r=".6"><stop offset="0" stop-color="#6c8eff" stop-opacity=".16"/><stop offset="1" stop-color="#6c8eff" stop-opacity="0"/></radialGradient>
+  <filter id="fblur" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="22"/></filter><radialGradient id="gneb2" cx=".12" cy=".9" r=".5"><stop offset="0" stop-color="#c8a84b" stop-opacity=".09"/><stop offset="1" stop-color="#c8a84b" stop-opacity="0"/></radialGradient></defs>
+  <rect x="${-0.6*U}" y="${-0.6*U}" width="${(GW+1.2)*U}" height="${(GH+1.2)*U}" fill="url(#gsky)"/>
+  <rect x="${-0.6*U}" y="${-0.6*U}" width="${(GW+1.2)*U}" height="${(GH+1.2)*U}" fill="url(#gneb)"/>
+  <rect x="${-0.6*U}" y="${-0.6*U}" width="${(GW+1.2)*U}" height="${(GH+1.2)*U}" fill="url(#gneb2)"/>
+  <path d="M${-0.6*U} ${sy(1.2)} C ${sx(2.5)} ${sy(3.4)}, ${sx(6)} ${sy(4.2)}, ${sx(GW+.6)} ${sy(6.9)}" stroke="rgba(190,205,255,.07)" stroke-width="80" fill="none" filter="url(#fblur)"/>
+  <g>${stars}</g><g>${g}</g><g>${n}</g><g id="lay"></g><g id="fx"></g><g id="cur"></g>`;
+  LAY=$('lay');FX=$('fx');CUR=$('cur');
+})();
+const Pp=n=>Array.isArray(n)?n:st.pts[n].p;
+function starPath(c,r){const[x,y]=[sx(c[0]),sy(c[1])],k=r*.3;return `M${x} ${y-r}L${x+k} ${y-k}L${x+r} ${y}L${x+k} ${y+k}L${x} ${y+r}L${x-k} ${y+k}L${x-r} ${y}L${x-k} ${y-k}Z`}
+function starSVG(c,k){return `<circle class="halo ${k}" cx="${sx(c[0])}" cy="${sy(c[1])}" r="13"/><path class="star ${k}" d="${starPath(c,11)}"/>`}
+function head(x,y,ux,uy,k){const L=15,W=8;return `<path class="hd ${k}" d="M${x} ${y}L${x-ux*L-uy*W} ${y-uy*L+ux*W}L${x-ux*L+uy*W} ${y-uy*L-ux*W}Z"/>`}
+function vlab(x,y,s,k){
+  const it=/^[a-z]$/.test(s),w=it?11:s.replace(/[′″]/g,'').length*11.5+(s.match(/[′″]/g)||[]).length*4;
+  const t=y-17,x0=x-w/2,x1=x+w/2;
+  return `<g class="vl ${k}"><text class="lab ${k}" x="${x}" y="${y}" text-anchor="middle"${it?' font-style="italic"':''}>${s}</text><path d="M${x0} ${t}H${x1}M${x1-5} ${t-4}L${x1} ${t}L${x1-5} ${t+4}"/></g>`}
+function arrowSVG(a,b,k,lab,side){
+  const x1=sx(a[0]),y1=sy(a[1]),x2=sx(b[0]),y2=sy(b[1]),L=Math.hypot(x2-x1,y2-y1);if(L<2)return '';
+  const ux=(x2-x1)/L,uy=(y2-y1)/L,tip=k==='tr'?0:10;
+  let s=`<line class="ar ${k}" x1="${x1}" y1="${y1}" x2="${x2-ux*(tip+8)}" y2="${y2-uy*(tip+8)}"/>`+head(x2-ux*tip,y2-uy*tip,ux,uy,k);
+  if(lab){let nx=uy,ny=-ux;if(ny>0||(Math.abs(ny)<1e-6&&nx>0)){nx=-nx;ny=-ny}if(side){nx=-nx;ny=-ny}
+    let lx=(x1+x2)/2+nx*22,ly=(y1+y2)/2+ny*22+7;
+    if(ly<-0.6*U+26||lx<-0.6*U+12||lx>(GW+.6)*U-12){lx=(x1+x2)/2-nx*22;ly=(y1+y2)/2-ny*22+7}
+    s+=vlab(lx,ly,lab,k)}
+  return s}
+function polyD(ns){return ns.map((n,i)=>{const p=Pp(n);return (i?'L':'M')+sx(p[0])+' '+sy(p[1])}).join('')+'Z'}
+function labOff(n){
+  const p=st.pts[n].p;if(st.pts[n].lo)return st.pts[n].lo;
+  let cx=0,cy=0,c=0;
+  for(const m in st.pts){if(m===n||st.pts[m].hide)continue;const q=st.pts[m].p,d=dist(p,q);if(d>0&&d<3.2){const w=1/(d*d);cx+=(p[0]-q[0])*w;cy+=(p[1]-q[1])*w;c+=w}}
+  st.arrows.concat(st.tmp).forEach(a=>{const A=Pp(a.a),B=Pp(a.b);if(same(A,p)||same(B,p)){const o=same(A,p)?B:A;const d=dist(p,o)||1;cx+=(p[0]-o[0])/d/d*.8;cy+=(p[1]-o[1])/d/d*.8;c+=1}});
+  let dx=-0.7,dy=0.7;if(c&&Math.hypot(cx,cy)>1e-6){dx=cx;dy=cy}
+  const L=Math.hypot(dx,dy);return [dx/L,dy/L]}
+function draw(){
+  let h='';
+  st.polys.forEach(pl=>{if(pl.n.some(n=>!st.pts[n]||st.pts[n].hide))return;if(pl.fill)h+=`<path class="fillp ${pl.fill}" d="${polyD(pl.n)}"/>`;h+=`<path class="edge ${pl.k}" d="${polyD(pl.n)}"/>`});
+  st.arrows.concat(st.tmp).forEach(a=>{if([a.a,a.b].some(n=>typeof n==='string'&&(!st.pts[n]||st.pts[n].hide)))return;h+=arrowSVG(Pp(a.a),Pp(a.b),a.k,a.lab,a.side)});
+  for(const n in st.pts){const o=st.pts[n];if(o.hide)continue;
+    if(o.k==='s'||o.k==='i'||o.k==='g')h+=starSVG(o.p,o.k);else h+=`<circle class="dotp ${o.c||'r'}" cx="${sx(o.p[0])}" cy="${sy(o.p[1])}" r="6.5"/>`;
+    if(!o.nolab){let[dx,dy]=labOff(n);let lx=sx(o.p[0])+dx*24,ly=sy(o.p[1])-dy*24+7;
+      const x0=-0.6*U+12,x1=(GW+.6)*U-12,y0=-0.6*U+20,y1=(GH+.6)*U-4;
+      if(lx<x0||lx>x1)lx=sx(o.p[0])-dx*24;if(ly<y0||ly>y1)ly=sy(o.p[1])+dy*24+7;lx=Math.max(x0,Math.min(x1,lx));ly=Math.max(y0,Math.min(y1,ly));
+      h+=`<text class="lab ${o.k==='a'?(o.c||'r'):o.k}" x="${lx}" y="${ly}" text-anchor="middle">${n}</text>`}}
+  LAY.innerHTML=h}
+function fxAdd(html){const g=document.createElementNS(NS,'g');g.innerHTML=html;FX.appendChild(g);return g}
+function clearFx(){FX.innerHTML=''}
+function tr(dx,dy){return `translate(${dx*U}px,${-dy*U}px)`}
+async function moveEl(g,v,ms){const a=g.animate([{transform:'translate(0px,0px)'},{transform:tr(v[0],v[1])}],{duration:D(ms),easing:EZ,fill:'forwards'});await a.finished}
+async function growLine(g,ms){const ls=[...g.querySelectorAll('line')];await Promise.all(ls.map(l=>{const L=Math.hypot(l.x2.baseVal.value-l.x1.baseVal.value,l.y2.baseVal.value-l.y1.baseVal.value)+1;l.style.strokeDasharray=L;
+  return l.animate([{strokeDashoffset:L},{strokeDashoffset:0}],{duration:D(ms),easing:EZ,fill:'forwards'}).finished}))}
+async function fade(g,ms=350){try{await g.animate([{opacity:1},{opacity:0}],{duration:D(ms),fill:'forwards'}).finished}catch(e){}g.remove()}
+function flash(p){const g=fxAdd(`<circle class="flash" cx="${sx(p[0])}" cy="${sy(p[1])}" r="16"/>`);setTimeout(()=>g.remove(),D(950)+50)}
+/* glissade : les étoiles (et les traits qui les relient) glissent ensemble, chacune laisse une traînée */
+async function glide(names,v,o={}){
+  const ps=names.map(Pp);let h='';
+  st.polys.forEach(pl=>{if(pl.n.every(n=>names.includes(n)))h+=`<path class="edge ${o.ek||'s'}" d="${polyD(pl.n)}"/>`});
+  ps.forEach(p=>h+=o.dotk?`<circle class="dotp ${o.dotk}" cx="${sx(p[0])}" cy="${sy(p[1])}" r="6.5"/>`:starSVG(p,o.sk||'s'));
+  const trails=o.trail===false?null:fxAdd(ps.map(p=>arrowSVG(p,add(p,v),o.k||'tr')).join(''));
+  const g=fxAdd(h);g.style.opacity='.95';
+  sfx('glide');
+  const jobs=[moveEl(g,v,o.ms||1100)];if(trails){trails.querySelectorAll('path.hd').forEach(e=>e.style.opacity=0);jobs.push(growLine(trails,o.ms||1100).then(()=>trails.querySelectorAll('path.hd').forEach(e=>e.style.opacity='')))}
+  await Promise.all(jobs);
+  if(!o.keep){fade(g,250);if(trails&&!o.keepTrail)fade(trails,600)}
+  return {g,trails}}
+/* une flèche glisse (translation de la flèche elle-même) */
+async function slideArrow(a,b,to,k,ms=1000){const A=Pp(a),B=Pp(b),v=sub(Pp(to),A);const g=fxAdd(arrowSVG(A,B,k||'g'));sfx('glide');await moveEl(g,v,ms);return g}
+function cap(h){$('capt').innerHTML=h||''}
+
+/* ---------- bruitages ---------- */
+let soundOn=true;try{soundOn=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let AC=null;
+function ac(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(AC.state==='suspended')AC.resume();return AC}
+function tone(f,t0,d,v,type,f2){const a=ac();if(!a)return;const t=a.currentTime+t0,o=a.createOscillator(),g=a.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+function sfx(k){if(!soundOn||GE.mute)return;
+  if(k==='glide'){tone(520,0,.7,.025,'sine',880);tone(780,.05,.6,.015,'triangle',1320)}
+  else if(k==='ok'){tone(784,0,.16,.05,'triangle');tone(1175,.09,.3,.05,'triangle')}
+  else if(k==='ko'){tone(330,0,.22,.04,'triangle',262)}
+  else if(k==='pick'){tone(1046,0,.06,.02,'sine')}}
+
+/* ====================== placement aléatoire ====================== */
+function Placer(){this.pts=[];this.segs=[]}
+Placer.prototype.ok=function(s,e,dp=1.4,ds=.9){if(!inG(s)||!inG(e))return false;if(!far(s,this.pts,dp)||!far(e,this.pts,dp))return false;
+  for(const[p,q]of this.segs)if(segDist(s,e,p,q)<ds)return false;for(const p of this.pts)if(distPS(p,s,e)<ds)return false;return true};
+Placer.prototype.add=function(...ps){ps.forEach(p=>this.pts.push(p));return this};
+Placer.prototype.seg=function(s,e){this.segs.push([s,e]);return this};
+Placer.prototype.poly=function(ps){ps.forEach((p,i)=>this.seg(p,ps[(i+1)%ps.length]));return this.add(...ps)};
+Placer.prototype.arrow=function(v,n=150){for(let h=0;h<n;h++){const s=[ri(0,GW),ri(0,GH)],e=add(s,v);if(this.ok(s,e)){this.add(s,e).seg(s,e);return[s,e]}}return null};
+Placer.prototype.point=function(test,n=150,dp=1.4){for(let h=0;h<n;h++){const s=[ri(0,GW),ri(0,GH)];if(far(s,this.pts,dp)&&this.segs.every(([p,q])=>distPS(s,p,q)>=.8)&&(!test||test(s)))return s}return null};
+function vecK(k,mA=4,mB=3){for(;;){let a,b;
+  if(k===0){const s=ri(2,4);[a,b]=pick([[s,0],[-s,0],[0,Math.min(s,3)],[0,-Math.min(s,3)]])}
+  else if(k===1){a=nz(-3,3);b=nz(-2,2)}
+  else{a=ri(-mA,mA);b=ri(-mB,mB);if(!a||!b)continue;if(Math.abs(a)+Math.abs(b)<4)continue}
+  if(l2([a,b])<4)continue;return[a,b]}}
+function smallVec(lo=4,hi=13){for(;;){const v=[ri(-3,3),ri(-3,3)];if(l2(v)>=lo&&l2(v)<=hi)return v}}
+function tri(){for(;;){const p=[[0,0],[ri(1,3),ri(-1,2)],[ri(-1,2),ri(1,3)]];
+  if(Math.abs(cross(sub(p[1],p[0]),sub(p[2],p[0])))<3)continue;
+  if(l2(sub(p[0],p[1]))<2||l2(sub(p[1],p[2]))<2||l2(sub(p[0],p[2]))<2)continue;
+  const m=[Math.min(...p.map(q=>q[0])),Math.min(...p.map(q=>q[1]))];return p.map(q=>sub(q,m))}}
+function carreaux(v){const a=v[0],b=v[1],f=(n,w)=>n+' carreau'+(n>1?'x':'')+' '+w;const h=[];
+  if(a)h.push(f(Math.abs(a),a>0?'vers la droite':'vers la gauche'));if(b)h.push(f(Math.abs(b),b>0?'vers le haut':'vers le bas'));return h.join(' et ')||'aucun carreau'}
+
+/* ====================== les sept niveaux ====================== */
+const LEVELS=[null,
+ {n:'La glissade',c:'Translation et vecteur',rule:`<p>Une <b>translation</b> fait glisser une figure selon une direction, un sens et une longueur fixes. On la représente par une flèche&nbsp;: le <b>vecteur</b>.</p><p>Un vecteur ${V('AA′')} est caractérisé par sa <b>direction</b> (celle de la droite (AA′)), son <b>sens</b> (de A vers A′) et sa <b>norme</b> (la longueur AA′).</p><p>Pour construire l'image X′ de X par la translation de vecteur ${Vi('t')}&nbsp;: on trace depuis X la flèche ${V('XX′')} = ${Vi('t')} (même direction, même sens, même longueur).</p>`},
+ {n:'Les flèches jumelles',c:'Vecteurs égaux',rule:`<p>Deux vecteurs sont <b>égaux</b> s'ils ont la même direction, le même sens et la même norme.</p><p>Un vecteur a une infinité de représentants&nbsp;: toutes les flèches de même direction, de même sens et de même longueur.</p>`},
+ {n:'Le parallélogramme',c:'Vecteurs égaux et parallélogramme',rule:`<p>${EQ('AB','DC')} ⟺ ABCD est un parallélogramme (éventuellement aplati).</p><p><b>Attention à l'ordre des lettres</b>&nbsp;: on lit les sommets en faisant le tour de la figure. Ainsi ${EQ('AB','CD')} ⟺ <b>ABDC</b> est un parallélogramme.</p>`},
+ {n:'Aller-retour',c:'Vecteur nul, vecteurs opposés, milieu',rule:`<p>Vecteur nul&nbsp;: ${EQ('AA','0')} (origine et extrémité confondues).</p><p>Vecteurs opposés&nbsp;: ${EQ('BA','-AB')} (même direction, même norme, sens contraire), et ${EQ('AB+BA','0')}.</p><p>B est le milieu de [AC] ⟺ ${EQ('AB','BC')}.</p>`},
+ {n:'La démonstration',c:'Utiliser les vecteurs égaux pour démontrer',rule:`<p>Pour montrer qu'un quadrilatère est un parallélogramme, ou qu'un point est un milieu&nbsp;: on traduit la conclusion par une égalité de vecteurs, puis on enchaîne les égalités que donnent les hypothèses.</p>`},
+ {n:'Bout à bout',c:'Somme de vecteurs, relation de Chasles',rule:`<p>Enchaîner la translation de vecteur ${Vi('u')} puis celle de vecteur ${Vi('v')}, c'est faire <b>une seule</b> translation, de vecteur ${E('u+v')}.</p><p>Construction bout à bout&nbsp;: on trace ${Vi('u')} depuis A, on obtient B&nbsp;; on trace ${Vi('v')} depuis B, on obtient C&nbsp;; alors ${EQ('u+v','AC')}.</p><p>Relation de Chasles&nbsp;: ${EQ('AB+BC','AC')}. Parallélogramme&nbsp;: ABCD est un parallélogramme ⟺ ${EQ('AB+AD','AC')}.</p>`},
+ {n:'Le point mystère',c:'Soustraction, construire un point',rule:`<p>${EQ('u-v','u+(-v)')}&nbsp;: soustraire ${Vi('v')}, c'est ajouter la flèche retournée.</p><p>Pour construire le point F tel que ${EQ('AF','u')}&nbsp;: on place en A l'<b>origine</b> d'un représentant de ${Vi('u')}&nbsp;; F est son <b>extrémité</b>.</p><p>Exemple&nbsp;: ${EQ('AB-AC','AB+CA')} = ${E('CA+AB')} = ${E('CB')}.</p>`}];
+
+/* --- niveau 1 : la glissade --- */
+function L1(k){
+  const free=k%2===1,N=free?pick([['E','F','G'],['R','S','T']]):['B','C','D'];
+  for(let g=0;g<4000;g++){
+    const t=vecK(k),sh=tri(),off=[ri(0,GW),ri(0,GH)];
+    const F=sh.map(p=>add(p,off)),I=F.map(p=>add(p,t)),all=F.concat(I);
+    if(!all.every(inG)||new Set(all.map(String)).size<6)continue;
+    const pl=new Placer().poly(F).poly(I);F.forEach((p,i)=>pl.seg(p,I[i]));
+    const r=pl.arrow(t);if(!r)continue;
+    const q={lvl:1,k,pts:{},arrows:[],polys:[{n:N,k:'s'}],vecs:{},parts:[]};
+    N.forEach((n,i)=>q.pts[n]={p:F[i],k:'s'});
+    let vn,VN;
+    if(free){q.vecs.t=t;q.arrows.push({a:r[0],b:r[1],k:'u',lab:'t'});vn='t';VN=Vi('t')}
+    else{q.pts.A={p:r[0],k:'a',c:'u'};q.pts['A′']={p:r[1],k:'a',c:'u'};q.arrows.push({a:'A',b:'A′',k:'u'});vn='AA′';VN=V('AA′')}
+    q.intro=`La translation de vecteur ${VN} fait glisser la constellation ${N.join('')} tout entière. Place l'image de chaque étoile.`;
+    N.forEach(n=>q.parts.push({t:'place',name:n+'′',from:n,expr:vn,preview:'arrow',k:'i',trail:true,
+      ask:`Place ${n}′, l'image de ${n}&nbsp;: ${EQ(n+n+'′',vn)}.`,done:`${n}′ placé&nbsp;: ${EQ(n+n+'′',vn)}`}));
+    q.end=[{f:'glide',names:N,v:vn},{f:'poly',n:N.map(n=>n+'′'),k:'i'},{f:'cap',h:`${N.map(n=>E(n+n+'′')).join(' = ')} = ${VN}`}];
+    q.win=`La constellation a glissé d'un seul mouvement, sans se déformer&nbsp;: ${N.map(n=>E(n+n+'′')).join(' = ')} = ${VN}. Ce sont trois représentants du même vecteur.`;
+    return q}
+  throw new Error('L1')}
+
+/* --- niveau 2 : les flèches jumelles --- */
+function L2(k){
+  const PAIRS=['CD','EF','GH','KL'];
+  for(let g=0;g<6000;g++){
+    const w=vecK(k,3,3),gg=gcd(Math.abs(w[0]),Math.abs(w[1])),un=[w[0]/gg,w[1]/gg];
+    let lon=add(w,un);if(l2(lon)>20){if(gg>=2)lon=sub(w,un);else continue}
+    const rots=[[-w[1],w[0]],[w[1],-w[0]],[w[1],w[0]],[-w[0],w[1]],[w[0],-w[1]]].filter(r=>cross(r,w)!==0);
+    let cands=[{v:w,kind:'ok'},{v:neg(w),kind:'opp'},{v:lon,kind:'len'},{v:pick(rots),kind:'dir'}];
+    if(k===0)cands=cands.filter(c=>c.kind!=='dir');
+    shuf(cands);
+    const pl=new Placer(),ab=pl.arrow(w);if(!ab)continue;
+    const arr=[];let bad=false;for(const c of cands){const r=pl.arrow(c.v,100);if(!r){bad=true;break}arr.push({...c,s:r[0],e:r[1]})}if(bad)continue;
+    const M=pl.point(s=>{const e=add(s,w);return inG(e)&&far(e,pl.pts,1.2)&&pl.segs.every(([p,q])=>segDist(s,e,p,q)>=.7)});if(!M)continue;
+    const q={lvl:2,k,pts:{A:{p:ab[0],k:'a',c:'g'},B:{p:ab[1],k:'a',c:'g'}},arrows:[{a:'A',b:'B',k:'g'}],polys:[],vecs:{},parts:[]};
+    arr.forEach((c,i)=>{const[a,b]=PAIRS[i].split('');q.pts[a]={p:c.s,k:'a',c:'r'};q.pts[b]={p:c.e,k:'a',c:'r'};q.arrows.push({a,b,k:'r'});c.name=PAIRS[i]});
+    q.pts.M={p:M,k:'a',c:'u'};
+    const why={opp:'même direction et même longueur, mais <b>sens contraire</b>&nbsp;: c\'est l\'opposé.',len:'même direction et même sens, mais <b>pas la même longueur</b>.',dir:'même longueur, mais <b>pas la même direction</b>.'};
+    const okc=arr.find(c=>c.kind==='ok');
+    q.intro=`Le glisseur cherche la flèche jumelle de ${V('AB')}&nbsp;: même direction, même sens, même longueur.`;
+    q.parts.push({t:'choice',ask:`Quel vecteur est égal à ${V('AB')}&nbsp;?`,opts:arr.map(c=>({h:V(c.name),claim:`eq:AB|${c.name}`,why:`${V(c.name)} a ${why[c.kind]||''}`,to:c.name[0]})),
+      fx:[{f:'slide',a:'A',b:'B',to:okc.name[0]},{f:'flashp',n:[okc.name[0],okc.name[1]]},{f:'cap',h:EQ('AB',okc.name)}],done:`${EQ('AB',okc.name)}`});
+    q.parts.push({t:'place',name:'N',from:'M',expr:'AB',preview:'arrow',k:'a',c:'u',arrow:{a:'M',b:'N',k:'u'},
+      ask:`Trace un autre représentant de ${V('AB')}&nbsp;: place N tel que ${EQ('MN','AB')}.`,done:`N placé&nbsp;: ${EQ('MN','AB')}`,
+      fx:[{f:'slide',a:'A',b:'B',to:'M'}]});
+    q.end=[{f:'cap',h:`${EQ('AB',okc.name)} = ${E('MN')}`}];
+    q.win=`${V('AB')}, ${V(okc.name)} et ${V('MN')} sont trois représentants du même vecteur&nbsp;: une flèche glisse exactement sur l'autre.`;
+    return q}
+  throw new Error('L2')}
+
+/* --- niveau 3 : le parallélogramme --- */
+const ORD3=[['ABCD',3],['ABDC',3],['ABCD',2],['EFGH',1],['MNPQ',3],['EFHG',3],['ABDC',2],['MNQP',0],['RSTU',2],['RSUT',3]];
+function L3(k){
+  const [name,miss]=k===0?ORD3[0]:k===1?ORD3[1]:k===2?pick([ORD3[2],ORD3[3]]):k===3?pick([ORD3[4],ORD3[5],ORD3[6]]):pick([ORD3[7],ORD3[8],ORD3[9]]);
+  const L=splitPts(name);
+  for(let g=0;g<4000;g++){
+    const s=smallVec(4,18),t=smallVec(4,18);if(Math.abs(cross(s,t))<4)continue;
+    const P0=[ri(0,GW),ri(0,GH)],P=[P0,add(P0,s),add(add(P0,s),t),add(P0,t)];if(!P.every(inG))continue;
+    const giv=[0,1,2,3].filter(i=>i!==miss),G=giv.map(i=>P[i]);
+    const wr=[add(G[0],sub(G[1],G[2])),add(G[0],sub(G[2],G[1])),add(G[1],sub(G[2],G[0]))].filter(w=>!same(w,P[miss]));
+    const q={lvl:3,k,pts:{},arrows:[],polys:[],vecs:{},parts:[]};
+    giv.forEach(i=>q.pts[L[i]]={p:P[i],k:'s'});
+    const prev=(miss+3)%4,nx=(miss+1)%4,op=(miss+2)%4;
+    const expr=L[op]+L[nx];
+    const alts=wr.map(w=>{let o=null;for(const perm of permsFrom(L,L[0]))if(isPar(perm,L,P,miss,w)){o=perm;break}
+      return {p:w,m:o?`Avec ce point, c'est <b>${o}</b> qui est un parallélogramme, pas ${name}. Dans ${name}, on lit les sommets dans l'ordre du tour&nbsp;: ${EQ(L[0]+L[1],L[3]+L[2])}.`:''}});
+    q.intro=`Trois étoiles sont fixées. Il manque la quatrième pour que <b>${name}</b> soit un parallélogramme.`;
+    q.parts.push({t:'place',name:L[miss],from:L[prev],expr,preview:'poly',order:L,k:'g',alts,check:'par:'+name,
+      ask:`Place ${L[miss]} pour que ${name} soit un parallélogramme.`,done:`${L[miss]} placé&nbsp;: ${name} est un parallélogramme`,
+      fx:[{f:'poly',n:L,k:'g',fill:'g'},{f:'sweep',a:L[0],b:L[1],v:L[0]+L[3]},{f:'cap',h:`${EQ(L[0]+L[1],L[3]+L[2])} <span class="m">et</span> ${EQ(L[0]+L[3],L[1]+L[2])}`}]});
+    const T=[[0,1,3,2],[1,0,2,3],[0,3,1,2],[3,0,2,1]],F=[[0,1,2,3],[0,3,2,1],[0,2,1,3],[1,0,3,2],[3,0,1,2]];
+    const tt=pick(T),ff=shuf(F.slice()).slice(0,3);
+    const nm=x=>L[x[0]]+L[x[1]],nm2=x=>L[x[2]]+L[x[3]];
+    const why=x=>{const a=nm(x),b=nm2(x);return `${E(a)} et ${E(b)} n'ont pas le même sens ou pas la même direction&nbsp;: regarde les flèches sur la figure.`};
+    q.parts.push({t:'choice',ask:`${name} est un parallélogramme. Quelle égalité est vraie&nbsp;?`,
+      opts:shuf([tt,...ff]).map(x=>({h:EQ(nm(x),nm2(x)),claim:`eq:${nm(x)}|${nm2(x)}`,why:why(x),arr:[nm(x),nm2(x)]})),
+      done:`${EQ(nm(tt),nm2(tt))}`,fx:[{f:'pair',a:nm(tt),b:nm2(tt)}]});
+    q.end=[];
+    q.win=`Dans le parallélogramme ${name}, les côtés opposés donnent des vecteurs égaux, <b>à condition de les lire dans le même sens</b>&nbsp;: ${EQ(L[0]+L[1],L[3]+L[2])}.`;
+    return q}
+  throw new Error('L3')}
+function permsFrom(L,first){const r=[],rest=L.filter(x=>x!==first);const pm=(a,acc)=>{if(!a.length){r.push(first+acc.join(''));return}a.forEach((x,i)=>pm(a.filter((_,j)=>j!==i),acc.concat(x)))};pm(rest,[]);return r}
+function isPar(perm,L,P,miss,w){const pos={};L.forEach((n,i)=>pos[n]=i===miss?w:P[i]);const p=splitPts(perm).map(n=>pos[n]);return same(sub(p[1],p[0]),sub(p[2],p[3]))&&Math.abs(cross(sub(p[1],p[0]),sub(p[3],p[0])))>0}
+
+/* --- niveau 4 : aller-retour --- */
+function L4(k){
+  const type=['opp','mid','ret','opp2','mid'][k];
+  for(let g=0;g<4000;g++){
+    const w=k<2?vecK(1,3,2):smallVec(5,13);
+    const q={lvl:4,k,pts:{},arrows:[],polys:[],vecs:{},parts:[]};
+    if(type==='opp'||type==='opp2'){
+      const pl=new Placer(),ab=pl.arrow(w);if(!ab)continue;
+      const e=type==='opp'?'BA':'-(-AB)',tgt=type==='opp'?neg(w):w;
+      const M=pl.point(s=>inG(add(s,tgt))&&far(add(s,tgt),pl.pts,1.4)&&pl.segs.every(([p,qq])=>segDist(s,add(s,tgt),p,qq)>=.8));if(!M)continue;
+      q.pts={A:{p:ab[0],k:'a',c:'u'},B:{p:ab[1],k:'a',c:'u'},M:{p:M,k:'s'}};q.arrows=[{a:'A',b:'B',k:'u'}];
+      if(type==='opp'){
+        q.intro=`L'étoile M doit faire le chemin inverse de la flèche ${V('AB')}.`;
+        q.parts.push({t:'place',name:'N',from:'M',expr:'BA',preview:'arrow',k:'i',arrow:{a:'M',b:'N',k:'v'},ask:`Place N tel que ${EQ('MN','-AB')}.`,done:`N placé&nbsp;: ${EQ('MN','-AB')}`,
+          alts:[{expr:'AB',m:`Ta flèche a la direction et la longueur de ${V('AB')}, mais il faut le <b>sens contraire</b>&nbsp;: ${E('-AB')} est la flèche retournée.`}],
+          fx:[{f:'glide',names:['M'],v:'BA',k:'v'},{f:'cap',h:`${EQ('MN','-AB')} = ${E('BA')}`}]});
+        q.parts.push({t:'choice',ask:`Simplifier&nbsp;: ${E('-AB')} = ?`,opts:[['BA',1],['AB',0],['0',0]].map(([x])=>({h:E(x),claim:`eq:-AB|${x}`,why:x==='AB'?`${E('-AB')} a le sens contraire de ${V('AB')}.`:`${E('-AB')} n'est pas nul&nbsp;: il a la même longueur que ${V('AB')}.`})),done:EQ('-AB','BA')});
+        q.win=`${E('-AB')} = ${V('BA')}&nbsp;: même direction, même longueur, sens contraire. Et ${EQ('AB+BA','0')}&nbsp;: un aller suivi du retour ramène au départ.`;
+      }else{
+        q.intro=`Double renversement&nbsp;: l'opposé de l'opposé de ${V('AB')}.`;
+        q.parts.push({t:'place',name:'P',from:'M',expr:'-(-AB)',preview:'arrow',k:'i',arrow:{a:'M',b:'P',k:'u'},ask:`Place P tel que ${EQ('MP','-(-AB)')}.`,done:`P placé&nbsp;: ${EQ('MP','AB')}`,
+          alts:[{expr:'BA',m:`${E('-AB')} retourne la flèche une fois, et ${E('-(-AB)')} la retourne <b>une seconde fois</b>&nbsp;: on retrouve le sens de ${V('AB')}.`}],
+          fx:[{f:'glide',names:['M'],v:'AB',k:'u'},{f:'cap',h:`${E('-(-AB)')} = ${E('AB')}`}]});
+        q.parts.push({t:'choice',ask:`Simplifier&nbsp;: ${E('-(-AB)')} = ?`,opts:['AB','BA','0'].map(x=>({h:E(x),claim:`eq:-(-AB)|${x}`,why:x==='BA'?`Deux retournements successifs redonnent le sens de départ.`:`Le vecteur obtenu a la longueur de ${V('AB')}&nbsp;: il n'est pas nul.`})),done:EQ('-(-AB)','AB')});
+        q.win=`Retourner deux fois une flèche, c'est la laisser comme elle était&nbsp;: ${EQ('-(-AB)','AB')}.`;
+      }
+    }else if(type==='mid'){
+      const pl=new Placer(),A=[ri(0,GW),ri(0,GH)],B=add(A,w),C=add(B,w);if(!inG(B)||!inG(C))continue;
+      q.pts={A:{p:A,k:'s'},B:{p:B,k:'s'}};
+      q.intro=`Le glisseur veut que B soit exactement au milieu du chemin de A à C.`;
+      q.parts.push({t:'place',name:'C',from:'B',expr:'AB',preview:'arrow',k:'g',check:'mid:B:AC',arrow:{a:'B',b:'C',k:'u'},ask:`Place C pour que B soit le milieu de [AC].`,done:`C placé&nbsp;: ${EQ('AB','BC')}`,
+        alts:[{p:sub(A,w),m:`Ce point est de l'autre côté de A. Pour que B soit le milieu de [AC], il faut continuer <b>au-delà de B</b>, dans le sens de A vers B&nbsp;: ${EQ('BC','AB')}.`}],
+        fx:[{f:'glide',names:['A'],v:'AB',k:'u',keepTrail:true},{f:'glide',names:['B'],v:'AB',k:'u'},{f:'arrowp',a:'A',b:'B',k:'u'},{f:'cap',h:`${EQ('AB','BC')} <span class="m">⟺ B milieu de [AC]</span>`}]});
+      const F=shuf([['AB','CB'],['BA','BC'],['AB','AC'],['BA','CB']]).slice(0,k===1?2:3);
+      q.parts.push({t:'choice',ask:`Quelle égalité traduit «&nbsp;B est le milieu de [AC]&nbsp;»&nbsp;?`,opts:shuf([['AB','BC'],...F]).map(([a,b])=>({h:EQ(a,b),claim:`eq:${a}|${b}`,why:`${E(a)} et ${E(b)} ne sont pas égaux&nbsp;: compare leurs sens et leurs longueurs sur la figure.`})),done:EQ('AB','BC')});
+      q.win=`B est le milieu de [AC] ⟺ ${EQ('AB','BC')}&nbsp;: les deux moitiés du trajet sont la même flèche.`;
+    }else{
+      const pl=new Placer(),ab=pl.arrow(w);if(!ab)continue;
+      const sh=tri(),off=[ri(0,GW),ri(0,GH)],F=sh.map(p=>add(p,off)),I=F.map(p=>add(p,w));if(!F.concat(I).every(inG))continue;
+      if(!F.concat(I).every(p=>far(p,pl.pts,1.4)))continue;if(new Set(F.concat(I).map(String)).size<6)continue;
+      q.pts={A:{p:ab[0],k:'a',c:'u'},B:{p:ab[1],k:'a',c:'u'},M:{p:F[0],k:'s'},_1:{p:F[1],k:'s',nolab:1},_2:{p:F[2],k:'s',nolab:1}};
+      q.arrows=[{a:'A',b:'B',k:'u'}];q.polys=[{n:['M','_1','_2'],k:'s'}];
+      q.intro=`Aller, puis retour&nbsp;: la constellation glisse selon ${V('AB')}, puis selon ${V('BA')}.`;
+      q.parts.push({t:'place',name:'M′',from:'M',expr:'AB',preview:'arrow',k:'i',trail:true,ask:`Place M′, l'image de M par la translation de vecteur ${V('AB')}.`,done:`M′ placé&nbsp;: ${EQ('MM′','AB')}`,
+        fx:[{f:'glide',names:['M','_1','_2'],v:'AB',keep:'img'}]});
+      q.parts.push({t:'place',name:'M″',from:'M′',expr:'BA',preview:'arrow',onto:'M',ask:`Place M″, l'image de M′ par la translation de vecteur ${V('BA')}.`,done:`M″ est confondu avec M`,
+        fx:[{f:'glide',names:['M′','_1′','_2′'],v:'BA',k:'v'},{f:'flashp',n:['M']},{f:'cap',h:`${EQ('AB+BA','0')} <span class="m">: retour au départ</span>`}]});
+      q.parts.push({t:'choice',ask:`Simplifier&nbsp;: ${E('AB+BA')} = ?`,opts:[{h:Z0,claim:'eq:AB+BA|0'},{h:V('AB'),claim:'eq:AB+BA|AB'},{h:V('BA'),claim:'eq:AB+BA|BA'},{h:'le nombre 0',claim:'t:nombre0',why:'Une somme de vecteurs est un <b>vecteur</b>&nbsp;: ici le vecteur nul, noté avec une flèche.'}].map(o=>({why:o.why||`L'aller suivi du retour ramène chaque étoile à sa place&nbsp;: aucun déplacement.`,...o})),done:EQ('AB+BA','0')});
+      q.win=`L'aller suivi du retour ne déplace rien&nbsp;: ${EQ('AB+BA','0')}, le vecteur nul (comme ${V('MM')}).`;
+    }
+    q.end=q.end||[];return q}
+  throw new Error('L4')}
+
+/* --- niveau 5 : la démonstration --- */
+const TPL={
+ T1:{goal:'B est le milieu de [CF]',hyp:'ABCD et AFBD sont deux parallélogrammes.',free:3,make:(A,B,D)=>({C:add(B,sub(D,A)),F:add(A,sub(B,D))}),polys:['ABCD','AFBD'],
+   steps:[['Pour montrer que B est le milieu de [CF], il suffit de montrer que&nbsp;:',[['eq:CB|BF',EQ('CB','BF')],['eq:CB|FB',EQ('CB','FB')],['eq:BC|BF',EQ('BC','BF')]],'CB','BF'],
+          ['ABCD est un parallélogramme, donc '+E('CB')+' = ?',[['eq:CB|DA',V('DA')],['eq:CB|AD',V('AD')],['eq:CB|DC',V('DC')]],'CB','DA'],
+          ['AFBD est un parallélogramme, donc '+E('BF')+' = ?',[['eq:BF|DA',V('DA')],['eq:BF|AD',V('AD')],['eq:BF|DB',V('DB')]],'BF','DA'],
+          [EQ('CB','DA')+' et '+EQ('BF','DA')+'. Conclusion&nbsp;:',[['mid:B:CF',EQ('CB','BF')+'&nbsp;: B est le milieu de [CF]'],['mid:C:BF','C est le milieu de [BF]'],['mid:F:BC','F est le milieu de [BC]']],'CB','BF']]},
+ T2:{goal:'DCEF est un parallélogramme',hyp:'ABCD et ABEF sont deux parallélogrammes.',free:4,make:(A,B,D,F)=>({C:add(B,sub(D,A)),E:add(F,sub(B,A))}),polys:['ABCD','ABEF'],
+   steps:[['Pour montrer que DCEF est un parallélogramme, il suffit de montrer que&nbsp;:',[['eq:DC|FE',EQ('DC','FE')],['eq:DC|EF',EQ('DC','EF')],['eq:DE|CF',EQ('DE','CF')]],'DC','FE'],
+          ['ABCD est un parallélogramme, donc '+E('AB')+' = ?',[['eq:AB|DC',V('DC')],['eq:AB|CD',V('CD')],['eq:AB|AD',V('AD')]],'AB','DC'],
+          ['ABEF est un parallélogramme, donc '+E('AB')+' = ?',[['eq:AB|FE',V('FE')],['eq:AB|EF',V('EF')],['eq:AB|AF',V('AF')]],'AB','FE'],
+          [EQ('DC','AB')+' = '+E('FE')+'. Conclusion&nbsp;:',[['par:DCEF','DCEF est un parallélogramme'],['par:DCFE','DCFE est un parallélogramme'],['mid:C:DE','C est le milieu de [DE]']],'DC','FE']]},
+ T3:{goal:'DCEB est un parallélogramme',hyp:'ABCD est un parallélogramme et B est le milieu de [AE].',free:3,make:(A,B,D)=>({C:add(B,sub(D,A)),E:add(B,sub(B,A))}),polys:['ABCD'],
+   steps:[['Pour montrer que DCEB est un parallélogramme, il suffit de montrer que&nbsp;:',[['eq:DC|BE',EQ('DC','BE')],['eq:DC|EB',EQ('DC','EB')],['eq:DE|CB',EQ('DE','CB')]],'DC','BE'],
+          ['ABCD est un parallélogramme, donc '+E('DC')+' = ?',[['eq:DC|AB',V('AB')],['eq:DC|BA',V('BA')],['eq:DC|CB',V('CB')]],'DC','AB'],
+          ['B est le milieu de [AE], donc '+E('AB')+' = ?',[['eq:AB|BE',V('BE')],['eq:AB|EB',V('EB')],['eq:AB|AE',V('AE')]],'AB','BE'],
+          [EQ('DC','AB')+' = '+E('BE')+'. Conclusion&nbsp;:',[['par:DCEB','DCEB est un parallélogramme'],['par:DCBE','DCBE est un parallélogramme'],['mid:C:DE','C est le milieu de [DE]']],'DC','BE']]},
+ T4:{goal:'C est le milieu de [DE]',hyp:'ABCD et ABEC sont deux parallélogrammes.',free:3,make:(A,B,D)=>{const C=add(B,sub(D,A));return {C,E:add(C,sub(B,A))}},polys:['ABCD','ABEC'],
+   steps:[['Pour montrer que C est le milieu de [DE], il suffit de montrer que&nbsp;:',[['eq:DC|CE',EQ('DC','CE')],['eq:DC|EC',EQ('DC','EC')],['eq:CD|CE',EQ('CD','CE')]],'DC','CE'],
+          ['ABCD est un parallélogramme, donc '+E('DC')+' = ?',[['eq:DC|AB',V('AB')],['eq:DC|BA',V('BA')],['eq:DC|DA',V('DA')]],'DC','AB'],
+          ['ABEC est un parallélogramme, donc '+E('CE')+' = ?',[['eq:CE|AB',V('AB')],['eq:CE|BA',V('BA')],['eq:CE|EB',V('EB')]],'CE','AB'],
+          [EQ('DC','AB')+' = '+E('CE')+'. Conclusion&nbsp;:',[['mid:C:DE','C est le milieu de [DE]'],['mid:D:CE','D est le milieu de [CE]'],['mid:E:CD','E est le milieu de [CD]']],'DC','CE']]}};
+function L5(k){
+  const key=k<4?['T1','T2','T3','T4'][k]:pick(['T1','T2','T3','T4']),T=TPL[key];
+  for(let g=0;g<6000;g++){
+    const A=[ri(0,GW),ri(0,GH)],B=add(A,smallVec(4,13)),D=add(A,smallVec(4,13));
+    if(Math.abs(cross(sub(B,A),sub(D,A)))<4)continue;
+    const fr=[A,B,D];if(T.free===4){const F=add(A,smallVec(4,13));if(Math.abs(cross(sub(B,A),sub(F,A)))<4||Math.abs(cross(sub(D,A),sub(F,A)))<3)continue;fr.push(F)}
+    const ex=T.make(...fr),pts={A,B,D};if(T.free===4)pts.F=fr[3];Object.assign(pts,ex);
+    const all=Object.values(pts);if(!all.every(inG)||new Set(all.map(String)).size<all.length)continue;
+    if(all.some((p,i)=>all.some((q,j)=>j>i&&dist(p,q)<1.4)))continue;
+    const q={lvl:5,k,tpl:key,pts:{},arrows:[],polys:T.polys.map(s=>({n:splitPts(s),k:'s'})),vecs:{},parts:[]};
+    for(const n in pts)q.pts[n]={p:pts[n],k:'s'};
+    if(key==='T3')q.polys.push({n:['A','E'],k:'s'});
+    q.intro=`<b>Hypothèses.</b> ${T.hyp}<br><b>À démontrer.</b> ${T.goal}.`;
+    T.steps.forEach((s,i)=>q.parts.push({t:'choice',ask:s[0],opts:shuf(s[1].map(([c,h])=>({h,claim:c,why:i===3?'Relis l\'égalité obtenue&nbsp;: elle traduit exactement une seule de ces propositions.':'Regarde les deux flèches sur la figure&nbsp;: elles doivent avoir la même direction, le même sens et la même longueur.'}))),
+      done:i===0?'À montrer&nbsp;: '+EQ(s[2],s[3]):i===3?s[1][0][1]:EQ(s[2],s[3]),fx:[{f:'pair',a:s[2],b:s[3]}]}));
+    q.end=[{f:'cap',h:T.goal+' <span class="m">— CQFD</span>'}];
+    q.win=`Démonstration terminée&nbsp;: ${T.goal}. On a traduit la conclusion en égalité de vecteurs, puis on a enchaîné les égalités données par les hypothèses.`;
+    return q}
+  throw new Error('L5')}
+
+/* --- niveau 6 : bout à bout --- */
+function freeUV(q,pl,u,v){const ru=pl.arrow(u),rv=ru&&pl.arrow(v);if(!ru||!rv)return false;q.vecs.u=u;q.vecs.v=v;q.arrows.push({a:ru[0],b:ru[1],k:'u',lab:'u'},{a:rv[0],b:rv[1],k:'v',lab:'v'});return true}
+const sumAlts=e=>{const m={'u+v':[['u-v',`Tu as soustrait ${Vi('v')}. Pour additionner, on trace ${Vi('v')} dans son propre sens, au bout de ${Vi('u')}.`],['v-u',`Tu as retourné ${Vi('u')}&nbsp;: il faut le tracer dans son sens.`],['-u-v',`Tu as retourné les deux flèches.`],['u',`Il manque ${Vi('v')}&nbsp;: au bout de ${Vi('u')}, trace ${Vi('v')}.`],['v',`Il manque ${Vi('u')}&nbsp;: commence par tracer ${Vi('u')}.`]],
+  'v+u':[['v-u',`Tu as soustrait ${Vi('u')}&nbsp;: trace ${Vi('u')} dans son propre sens, au bout de ${Vi('v')}.`],['u-v',`Tu as retourné ${Vi('v')}.`],['-u-v',`Tu as retourné les deux flèches.`],['u',`Il manque ${Vi('v')}.`],['v',`Il manque ${Vi('u')}&nbsp;: au bout de ${Vi('v')}, trace ${Vi('u')}.`]],
+  'u-v':[['u+v',`Tu as ajouté ${Vi('v')}. Soustraire ${Vi('v')}, c'est ajouter la flèche <b>retournée</b> ${E('-v')}.`],['v-u',`C'est ${E('v-u')}&nbsp;: tu as retourné la mauvaise flèche.`],['u',`Il manque ${E('-v')}&nbsp;: au bout de ${Vi('u')}, trace ${Vi('v')} retourné.`],['-u-v',`Tu as retourné ${Vi('u')}&nbsp;: seule ${Vi('v')} se retourne.`]]};return (m[e]||[]).map(([expr,msg])=>({expr,m:msg}))};
+function L6(k){
+  for(let g=0;g<8000;g++){
+    const q={lvl:6,k,pts:{},arrows:[],polys:[],vecs:{},parts:[]};
+    if(k===0){
+      const u=smallVec(4,10),v=smallVec(4,10);if(Math.abs(cross(u,v))<2)continue;
+      const sh=tri(),off=[ri(0,GW),ri(0,GH)],F=sh.map(p=>add(p,off)),I1=F.map(p=>add(p,u)),I2=I1.map(p=>add(p,v));
+      if(!F.concat(I1,I2).every(inG))continue;const M=F[0],N=I1[0],P=I2[0];
+      if(new Set([M,N,P,F[1],F[2]].map(String)).size<5||dist(M,P)<1.4)continue;
+      const pl=new Placer().poly(F).add(N,P).seg(M,N).seg(N,P);if(!freeUV(q,pl,u,v))continue;
+      q.pts={M:{p:M,k:'s'},_1:{p:F[1],k:'s',nolab:1},_2:{p:F[2],k:'s',nolab:1}};q.polys=[{n:['M','_1','_2'],k:'s'}];
+      q.intro=`Deux glissades enchaînées&nbsp;: d'abord selon ${Vi('u')}, puis selon ${Vi('v')}.`;
+      q.parts.push({t:'place',name:'N',from:'M',expr:'u',preview:'arrow',k:'a',c:'u',arrow:{a:'M',b:'N',k:'u'},ask:`Place N, l'image de M par la translation de vecteur ${Vi('u')}.`,done:`N placé&nbsp;: ${EQ('MN','u')}`,fx:[{f:'glide',names:['M','_1','_2'],v:'u',k:'u'}]});
+      q.parts.push({t:'place',name:'P',from:'N',expr:'v',preview:'arrow',k:'i',arrow:{a:'N',b:'P',k:'v'},ask:`Place P, l'image de N par la translation de vecteur ${Vi('v')}.`,done:`P placé&nbsp;: ${EQ('NP','v')}`,
+        fx:[{f:'chain',names:['M','_1','_2'],vs:['u','v']},{f:'glide',names:['M','_1','_2'],v:'u+v',k:'w',keep:'img2',ms:1300},{f:'arrowp',a:'M',b:'P',k:'w'},{f:'cap',h:`<span class="m">deux glissades = une seule&nbsp;:</span> ${EQ('u+v','MP')}`}]});
+      q.parts.push({t:'choice',ask:`La translation de vecteur ${Vi('u')} suivie de celle de vecteur ${Vi('v')} est la translation de vecteur&nbsp;:`,opts:['MP','PM','MN','NP'].map(x=>({h:V(x),claim:`eq:u+v|${x}`,why:x==='PM'?`${V('PM')} va de P vers M&nbsp;: c'est le sens contraire.`:`${V(x)} ne représente qu'une des deux glissades.`})),done:EQ('u+v','MP')});
+      q.win=`Deux glissades enchaînées n'en font qu'une&nbsp;: ${EQ('u+v','MP')}. C'est aussi la relation de Chasles&nbsp;: ${EQ('MN+NP','MP')}.`;
+    }else if(k===1||k===3){
+      const u=k===1?smallVec(4,10):smallVec(5,18),v=k===1?smallVec(4,10):smallVec(5,18);if(Math.abs(cross(u,v))<2)continue;
+      const order=k===1?'u+v':'v+u',first=k===1?u:v,R=[ri(0,GW),ri(0,GH)],T=add(R,first),S=add(R,add(u,v));
+      if(!inG(T)||!inG(S)||dist(R,S)<1.4)continue;
+      const alts=sumAlts(order).map(a=>({...a,p:add(R,ev(a.expr,{vecs:{u,v}}))})).filter(a=>!same(a.p,S));
+      const pl=new Placer().add(R,S,T).seg(R,T).seg(T,S).seg(R,S);if(!freeUV(q,pl,u,v))continue;
+      q.pts={R:{p:R,k:'s'},T:{p:T,k:'a',c:k===1?'u':'v',hide:1}};
+      q.intro=k===1?`Une seule glissade, mais construite bout à bout.`:`Attention à l'ordre&nbsp;: cette fois, ${Vi('v')} d'abord.`;
+      q.parts.push({t:'place',name:'S',from:'R',expr:order,preview:'arrow',k:'i',alts,arrow:{a:'R',b:'S',k:'w'},ask:`Place S tel que ${EQ('RS',order)}.`,done:`S placé&nbsp;: ${EQ('RS',order)}`,
+        fx:[{f:'show',n:'T'},{f:'chainArrows',from:'R',vs:order==='u+v'?['u','v']:['v','u'],via:'T'},{f:'cap',h:`${EQ('RT+TS','RS')} <span class="m">(Chasles)</span>`}]});
+      q.parts.push({t:'choice',ask:`Le point T est l'étape intermédiaire. Simplifier&nbsp;: ${E('RT+TS')} = ?`,opts:['RS','SR','TR','ST'].map(x=>({h:V(x),claim:`eq:RT+TS|${x}`,why:`Chasles&nbsp;: ${E('RT+TS')}, le point T «&nbsp;se recolle&nbsp;»&nbsp;; on va de R à S.`})),done:EQ('RT+TS','RS')});
+      q.win=k===1?`${EQ('RS','u+v')}&nbsp;: on trace ${Vi('u')} depuis R, puis ${Vi('v')} depuis son extrémité T. Chasles&nbsp;: ${EQ('RT+TS','RS')}.`:`${EQ('v+u','u+v')}&nbsp;: dans les deux ordres, la glissade unique est la même.`;
+    }else if(k===2){
+      const s=smallVec(4,13),t=smallVec(4,13);if(Math.abs(cross(s,t))<4)continue;
+      const A=[ri(0,GW),ri(0,GH)],B=add(A,s),Dd=add(A,t),C=add(B,t);if(![B,Dd,C].every(inG))continue;
+      q.pts={A:{p:A,k:'s'},B:{p:B,k:'s'},D:{p:Dd,k:'s'}};q.arrows=[{a:'A',b:'B',k:'u'},{a:'A',b:'D',k:'v'}];
+      q.intro=`Le glisseur additionne deux flèches qui partent du même point A.`;
+      q.parts.push({t:'place',name:'C',from:'A',expr:'AB+AD',preview:'arrow',k:'g',arrow:{a:'A',b:'C',k:'w'},alts:[{expr:'AB-AD',m:`Tu as soustrait ${V('AD')}. Pour additionner, trace depuis B une flèche égale à ${V('AD')}, dans son sens.`},{expr:'AD-AB',m:`Tu as retourné ${V('AB')}&nbsp;: il faut garder les deux sens.`}],
+        ask:`Place C tel que ${EQ('AC','AB+AD')}.`,done:`C placé&nbsp;: ${EQ('AC','AB+AD')}`,
+        fx:[{f:'slideKeep',a:'A',b:'D',to:'B',k:'v'},{f:'poly',n:['A','B','C','D'],k:'g',fill:'g'},{f:'cap',h:`${EQ('AB+AD','AB+BC')} = ${E('AC')}`}]});
+      q.parts.push({t:'choice',ask:`Que peut-on dire du quadrilatère obtenu&nbsp;?`,opts:[{h:'ABCD est un parallélogramme',claim:'par:ABCD'},{h:'ABDC est un parallélogramme',claim:'par:ABDC'},{h:'C est le milieu de [BD]',claim:'mid:C:BD'}].map(o=>({...o,why:'Regarde la figure&nbsp;: '+E('BC')+' = '+E('AD')+'.'})),done:'ABCD est un parallélogramme'});
+      q.win=`Règle du parallélogramme&nbsp;: ${EQ('AB+AD','AC')} ⟺ ABCD est un parallélogramme. En effet ${EQ('AD','BC')}, donc ${E('AB+AD')} = ${E('AB+BC')} = ${E('AC')}.`;
+    }else{
+      const sh=tri().map(p=>[p[0]*1.5|0,p[1]*1.5|0]);if(Math.abs(cross(sub(sh[1],sh[0]),sub(sh[2],sh[0])))<4)continue;
+      const off=[ri(0,GW),ri(0,GH)],T=sh.map(p=>add(p,off));if(!T.every(inG))continue;
+      const AB=sub(T[1],T[0]),AC=sub(T[2],T[0]),pl=new Placer().poly(T);
+      const M=pl.point(s=>inG(add(s,AB))&&inG(add(s,AC))&&far(add(s,AB),pl.pts,1.4)&&far(add(s,AC),pl.pts,1.4));if(!M)continue;
+      q.pts={A:{p:T[0],k:'s'},B:{p:T[1],k:'s'},C:{p:T[2],k:'s'},M:{p:M,k:'a',c:'g'}};q.polys=[{n:['A','B','C'],k:'s'}];
+      q.intro=`Le tour de la constellation ABC&nbsp;: l'étoile M suit ${V('AB')}, puis ${V('BC')}, puis ${V('CA')}.`;
+      q.parts.push({t:'place',name:'M′',from:'M',expr:'AB+BC',preview:'arrow',k:'a',c:'w',arrow:{a:'M',b:'M′',k:'w'},alts:[{expr:'AB',m:`Ça, c'est seulement la première glissade. Au bout de ${V('AB')}, trace ${V('BC')}.`},{expr:'BC',m:`Il manque la première glissade, ${V('AB')}.`}],
+        ask:`Place M′, l'image de M par la translation de vecteur ${V('AB')} suivie de celle de vecteur ${V('BC')}.`,done:`M′ placé&nbsp;: ${EQ('MM′','AB+BC')} = ${E('AC')}`,
+        fx:[{f:'chainArrows',from:'M',vs:['AB','BC']},{f:'cap',h:EQ('AB+BC','AC')}]});
+      q.parts.push({t:'choice',ask:`M′ glisse ensuite selon ${V('CA')}&nbsp;: il revient en M. Simplifier&nbsp;: ${E('AB+BC+CA')} = ?`,opts:[{h:Z0,claim:'eq:AB+BC+CA|0'},{h:V('AC'),claim:'eq:AB+BC+CA|AC'},{h:V('CA'),claim:'eq:AB+BC+CA|CA'}].map(o=>({...o,why:`Après le tour complet A → B → C → A, on revient au point de départ.`})),
+        done:EQ('AB+BC+CA','0'),fx:[{f:'glide',names:['M′'],v:'CA',k:'v',dotk:'w'},{f:'flashp',n:['M']},{f:'cap',h:`${E('AB+BC+CA')} = ${E('AA')} = ${Z0}`}]});
+      q.win=`Un tour complet ramène au départ&nbsp;: ${E('AB+BC+CA')} = ${E('AC+CA')} = ${E('AA')} = ${Z0}.`;
+    }
+    q.end=q.end||[];return q}
+  throw new Error('L6')}
+
+/* --- niveau 7 : le point mystère --- */
+function L7(k){
+  for(let g=0;g<8000;g++){
+    const q={lvl:7,k,pts:{},arrows:[],polys:[],vecs:{},parts:[]};
+    if(k===0||k===1){
+      const s=smallVec(4,13),t=smallVec(4,13);if(Math.abs(cross(s,t))<4)continue;
+      const A=[ri(0,GW),ri(0,GH)],B=add(A,s),C=add(A,t),Fp=k===0?add(B,t):sub(B,t);if(![B,C,Fp].every(inG))continue;if(far(Fp,[A,B,C],1.4)===false)continue;
+      q.pts={A:{p:A,k:'s'},B:{p:B,k:'s'},C:{p:C,k:'s'}};q.arrows=[{a:'A',b:'B',k:'u'},{a:'A',b:'C',k:'v'}];
+      if(k===0){
+        q.intro=`Le point mystère F est défini par une somme de deux flèches issues de A.`;
+        q.parts.push({t:'place',name:'F',from:'A',expr:'AB+AC',preview:'arrow',k:'g',arrow:{a:'A',b:'F',k:'w'},alts:[{expr:'AB-AC',m:`Tu as soustrait ${V('AC')}&nbsp;: au bout de ${V('AB')}, trace ${V('AC')} dans son propre sens.`},{expr:'AC-AB',m:`Tu as retourné ${V('AB')}.`}],
+          ask:`Place F tel que ${EQ('AF','AB+AC')}.`,done:`F placé&nbsp;: ${EQ('AF','AB+AC')}`,fx:[{f:'slideKeep',a:'A',b:'C',to:'B',k:'v'},{f:'poly',n:['A','B','F','C'],k:'g',fill:'g'},{f:'cap',h:`${EQ('AF','AB+AC')} <span class="m">: ABFC parallélogramme</span>`}]});
+        q.parts.push({t:'choice',ask:`Que peut-on dire&nbsp;?`,opts:[{h:'ABFC est un parallélogramme',claim:'par:ABFC'},{h:'ABCF est un parallélogramme',claim:'par:ABCF'},{h:'AFBC est un parallélogramme',claim:'par:AFBC'}].map(o=>({...o,why:`Lis les sommets dans l'ordre du tour de la figure dorée.`})),done:'ABFC est un parallélogramme'});
+        q.win=`${EQ('AF','AB+AC')}&nbsp;: F complète le parallélogramme <b>ABFC</b> (et non ABCF).`;
+      }else{
+        q.intro=`Cette fois, une soustraction&nbsp;: ${E('AB-AC')}.`;
+        q.parts.push({t:'place',name:'F',from:'A',expr:'AB-AC',preview:'arrow',k:'g',arrow:{a:'A',b:'F',k:'w'},alts:[{expr:'AB+AC',m:`Tu as ajouté ${V('AC')}. Soustraire ${V('AC')}, c'est ajouter son opposé ${V('CA')}&nbsp;: la flèche retournée.`},{expr:'AC-AB',m:`C'est ${E('AC-AB')}&nbsp;: tu as retourné la mauvaise flèche.`}],
+          ask:`Place F tel que ${EQ('AF','AB-AC')}.`,done:`F placé&nbsp;: ${EQ('AF','AB-AC')}`,
+          fx:[{f:'chainArrows',from:'A',vs:['AB','CA']},{f:'slideKeep',a:'C',b:'B',to:'A',k:'w'},{f:'cap',h:`${EQ('AB-AC','AB+CA')} = ${E('CA+AB')} = ${E('CB')}`}]});
+        q.parts.push({t:'choice',ask:`Simplifier&nbsp;: ${E('AB-AC')} = ?`,opts:['CB','BC','CA'].map(x=>({h:V(x),claim:`eq:AB-AC|${x}`,why:`${E('AB-AC')} = ${E('AB+CA')} = ${E('CA+AB')}&nbsp;: Chasles donne un vecteur qui part de C.`})),done:EQ('AB-AC','CB')});
+        q.win=`${E('AB-AC')} = ${E('AB+CA')} = ${E('CA+AB')} = ${E('CB')}&nbsp;: F est le point tel que ${EQ('AF','CB')}.`;
+      }
+    }else if(k===2){
+      const u=smallVec(4,13),v=smallVec(4,13);if(Math.abs(cross(u,v))<2)continue;
+      const A=[ri(0,GW),ri(0,GH)],T=add(A,u),P=sub(T,v);if(!inG(T)||!inG(P)||dist(A,P)<1.4)continue;
+      const alts=sumAlts('u-v').map(a=>({...a,p:add(A,ev(a.expr,{vecs:{u,v}}))})).filter(a=>!same(a.p,P));
+      const pl=new Placer().add(A,T,P).seg(A,T).seg(T,P).seg(A,P);if(!freeUV(q,pl,u,v))continue;
+      q.pts={A:{p:A,k:'s'},T:{p:T,k:'a',c:'u',hide:1,nolab:1}};
+      q.intro=`Soustraire une flèche, c'est ajouter la flèche retournée.`;
+      q.parts.push({t:'place',name:'P',from:'A',expr:'u-v',preview:'arrow',k:'i',alts,arrow:{a:'A',b:'P',k:'w'},ask:`Place P tel que ${EQ('AP','u-v')}.`,done:`P placé&nbsp;: ${EQ('AP','u-v')}`,
+        fx:[{f:'chainArrows',from:'A',vs:['u','-v']},{f:'cap',h:`${EQ('AP','u+(-v)')}`}]});
+      q.parts.push({t:'choice',ask:`Compléter&nbsp;: ${E('u-v')} = ?`,opts:['u+(-v)','v-u','-u-v'].map(x=>({h:E(x),claim:`eq:u-v|${x}`,why:`On garde ${Vi('u')} et on retourne seulement ${Vi('v')}.`})),done:EQ('u-v','u+(-v)')});
+      q.win=`${EQ('u-v','u+(-v)')}&nbsp;: on trace ${Vi('u')}, puis, au bout, ${Vi('v')} retourné.`;
+    }else{
+      const s=smallVec(4,13),t=smallVec(4,13);if(Math.abs(cross(s,t))<4)continue;
+      const A=[ri(0,GW),ri(0,GH)],B=add(A,s),Dd=add(A,t),C=add(B,t),P=k===3?C:sub(B,t);if(![B,C,Dd,P].every(inG))continue;if(k===4&&!far(P,[A,B,C,Dd],1.4))continue;
+      q.pts={A:{p:A,k:'s'},B:{p:B,k:'s'},C:{p:C,k:'s'},D:{p:Dd,k:'s'}};q.polys=[{n:['A','B','C','D'],k:'s'}];
+      if(k===3){
+        q.intro=`ABCD est un parallélogramme. Où se cache le point P&nbsp;?`;
+        q.parts.push({t:'place',name:'P',from:'A',expr:'AB+AD',preview:'arrow',onto:'C',ask:`Place P tel que ${EQ('AP','AB+AD')}.`,done:`P placé&nbsp;: il est sur C`,alts:[{expr:'AB-AD',m:`Tu as soustrait ${V('AD')}&nbsp;: au bout de ${V('AB')}, trace ${V('AD')} dans son sens.`}],
+          fx:[{f:'chainArrows',from:'A',vs:['AB','AD']},{f:'flashp',n:['C']},{f:'cap',h:`${EQ('AB+AD','AC')}`}]});
+        q.parts.push({t:'choice',ask:`Que remarque-t-on&nbsp;?`,opts:[{h:'P est confondu avec C',claim:'pt:P|C'},{h:'P est confondu avec D',claim:'pt:P|D'},{h:'P est le milieu de [BD]',claim:'mid:P:BD'}].map(o=>({...o,why:`Regarde où la construction bout à bout est arrivée.`})),done:'P est confondu avec C'});
+        q.win=`Dans le parallélogramme ABCD, ${EQ('AB+AD','AC')}&nbsp;: le point P est le sommet C.`;
+      }else{
+        q.intro=`ABCD est un parallélogramme. Cette fois, une différence.`;
+        q.parts.push({t:'place',name:'P',from:'A',expr:'AB-AD',preview:'arrow',k:'i',arrow:{a:'A',b:'P',k:'w'},ask:`Place P tel que ${EQ('AP','AB-AD')}.`,done:`P placé&nbsp;: ${EQ('AP','AB-AD')}`,
+          alts:[{expr:'AB+AD',m:`Ça, c'est ${E('AB+AD')} (le point C). Soustraire ${V('AD')}, c'est ajouter ${V('DA')}.`},{expr:'AD-AB',m:`C'est ${E('AD-AB')}&nbsp;: tu as retourné la mauvaise flèche.`}],
+          fx:[{f:'chainArrows',from:'A',vs:['AB','DA']},{f:'slideKeep',a:'D',b:'B',to:'A',k:'w'},{f:'cap',h:`${EQ('AB-AD','AB+DA')} = ${E('DA+AB')} = ${E('DB')}`}]});
+        q.parts.push({t:'choice',ask:`Simplifier&nbsp;: ${E('AB-AD')} = ?`,opts:['DB','BD','AC'].map(x=>({h:V(x),claim:`eq:AB-AD|${x}`,why:`${E('AB-AD')} = ${E('AB+DA')} = ${E('DA+AB')}&nbsp;: Chasles, le vecteur part de D.`})),done:EQ('AB-AD','DB')});
+        q.win=`${E('AB-AD')} = ${E('DA+AB')} = ${E('DB')}&nbsp;: P est le point tel que ${EQ('AP','DB')}.`;
+      }
+    }
+    q.end=q.end||[];return q}
+  throw new Error('L7')}
+const GEN=[null,L1,L2,L3,L4,L5,L6,L7];
+/* calcule les réponses et contrôle l'unicité ; on retire en cas d'anomalie */
+function finalize(q){
+  const env={pts:{},vecs:q.vecs};for(const n in q.pts)env.pts[n]=q.pts[n].p;
+  for(const p of q.parts){
+    if(p.t==='place'){
+      p.ans=add(env.pts[p.from],ev(p.expr,env));
+      if(!inG(p.ans))return false;
+      if(p.onto){if(!same(p.ans,env.pts[p.onto]))return false}
+      else if(Object.keys(env.pts).some(n=>!q.pts[n]?.hide&&same(env.pts[n],p.ans)))return false;
+      p.alts=(p.alts||[]).map(a=>({...a,p:a.p||add(env.pts[p.from],ev(a.expr,env))})).filter(a=>!same(a.p,p.ans));
+      env.pts[p.name]=p.ans;
+      if(p.check&&!claim(p.check,env))return false;
+    }else{
+      p.opts.forEach(o=>o.ok=claim(o.claim,env));
+      if(p.opts.filter(o=>o.ok).length!==1)return false;
+      if(new Set(p.opts.map(o=>o.h)).size!==p.opts.length)return false}}
+  return true}
+function gen(L,k){for(let i=0;i<60;i++){const q=GEN[L](k);if(finalize(q))return q}throw new Error('génération '+L+'/'+k)}
+
+/* ====================== déroulement d'un niveau ====================== */
+const NQ=5;
+const S={L:1,k:0,q:null,pi:0,tries:0,clean:true,score:0,res:[],busy:0,tok:0,cur:null,forced:false,mode:'play',hist:[]};
+const pass=()=>{try{return(SigmaKit.passport().games['glisseur-etoiles']||{levels:{}}).levels||{}}catch(e){return{}}};
+function renderNav(){
+  const P=pass();let h='';
+  for(let i=1;i<=7;i++){const s=P[i]||0;h+=`<button type="button" data-l="${i}" aria-pressed="${S.mode==='play'&&S.L===i}" title="${LEVELS[i].n}">${i}<span class="nm">&nbsp;· ${LEVELS[i].n}</span>${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}
+  h+=`<span class="sp"></span><button type="button" class="tool" data-t="free" aria-pressed="${S.mode==='free'}">Ciel libre</button><button type="button" class="tool" data-t="memo" aria-pressed="${S.mode==='memo'}">L'essentiel</button><button type="button" class="tool" id="snd" aria-pressed="${soundOn}">♪ Bruitages&nbsp;: ${soundOn?'oui':'non'}</button>`;
+  $('lv').innerHTML=h}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){soundOn=!soundOn;try{localStorage.setItem('sigma-fanfare',soundOn?'1':'0')}catch(_){}renderNav();if(soundOn)sfx('ok');return}
+  if(b.dataset.l)startLevel(+b.dataset.l);else if(b.dataset.t)setMode(b.dataset.t)});
+function setMode(m){S.mode=m;S.tok++;S.busy=0;clearFx();CUR.innerHTML='';
+  $('vplay').hidden=m!=='play';$('vfree').hidden=m!=='free';$('vmemo').hidden=m!=='memo';renderNav();
+  if(m==='free')freeStart();else if(m==='memo'){memoScene()}}
+function startLevel(L){S.mode='play';$('vplay').hidden=false;$('vfree').hidden=true;$('vmemo').hidden=true;
+  S.tok++;S.busy=0;S.L=L;S.k=0;S.score=0;S.res=[];renderNav();
+  const Lv=LEVELS[L];$('chap').textContent=`Niveau ${L} sur 7 · ${Lv.c}`;$('lvt').textContent=Lv.n;$('rule').innerHTML=Lv.rule;
+  $('badge').textContent=`Niveau ${L} · ${Lv.n}`;newQ()}
+function loadScene(q){st={pts:{},arrows:[],polys:[],tmp:[]};for(const n in q.pts)st.pts[n]={...q.pts[n]};q.arrows.forEach(a=>st.arrows.push({...a}));q.polys.forEach(p=>st.polys.push({...p,n:p.n.slice()}));clearFx();CUR.innerHTML='';draw()}
+function newQ(){S.q=gen(S.L,S.k);S.pi=0;S.clean=true;S.hist=[];loadScene(S.q);cap('');$('win').hidden=true;$('fb').hidden=true;
+  $('prompt').innerHTML=S.q.intro;$('hist').innerHTML='';dots();showPart()}
+function dots(){$('dots').innerHTML=Array.from({length:NQ},(_,i)=>`<span class="dot ${i<S.res.length?(S.res[i]?'g':'r'):i===S.k?'c':''}"></span>`).join('');$('qn').textContent=`Question ${S.k+1} sur ${NQ}`}
+function part(){return S.q.parts[S.pi]}
+function showPart(){
+  const p=part();S.tries=0;S.forced=false;$('fb').hidden=true;
+  if(p.t==='place'){
+    S.cur=Pp(p.from).slice();svg.classList.add('pick');
+    cap(p.preview==='poly'?`<span class="m">on veut&nbsp;:</span> ${p.order.join('')} <span class="m">parallélogramme</span>`:p.from.startsWith('_')?'':`<span class="m">on construit&nbsp;:</span> ${EQ(p.from+p.name,p.expr)}`);
+svg.setAttribute('tabindex','0');
+    $('work').innerHTML=`<div class="part"><p class="ask">${p.ask}</p><div class="pick"><div class="pad" id="pad"><button class="u" data-m="0,1" aria-label="Curseur vers le haut">↑</button><button class="l" data-m="-1,0" aria-label="Curseur vers la gauche">←</button><span class="o" aria-hidden="true">curseur</span><button class="r" data-m="1,0" aria-label="Curseur vers la droite">→</button><button class="d" data-m="0,-1" aria-label="Curseur vers le bas">↓</button></div>
+      <div><button class="btn or" id="place" type="button">Placer ${p.name} ici</button><p class="hint">Touche un nœud du quadrillage, ou déplace le curseur (flèches du clavier ou boutons), puis valide. Le curseur part de ${p.from.startsWith('_')?'l\'étoile':p.from}.</p></div></div></div>`;
+    $('pad').onclick=e=>{const b=e.target.closest('button');if(!b)return;const[dx,dy]=b.dataset.m.split(',').map(Number);moveCur(dx,dy)};
+    $('place').onclick=validatePlace;drawCur();setTimeout(()=>{if($('place'))$('place').focus({preventScroll:true})},30);
+  }else{
+    svg.classList.remove('pick');svg.removeAttribute('tabindex');CUR.innerHTML='';
+    $('work').innerHTML=`<div class="part"><p class="ask">${p.ask}</p><div class="opts">${p.opts.map((o,j)=>`<button class="opt" type="button" data-j="${j}">${o.h}</button>`).join('')}</div></div>`;
+    $('work').querySelectorAll('.opt').forEach(b=>b.onclick=()=>choose(+b.dataset.j,b));
+    setTimeout(()=>{const f=$('work').querySelector('.opt');if(f)f.focus({preventScroll:true})},30)}}
+function moveCur(dx,dy){if(S.busy||!S.cur)return;const n=[S.cur[0]+dx,S.cur[1]+dy];if(!inG(n))return;S.cur=n;sfx('pick');drawCur()}
+function drawCur(){
+  const p=part();if(!p||p.t!=='place'||!S.cur){CUR.innerHTML='';return}
+  let h='';const c=S.cur;
+  if(p.preview==='poly'){const pos={};p.order.forEach(n=>pos[n]=n===p.name?c:st.pts[n].p);h+=`<path class="edge c" d="${polyD(p.order.map(n=>pos[n]))}"/>`}
+  else{const o=Pp(p.from);if(!same(o,c))h+=arrowSVG(o,c,'c')}
+  h+=`<g class="cur"><circle class="ring" cx="${sx(c[0])}" cy="${sy(c[1])}" r="15"/><path d="M${sx(c[0])-22} ${sy(c[1])}h9M${sx(c[0])+13} ${sy(c[1])}h9M${sx(c[0])} ${sy(c[1])-22}v9M${sx(c[0])} ${sy(c[1])+13}v9"/></g>`;
+  if(S.forced)h+=`<circle class="pulse" cx="${sx(p.ans[0])}" cy="${sy(p.ans[1])}" r="18"/>`;
+  CUR.innerHTML=h}
+function nodeAt(ev_){const pt=svg.createSVGPoint();pt.x=ev_.clientX;pt.y=ev_.clientY;const m=svg.getScreenCTM();if(!m)return null;const q=pt.matrixTransform(m.inverse());
+  return [Math.max(0,Math.min(GW,Math.round(q.x/U))),Math.max(0,Math.min(GH,Math.round(GH-q.y/U)))]}
+svg.addEventListener('pointerdown',e=>{
+  if(S.mode==='free'){freeDown(e);return}
+  const p=part();if(S.mode!=='play'||!p||p.t!=='place'||S.busy||!$('win').hidden)return;const n=nodeAt(e);if(!n)return;S.cur=n;sfx('pick');drawCur()});
+document.addEventListener('keydown',e=>{
+  if(document.querySelector('.sk-ov'))return;
+  const m={ArrowUp:[0,1],ArrowDown:[0,-1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key];if(!m)return;
+  if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'))return;
+  if(S.mode==='play'){const p=part();if(p&&p.t==='place'&&$('win').hidden){e.preventDefault();moveCur(...m)}}
+  else if(S.mode==='free'){e.preventDefault();freeMove(...m)}});
+function checklist(w,e){
+  if(!w[0]&&!w[1])return `<p>Tu es resté sur le point de départ&nbsp;: ta flèche est le vecteur nul.</p>`;
+  const dir=cross(w,e)===0,sens=dir&&dot(w,e)>0,len=l2(w)===l2(e);
+  const it=(ok,t)=>`<li class="${ok?'y':'n'}">${ok?'✓':'✗'} ${t}</li>`;
+  let tip;if(!dir)tip='Ta flèche n\'a pas la bonne direction&nbsp;: elle n\'est pas parallèle à la flèche attendue.';
+  else if(!sens)tip='La direction est bonne, mais ta flèche part dans le <b>sens contraire</b>.';
+  else tip=`Direction et sens sont bons, mais ta flèche est trop ${l2(w)>l2(e)?'longue':'courte'}.`;
+  return `<p>${tip}</p><ul class="cl">${it(dir,'direction')}${dir?it(sens,'sens'):'<li class="x">– sens (sans objet&nbsp;: directions différentes)</li>'}${it(len,'longueur')}</ul>`}
+async function validatePlace(){
+  const p=part();if(S.busy||!S.cur||!$('win').hidden)return;const c=S.cur.slice(),tok=S.tok;
+  if(same(c,p.ans)){await success();return}
+  if(S.forced){fb('Place-toi sur l\'étoile qui clignote.','<p>C\'est l\'emplacement construit ci-dessus&nbsp;: déplace le curseur jusqu\'à elle, puis valide.</p>');return}
+  S.tries++;S.clean=false;sfx('ko');
+  const o=Pp(p.from),w=sub(c,o),e=sub(p.ans,o),alt=p.alts.find(a=>same(a.p,c));
+  clearFx();
+  if(p.preview==='poly'){const pos={};p.order.forEach(n=>pos[n]=n===p.name?c:st.pts[n].p);fxAdd(`<path class="edge e" d="${polyD(p.order.map(n=>pos[n]))}"/>`)}
+  else fxAdd(arrowSVG(o,c,'e'));
+  let msg=alt&&alt.m?`<p>${alt.m}</p>`:p.preview==='poly'?`<p>Avec ce point, ${p.order.join('')} n'est pas un parallélogramme&nbsp;: la figure en pointillés corail n'a pas ses côtés opposés égaux deux à deux.</p>`:checklist(w,e);
+  if(S.tries>=2){
+    msg+=`<p>Regarde la construction&nbsp;: depuis ${p.from.startsWith('_')?'l\'étoile':p.from}, ${carreaux(e)}.</p>`;
+    fb('Pas tout à fait.',msg);S.busy++;
+    try{await wait(300);if(tok!==S.tok)return;clearFx();const g=await chainGhost(o,termsOf(p.expr).map(([s,x])=>{const v=ev(x,envNow());return s<0?neg(v):v}));if(tok!==S.tok)return;
+      S.forced=true;drawCur()}finally{if(tok===S.tok)S.busy--}
+  }else fb('Pas tout à fait.',msg+'<p>Réessaie&nbsp;: déplace le curseur puis valide.</p>')}
+function envNow(){const e={pts:{},vecs:S.q.vecs};for(const n in st.pts)e.pts[n]=st.pts[n].p;return e}
+async function chainGhost(o,vs){let p=o;for(const v of vs){await glide([p],v,{k:'h',dotk:'g',keepTrail:true,ms:800});p=add(p,v)}return p}
+function fb(t,h){$('fbt').innerHTML=t;$('fbp').innerHTML=h;$('fbmk').innerHTML=SigmaKit.maki('pense');$('fb').hidden=false}
+async function choose(j,btn){
+  const p=part();if(S.busy)return;const o=p.opts[j];
+  if(o.ok){$('work').querySelectorAll('.opt').forEach(b=>b.disabled=true);btn.classList.add('ok');await success();return}
+  S.clean=false;S.tries++;sfx('ko');btn.classList.add('ko');btn.disabled=true;
+  fb('Pas tout à fait.',`<p>${o.why||''}</p>`);
+  const tok=S.tok;
+  if(o.to&&S.q.lvl===2){S.busy++;try{clearFx();const g=await slideArrow('A','B',o.to,'g',900);await wait(700);if(tok===S.tok)fade(g)}finally{if(tok===S.tok)S.busy--}}
+  if(o.arr){clearFx();st.tmp=[{a:splitPts(o.arr[0])[0],b:splitPts(o.arr[0])[1],k:'u'},{a:splitPts(o.arr[1])[0],b:splitPts(o.arr[1])[1],k:'e'}];draw()}}
+async function success(){
+  const p=part(),tok=S.tok;S.busy++;sfx('ok');$('fb').hidden=true;
+  try{
+    clearFx();CUR.innerHTML='';st.tmp=[];
+    if(p.t==='place'){svg.classList.remove('pick');$('work').querySelectorAll('button').forEach(b=>b.disabled=true);if(!st.pts[p.name])st.pts[p.name]={p:p.ans,k:'a',hide:1}}
+    await runFx(p.fx||[],p,tok);if(tok!==S.tok)return;
+    if(p.t==='place'){
+      if(!p.onto){st.pts[p.name]={p:p.ans,k:p.k||'i',c:p.c}}else{st.pts[p.name]={p:p.ans,k:'a',hide:1}}
+      if(p.trail)st.arrows.push({a:p.from,b:p.name,k:'tr'});
+      if(p.arrow)st.arrows.push({...p.arrow});
+      draw();flash(p.ans)}
+    S.hist.push(p.done||'');$('hist').innerHTML=S.hist.map(h=>`<li>${h}</li>`).join('');
+    S.pi++;
+    if(S.pi<S.q.parts.length){showPart();return}
+    $('work').innerHTML='';await runFx(S.q.end||[],null,tok);if(tok!==S.tok)return;
+    finishQ()}finally{if(tok===S.tok)S.busy--}}
+function finishQ(){
+  S.res.push(S.clean);if(S.clean)S.score++;dots();
+  $('winmk').innerHTML=SigmaKit.maki(S.clean?'bravo':'joie');$('winx').textContent=S.clean?'Du premier coup !':'Réussi !';$('winp').innerHTML=S.q.win;
+  $('next').textContent=S.k<NQ-1?'Question suivante →':'Terminer le niveau';$('win').hidden=false;
+  setTimeout(()=>$('next').focus({preventScroll:true}),40)}
+$('next').onclick=()=>{if(S.busy)return;
+  if(S.k<NQ-1){S.k++;newQ();return}
+  $('win').hidden=true;const L=S.L;
+  SigmaKit.levelComplete({level:L,score:S.score,total:NQ}).then(v=>{renderNav();if(v==='next'&&L<7)startLevel(L+1);else if(v==='replay')startLevel(L)})};
+/* effets programmés par les questions */
+async function runFx(list,p,tok){
+  for(const f of list){if(tok!==S.tok)return;try{await fx1(f)}catch(e){console.warn('effet',f.f,e);clearFx();draw()}}}
+async function fx1(f){{
+    if(f.f==='glide'){const v=ev(f.v,envNow());const names=f.names;
+      if(f.keep==='img'){await glide(names,v,{k:'tr'});names.forEach(n=>{if(n.startsWith('_'))st.pts[n+'′']={p:add(st.pts[n].p,v),k:'i',nolab:1}});
+        const pl=st.polys.find(x=>x.n.every(n=>names.includes(n)));if(pl)st.polys.push({n:pl.n.map(n=>n+'′'),k:'i'})}
+      else if(f.keep==='img2'){await glide(names,v,{k:'w',ms:f.ms,sk:'i',ek:'i'});
+        const nm=n=>n==='M'?'P':n+'*';names.forEach(n=>{if(!st.pts[nm(n)])st.pts[nm(n)]={p:add(st.pts[n].p,v),k:'i',nolab:1}});
+        const pl=st.polys.find(x=>x.n.every(n=>names.includes(n)));if(pl)st.polys.push({n:pl.n.map(nm),k:'i'});draw()}
+      else await glide(names,v,{k:f.k||'tr',keepTrail:f.keepTrail,dotk:f.dotk,ms:f.ms})}
+    else if(f.f==='chain'){let off=[0,0];const base=f.names.map(Pp);
+      for(const vn of f.vs){const v=ev(vn,envNow());const ps=base.map(b=>add(b,off));
+        const tmpNames=ps.map((pp,i)=>'__'+i);ps.forEach((pp,i)=>st.pts['__'+i]={p:pp,k:'s',hide:1});
+        const pl=st.polys.find(x=>x.n.every(n=>f.names.includes(n)));if(pl)st.polys.push({n:pl.n.map(n=>'__'+f.names.indexOf(n)),k:'s',tmp:1});
+        await glide(tmpNames,v,{k:vn==='u'?'u':'v',keepTrail:true,ms:900});
+        st.polys=st.polys.filter(x=>!x.tmp);tmpNames.forEach(n=>delete st.pts[n]);off=add(off,v)}
+      await wait(250)}
+    else if(f.f==='chainArrows'){let p0=Pp(f.from);
+      for(let i=0;i<f.vs.length;i++){const s=f.vs[i];const v=ev(s.replace(/^-/,''),envNow()),vv=s.startsWith('-')?neg(v):v;
+        const g=fxAdd(arrowSVG(p0,add(p0,vv),i===0?'u':'v'));g.querySelectorAll('path.hd').forEach(e=>e.style.opacity=0);sfx('glide');
+        await growLine(g,800);g.querySelectorAll('path.hd').forEach(e=>e.style.opacity='');p0=add(p0,vv);
+        if(i===0&&f.via){st.pts[f.via].hide=0;draw()}}
+      await wait(200)}
+    else if(f.f==='slide'){const g=await slideArrow(f.a,f.b,f.to,'g',1000);await wait(250);fade(g)}
+    else if(f.f==='slideKeep'){await slideArrow(f.a,f.b,f.to,f.k||'v',1000)}
+    else if(f.f==='flashp'){f.n.forEach(n=>flash(Pp(n)));await wait(500)}
+    else if(f.f==='poly'){st.polys.push({n:f.n.slice(),k:f.k,fill:f.fill});draw()}
+    else if(f.f==='arrowp'){st.arrows.push({a:f.a,b:f.b,k:f.k});draw()}
+    else if(f.f==='show'){st.pts[f.n].hide=0;draw()}
+    else if(f.f==='cap')cap(f.h);
+    else if(f.f==='sweep'){const A=Pp(f.a),B=Pp(f.b),v=ev(f.v,envNow());
+      const band=fxAdd(`<path class="band" d="M${sx(A[0])} ${sy(A[1])}L${sx(B[0])} ${sy(B[1])}L${sx(B[0])} ${sy(B[1])}L${sx(A[0])} ${sy(A[1])}Z"/>`).firstChild;
+      const seg=fxAdd(`<line class="ar g" x1="${sx(A[0])}" y1="${sy(A[1])}" x2="${sx(B[0])}" y2="${sy(B[1])}"/>`);sfx('glide');
+      const t0=performance.now(),T=D(1200);
+      await new Promise(res=>{const step=now=>{const k=Math.min(1,(now-t0)/T),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,A2=add(A,[v[0]*e,v[1]*e]),B2=add(B,[v[0]*e,v[1]*e]);
+        band.setAttribute('d',`M${sx(A[0])} ${sy(A[1])}L${sx(B[0])} ${sy(B[1])}L${sx(B2[0])} ${sy(B2[1])}L${sx(A2[0])} ${sy(A2[1])}Z`);seg.style.transform=tr(v[0]*e,v[1]*e);if(k<1)requestAnimationFrame(step);else res()};requestAnimationFrame(step)});
+      await wait(200)}
+    else if(f.f==='pair'){const a=splitPts(f.a),b=splitPts(f.b);st.tmp=[{a:a[0],b:a[1],k:'u'},{a:b[0],b:b[1],k:'v'}];draw();
+      const g=await slideArrow(a[0],a[1],b[0],'g',900);flash(Pp(b[1]));await wait(250);fade(g);cap(EQ(f.a,f.b))}
+  }}
+
+/* ====================== ciel libre ====================== */
+const FR={base:[[1,1],[2,3],[3,2],[4,3],[3,0]],u:[3,1],v:[2,2],sel:'u',off:[0,0],busy:false};
+function freeStart(){$('badge').textContent='Atelier · Ciel libre';cap(`<span class="m">Règle les flèches, puis lance les glissades.</span>`);FR.off=[0,0];freeDraw();$('fmsg').textContent=''}
+function freeDraw(){
+  st={pts:{},arrows:[],polys:[],tmp:[]};const o=FR.off;
+  FR.base.forEach((p,i)=>st.pts['f'+i]={p:add(p,o),k:'s',nolab:1});st.polys=[{n:['f0','f1','f2','f3','f1','f4','f0'].map(String),k:'s'}];
+  const A=add(FR.base[0],o),B=add(A,FR.u),C=add(B,FR.v);
+  st.arrows=[{a:A,b:B,k:'u',lab:'u'},{a:B,b:C,k:'v',lab:'v'}];if(!same(A,C))st.arrows.push({a:A,b:C,k:'w',side:1});
+  draw();clearFx();
+  const H=FR.sel==='u'?B:C;fxAdd(`<circle class="drag" cx="${sx(H[0])}" cy="${sy(H[1])}" r="17"/>`);
+  $('fu').setAttribute('aria-pressed',FR.sel==='u');$('fv').setAttribute('aria-pressed',FR.sel==='v')}
+function freeOk(u,v,off){const pts=FR.base.map(p=>add(p,off));return pts.every(p=>inG(p)&&inG(add(p,u))&&inG(add(add(p,u),v)))}
+function freeMove(dx,dy){if(FR.busy)return;const u=FR.sel==='u'?add(FR.u,[dx,dy]):FR.u,v=FR.sel==='v'?add(FR.v,[dx,dy]):FR.v;
+  if(!freeOk(u,v,FR.off)){$('fmsg').textContent='La constellation sortirait du ciel : choisis une flèche plus courte.';return}
+  FR.u=u;FR.v=v;$('fmsg').textContent='';sfx('pick');freeDraw()}
+let fdrag=false;
+function freeDown(e){if(FR.busy)return;const n=nodeAt(e);if(!n)return;const A=add(FR.base[0],FR.off),B=add(A,FR.u),C=add(B,FR.v);
+  if(same(n,C)&&!same(B,C)){FR.sel='v';fdrag=true}else if(same(n,B)){FR.sel='u';fdrag=true}else{freeSet(n)}freeDraw()}
+function freeSet(n){const A=add(FR.base[0],FR.off),B=add(A,FR.u);
+  if(FR.sel==='u'){const u=sub(n,A);if(freeOk(u,FR.v,FR.off)){FR.u=u}}else{const v=sub(n,B);if(freeOk(FR.u,v,FR.off)){FR.v=v}}}
+svg.addEventListener('pointermove',e=>{if(S.mode!=='free'||!fdrag||FR.busy)return;const n=nodeAt(e);if(n){freeSet(n);freeDraw()}});
+window.addEventListener('pointerup',()=>{fdrag=false});
+$('fu').onclick=()=>{FR.sel='u';freeDraw()};$('fv').onclick=()=>{FR.sel='v';freeDraw()};
+$('fpad').onclick=e=>{const b=e.target.closest('button');if(!b)return;const[dx,dy]=b.dataset.m.split(',').map(Number);freeMove(dx,dy)};
+async function freeGlide(vs,k,msg){if(FR.busy)return;FR.busy=true;try{
+  const names=Object.keys(st.pts).filter(n=>n.startsWith('f'));let off=[0,0];
+  for(const v of vs){names.forEach(n=>st.pts['g'+n]={p:add(st.pts[n].p,off),k:'s',hide:1});const pl=st.polys[0];st.polys.push({n:pl.n.map(n=>'g'+n),k:'s',tmp:1});
+    await glide(names.map(n=>'g'+n),v,{k,keepTrail:true,ms:1000});st.polys=st.polys.filter(x=>!x.tmp);off=add(off,v)}
+  const g=fxAdd('');const ps=FR.base.map(p=>add(add(p,FR.off),off));g.innerHTML=`<path class="edge i" d="${polyD(['f0','f1','f2','f3','f1','f4','f0'].map(n=>ps[+n.slice(1)]))}"/>`+ps.map(p=>starSVG(p,'i')).join('');
+  cap(msg)}finally{FR.busy=false}}
+$('g1').onclick=()=>{freeDraw();freeGlide([FR.u],'u',`<span class="u">glissade selon</span> ${Vi('u')}`)};
+$('g2').onclick=()=>{freeDraw();freeGlide([FR.u,FR.v],'v',`${Vi('u')} <span class="m">puis</span> ${Vi('v')}`)};
+$('g3').onclick=()=>{freeDraw();freeGlide([add(FR.u,FR.v)],'w',`<span class="m">une seule glissade&nbsp;:</span> ${E('u+v')} <span class="m">— même arrivée&nbsp;!</span>`)};
+$('g0').onclick=()=>{if(FR.busy)return;freeDraw();cap('<span class="m">Retour au départ.</span>')};
+
+/* ====================== mémo ====================== */
+$('memo').innerHTML=`<h3>Translation et vecteur</h3><p>Une translation fait glisser une figure selon une direction, un sens et une longueur fixes&nbsp;; on la représente par un vecteur. Un vecteur a une <b>direction</b>, un <b>sens</b> et une <b>norme</b> (sa longueur).</p>
+<h3>Vecteurs égaux</h3><div class="box"><p>${EQ('AB','CD')} ⟺ même direction, même sens, même norme.</p><p>${EQ('AB','DC')} ⟺ ABCD est un parallélogramme (éventuellement aplati).</p></div><p>Ordre des lettres&nbsp;: ${EQ('AB','CD')} ⟺ <b>ABDC</b> est un parallélogramme.</p>
+<h3>Vecteur nul, vecteurs opposés</h3><p>${EQ('AA','0')} ; ${EQ('BA','-AB')} ; ${EQ('AB+BA','0')} ; B milieu de [AC] ⟺ ${EQ('AB','BC')}.</p>
+<h3>Somme et relation de Chasles</h3><div class="box"><p>${EQ('AB+BC','AC')}</p><p>ABCD parallélogramme ⟺ ${EQ('AB+AD','AC')}</p></div><p>Deux translations enchaînées, de vecteurs ${Vi('u')} puis ${Vi('v')}, forment la translation de vecteur ${E('u+v')}.</p>
+<h3>Soustraction et construction</h3><p>${EQ('u-v','u+(-v)')}. Pour construire F tel que ${EQ('AF','u')}&nbsp;: on place en A l'origine d'un représentant de ${Vi('u')}&nbsp;; F est son extrémité.</p>`;
+function memoScene(){$('badge').textContent='Mémo';st={pts:{A:{p:[1,1],k:'s'},B:{p:[5,2],k:'s'},D:{p:[3,4],k:'s'},C:{p:[7,5],k:'s'}},arrows:[{a:'A',b:'B',k:'u'},{a:'A',b:'D',k:'v'},{a:'A',b:'C',k:'w'}],polys:[{n:['A','B','C','D'],k:'g',fill:'g'}],tmp:[]};draw();cap(`${EQ('AB+AD','AC')}`)}
+
+/* ====================== Épreuves finales (Bronze, Argent, Or) ====================== */
+const QUADS=['ABCD','EFGH','MNPQ','RSTU','KLMN'];
+const L4s=()=>splitPts(pick(QUADS));
+const L3s=()=>shuf(splitPts(pick(QUADS))).slice(0,3);
+function qcm(level,prompt,ch,explain,au={}){return {type:'qcm',level,prompt,choices:ch.map(c=>c[0]),answer:0,explain,au:{...au,claims:ch.map(c=>c[1])}}}
+function trous(level,prompt,bl,explain,au={}){return {type:'trous',level,prompt,blanks:bl.map(b=>({answers:b.a,size:b.size||3})),explain,au:{...au,blanks:bl.map(b=>b.c)}}}
+const vch=(lhs,xs)=>xs.map(x=>[x==='0'?Z0:V(x),`eq:${lhs}|${x}`]);
+const ZA=['0','0⃗','vecteur nul'];
+function parDefs(L){return {free:[L[0],L[1],L[3]],defs:[[L[2],`${L[1]}+${L[3]}-${L[0]}`]]}}
+function allNames(s){const p=splitPts(s),r=[];for(let i=0;i<4;i++){const c=[0,1,2,3].map(j=>p[(i+j)%4]);r.push(c.join(''),[c[0],c[3],c[2],c[1]].join(''))}return [...new Set(r)]}
+const F={
+/* ---------- niveau 1 : translation et vecteur ---------- */
+ b1q:[()=>qcm(1,'Un vecteur est caractérisé par&nbsp;:',[['sa direction, son sens et sa norme','t:dsn'],['sa direction et sa norme seulement','t:dn'],['son sens et sa norme seulement','t:sn'],['sa direction et son sens seulement','t:ds']],'Un vecteur a trois caractéristiques&nbsp;: une direction, un sens et une norme (sa longueur).'),
+   ()=>{const[x,y]=L3s();return qcm(1,`Quel est le sens du vecteur ${V(x+y)}&nbsp;?`,[[`de ${x} vers ${y}`,'t:sens_p'],[`de ${y} vers ${x}`,'t:sens_m'],['il n\'a pas de sens','t:sens_0']],`Le vecteur ${V(x+y)} va de son origine ${x} vers son extrémité ${y}.`)},
+   ()=>{const[x,y]=L3s();return qcm(1,`La norme du vecteur ${V(x+y)} est&nbsp;:`,[[`la longueur ${x}${y}`,'t:norm_l'],[`la droite (${x}${y})`,'t:norm_d'],[`le sens de ${x} vers ${y}`,'t:norm_s']],`La norme de ${V(x+y)} est la longueur ${x}${y}&nbsp;; la droite (${x}${y}) donne sa direction.`)}],
+ b1t:[()=>trous(1,'Une translation fait glisser une figure selon une direction, un {0} et une longueur fixes.',[{a:['sens'],c:'w:sens',size:5}],'Direction, sens et longueur&nbsp;: ce sont les trois caractéristiques du vecteur de la translation.'),
+   ()=>{const[x,y]=L3s();return trous(1,`La norme du vecteur ${V(x+y)} est la {0} ${x}${y}.`,[{a:['longueur','distance'],c:'w:longueur',size:8}],`La norme d'un vecteur est sa longueur&nbsp;: ici ${x}${y}.`)},
+   ()=>{const[x,y]=L3s();return trous(1,`La direction du vecteur ${V(x+y)} est celle de la {0} (${x}${y}).`,[{a:['droite'],c:'w:droite',size:6}],`La direction de ${V(x+y)} est donnée par la droite (${x}${y}).`)}],
+ a1q:[()=>{const[x,y,z]=L3s(),w='W';return qcm(1,`La translation qui transforme ${x} en ${y} transforme ${z} en W. Quelle affirmation est vraie&nbsp;?`,[[`${x}${y}W${z} est un parallélogramme`,`par:${x}${y}W${z}`],[`${x}${y}${z}W est un parallélogramme`,`par:${x}${y}${z}W`],[`W est le milieu de [${y}${z}]`,`mid:W:${y}${z}`],[EQ(x+y,'W'+z),`eq:${x}${y}|W${z}`]],`${EQ(x+y,z+'W')}, donc ${x}${y}W${z} est un parallélogramme (on lit les sommets dans l'ordre du tour).`,{free:[x,y,z],defs:[['W',`${z}+${y}-${x}`]]})},
+   ()=>{const[x,y]=L3s();return qcm(1,`P est l'image de ${x} par la translation de vecteur ${V(x+y)}. Alors&nbsp;:`,[[`P est confondu avec ${y}`,`pt:P|${y}`],[`P est confondu avec ${x}`,`pt:P|${x}`],[`P est le milieu de [${x}${y}]`,`mid:P:${x}${y}`]],`${EQ(x+'P',x+y)}&nbsp;: P est l'extrémité de la flèche issue de ${x}, c'est-à-dire ${y}.`,{free:[x,y],defs:[['P',`${y}`]]})}],
+ a1t:[()=>{const[x,y]=L3s();return trous(1,`Si M′ est l'image de M par la translation de vecteur ${V(x+y)}, alors ${V('MM′')} = ${BL(0)}.`,[{a:[x+y],c:'eq:MM′|?'}],`Par définition de la translation de vecteur ${V(x+y)}&nbsp;: ${EQ('MM′',x+y)}.`,{free:[x,y,'M'],defs:[['M′',`M+${y}-${x}`]]})},
+   ()=>trous(1,`M′ et N′ sont les images de M et N par la translation de vecteur ${Vi('u')}, avec M, N et M′ non alignés. Alors MM′N′N est un {0}.`,[{a:['parallélogramme','parallelogramme'],c:'w:par',size:12}],`${EQ('MM′','NN′')}, donc MM′N′N est un parallélogramme.`,{free:['M','N'],vecs:['u'],defs:[['M′','M+u'],['N′','N+u']],extra:['par:MM′N′N']})],
+ o1q:[()=>{const[x,y,z]=L3s();return qcm(1,`La translation de vecteur ${V(x+y)} transforme ${z} en W, puis W en K. Quelle affirmation est vraie&nbsp;?`,[[`W est le milieu de [${z}K]`,`mid:W:${z}K`],[`${z} est le milieu de [WK]`,`mid:${z}:WK`],[`${x}${y}${z}W est un parallélogramme`,`par:${x}${y}${z}W`],[EQ(z+'K',x+y),`eq:${z}K|${x}${y}`]],`${EQ(z+'W',x+y)} et ${EQ('WK',x+y)}, donc ${EQ(z+'W','WK')}&nbsp;: W est le milieu de [${z}K].`,{free:[x,y,z],defs:[['W',`${z}+${y}-${x}`],['K',`W+${y}-${x}`]]})},
+   ()=>{const[x,y,z]=L3s();return qcm(1,`Sur une frise, un motif glisse d'un seul mouvement&nbsp;: son point ${x} arrive en ${y} et son point ${z} arrive en W. Quelle affirmation est vraie&nbsp;?`,[[EQ(x+z,y+'W'),`eq:${x}${z}|${y}W`],[EQ(x+y,'W'+z),`eq:${x}${y}|W${z}`],[`${x}${y}${z}W est un parallélogramme`,`par:${x}${y}${z}W`],[EQ(x+'W',y+z),`eq:${x}W|${y}${z}`]],`C'est une translation&nbsp;: ${EQ(x+y,z+'W')}, donc ${x}${y}W${z} est un parallélogramme, et aussi ${EQ(x+z,y+'W')}.`,{free:[x,y,z],defs:[['W',`${z}+${y}-${x}`]]})}],
+ o1t:[()=>{const[x,y,z]=L3s();return trous(1,`La translation qui transforme ${x} en ${y} transforme ${z} en W. Donc ${V(x+y)} = ${BL(0)} et ${x}${y}W${z} est un {1}.`,[{a:[z+'W'],c:'eq:'+x+y+'|?'},{a:['parallélogramme','parallelogramme'],c:'w:par',size:12}],`${EQ(x+y,z+'W')}, donc ${x}${y}W${z} est un parallélogramme.`,{free:[x,y,z],defs:[['W',`${z}+${y}-${x}`]],extra:[`par:${x}${y}W${z}`]})}],
+/* ---------- niveau 2 : vecteurs égaux ---------- */
+ b2q:[()=>qcm(2,'Deux vecteurs sont égaux lorsqu\'ils ont&nbsp;:',[['la même direction, le même sens et la même norme','t:eq_dsn'],['la même norme seulement','t:eq_n'],['la même direction et la même norme seulement','t:eq_dn'],['la même direction et le même sens seulement','t:eq_ds']],'Il faut les trois à la fois&nbsp;: même direction, même sens, même norme.'),
+   ()=>qcm(2,'Combien un vecteur a-t-il de représentants&nbsp;?',[['une infinité','t:rep_inf'],['un seul','t:rep_1'],['deux','t:rep_2']],'Toute flèche de même direction, de même sens et de même longueur représente le même vecteur&nbsp;: il y en a une infinité.')],
+ b2t:[()=>trous(2,'Deux vecteurs égaux ont la même direction, le même {0} et la même {1}.',[{a:['sens'],c:'w:sens',size:5},{a:['norme','longueur'],c:'w:norme',size:7}],'Égalité de deux vecteurs&nbsp;: même direction, même sens, même norme.'),
+   ()=>trous(2,'Un vecteur a une {0} de représentants.',[{a:['infinité','infinite'],c:'w:infinite',size:7}],'Toutes les flèches de même direction, même sens et même longueur représentent le même vecteur.')],
+ a2q:[()=>qcm(2,`M′ et N′ sont les images de M et N par la translation de vecteur ${Vi('u')}. Quelle égalité est vraie&nbsp;?`,[[EQ('MM′','NN′'),'eq:MM′|NN′'],[EQ('MM′','N′N'),'eq:MM′|N′N'],[EQ('MN′','NM′'),'eq:MN′|NM′'],[EQ('MN','N′M′'),'eq:MN|N′M′']],`Chaque point glisse selon ${Vi('u')}&nbsp;: ${EQ('MM′','u')} = ${E('NN′')}.`,{free:['M','N'],vecs:['u'],defs:[['M′','M+u'],['N′','N+u']]}),
+   ()=>{const[x,y,z,w]=L4s();return qcm(2,`On sait que ${EQ(x+y,z+w)}. Quelle égalité est aussi vraie&nbsp;?`,[[EQ(y+x,w+z),`eq:${y}${x}|${w}${z}`],[EQ(x+y,w+z),`eq:${x}${y}|${w}${z}`],[EQ(x+z,w+y),`eq:${x}${z}|${w}${y}`]],`Si deux flèches sont égales, leurs flèches retournées le sont aussi&nbsp;: ${EQ(y+x,w+z)}.`,{free:[x,y,z],defs:[[w,`${z}+${y}-${x}`]]})}],
+ a2t:[()=>{const[x,y,z,w]=L4s();return trous(2,`On sait que ${EQ(x+y,z+w)}. Les vecteurs ${V(x+y)} et ${V(z+w)} ont donc la même direction, la même norme et le même {0}.`,[{a:['sens'],c:'w:sens',size:5}],'Deux vecteurs égaux ont la même direction, le même sens et la même norme.')}],
+/* ---------- niveau 3 : parallélogramme ---------- */
+ b3q:[()=>{const L=L4s(),n=L.join(''),T=[[0,1,3,2],[1,0,2,3],[0,3,1,2],[3,0,2,1]],Fs=[[0,1,2,3],[0,3,2,1],[0,2,1,3],[1,0,3,2],[3,0,1,2]];
+   const t=pick(T),f=shuf(Fs.slice()).slice(0,3),s=x=>[EQ(L[x[0]]+L[x[1]],L[x[2]]+L[x[3]]),`eq:${L[x[0]]}${L[x[1]]}|${L[x[2]]}${L[x[3]]}`];
+   return qcm(3,`${n} est un parallélogramme. Quelle égalité est vraie&nbsp;?`,[s(t),...f.map(s)],`Dans ${n}, ${EQ(L[0]+L[1],L[3]+L[2])} et ${EQ(L[0]+L[3],L[1]+L[2])}&nbsp;: on lit les côtés opposés dans le même sens.`,parDefs(L))}],
+ b3t:[()=>{const L=L4s(),n=L.join(''),T=[[0,1,3,2],[1,0,2,3],[0,3,1,2],[3,0,2,1],[3,2,0,1],[1,2,0,3]],t=pick(T);
+   return trous(3,`${n} est un parallélogramme, donc ${V(L[t[0]]+L[t[1]])} = ${BL(0)}.`,[{a:[L[t[2]]+L[t[3]]],c:`eq:${L[t[0]]}${L[t[1]]}|?`}],`Dans le parallélogramme ${n}, ${EQ(L[t[0]]+L[t[1]],L[t[2]]+L[t[3]])}&nbsp;: même direction, même sens, même longueur.`,parDefs(L))}],
+ a3q:[()=>{const L=L4s(),[a,b,c,d]=L;return qcm(3,`On sait que ${EQ(a+b,c+d)}. Quel quadrilatère est un parallélogramme&nbsp;?`,[[a+b+d+c,`par:${a}${b}${d}${c}`],[a+b+c+d,`par:${a}${b}${c}${d}`],[a+d+b+c,`par:${a}${d}${b}${c}`],[a+c+b+d,`par:${a}${c}${b}${d}`]],`${EQ(a+b,c+d)} ⟺ ${a}${b}${d}${c} est un parallélogramme&nbsp;: attention à l'ordre des lettres.`,{free:[a,b,c],defs:[[d,`${c}+${b}-${a}`]]})},
+   ()=>{const L=L4s(),n=L.join(''),i=ri(0,3),X=L[i]+L[(i+1)%4],Y=L[(i+3)%4]+L[(i+2)%4],R=L[(i+2)%4]+L[(i+3)%4],Dg=L[i]+L[(i+2)%4];
+   return qcm(3,`${n} est un parallélogramme. Quel vecteur est égal à ${V(X)}&nbsp;?`,[[V(Y),`eq:${X}|${Y}`],[V(R),`eq:${X}|${R}`],[V(Dg),`eq:${X}|${Dg}`],[V(L[(i+1)%4]+L[(i+2)%4]),`eq:${X}|${L[(i+1)%4]}${L[(i+2)%4]}`]],`Le côté opposé à [${X}], lu dans le même sens, donne ${EQ(X,Y)}.`,parDefs(L))}],
+ a3t:[()=>{const L=L4s(),[a,b,c,d]=L,n=a+b+c+d;return trous(3,`Si ${EQ(a+b,d+c)}, alors le quadrilatère {0} est un parallélogramme.`,[{a:allNames(n),c:'par:?',size:5}],`${EQ(a+b,d+c)} ⟺ ${n} est un parallélogramme.`,{free:[a,b,d],defs:[[c,`${b}+${d}-${a}`]]})},
+   ()=>{const L=L4s(),[a,b,c,d]=L,n=a+b+d+c;return trous(3,`Si ${EQ(a+b,c+d)}, alors le quadrilatère {0} est un parallélogramme.`,[{a:allNames(n),c:'par:?',size:5}],`${EQ(a+b,c+d)} ⟺ ${n} est un parallélogramme (et non ${a}${b}${c}${d}).`,{free:[a,b,c],defs:[[d,`${c}+${b}-${a}`]]})}],
+ o3q:[()=>{const L=L4s(),[a,b,c,d]=L,n=L.join('');return qcm(3,`${n} est un parallélogramme de centre O. Quelle égalité est vraie&nbsp;?`,[[EQ(a+'O','O'+c),`eq:${a}O|O${c}`],[EQ(a+'O',c+'O'),`eq:${a}O|${c}O`],[EQ('O'+b,'O'+d),`eq:O${b}|O${d}`],[EQ(a+c,b+d),`eq:${a}${c}|${b}${d}`]],`Les diagonales d'un parallélogramme se coupent en leur milieu&nbsp;: O est le milieu de [${a}${c}], donc ${EQ(a+'O','O'+c)}.`,{...parDefs(L),defs:[...parDefs(L).defs,['O',`mid ${a}${c}`]]})}],
+ o3t:[()=>{const L=L4s(),[a,b,c,d]=L,n=L.join('');return trous(3,`${n} est un parallélogramme de centre O. Alors ${V(a+'O')} = ${BL(0)} et ${V(b+'O')} = ${BL(1)}.`,[{a:['O'+c],c:`eq:${a}O|?`},{a:['O'+d],c:`eq:${b}O|?`}],`O est le milieu de [${a}${c}] et de [${b}${d}]&nbsp;: ${EQ(a+'O','O'+c)} et ${EQ(b+'O','O'+d)}.`,{...parDefs(L),defs:[...parDefs(L).defs,['O',`mid ${a}${c}`]]})}],
+/* ---------- niveau 4 : vecteur nul, opposés, milieu ---------- */
+ b4q:[()=>{const[x,y]=L3s();return qcm(4,`Simplifier&nbsp;: ${E('-'+x+y)} = ?`,vch('-'+x+y,[y+x,x+y,'0']),`${E('-'+x+y)} est l'opposé de ${V(x+y)}&nbsp;: même direction, même norme, sens contraire, c'est ${V(y+x)}.`,{free:[x,y]})},
+   ()=>{const[x,y]=L3s();return qcm(4,`Simplifier&nbsp;: ${E(x+y+'+'+y+x)} = ?`,[[Z0,`eq:${x}${y}+${y}${x}|0`],[V(x+y),`eq:${x}${y}+${y}${x}|${x}${y}`],[V(y+x),`eq:${x}${y}+${y}${x}|${y}${x}`],['le nombre 0','t:nombre0']],`Un aller suivi du retour&nbsp;: ${E(x+y+'+'+y+x)} = ${E(x+x)} = ${Z0}, le vecteur nul (un vecteur, pas un nombre).`,{free:[x,y]})}],
+ b4t:[()=>{const[x]=L3s();return trous(4,`${V(x+x)} = ${BL(0)}`,[{a:ZA,c:`eq:${x}${x}|?`}],`Origine et extrémité confondues&nbsp;: c'est le vecteur nul ${Z0}.`,{free:[x]})},
+   ()=>{const[x,y,z]=L3s();return trous(4,`${y} est le milieu de [${x}${z}], donc ${V(x+y)} = ${BL(0)}.`,[{a:[y+z],c:`eq:${x}${y}|?`}],`${y} milieu de [${x}${z}] ⟺ ${EQ(x+y,y+z)}.`,{free:[x,y],defs:[[z,`2${y}-${x}`]]})},
+   ()=>{const[x,y]=L3s();return trous(4,`${E(x+y+'+'+y+x)} = ${BL(0)}`,[{a:ZA,c:`eq:${x}${y}+${y}${x}|?`}],`Un aller suivi du retour ne déplace rien&nbsp;: c'est le vecteur nul.`,{free:[x,y]})}],
+ a4q:[()=>{const[x,y,z]=L3s();return qcm(4,`${y} est le milieu de [${x}${z}]. Quelle égalité est vraie&nbsp;?`,[[EQ(x+y,y+z),`eq:${x}${y}|${y}${z}`],[EQ(x+y,z+y),`eq:${x}${y}|${z}${y}`],[EQ(y+x,y+z),`eq:${y}${x}|${y}${z}`],[EQ(x+y,x+z),`eq:${x}${y}|${x}${z}`]],`${y} milieu de [${x}${z}] ⟺ ${EQ(x+y,y+z)}&nbsp;: les deux moitiés, lues de ${x} vers ${z}.`,{free:[x,y],defs:[[z,`2${y}-${x}`]]})},
+   ()=>{const[x,y]=L3s();return qcm(4,`Simplifier&nbsp;: ${E('-(-'+x+y+')')} = ?`,vch('-(-'+x+y+')',[x+y,y+x,'0']),`Retourner deux fois une flèche la remet dans son sens&nbsp;: ${EQ('-(-'+x+y+')',x+y)}.`,{free:[x,y]})}],
+ a4t:[()=>{const[x,y]=L3s();return trous(4,`${E('-'+x+y)} = ${BL(0)}`,[{a:[y+x],c:`eq:-${x}${y}|?`}],`L'opposé de ${V(x+y)} est ${V(y+x)}.`,{free:[x,y]})},
+   ()=>{const[x,y,z]=L3s();return trous(4,`Si ${EQ(x+y,y+z)}, alors ${y} est le {0} de [${x}${z}].`,[{a:['milieu'],c:'w:milieu',size:6}],`${EQ(x+y,y+z)} ⟺ ${y} est le milieu de [${x}${z}].`,{free:[x,y],defs:[[z,`2${y}-${x}`]],extra:[`mid:${y}:${x}${z}`]})}],
+ o4q:[()=>{const[x,y]=L3s();return qcm(4,`M est le milieu de [${x}${y}]. Simplifier&nbsp;: ${E(x+'M+'+y+'M')} = ?`,vch(x+'M+'+y+'M',['0',x+y,y+x]),`M milieu de [${x}${y}]&nbsp;: ${EQ(x+'M','M'+y)}, donc ${E(x+'M+'+y+'M')} = ${E('M'+y+'+'+y+'M')} = ${Z0}.`,{free:[x,y],defs:[['M',`mid ${x}${y}`]]})},
+   ()=>{const L=L4s(),[a,b,c,d]=L;return qcm(4,`${L.join('')} est un parallélogramme de centre O. Simplifier&nbsp;: ${E('O'+a+'+O'+c)} = ?`,vch('O'+a+'+O'+c,['0',a+c,c+a,b+d]),`O est le milieu de [${a}${c}]&nbsp;: ${EQ('O'+c,a+'O')}, donc ${E('O'+a+'+O'+c)} = ${E('O'+a+'+'+a+'O')} = ${Z0}.`,{...parDefs(L),defs:[...parDefs(L).defs,['O',`mid ${a}${c}`]]})}],
+ o4t:[()=>{const[x,y,z]=L3s(),w='W';return trous(4,`${y} est le milieu de [${x}${z}] et ${z} est le milieu de [${y}W]. Alors ${V(x+y)} = ${V(y+z)} = ${BL(0)}.`,[{a:[z+'W'],c:`eq:${x}${y}|?`}],`${EQ(x+y,y+z)} (${y} milieu de [${x}${z}]) et ${EQ(y+z,z+'W')} (${z} milieu de [${y}W]).`,{free:[x,y],defs:[[z,`2${y}-${x}`],['W',`2${z}-${y}`]]})}],
+/* ---------- niveau 5 : démontrer ---------- */
+ a5q:[()=>qcm(5,'ABCD et ABEF sont deux parallélogrammes. On peut en déduire que&nbsp;:',[['DCEF est un parallélogramme','par:DCEF'],['DCFE est un parallélogramme','par:DCFE'],['C est le milieu de [DE]','mid:C:DE']],`${EQ('DC','AB')} et ${EQ('AB','FE')}, donc ${EQ('DC','FE')}&nbsp;: DCEF est un parallélogramme.`,{free:['A','B','D','F'],defs:[['C','B+D-A'],['E','F+B-A']]}),
+   ()=>qcm(5,'ABCD et AFBD sont deux parallélogrammes. On peut en déduire que&nbsp;:',[['B est le milieu de [CF]','mid:B:CF'],['A est le milieu de [CF]','mid:A:CF'],['D est le milieu de [BF]','mid:D:BF']],`${EQ('CB','DA')} et ${EQ('BF','DA')}, donc ${EQ('CB','BF')}&nbsp;: B est le milieu de [CF].`,{free:['A','B','D'],defs:[['C','B+D-A'],['F','A+B-D']]}),
+   ()=>qcm(5,'ABCD est un parallélogramme et B est le milieu de [AE]. On peut en déduire que&nbsp;:',[['DCEB est un parallélogramme','par:DCEB'],['DCBE est un parallélogramme','par:DCBE'],['C est le milieu de [DE]','mid:C:DE']],`${EQ('DC','AB')} et ${EQ('AB','BE')}, donc ${EQ('DC','BE')}&nbsp;: DCEB est un parallélogramme.`,{free:['A','B','D'],defs:[['C','B+D-A'],['E','2B-A']]}),
+   ()=>qcm(5,`Pour démontrer que ABCD est un parallélogramme, il suffit de démontrer que&nbsp;:`,[[EQ('AB','DC'),'eq:AB|DC'],[EQ('AB','CD'),'eq:AB|CD'],[EQ('AC','BD'),'eq:AC|BD'],[EQ('AD','CB'),'eq:AD|CB']],`ABCD est un parallélogramme ⟺ ${EQ('AB','DC')}.`,{free:['A','B','D'],defs:[['C','B+D-A']]})],
+ a5t:[()=>trous(5,`ABCD et ABEF sont deux parallélogrammes, donc ${EQ('DC','AB')} et ${V('AB')} = ${BL(0)}. Ainsi DCEF est un parallélogramme.`,[{a:['FE'],c:'eq:AB|?'}],`ABEF est un parallélogramme&nbsp;: ${EQ('AB','FE')}.`,{free:['A','B','D','F'],defs:[['C','B+D-A'],['E','F+B-A']]}),
+   ()=>trous(5,`ABCD est un parallélogramme et B est le milieu de [AE]. Alors ${V('DC')} = ${V('AB')} = ${BL(0)}.`,[{a:['BE'],c:'eq:DC|?'}],`B milieu de [AE] donne ${EQ('AB','BE')}.`,{free:['A','B','D'],defs:[['C','B+D-A'],['E','2B-A']]})],
+ o5q:[()=>qcm(5,'ABCD et BCEF sont deux parallélogrammes. On peut en déduire que&nbsp;:',[['ADEF est un parallélogramme','par:ADEF'],['ADFE est un parallélogramme','par:ADFE'],['C est le milieu de [DE]','mid:C:DE']],`${EQ('AD','BC')} et ${EQ('BC','FE')}, donc ${EQ('AD','FE')}&nbsp;: ADEF est un parallélogramme.`,{free:['A','B','D','F'],defs:[['C','B+D-A'],['E','F+C-B']]}),
+   ()=>qcm(5,'ABCD est un parallélogramme et C est le milieu de [BE]. On peut en déduire que&nbsp;:',[['ADEC est un parallélogramme','par:ADEC'],['ADCE est un parallélogramme','par:ADCE'],['D est le milieu de [AE]','mid:D:AE']],`${EQ('AD','BC')} et ${EQ('BC','CE')}, donc ${EQ('AD','CE')}&nbsp;: ADEC est un parallélogramme.`,{free:['A','B','D'],defs:[['C','B+D-A'],['E','2C-B']]}),
+   ()=>qcm(5,'ABCD et ABEC sont deux parallélogrammes. On peut en déduire que&nbsp;:',[['C est le milieu de [DE]','mid:C:DE'],['D est le milieu de [CE]','mid:D:CE'],['B est le milieu de [AE]','mid:B:AE']],`${EQ('DC','AB')} et ${EQ('AB','CE')}, donc ${EQ('DC','CE')}&nbsp;: C est le milieu de [DE].`,{free:['A','B','D'],defs:[['C','B+D-A'],['E','2B+D-2A']]})],
+ o5t:[()=>trous(5,`ABCD et BCEF sont deux parallélogrammes. On a ${V('AD')} = ${BL(0)} = ${BL(1)}, donc ADEF est un parallélogramme.`,[{a:['BC'],c:'eq:AD|?'},{a:['FE'],c:'eq:AD|?'}],`${EQ('AD','BC')} (ABCD) et ${EQ('BC','FE')} (BCEF).`,{free:['A','B','D','F'],defs:[['C','B+D-A'],['E','F+C-B']]}),
+   ()=>trous(5,`ABCD et ABEC sont deux parallélogrammes. On a ${V('DC')} = ${BL(0)} = ${BL(1)}, donc C est le milieu de [DE].`,[{a:['AB'],c:'eq:DC|?'},{a:['CE'],c:'eq:DC|?'}],`${EQ('DC','AB')} (ABCD) et ${EQ('AB','CE')} (ABEC).`,{free:['A','B','D'],defs:[['C','B+D-A'],['E','2B+D-2A']]})],
+/* ---------- niveau 6 : somme, Chasles ---------- */
+ b6q:[()=>{const[x,y,z]=L3s();return qcm(6,`Simplifier&nbsp;: ${E(x+y+'+'+y+z)} = ?`,vch(x+y+'+'+y+z,[x+z,z+x,y+x,z+y]),`Relation de Chasles&nbsp;: ${E(x+y+'+'+y+z)} = ${V(x+z)}.`,{free:[x,y,z]})},
+   ()=>{const[x,y,z]=L3s();return qcm(6,`La translation de vecteur ${V(x+y)} suivie de la translation de vecteur ${V(y+z)} est la translation de vecteur&nbsp;:`,vch(x+y+'+'+y+z,[x+z,z+x,y+z]),`Deux translations enchaînées n'en font qu'une&nbsp;: ${E(x+y+'+'+y+z)} = ${V(x+z)}.`,{free:[x,y,z]})}],
+ b6t:[()=>{const[x,y,z]=L3s();return trous(6,`${E(x+y+'+'+y+z)} = ${BL(0)}`,[{a:[x+z],c:`eq:${x}${y}+${y}${z}|?`}],`Chasles&nbsp;: ${E(x+y+'+'+y+z)} = ${V(x+z)}.`,{free:[x,y,z]})}],
+ a6q:[()=>{const L=L4s(),[a,b,c,d]=L;return qcm(6,`${L.join('')} est un parallélogramme. Simplifier&nbsp;: ${E(a+b+'+'+a+d)} = ?`,vch(a+b+'+'+a+d,[a+c,b+d,d+b,c+a]),`Règle du parallélogramme&nbsp;: ${E(a+b+'+'+a+d)} = ${E(a+b+'+'+b+c)} = ${V(a+c)}.`,parDefs(L))},
+   ()=>{const[a,b,c,d]=L4s();return qcm(6,`Simplifier&nbsp;: ${E(a+b+'+'+b+c+'+'+c+d)} = ?`,vch(a+b+'+'+b+c+'+'+c+d,[a+d,d+a,a+c,b+d]),`Chasles deux fois&nbsp;: ${E(a+b+'+'+b+c)} = ${V(a+c)}, puis ${E(a+c+'+'+c+d)} = ${V(a+d)}.`,{free:[a,b,c,d]})}],
+ a6t:[()=>{const[a,b,c,d]=L4s();return trous(6,`${E(a+b+'+'+b+c+'+'+c+d)} = ${BL(0)}`,[{a:[a+d],c:`eq:${a}${b}+${b}${c}+${c}${d}|?`}],`Chasles&nbsp;: on recolle les lettres, de ${a} jusqu'à ${d}.`,{free:[a,b,c,d]})},
+   ()=>{const L=L4s(),[a,b,c,d]=L;return trous(6,`${L.join('')} est un parallélogramme, donc ${E(a+b+'+'+a+d)} = ${BL(0)}.`,[{a:[a+c],c:`eq:${a}${b}+${a}${d}|?`}],`${EQ(a+d,b+c)}, donc ${E(a+b+'+'+a+d)} = ${E(a+b+'+'+b+c)} = ${V(a+c)}.`,parDefs(L))}],
+ o6q:[()=>{const[x,y,z]=L3s();return qcm(6,`Simplifier&nbsp;: ${E(x+y+'+'+z+x)} = ?`,vch(x+y+'+'+z+x,[z+y,y+z,x+z]),`On change l'ordre&nbsp;: ${E(x+y+'+'+z+x)} = ${E(z+x+'+'+x+y)} = ${V(z+y)}.`,{free:[x,y,z]})},
+   ()=>{const[x,y,z]=L3s();return qcm(6,`Simplifier&nbsp;: ${E(x+y+'+'+y+z+'+'+z+x)} = ?`,vch(x+y+'+'+y+z+'+'+z+x,['0',x+z,z+x]),`${E(x+y+'+'+y+z)} = ${V(x+z)}, puis ${E(x+z+'+'+z+x)} = ${Z0}&nbsp;: un tour complet.`,{free:[x,y,z]})},
+   ()=>{const L=L4s(),[a,b,c,d]=L;return qcm(6,`${L.join('')} est un parallélogramme. Simplifier&nbsp;: ${E(d+a+'+'+d+c)} = ?`,vch(d+a+'+'+d+c,[d+b,b+d,a+c,c+a]),`${EQ(d+c,a+b)}, donc ${E(d+a+'+'+d+c)} = ${E(d+a+'+'+a+b)} = ${V(d+b)}.`,parDefs(L))},
+   ()=>{const[a,b,c,d]=L4s();return qcm(6,`Un drone va de ${a} à ${b}, puis de ${b} à ${c}, puis de ${c} à ${d}. Quel vecteur représente le déplacement unique qui le mène directement à l'arrivée&nbsp;?`,vch(a+b+'+'+b+c+'+'+c+d,[a+d,d+a,a+c,b+d]),`${E(a+b+'+'+b+c+'+'+c+d)} = ${V(a+d)}&nbsp;: Chasles enchaîne les trois trajets.`,{free:[a,b,c,d]})}],
+ o6t:[()=>{const[a,b,c,d]=L4s();return trous(6,`${E(a+b+'+'+c+d+'+'+b+c)} = ${BL(0)}`,[{a:[a+d],c:`eq:${a}${b}+${c}${d}+${b}${c}|?`}],`On range les termes pour recoller les lettres&nbsp;: ${E(a+b+'+'+b+c+'+'+c+d)} = ${V(a+d)}.`,{free:[a,b,c,d]})},
+   ()=>{const[x,y]=L3s();return trous(6,`${E('M'+x+'+'+x+y+'+'+y+'M')} = ${BL(0)}`,[{a:ZA,c:`eq:M${x}+${x}${y}+${y}M|?`}],`${E('M'+x+'+'+x+y)} = ${V('M'+y)}, puis ${E('M'+y+'+'+y+'M')} = ${Z0}.`,{free:['M',x,y]})},
+   ()=>{const L=L4s(),[a,b,c,d]=L;return trous(6,`${L.join('')} est un parallélogramme de centre O. ${E(a+'O+O'+b+'+'+b+c)} = ${BL(0)}`,[{a:[a+c],c:`eq:${a}O+O${b}+${b}${c}|?`}],`Chasles&nbsp;: ${E(a+'O+O'+b)} = ${V(a+b)}, puis ${E(a+b+'+'+b+c)} = ${V(a+c)}.`,{...parDefs(L),defs:[...parDefs(L).defs,['O',`mid ${a}${c}`]]})}],
+/* ---------- niveau 7 : soustraction, construction ---------- */
+ a7q:[()=>{const[x,y,z]=L3s();return qcm(7,`Simplifier&nbsp;: ${E(x+y+'-'+x+z)} = ?`,vch(x+y+'-'+x+z,[z+y,y+z,z+x]),`${E(x+y+'-'+x+z)} = ${E(x+y+'+'+z+x)} = ${E(z+x+'+'+x+y)} = ${V(z+y)}.`,{free:[x,y,z]})},
+   ()=>qcm(7,`Compléter&nbsp;: ${E('u-v')} = ?`,[[E('u+(-v)'),'eq:u-v|u+(-v)'],[E('v-u'),'eq:u-v|v-u'],[E('-u-v'),'eq:u-v|-u-v'],[E('u+v'),'eq:u-v|u+v']],`Soustraire ${Vi('v')}, c'est ajouter son opposé&nbsp;: ${EQ('u-v','u+(-v)')}.`,{vecs:['u','v']}),
+   ()=>{const[x,y,z]=L3s();return qcm(7,`F est le point tel que ${EQ(x+'F',x+y+'+'+x+z)}. Alors&nbsp;:`,[[`${x}${y}F${z} est un parallélogramme`,`par:${x}${y}F${z}`],[`${x}${y}${z}F est un parallélogramme`,`par:${x}${y}${z}F`],[`F est le milieu de [${y}${z}]`,`mid:F:${y}${z}`]],`${EQ(x+'F',x+y+'+'+x+z)} : par la règle du parallélogramme, ${x}${y}F${z} est un parallélogramme.`,{free:[x,y,z],defs:[['F',`${y}+${z}-${x}`]]})}],
+ a7t:[()=>{const[x,y,z]=L3s();return trous(7,`${E(x+y+'-'+x+z)} = ${E(x+y)} + ${BL(0)} = ${BL(1)}`,[{a:[z+x],c:`eq:-${x}${z}|?`},{a:[z+y],c:`eq:${x}${y}-${x}${z}|?`}],`${E('-'+x+z)} = ${V(z+x)}, puis ${E(z+x+'+'+x+y)} = ${V(z+y)}.`,{free:[x,y,z]})}],
+ o7q:[()=>{const[x,y,z]=L3s();return qcm(7,`Simplifier&nbsp;: ${E(x+y+'-'+z+y)} = ?`,vch(x+y+'-'+z+y,[x+z,z+x,y+z]),`${E(x+y+'-'+z+y)} = ${E(x+y+'+'+y+z)} = ${V(x+z)}.`,{free:[x,y,z]})},
+   ()=>{const L=L4s(),[a,b,c,d]=L;return qcm(7,`${L.join('')} est un parallélogramme. Simplifier&nbsp;: ${E(a+b+'-'+a+d)} = ?`,vch(a+b+'-'+a+d,[d+b,b+d,a+c,c+a]),`${E(a+b+'-'+a+d)} = ${E(a+b+'+'+d+a)} = ${E(d+a+'+'+a+b)} = ${V(d+b)}.`,parDefs(L))},
+   ()=>{const L=L4s(),[a,b,c,d]=L;return qcm(7,`${L.join('')} est un parallélogramme et P est le point tel que ${EQ(a+'P',a+b+'+'+a+d)}. Que remarque-t-on&nbsp;?`,[[`P est confondu avec ${c}`,`pt:P|${c}`],[`P est confondu avec ${d}`,`pt:P|${d}`],[`P est le milieu de [${b}${d}]`,`mid:P:${b}${d}`]],`${E(a+b+'+'+a+d)} = ${V(a+c)}, donc P est le point ${c}.`,{...parDefs(L),defs:[...parDefs(L).defs,['P',`${b}+${d}-${a}`]]})},
+   ()=>{const[x,y,z]=L3s();return qcm(7,`Simplifier&nbsp;: ${E('M'+x+'-M'+y)} = ?`,vch('M'+x+'-M'+y,[y+x,x+y,'M'+x]),`${E('M'+x+'-M'+y)} = ${E('M'+x+'+'+y+'M')} = ${E(y+'M+M'+x)} = ${V(y+x)}.`,{free:['M',x,y]})}],
+ o7t:[()=>{const[x,y,z]=L3s();return trous(7,`${E(x+y+'-'+x+z+'+'+y+z)} = ${BL(0)}`,[{a:ZA,c:`eq:${x}${y}-${x}${z}+${y}${z}|?`}],`${E(x+y+'-'+x+z)} = ${V(z+y)}, puis ${E(z+y+'+'+y+z)} = ${Z0}.`,{free:[x,y,z]})},
+   ()=>{const L=L4s(),[a,b,c,d]=L;return trous(7,`${L.join('')} est un parallélogramme. Le point P tel que ${EQ(a+'P',a+b+'-'+a+d)} vérifie ${V(a+'P')} = ${BL(0)}.`,[{a:[d+b],c:`eq:${a}${b}-${a}${d}|?`}],`${E(a+b+'-'+a+d)} = ${E(d+a+'+'+a+b)} = ${V(d+b)}.`,parDefs(L))},
+   ()=>{const[x,y]=L3s();return trous(7,`${E('M'+x+'-M'+y+'+'+x+y)} = ${BL(0)}`,[{a:ZA,c:`eq:M${x}-M${y}+${x}${y}|?`}],`${E('M'+x+'-M'+y)} = ${V(y+x)}, puis ${E(y+x+'+'+x+y)} = ${Z0}.`,{free:['M',x,y]})}]
+};
+/* les familles a2q : le doublon technique est retiré proprement */
+const POOL={
+ bronze:{1:['b1q','b1t'],2:['b2q','b2t'],3:['b3q','b3t'],4:['b4q','b4t'],6:['b6q','b6t']},
+ argent:{1:['a1q','a1t'],2:['a2q','a2t'],3:['a3q','a3t'],4:['a4q','a4t'],5:['a5q','a5t'],6:['a6q','a6t'],7:['a7q','a7t']},
+ or:{1:['o1q','o1t'],3:['o3q','o3t'],4:['o4q','o4t'],5:['o5q','o5t'],6:['o6q','o6t'],7:['o7q','o7t']}};
+/* contrôle numérique interne d'une question d'épreuve (l'audit Python la vérifie symboliquement) */
+function qWorld(au){const pts={},vecs={};(au.free||[]).forEach(n=>pts[n]=[ri(-40,40),ri(-40,40)]);(au.vecs||[]).forEach(n=>vecs[n]=[nz(-30,30),nz(-30,30)]);
+  (au.defs||[]).forEach(([n,e])=>{if(e.startsWith('mid ')){const[a,b]=splitPts(e.slice(4));pts[n]=[(pts[a][0]+pts[b][0])/2,(pts[a][1]+pts[b][1])/2];return}
+    let r=[0,0];const re=/([+-]?)(\d*)([A-Z][′″]?|[a-z])/g;let m;while((m=re.exec(e))){const s=(m[1]==='-'?-1:1)*(m[2]?+m[2]:1),v=/[a-z]/.test(m[3])?vecs[m[3]]:pts[m[3]];r=[r[0]+s*v[0],r[1]+s*v[1]]}pts[n]=r});
+  return{pts,vecs}}
+function qOk(q){for(let t=0;t<3;t++){const env=qWorld(q.au);
+  try{if(q.type==='qcm'){const v=q.au.claims.map(c=>claim(c,env));if(!v[0]||v.slice(1).some(Boolean))return false}
+    else{for(let i=0;i<q.blanks.length;i++){const c=q.au.blanks[i];if(c.startsWith('w:'))continue;if(!q.blanks[i].answers.every(a=>claim(c.replace('?',ZA.includes(a)?'0':a),env)))return false}
+      if((q.au.extra||[]).some(c=>!claim(c,env)))return false}}catch(e){console.error(e,q.prompt);return false}}
+  return true}
+function assemble(tier,levels){
+  const P=POOL[tier],ty=shuf(['qcm','qcm','qcm','qcm','qcm','qcm','trous','trous','trous','trous']),out=[],seen=new Set();levels=shuf(levels.slice());
+  for(let i=0;i<10;i++){let q=null;
+    for(let a=0;a<80&&!q;a++){const lv=a<40?levels[i]:+pick(Object.keys(P)),fam=F[P[lv][ty[i]==='qcm'?0:1]],c=pick(fam)();if(!seen.has(c.prompt)&&qOk(c))q=c}
+    if(!q)throw new Error('épreuve');seen.add(q.prompt);out.push(q)}
+  return out}
+const bronze=()=>assemble('bronze',[1,1,2,2,3,3,4,4,6,pick([1,2,3,4,6])]);
+const argent=()=>assemble('argent',[1,2,3,4,5,6,7,ri(1,7),ri(1,7),ri(1,7)]);
+const or=()=>assemble('or',[1,3,4,5,5,6,6,7,7,pick([3,4,6,7])]);
+
+/* ====================== typographie française ====================== */
+(function(){const R=/(^|[^\s  (])[ \t]([!?:;»])/g,L=/«[ \t]/g,SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1};
+  function fix(root){if(!root||root.nodeType!==1)return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;
+    while((n=w.nextNode())){if(SKIP[n.parentNode.nodeName])continue;const v=n.nodeValue,t=v.replace(R,'$1 $2').replace(L,'« ');if(t!==v)n.nodeValue=t}}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target.parentNode);else m.addedNodes.forEach(a=>fix(a.nodeType===3?a.parentNode:a))}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+
+/* ====================== démarrage ====================== */
+Object.assign(GE,{state:()=>({L:S.L,k:S.k,pi:S.pi,mode:S.mode,busy:S.busy>0,forced:S.forced,cur:S.cur,score:S.score,winOpen:!$('win').hidden,
+  part:S.q&&S.q.parts[S.pi]?{t:S.q.parts[S.pi].t,ans:S.q.parts[S.pi].ans,from:S.q.parts[S.pi].from,alts:(S.q.parts[S.pi].alts||[]).map(a=>a.p),opts:(S.q.parts[S.pi].opts||[]).map(o=>!!o.ok)}:null}),
+  gen:(L,k)=>JSON.parse(JSON.stringify(gen(L,k))),finals:{bronze,argent,or},
+  nodeXY:(x,y)=>{const m=svg.getScreenCTM(),pt=svg.createSVGPoint();pt.x=sx(x);pt.y=sy(y);const r=pt.matrixTransform(m);return[r.x,r.y]},start:startLevel});
+window.GE=GE;
+renderNav();startLevel(1);
+if(window.SigmaKit)SigmaKit.init({game:'glisseur-etoiles',title:'Le Glisseur d\'étoiles',levels:7,
+  levelNames:LEVELS.slice(1).map(l=>l.n),music:'aventure',finals:{bronze,argent,or}});
+renderNav();
+})();
+</script>
+</body>
+</html>
