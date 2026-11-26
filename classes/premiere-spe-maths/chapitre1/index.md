@@ -17,21 +17,21 @@ planches:
 dm_published: false
 dm:
 - num: 1
-  contenu: Forme canonique · Sommet de la parabole
+  contenu: Optimisation économique · Forme canonique · Aire minimale
   duree: "1 semaine"
   pdf: premiere-spe-ch1-dm-01-sujet.pdf
 - num: 2
-  contenu: Discriminant · Racines · Factorisation
+  contenu: Optimisation d'aires · Lecture graphique d'un trinôme
   duree: "1 semaine"
   pdf: premiere-spe-ch1-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
 - num: 1
-  contenu: Forme canonique · Variation · Extremum
+  contenu: QCM · Bénéfice d'une entreprise · Problème
   duree: "55 min"
   pdf: premiere-spe-ch1-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Discriminant · Racines · Factorisation
+  contenu: Automatismes · Sommet et axe · Bénéfice maximal
   duree: "55 min"
   pdf: premiere-spe-ch1-dsblanc-02-sujet.pdf
 ds_published: false

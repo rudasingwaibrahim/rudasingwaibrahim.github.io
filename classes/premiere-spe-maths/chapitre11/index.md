@@ -17,21 +17,21 @@ planches:
 dm_published: false
 dm:
 - num: 1
-  contenu: Fonctions cos et sin · Périodicité · Parité
+  contenu: Valeurs remarquables de π/3 et 2π/3
   duree: "1 semaine"
   pdf: premiere-spe-ch11-dm-01-sujet.pdf
 - num: 2
-  contenu: Équations et inéquations trigonométriques
+  contenu: Cordes de Ptolémée et sinus
   duree: "1 semaine"
   pdf: premiere-spe-ch11-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
 - num: 1
-  contenu: Courbes · Variations · Équations cos x = a
+  contenu: Trigonométrie dans le triangle · Al-Kashi
   duree: "55 min"
   pdf: premiere-spe-ch11-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Inéquations trigonométriques · Symétries
+  contenu: Formule des sinus · Triangulation
   duree: "55 min"
   pdf: premiere-spe-ch11-dsblanc-02-sujet.pdf
 ds_published: false

@@ -17,21 +17,21 @@ planches:
 dm_published: false
 dm:
 - num: 1
-  contenu: Définition · Norme et angle · Projeté orthogonal
+  contenu: Produit scalaire et relation de Chasles
   duree: "1 semaine"
   pdf: premiere-spe-ch9-dm-01-sujet.pdf
 - num: 2
-  contenu: Expression analytique · Bilinéarité · Symétrie
+  contenu: Normes, polarisation, travail d'une force
   duree: "1 semaine"
   pdf: premiere-spe-ch9-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
 - num: 1
-  contenu: Calcul de produits scalaires · Orthogonalité
+  contenu: Al-Kashi · Médianes
   duree: "55 min"
   pdf: premiere-spe-ch9-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Coordonnées · Norme · Distance
+  contenu: Produit scalaire dans une configuration
   duree: "55 min"
   pdf: premiere-spe-ch9-dsblanc-02-sujet.pdf
 ds_published: false

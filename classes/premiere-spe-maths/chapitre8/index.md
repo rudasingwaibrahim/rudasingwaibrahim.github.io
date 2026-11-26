@@ -17,21 +17,21 @@ planches:
 dm_published: false
 dm:
 - num: 1
-  contenu: Cercle trigonométrique · Radians · Valeurs remarquables
+  contenu: Radian · Enroulement · Longueurs d'arc
   duree: "1 semaine"
   pdf: premiere-spe-ch8-dm-01-sujet.pdf
 - num: 2
-  contenu: Angles orientés · Mesure principale · Symétries
+  contenu: Approximation de π (Archimède) · Python
   duree: "1 semaine"
   pdf: premiere-spe-ch8-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
 - num: 1
-  contenu: Cercle trigo · Conversion radians / degrés
+  contenu: Placer et lire sur le cercle
   duree: "55 min"
   pdf: premiere-spe-ch8-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Angles associés · Cosinus · Sinus
+  contenu: Radian et enroulement
   duree: "55 min"
   pdf: premiere-spe-ch8-dsblanc-02-sujet.pdf
 ds_published: false

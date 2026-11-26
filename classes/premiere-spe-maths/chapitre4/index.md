@@ -17,21 +17,21 @@ planches:
 dm_published: false
 dm:
 - num: 1
-  contenu: Signe de la dérivée · Sens de variation
+  contenu: Coût marginal et bénéfice maximal · Rectangle d'aire maximale
   duree: "1 semaine"
   pdf: premiere-spe-ch4-dm-01-sujet.pdf
 - num: 2
-  contenu: Extrema · Tableau de variations
+  contenu: Démonstrations (cube, inverse, quotient) · Déterminer une fonction
   duree: "1 semaine"
   pdf: premiere-spe-ch4-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
 - num: 1
-  contenu: "Tableau de signes f' · Variations"
+  contenu: QCM · Ballon sonde · Coût marginal
   duree: "55 min"
   pdf: premiere-spe-ch4-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Extrema locaux · Étude complète
+  contenu: Variations et encadrement · Volume maximal · Paramètre
   duree: "55 min"
   pdf: premiere-spe-ch4-dsblanc-02-sujet.pdf
 ds_published: false

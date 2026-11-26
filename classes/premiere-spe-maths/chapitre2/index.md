@@ -17,21 +17,21 @@ planches:
 dm_published: false
 dm:
 - num: 1
-  contenu: Nombre dérivé · Taux de variation · Tangente
+  contenu: Sécante et tangente · Nombre dérivé de la racine carrée
   duree: "1 semaine"
   pdf: premiere-spe-ch2-dm-01-sujet.pdf
 - num: 2
-  contenu: Fonction dérivée · Dérivées usuelles
+  contenu: Construire une courbe avec ses tangentes · Équations de tangentes
   duree: "1 semaine"
   pdf: premiere-spe-ch2-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
 - num: 1
-  contenu: Nombre dérivé · Tangente · Lecture graphique
+  contenu: QCM · Nombre dérivé par le taux · Tangente
   duree: "55 min"
   pdf: premiere-spe-ch2-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Fonctions dérivées · Calculs
+  contenu: Valeur absolue et dérivabilité · Approximation affine
   duree: "55 min"
   pdf: premiere-spe-ch2-dsblanc-02-sujet.pdf
 ds_published: false

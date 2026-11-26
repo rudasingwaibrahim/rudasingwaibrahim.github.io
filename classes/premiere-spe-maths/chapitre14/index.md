@@ -17,21 +17,21 @@ planches:
 dm_published: false
 dm:
 - num: 1
-  contenu: Vecteurs · Équations cartésienne et paramétrique
+  contenu: Tangentes à un cercle
   duree: "1 semaine"
   pdf: premiere-spe-ch14-dm-01-sujet.pdf
 - num: 2
-  contenu: Équation de cercle · Tangente · Configurations
+  contenu: Hauteurs, médiatrices, droite d'Euler
   duree: "1 semaine"
   pdf: premiere-spe-ch14-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
 - num: 1
-  contenu: Droites · Vecteurs directeurs et normaux
+  contenu: Droites, projetés et cercles
   duree: "55 min"
   pdf: premiere-spe-ch14-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Cercle · Équation · Position relative
+  contenu: Projetés, distances et cercles
   duree: "55 min"
   pdf: premiere-spe-ch14-dsblanc-02-sujet.pdf
 ds_published: false

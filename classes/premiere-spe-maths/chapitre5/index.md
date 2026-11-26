@@ -17,21 +17,21 @@ planches:
 dm_published: false
 dm:
 - num: 1
-  contenu: Arbre pondéré · Probabilités conditionnelles
+  contenu: Arbre à trois branches · Probabilités totales · Test de dépistage
   duree: "1 semaine"
   pdf: premiere-spe-ch5-dm-01-sujet.pdf
 - num: 2
-  contenu: Formule des probabilités totales · Indépendance
+  contenu: Probabilités totales · Indépendance · Tirages avec remise
   duree: "1 semaine"
   pdf: premiere-spe-ch5-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
 - num: 1
-  contenu: Arbre · Probabilités conditionnelles
+  contenu: QCM · Tableau croisé et indépendance · Bracelets (sujet type bac)
   duree: "55 min"
   pdf: premiere-spe-ch5-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Probas totales · Indépendance
+  contenu: Vrai-faux · V.O.D. (sujet type bac) · Vaccin et inconnue
   duree: "55 min"
   pdf: premiere-spe-ch5-dsblanc-02-sujet.pdf
 ds_published: false

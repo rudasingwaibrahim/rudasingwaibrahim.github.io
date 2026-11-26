@@ -17,21 +17,21 @@ planches:
 dm_published: false
 dm:
 - num: 1
-  contenu: "Théorème d'Al-Kashi · Loi des sinus · Aire d'un triangle"
+  contenu: Orthogonalité avec et sans coordonnées
   duree: "1 semaine"
   pdf: premiere-spe-ch12-dm-01-sujet.pdf
 - num: 2
-  contenu: "Formules d'addition · Duplication · Démonstrations"
+  contenu: Projeté orthogonal · Perpendicularité
   duree: "1 semaine"
   pdf: premiere-spe-ch12-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
 - num: 1
-  contenu: Al-Kashi · Calcul de longueurs et angles
+  contenu: Démontrer une orthogonalité
   duree: "55 min"
   pdf: premiere-spe-ch12-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Formules trigo · Démonstration · Application
+  contenu: Orthogonalité · Lignes de niveau
   duree: "55 min"
   pdf: premiere-spe-ch12-dsblanc-02-sujet.pdf
 ds_published: false

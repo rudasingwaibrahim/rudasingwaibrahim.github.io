@@ -17,21 +17,21 @@ planches:
 dm_published: false
 dm:
 - num: 1
-  contenu: "Signe d'un trinôme · Inéquations"
+  contenu: Équations du 3e degré · Équations bicarrées · Démonstration somme-produit
   duree: "1 semaine"
   pdf: premiere-spe-ch3-dm-01-sujet.pdf
 - num: 2
-  contenu: Optimisation · Problèmes concrets
+  contenu: Distance d'arrêt (tableur) · Paramètre · Position relative de paraboles
   duree: "1 semaine"
   pdf: premiere-spe-ch3-dm-02-sujet.pdf
 dsblancs_published: true
 ds_blancs:
 - num: 1
-  contenu: Signe · Tableau · Inéquations
+  contenu: QCM · Étude complète d'un trinôme
   duree: "55 min"
   pdf: premiere-spe-ch3-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Optimisation · Application géométrique
+  contenu: Racines · Signe · Forme adaptée · Lecture graphique
   duree: "55 min"
   pdf: premiere-spe-ch3-dsblanc-02-sujet.pdf
 ds_published: false
