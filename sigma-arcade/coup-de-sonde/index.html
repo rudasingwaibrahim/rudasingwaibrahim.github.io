@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coup de Sonde · Sigma Arcade</title>
+<meta name="description" content="Échantillonnage en Seconde : échantillon de taille n, fréquence observée, loi des grands nombres, dans 95 % des cas |f − p| ≤ 1/√n, fonctions Python. Les simulations tombent par centaines sur la règle des fréquences et se resserrent autour de p.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours.
+   IDEA : l'élève lance des sondages et des simulations ; chaque échantillon tombe comme un point sur la règle des fréquences.
+   PICTURE : un écran de nuit ; la pluie de points se resserre autour de p, la bande dorée ±1/√n rétrécit quand n grandit.
+   COLOUR and TYPE : nuit « océan profond », violet-bleu pour l'action, or pour p, la bande et les réussites ; Outfit.
+   LAYOUT : scène et bandeau à gauche (collés en haut sur téléphone), carnet du sondeur à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);--blue:#7fb2ff}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:72ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .labb{border-color:rgba(200,168,75,.6)}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:1000/620;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#050a16;user-select:none;-webkit-user-select:none}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg text{font-family:var(--sg-font)}
+.badge{position:absolute;left:10px;top:10px;z-index:2;font:600 13px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--mut);border:1px solid var(--soft);pointer-events:none;max-width:calc(100% - 190px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.count{position:absolute;right:10px;top:10px;z-index:2;font:700 14px var(--sg-font);font-variant-numeric:tabular-nums;padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--gold2);border:1px solid rgba(200,168,75,.35);pointer-events:none;white-space:nowrap}
+.count:empty{display:none}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,23px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .35em}
+.capt .k{color:var(--gold2)}.capt .b{color:var(--blue)}.capt .m{color:var(--mut);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin:8px 0 0;font-size:14px;color:var(--mut)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.legend .lp i{border-radius:2px;width:4px;height:14px;background:var(--gold2);vertical-align:-2px}
+.legend .li i{background:var(--gold2);box-shadow:0 0 6px rgba(232,199,102,.7)}.legend .lo i{background:var(--blue)}
+.legend .lb i{width:18px;border-radius:3px;background:rgba(232,199,102,.22);border:1px solid rgba(232,199,102,.7)}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.5;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(19px,2.2vw,23px)/2.2 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.4em;height:46px;margin:0 3px;padding:0 6px;font:700 21px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+/* écritures */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.rad{border-top:2px solid currentColor;padding:0 .08em;margin-left:.04em}
+.rad2{text-decoration:overline;text-decoration-thickness:1.5px;padding:0 .06em}
+.sk-q .fr,.sk-ch .fr{font-size:.92em}
+.nw{white-space:nowrap}
+.tb{border-collapse:collapse;font-variant-numeric:tabular-nums;margin:4px 0 10px;font-size:17px}
+.tb th,.tb td{padding:5px 14px;border-bottom:1px solid var(--soft);text-align:right}
+.tb th{font-size:13px;color:var(--mut);font-weight:600;text-align:right}
+.tb td.k{color:var(--gold2);font-weight:700}
+/* code Python */
+.code{margin:6px 0 10px;border-radius:12px;background:#050b18;border:1px solid var(--soft);padding:8px 0;overflow-x:auto;font:500 15px/1.65 var(--sg-mono)}
+.code div{display:flex;gap:12px;padding:0 12px;white-space:pre;transition:background .15s}
+.code div b{display:inline-block;width:1.6em;text-align:right;color:rgba(200,215,255,.4);font-weight:500;flex:none}
+.code div.cur{background:rgba(108,142,255,.2);box-shadow:inset 3px 0 0 var(--ac)}
+.code div.mod{background:rgba(200,168,75,.12);box-shadow:inset 3px 0 0 var(--gold)}
+.code .kw{color:#b79cff}.code .fn{color:#7fd8ff}.code .nb{color:#ffb67a}.code .cm{color:rgba(200,215,255,.5)}
+.vars{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.vars span{min-height:36px;display:inline-flex;align-items:center;padding:0 12px;border-radius:10px;border:1px solid var(--soft);background:rgba(255,255,255,.03);font:600 16px var(--sg-mono);font-variant-numeric:tabular-nums}
+.vars span b{color:var(--gold2);margin-left:6px}
+.vars span.fl{animation:flash .45s}
+@keyframes flash{from{background:rgba(200,168,75,.35)}}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+/* Mon labo */
+.lab h3{margin:14px 0 8px;font-size:14px;color:var(--mut);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{min-height:44px;min-width:52px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 16px var(--sg-font);font-variant-numeric:tabular-nums;cursor:pointer}
+.seg button:hover{border-color:var(--ac)}
+.seg button[aria-pressed=true]{background:var(--acsoft);border-color:var(--ac)}
+.lab .btns{margin-top:16px}
+.stat{margin:14px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat div{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--soft)}
+.stat b{display:block;font-size:22px;color:var(--gold2);font-variant-numeric:tabular-nums}
+.stat span{font-size:14px;color:var(--mut)}
+/* scène : animations */
+.tk{transform-box:fill-box;transform-origin:center;animation:tkin .28s cubic-bezier(.2,1.5,.4,1) backwards}
+@keyframes tkin{from{transform:scale(0);opacity:0}}
+.glow{filter:url(#cs-glow)}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .stage{aspect-ratio:560/430;max-height:38svh;margin:auto}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+  .legend{display:none}
+}
+@media (max-width:520px){
+  .badge{display:none}
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .code{font-size:13.5px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win,.tk,.vars span.fl{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Coup de Sonde</h1>
+<p>Tu lances des sondages et des simulations par centaines. Chaque échantillon tombe comme un point sur la règle des fréquences&nbsp;: plus n grandit, plus la pluie se resserre autour de p, et la bande dorée ±<span class="nw">1/√<span class="rad2">n</span></span> rétrécit sous tes yeux.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Règle des fréquences : les échantillons y tombent comme des points">
+    <svg id="scene" viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+    <span class="badge" id="badge"></span>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+  <div class="legend" id="legend"><span class="lp"><i></i>p</span><span class="lb"><i></i>bande |f − p| ≤ 1/√n</span><span class="li"><i></i>f dans la bande</span><span class="lo"><i></i>f hors de la bande</span></div>
+</div>
+<section class="panel" id="panel">
+  <div id="game">
+    <div class="chap" id="chap"></div>
+    <h2 id="lvt"></h2>
+    <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+    <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+    <div class="prompt" id="prompt"></div>
+    <div id="work"></div>
+    <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+    <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+      <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+  </div>
+  <div id="labv" class="lab" hidden>
+    <div class="chap">Mon labo</div>
+    <h2>Lance tes propres simulations</h2>
+    <p class="hint" style="margin-top:0">Choisis l'expérience, la taille n de chaque échantillon et le nombre N de simulations, puis regarde la pluie tomber.</p>
+    <h3>Expérience</h3><div class="seg" id="lexp"></div>
+    <h3>Taille n de chaque échantillon</h3><div class="seg" id="ln"></div>
+    <h3>Nombre N de simulations</h3><div class="seg" id="lN"></div>
+    <div class="btns"><button class="btn or" id="lgo" type="button">▶ Lancer la pluie</button><button class="btn gh" id="lfun" type="button">L'entonnoir : n de 25 à 10 000</button></div>
+    <div class="stat" id="lstat"></div>
+  </div>
+</section>
+</main>
+<script>
+/* ======================= COUP DE SONDE — nombres exacts et écritures ======================= */
+window.CS_N=(function(){
+'use strict';
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t}return a};
+const R=(n,d)=>{if(d===undefined)d=1;if(d<0){n=-n;d=-d}const g=gcd(n,d)||1;return{n:n/g,d:d/g}};
+const sub=(x,y)=>R(x.n*y.d-y.n*x.d,x.d*y.d);
+const add=(x,y)=>R(x.n*y.d+y.n*x.d,x.d*y.d);
+const mul=(x,y)=>R(x.n*y.n,x.d*y.d);
+const abs=x=>R(Math.abs(x.n),x.d);
+const cmp=(x,y)=>Math.sign(x.n*y.d-y.n*x.d);
+const eq=(x,y)=>cmp(x,y)===0;
+const val=x=>x.n/x.d;
+const isqrt=n=>{const r=Math.round(Math.sqrt(n));return r*r===n?r:null};
+const isDec=r=>{let d=r.d;while(d%2===0)d/=2;while(d%5===0)d/=5;return d===1};
+const NB=' ';
+function fmtInt(n){const s=String(Math.abs(n));const g=s.length>3?s.replace(/\B(?=(\d{3})+(?!\d))/g,NB):s;return (n<0?'−':'')+g}
+/* écriture décimale exacte (virgule) ; minDig : nombre minimal de décimales */
+function dec(r,minDig){minDig=minDig||0;let k=0;while(k<10&&((Math.abs(r.n)*Math.pow(10,k))%r.d))k++;
+  const kk=Math.max(k,minDig),v=Math.round(Math.abs(r.n)*Math.pow(10,kk)/r.d),p=Math.pow(10,kk);
+  const ip=Math.floor(v/p),fp=kk?String(v-ip*p).padStart(kk,'0'):'';
+  return (r.n<0?'−':'')+fmtInt(ip)+(kk?','+fp:'')}
+const frH=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const numH=r=>r.d===1?fmtInt(r.n):isDec(r)?dec(r):frH(fmtInt(r.n),fmtInt(r.d));
+const numT=r=>r.d===1?fmtInt(r.n):isDec(r)?dec(r):`${r.n}/${r.d}`;
+const radH=x=>`√<span class="rad">${x}</span>`;
+const invRadH=x=>frH(1,radH(x));           // 1/√x
+const INV='<span class="nw">1/√<span class="rad2">n</span></span>';  // écriture en ligne 1/√n
+/* toutes les écritures acceptées pour un rationnel (décimale, décimales complétées, fraction) */
+function ans(r,extra){const out=[];const push=s=>{if(out.indexOf(s)<0)out.push(s)};
+  if(isDec(r)){const d0=dec(r);push(d0.replace(/ /g,''));if(r.d!==1){const k=(d0.split(',')[1]||'').length;for(let j=k+1;j<=4;j++)push(dec(r,j).replace(/ /g,''))}}
+  if(r.d!==1)push(`${r.n}/${r.d}`);
+  (extra||[]).forEach(push);return out}
+/* lecture d'une saisie : entier, décimal (virgule ou point) ou fraction a/b */
+function parse(s){s=String(s).replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.');
+  let m=/^(-?)(\d*)(?:\.(\d+))?$/.exec(s);
+  if(m&&(m[2]||m[3])){const ip=m[2]||'0',fp=m[3]||'';const n=parseInt(ip+fp,10)*(m[1]?-1:1);return R(n,Math.pow(10,fp.length))}
+  m=/^(-?\d+)\/(\d+)$/.exec(s);if(m&&+m[2])return R(parseInt(m[1],10),parseInt(m[2],10));
+  return null}
+/* hasard : entiers, choix, mélange */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+/* expériences du cours */
+const randint=(a,b)=>ri(a,b);
+function binom(p,n){let s=0;for(let i=0;i<n;i++)if(Math.random()*p.d<p.n)s++;return s}
+/* |f − p| ≤ 1/√n, en nombres entiers (n carré parfait) : |s·b − a·n|·m ≤ n·b */
+function inBand(s,n,p){const m=isqrt(n);if(m===null)return null;return Math.abs(s*p.d-p.n*n)*m<=n*p.d}
+return{gcd,R,sub,add,mul,abs,cmp,eq,val,isqrt,isDec,fmtInt,dec,frH,numH,numT,radH,invRadH,INV,ans,parse,ri,pick,shuf,randint,binom,inBand,NB};
+})();
+
+</script>
+<script>
+/* ======================= COUP DE SONDE — la scène (règle des fréquences, jetons, pluie, entonnoir) ======================= */
+window.CS_S=(function(){
+'use strict';
+const N=window.CS_N,NS='http://www.w3.org/2000/svg',svg=document.getElementById('scene');
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $=id=>document.getElementById(id);
+let W=1000,H=620,narrow=false;
+function el(tag,a,parent){const e=document.createElementNS(NS,tag);if(a)for(const k in a)e.setAttribute(k,a[k]);if(parent)parent.appendChild(e);return e}
+const C={gold:'#e8c766',gold2:'#f6dc8a',blue:'#7fb2ff',plain:'#d6e2ff',ink:'#f0f4ff',mut:'rgba(200,215,255,.62)'};
+
+/* ---------- bruitages (interrupteur partagé avec le kit) ---------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null,lastTick=0;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const SND={
+  pop(){if(snd){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)}},
+  tick(ok){if(!snd)return;const n=performance.now();if(n-lastTick<45)return;lastTick=n;tone(ok?1046.5:523.25,.06,ok?.035:.022,'sine')},
+  drop(inside){if(!snd)return;const n=performance.now();if(n-lastTick<38)return;lastTick=n;tone(inside?880+Math.random()*120:330+Math.random()*60,.08,inside?.028:.02,'sine')},
+  soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))},
+  whoosh(){if(snd){tone(220,.35,.03,'sine');tone(440,.3,.02,'sine',.08)}}};
+const sound={get:()=>snd,set:v=>{snd=v;try{localStorage.setItem('sigma-fanfare',v?'1':'0')}catch(_){}}};
+
+/* ---------- état de la scène (tout se redessine à partir de lui) ---------- */
+const st={mode:'rule',p:null,pLab:'',band:null,tokens:null,dots:[],rows:null,last:null,color:'plain',bandShown:true};
+let L={};       // calques
+let token=0;    // annule les animations en cours
+const anims=new Set();let raf=0;
+function cancelAll(){token++;const a=[...anims];anims.clear();a.forEach(x=>{if(x.done)x.done()})}
+
+function geo(){const mx=narrow?30:64,axisY=H-(narrow?74:82);return{x0:mx,x1:W-mx,axisY}}
+function X(f){const g=geo();return g.x0+f*(g.x1-g.x0)}
+function region(){const g=geo();
+  if(st.mode==='tokens'){const tokBot=g.axisY-(narrow?118:150);return{tokTop:narrow?66:62,tokBot,top:tokBot+14,bot:g.axisY-5}}
+  return{top:narrow?58:66,bot:g.axisY-5}}
+function rowGeo(k,m){const g=geo(),top0=narrow?62:58,rh=(g.axisY-top0)/m;return{top:top0+k*rh,bot:top0+(k+1)*rh,h:rh}}
+
+/* ---------- décor ---------- */
+function build(){
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.innerHTML='';
+  const d=el('defs',null,svg);
+  d.innerHTML=`<linearGradient id="cs-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#030816"/><stop offset=".7" stop-color="#0b1834"/><stop offset="1" stop-color="#101f40"/></linearGradient>
+  <linearGradient id="cs-rule" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d3463"/><stop offset="1" stop-color="#0e1c3a"/></linearGradient>
+  <linearGradient id="cs-band" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8c766" stop-opacity=".05"/><stop offset="1" stop-color="#e8c766" stop-opacity=".2"/></linearGradient>
+  <radialGradient id="cs-halo"><stop offset="0" stop-color="#6c8eff" stop-opacity=".16"/><stop offset="1" stop-color="#6c8eff" stop-opacity="0"/></radialGradient>
+  <radialGradient id="cs-coin" cx=".38" cy=".32"><stop offset="0" stop-color="#fff3c4"/><stop offset=".55" stop-color="#e8c766"/><stop offset="1" stop-color="#a8862c"/></radialGradient>
+  <radialGradient id="cs-coin2" cx=".38" cy=".32"><stop offset="0" stop-color="#3a5a9a"/><stop offset="1" stop-color="#16284a"/></radialGradient>
+  <filter id="cs-glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+  el('rect',{width:W,height:H,fill:'url(#cs-sky)'},svg);
+  el('ellipse',{cx:W*.5,cy:H*.55,rx:W*.55,ry:H*.45,fill:'url(#cs-halo)'},svg);
+  const stars=el('g',{fill:'#fff'},svg);let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  for(let i=0;i<46;i++)el('circle',{cx:(rnd()*W).toFixed(1),cy:(rnd()*H*.8).toFixed(1),r:(.5+rnd()*.9).toFixed(2),opacity:(.15+rnd()*.4).toFixed(2)},stars);
+  L.grid=el('g',null,svg);L.funnel=el('g',null,svg);L.band=el('g',null,svg);L.pl=el('g',null,svg);
+  L.tok=el('g',null,svg);L.axis=el('g',null,svg);L.dots=el('g',null,svg);L.lab=el('g',null,svg);L.fx=el('g',null,svg)}
+
+function drawAxis(){const g=geo(),A=L.axis,G=L.grid;A.innerHTML='';G.innerHTML='';
+  const top=st.mode==='tokens'?region().top:(narrow?50:58);
+  for(let i=0;i<=10;i++){const x=X(i/10);el('line',{x1:x,x2:x,y1:top,y2:g.axisY,stroke:'rgba(120,160,255,'+(i%5?'.07':'.12')+')','stroke-width':1},G)}
+  el('rect',{x:g.x0-14,y:g.axisY-1,width:g.x1-g.x0+28,height:narrow?14:16,rx:6,fill:'url(#cs-rule)',stroke:'rgba(232,199,102,.75)','stroke-width':1.2},A);
+  const fs=narrow?19:17,step=narrow?2:1;
+  for(let i=0;i<=10;i++){const x=X(i/10);el('line',{x1:x,x2:x,y1:g.axisY+1,y2:g.axisY+(i%5?7:11),stroke:'rgba(230,238,255,.75)','stroke-width':1.4},A);
+    if(i%step===0){const t=el('text',{x,y:g.axisY+(narrow?36:36),'text-anchor':'middle','font-size':fs,'font-weight':600,fill:'rgba(230,238,255,.86)'},A);t.textContent=i===0?'0':i===10?'1':'0,'+i}}
+  const t=el('text',{x:g.x1+(narrow?4:24),y:g.axisY-12,'text-anchor':'end','font-size':narrow?20:19,'font-weight':800,'font-style':'italic',fill:'rgba(230,238,255,.75)'},A);t.textContent='f'}
+
+function drawP(){const P=L.pl;P.innerHTML='';if(!st.p)return;const g=geo(),x=X(N.val(st.p)),top=st.mode==='tokens'?region().top-6:(narrow?46:54);
+  el('line',{x1:x,x2:x,y1:top,y2:g.axisY,stroke:C.gold,'stroke-width':2,'stroke-dasharray':'6 6',opacity:.85},P);
+  el('path',{d:`M${x} ${g.axisY+2} l9 15 h-18z`,fill:C.gold},P);
+  const lab=st.pLab||('p = '+N.numT(st.p)),w=lab.length*(narrow?11:10)+24,y=g.axisY+(narrow?44:46);
+  let cx=Math.max(g.x0+w/2-14,Math.min(g.x1-w/2+14,x));
+  el('rect',{x:cx-w/2,y,width:w,height:narrow?28:26,rx:13,fill:'rgba(200,168,75,.2)',stroke:C.gold,'stroke-width':1},P);
+  const t=el('text',{x:cx,y:y+(narrow?20:18),'text-anchor':'middle','font-size':narrow?19:17,'font-weight':800,fill:C.gold},P);t.textContent=lab}
+
+/* bande |f − p| ≤ 1/√n (une rangée : y0..y1) */
+function bandRect(parent,n,y0,y1,label){const m=N.isqrt(n);if(!st.p||m===null)return;
+  const p=N.val(st.p),r=1/m,a=X(Math.max(0,p-r)),b=X(Math.min(1,p+r));
+  el('rect',{x:a,y:y0,width:Math.max(1,b-a),height:y1-y0,fill:'url(#cs-band)'},parent);
+  if(p-r>=0)el('line',{x1:a,x2:a,y1:y0,y2:y1,stroke:C.gold,'stroke-width':1.6,opacity:.85},parent);
+  if(p+r<=1)el('line',{x1:b,x2:b,y1:y0,y2:y1,stroke:C.gold,'stroke-width':1.6,opacity:.85},parent);
+  if(label){const txt=`|f − p| ≤ ${N.dec(N.R(1,m))}`,fs=narrow?18:16,w=txt.length*fs*.52+20,g=geo(),xx=b+10+w<=g.x1+14?b+10+w/2:a-10-w>=g.x0-14?a-10-w/2:Math.max(g.x0+w/2,Math.min(g.x1-w/2,(a+b)/2));
+    el('rect',{x:xx-w/2,y:y0+4,width:w,height:fs+10,rx:(fs+10)/2,fill:'rgba(4,9,20,.82)',stroke:'rgba(232,199,102,.6)','stroke-width':1},parent);
+    const t=el('text',{x:xx,y:y0+fs+5,'text-anchor':'middle','font-size':fs,'font-weight':700,fill:C.gold2},parent);t.textContent=txt}}
+function drawBand(){L.band.innerHTML='';if(!st.band||!st.p||st.mode==='funnel'||!st.bandShown)return;const rg=region();bandRect(L.band,st.band,rg.top-8,geo().axisY,true)}
+
+/* ---------- jetons : un échantillon, une répétition après l'autre ---------- */
+const PIPS={1:[[0,0]],2:[[-1,-1],[1,1]],3:[[-1,-1],[0,0],[1,1]],4:[[-1,-1],[1,-1],[-1,1],[1,1]],5:[[-1,-1],[1,-1],[0,0],[-1,1],[1,1]],6:[[-1,-1],[1,-1],[-1,0],[1,0],[-1,1],[1,1]]};
+function tokenEl(kind,t,cx,cy,sz,parent,delay){const g=el('g',{transform:`translate(${cx.toFixed(1)} ${cy.toFixed(1)}) scale(${(sz/100).toFixed(4)})`},parent);
+  const inner=el('g',{class:delay===null?'':'tk'},g);if(delay!==null)inner.style.animationDelay=delay+'ms';
+  const ok=t.ok;
+  if(kind==='de'){el('rect',{x:-44,y:-44,width:88,height:88,rx:18,fill:ok?C.gold:'#14264a',stroke:ok?'#fff3c4':'rgba(150,180,255,.5)','stroke-width':3},inner);
+    (PIPS[t.v]||[]).forEach(([a,b])=>el('circle',{cx:a*24,cy:b*24,r:9,fill:ok?'#2a1d05':'#e6ecff'},inner))}
+  else if(kind==='piece'){el('circle',{r:45,fill:ok?'url(#cs-coin)':'url(#cs-coin2)',stroke:ok?'#fff3c4':'rgba(150,180,255,.55)','stroke-width':3},inner);
+    el('circle',{r:34,fill:'none',stroke:ok?'rgba(42,29,5,.35)':'rgba(150,180,255,.3)','stroke-width':2},inner);
+    const tx=el('text',{y:17,'text-anchor':'middle','font-size':48,'font-weight':800,fill:ok?'#2a1d05':'#cfe0ff'},inner);tx.textContent=t.v===0?'P':'F'}
+  else if(kind==='urne'){el('circle',{r:44,fill:ok?'url(#cs-coin)':'#3d63c8',stroke:ok?'#fff3c4':'#9fb4ff','stroke-width':3},inner);el('ellipse',{cx:-14,cy:-16,rx:12,ry:8,fill:'#fff',opacity:.45},inner)}
+  else{el('circle',{cy:-24,r:20,fill:ok?C.gold:'#4a6fc9'},inner);el('path',{d:'M-38 46 Q-38 4 0 4 Q38 4 38 46 Z',fill:ok?C.gold:'#4a6fc9'},inner);
+    if(ok)el('path',{d:'M-12 24 l9 9 l17 -19',stroke:'#2a1d05','stroke-width':7,fill:'none','stroke-linecap':'round','stroke-linejoin':'round'},inner)}
+  return g}
+function tokGrid(n){const rg=region(),g=geo(),w=g.x1-g.x0+20,h=rg.tokBot-rg.tokTop;let best={c:1,cell:0};
+  for(let c=1;c<=n;c++){const r=Math.ceil(n/c),cell=Math.min(w/c,h/r);if(cell>best.cell)best={c,cell}}
+  const cell=Math.min(best.cell,narrow?64:76),c=best.c,r=Math.ceil(n/c),ox=(g.x0+g.x1)/2-c*cell/2+cell/2,oy=(rg.tokTop+rg.tokBot)/2-r*cell/2+cell/2;
+  return{cell,pos:i=>[ox+(i%c)*cell,oy+Math.floor(i/c)*cell]}}
+function drawTokens(){L.tok.innerHTML='';const T=st.tokens;if(!T||st.mode!=='tokens')return;const gr=tokGrid(T.n||T.res.length);
+  for(let i=0;i<T.shown;i++){const [x,y]=gr.pos(i);tokenEl(T.kind,T.res[i],x,y,gr.cell*.84,L.tok,null)}}
+
+/* ---------- points : un point par échantillon, à l'abscisse f ---------- */
+function dotColor(d){if(st.color==='band'&&st.p&&N.isqrt(d.n)!==null){const ins=N.inBand(d.s,d.n,st.p);return ins?C.gold:C.blue}return C.plain}
+function layoutDots(list,top,bot,r){const lv=[],pos=[];let maxK=0;
+  list.forEach(d=>{const x=X(d.s/d.n);let k=0;while(lv[k]&&lv[k].some(x2=>Math.abs(x2-x)<2*r*.92))k++;(lv[k]=lv[k]||[]).push(x);pos.push([x,k]);if(k>maxK)maxK=k});
+  const step=Math.min(2*r*.95,maxK?(bot-top-2*r)/maxK:2*r);
+  return pos.map(([x,k])=>[x,bot-r-k*step])}
+function dotR(){if(st.mode==='funnel')return narrow?4.6:4.4;const n=st.dots.length;return (narrow?8:7.5)*(n>120?.75:n>60?.88:1)}
+function placeAll(){const r=dotR();
+  if(st.mode==='funnel'&&st.rows){const m=st.rows.length;st.rows.forEach((n,k)=>{const rg=rowGeo(k,m),list=st.dots.filter(d=>d.row===k);
+      const P=layoutDots(list,rg.top+(narrow?24:26),rg.bot-3,r);list.forEach((d,i)=>{d.x=P[i][0];d.y=P[i][1]})});return r}
+  const rg=region(),P=layoutDots(st.dots,rg.top,rg.bot,r);st.dots.forEach((d,i)=>{d.x=P[i][0];d.y=P[i][1]});return r}
+function dotEl(d,r,moving){const c=dotColor(d),e=el('circle',{cx:d.x,cy:d.y,r,fill:c},L.dots);if(c===C.gold){if(moving)e.setAttribute('stroke','#fff3c4');else e.setAttribute('class','glow')}d.el=e;return e}
+/* le halo doré se pose une fois la pluie tombée (moins de calcul pendant la chute) */
+function glowAll(){st.dots.forEach(d=>{if(d.el&&dotColor(d)===C.gold){d.el.removeAttribute('stroke');d.el.setAttribute('class','glow')}})}
+function drawDots(){L.dots.innerHTML='';const r=placeAll();st.dots.forEach(d=>dotEl(d,r));drawLast()}
+function drawLast(){L.lab.innerHTML='';const d=st.last;if(!d||!d.el||st.mode==='funnel')return;
+  const txt='f = '+N.numT(N.R(d.s,d.n)),fs=narrow?19:17,w=txt.length*fs*.55+18,g=geo(),x=Math.max(g.x0+w/2-10,Math.min(g.x1-w/2+10,d.x)),y=d.y-(narrow?40:36);
+  el('path',{d:`M${d.x} ${d.y-9} L${x} ${y+fs+6}`,stroke:'rgba(230,238,255,.5)','stroke-width':1.2},L.lab);
+  el('rect',{x:x-w/2,y:y-4,width:w,height:fs+12,rx:(fs+12)/2,fill:'rgba(4,9,20,.88)',stroke:'rgba(230,238,255,.45)','stroke-width':1},L.lab);
+  const t=el('text',{x,y:y+fs+1,'text-anchor':'middle','font-size':fs,'font-weight':800,fill:C.ink},L.lab);t.textContent=txt}
+
+/* ---------- entonnoir : une rangée par taille n ---------- */
+function drawFunnel(){L.funnel.innerHTML='';if(st.mode!=='funnel'||!st.rows)return;const m=st.rows.length,g=geo();
+  const p=st.p?N.val(st.p):null,edges=[];
+  st.rows.forEach((n,k)=>{const rg=rowGeo(k,m);
+    el('line',{x1:g.x0-14,x2:g.x1+14,y1:rg.bot,y2:rg.bot,stroke:'rgba(120,160,255,.16)','stroke-width':1},L.funnel);
+    if(st.bandShown&&st.p&&N.isqrt(n)!==null&&(st.rowsShown||0)>k){bandRect(L.funnel,n,rg.top+2,rg.bot,false);const r=1/N.isqrt(n);edges.push([X(Math.max(0,p-r)),X(Math.min(1,p+r)),(rg.top+rg.bot)/2])}
+    const lab='n = '+N.fmtInt(n)+(st.bandShown&&N.isqrt(n)!==null&&(st.rowsShown||0)>k?'   ·   1/√n = '+N.dec(N.R(1,N.isqrt(n))):''),left=p===null||p>=.5;
+    const t=el('text',{x:left?g.x0-8:g.x1+8,y:rg.top+(narrow?19:18),'text-anchor':left?'start':'end','font-size':narrow?17:15,'font-weight':700,fill:(st.rowsShown||0)>k?'rgba(230,238,255,.9)':'rgba(200,215,255,.45)'},L.funnel);t.textContent=lab});
+  if(edges.length>1){const dl='M'+edges.map(e=>`${e[0].toFixed(1)} ${e[2].toFixed(1)}`).join(' L'),dr='M'+edges.map(e=>`${e[1].toFixed(1)} ${e[2].toFixed(1)}`).join(' L');
+    [dl,dr].forEach(d=>el('path',{d,stroke:C.gold,'stroke-width':1.4,'stroke-dasharray':'3 5',fill:'none',opacity:.7},L.funnel))}}
+
+function render(){build();drawAxis();drawFunnel();drawBand();drawP();drawTokens();drawDots()}
+
+/* ---------- animations ---------- */
+function loop(now){raf=0;anims.forEach(a=>{if(a.tok!==token){anims.delete(a);a.done&&a.done();return}
+  const t=(now-a.t0)/a.dur;if(t<0){if(a.pre)a.pre();return}
+  if(!a.started){a.started=1;a.e.setAttribute('opacity',1);if(a.start)a.start()}
+  const k=Math.min(1,t),e=a.ease?a.ease(k):k;a.e.setAttribute('cx',(a.x0+(a.x1-a.x0)*e).toFixed(1));a.e.setAttribute('cy',(a.y0+(a.y1-a.y0)*e).toFixed(1));
+  if(k>=1){anims.delete(a);a.done&&a.done()}});if(anims.size)raf=requestAnimationFrame(loop)}
+function anim(a){a.tok=token;anims.add(a);if(!raf)raf=requestAnimationFrame(loop)}
+const fall=k=>k<.82?Math.pow(k/.82,2):1-Math.sin((k-.82)/.18*Math.PI)*.03;
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?Math.min(ms,40):ms));
+const countEl=$('count'),badgeEl=$('badge');
+const api={};
+api.count=h=>{countEl.innerHTML=h||''};
+api.badge=h=>{badgeEl.textContent=h||''};
+/* nouvelle scène : mode 'rule' | 'tokens' | 'funnel' */
+api.reset=o=>{cancelAll();o=o||{};st.mode=o.mode||'rule';st.p=o.p||null;st.pLab=o.pLab||'';st.band=o.band||null;st.tokens=null;st.dots=[];st.rows=o.rows||null;st.rowsShown=0;st.last=null;
+  st.color=o.color||'plain';st.bandShown=o.bandShown!==false;api.count('');render()};
+api.setP=(p,lab)=>{st.p=p;st.pLab=lab||'';drawP();drawBand();drawDots()};
+api.showP=api.setP;
+/* bande : passe d'une taille n à une autre, en glissant */
+api.setBand=async(n,o)=>{o=o||{};const from=st.band;st.band=n;st.color=o.color||st.color;
+  if(!from||reduceM||!st.p||N.isqrt(n)===null||N.isqrt(from)===null){drawBand();drawDots();return}
+  const my=token,p=N.val(st.p),r0=1/N.isqrt(from),r1=1/N.isqrt(n),T=700,t0=performance.now();
+  await new Promise(res=>{function f(now){if(my!==token)return res();const k=Math.min(1,(now-t0)/T),e=1-Math.pow(1-k,3),r=r0+(r1-r0)*e;
+      L.band.innerHTML='';const rg=region(),g=geo(),a=X(Math.max(0,p-r)),b=X(Math.min(1,p+r));
+      el('rect',{x:a,y:rg.top-8,width:b-a,height:g.axisY-rg.top+8,fill:'url(#cs-band)'},L.band);
+      [a,b].forEach(x=>el('line',{x1:x,x2:x,y1:rg.top-8,y2:g.axisY,stroke:C.gold,'stroke-width':1.6},L.band));
+      if(k<1)requestAnimationFrame(f);else res()}requestAnimationFrame(f)});
+  drawBand();drawDots();SND.whoosh()};
+/* un échantillon : les n répétitions apparaissent une par une */
+api.tokens=async(kind,res,o)=>{o=o||{};const my=token;st.mode='tokens';st.tokens={kind,res,shown:0};
+  const keep=st.dots;st.dots=keep;render();
+  const n=res.length,total=reduceM?60:Math.min(2600,Math.max(900,n*95)),step=total/n,gr=tokGrid(n);let s=0;
+  for(let i=0;i<n;i++){const [x,y]=gr.pos(i);tokenEl(kind,res[i],x,y,gr.cell*.84,L.tok,Math.round(i*step))}
+  st.tokens.shown=n;
+  for(let i=0;i<n;i++){setTimeout(()=>{if(my!==token)return;if(res[i].ok)s++;SND.tick(res[i].ok);
+      api.count(o.hideS?`répétition ${i+1} / ${N.fmtInt(n)}`:`${o.sLab||'succès'} : ${s} / ${N.fmtInt(n)}`)},reduceM?0:Math.round(i*step)+120)}
+  await sleep(total+380)};
+/* le point de l'échantillon part se poser sur la règle */
+api.fly=async(s,n)=>{const my=token,d={s,n,row:0};st.dots.push(d);const r=placeAll(),rg=region();
+  L.dots.querySelectorAll('circle').forEach((c,i)=>{const o=st.dots[i];if(o&&o.el===c){c.setAttribute('cx',o.x);c.setAttribute('cy',o.y);c.setAttribute('r',r)}});
+  const e=dotEl(d,r),x0=(geo().x0+geo().x1)/2,y0=st.mode==='tokens'?(rg.tokTop+rg.tokBot)/2:rg.top;e.setAttribute('cx',x0);e.setAttribute('cy',y0);
+  st.last=null;L.lab.innerHTML='';SND.whoosh();
+  await new Promise(res=>anim({e,x0,y0,x1:d.x,y1:d.y,t0:performance.now(),dur:reduceM?1:720,ease:k=>1-Math.pow(1-k,3),done:res}));
+  if(my!==token)return;st.last=d;drawLast();SND.drop(true)};
+/* la pluie : N échantillons tombent, chacun à son abscisse f */
+api.rain=async(list,o)=>{o=o||{};const my=token;if(st.mode==='tokens'){st.mode='rule';st.tokens=null;render()}
+  if(o.color)st.color=o.color;const old=st.dots.length;list.forEach(d=>st.dots.push({s:d.s,n:d.n,row:0}));
+  const r=placeAll();st.dots.slice(0,old).forEach(d=>{if(d.el){d.el.setAttribute('cx',d.x);d.el.setAttribute('cy',d.y);d.el.setAttribute('r',r)}});
+  st.last=null;L.lab.innerHTML='';
+  const nw=st.dots.slice(old),dur=o.dur||Math.min(3200,Math.max(1200,nw.length*24)),stg=(dur-560)/Math.max(1,nw.length),t0=performance.now();let landed=0,inside=0;
+  nw.forEach((d,i)=>{const e=dotEl(d,r,true);e.setAttribute('opacity',0);e.setAttribute('cy',-10);
+    anim({e,x0:d.x,y0:(narrow?44:52)-30*Math.random(),x1:d.x,y1:d.y,t0:t0+i*stg,dur:reduceM?1:560,ease:fall,done:()=>{landed++;const c=dotColor(d);if(c===C.gold)inside++;
+      SND.drop(c===C.gold);if(o.onLand)o.onLand(landed,inside,nw.length)}})});
+  await sleep(dur+120);if(my!==token)return;glowAll();if(o.onLand)o.onLand(nw.length,inside,nw.length)};
+/* l'entonnoir : une rangée après l'autre, de la plus petite taille à la plus grande */
+api.funnel=async(rows,o)=>{o=o||{};const my=token;st.mode='funnel';st.rows=rows.map(r=>r.n);st.rowsShown=0;st.dots=[];st.color=o.color||'plain';st.bandShown=o.band!==false;st.tokens=null;st.last=null;render();
+  for(let k=0;k<rows.length;k++){if(my!==token)return;st.rowsShown=k+1;drawFunnel();if(o.onRow)o.onRow(k);
+    rows[k].fs.forEach(s=>st.dots.push({s,n:rows[k].n,row:k}));const r=placeAll(),nw=st.dots.filter(d=>d.row===k),t0=performance.now(),dur=o.dur||1300,stg=(dur-480)/nw.length;
+    const rg=rowGeo(k,rows.length);let inside=0,landed=0;
+    nw.forEach((d,i)=>{const e=dotEl(d,r,true);e.setAttribute('opacity',0);anim({e,x0:d.x,y0:rg.top+4,x1:d.x,y1:d.y,t0:t0+i*stg,dur:reduceM?1:480,ease:fall,
+      done:()=>{landed++;if(dotColor(d)===C.gold)inside++;SND.drop(dotColor(d)===C.gold);if(o.onLand)o.onLand(k,landed,inside,nw.length)}})});
+    await sleep(dur+160);if(my===token)glowAll()}
+  if(my!==token)return;drawFunnel()};
+/* jetons ajoutés un à un (exécution d'un programme) */
+api.tokStart=(kind,n)=>{cancelAll();st.mode='tokens';st.tokens={kind,res:[],shown:0,n};st.dots=[];st.last=null;st.p=null;st.band=null;st.rows=null;st.color='plain';api.count('');render()};
+api.tokPush=t=>{const T=st.tokens;if(!T)return;T.res.push(t);const gr=tokGrid(T.n),[x,y]=gr.pos(T.shown);T.shown++;tokenEl(T.kind,t,x,y,gr.cell*.84,L.tok,0);SND.tick(t.ok)};
+api.inBandCount=()=>st.dots.filter(d=>dotColor(d)===C.gold).length;
+api.state=()=>({mode:st.mode,dots:st.dots.length,band:st.band,p:st.p,rows:st.rows,color:st.color});
+api.SND=SND;api.sound=sound;api.sleep=sleep;api.reduceM=reduceM;
+/* téléphone : une scène plus haute que large, redessinée à l'identique */
+const mq=matchMedia('(max-width:860px)');
+function fit(){const nr=mq.matches;if(nr===narrow&&svg.childNodes.length)return;narrow=nr;W=nr?560:1000;H=nr?430:620;cancelAll();render()}
+api.fit=fit;mq.addEventListener?mq.addEventListener('change',fit):mq.addListener(fit);fit();
+return api;
+})();
+
+</script>
+<script>
+/* ======================= COUP DE SONDE — moteur des niveaux (questions en étapes) ======================= */
+window.CS_G=(function(){
+'use strict';
+const N=window.CS_N,S=window.CS_S,SND=S.SND,$=id=>document.getElementById(id);
+const cap=h=>{$('capt').innerHTML=h||'&nbsp;'};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const knorm=s=>String(s).toLowerCase().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/[×*·]/g,'x').replace(/^\+/,'');
+const GAME='coup-de-sonde';
+
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,mode='game',busy=false;
+function starsOf(i){try{const g=SigmaKit.passport().games[GAME];return g&&g.levels[i+1]||0}catch(e){return 0}}
+
+function fb(html){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fb').hidden=false}
+const api={err(why){errs++;SND.soft();fb(why)},ok(){fb('');nextPart()}};
+const W={};
+/* action : un bouton qui lance une animation */
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);api.ok()}};
+/* choix : on peut se tromper, on recommence */
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):N.shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{if(busy)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){box.querySelectorAll('.opt').forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else{b.classList.add('ko');b.disabled=true;api.err(c.why)}})};
+/* trous : nombres (décimal ou fraction, valeur exacte) ou mots */
+const okBlank=(b,v)=>b.r?(()=>{const x=N.parse(v);return !!x&&N.eq(x,b.r)})():b.w.some(a=>knorm(a)===knorm(v));
+W.fill=(p,box)=>{let k=0;
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const b=p.b[+i];return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" ${b.r?'inputmode="decimal"':''} aria-label="Case ${+i+1}" style="width:${b.size||4.4}em">`});
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+(p.hint?`<p class="hint">${p.hint}</p>`:'');
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=v.map((x,i)=>okBlank(p.b[+ins[i].dataset.i],x));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else api.err(typeof p.why==='function'?p.why(v,oks):p.why)};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* code Python : exécution ligne par ligne, variables visibles */
+W.code=(p,box)=>{const steps=p.steps;let i=-1;
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="code" role="group" aria-label="Programme Python">${p.lines.map((l,j)=>`<div data-l="${j+1}"${p.mod&&p.mod.indexOf(j+1)>=0?' class="mod"':''}><b>${j+1}</b><span>${l}</span></div>`).join('')}</div>
+   <div class="vars" aria-live="polite"></div><div class="btns"><button type="button" class="btn or stp">Pas à pas ▶</button><button type="button" class="btn gh all">Exécuter jusqu'au bout</button></div>`;
+  const vb=box.querySelector('.vars'),bs=box.querySelector('.stp'),ba=box.querySelector('.all');let prev={};
+  function show(){const s=steps[i];box.querySelectorAll('.code div').forEach(d=>d.classList.toggle('cur',+d.dataset.l===s.line));
+    vb.innerHTML=Object.keys(s.vars).map(k=>`<span class="${prev[k]!==s.vars[k]?'fl':''}">${k} =<b>${s.vars[k]}</b></span>`).join('');prev=Object.assign({},s.vars);
+    if(s.cap)cap(s.cap)}
+  async function one(){i++;show();const s=steps[i];if(s.fx){busy=true;try{await s.fx()}finally{busy=false}}else SND.tick(false);
+    if(i>=steps.length-1){bs.disabled=ba.disabled=true;bs.classList.add('did');bs.innerHTML='✓ Programme terminé';if(p.onEnd)await p.onEnd();api.ok();return false}return true}
+  bs.onclick=async()=>{if(busy)return;fb('');await one()};
+  ba.onclick=async()=>{if(busy)return;fb('');bs.disabled=ba.disabled=true;busy=true;try{while(i<steps.length-1){i++;show();const s=steps[i];if(s.fx)await s.fx();else{SND.tick(false);await S.sleep(260)}}}finally{busy=false}
+    bs.classList.add('did');bs.innerHTML='✓ Programme terminé';if(p.onEnd)await p.onEnd();api.ok()}};
+
+/* ---------- déroulé d'une question ---------- */
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;if(pi<Q.parts.length){const p=Q.parts[pi],box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:S.reduceM?'auto':'smooth'})}}
+const LV=[];
+function newQ(){Q=LV[lvl].qs[qi]();pi=0;errs=0;
+  S.badge(LV[lvl].badge||'');if(Q.setup)Q.setup();cap(Q.cap0||'&nbsp;');
+  $('prompt').innerHTML=Q.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  const box=partEl();W[Q.parts[0].t](Q.parts[0],box)}
+function dots(){const n=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:n},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){fb('');SND.win();run.push(errs===0);dots();
+  const n=LV[lvl].qs.length,lvlDone=run.length>=n;
+  $('winx').textContent=errs===0?N.pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):N.pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=Q.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(Q.onWin)Q.onWin();
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lnum=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lnum,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lnum||mode!=='game')return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:S.reduceM?'auto':'smooth'})};
+function goLevel(l){mode='game';lvl=l;qi=0;run=[];$('game').hidden=false;$('labv').hidden=true;
+  $('chap').textContent=`Échantillonnage · Niveau ${l+1} sur ${LV.length}`;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('cours').open=false;renderLv();newQ()}
+function renderLv(){const snd=S.sound.get();$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${mode==='game'&&i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<button type="button" class="labb" data-l="lab" aria-pressed="${mode==='lab'}">★ Mon labo</button><span class="sp"></span>`+
+  `<button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){S.sound.set(!S.sound.get());renderLv();SND.pop();return}
+  if(b.dataset.l==='lab'){mode='lab';$('game').hidden=true;$('labv').hidden=false;renderLv();window.CS_LAB.open();return}
+  goLevel(+b.dataset.l)});
+
+/* ---------- fabriques ---------- */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+const ch=(ask,list,o)=>Object.assign({t:'choice',ask,ch:list},o||{});
+const fill=(ask,tpl,b,why,o)=>Object.assign({t:'fill',ask,tpl,b,why},o||{});
+const OK=h=>({h,ok:true}),NO=(h,why)=>({h,why});
+const BR=r=>({r,sol:N.numT(r).replace(/ /g,'')});      // trou numérique (valeur exacte)
+const BW=(w,size)=>({w,sol:w[0],size});                     // trou en mots
+
+window.CS={start(){const m=/[?&]niveau=(\d)/.exec(location.search);goLevel(m?Math.min(+m[1]-1,LV.length-1):0)},
+  state:()=>{const p=Q&&Q.parts[pi];return{lvl,qi,nq:LV[lvl]&&LV[lvl].qs.length,busy,mode,pi,win:!$('win').hidden,
+    part:p?{t:p.t,sol:p.b?p.b.map(b=>b.sol):null,choices:p.ch?p.ch.map(c=>({ok:!!c.ok})):null}:null,scene:S.state()}},
+  LV,goLevel,renderLv,get mode(){return mode},set mode(v){mode=v}};
+return{LV,W,act,ch,fill,OK,NO,BR,BW,cap,MAKI,knorm,api,renderLv,setMode:v=>{mode=v}};
+})();
+
+</script>
+<script>
+/* ======================= COUP DE SONDE — les sept niveaux ======================= */
+(function(){
+'use strict';
+const N=window.CS_N,S=window.CS_S,G=window.CS_G,{LV,act,ch,fill,OK,NO,BR,BW,cap}=G;
+const {R,numH,numT,dec,fmtInt,frH,invRadH,INV,ri,pick,shuf,randint,binom,inBand,isqrt}=N;
+const half=R(1,2),third=R(1,3);
+const ph=r=>numH(r);                       // écriture HTML d'un rationnel
+const fH=(s,n)=>numH(R(s,n));
+const NAMES=['Inès','Malik','Nassim','Faïza','Anli','Zaïna','Kassim','Naïma','Yanis','Moinécha','Rayan','Soihira'];
+/* une répétition de chaque expérience (jeton : v = valeur tirée, ok = succès) */
+const EXP={
+  piece:()=>{const v=randint(0,1);return{v,ok:v===0}},
+  de16:()=>{const v=randint(1,6);return{v,ok:v===1||v===6}},
+  deNeutre:()=>({v:randint(1,6),ok:false}),
+  urne:()=>{const v=randint(1,10);return{v,ok:v<=3}},
+  sond:p=>()=>({v:0,ok:Math.random()*p.d<p.n})};
+const sample=(f,n)=>Array.from({length:n},f);
+const sOf=res=>res.filter(t=>t.ok).length;
+/* code Python du cours, coloré */
+const KW=/^(def|for|in|if|or|return|from|import)$/,FN=/^(randint|range|abs|sqrt|de|piece|estim)$/;
+function py(src){return src.split(/(\b[A-Za-z_]+\b|\b\d+\b)/).map(t=>KW.test(t)?`<span class="kw">${t}</span>`:FN.test(t)?`<span class="fn">${t}</span>`:/^\d+$/.test(t)?`<span class="nb">${t}</span>`:t.replace(/</g,'&lt;')).join('')}
+const DE=['from random import *','from math import *','','def de(n):','    s = 0','    for k in range(n):','        r = randint(1, 6)','        if r == 1 or r == 6:','            s = s + 1','    return(s / n)'];
+const PIECE=['def piece(n):','    s = 0','    for k in range(n):','        r = randint(0, 1)','        if r == 0:','            s = s + 1','    return(s / n)'];
+const ESTIM=['def estim(N, n):','    c = 0','    for k in range(N):','        f = de(n)','        if abs(f - 1/3) <= 1/sqrt(n):','            c = c + 1','    return(c / N)'];
+const ESTIMP=['def estim(N, n):','    c = 0','    for k in range(N):','        f = piece(n)','        if abs(f - 1/2) <= 1/sqrt(n):','            c = c + 1','    return(c / N)'];
+const codeH=(lines,mod)=>`<div class="code">${lines.map((l,j)=>`<div${mod&&mod.indexOf(j+1)>=0?' class="mod"':''}><b>${j+1}</b><span>${py(l)}</span></div>`).join('')}</div>`;
+const tbl=rows=>`<table class="tb"><thead><tr><th>n</th><th>f observée</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtInt(r[0])}</td><td class="k">${r[1]}</td></tr>`).join('')}</tbody></table>`;
+const sims=(p,n,N0)=>Array.from({length:N0},()=>binom(p,n));
+const fWhy=(n)=>v=>{const x=N.parse(v[v.length-1]);return (x&&x.n>x.d?'Une fréquence est toujours comprise entre 0 et 1. ':'')+`f = s / n&nbsp;: divise le nombre de succès s par la taille n = ${fmtInt(n)}.`};
+window.CS_L={EXP,py,DE,PIECE,ESTIM,ESTIMP,codeH};
+
+/* ===== Niveau 1 · L'échantillon ===== */
+LV.push({t:'Échantillon',badge:'Niveau 1 · L\'échantillon',
+ rule:`<p><b>Un échantillon de taille n est constitué de n répétitions indépendantes de la même expérience aléatoire.</b></p><p>Exemples du cours&nbsp;: 200 cartes à puce prélevées&nbsp;: échantillon de taille 200. Sonder 1 000 électeurs&nbsp;: taille 1 000. Lancer une pièce 50 fois&nbsp;: taille 50.</p><p>Sur la scène, chaque jeton est une répétition&nbsp;: la taille n, c'est le nombre de jetons.</p>`,
+ qs:[
+ ()=>{const n=pick([12,16,18,20,24,30]),res=sample(EXP.piece,n);
+  return{setup:()=>S.reset({mode:'tokens'}),cap0:'Une pièce équilibrée, prête à être lancée',
+   prompt:`Tu lances <b>${n} fois</b> la même pièce. Chaque lancer devient un jeton&nbsp;: <b>P</b> pour PILE, <b>F</b> pour FACE.`,
+   parts:[act(`Lancer la pièce ${n} fois`,async()=>{cap('Les lancers tombent, un par un…');await S.tokens('piece',res,{hideS:true});cap(`${n} jetons <span class="m">·</span> ${n} répétitions de la même expérience`)}),
+     fill('Quelle est la taille de cet échantillon&nbsp;?','n = {0}',[BR(R(n))],v=>`Compte les jetons de la scène&nbsp;: chacun est un lancer. Il y en a ${n}, pas ${v[0]}.`,{meta:{k:'n',n}})],
+   done:`${n} lancers de la même pièce, sans que l'un influence l'autre&nbsp;: c'est un <b>échantillon de taille ${n}</b>.`}},
+ ()=>{const C=pick([
+   ()=>{const n=pick([40,50,60]);return{n,txt:`On lance une pièce ${n} fois.`,kind:'piece',f:EXP.piece,L:[[2,'2, c\'est le nombre de faces de la pièce (PILE ou FACE), pas le nombre de répétitions.'],[n/2,`${n/2}, c'est la moitié des lancers. La taille compte <b>tous</b> les lancers.`]]}},
+   ()=>{const n=pick([30,60,90]);return{n,txt:`On lance un dé à 6 faces ${n} fois.`,kind:'de',f:EXP.deNeutre,L:[[6,'6, c\'est le nombre de faces du dé, pas le nombre de lancers.'],[n/6,`${n/6}, c'est ${n} divisé par 6&nbsp;: inutile ici, chaque lancer compte.`]]}},
+   ()=>{const n=pick([500,1000,2000]);return{n,txt:`On sonde ${fmtInt(n)} électeurs.`,kind:'sond',f:EXP.sond(R(1,2)),L:[[1,'On ne fait pas un seul sondage d\'une personne&nbsp;: chaque électeur interrogé est une répétition.'],[2,'2, c\'est le nombre de réponses possibles (oui ou non), pas le nombre de personnes interrogées.']]}},
+   ()=>{const n=pick([100,200,300]);return{n,txt:`On prélève ${n} cartes à puce dans la production d'une usine.`,kind:'sond',f:EXP.sond(R(1,10)),L:[[1,'Chaque carte prélevée est une répétition, pas l\'usine entière.'],[2,'2, c\'est le nombre d\'états possibles d\'une carte (bonne ou défectueuse), pas le nombre de cartes.']]}},
+   ()=>{const n=pick([20,30,40]);return{n,txt:`On tire ${n} fois une boule, avec remise, dans une urne de 10 boules.`,kind:'urne',f:EXP.urne,L:[[10,'10, c\'est le nombre de boules dans l\'urne. La taille, c\'est le nombre de tirages.'],[n+10,`On n'additionne pas les boules et les tirages&nbsp;: la taille, c'est le nombre de tirages.`]]}}])();
+  const n=C.n,shown=Math.min(n,100),res=sample(C.f,shown);
+  return{setup:()=>S.reset({mode:'tokens'}),cap0:'Quelle est la taille de l\'échantillon&nbsp;?',
+   prompt:`${C.txt}`,
+   parts:[ch('Quelle est la taille de l\'échantillon&nbsp;?',[OK(fmtInt(n))].concat(C.L.map(l=>NO(fmtInt(l[0]),l[1]))),{meta:{k:'taille',n,vals:[n].concat(C.L.map(l=>l[0]))}}),
+     act(n>100?'Voir l\'échantillon (aperçu)':'Voir l\'échantillon',async()=>{await S.tokens(C.kind,res,{hideS:true});S.count(n>100?`1 jeton = ${n/100} répétitions`:`n = ${fmtInt(n)}`);
+       cap(`Échantillon de taille <span class="k">${fmtInt(n)}</span>`)})],
+   done:`${C.txt.replace(/\.$/,'')}&nbsp;: <b>échantillon de taille ${fmtInt(n)}</b>, une répétition par ${C.kind==='piece'||C.kind==='de'?'lancer':C.kind==='urne'?'tirage':n<500?'carte':'personne'}.`}},
+ ()=>{const n=pick([20,25,30]),res=sample(EXP.urne,n);
+  return{setup:()=>S.reset({mode:'tokens'}),cap0:'Urne&nbsp;: 3 boules dorées et 7 boules bleues',
+   prompt:`Une urne contient 10 boules&nbsp;: 3 dorées et 7 bleues. On tire une boule, on note sa couleur, <b>on la remet</b>, et on recommence&nbsp;: <b>${n} tirages avec remise</b>.`,
+   parts:[act(`Faire les ${n} tirages`,async()=>{await S.tokens('urne',res,{sLab:'dorées'});cap(`${n} tirages <span class="m">· l'urne est la même à chaque fois</span>`)}),
+     fill('a) Taille de l\'échantillon&nbsp;:','n = {0}',[BR(R(n))],`Un tirage = une répétition&nbsp;: il y a ${n} tirages.`,{meta:{k:'n',n}}),
+     ch('b) Pourquoi les tirages sont-ils indépendants&nbsp;?',[OK('On remet la boule&nbsp;: l\'urne est la même à chaque tirage, un tirage n\'influence pas les suivants.'),
+       NO(`Parce qu'on fait ${n} tirages.`,'Le nombre de tirages donne la taille n, pas l\'indépendance. Ce qui compte&nbsp;: la boule est remise, l\'urne ne change pas.'),
+       NO('Parce que l\'urne contient des boules de deux couleurs.','Les couleurs ne disent rien sur l\'indépendance. Ce qui compte&nbsp;: la boule est remise, donc l\'urne est identique à chaque tirage.'),
+       NO('Parce qu\'on obtient toujours la même couleur.','Regarde la scène&nbsp;: les couleurs changent. Les tirages sont indépendants car on remet la boule.')],{meta:{k:'txt',id:'indep'}})],
+   done:`Avec remise, l'urne est identique avant chaque tirage&nbsp;: ${n} répétitions <b>indépendantes</b> de la même expérience, un échantillon de taille ${n}.`}},
+ ()=>{const n=pick([20,30,40]),res=sample(EXP.deNeutre,n);
+  return{setup:()=>S.reset({mode:'tokens'}),cap0:'Un échantillon, ou pas&nbsp;?',
+   prompt:`Laquelle de ces situations est un <b>échantillon de taille ${n}</b>&nbsp;?`,
+   parts:[ch('',[OK(`Lancer ${n} fois le même dé.`),
+       NO(`Lancer un dé ${n/2} fois, puis une pièce ${n/2} fois.`,'Ce n\'est pas la <b>même</b> expérience répétée&nbsp;: le dé et la pièce sont deux expériences différentes.'),
+       NO(`Tirer, sans remise, les ${n} boules d'une urne qui en contient ${n}.`,'Sans remise, l\'urne change à chaque tirage&nbsp;: les tirages ne sont pas indépendants (la dernière boule est même connue d\'avance).')],{meta:{k:'txt',id:'echant'}}),
+     act(`Lancer le dé ${n} fois`,async()=>{await S.tokens('de',res,{hideS:true});cap(`${n} lancers du même dé <span class="m">· indépendants</span>`)})],
+   done:`Même dé, ${n} lancers indépendants&nbsp;: un échantillon de taille ${n}.`}}
+ ]});
+
+/* ===== Niveau 2 · La fréquence ===== */
+LV.push({t:'Fréquence',badge:'Niveau 2 · Fréquence observée',
+ rule:`<p>Dans un échantillon de taille n, on compte le nombre s de succès. La <b>fréquence observée</b> est <b>f = s / n</b>&nbsp;: un nombre entre 0 et 1.</p><p>La <b>probabilité p</b> du succès, elle, ne dépend pas de l'échantillon. Exemple du cours&nbsp;: dé à 6 faces, gagner si le résultat est 1 ou 6&nbsp;: p = ${frH(1,3)}.</p><p>Sur la scène, chaque échantillon devient un point posé à l'abscisse f sur la règle.</p>`,
+ qs:[
+ ()=>{const n=pick([20,25]),res=sample(EXP.de16,n),s=sOf(res);
+  return{setup:()=>S.reset({mode:'tokens'}),cap0:'Dé à 6 faces&nbsp;: on gagne avec 1 ou 6',
+   prompt:`On lance un dé <b>${n} fois</b>. On gagne si le résultat est <b>1 ou 6</b>&nbsp;: ces dés-là s'allument en or.`,
+   parts:[act(`Lancer le dé ${n} fois`,async()=>{await S.tokens('de',res,{hideS:true});cap('Compte les dés dorés&nbsp;: ce sont les gains')}),
+     fill('Nombre de succès (gains)&nbsp;:','s = {0}',[BR(R(s))],`Compte seulement les dés dorés, ceux qui montrent 1 ou 6.`,{meta:{k:'n',n:s}}),
+     fill('Fréquence observée des gains (décimal ou fraction)&nbsp;:','f = {0}',[BR(R(s,n))],fWhy(n),{meta:{k:'f',s,n},onOk:async()=>{cap(`f = ${s} / ${n} = <span class="k">${fH(s,n)}</span>`);await S.fly(s,n)}})],
+   done:`s = ${s} gains sur n = ${n} lancers&nbsp;: f = ${s} / ${n} = <b>${fH(s,n)}</b>. Le point s'est posé à cette abscisse sur la règle.`}},
+ ()=>{const E=pick([{ev:'le résultat est 1 ou 6',fav:[1,6]},{ev:'le résultat est 6',fav:[6]},{ev:'le résultat est pair',fav:[2,4,6]},{ev:'le résultat est 5 ou 6',fav:[5,6]},{ev:'le résultat est au plus 4',fav:[1,2,3,4]},{ev:'le résultat est 1',fav:[1]}]);
+  const k=E.fav.length,p=R(k,6),pool=[R(1,6),R(1,3),R(1,2),R(2,3)].filter(x=>!N.eq(x,p));const L=shuf(pool).slice(0,2);
+  const why=x=>`${E.fav.length} face${k>1?'s':''} favorable${k>1?'s':''} (${E.fav.join(', ')}) sur 6 faces équiprobables&nbsp;: p = ${frH(k,6)}${k===1?'':' = '+ph(p)}, pas ${ph(x)}.`;
+  return{setup:()=>S.reset({mode:'rule'}),cap0:'La règle des fréquences, de 0 à 1',
+   prompt:`On lance un dé équilibré à 6 faces. On gagne si <b>${E.ev}</b>.`,
+   parts:[ch('Quelle est la probabilité p de gagner&nbsp;?',[OK(ph(p))].concat(L.map(x=>NO(ph(x),why(x)))).concat([NO(String(k),`${k}, c'est le nombre de faces favorables. Une probabilité est entre 0 et 1&nbsp;: p = ${frH(k,6)}.`)]),{meta:{k:'pde',fav:E.fav}}),
+     act('Placer p sur la règle',async()=>{S.setP(p);S.SND.whoosh();cap(`p = <span class="k">${ph(p)}</span> <span class="m">· la même pour tous les échantillons</span>`);await S.sleep(500)})],
+   done:`${k} face${k>1?'s':''} favorable${k>1?'s':''} sur 6&nbsp;: p = ${frH(k,6)}${k===1?'':' = '+ph(p)}. Ce nombre ne dépend d'aucun échantillon&nbsp;: c'est le repère doré de la règle.`}},
+ ()=>{const n=pick([40,50]),res=sample(EXP.piece,n),s=sOf(res);
+  return{setup:()=>S.reset({mode:'tokens',p:half}),cap0:'Pièce équilibrée&nbsp;: p = 0,5 pour PILE',
+   prompt:`Une pièce équilibrée est lancée <b>${n} fois</b>. Succès&nbsp;: obtenir PILE (P). La probabilité de PILE est p = ${frH(1,2)} = 0,5.`,
+   parts:[act(`Lancer la pièce ${n} fois`,async()=>{await S.tokens('piece',res,{sLab:'PILE'});cap(`${s} PILE sur ${n} lancers`)}),
+     fill('Fréquence observée de PILE&nbsp;:','f = {0}',[BR(R(s,n))],fWhy(n),{meta:{k:'f',s,n},onOk:async()=>{await S.fly(s,n)}}),
+     ch('Que peux-tu dire de f et de p&nbsp;?',[OK('f dépend de l\'échantillon, p non&nbsp;: f peut être proche de p sans lui être égale.'),
+       NO('f est toujours égale à p.','Relance la pièce&nbsp;: f change d\'un échantillon à l\'autre, alors que p = 0,5 reste fixe.'),
+       NO('p change à chaque nouvel échantillon.','p = 0,5 est fixée par la pièce elle-même&nbsp;: c\'est f qui dépend de l\'échantillon.'),
+       NO('f est toujours plus grande que p.','Rien n\'oblige f à dépasser p&nbsp;: selon l\'échantillon, f tombe d\'un côté ou de l\'autre de p.')],{meta:{k:'txt',id:'fp'}})],
+   done:`f = ${s} / ${n} = <b>${fH(s,n)}</b> pour cet échantillon&nbsp;; p = 0,5 pour la pièce. Deux nombres différents, à ne pas confondre.`}},
+ ()=>{const n=pick([40,50,80,100]),p=pick([R(3,5),R(7,10),R(13,20)]),res=sample(EXP.sond(p),n),s=sOf(res);const Qs=pick(['Écoutes-tu de la musique sur le trajet du lycée&nbsp;?','As-tu déjà regardé un match en entier sur ton téléphone&nbsp;?','Prends-tu un petit-déjeuner avant les cours&nbsp;?']);
+  return{setup:()=>S.reset({mode:'tokens'}),cap0:'Sondage au lycée',
+   prompt:`Sondage express au lycée&nbsp;: on interroge au hasard <b>${n} élèves</b>. Question&nbsp;: «&nbsp;${Qs}&nbsp;» Succès&nbsp;: répondre oui (en or).`,
+   parts:[act(`Interroger les ${n} élèves`,async()=>{await S.tokens('sond',res,{sLab:'oui'});cap(`${s} oui sur ${n} élèves`)}),
+     fill('Fréquence observée des «&nbsp;oui&nbsp;»&nbsp;:','f = {0}',[BR(R(s,n))],fWhy(n),{meta:{k:'f',s,n},onOk:async()=>{await S.fly(s,n)}})],
+   done:`f = ${s} / ${n} = <b>${fH(s,n)}</b>&nbsp;: la fréquence observée sur cet échantillon de taille ${n}.`}}
+ ]});
+
+/* ===== Niveau 3 · La pluie ===== */
+LV.push({t:'La pluie',badge:'Niveau 3 · Fluctuation',
+ rule:`<p>Deux échantillons de même taille donnent en général des fréquences différentes&nbsp;: la fréquence observée varie d'un échantillon à l'autre. C'est la <b>fluctuation d'échantillonnage</b>.</p><p>Sur la scène, chaque échantillon laisse un point à l'abscisse f&nbsp;: les points tombent en pluie, répartis autour de p.</p>`,
+ qs:[
+ ()=>{const n=20,R5=Array.from({length:5},()=>sample(EXP.piece,n)),ss=R5.map(sOf),mx=Math.max(...ss),mn=Math.min(...ss);
+  return{setup:()=>S.reset({mode:'tokens',p:half}),cap0:'Même pièce, même taille&nbsp;: n = 20',
+   prompt:`Cinq élèves lancent chacun la même pièce <b>20 fois</b>. Chaque échantillon donne sa fréquence de PILE.`,
+   parts:[act('Lancer les 5 échantillons',async()=>{for(let i=0;i<5;i++){cap(`Échantillon ${i+1} sur 5…`);await S.tokens('piece',R5[i],{sLab:'PILE'});await S.fly(ss[i],n)}
+       cap(ss.map(s=>fH(s,n)).join(' <span class="m">·</span> '))}),
+     fill('Lis les fréquences obtenues (sous la scène)&nbsp;:','plus grande&nbsp;: {0}<br>plus petite&nbsp;: {1}',[BR(R(mx,n)),BR(R(mn,n))],'Les cinq fréquences sont écrites sous la scène&nbsp;: repère la plus grande et la plus petite.',{meta:{k:'maxmin',ss,n}})],
+   done:`De ${fH(mn,n)} à ${fH(mx,n)}&nbsp;: même pièce, même taille, et pourtant des fréquences différentes. f <b>fluctue</b> d'un échantillon à l'autre.`}},
+ ()=>{const n=20,ss=sims(half,n,100);
+  return{setup:()=>S.reset({mode:'rule',p:half}),cap0:'Cette fois, 100 échantillons de taille 20',
+   prompt:`Et si toute la classe, et même tout le lycée, lançait la pièce 20 fois&nbsp;? Fais tomber <b>100 échantillons</b> de taille 20.`,
+   parts:[act('Faire tomber 100 échantillons',async()=>{await S.rain(ss.map(s=>({s,n})),{onLand:(k)=>S.count(`échantillons : ${k} / 100`)});cap('Chaque point est un échantillon de 20 lancers')}),
+     ch('Où les points sont-ils les plus nombreux&nbsp;?',[OK('Autour de p = 0,5.'),NO('Près de 0 et près de 1.','Regarde les piles de points&nbsp;: elles sont hautes au milieu, près du repère doré p = 0,5, et presque vides près de 0 et de 1.'),
+       NO('Partout pareil, de 0 à 1.','Les piles ne sont pas de même hauteur&nbsp;: elles montent autour de p = 0,5.')],{meta:{k:'txt',id:'pluie'}})],
+   done:`Les fréquences fluctuent, mais pas n'importe comment&nbsp;: la pluie se répartit autour de p = 0,5.`}},
+ ()=>{const [a,b]=shuf(NAMES.slice()).slice(0,2),n=20;let s1,s2;do{s1=ri(7,13);s2=ri(7,13)}while(s1===s2||s1===10||s2===10);
+  return{setup:()=>S.reset({mode:'rule',p:half}),cap0:'Deux échantillons de taille 20',
+   prompt:`${a} et ${b} lancent chacun une pièce équilibrée 20 fois. ${a} obtient f = ${fH(s1,n)}, ${b} obtient f = ${fH(s2,n)}.`,
+   parts:[act('Placer les deux points',async()=>{await S.rain([{s:s1,n},{s:s2,n}],{dur:900});cap(`${a}&nbsp;: ${fH(s1,n)} <span class="m">·</span> ${b}&nbsp;: ${fH(s2,n)}`)}),
+     ch('Qui s\'est trompé&nbsp;?',[OK('Personne&nbsp;: la fréquence fluctue d\'un échantillon à l\'autre.'),
+       NO(`${Math.abs(s1-10)>Math.abs(s2-10)?a:b}, car sa fréquence est la plus loin de 0,5.`,'Un échantillon de 20 lancers peut très bien donner une fréquence un peu éloignée de 0,5&nbsp;: c\'est la fluctuation, pas une erreur.'),
+       NO('Les deux, car f doit valoir exactement 0,5.','f n\'a aucune raison de valoir exactement p&nbsp;: elle dépend de l\'échantillon.')],{meta:{k:'txt',id:'personne'}})],
+   done:`Personne ne s'est trompé&nbsp;: deux échantillons, deux fréquences. C'est la fluctuation d'échantillonnage.`}},
+ ()=>{const n=100,p=R(2,5),r1=sample(EXP.sond(p),n),r2=sample(EXP.sond(p),n),s1=sOf(r1),s2=sOf(r2);const [a,b]=shuf(NAMES.slice()).slice(0,2);
+  return{setup:()=>S.reset({mode:'tokens'}),cap0:'Deux sondages de 100 jeunes',
+   prompt:`${a} et ${b} interrogent chacun <b>100 jeunes</b> pris au hasard dans la même ville&nbsp;: «&nbsp;Fais-tu du sport en club&nbsp;?&nbsp;»`,
+   parts:[act('Lancer les deux sondages',async()=>{cap(`Le sondage de ${a}…`);await S.tokens('sond',r1,{sLab:'oui'});await S.fly(s1,n);cap(`Le sondage de ${b}…`);await S.tokens('sond',r2,{sLab:'oui'});await S.fly(s2,n);
+       cap(`${a}&nbsp;: f = ${fH(s1,n)} <span class="m">·</span> ${b}&nbsp;: f = ${fH(s2,n)}`)}),
+     fill('Écart entre les deux fréquences (la plus grande moins la plus petite)&nbsp;:','écart = {0}',[BR(R(Math.abs(s1-s2),n))],v=>`Fais ${fH(Math.max(s1,s2),n)} − ${fH(Math.min(s1,s2),n)}.`,{meta:{k:'ecart',s1,s2,n}})],
+   done:s1===s2?`Même fréquence cette fois (${fH(s1,n)})&nbsp;: c'est possible, mais rare. En général, deux sondages donnent deux fréquences différentes.`:`Écart de ${fH(Math.abs(s1-s2),n)}&nbsp;: deux sondages honnêtes de même taille, deux résultats différents. C'est la fluctuation d'échantillonnage.`}}
+ ]});
+
+/* ===== Niveau 4 · La loi des grands nombres ===== */
+const NS4=[10,100,1000,10000];
+LV.push({t:'Grands nombres',badge:'Niveau 4 · Loi des grands nombres',
+ rule:`<p><b>Quand n devient grand, la fréquence observée f est le plus souvent proche de la probabilité p.</b></p><p>Exemple du cours, avec de(n) (gagner si 1 ou 6, p = ${frH(1,3)})&nbsp;:</p>${tbl([[10,'0,300'],[100,'0,310'],[1000,'0,327'],[10000,'0,334']])}<p>Sur la scène, une rangée par taille n&nbsp;: plus on descend, plus la pluie se resserre autour de p. «&nbsp;Le plus souvent&nbsp;», pas toujours&nbsp;: c'est le hasard.</p>`,
+ qs:[
+ ()=>{const rows=NS4.map(n=>({n,fs:sims(third,n,40)}));
+  return{setup:()=>S.reset({mode:'funnel',p:third,rows:NS4,bandShown:false}),cap0:'de(n)&nbsp;: gagner si 1 ou 6, p = 1/3',
+   prompt:`On simule <b>40 fois</b> de(n) pour chaque taille n = 10, 100, 1 000 et 10 000. Chaque point est la fréquence de gains d'un échantillon.`,
+   parts:[act('Lancer les 4 × 40 simulations',async()=>{await S.funnel(rows,{band:false,onRow:k=>cap(`n = ${fmtInt(NS4[k])} <span class="m">· 40 simulations</span>`)});cap('Plus n est grand, plus la pluie est serrée')}),
+     ch('Que remarques-tu quand n grandit&nbsp;?',[OK(`Les points se resserrent autour de p = ${frH(1,3)}.`),NO('Les points s\'écartent de p.','Compare la rangée du haut (n = 10) et celle du bas (n = 10 000)&nbsp;: en bas, les points sont tassés contre le repère doré.'),
+       NO(`Pour n = 10 000, tous les points tombent exactement sur ${frH(1,3)}.`,`Impossible&nbsp;: 10 000 n'est pas un multiple de 3, donc s / 10 000 ne vaut jamais exactement ${frH(1,3)}. Les points sont <b>proches</b> de p, pas dessus.`)],{meta:{k:'txt',id:'resserre'}})],
+   done:`C'est la <b>loi des grands nombres</b>&nbsp;: quand n devient grand, f est le plus souvent proche de p = ${frH(1,3)}.`}},
+ ()=>{const ss=NS4.map(n=>binom(half,n)),d0=R(Math.abs(2*ss[0]-10),20),d3=R(Math.abs(2*ss[3]-10000),20000);
+  const rows=NS4.map((n,k)=>({n,fs:[ss[k]]}));
+  return{setup:()=>S.reset({mode:'funnel',p:half,rows:NS4,bandShown:false}),cap0:'piece(n) pour n = 10, 100, 1 000, 10 000',
+   prompt:`On lance une pièce équilibrée n fois, pour n = 10, 100, 1 000 puis 10 000, et on note la fréquence de PILE.`,
+   parts:[act('Lancer les quatre échantillons',async()=>{await S.funnel(rows,{band:false,dur:700});cap(NS4.map((n,k)=>`${fH(ss[k],n)}`).join(' <span class="m">→</span> '))}),
+     fill(`Résultats&nbsp;:${tbl(NS4.map((n,k)=>[n,fH(ss[k],n)]))}Calcule l'écart |f − 0,5|&nbsp;:`,'pour n = 10&nbsp;: {0}<br>pour n = 10 000&nbsp;: {1}',[BR(d0),BR(d3)],'L\'écart |f − 0,5| est la distance entre f et 0,5&nbsp;: la plus grande des deux moins la plus petite.',{meta:{k:'dist',p:[1,2],ss:[ss[0],ss[3]],ns:[10,10000]}})],
+   done:N.cmp(d3,d0)<0?`L'écart passe de ${ph(d0)} à ${ph(d3)}&nbsp;: avec 10 000 lancers, f est bien plus proche de p.`:`Cette fois l'écart n'a pas diminué (${ph(d0)} puis ${ph(d3)})&nbsp;: la loi dit «&nbsp;le plus souvent&nbsp;», pas «&nbsp;toujours&nbsp;». Avec n = 10, tomber pile sur 0,5 arrive assez souvent.`}},
+ ()=>{const n=10000,ss=sims(half,n,30);
+  return{setup:()=>S.reset({mode:'rule',p:half}),cap0:'Pièce équilibrée&nbsp;: p = 0,5',
+   prompt:`Une pièce équilibrée est lancée <b>n = 10 000 fois</b>.`,
+   parts:[ch('Que prédit la loi des grands nombres&nbsp;?',[OK('La fréquence de PILE sera le plus souvent proche de 0,5.'),NO('On obtiendra exactement 5 000 fois PILE.','La loi ne promet pas de valeur exacte&nbsp;: elle dit «&nbsp;le plus souvent proche&nbsp;».'),
+       NO('La fréquence de PILE sera exactement 0,5.','«&nbsp;Proche&nbsp;», pas «&nbsp;égale&nbsp;»&nbsp;: f fluctue encore un peu, même pour n = 10 000.'),NO('La fréquence de PILE sera le plus souvent proche de 0.','p = 0,5&nbsp;: c\'est autour de 0,5 que f se concentre.')],{meta:{k:'txt',id:'lgn'}}),
+     act('Vérifier&nbsp;: 30 échantillons de 10 000 lancers',async()=>{await S.rain(ss.map(s=>({s,n})),{onLand:k=>S.count(`échantillons : ${k} / 30`)});cap('Un faisceau serré autour de 0,5')})],
+   done:`Trente échantillons de 10 000 lancers&nbsp;: tous les points se serrent près de 0,5, sans tomber pile dessus à chaque fois.`}},
+ ()=>{const base=pick([[20,200,2000,20000],[25,250,2500,25000],[50,500,5000,50000]]),big=base[3];const p=pick([half,third]);
+  const rows=base.map(n=>({n,fs:sims(p,n,30)}));
+  return{setup:()=>S.reset({mode:'funnel',p,rows:base,bandShown:false}),cap0:p===half?'Pièce équilibrée&nbsp;: p = 0,5':'de(n)&nbsp;: p = 1/3',
+   prompt:`Quatre échantillons de tailles différentes&nbsp;: n = ${base.map(fmtInt).join(', ')}.`,
+   parts:[ch('Lequel donne le plus souvent une fréquence proche de p&nbsp;?',[OK(`Celui de taille ${fmtInt(big)}.`)].concat(base.slice(0,3).map(n=>NO(`Celui de taille ${fmtInt(n)}.`,`Plus n est grand, plus f est le plus souvent proche de p&nbsp;: c'est le plus grand échantillon qui l'emporte, ${fmtInt(big)}.`))),{meta:{k:'nmax',ns:base}}),
+     act('Vérifier sur la scène',async()=>{await S.funnel(rows,{band:false,dur:1000});cap(`La rangée n = ${fmtInt(big)} est la plus serrée`)})],
+   done:`Plus l'échantillon est grand, plus sa fréquence est le plus souvent proche de p&nbsp;: n = ${fmtInt(big)} l'emporte.`}},
+ ()=>({setup:()=>S.reset({mode:'rule',p:third}),cap0:'La loi des grands nombres, en une phrase',
+   prompt:'Complète la propriété du cours.',
+   parts:[fill('','Quand n devient {0}, la fréquence observée f est le plus souvent proche de la probabilité {1}.',[BW(['grand','très grand','grande'],5),BW(['p'],2.6)],'Relis la rangée du bas de l\'entonnoir&nbsp;: c\'est quand n devient grand que f se rapproche de p.',{meta:{k:'lgnT'}})],
+   done:'Quand n devient grand, la fréquence observée f est le plus souvent proche de la probabilité p.'})
+ ]});
+
+/* ===== Niveau 5 · La bande ===== */
+const SQ=[25,100,400,2500,10000];
+LV.push({t:'La bande',badge:'Niveau 5 · La bande ±1/√n',
+ rule:`<p>Exemple du cours&nbsp;: pour n = 10 000, ${invRadH('10 000')} = ${frH(1,100)} = 0,01.</p><p><b><span class="nw">|f − p|</span></b> est l'écart entre la fréquence observée f et p. Dire que <b><span class="nw">|f − p|</span> ≤ ${INV}</b>, c'est dire que f est à au plus ${INV} de p&nbsp;: sur la règle, f tombe dans la bande dorée, de p − ${INV} à p + ${INV}.</p><p>Plus n est grand, plus ${INV} est petit&nbsp;: la bande rétrécit.</p>`,
+ qs:[
+ ()=>{const n=pick(SQ),m=isqrt(n),ss=sims(half,n,100);
+  return{setup:()=>S.reset({mode:'rule',p:half,color:'band'}),cap0:'Pièce équilibrée&nbsp;: p = 0,5',
+   prompt:`Échantillons de taille <b>n = ${fmtInt(n)}</b>. Calcule la demi-largeur de la bande.`,
+   parts:[fill('',`√<span class="rad">${fmtInt(n)}</span> = {0}, donc ${invRadH(fmtInt(n))} = {1}`,[BR(R(m)),BR(R(1,m))],v=>`${m} × ${m} = ${fmtInt(n)}, donc √${fmtInt(n)} = ${m}&nbsp;; puis 1 / ${m} = ${dec(R(1,m))}.`,{meta:{k:'rad',n},onOk:async()=>{await S.setBand(n);S.SND.whoosh();cap(`<span class="nw">|f − p|</span> ≤ <span class="k">${dec(R(1,m))}</span> <span class="m">· bande de ${dec(R(m-2,2*m))} à ${dec(R(m+2,2*m))}</span>`)}}),
+     act(`Faire tomber 100 échantillons de taille ${fmtInt(n)}`,async()=>{await S.rain(ss.map(s=>({s,n})),{color:'band',onLand:(k,i)=>S.count(`dans la bande : ${i} / ${k}`)});cap(`Les points dorés vérifient <span class="nw">|f − p|</span> ≤ ${dec(R(1,m))}`)})],
+   done:`Pour n = ${fmtInt(n)}&nbsp;: ${invRadH(fmtInt(n))} = ${frH(1,m)} = ${dec(R(1,m))}. La bande va de 0,5 − ${dec(R(1,m))} à 0,5 + ${dec(R(1,m))}.`}},
+ ()=>{const p=pick([R(3,10),R(2,5),R(1,2),R(3,5),R(7,10)]),n=pick([25,100,400]),m=isqrt(n),r=R(1,m),lo=N.sub(p,r),hi=N.add(p,r),ss=sims(p,n,100);
+  const ctx=pick([`Dans une ville, ${fmtInt(p.n*100/p.d)}&nbsp;% des jeunes ont un abonnement de bus&nbsp;: p = ${dec(p)}.`,`Une appli de quiz affirme que ${fmtInt(p.n*100/p.d)}&nbsp;% des lycéens trouvent la question du jour&nbsp;: p = ${dec(p)}.`]);
+  return{setup:()=>S.reset({mode:'rule',p,color:'band'}),cap0:`p = ${dec(p)}`,
+   prompt:`${ctx} On fait des sondages de <b>n = ${n}</b> jeunes&nbsp;: ${invRadH(n)} = ${dec(r)}.`,
+   parts:[fill('<span class="nw">|f − p|</span> ≤ '+dec(r)+' signifie que f est à au plus '+dec(r)+' de p.','La bande va de {0} à {1}.',[BR(lo),BR(hi)],v=>`Pars de p = ${dec(p)}&nbsp;: retire ${dec(r)} pour le bord gauche, ajoute ${dec(r)} pour le bord droit.`,{meta:{k:'bornes',p:[p.n,p.d],n},
+       onOk:async()=>{await S.setBand(n);cap(`Bande&nbsp;: de <span class="k">${dec(lo)}</span> à <span class="k">${dec(hi)}</span>`)}}),
+     act('Faire tomber 100 sondages',async()=>{await S.rain(ss.map(s=>({s,n})),{color:'band',onLand:(k,i)=>S.count(`dans la bande : ${i} / ${k}`)});cap(`La plupart des fréquences tombent entre ${dec(lo)} et ${dec(hi)}`)})],
+   done:`p − ${INV} = ${dec(p)} − ${dec(r)} = ${dec(lo)} et p + ${INV} = ${dec(p)} + ${dec(r)} = ${dec(hi)}.`}},
+ ()=>{const p=pick([R(3,10),R(2,5),R(1,2),R(3,5)]),n=pick([100,400]),m=isqrt(n),r=R(1,m);let res,s;
+  do{res=sample(EXP.sond(p),n);s=sOf(res)}while(Math.abs(s/n-p.n/p.d)>3/m);
+  const f=R(s,n),x=N.abs(N.sub(f,p)),ins=N.cmp(x,r)<=0,X=dec(x),RR=dec(r);
+  const wrongR=ins?dec(R(1,n)):String(m);
+  return{setup:()=>S.reset({mode:'tokens',p,band:n,color:'band'}),cap0:`p = ${dec(p)} <span class="m">·</span> n = ${n}`,
+   prompt:`Dans un grand lycée, la proportion d'élèves qui viennent en bus est p = ${dec(p)}. On interroge <b>${n} élèves</b> au hasard.`,
+   parts:[act(`Interroger les ${n} élèves`,async()=>{await S.tokens('sond',res,{sLab:'bus'});await S.fly(s,n);cap(`f = ${s} / ${n} = <span class="k">${dec(f)}</span>`)}),
+     ch(`Cet échantillon vérifie-t-il <span class="nw">|f − p|</span> ≤ ${INV}&nbsp;?`,[OK(ins?`Oui&nbsp;: <span class="nw">|f − p|</span> = ${X} et ${X} ≤ ${RR} = ${INV}.`:`Non&nbsp;: <span class="nw">|f − p|</span> = ${X} et ${X} > ${RR} = ${INV}.`),
+       NO(ins?`Non&nbsp;: <span class="nw">|f − p|</span> = ${X} et ${X} > ${wrongR} = ${INV}.`:`Oui&nbsp;: <span class="nw">|f − p|</span> = ${X} et ${X} ≤ ${wrongR} = ${INV}.`,`Attention&nbsp;: ${INV} = ${frH(1,'√'+n)} = ${frH(1,m)} = ${RR}, pas ${wrongR}.`),
+       NO(ins?'Non&nbsp;: f n\'est pas égale à p.':'Oui&nbsp;: f et p sont tous les deux entre 0 et 1.',ins?'On ne demande pas f = p, seulement que l\'écart <span class="nw">|f − p|</span> soit au plus '+INV+'.':`Ce n'est pas la question&nbsp;: il faut comparer l'écart <span class="nw">|f − p|</span> = ${X} à ${INV} = ${RR}.`)],{meta:{k:'verif',p:[p.n,p.d],s,n}})],
+   done:`<span class="nw">|f − p|</span> = |${dec(f)} − ${dec(p)}| = ${X}, et ${INV} = ${RR}&nbsp;: ${ins?`${X} ≤ ${RR}, le point est <b>dans</b> la bande.`:`${X} > ${RR}, le point est <b>hors</b> de la bande (cela arrive, rarement).`}`}},
+ ()=>{const [n1,n2]=pick([[25,100],[100,400],[400,1600],[2500,10000]]),m1=isqrt(n1),m2=isqrt(n2),ss=sims(half,n2,100);
+  return{setup:()=>{S.reset({mode:'rule',p:half,band:n1,color:'band'})},cap0:`n = ${fmtInt(n1)}&nbsp;: bande ± ${dec(R(1,m1))}`,
+   prompt:`On passe d'échantillons de taille <b>${fmtInt(n1)}</b> à des échantillons de taille <b>${fmtInt(n2)}</b>, 4 fois plus grands.`,
+   parts:[ch('La bande <span class="nw">|f − p|</span> ≤ '+INV+' devient…',[OK(`deux fois moins large&nbsp;: ${INV} passe de ${dec(R(1,m1))} à ${dec(R(1,m2))}.`),
+       NO(`quatre fois moins large&nbsp;: ${INV} passe de ${dec(R(1,m1))} à ${dec(R(1,4*m1))}.`,`Attention à la racine&nbsp;: √${fmtInt(n2)} = ${m2} = 2 × ${m1}. ${INV} est divisé par 2, pas par 4.`),
+       NO(`quatre fois plus large&nbsp;: ${INV} passe de ${dec(R(1,m1))} à ${dec(R(4,m1))}.`,`Quand n grandit, ${INV} diminue&nbsp;: la bande rétrécit.`)],{meta:{k:'x4',n1,n2},onOk:async()=>{await S.setBand(n2);cap(`n = ${fmtInt(n2)}&nbsp;: bande ± <span class="k">${dec(R(1,m2))}</span>`)}}),
+     act(`Faire tomber 100 échantillons de taille ${fmtInt(n2)}`,async()=>{await S.rain(ss.map(s=>({s,n:n2})),{color:'band',onLand:(k,i)=>S.count(`dans la bande : ${i} / ${k}`)})})],
+   done:`√${fmtInt(n2)} = ${m2} = 2 × √${fmtInt(n1)}&nbsp;: quatre fois plus de répétitions, une bande deux fois plus étroite.`}}
+ ]});
+
+/* ===== Niveau 6 · Dans 95&nbsp;% des cas ===== */
+LV.push({t:'95\u00a0% des cas',badge:'Niveau 6 · Dans 95\u00a0% des cas',
+ rule:`<p><b>Pour n assez grand, dans 95&nbsp;% des cas&nbsp;: <span class="nw">|f − p|</span> ≤ ${INV}.</b></p><p>Exemple&nbsp;: pour n = 10 000, ${INV} = 0,01. Sur N simulations, environ 95&nbsp;% vérifient <span class="nw">|f − p|</span> ≤ 0,01.</p><p>Sur la scène&nbsp;: point doré, dans la bande&nbsp;; point bleu, en dehors. Sur 100 points, environ 95 sont dorés.</p>`,
+ qs:[
+ ()=>{const n=pick([100,400,2500]),m=isqrt(n),ss=sims(half,n,100),c=ss.filter(s=>inBand(s,n,half)).length;
+  return{setup:()=>S.reset({mode:'rule',p:half,band:n,color:'band'}),cap0:`Pièce&nbsp;: p = 0,5 <span class="m">·</span> n = ${fmtInt(n)} <span class="m">·</span> ${INV} = ${dec(R(1,m))}`,
+   prompt:`On simule <b>N = 100</b> échantillons de taille n = ${fmtInt(n)} (pièce équilibrée). On compte c, le nombre d'échantillons qui vérifient <span class="nw">|f − p|</span> ≤ ${dec(R(1,m))}.`,
+   parts:[act('Lancer les 100 simulations',async()=>{await S.rain(ss.map(s=>({s,n})),{color:'band',onLand:(k,i)=>S.count(`dans la bande : ${i} / ${k}`)});cap(`<span class="k">${c}</span> points dorés sur 100`)}),
+     fill('Lis le compteur, puis calcule la proportion&nbsp;:','c = {0}, donc c / N = {1}',[BR(R(c)),BR(R(c,100))],v=>`c est le nombre de points dorés (compteur en haut à droite)&nbsp;; c / N = ${c} / 100.`,{meta:{k:'cN',c,N:100,ss,n}})],
+   done:`c / N = ${c} / 100 = ${fH(c,100)}, soit ${c}&nbsp;%. La propriété annonce environ 95&nbsp;%&nbsp;: ${Math.abs(c-95)<=3?'ta pluie colle bien.':'l\'écart vient du hasard, et 100 simulations, c\'est encore peu.'}`}},
+ ()=>{const N0=pick([200,300]),n=100,ss=sims(half,n,N0),q=R(95*N0,100);
+  return{setup:()=>S.reset({mode:'rule',p:half,band:n,color:'band'}),cap0:`n = 100 <span class="m">·</span> ${INV} = 0,1`,
+   prompt:`On va simuler <b>N = ${N0}</b> échantillons de taille 100. D'après la propriété du cours, combien vérifieront <span class="nw">|f − p|</span> ≤ 0,1&nbsp;?`,
+   parts:[fill('Prévision&nbsp;:',`environ {0} sur ${N0}`,[BR(q)],v=>`95&nbsp;% de ${N0}&nbsp;: 0,95 × ${N0}.`,{meta:{k:'n95',N:N0}}),
+     act(`Lancer les ${N0} simulations`,async()=>{let c=0;await S.rain(ss.map(s=>({s,n})),{color:'band',onLand:(k,i)=>{c=i;S.count(`dans la bande : ${i} / ${k}`)}});cap(`Prévu&nbsp;: environ ${q.n} <span class="m">·</span> obtenu&nbsp;: <span class="k">${c}</span>`)})],
+   done:`0,95 × ${N0} = ${q.n}&nbsp;: environ ${q.n} points dorés attendus. Le hasard donne un nombre proche, rarement exactement celui-là.`}},
+ ()=>{const n=pick([100,400,2500,10000]),m=isqrt(n),r=R(1,m),ss=sims(half,n,100);
+  return{setup:()=>S.reset({mode:'rule',p:half,band:n,color:'band'}),cap0:`n = ${fmtInt(n)}`,
+   prompt:`Pour n = ${fmtInt(n)}&nbsp;: ${invRadH(fmtInt(n))} = ${frH(1,m)} = ${dec(r)}. Comment interpréter ce nombre&nbsp;?`,
+   parts:[ch('',[OK(`Dans 95&nbsp;% des cas, f est à au plus ${dec(r)} de p.`),NO('Dans 95&nbsp;% des cas, f = p.',`On ne parle pas d'égalité&nbsp;: dans 95&nbsp;% des cas, l'écart <span class="nw">|f − p|</span> est au plus ${dec(r)}.`),
+       NO(`Dans tous les cas, f est à au plus ${dec(r)} de p.`,'Pas tous&nbsp;: environ 5&nbsp;% des échantillons tombent hors de la bande, ce sont les points bleus.'),
+       NO(`Dans 95&nbsp;% des cas, f est à au plus ${dec(R(1,n))} de p.`,`${dec(R(1,n))}, c'est 1 / n. La bande utilise ${INV} = ${dec(r)}.`)],{meta:{k:'interp',n}}),
+     act('Le vérifier avec 100 simulations',async()=>{await S.rain(ss.map(s=>({s,n})),{color:'band',onLand:(k,i)=>S.count(`dans la bande : ${i} / ${k}`)});cap('Quelques points bleus&nbsp;: les 5&nbsp;% hors de la bande')})],
+   done:`Pour n = ${fmtInt(n)}, dans 95&nbsp;% des cas, <span class="nw">|f − p|</span> ≤ ${dec(r)}&nbsp;: la fréquence observée est à au plus ${dec(r)} de p.`}},
+ ()=>{const n=pick([100,400,2500]),m=isqrt(n),ss=sims(third,n,100),c=ss.filter(s=>inBand(s,n,third)).length;
+  return{setup:()=>S.reset({mode:'rule',p:third,pLab:'p = 1/3',band:n,color:'band'}),cap0:'estim(N, n) compte les points dorés',
+   prompt:`Fonction du cours&nbsp;:${window.CS_L.codeH(window.CS_L.ESTIM)}`,
+   parts:[ch(`Que renvoie estim(1000, ${fmtInt(n)})&nbsp;? Une valeur proche de…`,[OK('0,95'),NO('950','950, ce serait c, le nombre de simulations dans la bande. La fonction renvoie c / N, une proportion.'),
+       NO(frH(1,3),`${frH(1,3)}, c'est p. estim compte les simulations qui vérifient <span class="nw">|f − p|</span> ≤ ${INV}&nbsp;: environ 95&nbsp;% d'entre elles.`),NO('0,05','0,05, c\'est la proportion de simulations <b>hors</b> de la bande. estim compte celles qui sont dedans.')],{meta:{k:'estim',N:1000,n}}),
+     act(`Exécuter estim(100, ${fmtInt(n)})`,async()=>{await S.rain(ss.map(s=>({s,n})),{color:'band',onLand:(k,i)=>S.count(`c = ${i} <span style="opacity:.6">· k = ${k}</span>`)});cap(`estim(100, ${fmtInt(n)}) renvoie c / N = <span class="k">${fH(c,100)}</span>`)})],
+   done:`estim(N, n) renvoie c / N, la proportion de simulations qui vérifient <span class="nw">|f − p|</span> ≤ ${INV}&nbsp;: environ 0,95.`}},
+ ()=>{const ns=[25,100,400,2500],rows=ns.map(n=>({n,fs:sims(half,n,60)}));
+  return{setup:()=>S.reset({mode:'funnel',p:half,rows:ns}),cap0:'L\'entonnoir&nbsp;: une bande par taille n',
+   prompt:'Le grand final&nbsp;: <b>60 simulations</b> pour chaque taille n = 25, 100, 400 et 2 500, avec la bande ±'+INV+' de chaque rangée.',
+   parts:[act('Lancer l\'entonnoir',async()=>{await S.funnel(rows,{color:'band',onRow:k=>cap(`n = ${fmtInt(ns[k])} <span class="m">·</span> ${INV} = ${dec(R(1,isqrt(ns[k])))}`),onLand:(k,l,i)=>S.count(`rangée n = ${fmtInt(ns[k])} : ${i} / ${l} dans la bande`)});cap('La bande rétrécit, la pluie suit')}),
+     fill('D\'après la propriété du cours&nbsp;:','Dans chaque rangée, environ {0}&nbsp;% des points sont dans la bande.',[BR(R(95))],'Relis la propriété&nbsp;: «&nbsp;dans 95&nbsp;% des cas, <span class="nw">|f − p|</span> ≤ 1/√n&nbsp;».',{meta:{k:'pct95'}})],
+   done:`Quelle que soit la taille n, environ 95&nbsp;% des points tombent dans la bande. Mais la bande, elle, rétrécit&nbsp;: plus n est grand, plus f est près de p.`}}
+ ]});
+
+/* ===== Niveau 7 · Le code ===== */
+function deSteps(n,rs){const st=[];let s=0;st.push({line:5,vars:{n,s:0}});
+  rs.forEach((r,k)=>{st.push({line:6,vars:{n,s,k}});st.push({line:7,vars:{n,s,k,r},fx:async()=>{S.tokPush({v:r,ok:r===1||r===6});await S.sleep(300)}});
+    const g=r===1||r===6;st.push({line:8,vars:{n,s,k,r},cap:`r = ${r}&nbsp;: ${g?'<span class="k">gagné</span>':'<span class="m">perdu</span>'}`});if(g){s++;st.push({line:9,vars:{n,s,k,r}})}});
+  st.push({line:10,vars:{n,s,'renvoie':numT(R(s,n))},fx:async()=>{await S.fly(s,n)}});return st}
+LV.push({t:'Le code',badge:'Niveau 7 · Fonctions Python',
+ rule:`<p>Lecture du cours&nbsp;: <b>randint(1, 6)</b>&nbsp;: entier aléatoire entre 1 et 6. <b>s</b>&nbsp;: nombre de gains. <b>s / n</b>&nbsp;: fréquence.</p><p><b>estim(N, n)</b>&nbsp;: c compte les simulations où <span class="nw">|f − p|</span> ≤ ${INV}&nbsp;; c / N est la proportion sur N simulations (≈ 95&nbsp;%).</p><p>abs(x)&nbsp;: valeur absolue. sqrt(n)&nbsp;: √n.</p>`,
+ qs:[
+ ()=>{const n=pick([4,5]),rs=Array.from({length:n},()=>randint(1,6)),s=rs.filter(r=>r===1||r===6).length;
+  return{setup:()=>S.tokStart('de',n),cap0:`de(${n})&nbsp;: ${n} lancers simulés`,
+   prompt:`On appelle <b>de(${n})</b>. Ligne 7, randint(1, 6) renvoie successivement <b>${rs.join(' ; ')}</b>.`,
+   parts:[fill('Prévois le résultat avant d\'exécuter&nbsp;:',`à la fin, s = {0} et de(${n}) renvoie {1}`,[BR(R(s)),BR(R(s,n))],v=>`s compte les r égaux à 1 ou à 6 dans ${rs.join(' ; ')}. Puis la fonction renvoie s / n = s / ${n}.`,{meta:{k:'trace',rs,n}}),
+     {t:'code',ask:'Vérifie en exécutant le programme&nbsp;:',lines:DE.map(py),steps:deSteps(n,rs)}],
+   done:`s = ${s} gains sur ${n} lancers&nbsp;: de(${n}) renvoie ${s} / ${n} = <b>${fH(s,n)}</b>.`}},
+ ()=>({setup:()=>S.reset({mode:'rule',p:third,pLab:'p = 1/3'}),cap0:'Lire et comprendre de(n)',
+   prompt:`Fonction du cours&nbsp;:${window.CS_L.codeH(DE,[8])}`,
+   parts:[ch('À quoi sert la ligne 8&nbsp;?',[OK('À tester si l\'on gagne&nbsp;: le résultat r vaut 1 ou 6.'),NO('À tirer un nouveau nombre au hasard.','C\'est le rôle de la ligne 7, avec randint(1, 6).'),NO('À calculer la fréquence.','La fréquence est calculée à la ligne 10&nbsp;: s / n.')],{meta:{k:'txt',id:'l8'}}),
+     ch('Que contient s à la fin de la boucle&nbsp;?',[OK('Le nombre de gains.'),NO('La fréquence des gains.','La fréquence, c\'est s / n, calculée à la ligne 10. s compte les gains&nbsp;: s = s + 1 à chaque gain.'),NO('Le dernier résultat du dé.','Le dernier résultat est dans r. s augmente de 1 à chaque gain.')],{meta:{k:'txt',id:'s'}})],
+   done:'Ligne 7&nbsp;: un lancer. Ligne 8&nbsp;: gagné&nbsp;? Ligne 9&nbsp;: on compte. Ligne 10&nbsp;: on renvoie la fréquence s / n.'}),
+ ()=>{const n=100,ss=sims(half,n,50);
+  return{setup:()=>S.reset({mode:'rule',p:half}),cap0:'piece(n)&nbsp;: randint(0, 1), on compte les 0',
+   prompt:`Exercice du cours&nbsp;:${window.CS_L.codeH(PIECE)}`,
+   parts:[ch('a) Que renvoie piece(100)&nbsp;?',[OK('La fréquence des 0 (PILE) sur 100 lancers&nbsp;: un nombre entre 0 et 1.'),NO('Le nombre de PILE obtenus sur 100 lancers.','Ce nombre, c\'est s. La fonction renvoie s / n, la fréquence.'),NO('Toujours 0,5.','piece(100) dépend du hasard&nbsp;: la fréquence fluctue d\'un appel à l\'autre.')],{meta:{k:'txt',id:'piece'}}),
+     act('Exécuter piece(100) 50 fois',async()=>{await S.rain(ss.map(s=>({s,n})),{onLand:k=>S.count(`appels : ${k} / 50`)});cap('50 appels, 50 fréquences autour de 0,5')}),
+     fill('b) Vers quelle valeur tend piece(n) pour n grand&nbsp;?','piece(n) tend vers {0}',[BR(half)],'r vaut 0 ou 1 avec la même probabilité&nbsp;: p = 1/2. Pour n grand, la fréquence est proche de p.',{meta:{k:'tend',p:[1,2]}})],
+   done:'piece(n) renvoie une fréquence&nbsp;; pour n grand, elle est le plus souvent proche de p = 0,5.'}},
+ ()=>({setup:()=>S.reset({mode:'rule',p:half,band:100,color:'band'}),cap0:'Adapter estim à une pièce',
+   prompt:`Fonction du cours&nbsp;:${window.CS_L.codeH(ESTIM,[4,5])}On veut l'adapter à une pièce (p = ${frH(1,2)}), avec la fonction piece(n).`,
+   parts:[fill('Complète les lignes à modifier&nbsp;:','ligne 4&nbsp;: f = {0}(n)<br>ligne 5&nbsp;: if abs(f - {1}) &lt;= 1/sqrt(n):',[BW(['piece'],5),BR(half)],'Ligne 4&nbsp;: on simule une pièce, donc piece(n). Ligne 5&nbsp;: on compare f à la nouvelle probabilité p = 1/2.',{meta:{k:'adapt'}})],
+   done:`Ligne 4&nbsp;: f = piece(n). Ligne 5&nbsp;: abs(f - 1/2) &lt;= 1/sqrt(n). Le reste ne change pas.`}),
+ ()=>{const n=100,Nn=4;let ss;do{ss=sims(half,n,Nn)}while(ss.some(s=>Math.abs(s-50)>16));const c=ss.filter(s=>Math.abs(s-50)<=10).length;
+  const steps=[{line:2,vars:{N:Nn,n,c:0}}];let cc=0;
+  ss.forEach((s,k)=>{steps.push({line:3,vars:{c:cc,k}});steps.push({line:4,vars:{c:cc,k,f:numT(R(s,n))},fx:async()=>{await S.rain([{s,n}],{dur:620,color:'band'})}});
+    const ok=Math.abs(s-50)<=10;steps.push({line:5,vars:{c:cc,k,f:numT(R(s,n))},cap:`|${numT(R(s,n))} − 0,5| = ${numT(R(Math.abs(s-50),100))} ${ok?'≤ 0,1 <span class="k">· compté</span>':'> 0,1 <span class="m">· pas compté</span>'}`});
+    if(ok){cc++;steps.push({line:6,vars:{c:cc,k,f:numT(R(s,n))}})}});
+  steps.push({line:7,vars:{c:cc,'renvoie':numT(R(c,Nn))}});
+  return{setup:()=>S.reset({mode:'rule',p:half,band:100,color:'band'}),cap0:'estim adaptée à la pièce&nbsp;: N = 4, n = 100',
+   prompt:`On appelle estim(4, 100), version pièce. Ligne 4, piece(100) renvoie successivement <b>${ss.map(s=>numT(R(s,n))).join(' ; ')}</b>. Ici ${INV} = ${invRadH(100)} = 0,1.`,
+   parts:[fill('Prévois avant d\'exécuter&nbsp;:','à la fin, c = {0} et estim(4, 100) renvoie {1}',[BR(R(c)),BR(R(c,Nn))],v=>`Pour chaque f, calcule |f − 0,5| et compare à 0,1 (≤ compte). Puis c / N = c / 4.`,{meta:{k:'estimT',ss,n,N:Nn}}),
+     {t:'code',ask:'Vérifie en exécutant le programme&nbsp;:',lines:ESTIMP.map(py),mod:[4,5],steps}],
+   done:`${c} fréquence${c>1?'s':''} sur 4 vérifie${c>1?'nt':''} |f − 0,5| ≤ 0,1&nbsp;: estim(4, 100) renvoie ${c} / 4 = <b>${fH(c,4)}</b>. Avec N grand, on trouverait environ 0,95.`}}
+ ]});
+})();
+
+</script>
+<script>
+/* ======================= COUP DE SONDE — Mon labo ======================= */
+window.CS_LAB=(function(){
+'use strict';
+const N=window.CS_N,S=window.CS_S,{R,dec,fmtInt,isqrt,inBand,binom,numT}=N,$=id=>document.getElementById(id),cap=window.CS_G.cap;
+const EXPS=[{id:'piece',t:'Pièce (PILE)',p:R(1,2)},{id:'de',t:'Dé : 1 ou 6',p:R(1,3)},{id:'six',t:'Dé : 6',p:R(1,6)},{id:'sond',t:'Sondage p = 0,4',p:R(2,5)},{id:'sond7',t:'Sondage p = 0,7',p:R(7,10)}];
+const NS=[25,100,400,2500,10000],NN=[20,100,200];
+let ex=EXPS[0],n=400,NB=100,busy=false;
+const seg=(id,list,cur,lab)=>{$(id).innerHTML=list.map((x,i)=>`<button type="button" data-i="${i}" aria-pressed="${x===cur}">${lab(x)}</button>`).join('')};
+function draw(){seg('lexp',EXPS,ex,x=>x.t);seg('ln',NS,n,fmtInt);seg('lN',NN,NB,fmtInt)}
+function stat(c,tot){const m=isqrt(n),r=R(1,m);$('lstat').innerHTML=`<div><b>${dec(r)}</b><span>1/√n pour n = ${fmtInt(n)}</span></div>`+
+  (tot?`<div><b>${c} / ${tot}</b><span>points dans la bande</span></div><div><b>${dec(R(Math.round(c*1000/tot),1000))}</b><span>proportion c / N</span></div>`:'')}
+function reset(){S.reset({mode:'rule',p:ex.p,pLab:'p = '+numT(ex.p),band:n,color:'band'});S.badge('Mon labo · '+ex.t);S.count('');stat(0,0);
+  cap(`${ex.t} <span class="m">·</span> n = ${fmtInt(n)} <span class="m">·</span> bande ± ${dec(R(1,isqrt(n)))}`)}
+async function rain(){if(busy)return;busy=true;$('lgo').disabled=$('lfun').disabled=true;reset();
+  const fs=Array.from({length:NB},()=>binom(ex.p,n));let c=0;
+  await S.rain(fs.map(s=>({s,n})),{color:'band',onLand:(k,i)=>{c=i;S.count(`dans la bande : ${i} / ${k}`)}});
+  c=fs.filter(s=>inBand(s,n,ex.p)).length;stat(c,NB);cap(`<span class="k">${c}</span> sur ${NB} dans la bande <span class="m">· environ 95&nbsp;% attendus</span>`);
+  busy=false;$('lgo').disabled=$('lfun').disabled=false}
+async function funnel(){if(busy)return;busy=true;$('lgo').disabled=$('lfun').disabled=true;S.reset({mode:'funnel',p:ex.p,pLab:'p = '+numT(ex.p),rows:NS});S.badge('Mon labo · l\'entonnoir');
+  const rows=NS.map(m=>({n:m,fs:Array.from({length:40},()=>binom(ex.p,m))}));
+  await S.funnel(rows,{color:'band',dur:1000,onRow:k=>cap(`n = ${fmtInt(NS[k])} <span class="m">·</span> bande ± ${dec(R(1,isqrt(NS[k])))}`),onLand:(k,l,i)=>S.count(`n = ${fmtInt(NS[k])} : ${i} / ${l} dans la bande`)});
+  cap('De n = 25 à n = 10 000&nbsp;: la bande rétrécit, la pluie se resserre autour de p');busy=false;$('lgo').disabled=$('lfun').disabled=false}
+function pickIn(id,list,set){$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;set(list[+b.dataset.i]);draw();reset()})}
+pickIn('lexp',EXPS,x=>{ex=x});pickIn('ln',NS,x=>{n=x});pickIn('lN',NN,x=>{NB=x});
+$('lgo').onclick=rain;$('lfun').onclick=funnel;
+return{open(){draw();reset()},state:()=>({busy,n,NB,ex:ex.id})};
+})();
+
+</script>
+<script>
+/* ======================= COUP DE SONDE — épreuves finales Bronze, Argent, Or ======================= */
+(function(){
+'use strict';
+const N=window.CS_N,{R,numH,numT,dec,fmtInt,frH,invRadH,INV,ri,pick,shuf,isqrt,ans,abs,sub,add,cmp}=N;
+const L=window.CS_L;
+const ph=r=>numH(r);
+const fH=(s,n)=>numH(R(s,n));
+/* question QCM : la bonne réponse en premier (le kit mélange l'affichage) */
+function qcm(level,prompt,good,bad,explain,meta){const ch=[good].concat(bad);
+  return{type:'qcm',level,prompt,choices:ch,answer:0,explain,meta}}
+function trous(level,prompt,blanks,explain,meta){return{type:'trous',level,prompt,blanks,explain,meta}}
+const BL=(r,size,extra)=>({answers:ans(r,extra),size:size||4});
+const BWd=(w,size)=>({answers:w,size:size||5});
+const plural=(k,s)=>k>1?s:'';
+
+/* ---------- briques partagées ---------- */
+const CTX=[
+  n=>({txt:`On lance une pièce ${fmtInt(n)} fois.`,bad:[[2,'2, c\'est le nombre de faces de la pièce'],[n/2,'la moitié des lancers ne suffit pas']]}),
+  n=>({txt:`On lance un dé à 6 faces ${fmtInt(n)} fois.`,bad:[[6,'6, c\'est le nombre de faces du dé'],[n/6,`${fmtInt(n/6)}, c'est ${fmtInt(n)} ÷ 6, sans rapport`]]}),
+  n=>({txt:`On interroge ${fmtInt(n)} jeunes choisis au hasard.`,bad:[[1,'chaque jeune interrogé est une répétition'],[2,'2, c\'est le nombre de réponses possibles (oui ou non)']]}),
+  n=>({txt:`On prélève au hasard ${fmtInt(n)} cartes à puce dans une production.`,bad:[[1,'chaque carte prélevée est une répétition'],[2,'2, c\'est le nombre d\'états d\'une carte (bonne ou défectueuse)']]})];
+function tailleQ(level,ns){const k=ri(0,3),n=pick(k===1?ns.filter(x=>x%6===0):ns.filter(x=>x%2===0)),C=CTX[k](n);
+  const bad=C.bad.filter(b=>b[0]!==n);
+  return qcm(level,`${C.txt} Quelle est la taille de l'échantillon&nbsp;?`,fmtInt(n),bad.map(b=>fmtInt(b[0])),
+    `Une répétition par ${k<2?'lancer':k===2?'jeune':'carte'}&nbsp;: la taille est n = ${fmtInt(n)} (${bad[0][1]}).`,{k:'taille',n,vals:[n].concat(bad.map(b=>b[0])),steps:1,mx:n})}
+const EVS=[{ev:'le résultat est 1 ou 6',fav:[1,6]},{ev:'le résultat est 6',fav:[6]},{ev:'le résultat est pair',fav:[2,4,6]},{ev:'le résultat est 5 ou 6',fav:[5,6]},
+  {ev:'le résultat est au plus 4',fav:[1,2,3,4]},{ev:'le résultat est 1',fav:[1]},{ev:'le résultat est un multiple de 3',fav:[3,6]},{ev:'le résultat est au moins 3',fav:[3,4,5,6]}];
+function pdeQ(level,nbad){const E=pick(EVS),k=E.fav.length,p=R(k,6);const pool=shuf([R(1,6),R(1,3),R(1,2),R(2,3)].filter(x=>!N.eq(x,p)));
+  const bad=pool.slice(0,nbad-1).map(ph).concat([String(k)]);
+  return qcm(level,`On lance un dé équilibré à 6 faces. On gagne si ${E.ev}. La probabilité p de gagner est&nbsp;:`,ph(p),bad,
+    `${k} face${plural(k,'s')} favorable${plural(k,'s')} (${E.fav.join(', ')}) sur 6&nbsp;: p = ${frH(k,6)}${k===1?'':' = '+ph(p)}. Une probabilité est entre 0 et 1.`,{k:'pde',fav:E.fav,steps:1,mx:6})}
+function freqT(level,n,s,ctx){const r=R(s,n);
+  return trous(level,`${ctx} La fréquence observée est f = {0}.`,[BL(r,4,[`${s}/${n}`])],`f = s / n = ${s} / ${fmtInt(n)} = ${ph(r)}.`,{k:'f',s,n,steps:1,mx:n})}
+function invQ(level){const n=pick([400,2500,625,1600,10000,100]),m=isqrt(n),r=R(1,m);
+  const bad=[[R(1,n),`1 / n = ${dec(R(1,n))} oublie la racine carrée`],[R(m),`${m}, c'est √n lui-même`],[R(10,m),'attention à la virgule']];
+  return qcm(level,`Pour n = ${fmtInt(n)}, la valeur de ${INV} est&nbsp;:`,dec(r),bad.map(b=>dec(b[0])),`√${fmtInt(n)} = ${m}, donc ${INV} = ${frH(1,m)} = ${dec(r)}.`,{k:'inv',n,steps:1,mx:n})}
+function verifQ(level,full){const p=pick([R(3,10),R(2,5),R(1,2),R(3,5),R(7,10)]),n=full?pick([400,625,2500]):pick([100,400]),m=isqrt(n),r=R(1,m);
+  let s;do{s=Math.round(n*p.n/p.d)+ri(-Math.ceil(1.6*n/m),Math.ceil(1.6*n/m))}while(Math.abs(s*p.d-p.n*n)*m===n*p.d&&!full);
+  const f=R(s,n),x=abs(sub(f,p)),ins=cmp(x,r)<=0,X=dec(x),RR=dec(r),wrongR=ins?dec(R(1,n)):String(m);
+  if(!full){
+    return qcm(level,`p = ${dec(p)}, n = ${fmtInt(n)} et la fréquence observée est f = ${dec(f)}. A-t-on <span class="nw">|f − p|</span> ≤ ${INV}&nbsp;?`,
+      ins?`Oui&nbsp;: <span class="nw">|f − p|</span> = ${X} et ${X} ≤ ${RR}`:`Non&nbsp;: <span class="nw">|f − p|</span> = ${X} et ${X} > ${RR}`,
+      [ins?`Non&nbsp;: <span class="nw">|f − p|</span> = ${X} et ${X} > ${wrongR}`:`Oui&nbsp;: <span class="nw">|f − p|</span> = ${X} et ${X} ≤ ${wrongR}`,ins?'Non&nbsp;: f n\'est pas égale à p':'Oui&nbsp;: f et p sont tous les deux entre 0 et 1'],
+      `<span class="nw">|f − p|</span> = |${dec(f)} − ${dec(p)}| = ${X} et ${INV} = ${frH(1,m)} = ${RR}&nbsp;: ${ins?`${X} ≤ ${RR}, donc oui.`:`${X} > ${RR}, donc non.`}`,{k:'verif',p:[p.n,p.d],s,n,steps:2,mx:n})}
+  const fw=R(s,n*10),xw=abs(sub(fw,p)),insw=cmp(xw,r)<=0;
+  return qcm(level,`Dans une ville, la proportion de jeunes inscrits dans un club de sport est p = ${dec(p)}. Sur ${fmtInt(n)} jeunes interrogés au hasard, ${fmtInt(s)} sont inscrits. Cet échantillon vérifie-t-il <span class="nw">|f − p|</span> ≤ ${INV}&nbsp;?`,
+    `${ins?'Oui':'Non'}&nbsp;: f = ${dec(f)}, <span class="nw">|f − p|</span> = ${X} ${ins?'≤':'>'} ${RR}`,
+    [`${ins?'Non':'Oui'}&nbsp;: f = ${dec(f)}, <span class="nw">|f − p|</span> = ${X} ${ins?'>':'≤'} ${wrongR}`,
+     `${insw?'Oui':'Non'}&nbsp;: f = ${dec(fw)}, <span class="nw">|f − p|</span> = ${dec(xw)} ${insw?'≤':'>'} ${RR}`,
+     ins?'Non&nbsp;: f n\'est pas égale à p':'Oui&nbsp;: f et p sont tous les deux entre 0 et 1'],
+    `f = ${fmtInt(s)} / ${fmtInt(n)} = ${dec(f)}, <span class="nw">|f − p|</span> = ${X} et ${INV} = ${frH(1,m)} = ${RR}&nbsp;: ${ins?`${X} ≤ ${RR}, donc oui.`:`${X} > ${RR}, donc non.`}`,{k:'verifF',p:[p.n,p.d],s,n,steps:3,mx:n})}
+function bornesT(level){const p=pick([R(3,10),R(2,5),R(1,2),R(3,5),R(7,10),R(9,20),R(11,20)]),n=pick([25,100,400,2500]),m=isqrt(n),r=R(1,m),lo=sub(p,r),hi=add(p,r);
+  return trous(level,`p = ${dec(p)} et n = ${fmtInt(n)}. L'inégalité <span class="nw">|f − p|</span> ≤ ${INV} signifie que f est comprise entre {0} et {1}.`,[BL(lo),BL(hi)],
+    `${INV} = ${dec(r)}&nbsp;: de ${dec(p)} − ${dec(r)} = ${dec(lo)} à ${dec(p)} + ${dec(r)} = ${dec(hi)}.`,{k:'bornes',p:[p.n,p.d],n,steps:2,mx:n})}
+function traceT(level,n){const rs=Array.from({length:n},()=>ri(1,6)),s=rs.filter(r=>r===1||r===6).length;
+  return trous(level,`On appelle de(${n}) (fonction du cours&nbsp;: gagner si r vaut 1 ou 6). randint(1, 6) renvoie successivement ${rs.join(' ; ')}. À la fin, s = {0} et la fonction renvoie {1}.`,
+    [BL(R(s),2.5),BL(R(s,n),4,[`${s}/${n}`])],`Gains (1 ou 6)&nbsp;: ${s}. La fonction renvoie s / n = ${s} / ${n} = ${fH(s,n)}.`,{k:'trace',rs,n,steps:2,mx:n})}
+function estimT(level,N0,n,edge){const m=isqrt(n),w=n/m;let ss;
+  do{ss=Array.from({length:N0},()=>n/2+ri(-Math.round(1.7*w),Math.round(1.7*w)))}while(edge&&!ss.some(s=>Math.abs(s-n/2)===w));
+  const c=ss.filter(s=>Math.abs(s-n/2)<=w).length;
+  return trous(level,`On appelle estim(${N0}, ${n}) adaptée à la pièce (ligne 4&nbsp;: f = piece(n)&nbsp;; ligne 5&nbsp;: abs(f - 1/2) &lt;= 1/sqrt(n)). piece(${n}) renvoie successivement ${ss.map(s=>numT(R(s,n))).join(' ; ')}. À la fin, c = {0} et la fonction renvoie {1}.`,
+    [BL(R(c),2.5),BL(R(c,N0),4,[`${c}/${N0}`])],`${INV} = ${dec(R(1,m))}&nbsp;: on compte les f avec |f − 0,5| ≤ ${dec(R(1,m))} (l'égalité compte). c = ${c}, et c / N = ${c} / ${N0} = ${fH(c,N0)}.`,{k:'estimT',ss,n,N:N0,steps:3,mx:n})}
+
+/* ---------- textes fixes (concepts) ---------- */
+const T={
+ def:l=>qcm(l,'Un échantillon de taille n est constitué de&nbsp;:','n répétitions indépendantes de la même expérience aléatoire',
+   ['n expériences aléatoires toutes différentes','une seule expérience, répétée jusqu\'au premier succès','n résultats tous identiques'],
+   'Définition du cours&nbsp;: n répétitions <b>indépendantes</b> de la <b>même</b> expérience aléatoire.',{k:'txt',id:'def',steps:1,mx:1}),
+ indep:l=>{const n=pick([20,30,40]);return qcm(l,`Une urne contient 10 boules. On fait ${n} tirages <b>avec remise</b>. Pourquoi ces tirages sont-ils indépendants&nbsp;?`,
+   'On remet la boule&nbsp;: l\'urne est la même à chaque tirage',[`Parce qu'on fait ${n} tirages`,'Parce que l\'urne contient 10 boules','Parce qu\'on obtient toujours la même boule'],
+   'Avec remise, l\'urne est identique avant chaque tirage&nbsp;: un tirage n\'influence pas les suivants.',{k:'txt',id:'indep',steps:1,mx:n})},
+ fluct:l=>{const n=pick([20,30,50]);return qcm(l,`Deux élèves lancent chacun une pièce équilibrée ${n} fois. Leurs fréquences de PILE&nbsp;:`,
+   'peuvent être différentes&nbsp;: f varie d\'un échantillon à l\'autre',['sont forcément égales','sont forcément égales à 0,5'],
+   'La fréquence observée fluctue d\'un échantillon à l\'autre&nbsp;: c\'est la fluctuation d\'échantillonnage.',{k:'txt',id:'fluct',steps:1,mx:n})},
+ fluctA:l=>{const n=pick([400,1000,2500]);let a,b;do{a=ri(45,55);b=ri(45,55)}while(a===b);return qcm(l,`Deux sondages de ${fmtInt(n)} personnes, dans la même ville et le même jour, donnent f = ${dec(R(a,100))} et f = ${dec(R(b,100))}. Que peut-on dire&nbsp;?`,
+   'C\'est normal&nbsp;: la fréquence fluctue d\'un échantillon à l\'autre',['L\'un des deux sondages est forcément faux','La proportion p a changé entre les deux sondages'],
+   'Deux échantillons différents donnent en général deux fréquences différentes&nbsp;: c\'est la fluctuation d\'échantillonnage.',{k:'txt',id:'fluctA',steps:1,mx:n})},
+ lgnq:l=>qcm(l,'Quand n devient grand, la fréquence observée f est le plus souvent proche de&nbsp;:','la probabilité p',['0','1','n'],
+   'Loi des grands nombres&nbsp;: quand n devient grand, f est le plus souvent proche de p.',{k:'txt',id:'lgnq',steps:1,mx:1}),
+ lgn:l=>{const d=Math.random()<.5;return d?qcm(l,'On lance un dé 10 000 fois et on gagne si le résultat est 1 ou 6. Que prédit la loi des grands nombres&nbsp;?',
+   `La fréquence des gains sera le plus souvent proche de ${frH(1,3)}`,[`La fréquence des gains sera exactement ${frH(1,3)}`,'On gagnera exactement 3 333 fois','La fréquence des gains sera le plus souvent proche de 0'],
+   `p = ${frH(1,3)}&nbsp;: pour n grand, f est le plus souvent <b>proche</b> de p, jamais garantie égale.`,{k:'txt',id:'lgnD',steps:1,mx:10000})
+   :qcm(l,'Une pièce équilibrée est lancée 10 000 fois. Que prédit la loi des grands nombres&nbsp;?','La fréquence de PILE sera le plus souvent proche de 0,5',
+   ['La fréquence de PILE sera exactement 0,5','On obtiendra exactement 5 000 fois PILE','La fréquence de PILE sera le plus souvent proche de 0'],
+   'Pour n grand, f est le plus souvent <b>proche</b> de p = 0,5&nbsp;: la loi ne promet pas de valeur exacte.',{k:'txt',id:'lgnP',steps:1,mx:10000})},
+ prop:l=>qcm(l,'Propriété du cours&nbsp;: pour n assez grand, dans 95&nbsp;% des cas&nbsp;:',`<span class="nw">|f − p|</span> ≤ ${INV}`,[`<span class="nw">|f − p|</span> ≥ ${INV}`,'f = p','<span class="nw">|f − p|</span> ≤ 1/n'],
+   `Dans 95&nbsp;% des cas, l'écart entre f et p est au plus ${INV}.`,{k:'txt',id:'prop',steps:1,mx:1}),
+ randint:l=>qcm(l,'En Python, randint(1, 6) renvoie&nbsp;:','un entier aléatoire entre 1 et 6',['un nombre décimal aléatoire entre 1 et 6','un entier aléatoire entre 1 et 5','la somme 1 + 2 + 3 + 4 + 5 + 6'],
+   'randint(a, b)&nbsp;: entier aléatoire dans [a ; b], bornes comprises.',{k:'txt',id:'randint',steps:1,mx:6}),
+ codeS:l=>qcm(l,`Dans la fonction de(n) du cours, que contient s à la fin de la boucle&nbsp;?${L.codeH(L.DE.slice(3))}`.replace(/<b>(\d+)<\/b>/g,(_,k)=>`<b>${+k+3}</b>`),'Le nombre de gains',['La fréquence des gains','Le dernier résultat du dé','La taille n'],
+   's augmente de 1 à chaque gain (ligne 9)&nbsp;: c\'est le nombre de gains. La fréquence, s / n, n\'est calculée qu\'à la ligne 10.',{k:'txt',id:'s',steps:1,mx:6}),
+ estimQ:l=>{const n=pick([100,400,2500]);return qcm(l,`La fonction estim(N, n) du cours compte, sur N simulations, celles qui vérifient <span class="nw">|f − p|</span> ≤ ${INV}, puis renvoie c / N. estim(1000, ${fmtInt(n)}) renvoie une valeur proche de&nbsp;:`,
+   '0,95',['950',frH(1,3),'0,05'],'Dans environ 95&nbsp;% des cas, <span class="nw">|f − p|</span> ≤ '+INV+'&nbsp;: c / N ≈ 0,95 (950, ce serait c).',{k:'estim',N:1000,n,steps:1,mx:1000})}};
+
+/* ===== Bronze · Les bases ===== */
+const BRONZE={
+ qcm:[()=>tailleQ(1,[20,30,40,50,60,100]),()=>T.def(1),()=>pdeQ(2,2),()=>T.fluct(3),()=>T.lgnq(4),()=>T.prop(6),()=>T.randint(7)],
+ trous:[
+  ()=>{const n=pick([100,200,500,1000]);return trous(1,`Sonder ${fmtInt(n)} électeurs&nbsp;: c'est un échantillon de taille {0}.`,[BL(R(n),4)],`Un électeur interrogé = une répétition&nbsp;: n = ${fmtInt(n)}.`,{k:'n',n,steps:1,mx:n})},
+  ()=>{const n=pick([10,20,25,50,100]),s=ri(Math.round(.3*n),Math.round(.7*n));return freqT(2,n,s,`Sur ${n} lancers d'une pièce, on obtient ${s} fois PILE.`)},
+  ()=>trous(2,'On lance une pièce équilibrée. La probabilité d\'obtenir PILE est p = {0}.',[BL(R(1,2))],'Deux faces équiprobables&nbsp;: p = 1/2 = 0,5.',{k:'val',v:[1,2],steps:1,mx:2}),
+  ()=>trous(4,'Quand n devient {0}, la fréquence observée f est le plus souvent proche de la probabilité p.',[BWd(['grand','très grand','grande'])],'Loi des grands nombres&nbsp;: quand n devient grand.',{k:'lgnT1',steps:1,mx:1}),
+  ()=>{const n=pick([100,10000,25]),m=isqrt(n);return trous(5,`Pour n = ${fmtInt(n)}, ${INV} = {0}.`,[BL(R(1,m))],`√${fmtInt(n)} = ${m}, donc ${INV} = 1 / ${m} = ${dec(R(1,m))}.`,{k:'inv',n,steps:1,mx:n})}]};
+
+/* ===== Argent · La maîtrise ===== */
+const ARGENT={
+ qcm:[()=>T.indep(1),()=>pdeQ(2,3),()=>T.fluctA(3),()=>T.lgn(4),
+  ()=>{const base=pick([[20,200,2000,20000],[25,250,2500,25000],[50,500,5000,50000],[10,100,1000,10000]]);
+    return qcm(4,`Quatre échantillons, de tailles ${base.map(fmtInt).join(', ')}. Lequel donne le plus souvent une fréquence proche de p&nbsp;?`,`Celui de taille ${fmtInt(base[3])}`,base.slice(0,3).map(n=>`Celui de taille ${fmtInt(n)}`),
+      'Plus n est grand, plus f est le plus souvent proche de p&nbsp;: le plus grand échantillon.',{k:'nmax',ns:base,steps:1,mx:base[3]})},
+  ()=>invQ(5),()=>verifQ(5,false),
+  ()=>{const n=pick([100,400,2500,10000]),m=isqrt(n),r=dec(R(1,m));return qcm(6,`Pour n = ${fmtInt(n)}, ${INV} = ${r}. Quelle interprétation est correcte&nbsp;?`,
+    `Dans 95&nbsp;% des cas, f est à au plus ${r} de p`,['Dans 95&nbsp;% des cas, f = p',`Dans tous les cas, f est à au plus ${r} de p`,`Dans 95&nbsp;% des cas, f est à au plus ${dec(R(1,n))} de p`],
+    `Dans 95&nbsp;% des cas, <span class="nw">|f − p|</span> ≤ ${r}&nbsp;: pas tous les cas, et sans égalité.`,{k:'interp',n,steps:1,mx:n})},
+  ()=>T.codeS(7),()=>T.estimQ(6)],
+ trous:[
+  ()=>{const n=pick([200,250,400,500,1000]),s=ri(Math.round(.3*n),Math.round(.7*n));return freqT(2,n,s,`On interroge ${fmtInt(n)} jeunes au hasard&nbsp;: ${fmtInt(s)} déclarent écouter de la musique chaque jour.`)},
+  ()=>bornesT(5),
+  ()=>{const N0=pick([200,300,400,500,1000,2000]);return trous(6,`On fait N = ${fmtInt(N0)} simulations d'échantillons de taille n assez grand. D'après la propriété du cours, environ {0} d'entre elles vérifient <span class="nw">|f − p|</span> ≤ ${INV}.`,[BL(R(95*N0,100))],
+    `95&nbsp;% de ${fmtInt(N0)}&nbsp;: 0,95 × ${fmtInt(N0)} = ${fmtInt(95*N0/100)}.`,{k:'n95',N:N0,steps:1,mx:N0})},
+  ()=>traceT(7,pick([4,5])),
+  ()=>{const d=Math.random()<.5;return d?trous(7,'Fonction piece(n) du cours (randint(0, 1), on compte les 0). Pour n grand, piece(n) tend vers {0}.',[BL(R(1,2))],'r vaut 0 ou 1 avec la même probabilité&nbsp;: p = 1/2 = 0,5.',{k:'tend',p:[1,2],steps:1,mx:2})
+    :trous(7,'Fonction de(n) du cours (gagner si r vaut 1 ou 6). Pour n grand, de(n) tend vers {0}.',[BL(R(1,3),4,['2/6'])],'2 faces favorables sur 6&nbsp;: p = 2/6 = 1/3.',{k:'tend',p:[1,3],steps:1,mx:6})},
+  ()=>trous(6,'La fonction estim(N, n) du cours renvoie c / N. Pour N et n grands, estim(N, n) renvoie environ {0}.',[{answers:['0,95','0.95','95%','19/20','0,950'],size:4}],'Dans 95&nbsp;% des cas, <span class="nw">|f − p|</span> ≤ '+INV+'&nbsp;: c / N ≈ 0,95.',{k:'estimT0',steps:1,mx:1})]};
+
+/* ===== Or · L'expert ===== */
+const OR={
+ qcm:[()=>verifQ(6,true),
+  ()=>{const m=pick([10,20,25,50,100]),r=R(1,m),n=m*m;const bad=[[m,`${m}, c'est √n`],[2*m,'']],sq=R(1,n);
+    return qcm(5,`Quelle taille n d'échantillon donne ${INV} = ${dec(r)}&nbsp;?`,fmtInt(n),[fmtInt(m),fmtInt(2*m),dec(sq)],
+      `${INV} = ${dec(r)} = 1 / ${m}, donc √n = ${m} et n = ${m} × ${m} = ${fmtInt(n)}.`,{k:'nfromr',m,steps:2,mx:n})},
+  ()=>{const k=pick([2,3,4,5,10]),k2=k*k;return qcm(5,`On multiplie par ${k2} la taille n des échantillons. La demi-largeur ${INV} de la bande est alors&nbsp;:`,
+    `divisée par ${k}`,[`divisée par ${k2}`,`multipliée par ${k}`,'inchangée'],`√(${k2} × n) = ${k} × √n, donc ${INV} est divisée par ${k}.`,{k:'xk',fac:k,steps:2,mx:k2})},
+  ()=>{const n=pick([1000,10000,2500,500]),base=Math.round(n/3),s=base+ri(1,Math.max(2,Math.round(n/1000)))*(Math.random()<.5?-1:1);
+    return qcm(4,`On lance ${fmtInt(n)} fois un dé et on gagne si le résultat est 1 ou 6 (p = ${frH(1,3)}). On obtient f = ${dec(R(s,n))}. Le dé est-il truqué&nbsp;?`,
+      `Rien ne le montre&nbsp;: pour n grand, f est le plus souvent proche de p, et s / ${fmtInt(n)} ne peut pas valoir exactement ${frH(1,3)}`,
+      [`Oui, car f n'est pas égale à ${frH(1,3)}`,`Oui, car il aurait fallu exactement ${fmtInt(base)} gains`,'Non, car f est toujours égale à p'],
+      `${fmtInt(n)} n'est pas un multiple de 3&nbsp;: aucune fréquence s / ${fmtInt(n)} n'est égale à ${frH(1,3)}. f = ${dec(R(s,n))} est proche de p&nbsp;: c'est ce que prévoit la loi des grands nombres.`,{k:'lgnExpl',n,s,steps:2,mx:n})},
+  ()=>{const C=pick([{c:'if r == 6:',fav:[6]},{c:'if r &lt;= 2:',fav:[1,2]},{c:'if r &gt;= 4:',fav:[4,5,6]},{c:'if r == 2 or r == 4 or r == 6:',fav:[2,4,6]},{c:'if r &gt;= 3:',fav:[3,4,5,6]}]),
+      k=C.fav.length,p=R(k,6),bad=shuf([R(1,6),R(1,3),R(1,2),R(2,3)].filter(x=>!N.eq(x,p))).slice(0,2).map(ph).concat([String(k)]);
+    return qcm(7,`Dans la fonction de(n) du cours, on remplace la ligne 8 par <code>${C.c}</code>. Pour n grand, de(n) renvoie le plus souvent une valeur proche de&nbsp;:`,ph(p),bad,
+      `Valeurs de r qui comptent&nbsp;: ${C.fav.join(', ')}, soit ${k} sur 6. p = ${frH(k,6)}${k===1?'':' = '+ph(p)}, et de(n) renvoie une fréquence, proche de p pour n grand.`,{k:'decode',fav:C.fav,steps:2,mx:6})},
+  ()=>{const p=pick([R(3,10),R(2,5),R(1,2),R(3,5)]),n=pick([100,400,2500]),m=isqrt(n),np=n*p.n/p.d;
+    return qcm(6,`Dans un grand lycée, la proportion d'élèves demi-pensionnaires est p = ${dec(p)}. On interroge ${fmtInt(n)} élèves au hasard. D'après la propriété du cours, dans 95&nbsp;% des cas, le nombre de demi-pensionnaires de l'échantillon est compris entre&nbsp;:`,
+      `${fmtInt(np-m)} et ${fmtInt(np+m)}`,[`${dec(sub(p,R(1,m)))} et ${dec(add(p,R(1,m)))}`,`${fmtInt(np-1)} et ${fmtInt(np+1)}`,`${dec(R(np*m-1,m))} et ${dec(R(np*m+1,m))}`],
+      `f est entre ${dec(p)} − ${dec(R(1,m))} et ${dec(p)} + ${dec(R(1,m))}&nbsp;; en nombre d'élèves (× ${fmtInt(n)})&nbsp;: entre ${fmtInt(np-m)} et ${fmtInt(np+m)}.`,{k:'sondChain',p:[p.n,p.d],n,steps:3,mx:n})},
+  ()=>{const [a,b]=pick([[25,2500],[16,1600],[100,10000],[25,10000]]);return qcm(3,`Pièce équilibrée. Un échantillon de taille ${fmtInt(a)} et un échantillon de taille ${fmtInt(b)}. Lequel a le plus de chances de donner une fréquence de PILE à plus de 0,1 de 0,5&nbsp;?`,
+    `Celui de taille ${fmtInt(a)}`,[`Celui de taille ${fmtInt(b)}`,'Les deux autant'],
+    `La fluctuation est plus forte pour les petits échantillons&nbsp;: pour n = ${fmtInt(b)}, dans 95&nbsp;% des cas, f est à au plus ${dec(R(1,isqrt(b)))} de 0,5.`,{k:'fluctOr',a,b,steps:2,mx:b})}],
+ trous:[
+  ()=>{const n=pick([400,625,2500]),m=isqrt(n),p=pick([R(2,5),R(1,2),R(3,10)]),s=Math.round(n*p.n/p.d)+ri(-n/m,n/m);
+    return trous(5,`Sondage&nbsp;: ${fmtInt(s)} jeunes sur ${fmtInt(n)} répondent oui. La fréquence observée est f = {0} et ${INV} = {1}.`,[BL(R(s,n),4,[`${s}/${n}`]),BL(R(1,m))],
+      `f = ${fmtInt(s)} / ${fmtInt(n)} = ${dec(R(s,n))}&nbsp;; √${fmtInt(n)} = ${m}, donc ${INV} = ${dec(R(1,m))}.`,{k:'chain',s,n,steps:2,mx:n})},
+  ()=>{const n=pick([100,400,2500]),m=isqrt(n),N0=pick([1000,2000,500]),p=pick([R(1,2),R(2,5),R(3,5)]);
+    return trous(6,`p = ${dec(p)} et n = ${fmtInt(n)}. On fait ${fmtInt(N0)} simulations. D'après la propriété du cours, environ {0} d'entre elles donnent une fréquence f comprise entre {1} et {2}.`,
+      [BL(R(95*N0,100)),BL(sub(p,R(1,m))),BL(add(p,R(1,m)))],`0,95 × ${fmtInt(N0)} = ${fmtInt(95*N0/100)}&nbsp;; ${INV} = ${dec(R(1,m))}, donc f entre ${dec(sub(p,R(1,m)))} et ${dec(add(p,R(1,m)))}.`,{k:'sims95',N:N0,p:[p.n,p.d],n,steps:3,mx:n})},
+  ()=>estimT(7,pick([4,5]),pick([100,400]),true),
+  ()=>trous(7,'Pour adapter la fonction estim du cours à une pièce, on écrit ligne 4&nbsp;: f = {0}(n) et ligne 5&nbsp;: if abs(f - {1}) &lt;= 1/sqrt(n):',[BWd(['piece'],5),BL(R(1,2))],
+    'Ligne 4&nbsp;: on simule une pièce avec piece(n). Ligne 5&nbsp;: p = 1/2.',{k:'adapt',steps:2,mx:2}),
+  ()=>traceT(7,pick([8,10])),
+  ()=>{const m=pick([20,25,50,100]);return trous(5,`Pour que ${INV} = ${dec(R(1,m))}, il faut n = {0}.`,[BL(R(m*m),4)],`${dec(R(1,m))} = 1 / ${m}&nbsp;: √n = ${m}, donc n = ${fmtInt(m*m)}.`,{k:'nfromrT',m,steps:2,mx:m*m})}]};
+
+/* tirage : 6 QCM + 4 trous distincts, mélangés */
+function build(B){const q=shuf(B.qcm.slice()).slice(0,6).map(f=>f()),t=shuf(B.trous.slice()).slice(0,4).map(f=>f());return shuf(q.concat(t))}
+window.CS_FIN={bronze:()=>build(BRONZE),argent:()=>build(ARGENT),or:()=>build(OR)};
+})();
+
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'coup-de-sonde',title:'Coup de Sonde',levels:7,
+  levelNames:['Échantillon','Fréquence','La pluie','Grands nombres','La bande','95 % des cas','Le code'],
+  music:'aventure',finals:{bronze:()=>(window.CS_lastFinal=CS_FIN.bronze()),argent:()=>(window.CS_lastFinal=CS_FIN.argent()),or:()=>(window.CS_lastFinal=CS_FIN.or())}});
+CS.start();
+(function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|INPUT|TEXTAREA|svg)$/i.test(n.nodeName)&&!(n.classList&&n.classList.contains('code')))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(fix)}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+
+</body>
+</html>
