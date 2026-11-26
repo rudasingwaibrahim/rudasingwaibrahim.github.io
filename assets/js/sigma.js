@@ -489,8 +489,18 @@
         ctx.lineWidth = 1.6;
         ctx.shadowColor = 'rgba(232,199,102,.6)'; ctx.shadowBlur = 12;
         ctx.beginPath();
-        fig.m.forEach(function (m, i) { if (i) ctx.lineTo(m.x, m.y); else ctx.moveTo(m.x, m.y); });
-        if (fig.closed) ctx.closePath();
+        if (fig.f.kind) {
+          /* Courbe exacte (y = x² ou y = sin x) tracée finement : les points de la constellation se posent dessus. */
+          for (var s = 0; s <= 60; s++) {
+            var u = s / 60, px, py;
+            if (fig.f.kind === 'para') { var v = -1 + 2 * u; px = fig.cx + v * fig.R * 1.2; py = fig.cy + fig.R * 0.9 - v * v * fig.R * 1.6; }
+            else { px = fig.cx - fig.R * 1.4 + u * fig.R * 2.8; py = fig.cy - Math.sin(u * Math.PI * 2) * fig.R * 0.6; }
+            if (s) ctx.lineTo(px, py); else ctx.moveTo(px, py);
+          }
+        } else {
+          fig.m.forEach(function (m, i) { if (i) ctx.lineTo(m.x, m.y); else ctx.moveTo(m.x, m.y); });
+          if (fig.closed) ctx.closePath();
+        }
         ctx.stroke();
         ctx.shadowBlur = 0;
         ctx.fillStyle = 'rgba(232,199,102,' + (0.9 * alpha).toFixed(3) + ')';
