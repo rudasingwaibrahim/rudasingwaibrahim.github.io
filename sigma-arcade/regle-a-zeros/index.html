@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La Règle à zéros · Sigma Arcade</title>
+<meta name="description" content="Logarithme décimal, Terminale technologique : log(b) est l'exposant x tel que 10^x = b. Sur une règle graduée en puissances de 10, chaque ×10 est un pas de même longueur ; multiplier, c'est mettre deux longueurs bout à bout.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours.
+   IDEA : une règle à calcul de nuit, graduée en puissances de 10 ; une réglette coulisse dessous.
+   PICTURE : chaque ×10 est un pas de même longueur (le log compte les zéros) ; deux longueurs mises bout à bout font un produit.
+   COLOUR and TYPE : nuit « océan profond », violet-bleu pour le curseur et l'action, or pour les logarithmes et les réussites,
+   bleu et lilas pour les longueurs additionnées ou retranchées ; Outfit.
+   LAYOUT : la règle et son bandeau à gauche (collés en haut sur téléphone), le carnet de calcul à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);--blue:#7fb2ff;--lil:#b79cff}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:74ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+sup{font-size:.7em;line-height:0;vertical-align:.62em}
+sub{font-size:.7em;line-height:0}
+
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.32fr) minmax(330px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:1000/560;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#050a16;user-select:none;-webkit-user-select:none}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg text{font-family:var(--sg-font)}
+.badge{position:absolute;left:10px;top:10px;z-index:2;font:600 13px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--mut);border:1px solid var(--soft);pointer-events:none;max-width:calc(100% - 170px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge:empty{display:none}
+.count{position:absolute;right:10px;top:10px;z-index:2;font:700 14px var(--sg-font);font-variant-numeric:tabular-nums;padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--gold2);border:1px solid rgba(200,168,75,.35);pointer-events:none;white-space:nowrap}
+.count:empty{display:none}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(17px,1.8vw,22px)/1.4 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .35em}
+.capt .g{color:var(--gold2)}.capt .b{color:var(--blue)}.capt .l{color:var(--lil)}.capt .m{color:var(--mut);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin:8px 0 0;font-size:14px;color:var(--mut)}
+.legend i{display:inline-block;width:18px;height:6px;border-radius:3px;margin-right:6px;vertical-align:2px}
+.legend .ln i{background:#f0f4ff;height:2px}.legend .lg i{background:var(--gold2)}.legend .lb i{background:var(--blue)}.legend .ll i{background:var(--lil)}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.55;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 18px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(18px,2vw,22px)/2.3 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.4em;height:46px;margin:0 3px;padding:0 6px;font:700 21px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+/* écritures */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.fill .fr{line-height:1.2}
+.sk-q .fr,.sk-ch .fr{font-size:.92em}
+.nw{white-space:nowrap}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .stage{aspect-ratio:560/440;max-height:38svh;margin:auto}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:15px;border-radius:10px}
+  .legend{display:none}
+  .count{top:auto;bottom:8px}
+}
+@media (max-width:520px){
+  .badge{display:none}
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .fill{font-size:18px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>La Règle à zéros</h1>
+<p>Une règle de nuit graduée en puissances de 10&nbsp;: chaque pas de ×10 a la même longueur, et cette longueur vaut 1 de logarithme. Compter les zéros, c'est mesurer&nbsp;; multiplier, c'est mettre deux longueurs bout à bout.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Règle logarithmique : en haut les nombres, en dessous, en or, leurs logarithmes">
+    <svg id="scene" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+    <span class="badge" id="badge"></span>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+  <div class="legend"><span class="ln"><i></i>en haut&nbsp;: les nombres</span><span class="lg"><i></i>en dessous&nbsp;: leurs logarithmes</span><span class="lb"><i></i>longueur ajoutée</span><span class="ll"><i></i>longueur retranchée</span></div>
+</div>
+<section class="panel" id="panel">
+  <div id="game">
+    <div class="chap" id="chap"></div>
+    <h2 id="lvt"></h2>
+    <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+    <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+    <div class="prompt" id="prompt"></div>
+    <div id="work"></div>
+    <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+    <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+      <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+  </div>
+</section>
+</main>
+<script>
+/* ======================= LA RÈGLE À ZÉROS — nombres et écritures ======================= */
+window.RZ_N=(function(){
+'use strict';
+const NB=' ';
+const grp=s=>s.replace(/\B(?=(\d{3})+(?!\d))/g,NB);
+function fmtInt(n){return (n<0?'−':'')+grp(String(Math.abs(n)))}
+/* écriture décimale exacte de m × 10^p (m entier) */
+function decStr(m,p){const ng=m<0;let s=String(Math.abs(m));
+  if(p>=0)return (ng?'−':'')+grp(s+'0'.repeat(p));
+  const q=-p;if(s.length<=q)s='0'.repeat(q-s.length+1)+s;
+  const ip=s.slice(0,s.length-q),fp=s.slice(s.length-q).replace(/0+$/,'');
+  return (ng?'−':'')+grp(ip)+(fp?','+fp:'')}
+const p10=k=>decStr(1,k);
+/* m unités de 10^−d, écrites avec exactement d décimales */
+function decM(m,d){const ng=m<0;const s=String(Math.abs(m)).padStart(d+1,'0');const ip=s.slice(0,s.length-d),fp=s.slice(s.length-d);
+  return (ng&&m!==0?'−':'')+grp(ip)+(d?','+fp:'')}
+const rnd=(x,d)=>Math.round(x*Math.pow(10,d));
+/* x n'est pas trop près d'une frontière d'arrondi à d décimales */
+const safe=(x,d)=>{const y=Math.abs(x)*Math.pow(10,d),f=y-Math.floor(y);return Math.abs(f-.5)>.04};
+const py=s=>String(s).replace(/[\s  ]/g,'').replace(/−/g,'-').replace(/,/g,'.');
+function parse(s){s=String(s).replace(/[\s  ]/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/^\+/,'');
+  let m=/^10\^\(?(-?\d+)\)?$/.exec(s);if(m)return Math.pow(10,+m[1]);
+  if(/^-?(\d+\.?\d*|\.\d+)$/.test(s))return parseFloat(s);
+  m=/^(-?\d+)\/(\d+)$/.exec(s);if(m&&+m[2])return (+m[1])/(+m[2]);return null}
+/* écritures acceptées pour une réponse numérique (sans espaces, décimales finales nulles facultatives) */
+function ansNum(s,extra){const t=String(s).replace(/[\s  ]/g,'');const out=[t];
+  if(t.indexOf(',')>=0){let u=t;while(/0$/.test(u)){u=u.slice(0,-1);if(/,$/.test(u)){u=u.slice(0,-1);out.push(u);break}out.push(u)}}
+  (extra||[]).forEach(x=>{if(out.indexOf(x)<0)out.push(x)});return out}
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const frH=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const sp=(b,e)=>`${b}<sup>${e}</sup>`;
+const neg=k=>k<0?'−'+(-k):String(k);
+const par=k=>k<0?'('+neg(k)+')':String(k);
+/* valeurs à retenir du cours, en millièmes */
+const LM={2:301,3:477,5:699,7:845};
+const LMs=k=>decM(LM[k],3);
+function given(ks){ks=ks.filter((k,i)=>ks.indexOf(k)===i);const t=ks.map(k=>`log(${k}) ≈ ${LMs(k)}`);
+  return 'On donne '+(t.length>1?t.slice(0,-1).join(', ')+' et '+t[t.length-1]:t[0])+'.'}
+return{NB,fmtInt,decStr,p10,decM,rnd,safe,py,parse,ansNum,ri,pick,shuf,frH,sp,neg,par,LM,LMs,given};
+})();
+</script>
+<script>
+/* ======================= LA RÈGLE À ZÉROS — la scène (règle, réglette, curseur, longueurs) ======================= */
+window.RZ_S=(function(){
+'use strict';
+const N=window.RZ_N,svg=document.getElementById('scene'),$=id=>document.getElementById(id);
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mq=matchMedia('(max-width:860px)');
+let W=1000,H=560,narrow=false;
+const C={gold:'#e8c766',gold2:'#f6dc8a',blue:'#7fb2ff',lil:'#b79cff',ink:'#f0f4ff',mut:'rgba(200,215,255,.62)',ac:'#6c8eff',ok:'#5fd27c',white:'rgba(240,244,255,.9)'};
+
+/* ---------- bruitages (interrupteur partagé avec le kit) ---------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null,lastT=0;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const SCALE=[0,2,4,7,9,12,14,16,19,21,24];
+const SND={
+  pop(){if(snd){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)}},
+  tick(i){if(!snd)return;const n=performance.now();if(n-lastT<40)return;lastT=n;tone(392*Math.pow(2,SCALE[(i||0)%SCALE.length]/12),.12,.04,'sine')},
+  slide(){if(snd){tone(294,.35,.025,'sine');tone(440,.3,.018,'sine',.1)}},
+  soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))}};
+const sound={get:()=>snd,set:v=>{snd=v;try{localStorage.setItem('sigma-fanfare',v?'1':'0')}catch(_){}}};
+
+/* ---------- état de la scène ---------- */
+const DEF=()=>({lo:-.5,hi:6.5,nlo:null,nhi:null,face:'num',cur:null,curLab:'',curLog:'',b:null,segs:[],hops:[],thr:null,pins:[],big:null,zones:false,hl:[]});
+let st=DEF(),token=0;
+function reset(o){token++;st=Object.assign(DEF(),o||{});if(st.nlo===null){st.nlo=st.lo;st.nhi=st.hi}badge('');count('');draw()}
+function set(o){Object.assign(st,o);draw()}
+function geo(){const n=narrow,yA=n?140:196,hb=n?20:22,lo=n&&st.nlo!==null?st.nlo:st.lo,hi=n&&st.nhi!==null?st.nhi:st.hi,x0=n?36:60,x1=W-(n?36:60);
+  return{n,yA,hb,lo,hi,x0,x1,ppu:(x1-x0)/(hi-lo),yT:yA-hb,yLog:yA+hb+(n?18:20),yCap:yA+hb+(n?54:60),ySeg:yA+(n?118:134),yB:yA+(n?200:214),yBig:yA+(n?200:236),fs:n?20:18}}
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+/* texte SVG avec exposants écrits ^{…} */
+function T(s,fs){const parts=String(s).split(/\^\{([^}]*)\}/);let h='',up=false;
+  parts.forEach((p,i)=>{if(i%2){h+=`<tspan dy="${(-.42*fs).toFixed(1)}" font-size="${(.7*fs).toFixed(1)}">${esc(p)}</tspan>`;up=true}
+    else if(p||up){h+=`<tspan${up?` dy="${(.42*fs).toFixed(1)}"`:''}>${esc(p)}</tspan>`;up=false}});return h}
+function tw(s,fs){const parts=String(s).split(/\^\{([^}]*)\}/);let w=0;parts.forEach((p,i)=>{w+=p.length*fs*(i%2?.42:.57)});return w}
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+function lab10(k,g){if(st.face==='db')return k===0?'1':k===1?'10':'10^{'+N.neg(k)+'}';
+  const lim=g.n?3:5;if(Math.abs(k)<=lim&&!(g.ppu<80&&Math.abs(k)>2))return N.p10(k);return '10^{'+N.neg(k)+'}'}
+const PRIO={2:1,5:2,3:3,4:4,6:5,7:6,8:7,9:8};
+function tickList(g,off){const out=[],e0=g.lo-off,e1=g.hi-off,eps=1e-9;
+  for(let k=Math.floor(e0)-1;k<=Math.ceil(e1)+1;k++){
+    if(k>=e0-eps&&k<=e1+eps)out.push({e:k+off,lv:0,lab:lab10(k,g),pr:0});
+    if(g.ppu>=24)for(let m=2;m<=9;m++){const e=k+Math.log10(m);if(e>=e0&&e<=e1)out.push({e:e+off,lv:1,lab:Math.abs(k)<=3&&st.face!=='db'?N.decStr(m,k):'',pr:PRIO[m]})}
+    if(g.ppu>=700)for(let j=11;j<=99;j++){if(j%10===0)continue;const e=k+Math.log10(j/10);if(e<e0||e>e1)continue;
+      if(Math.log10((j+1)/j)*g.ppu<7)continue;out.push({e:e+off,lv:2,lab:Math.abs(k)<=3&&st.face!=='db'?N.decStr(j,k-1):'',pr:20+(j%10===5?0:j%2?2:1)})}}
+  return out}
+function placeLabels(ts,g,X,fs){const placed=[];const order=ts.filter(t=>t.lab&&(t.lv===0||(t.lv===1&&g.ppu>=150)||t.lv===2)).sort((a,b)=>a.lv-b.lv||a.pr-b.pr||a.e-b.e);
+  order.forEach(t=>{const x=X(t.e),w=tw(t.lab,t.lv?fs-3:fs)+8;if(x<g.x0-30||x>g.x1+30)return;
+    if(placed.every(p=>Math.abs(p.x-x)>=(p.w+w)/2+4)){placed.push({x,w});t.show=true}})}
+function stepFor(g){const S=[1,.5,.2,.1,.05,.02,.01];for(const s of S)if(s*g.ppu<(g.n?62:72))return S[Math.max(0,S.indexOf(s)-1)];return .01}
+function fmtLog(v,s){const d=s>=1?0:s>=.1?1:2;let t=N.decM(Math.round(v*Math.pow(10,d)),d);if(t.indexOf(',')>=0)t=t.replace(/0+$/,'').replace(/,$/,'');return t==='−0'?'0':t}
+
+let bgKey='',bgStr='';
+function BG(){const k=W+'x'+H;if(k===bgKey)return bgStr;bgKey=k;let s='';
+  let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
+  for(let i=0;i<(narrow?34:60);i++){const x=rnd()*W,u=rnd(),y=u<.6?u/.6*H*.16:H*(.88+(u-.6)/.4*.11),r=.5+rnd()*1.1;s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}" fill="#fff" opacity="${(.15+rnd()*.45).toFixed(2)}"/>`}
+  bgStr=`<defs><linearGradient id="rzSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#030716"/><stop offset=".6" stop-color="#0a1530"/><stop offset="1" stop-color="#0f1d40"/></linearGradient>
+  <linearGradient id="rzA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d3463"/><stop offset="1" stop-color="#0d1a36"/></linearGradient>
+  <linearGradient id="rzB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#262a5c"/><stop offset="1" stop-color="#141634"/></linearGradient>
+  <radialGradient id="rzHalo" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#6c8eff" stop-opacity=".35"/><stop offset="1" stop-color="#6c8eff" stop-opacity="0"/></radialGradient>
+  <filter id="rzGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <clipPath id="rzClip"><rect x="${narrow?10:24}" y="0" width="${W-(narrow?20:48)}" height="${H}"/></clipPath></defs>
+  <rect width="${W}" height="${H}" fill="url(#rzSky)"/><g>${s}</g>
+  <ellipse cx="${W*.78}" cy="${H*.06}" rx="${W*.5}" ry="${H*.3}" fill="url(#rzHalo)" opacity=".5"/>`;return bgStr}
+
+function draw(){const g=geo(),X=e=>g.x0+(e-g.lo)*g.ppu,inV=e=>e>=g.lo-1e-6&&e<=g.hi+1e-6,fs=g.fs,yT=g.yT;let h=BG();
+  h+='<g clip-path="url(#rzClip)">';
+  /* zones de signe */
+  if(st.zones){const xz=clamp(X(0),g.x0-26,g.x1+26),top=yT-(g.n?70:84),bot=g.yLog+(g.n?28:30);
+    h+=`<rect x="${g.x0-26}" y="${top}" width="${Math.max(0,xz-g.x0+26)}" height="${bot-top}" fill="rgba(183,156,255,.10)"/><rect x="${xz}" y="${top}" width="${Math.max(0,g.x1+26-xz)}" height="${bot-top}" fill="rgba(127,178,255,.07)"/>`;
+    const yz=g.yBig-(g.n?6:10);
+    if(xz-g.x0>90)h+=`<text x="${(g.x0+xz)/2}" y="${yz}" text-anchor="middle" font-size="${fs+2}" font-weight="700" fill="${C.lil}">0 &lt; x &lt; 1 : log(x) &lt; 0</text>`;
+    if(g.x1-xz>90)h+=`<text x="${(xz+g.x1)/2}" y="${yz}" text-anchor="middle" font-size="${fs+2}" font-weight="700" fill="${C.blue}">x &gt; 1 : log(x) &gt; 0</text>`}
+  /* règle A */
+  h+=`<rect x="${g.x0-26}" y="${yT}" width="${g.x1-g.x0+52}" height="${2*g.hb}" rx="10" fill="url(#rzA)" stroke="rgba(120,160,255,.3)"/>`;
+  h+=`<path d="M${g.x0-20} ${yT+1.5}H${g.x1+20}" stroke="${C.gold}" stroke-opacity=".7" stroke-width="2"/>`;
+  const tA=tickList(g,0);placeLabels(tA,g,X,fs);
+  tA.forEach(t=>{const x=X(t.e);if(x<g.x0-24||x>g.x1+24)return;const len=t.lv===0?g.hb*1.2:t.lv===1?g.hb*.66:g.hb*.36;
+    h+=`<path d="M${x.toFixed(1)} ${yT}v${len.toFixed(1)}" stroke="${t.lv?'rgba(230,238,255,.62)':'#f0f4ff'}" stroke-width="${t.lv===0?2.2:t.lv===1?1.3:.9}"/>`;
+    if(t.show)h+=`<text x="${x.toFixed(1)}" y="${yT-10}" text-anchor="middle" font-size="${t.lv?fs-3:fs}" font-weight="${t.lv?500:700}" fill="${t.lv?'rgba(220,230,255,.78)':C.ink}">${T(t.lab,t.lv?fs-3:fs)}</text>`});
+  /* face des logarithmes (en or) */
+  h+=`<path d="M${g.x0-20} ${g.yLog}H${g.x1+20}" stroke="${C.gold}" stroke-opacity=".55" stroke-width="1.6"/>`;
+  const s=stepFor(g),j0=Math.ceil((g.lo-1e-9)/s),j1=Math.floor((g.hi+1e-9)/s);
+  for(let j=j0;j<=j1;j++){const v=j*s,x=X(v),major=Math.abs(v-Math.round(v))<1e-9;
+    h+=`<path d="M${x.toFixed(1)} ${g.yLog-5}v10" stroke="${C.gold2}" stroke-width="${major?2:1.2}"/>`;
+    const lab=st.face==='db'?(major?N.fmtInt(Math.round(10*v))+(s*g.ppu>=78?' dB':''):''):fmtLog(v,s);
+    if(lab)h+=`<text x="${x.toFixed(1)}" y="${g.yLog+(g.n?24:22)}" text-anchor="middle" font-size="${fs-3}" font-weight="${major?700:500}" fill="${C.gold2}" opacity="${major?1:.8}">${esc(lab)}</text>`}
+  /* seuil */
+  if(st.thr&&inV(st.thr.e)){const x=X(st.thr.e),top=yT-(g.n?92:104);
+    h+=`<path d="M${x} ${top+12}V${g.ySeg+14}" stroke="${C.gold2}" stroke-width="2" stroke-dasharray="6 6" opacity=".9"/>`;
+    const w=tw(st.thr.lab,fs-1)+20,cx=clamp(x,w/2+4,W-w/2-4);
+    h+=`<rect x="${cx-w/2}" y="${top-12}" width="${w}" height="26" rx="13" fill="rgba(200,168,75,.2)" stroke="${C.gold2}" stroke-width="1.2"/><text x="${cx}" y="${top+6}" text-anchor="middle" font-size="${fs-1}" font-weight="800" fill="${C.gold2}">${T(st.thr.lab,fs-1)}</text>`}
+  /* longueurs (piste additive) */
+  st.segs.forEach(sg=>{const y=g.ySeg+(sg.row||0)*(g.n?28:30),xa=X(sg.a),xb=X(sg.a+(sg.b-sg.a)*sg.p);if(sg.p<=0)return;
+    h+=`<path d="M${xa.toFixed(1)} ${y}H${xb.toFixed(1)}" stroke="${sg.col}" stroke-width="${sg.row?6:9}" stroke-linecap="round" opacity=".95"/>`;
+    if(sg.arrow&&sg.p>=1){const d=Math.sign(sg.b-sg.a)||1;h+=`<path d="M${xb+d*9} ${y}l${-d*11} -8v16z" fill="${sg.col}"/>`}
+    if(sg.p>=1&&sg.lab){const w=tw(sg.lab,fs-4);
+      if(sg.row){const r=Math.max(xa,xb),l=Math.min(xa,xb);
+        if(r+w+14<W-4)h+=`<text x="${(r+10).toFixed(1)}" y="${y+5}" text-anchor="start" font-size="${fs-4}" font-weight="700" fill="${sg.col}">${T(sg.lab,fs-4)}</text>`;
+        else if(l-w-14>4)h+=`<text x="${(l-10).toFixed(1)}" y="${y+5}" text-anchor="end" font-size="${fs-4}" font-weight="700" fill="${sg.col}">${T(sg.lab,fs-4)}</text>`;
+        else h+=`<text x="${((xa+xb)/2).toFixed(1)}" y="${y+(g.n?20:22)}" text-anchor="middle" font-size="${fs-4}" font-weight="700" fill="${sg.col}">${T(sg.lab,fs-4)}</text>`}
+      else if(Math.abs(xb-xa)>=w*.9||sg.force)h+=`<text x="${((xa+xb)/2).toFixed(1)}" y="${y-12}" text-anchor="middle" font-size="${fs-4}" font-weight="700" fill="${sg.col}">${T(sg.lab,fs-4)}</text>`}});
+  /* sauts (monde multiplicatif, au-dessus de la règle) */
+  st.hops.forEach(hp=>{if(hp.p<=0)return;const xa=X(hp.a),xb=X(hp.b),dx=xb-xa,base=yT-(g.n?30:34),hg=Math.min(g.n?52:72,10+Math.abs(dx)*.42),xm=(xa+xb)/2;
+    if(hp.dash)h+=`<path d="M${xa.toFixed(1)} ${base}Q${xm.toFixed(1)} ${(base-2*hg).toFixed(1)} ${xb.toFixed(1)} ${base}" fill="none" stroke="${hp.col}" stroke-width="2.2" stroke-dasharray="5 6" opacity="${hp.p}"/>`;
+    else h+=`<path d="M${xa.toFixed(1)} ${base}Q${xm.toFixed(1)} ${(base-2*hg).toFixed(1)} ${xb.toFixed(1)} ${base}" pathLength="1" stroke-dasharray="${hp.p.toFixed(3)} 2" fill="none" stroke="${hp.col}" stroke-width="2.4" stroke-linecap="round"/>`;
+    if(hp.p>=1){h+=`<circle cx="${xb.toFixed(1)}" cy="${base}" r="3.2" fill="${hp.col}"/>`;
+      if(hp.up&&Math.abs(dx)>=tw(hp.up,fs-3)+4)h+=`<text x="${xm.toFixed(1)}" y="${(base-hg-7).toFixed(1)}" text-anchor="middle" font-size="${fs-3}" font-weight="700" fill="${hp.col}">${T(hp.up,fs-3)}</text>`}});
+  /* réglette B */
+  if(st.b!==null){const yB=g.yB,bT=yB-g.hb;
+    h+=`<rect x="${g.x0-26}" y="${bT}" width="${g.x1-g.x0+52}" height="${2*g.hb}" rx="10" fill="url(#rzB)" stroke="rgba(183,156,255,.45)"/>`;
+    h+=`<path d="M${g.x0-20} ${bT+1.5}H${g.x1+20}" stroke="${C.lil}" stroke-opacity=".7" stroke-width="2"/>`;
+    const tB=tickList(g,st.b);placeLabels(tB,g,X,fs-1);
+    tB.forEach(t=>{const x=X(t.e);if(x<g.x0-24||x>g.x1+24)return;const len=t.lv===0?g.hb*1.2:t.lv===1?g.hb*.66:g.hb*.36;
+      h+=`<path d="M${x.toFixed(1)} ${bT}v${len.toFixed(1)}" stroke="${t.lv?'rgba(230,226,255,.6)':'#ece6ff'}" stroke-width="${t.lv===0?2.2:t.lv===1?1.3:.9}"/>`;
+      if(t.show)h+=`<text x="${x.toFixed(1)}" y="${yB+g.hb+(g.n?20:20)}" text-anchor="middle" font-size="${t.lv?fs-4:fs-1}" font-weight="${t.lv?500:700}" fill="${t.lv?'rgba(220,214,255,.75)':'#ece6ff'}">${T(t.lab,t.lv?fs-4:fs-1)}</text>`});
+    const x1=X(st.b);if(inV(st.b))h+=`<path d="M${x1} ${bT-2}l-7 -11h14z" fill="${C.gold2}"/>`}
+  /* repères */
+  st.hl.forEach(e=>{if(!inV(e))return;h+=`<circle cx="${X(e).toFixed(1)}" cy="${yT}" r="8" fill="none" stroke="${C.gold2}" stroke-width="2.4"/>`});
+  st.pins.forEach(p=>{if(!inV(p.e))return;const x=X(p.e),w=tw(p.lab,fs-3)+16,cx=clamp(x,w/2+2,W-w/2-2),col=p.col||C.gold2,yc=g.yCap+(p.row?(g.n?30:32):0);
+    h+=`<circle cx="${x.toFixed(1)}" cy="${g.yLog}" r="4.5" fill="${col}"/><path d="M${x.toFixed(1)} ${g.yLog}V${yc-12}" stroke="${col}" stroke-width="1.2" opacity=".7"/>`+
+      `<rect x="${(cx-w/2).toFixed(1)}" y="${yc-12}" width="${w.toFixed(1)}" height="24" rx="12" fill="rgba(10,22,40,.92)" stroke="${col}" stroke-width="1.2"/><text x="${cx.toFixed(1)}" y="${yc+5}" text-anchor="middle" font-size="${fs-3}" font-weight="700" fill="${col}">${T(p.lab,fs-3)}</text>`});
+  /* curseur */
+  if(st.cur!==null&&inV(st.cur)){const x=X(st.cur),top=yT-(g.n?46:50),bot=st.b!==null?g.yB+g.hb:g.yLog+8;
+    h+=`<path d="M${x.toFixed(1)} ${top+14}V${bot}" stroke="${C.ac}" stroke-width="2.6" filter="url(#rzGlow)"/>`;
+    h+=`<circle cx="${x.toFixed(1)}" cy="${g.yLog}" r="5" fill="${C.gold2}" stroke="#0a1628" stroke-width="1.5"/>`;
+    if(st.curLab){const f2=fs+1,w=tw(st.curLab,f2)+24,cx=clamp(x,w/2+4,W-w/2-4);
+      h+=`<rect x="${(cx-w/2).toFixed(1)}" y="${top-14}" width="${w.toFixed(1)}" height="28" rx="14" fill="#0a1628" stroke="${C.ac}" stroke-width="2"/><text x="${cx.toFixed(1)}" y="${top+6}" text-anchor="middle" font-size="${f2}" font-weight="800" fill="${C.ink}">${T(st.curLab,f2)}</text>`}
+    if(st.curLog){const f2=fs-1,w=tw(st.curLog,f2)+22,cx=clamp(x,w/2+4,W-w/2-4);
+      h+=`<rect x="${(cx-w/2).toFixed(1)}" y="${g.yCap-13}" width="${w.toFixed(1)}" height="26" rx="13" fill="rgba(200,168,75,.16)" stroke="${C.gold2}" stroke-width="1.4"/><text x="${cx.toFixed(1)}" y="${g.yCap+6}" text-anchor="middle" font-size="${f2}" font-weight="800" fill="${C.gold2}">${T(st.curLog,f2)}</text>`}}
+  h+='</g>';
+  /* le grand nombre : on voit ses zéros */
+  if(st.big){const f=g.n?42:54,y=g.yBig,txt=String(st.big.txt),lilac=/^0,/.test(txt);let t='';
+    for(const c of txt){t+=c==='0'?`<tspan fill="${lilac?C.lil:C.gold2}">0</tspan>`:esc(c)}
+    h+=`<text x="${W/2}" y="${y}" text-anchor="middle" font-size="${f}" font-weight="800" fill="${C.ink}" style="font-variant-numeric:tabular-nums">${t}</text>`;
+    if(st.big.sub)h+=`<text x="${W/2}" y="${y+(g.n?32:38)}" text-anchor="middle" font-size="${fs+2}" font-weight="600" fill="${C.mut}">${T(st.big.sub,fs+2)}</text>`}
+  svg.innerHTML=h}
+
+/* ---------- animations ---------- */
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+function tween(ms,f){const tk=token;return new Promise(res=>{if(reduceM||ms<=1){f(1);draw();res();return}const t0=performance.now();
+  (function step(now){if(tk!==token){res();return}const t=Math.min(1,Math.max(0,(now-t0)/ms));f(ease(t));draw();if(t<1)requestAnimationFrame(step);else res()})(t0)})}
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?0:ms));
+async function hop(a,b,o){o=o||{};const tk=token;const hp={a,b,up:o.up||'',col:o.col||C.gold,p:0,dash:!!o.dash};st.hops.push(hp);let sg=null;
+  if(o.low!==undefined){sg={a,b,col:o.scol||o.col||C.gold,lab:o.low,row:o.row||0,p:0};st.segs.push(sg)}
+  st.cur=a;await tween(o.ms||520,t=>{hp.p=t;if(sg)sg.p=t;st.cur=a+(b-a)*t});if(tk!==token)return;
+  if(o.lab!==undefined)st.curLab=o.lab;if(o.log!==undefined)st.curLog=o.log;SND.tick(o.i||0);draw()}
+async function moveCur(to,ms,lab,log){const tk=token,from=st.cur===null?to:st.cur;if(lab!==undefined)st.curLab='';await tween(ms||600,t=>{st.cur=from+(to-from)*t});if(tk!==token)return;
+  if(lab!==undefined)st.curLab=lab;if(log!==undefined)st.curLog=log;SND.tick(2);draw()}
+async function slide(to,ms){const from=st.b===null?0:st.b;st.b=from;SND.slide();await tween(ms||700,t=>{st.b=from+(to-from)*t})}
+async function grow(sg,ms){sg.p=0;st.segs.push(sg);await tween(ms||600,t=>{sg.p=t})}
+async function zoom(lo,hi,nlo,nhi,ms){const a=[st.lo,st.hi,st.nlo,st.nhi],b=[lo,hi,nlo,nhi];await tween(ms||700,t=>{st.lo=a[0]+(b[0]-a[0])*t;st.hi=a[1]+(b[1]-a[1])*t;st.nlo=a[2]+(b[2]-a[2])*t;st.nhi=a[3]+(b[3]-a[3])*t})}
+function badge(t){$('badge').textContent=t||''}
+function count(t){$('count').textContent=t||''}
+function resize(){narrow=mq.matches;W=narrow?560:1000;H=narrow?440:560;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);draw()}
+if(mq.addEventListener)mq.addEventListener('change',resize);else mq.addListener(resize);
+resize();
+return{C,SND,sound,reduceM,reset,set,draw,tween,sleep,hop,moveCur,slide,grow,zoom,badge,count,st:()=>st,get narrow(){return narrow},
+  state:()=>({cur:st.cur,b:st.b,hops:st.hops.length,segs:st.segs.length,narrow,lo:narrow?st.nlo:st.lo,hi:narrow?st.nhi:st.hi})};
+})();
+</script>
+<script>
+/* ======================= LA RÈGLE À ZÉROS — moteur des niveaux (questions en étapes) ======================= */
+window.RZ_G=(function(){
+'use strict';
+const N=window.RZ_N,S=window.RZ_S,SND=S.SND,$=id=>document.getElementById(id);
+const cap=h=>{$('capt').innerHTML='<span>'+(h||'&nbsp;')+'</span>'};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const knorm=s=>String(s).toLowerCase().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/[×*·]/g,'x').replace(/^\+/,'');
+const GAME='regle-a-zeros';
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,busy=false;
+function starsOf(i){try{const g=SigmaKit.passport().games[GAME];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function fb(html){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fb').hidden=false}
+const api={err(why){errs++;SND.soft();fb(why)},ok(){fb('');nextPart()}};
+const W={};
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);api.ok()}};
+W.choice=(p,box)=>{const idx=N.shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{if(busy)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){box.querySelectorAll('.opt').forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else{b.classList.add('ko');b.disabled=true;api.err(c.why)}})};
+const okBlank=(b,v)=>{if(b.w)return b.w.some(a=>knorm(a)===knorm(v));const x=N.parse(v);return x!==null&&Math.abs(x-b.v)<=1e-9*Math.max(1,Math.abs(b.v))};
+W.fill=(p,box)=>{
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const b=p.b[+i];return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-label="Case ${+i+1}" style="width:${b.size||Math.max(3.6,b.sol.length*.7+1.6)}em">`});
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+(p.hint?`<p class="hint">${p.hint}</p>`:'');
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=v.map((x,i)=>okBlank(p.b[+ins[i].dataset.i],x));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else api.err(typeof p.why==='function'?p.why(v,oks):p.why)};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;if(pi<Q.parts.length){const p=Q.parts[pi],box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:S.reduceM?'auto':'smooth'})}}
+const LV=[];
+function newQ(){Q=LV[lvl].qs[qi]();pi=0;errs=0;
+  if(Q.setup)Q.setup();S.badge(LV[lvl].badge||'');cap(Q.cap0||'&nbsp;');
+  $('prompt').innerHTML=Q.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  const box=partEl();W[Q.parts[0].t](Q.parts[0],box)}
+function dots(){const n=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:n},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){fb('');SND.win();run.push(errs===0);dots();
+  const n=LV[lvl].qs.length,lvlDone=run.length>=n;
+  $('winx').textContent=errs===0?N.pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):N.pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=Q.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(Q.onWin)Q.onWin();
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lnum=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lnum,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lnum)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:S.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];
+  $('chap').textContent=`Logarithme décimal · Niveau ${l+1} sur ${LV.length}`;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('cours').open=false;renderLv();newQ()}
+function renderLv(){const snd=S.sound.get();$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){S.sound.set(!S.sound.get());renderLv();SND.pop();return}
+  goLevel(+b.dataset.l)});
+
+/* ---------- fabriques ---------- */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+const ch=(ask,list,o)=>Object.assign({t:'choice',ask,ch:list},o||{});
+const fill=(ask,tpl,b,why,o)=>Object.assign({t:'fill',ask,tpl,b,why},o||{});
+const OK=h=>({h,ok:true}),NO=(h,why)=>({h,why});
+const BI=n=>({v:n,sol:String(n)});                                   // trou : entier
+const BD=s=>({v:N.parse(s),sol:String(s).replace(/[\s  ]/g,'')});  // trou : décimal écrit
+const BW=(w,size)=>({w,sol:w[0],size});
+
+window.RZ={start(){const m=/[?&]niveau=(\d)/.exec(location.search);goLevel(m?Math.max(0,Math.min(+m[1]-1,LV.length-1)):0)},
+  state:()=>{const p=Q&&Q.parts[pi];return{lvl,qi,nq:LV[lvl]&&LV[lvl].qs.length,busy,pi,win:!$('win').hidden,
+    part:p?{t:p.t,sol:p.b?p.b.map(b=>b.sol):null,choices:p.ch?p.ch.map(c=>({ok:!!c.ok})):null}:null,scene:S.state()}},
+  LV,goLevel,renderLv};
+return{LV,W,act,ch,fill,OK,NO,BI,BD,BW,cap,MAKI,knorm,api,renderLv};
+})();
+</script>
+<script>
+/* ======================= LA RÈGLE À ZÉROS — les sept niveaux ======================= */
+(function(){
+'use strict';
+const N=window.RZ_N,S=window.RZ_S,G=window.RZ_G,{LV,act,ch,fill,OK,NO,BI,BD,cap}=G;
+const {fmtInt,decStr,decM,p10,ri,pick,shuf,frH,sp,neg,par,LM,LMs,given,py,safe,rnd}=N;
+const lg=Math.log10,C=S.C,SND=S.SND,st=()=>S.st();
+const supT=k=>'10^{'+neg(k)+'}';
+const lab10=k=>Math.abs(k)<=5?p10(k):supT(k);
+const LOGT=x=>`log(${x})`;
+const fracLog=(b,a)=>frH(LOGT(b),LOGT(a));
+const distinct=(vals,eps)=>vals.every((v,i)=>vals.every((w,j)=>i===j||Math.abs(v-w)>(eps||1e-3)));
+
+/* animations réutilisées */
+async function hopsFrom(e0,n,step,o){for(let j=0;j<n;j++){const a=e0+j*step,b=a+step;
+  await S.hop(a,b,{up:o.up,low:o.low,col:o.col,scol:o.scol,lab:o.lab?o.lab(j+1):undefined,log:o.log?o.log(j+1):undefined,i:j,ms:o.ms||520});if(o.each)o.each(j+1)}}
+async function prodAnim(a,b,o){const la=lg(a),lb=lg(b);S.set({b:0,cur:0,curLab:'1',curLog:'',segs:[],hops:[],hl:[]});
+  const s1={a:0,b:la,col:C.blue,lab:`log(${o.A})`,row:0,p:0};st().segs.push(s1);SND.slide();
+  await S.tween(900,t=>{s1.p=t;st().b=la*t;st().cur=la*t});S.set({curLab:String(o.A)});SND.tick(1);
+  cap(`La réglette a glissé de <span class="b">log(${o.A})</span> : son 1 est sous ${o.A}.`);
+  const s2={a:la,b:la+lb,col:C.gold,lab:`log(${o.B})`,row:0,p:0};st().segs.push(s2);
+  await S.tween(900,t=>{s2.p=t;st().cur=la+lb*t});S.set({curLab:String(o.AB),hl:[la+lb]});SND.tick(4);
+  const s3={a:0,b:la+lb,col:C.white,lab:`log(${o.AB})`,row:1,p:0};st().segs.push(s3);
+  await S.tween(500,t=>{s3.p=t});
+  cap(`<span class="b">log(${o.A})</span> + <span class="g">log(${o.B})</span> = log(${o.AB})`)}
+async function quotAnim(a,b,o){const la=lg(a),lb=lg(b);S.set({b:null,cur:0,curLab:'1',curLog:'',segs:[],hops:[],hl:[]});
+  const s1={a:0,b:la,col:C.blue,lab:`log(${o.A})`,row:0,p:0};st().segs.push(s1);
+  await S.tween(800,t=>{s1.p=t;st().cur=la*t});S.set({curLab:String(o.A),b:0});SND.tick(1);
+  await S.slide(la-lb,800);cap(`On place ${o.B} de la réglette sous ${o.A}.`);
+  const s2={a:la,b:la-lb,col:C.lil,lab:`−log(${o.B})`,row:1,p:0,arrow:true};st().segs.push(s2);
+  await S.tween(800,t=>{s2.p=t;st().cur=la-lb*t});S.set({curLab:String(o.Q),hl:[la-lb]});SND.tick(4);
+  cap(`<span class="b">log(${o.A})</span> − <span class="l">log(${o.B})</span> = log(${o.Q})`)}
+
+/* ================= NIVEAU 1 · Compter les zéros ================= */
+LV.push({t:'Compter les zéros',badge:'Niveau 1 · Compter les zéros',
+rule:`<p><b>Définition.</b> Pour tout b &gt; 0, le logarithme décimal de b, noté log(b), est l'unique solution de l'équation 10<sup>x</sup> = b&nbsp;: <b>10<sup>x</sup> = b ⟺ x = log(b)</b>.</p>
+<p>Valeurs clés&nbsp;: log(1) = 0, log(10) = 1, log(100) = 2, log(10<sup>n</sup>) = n, log(${frH(1,10)}) = −1, log(${frH(1,100)}) = −2.</p>
+<p>Sur la règle, chaque pas de ×10 vers la droite ajoute 1 au logarithme&nbsp;; chaque pas de ÷10 vers la gauche retire 1.</p>`,
+qs:[
+()=>{const n=ri(3,6),b=p10(n);
+  return{cap0:'Le curseur est sur 1 : 1 = 10<sup>0</sup>, donc log(1) = 0.',
+  setup(){S.reset({lo:-.5,hi:6.5,nlo:-.4,nhi:n+.4,cur:0,curLab:'1',curLog:'0',big:{txt:'1',sub:'= 10^{0}'}})},
+  prompt:`Sur cette règle, chaque pas vers la droite <b>multiplie par 10</b>. Fais avancer le curseur de 1 jusqu'à ${b} et compte les pas.`,
+  parts:[act('Avancer de ×10 en ×10',async()=>{await hopsFrom(0,n,1,{up:'×10',low:'+1',lab:j=>p10(j),log:j=>String(j),ms:560,
+      each:j=>{S.set({big:{txt:p10(j),sub:'= 10^{'+j+'}'}});S.count(`${j} pas`);cap(`${p10(j)} = 10<sup>${j}</sup> : ${j} zéro${j>1?'s':''}, ${j} pas.`)}})}),
+    fill('Le nombre de pas, c\'est le logarithme décimal :',`log(${b}) = {0}`,[BI(n)],
+      v=>N.parse(v[0])===n+1?`Presque : ${b} s'écrit avec ${n+1} chiffres, mais il n'a que ${n} zéros, et il a fallu ${n} pas.`:`Recompte les pas de ×10 entre 1 et ${b} : un pas par zéro.`,
+      {chk:{k:'v',v:[`lg(${10**n})`]}})],
+  done:`${b} = 10<sup>${n}</sup> : ${n} zéros, ${n} pas, donc log(${b}) = ${n}. Le logarithme décimal compte les zéros.`}},
+()=>{const n=ri(4,9),b=p10(n);
+  return{cap0:'Un pas de ×10, c\'est 1 de logarithme.',
+  setup(){S.reset({lo:-.5,hi:9.5,nlo:-.4,nhi:9.4,cur:0,curLab:'1',curLog:'0'})},
+  prompt:`Que vaut log(${b}) ?`,
+  parts:[ch('',[OK(String(n)),NO(String(n+1),`${b} a ${n+1} chiffres, mais le logarithme compte les zéros : il y en a ${n}.`),NO(String(n-1),`Compte bien tous les zéros de ${b} : il y en a ${n}.`),NO(String(10*n),`log(${b}) n'est pas 10 × ${n} : c'est l'exposant de 10, le nombre de zéros.`)],
+    {chk:{k:'v',v:`lg(${10**n})`},onOk:async()=>{S.set({big:{txt:'1',sub:''}});await hopsFrom(0,n,1,{up:'×10',low:'+1',lab:j=>lab10(j),log:j=>String(j),ms:300,each:j=>S.set({big:{txt:p10(j),sub:'= 10^{'+j+'}'}})})}})],
+  done:`${b} = 10<sup>${n}</sup>, donc log(${b}) = ${n}.`}},
+()=>{const k=ri(1,3),b=p10(-k);
+  return{cap0:'Vers la gauche, on divise par 10 à chaque pas.',
+  setup(){S.reset({lo:-3.6,hi:1.6,nlo:-3.5,nhi:1.4,cur:0,curLab:'1',curLog:'0',big:{txt:'1',sub:'= 10^{0}'}})},
+  prompt:`Cette fois, chaque pas vers la gauche <b>divise par 10</b>. Fais reculer le curseur de 1 jusqu'à ${b}.`,
+  parts:[act('Reculer de ÷10 en ÷10',async()=>{await hopsFrom(0,k,-1,{up:'÷10',low:'−1',col:C.lil,lab:j=>p10(-j),log:j=>neg(-j),ms:620,
+      each:j=>{S.set({big:{txt:p10(-j),sub:'= 10^{'+neg(-j)+'}'}});S.count(`${j} pas`);cap(`${p10(-j)} = 10<sup>−${j}</sup> : ${j} pas vers la gauche.`)}})}),
+    fill('Un pas vers la gauche, c\'est −1 :',`log(${b}) = {0}`,[BI(-k)],
+      v=>{const x=N.parse(v[0]);return x===k?`Le signe ! ${b} est plus petit que 1 : on a reculé de ${k} pas, le logarithme est négatif.`:(k>1&&x===-(k-1))?`Ne compte pas seulement les zéros après la virgule : de 1 à ${b}, il faut ${k} pas de ÷10.`:`Recompte les pas de ÷10 entre 1 et ${b}.`},
+      {chk:{k:'v',v:[`lg(Rational(1,${10**k}))`]}})],
+  done:`${b} = 10<sup>−${k}</sup> : ${k} pas vers la gauche, donc log(${b}) = −${k}.`}},
+()=>{const n=pick([-3,-2,-1,2,3,4,5,6]);
+  return{cap0:'log(b) = n ⟺ b = 10<sup>n</sup>.',
+  setup(){S.reset({lo:-3.6,hi:6.6,nlo:-3.4,nhi:6.4,cur:0,curLab:'1',curLog:'0'})},
+  prompt:`On sait que log(b) = ${neg(n)}. Que vaut b ?`,
+  parts:[ch('',[OK(p10(n)),NO(p10(n-1),`Compte les zéros : log(b) = ${neg(n)} veut dire b = 10<sup>${neg(n)}</sup> = ${p10(n)}.`),NO(p10(n+1),`Compte les zéros : log(b) = ${neg(n)} veut dire b = 10<sup>${neg(n)}</sup> = ${p10(n)}.`),
+      NO(fmtInt(10*n),`log(b) = ${neg(n)} ne veut pas dire b = 10 × ${par(n)} : cela veut dire 10<sup>${neg(n)}</sup> = b.`)],
+    {chk:{k:'v',v:`10**(${n})`},onOk:async()=>{await hopsFrom(0,Math.abs(n),Math.sign(n),{up:n>0?'×10':'÷10',low:n>0?'+1':'−1',col:n>0?C.gold:C.lil,lab:j=>p10(Math.sign(n)*j),log:j=>neg(Math.sign(n)*j),ms:360})}})],
+  done:`10<sup>${neg(n)}</sup> = ${p10(n)}, donc log(${p10(n)}) = ${neg(n)}.`}},
+()=>{const n=pick([2,3,4,5,6,-2,-3]),sec=pick([[1,0],[10,1]]);
+  return{cap0:'10<sup>x</sup> = b ⟺ x = log(b).',
+  setup(){S.reset({lo:-3.6,hi:6.6,nlo:-3.4,nhi:6.4,cur:0,curLab:'1',curLog:'0'})},
+  prompt:`Utilise la définition du cours : 10<sup>x</sup> = b ⟺ x = log(b).`,
+  parts:[fill('',`10<sup>x</sup> = ${p10(n)} ⟺ x = {0}<br>et log(${sec[0]}) = {1}`,[BI(n),BI(sec[1])],
+      `${p10(n)} = 10<sup>${neg(n)}</sup>, donc x = ${neg(n)} ; et ${sec[0]} = 10<sup>${sec[1]}</sup>, donc log(${sec[0]}) = ${sec[1]}.`,
+      {chk:{k:'v',v:[`lg(${py(p10(n))})`,`lg(${sec[0]})`]},onOk:()=>S.moveCur(n,800,p10(n),neg(n))})],
+  done:`10<sup>${neg(n)}</sup> = ${p10(n)}, donc x = log(${p10(n)}) = ${neg(n)} ; et log(${sec[0]}) = ${sec[1]}.`}}
+]});
+
+/* ================= NIVEAU 2 · Entre deux puissances ================= */
+LV.push({t:'Entre deux puissances',badge:'Niveau 2 · Entre deux puissances',
+rule:`<p><b>Sens de variation.</b> log est croissante sur ]0 ; +∞[&nbsp;: 0 &lt; a &lt; b ⟺ log(a) &lt; log(b).</p>
+<p>log(x) ≥ 0 ⟺ x ≥ 1&nbsp;; log(x) ≤ 0 ⟺ 0 &lt; x ≤ 1.</p>
+<p>log(10<sup>x</sup>) = x pour tout réel x&nbsp;; 10<sup>log(x)</sup> = x pour tout x &gt; 0.</p>
+<p>Valeurs à retenir&nbsp;: log(2) ≈ 0,301&nbsp;; log(3) ≈ 0,477&nbsp;; log(5) ≈ 0,699&nbsp;; log(7) ≈ 0,845. Entre 1 et 10, les graduations 2, 3, …, 9 sont placées en log(2), log(3), …, log(9).</p>`,
+qs:[
+()=>({cap0:'Les puissances de 10 sont régulièrement espacées. Et entre elles ?',
+  setup(){S.reset({lo:-.4,hi:3.4,nlo:-.3,nhi:2.3,cur:0,curLab:'1',curLog:'0'})},
+  prompt:`Entre 1 et 10, les graduations ne sont pas régulières. Zoome sur cet intervalle et place 2, 3, 5 et 7 : le cours donne leurs logarithmes.`,
+  parts:[act('Zoomer et placer 2, 3, 5, 7',async()=>{await S.zoom(-.07,1.07,-.07,1.07,800);
+      for(const [i,m] of [2,3,5,7].entries()){await S.moveCur(lg(m),480,String(m),'');st().pins.push({e:lg(m),lab:'≈ '+LMs(m),row:i%2});S.draw()}
+      S.set({curLog:''});cap('log(2) ≈ 0,301 · log(3) ≈ 0,477 · log(5) ≈ 0,699 · log(7) ≈ 0,845')}),
+    ch('Le milieu entre 1 et 10 sur cette règle correspond à un logarithme de 0,5. Lequel de ces nombres en est le plus proche ?',
+      [OK('3'),NO('5','5 n\'est pas au milieu : log(5) ≈ 0,699. Sur une échelle logarithmique, les graduations se resserrent vers 10.'),NO('2','log(2) ≈ 0,301 : 2 est bien plus près de 1.'),NO('7','log(7) ≈ 0,845 : 7 est près de 10.')],
+      {chk:{k:'near',t:'1/2',set:[2,3,5,7]},onOk:async()=>{S.set({thr:{e:.5,lab:'log = 0,5'}});await S.moveCur(lg(3),500,'3','≈ 0,477')}})],
+  done:'log(3) ≈ 0,477 est le plus proche de 0,5 : sur une échelle logarithmique, 3 est presque au milieu entre 1 et 10, et 5 est bien plus près de 10.'}),
+()=>{const k=ri(0,4),mt=pick([12,15,18,24,25,35,42,48,56,64,72,85,96]),b=decStr(mt,k-1);
+  return{cap0:'Où tombe ce nombre, entre deux puissances de 10 ?',
+  setup(){S.reset({lo:-.4,hi:5.4,nlo:-.3,nhi:5.3,cur:0,curLab:'1',curLog:'0'})},
+  prompt:`Entre quelles puissances de 10 se trouve ${b} ? Envoie le curseur, puis encadre log(${b}) par deux entiers consécutifs.`,
+  parts:[act(`Envoyer le curseur sur ${b}`,async()=>{S.set({hl:[k,k+1]});await S.moveCur(lg(mt)+k-1,1000,b,'?');cap(`${p10(k)} &lt; ${b} &lt; ${p10(k+1)}`)}),
+    fill('Encadre le logarithme :',`{0} &lt; log(${b}) &lt; {1}`,[BI(k),BI(k+1)],`${b} est entre ${p10(k)} = 10<sup>${k}</sup> et ${p10(k+1)} = 10<sup>${k+1}</sup>, et log est croissante.`,
+      {chk:{k:'v',v:[`floor(lg(${py(b)}))`,`floor(lg(${py(b)}))+1`]},onOk:()=>S.set({curLog:'≈ '+decM(Math.round(1000*(lg(mt)+k-1)),3)})})],
+  done:`${p10(k)} &lt; ${b} &lt; ${p10(k+1)} et log est croissante, donc ${k} &lt; log(${b}) &lt; ${k+1}.`}},
+()=>{const x=pick(['0,4','0,25','0,08','0,7','0,5','0,002','0,9','1','2,5','40']),v=N.parse(x);
+  const sg=v>1?'positif':v<1?'négatif':'nul';
+  const why={positif:`${x} &lt; 1 : sur la règle, il est à gauche de 1, donc log(${x}) &lt; 0.`,négatif:`${x} &gt; 1 : sur la règle, il est à droite de 1, donc log(${x}) &gt; 0.`,nul:'log(x) = 0 seulement pour x = 1.'};
+  const list=['positif','négatif','nul'].map(w=>w===sg?OK(w):NO(w,v===1?'1 = 10<sup>0</sup>, donc log(1) = 0.':w==='nul'?why.nul:why[w]));
+  list.push(NO('il n\'existe pas',`log(x) existe pour tout x &gt; 0, et ${x} &gt; 0.`));
+  return{cap0:'À gauche de 1 ou à droite de 1 ?',
+  setup(){S.reset({lo:-3.4,hi:2.4,nlo:-3.3,nhi:2.3,cur:0,curLab:'1',curLog:'0'})},
+  prompt:`Sans calculatrice : quel est le signe de log(${x}) ?`,
+  parts:[ch('Le nombre log('+x+') est :',list,{chk:{k:'sign',x:py(x)},onOk:async()=>{S.set({zones:true});await S.moveCur(lg(v),800,x,v===1?'0':v<1?'< 0':'> 0')}})],
+  done:v<1?`0 &lt; ${x} &lt; 1, donc log(${x}) &lt; 0 : log(x) ≤ 0 ⟺ 0 &lt; x ≤ 1.`:v>1?`${x} &gt; 1, donc log(${x}) &gt; 0 : log(x) ≥ 0 ⟺ x ≥ 1.`:'log(1) = 0 : 1 = 10<sup>0</sup>.'}},
+()=>{let m,p,q,m2;do{m=ri(2,9);p=ri(-3,1);q=p+pick([-2,-1,1,2]);m2=pick([m,ri(2,9)])}while(q<-3||q>2);
+  const a=decStr(m,p),b=decStr(m2,q),va=m*Math.pow(10,p),vb=m2*Math.pow(10,q),lt=va<vb;
+  const wrong=`log est croissante : log(${a}) et log(${b}) sont rangés comme ${a} et ${b}, et ${a} ${lt?'&lt;':'&gt;'} ${b}.`;
+  return{cap0:'log est croissante : elle range les logarithmes comme les nombres.',
+  setup(){S.reset({lo:-3.6,hi:2.6,nlo:-3.4,nhi:2.4,cur:0,curLab:'1',curLog:'0'})},
+  prompt:`Sans calculatrice, compare log(${a}) et log(${b}).`,
+  parts:[ch('Laquelle de ces écritures est juste ?',[lt?OK(`log(${a}) &lt; log(${b})`):NO(`log(${a}) &lt; log(${b})`,wrong),lt?NO(`log(${a}) &gt; log(${b})`,wrong):OK(`log(${a}) &gt; log(${b})`),
+      NO(`log(${a}) = log(${b})`,'Deux nombres différents ont des logarithmes différents.')],
+    {chk:{k:'rel'},onOk:async()=>{S.set({curLog:''});await S.moveCur(lg(va),600,a);st().pins.push({e:lg(va),lab:`log(${a})`});await S.moveCur(lg(vb),600,b);st().pins.push({e:lg(vb),lab:`log(${b})`,col:C.blue,row:1});S.draw()}})],
+  done:`${a} ${lt?'&lt;':'&gt;'} ${b} et log est croissante, donc log(${a}) ${lt?'&lt;':'&gt;'} log(${b}).`}},
+()=>{let x;do{x=ri(3,95)}while(x%10===0);const y=pick(['2,5','1,5','0,7','−1,5','3,2','−0,4']);
+  return{cap0:'log et « 10 puissance » se défont l\'un l\'autre.',
+  setup(){S.reset({lo:-1.6,hi:3.6,nlo:-1.5,nhi:3.4,cur:0,curLab:'1',curLog:'0'})},
+  prompt:'Propriétés fondamentales du cours : log(10<sup>x</sup>) = x pour tout réel x, et 10<sup>log(x)</sup> = x pour tout x &gt; 0.',
+  parts:[fill('Complète sans calculatrice :',`10<sup>log(${x})</sup> = {0}<br>log(10<sup>${y}</sup>) = {1}`,[BI(x),BD(y)],
+      'log(x) est l\'exposant qu\'il faut donner à 10 pour obtenir x : 10<sup>log(x)</sup> = x, et log(10<sup>x</sup>) = x.',
+      {chk:{k:'v',v:[`10**lg(${x})`,`lg(10**(${py(y)}))`]},onOk:async()=>{await S.moveCur(lg(x),700,String(x),'≈ '+decM(Math.round(1000*lg(x)),3));await S.sleep(300);await S.moveCur(N.parse(y),700,'10^{'+y+'}',y)}})],
+  done:`10<sup>log(${x})</sup> = ${x} et log(10<sup>${y}</sup>) = ${y}.`}}
+]});
+
+/* ================= NIVEAU 3 · Multiplier, c'est avancer ================= */
+const EXACT=[[2,50],[4,25],[5,20],[20,50],[25,40],[8,125],[2,500],[4,250],[50,200],[125,80],[5,200],[25,400]];
+function pair4(){let a,b,A,B;do{a=ri(12,98);b=ri(12,98);A=Math.round(1e4*lg(a));B=Math.round(1e4*lg(b))}
+  while(a%10===0||b%10===0||a===b||A+B!==Math.round(1e4*lg(a*b))||!safe(1e4*lg(a),0)||!safe(1e4*lg(b),0)||!safe(1e4*lg(a*b),0));return{a,b,A,B}}
+LV.push({t:'Multiplier, c\'est avancer',badge:'Niveau 3 · Multiplier, c\'est avancer',
+rule:`<p>Pour a &gt; 0 et b &gt; 0&nbsp;: <b>log(a × b) = log(a) + log(b)</b>.</p>
+<p>Sur la règle, multiplier, c'est mettre deux longueurs bout à bout&nbsp;: la réglette glisse de log(a), puis on avance de log(b) sur la réglette, et on lit a × b sur la règle.</p>
+<p>C'est l'idée de Neper&nbsp;: un produit devient une somme. Exemple du cours&nbsp;: log(36 × 62) = log(36) + log(62) ≈ 1,5563 + 1,7924 = 3,3487.</p>`,
+qs:[
+()=>{const [a,b]=pick([[2,3],[2,7],[3,5],[3,7],[5,7],[3,3],[2,2]]),ab=a*b;
+  return{cap0:'La règle du haut est fixe ; la réglette du dessous peut glisser.',
+  setup(){S.reset({lo:-.12,hi:1.72,nlo:-.1,nhi:1.7,cur:0,curLab:'1',curLog:'',b:0})},
+  prompt:`Pour multiplier ${a} par ${b}, on met deux longueurs bout à bout : la réglette glisse de log(${a}), puis on avance de log(${b}) sur la réglette. ${given([a,b])}`,
+  parts:[act('Faire coulisser la réglette',()=>prodAnim(a,b,{A:a,B:b,AB:ab})),
+    fill('Lis le résultat et complète :',`log(${ab}) = log(${a}) + log(${b}) ≈ ${LMs(a)} + ${LMs(b)} = {0}`,[BD(decM(LM[a]+LM[b],3))],`Additionne les deux longueurs : ${LMs(a)} + ${LMs(b)}.`,
+      {chk:{k:'v',v:[`lg(${ab})`],d:[3]}})],
+  done:`log(${ab}) = log(${a} × ${b}) = log(${a}) + log(${b}) ≈ ${decM(LM[a]+LM[b],3)} : le produit est devenu une somme de longueurs.`}},
+()=>{const [a,b]=pick(EXACT),ab=a*b,k=Math.round(lg(ab));
+  return{cap0:'Deux longueurs bout à bout…',
+  setup(){S.reset({lo:-.2,hi:4.3,nlo:-.15,nhi:k+.45,cur:0,curLab:'1',curLog:'',b:0})},
+  prompt:`Calcule sans calculatrice log(${a}) + log(${b}).`,
+  parts:[act('Faire coulisser la réglette',()=>prodAnim(a,b,{A:fmtInt(a),B:fmtInt(b),AB:fmtInt(ab)})),
+    fill('',`log(${a}) + log(${b}) = log({0}) = {1}`,[BI(ab),BI(k)],`log(${a}) + log(${b}) = log(${a} × ${b}), puis compte les zéros du produit.`,
+      {chk:{k:'v',v:[`${a}*${b}`,`lg(${a}*${b})`]}})],
+  done:`log(${a}) + log(${b}) = log(${a} × ${b}) = log(${fmtInt(ab)}) = ${k}.`}},
+()=>{let a,b;do{a=ri(11,95);b=ri(3,95)}while(a%10===0||b%10===0||a===b||!distinct([lg(a)+lg(b),lg(a)*lg(b),lg(a+b),lg(a)-lg(b)],.01));
+  return{cap0:'Produit → somme des logarithmes.',
+  setup(){S.reset({lo:-.2,hi:4.2,nlo:-.15,nhi:4.1,cur:0,curLab:'1',curLog:''})},
+  prompt:`Que vaut log(${a} × ${b}) ?`,
+  parts:[ch('',[OK(`log(${a}) + log(${b})`),NO(`log(${a}) × log(${b})`,'Le logarithme transforme un produit en <b>somme</b>, pas en produit de logarithmes.'),
+      NO(`log(${a+b})`,`log(${a} × ${b}) n'est pas log(${a} + ${b}) : on additionne les logarithmes, pas les nombres.`),NO(`log(${a}) − log(${b})`,'Une différence de logarithmes correspond à un quotient.')],
+    {chk:{k:'v',v:`lg(${a}*${b})`},onOk:()=>prodAnim(a,b,{A:a,B:b,AB:fmtInt(a*b)})})],
+  done:`log(${a} × ${b}) = log(${a}) + log(${b}) : sur la règle, les deux longueurs s'ajoutent et on lit ${fmtInt(a*b)}.`}},
+()=>{const m=pick([2,3,5,7]),k=ri(1,5),Nn=decStr(m,k);
+  return{cap0:'Un nombre, puis ses zéros.',
+  setup(){S.reset({lo:-.3,hi:6.3,nlo:-.25,nhi:k+1.15,cur:0,curLab:'1',curLog:'0'})},
+  prompt:`${Nn}, c'est ${m} suivi de ${k} zéro${k>1?'s':''} : ${Nn} = ${m} × ${p10(k)}. ${given([m])}`,
+  parts:[act(`Avancer de log(${m}), puis compter les zéros`,async()=>{const s={a:0,b:lg(m),col:C.blue,lab:`log(${m})`,row:0,p:0};st().segs.push(s);
+      await S.tween(800,t=>{s.p=t;st().cur=lg(m)*t});S.set({curLab:String(m),curLog:'≈ '+LMs(m)});SND.tick(1);
+      await hopsFrom(lg(m),k,1,{up:'×10',low:'+1',lab:j=>decStr(m,j),log:j=>'≈ '+decM(LM[m]+1000*j,3),ms:520})}),
+    fill('',`log(${Nn}) = log(${m}) + log(${p10(k)}) ≈ {0}`,[BD(decM(LM[m]+1000*k,3))],`log(${p10(k)}) = ${k} : ajoute ${k} à log(${m}) ≈ ${LMs(m)}.`,
+      {chk:{k:'v',v:[`lg(${m*10**k})`],d:[3]}})],
+  done:`log(${Nn}) = log(${m}) + ${k} ≈ ${decM(LM[m]+1000*k,3)} : chaque zéro ajoute 1.`}},
+()=>{const {a,b,A,B}=pair4(),f=Math.floor((A+B)/1e4),dig=String(a*b).length;
+  const choices=[OK(decM(A+B,4)),NO(decM(Math.round(A*B/1e4),4),'C\'est le produit des logarithmes : or le logarithme d\'un produit est la <b>somme</b> des logarithmes.'),
+    NO(decM(Math.abs(A-B),4),'C\'est une différence de logarithmes : elle correspond à un quotient, pas à un produit.'),NO(decM(Math.round(1e4*lg(a+b)),4),`C'est log(${a} + ${b}), pas log(${a} × ${b}).`)];
+  return{cap0:'Les tables de logarithmes servaient à calculer des produits.',
+  setup(){S.reset({lo:-.2,hi:4.2,nlo:-.15,nhi:4.1,cur:0,curLab:'1',curLog:''})},
+  prompt:`On donne log(${a}) ≈ ${decM(A,4)} et log(${b}) ≈ ${decM(B,4)}. Que vaut, environ, log(${a} × ${b}) ?`,
+  parts:[ch('',choices,{chk:{k:'v',v:`lg(${a}*${b})`,d:4},onOk:()=>prodAnim(a,b,{A:a,B:b,AB:fmtInt(a*b)})}),
+    fill('Et sans effectuer le produit :',`${a} × ${b} s'écrit avec {0} chiffres.`,[BI(dig)],`log(${a} × ${b}) ≈ ${decM(A+B,4)} est entre ${f} et ${f+1} : le produit est entre 10<sup>${f}</sup> et 10<sup>${f+1}</sup>.`,
+      {chk:{k:'v',v:[`floor(lg(${a}*${b}))+1`]}})],
+  done:`${a} × ${b} = ${fmtInt(a*b)} : son logarithme ≈ ${decM(A+B,4)} est entre ${f} et ${f+1}, donc ${dig} chiffres.`}}
+]});
+
+/* ================= NIVEAU 4 · Diviser, c'est reculer ================= */
+LV.push({t:'Diviser, c\'est reculer',badge:'Niveau 4 · Diviser, c\'est reculer',
+rule:`<p>Pour a &gt; 0 et b &gt; 0&nbsp;: <b>log(${frH('a','b')}) = log(a) − log(b)</b> et <b>log(${frH(1,'b')}) = −log(b)</b>.</p>
+<p>Démonstration du cours&nbsp;: log(${frH('a','b')}) = log(a × ${frH(1,'b')}) = log(a) + log(${frH(1,'b')}) = log(a) − log(b).</p>
+<p>Sur la règle, diviser, c'est reculer&nbsp;: on place b de la réglette sous a, et le 1 de la réglette montre ${frH('a','b')}.</p>`,
+qs:[
+()=>{const m=pick([2,3,4,5,6,7,8]),k=ri(1,3),a=m*10**k;
+  return{cap0:'Diviser : une longueur qu\'on retire.',
+  setup(){S.reset({lo:-.3,hi:4.3,nlo:-.25,nhi:k+1.3,cur:0,curLab:'1',curLog:''})},
+  prompt:`Calcule log(${fmtInt(a)}) − log(${m}). Sur la règle : on place ${m} de la réglette sous ${fmtInt(a)}, et le 1 de la réglette montre le quotient.`,
+  parts:[act(`Reculer de log(${m})`,()=>quotAnim(a,m,{A:fmtInt(a),B:m,Q:p10(k)})),
+    fill('',`log(${fmtInt(a)}) − log(${m}) = log(${frH(fmtInt(a),m)}) = log({0}) = {1}`,[BI(10**k),BI(k)],`${fmtInt(a)} ÷ ${m} = ${p10(k)}, puis compte les zéros.`,
+      {chk:{k:'v',v:[`Rational(${a},${m})`,`lg(Rational(${a},${m}))`]}})],
+  done:`log(${fmtInt(a)}) − log(${m}) = log(${frH(fmtInt(a),m)}) = log(${p10(k)}) = ${k}.`}},
+()=>{const m=pick([2,3,5,7]),inv={2:'0,5',5:'0,2'}[m]||`1/${m}`;
+  return{cap0:'Partir de 1 et reculer.',
+  setup(){S.reset({lo:-1.25,hi:.6,nlo:-1.2,nhi:.5,cur:0,curLab:'1',curLog:'0'})},
+  prompt:`Que vaut log(${frH(1,m)}) ? ${given([m])}`,
+  parts:[act(`Reculer de log(${m}) depuis 1`,async()=>{S.set({b:0,curLog:''});const s={a:0,b:-lg(m),col:C.lil,lab:`−log(${m})`,row:0,p:0,arrow:true};st().segs.push(s);SND.slide();
+      await S.tween(1100,t=>{s.p=t;st().b=-lg(m)*t;st().cur=-lg(m)*t});S.set({curLab:inv,hl:[-lg(m)]});SND.tick(3);cap(`Le ${m} de la réglette est sous 1 : son 1 montre ${frH(1,m)}.`)}),
+    fill('',`log(${frH(1,m)}) = −log(${m}) ≈ {0}`,[BD(decM(-LM[m],3))],`log(1/b) = −log(b) : on recule de log(${m}) ≈ ${LMs(m)}.`,
+      {chk:{k:'v',v:[`lg(Rational(1,${m}))`],d:[3]},onOk:()=>S.set({curLog:'≈ '+decM(-LM[m],3)})})],
+  done:`log(${frH(1,m)}) = −log(${m}) ≈ ${decM(-LM[m],3)} : ${frH(1,m)} est plus petit que 1, son logarithme est négatif.`}},
+()=>{let a,b;do{b=ri(2,9);a=b*ri(3,24)}while(a<12||a>99||a%10===0||!distinct([lg(a)-lg(b),lg(a)/lg(b),lg(a-b),lg(b)-lg(a)],.01));
+  return{cap0:'Quotient → différence des logarithmes.',
+  setup(){S.reset({lo:-.2,hi:2.2,nlo:-.15,nhi:2.15,cur:0,curLab:'1',curLog:''})},
+  prompt:`Que vaut log(${frH(a,b)}) ?`,
+  parts:[ch('',[OK(`log(${a}) − log(${b})`),NO(fracLog(a,b),'On ne divise pas les logarithmes : le logarithme d\'un quotient est une <b>différence</b>.'),
+      NO(`log(${a-b})`,`log(${a} ÷ ${b}) n'est pas log(${a} − ${b}) : on retranche les logarithmes, pas les nombres.`),NO(`log(${b}) − log(${a})`,'Attention à l\'ordre : on commence par le logarithme du numérateur.')],
+    {chk:{k:'v',v:`lg(Rational(${a},${b}))`},onOk:()=>quotAnim(a,b,{A:a,B:b,Q:a/b})})],
+  done:`log(${frH(a,b)}) = log(${a}) − log(${b}) = log(${a/b}).`}},
+()=>{const m=pick([2,5]),k=pick([2,3]),Nn=10**k/m;
+  return{cap0:'Écrire le nombre comme un quotient.',
+  setup(){S.reset({lo:-.2,hi:3.4,nlo:-.15,nhi:3.3,cur:0,curLab:'1',curLog:''})},
+  prompt:`${given([m])} Calcule log(${fmtInt(Nn)}) en écrivant ${fmtInt(Nn)} = ${frH(p10(k),m)}.`,
+  parts:[fill('',`log(${fmtInt(Nn)}) = log(${p10(k)}) − log(${m}) ≈ ${k} − ${LMs(m)} = {0}`,[BD(decM(1000*k-LM[m],3))],`log(${p10(k)}) = ${k}, et on retire log(${m}) ≈ ${LMs(m)}.`,
+      {chk:{k:'v',v:[`lg(${Nn})`],d:[3]},onOk:()=>quotAnim(10**k,m,{A:p10(k),B:m,Q:fmtInt(Nn)})})],
+  done:`log(${fmtInt(Nn)}) = log(${frH(p10(k),m)}) = ${k} − log(${m}) ≈ ${decM(1000*k-LM[m],3)}.`}},
+()=>{const m=pick([2,3,7]),k=ri(1,3),x=decStr(m,-k),v0=LM[m]-1000*k;
+  return{cap0:'Un nombre, puis des pas de ÷10.',
+  setup(){S.reset({lo:-3.4,hi:1.3,nlo:-3.3,nhi:1.2,cur:0,curLab:'1',curLog:''})},
+  prompt:`${given([m])} Que vaut, environ, log(${x}) ?`,
+  parts:[ch('',[OK(decM(v0,3)),NO(decM(-LM[m]-1000*k,3),`${x} = ${m} × ${p10(-k)} : log(${x}) = log(${m}) + log(${p10(-k)}) = log(${m}) − ${k}.`),
+      NO(decM(1000*k-LM[m],3),`Le signe : ${x} &lt; 1, donc log(${x}) &lt; 0.`),NO(decM(-k*LM[m],3),`On n'a pas ${k===1?'':k+' × '}(−log(${m})) : on ajoute log(${p10(-k)}) = −${k} à log(${m}).`)],
+    {chk:{k:'v',v:`lg(${py(x)})`,d:3},onOk:async()=>{await S.moveCur(lg(m),600,String(m),'≈ '+LMs(m));await hopsFrom(lg(m),k,-1,{up:'÷10',low:'−1',col:C.lil,lab:j=>decStr(m,-j),log:j=>'≈ '+decM(LM[m]-1000*j,3),ms:500})}})],
+  done:`log(${x}) = log(${m} × ${p10(-k)}) = log(${m}) − ${k} ≈ ${decM(v0,3)}.`}}
+]});
+
+/* ================= NIVEAU 5 · Le pas répété ================= */
+function simpl(){const F=ri(1,6);
+  if(F===1){const n=ri(2,5);return{h:`${n} log(2) + ${n} log(5)`,p:`${n}*lg(2)+${n}*lg(5)`,v:n,steps:`= ${n} × (log(2) + log(5)) = ${n} × log(10) = ${n}`}}
+  if(F===2){const p=ri(2,6),q=ri(1,3);return{h:`log(10<sup>${p}</sup>) − log(${p10(-q)})`,p:`lg(10**${p})-lg(${py(p10(-q))})`,v:p+q,steps:`= ${p} − (−${q}) = ${p+q}`}}
+  if(F===3){const n=ri(2,5);return{h:`${n} log(2) − log(${2**n})`,p:`${n}*lg(2)-lg(${2**n})`,v:0,steps:`= log(2<sup>${n}</sup>) − log(${2**n}) = log(${2**n}) − log(${2**n}) = 0`}}
+  if(F===4){const m=ri(2,5),s=ri(2,5);return{h:`2 log(${m}) + log(${s}) − log(${m*m*s})`,p:`2*lg(${m})+lg(${s})-lg(${m*m*s})`,v:0,steps:`= log(${m*m}) + log(${s}) − log(${m*m*s}) = log(${frH(m*m+' × '+s,m*m*s)}) = log(1) = 0`}}
+  if(F===5){const [a,b]=pick(EXACT),k=Math.round(lg(a*b));return{h:`log(${a}) + log(${b})`,p:`lg(${a})+lg(${b})`,v:k,steps:`= log(${a} × ${b}) = log(${fmtInt(a*b)}) = ${k}`}}
+  const a=pick([2,5]),n=ri(2,4),b=(10/a)**n;return{h:`${n} log(${a}) + log(${b})`,p:`${n}*lg(${a})+lg(${b})`,v:n,steps:`= log(${a**n}) + log(${b}) = log(${fmtInt(a**n*b)}) = ${n}`}}
+function digits2(lo,hi){let n;do{n=ri(lo,hi)}while(Math.floor(.301*n)!==Math.floor(n*lg(2))||Math.abs(n*lg(2)-Math.round(n*lg(2)))<.02||Math.round(30.1*n)!==Math.round(100*n*lg(2))||!safe(n*lg(2),2));return n}
+LV.push({t:'Le pas répété',badge:'Niveau 5 · Le pas répété',
+rule:`<p>Pour a &gt; 0 et n entier naturel&nbsp;: <b>log(a<sup>n</sup>) = n × log(a)</b> (on écrit aussi n log(a)).</p>
+<p>Sur la règle, a<sup>n</sup>, c'est n pas égaux de longueur log(a)&nbsp;: l'exposant sort en facteur.</p>
+<p>Méthode du cours pour simplifier&nbsp;: 1. sortir les exposants avec log(a<sup>n</sup>) = n log(a)&nbsp;; 2. regrouper avec log(ab) = log(a) + log(b)&nbsp;; 3. simplifier avec log(10) = 1.</p>`,
+qs:[
+()=>{const [a,n]=pick([[2,3],[2,4],[2,5],[2,6],[3,2],[3,3],[3,4],[5,2],[5,3],[7,2]]);
+  return{cap0:'Une puissance, ce sont des pas répétés.',
+  setup(){S.reset({lo:-.12,hi:n*lg(a)+.35,nlo:-.1,nhi:n*lg(a)+.3,cur:0,curLab:'1',curLog:'0'})},
+  prompt:`${a}<sup>${n}</sup>, c'est ${n} fois « ×${a} » : sur la règle, ${n} pas égaux de longueur log(${a}). ${given([a])}`,
+  parts:[act(`Faire ${n} pas de ×${a}`,()=>hopsFrom(0,n,lg(a),{up:'×'+a,low:`log(${a})`,lab:j=>fmtInt(a**j),log:j=>'≈ '+decM(j*LM[a],3),ms:620,each:j=>S.count(`${j} pas`)})),
+    fill('',`log(${a}<sup>${n}</sup>) = ${n} × log(${a}) ≈ {0}`,[BD(decM(n*LM[a],3))],`${n} pas de ${LMs(a)} : calcule ${n} × ${LMs(a)}.`,{chk:{k:'v',v:[`lg(${a}**${n})`],d:[3]}})],
+  done:`log(${a}<sup>${n}</sup>) = ${n} × log(${a}) ≈ ${decM(n*LM[a],3)} : l'exposant sort en facteur.`}},
+()=>{let a,n;do{a=pick([3,5,6,7,11,13]);n=pick([2,3,4])}while(!distinct([n*lg(a),Math.pow(lg(a),n),lg(a*n),a*lg(n)],.01));
+  return{cap0:'L\'exposant sort en facteur.',
+  setup(){S.reset({lo:-.12,hi:n*lg(a)+.4,nlo:-.1,nhi:n*lg(a)+.35,cur:0,curLab:'1',curLog:''})},
+  prompt:`Que vaut log(${a}<sup>${n}</sup>) ?`,
+  parts:[ch('',[OK(`${n} × log(${a})`),NO(`(log(${a}))<sup>${n}</sup>`,`C'est l'exposant qui sort en facteur : log(a<sup>n</sup>) = n × log(a), et non (log(a))<sup>n</sup>.`),
+      NO(`log(${a*n})`,`${a}<sup>${n}</sup> n'est pas ${a} × ${n}.`),NO(`${a} × log(${n})`,'Le facteur devant le log, c\'est l\'exposant, et on garde log du nombre.')],
+    {chk:{k:'v',v:`lg(${a}**${n})`},onOk:()=>hopsFrom(0,n,lg(a),{up:'×'+a,low:`log(${a})`,lab:j=>fmtInt(a**j),ms:500})})],
+  done:`log(${a}<sup>${n}</sup>) = ${n} × log(${a}) : ${n} pas égaux de longueur log(${a}).`}},
+()=>{const k=pick([2,3,4,5,-1,-2]);const lo=Math.min(2*k,k-1)-.6,hi=Math.max(2*k,k+1)+.6;
+  return{cap0:'a est placé sur la règle : son logarithme est connu.',
+  setup(){S.reset({lo,hi,cur:k,curLab:'a',curLog:'log(a) = '+neg(k)})},
+  prompt:`On sait que log(a) = ${neg(k)}. Utilise les propriétés du cours.`,
+  parts:[fill('',`log(a<sup>2</sup>) = {0}<br>log(10a) = {1}<br>log(${frH('a',10)}) = {2}`,[BI(2*k),BI(1+k),BI(k-1)],
+      'log(a²) = 2 log(a) ; log(10a) = log(10) + log(a) = 1 + log(a) ; log(a / 10) = log(a) − log(10) = log(a) − 1.',
+      {chk:{k:'v',v:[`2*(${k})`,`1+(${k})`,`(${k})-1`]},onOk:async()=>{S.set({curLog:''});st().pins.push({e:2*k,lab:'a^{2}'},{e:k+1,lab:'10a',col:C.blue},{e:k-1,lab:'a/10',col:C.lil,row:1});S.draw();await S.sleep(200)}})],
+  done:`log(a<sup>2</sup>) = 2 × ${par(k)} = ${neg(2*k)} ; log(10a) = 1 + ${par(k)} = ${neg(1+k)} ; log(${frH('a',10)}) = ${par(k)} − 1 = ${neg(k-1)}.`}},
+()=>{const n=digits2(10,40),f=Math.floor(n*lg(2)),L2=Math.round(100*n*lg(2));
+  return{cap0:'Combien de zéros… ou plutôt combien de chiffres ?',
+  setup(){S.reset({lo:-.4,hi:f+1.5,nlo:-.3,nhi:f+1.4,cur:0,curLab:'1',curLog:''})},
+  prompt:`Combien de chiffres a 2<sup>${n}</sup> ? ${given([2])}`,
+  parts:[fill('',`log(2<sup>${n}</sup>) = ${n} × log(2) ≈ {0} (au centième)`,[BD(decM(L2,2))],`Calcule ${n} × 0,301.`,
+      {chk:{k:'v',v:[`lg(2**${n})`],d:[2]},onOk:async()=>{await hopsFrom(0,n,lg(2),{up:'',lab:j=>'2^{'+j+'}',ms:Math.max(70,1600/n)});S.set({curLog:'≈ '+decM(L2,2)})}}),
+    ch(`Donc 2<sup>${n}</sup> s'écrit avec :`,[OK(`${f+1} chiffres`),NO(`${f} chiffres`,`log(2<sup>${n}</sup>) est entre ${f} et ${f+1} : 2<sup>${n}</sup> est entre 10<sup>${f}</sup> (qui a déjà ${f+1} chiffres) et 10<sup>${f+1}</sup>.`),
+      NO(`${f+2} chiffres`,`2<sup>${n}</sup> &lt; 10<sup>${f+1}</sup>, et 10<sup>${f+1}</sup> est le plus petit nombre à ${f+2} chiffres.`),NO(`${n} chiffres`,'Le nombre de chiffres se lit sur le logarithme, pas sur l\'exposant de 2.')],
+      {chk:{k:'v',v:`floor(${n}*lg(2))+1`},onOk:()=>S.set({hl:[f,f+1]})})],
+  done:`2<sup>${n}</sup> = ${fmtInt(2**n)} : ${f+1} chiffres, car ${f} ≤ log(2<sup>${n}</sup>) &lt; ${f+1}.`}},
+()=>{const s=simpl();
+  return{cap0:'Sortir les exposants, regrouper, simplifier.',
+  setup(){S.reset({lo:-.5,hi:9.5,nlo:-.4,nhi:9.4,cur:0,curLab:'1',curLog:'0'})},
+  prompt:`Simplifie, sans calculatrice, A = ${s.h}.`,
+  parts:[fill('',`A = {0}`,[BI(s.v)],'Sors les exposants, regroupe avec log(ab) = log(a) + log(b), puis utilise log(10) = 1.',
+      {chk:{k:'v',v:[s.p]},onOk:()=>S.moveCur(s.v,800,p10(s.v),String(s.v))})],
+  done:`A = ${s.h} ${s.steps}.`}}
+]});
+
+/* ================= NIVEAU 6 · Trouver l'exposant ================= */
+const CTX_UP=[['Un capital de 1 500 € est placé','ans'],['Mariam place 800 € sur un livret','ans'],['Un capital de 2 000 € est placé','ans'],['Le nombre d\'abonnés d\'une page de quartier augmente','mois']];
+LV.push({t:'Trouver l\'exposant',badge:'Niveau 6 · Trouver l\'exposant',
+rule:`<p>Pour a &gt; 0 et b &gt; 0&nbsp;: log(a) = log(b) ⟺ a = b&nbsp;; log(a) &lt; log(b) ⟺ a &lt; b.</p>
+<p><b>a<sup>x</sup> = b</b>&nbsp;: on prend le log des deux membres, x log(a) = log(b), donc x = ${fracLog('b','a')}.</p>
+<p><b>x<sup>a</sup> = b</b> (x &gt; 0)&nbsp;: a log(x) = log(b), donc x = b<sup>1/a</sup>.</p>
+<p><b>a<sup>x</sup> &lt; b</b> (x réel) ou <b>a<sup>n</sup> &lt; b</b> (n entier naturel)&nbsp;: on prend le log, puis on divise par log(a)&nbsp;; si 0 &lt; a &lt; 1, log(a) &lt; 0 et le sens change. <b>x<sup>a</sup> &lt; b</b> (x &gt; 0)&nbsp;: 0 &lt; x &lt; b<sup>1/a</sup>.</p>
+<p><b>Taux moyen</b>&nbsp;: (1 + t<sub>m</sub>)<sup>n</sup> = C, donc 1 + t<sub>m</sub> = C<sup>1/n</sup>, ou n log(1 + t<sub>m</sub>) = log(C).</p>`,
+qs:[
+()=>{let a,b,x;do{a=ri(2,9);b=ri(a+2,Math.min(a**3,200));x=lg(b)/lg(a)}while(Math.abs(x-Math.round(x))<.06||!safe(x,2)||!distinct([x,lg(b/a),b/a,lg(a)/lg(b)],.01));
+  const fl=Math.floor(x);
+  return{cap0:`Combien de pas de ×${a} pour aller de 1 à ${b} ?`,
+  setup(){S.reset({lo:-.1,hi:lg(b)+.35,nlo:-.08,nhi:lg(b)+.3,cur:0,curLab:'1',curLog:'',thr:{e:lg(b),lab:String(b)}})},
+  prompt:`On cherche x tel que ${a}<sup>x</sup> = ${b}. Sur la règle, x est le nombre de pas de ×${a} qu'il faut pour aller de 1 à ${b}.`,
+  parts:[act(`Faire des pas de ×${a}`,async()=>{await hopsFrom(0,fl,lg(a),{up:'×'+a,low:`log(${a})`,lab:j=>fmtInt(a**j),ms:640,each:j=>S.count(`${j} pas`)});
+      await S.hop(fl*lg(a),lg(b),{lab:String(b),dash:true,i:fl,ms:500});cap(`Un peu plus de ${fl} pas : x est entre ${fl} et ${fl+1}.`)}),
+    ch('On prend le log des deux membres : x × log('+a+') = log('+b+'). Donc :',[OK(`x = ${fracLog(b,a)}`),NO(`x = log(${frH(b,a)})`,`log(${frH(b,a)}) = log(${b}) − log(${a}) : ce n'est pas ce qu'on obtient en divisant par log(${a}).`),
+      NO(`x = ${frH(b,a)}`,`On ne divise pas ${b} par ${a} : on divise log(${b}) par log(${a}).`),NO(`x = ${fracLog(a,b)}`,`C'est l'inverse : de x log(${a}) = log(${b}), on tire x = log(${b}) ÷ log(${a}).`)],
+      {chk:{k:'v',v:`lg(${b})/lg(${a})`}}),
+    fill('À la calculatrice :','x ≈ {0} (arrondi au centième)',[BD(decM(Math.round(100*x),2))],`Tape log(${b}) ÷ log(${a}).`,{chk:{k:'v',v:[`lg(${b})/lg(${a})`],d:[2]}})],
+  done:`${a}<sup>x</sup> = ${b} ⟺ x = ${fracLog(b,a)} ≈ ${decM(Math.round(100*x),2)}.`}},
+()=>{let t,K,n0;do{t=pick([2,3,4,5,6]);K=pick([2,2,3]);n0=lg(K)/lg(1+t/100)}while(Math.abs(n0-Math.round(n0))<.04||!safe(n0,2));
+  const q=decStr(100+t,-2),nn=Math.ceil(n0),[ctx,unit]=pick(CTX_UP),lq=lg(1+t/100);
+  return{cap0:`Chaque pas multiplie par ${q}.`,
+  setup(){S.reset({lo:-.05*lg(K),hi:lg(K)*1.14,cur:0,curLab:'1',curLog:'',thr:{e:lg(K),lab:'×'+K}})},
+  prompt:`${ctx} : +${t}&nbsp;% par ${unit==='ans'?'an':'mois'}. Au bout de combien ${unit==='ans'?'d\'années':'de mois'} aura-t-il ${K===2?'doublé':'triplé'} ? On cherche le plus petit entier n tel que ${q}<sup>n</sup> ≥ ${K}.`,
+  parts:[act(`Avancer de ×${q} en ×${q}`,async()=>{await hopsFrom(0,nn,lq,{up:'',lab:j=>q+'^{'+j+'}',ms:Math.max(70,2200/nn),each:j=>S.count(`n = ${j}`)});cap(`Après ${nn} pas, on a dépassé ×${K}.`)}),
+    fill('Résous avec le logarithme :',`n ≥ ${fracLog(K,q)} ≈ {0}, donc n = {1} ${unit}`,[BD(decM(Math.round(100*n0),2)),BI(nn)],
+      `n log(${q}) ≥ log(${K}) et log(${q}) &gt; 0 : n ≥ log(${K}) ÷ log(${q}). Puis prends le premier entier qui convient.`,
+      {chk:{k:'v',v:[`lg(${K})/lg(${py(q)})`,`ceiling(lg(${K})/lg(${py(q)}))`],d:[2,null]}})],
+  done:`${q}<sup>n</sup> ≥ ${K} ⟺ n ≥ ${fracLog(K,q)} ≈ ${decM(Math.round(100*n0),2)} : il faut ${nn} ${unit}.`}},
+()=>{let p,K,n0;do{p=pick([10,15,20,25,30]);K=pick(['0,5','0,25']);n0=lg(N.parse(K))/lg(1-p/100)}while(Math.abs(n0-Math.round(n0))<.04||!safe(n0,2));
+  const q=decStr(100-p,-2),nn=Math.floor(n0)+1,lq=lg(1-p/100),lK=lg(N.parse(K));
+  return{cap0:`Chaque pas multiplie par ${q} : on recule.`,
+  setup(){S.reset({lo:lK*1.14,hi:-.06*lK,cur:0,curLab:'1',curLog:'',thr:{e:lK,lab:K}})},
+  prompt:`Un scooter perd ${p}&nbsp;% de sa valeur chaque année. Au bout de combien d'années vaudra-t-il moins ${K==='0,5'?'de la moitié':'du quart'} de son prix d'achat ? On résout ${q}<sup>n</sup> &lt; ${K}.`,
+  parts:[ch(`On prend le log des deux membres : n × log(${q}) &lt; log(${K}). Comme log(${q}) &lt; 0 :`,[OK(`n &gt; ${fracLog(K,q)}`),NO(`n &lt; ${fracLog(K,q)}`,`log(${q}) &lt; 0 : quand on divise par un nombre négatif, le sens de l'inégalité change.`),
+      NO(`n &gt; ${fracLog(q,K)}`,`On divise log(${K}) par log(${q}), pas l'inverse.`),NO(`n &lt; ${fracLog(q,K)}`,`Deux erreurs : la fraction est inversée et le sens doit changer.`)],
+    {chk:{k:'sol',a:py(q),b:py(K),op:'<'},onOk:()=>hopsFrom(0,nn,lq,{up:'',col:C.lil,lab:j=>q+'^{'+j+'}',ms:Math.max(200,1600/nn),each:j=>S.count(`n = ${j}`)})}),
+    fill('',`n &gt; ${fracLog(K,q)} ≈ {0}, donc le plus petit entier est n = {1}`,[BD(decM(Math.round(100*n0),2)),BI(nn)],'Calcule le quotient, puis prends le premier entier strictement plus grand.',
+      {chk:{k:'v',v:[`lg(${py(K)})/lg(${py(q)})`,`floor(lg(${py(K)})/lg(${py(q)}))+1`],d:[2,null]}})],
+  done:`${q}<sup>n</sup> &lt; ${K} ⟺ n &gt; ${fracLog(K,q)} ≈ ${decM(Math.round(100*n0),2)} : il faut attendre ${nn} ans.`}},
+()=>{let a,b,x;do{a=pick([2,3,4,5]);b=pick([5,7,10,20,30,50,100,200,500]);x=Math.pow(b,1/a)}while(Math.abs(x-Math.round(x))<.05||!safe(x,2)||!distinct([x,b/a,lg(b)/a],.01));
+  return{cap0:`${a} pas égaux pour aller de 1 à ${b}.`,
+  setup(){S.reset({lo:-.12,hi:lg(b)+.35,nlo:-.1,nhi:lg(b)+.3,cur:0,curLab:'1',curLog:'',thr:{e:lg(b),lab:String(b)}})},
+  prompt:`On cherche x &gt; 0 tel que x<sup>${a}</sup> = ${b}.`,
+  parts:[ch(`En prenant le log : ${a} × log(x) = log(${b}). Donc :`,[OK(`x = ${b}<sup>1/${a}</sup>`),NO(`x = ${frH(b,a)}`,`x<sup>${a}</sup> = ${b} ne se résout pas en divisant ${b} par ${a}.`),
+      NO(`x = ${b}<sup>${a}</sup>`,`Ce serait (x<sup>${a}</sup>)<sup>${a}</sup>. Il faut l'exposant 1/${a}.`),NO(`x = ${frH(LOGT(b),a)}`,`${frH(LOGT(b),a)}, c'est log(x), pas x.`)],
+    {chk:{k:'v',v:`Integer(${b})**Rational(1,${a})`},onOk:async()=>{await S.grow({a:0,b:lg(b),col:C.white,lab:`log(${b})`,row:1},600);
+      await hopsFrom(0,a,lg(b)/a,{up:'×x',low:'log(x)',lab:j=>j===1?'x':'x^{'+j+'}',ms:600});S.set({cur:lg(b)/a,curLab:'x'})}}),
+    fill('À la calculatrice :','x ≈ {0} (arrondi au centième)',[BD(decM(Math.round(100*x),2))],`Calcule ${b}^(1/${a}) avec la touche puissance.`,{chk:{k:'v',v:[`Integer(${b})**Rational(1,${a})`],d:[2]}})],
+  done:`x = ${b}<sup>1/${a}</sup> ≈ ${decM(Math.round(100*x),2)} : sur la règle, log(${b}) découpé en ${a} pas égaux.`}},
+()=>{const CASES=[[25,3,'Le prix du gaz a augmenté de 25&nbsp;% en 3 ans','up'],[60,4,'Le prix d\'un forfait mobile est passé de 100 € à 160 € en 4 ans','up'],[12,6,'Une ville a perdu 12&nbsp;% de sa population en 6 ans','down'],
+    [30,5,'Le loyer d\'un studio à Mamoudzou a augmenté de 30&nbsp;% en 5 ans','up'],[20,4,'La valeur d\'un téléphone a baissé de 20&nbsp;% en 4 ans','down'],[50,8,'Le nombre d\'adhérents d\'un club a augmenté de 50&nbsp;% en 8 ans','up']];
+  let c,tm;do{c=pick(CASES);const Cg=c[3]==='up'?1+c[0]/100:1-c[0]/100;tm=100*(Math.pow(Cg,1/c[1])-1)}while(!safe(tm,1));
+  const [p,n,txt,dir]=c,Cv=dir==='up'?100+p:100-p,Cs=decStr(Cv,-2),Cg=Cv/100,lC=lg(Cg);
+  return{cap0:'Un coefficient global, n pas égaux.',
+  setup(){S.reset(dir==='up'?{lo:-.12*lC,hi:lC*1.16,cur:0,curLab:'1',curLog:''}:{lo:lC*1.16,hi:-.12*lC,cur:0,curLab:'1',curLog:''})},
+  prompt:`${txt}. Coefficient multiplicateur global : C = ${Cs}. Quel est le taux d'évolution annuel moyen t<sub>m</sub> ?`,
+  parts:[act(`Découper log(C) en ${n} pas égaux`,async()=>{S.set({thr:{e:lC,lab:'×'+Cs}});await S.grow({a:0,b:lC,col:C.white,lab:`log(${Cs})`,row:1},700);
+      await hopsFrom(0,n,lC/n,{up:'',low:'',col:dir==='up'?C.gold:C.lil,lab:j=>j===n?Cs:'',ms:520,each:j=>S.count(`${j} an${j>1?'s':''}`)});cap(`Chaque pas : log(1 + t<sub>m</sub>) = ${frH('log('+Cs+')',n)}`)}),
+    fill('',`(1 + t<sub>m</sub>)<sup>${n}</sup> = ${Cs}, donc 1 + t<sub>m</sub> = ${Cs}<sup>1/${n}</sup> et t<sub>m</sub> ≈ {0}&nbsp;% par an (au dixième)`,[BD(decM(Math.round(10*tm),1))],
+      `Calcule ${Cs}^(1/${n}), retire 1, puis multiplie par 100.`,{chk:{k:'v',v:[`100*(Rational('${py(Cs)}')**Rational(1,${n})-1)`],d:[1]}})],
+  done:`1 + t<sub>m</sub> = ${Cs}<sup>1/${n}</sup> ≈ ${decM(Math.round(1e4*(1+tm/100)),4)}, donc t<sub>m</sub> ≈ ${decM(Math.round(10*tm),1)}&nbsp;% par an. Attention : ce n'est pas ${dir==='up'?'':'−'}${p} ÷ ${n}.`}},
+()=>{if(Math.random()<.6){let a,b,r;do{a=pick(['0,8','0,9','0,5','1,5','2','3','5']);b=pick(['0,3','0,2','20','50','100','0,5']);r=lg(N.parse(b))/lg(N.parse(a))}while(r<=.3||Math.abs(r-Math.round(r))<.05||!safe(r,2));
+    const flip=N.parse(a)<1,o=flip?'&gt;':'&lt;',w=flip?'&lt;':'&gt;',la=lg(N.parse(a)),lb=lg(N.parse(b)),fl0=Math.floor(r);
+    return{cap0:'Une inéquation d\'inconnue x réelle.',
+    setup(){const m=Math.min(0,lb),M=Math.max(0,lb),pad=(M-m)*.15+.05;S.reset({lo:m-pad,hi:M+pad,cur:0,curLab:'1',curLog:'',thr:{e:lb,lab:b}})},
+    prompt:`On cherche tous les réels x tels que ${a}<sup>x</sup> &lt; ${b}.`,
+    parts:[act(`Faire des pas de ×${a}`,async()=>{await hopsFrom(0,fl0,la,{up:'×'+a,col:flip?C.lil:C.gold,lab:j=>a+'^{'+j+'}',ms:600});await S.hop(fl0*la,lb,{lab:b,dash:true,col:flip?C.lil:C.gold,ms:500});
+        cap(`${a}<sup>x</sup> = ${b} pour x ≈ ${decM(Math.round(100*r),2)} ; ${flip?'au-delà, '+a+'<sup>x</sup> devient plus petit':'avant, '+a+'<sup>x</sup> est plus petit'}.`)}),
+      ch(`On prend le log : x × log(${a}) &lt; log(${b}). ${flip?`Or log(${a}) &lt; 0.`:`Or log(${a}) &gt; 0.`} Donc :`,[OK(`x ${o} ${fracLog(b,a)}`),
+        NO(`x ${w} ${fracLog(b,a)}`,flip?`log(${a}) &lt; 0 : en divisant par un nombre négatif, le sens de l'inégalité change.`:`log(${a}) &gt; 0 : en divisant par un nombre positif, le sens ne change pas.`),
+        NO(`x ${o} ${fracLog(a,b)}`,`On divise log(${b}) par log(${a}), pas l'inverse.`)],{chk:{k:'sol',a:py(a),b:py(b),op:'<'}}),
+      fill('À la calculatrice :',`les solutions sont les réels x ${o} {0} (valeur arrondie au centième)`,[BD(decM(Math.round(100*r),2))],`Calcule log(${b}) ÷ log(${a}).`,{chk:{k:'v',v:[`lg(${py(b)})/lg(${py(a)})`],d:[2]}})],
+    done:`${a}<sup>x</sup> &lt; ${b} ⟺ x log(${a}) &lt; log(${b}) ⟺ x ${o} ${fracLog(b,a)} ≈ ${decM(Math.round(100*r),2)}${flip?' (le sens a changé car log('+a+') &lt; 0)':''}.`}}
+  let a,b,x;do{a=pick([2,3,4]);b=pick([10,20,30,50,100]);x=Math.pow(b,1/a)}while(Math.abs(x-Math.round(x))<.05||!safe(x,2)||!distinct([x,b/a,lg(b)/a],.01));
+  return{cap0:'x<sup>a</sup> &lt; b avec x &gt; 0.',
+  setup(){S.reset({lo:-.12,hi:lg(b)+.35,nlo:-.1,nhi:lg(b)+.3,cur:0,curLab:'1',curLog:'',thr:{e:lg(b),lab:String(b)}})},
+  prompt:`On cherche tous les réels x &gt; 0 tels que x<sup>${a}</sup> &lt; ${b}.`,
+  parts:[ch(`On prend le log : ${a} log(x) &lt; log(${b}), donc log(x) &lt; ${frH(LOGT(b),a)}. Comme log est croissante :`,[OK(`x &lt; ${b}<sup>1/${a}</sup>`),NO(`x &gt; ${b}<sup>1/${a}</sup>`,'log est croissante : elle conserve le sens des inégalités.'),
+      NO(`x &lt; ${frH(b,a)}`,`On ne divise pas ${b} par ${a} : on divise log(${b}) par ${a}.`),NO(`x &lt; ${frH(LOGT(b),a)}`,`${frH(LOGT(b),a)} borne log(x), pas x.`)],
+    {chk:{k:'solp',a:String(a),b:String(b),op:'<'},onOk:async()=>{await hopsFrom(0,a,lg(b)/a,{up:'×x',lab:j=>j===1?'x':'x^{'+j+'}',ms:550});S.set({cur:lg(b)/a,curLab:`${b}^{1/${a}}`})}}),
+    fill('À la calculatrice :',`les solutions sont les réels x tels que 0 &lt; x &lt; {0} (valeur arrondie au centième)`,[BD(decM(Math.round(100*x),2))],`Calcule ${b}^(1/${a}).`,{chk:{k:'v',v:[`Integer(${b})**Rational(1,${a})`],d:[2]}})],
+  done:`x<sup>${a}</sup> &lt; ${b} avec x &gt; 0 ⟺ 0 &lt; x &lt; ${b}<sup>1/${a}</sup> ≈ ${decM(Math.round(100*x),2)}.`}}
+
+]});
+
+/* ================= NIVEAU 7 · L'échelle logarithmique ================= */
+const CTX_N=['Le nombre de vues d\'une vidéo','La population d\'un pays','Le nombre de grains de sable d\'un seau','Le nombre de messages envoyés en un jour dans une ville'];
+function bigPow(){let a,n,v,A4;do{a=pick([3,7,11,13]);n=ri(10,40);v=n*lg(a);A4=Math.round(1e4*lg(a))}while(Math.abs(v-Math.round(v))<.05||!safe(v,2)||Math.round(n*A4/100)!==Math.round(100*v)||Math.floor(n*A4/1e4)!==Math.floor(v)||!safe(1e4*lg(a),0));return{a,n,v,A4,f:Math.floor(v)}}
+function eqDist(){const [a,r]=pick([[3,2],[2,3],[4,2],[5,2],[3,3],[2,5],[4,3],[6,2]]),c=pick([15,20,30,40,50,60]);return{a,r,c,d:c*r,lin:c+a*(r-1),alt:c+r}}
+LV.push({t:'L\'échelle logarithmique',badge:'Niveau 7 · L\'échelle logarithmique',
+rule:`<p>Sur une <b>échelle logarithmique</b>, le nombre x est placé à la position log(x)&nbsp;: les puissances de 10 sont régulièrement espacées, et deux couples de nombres de même quotient sont à la même distance, car log(b) − log(a) = log(${frH('b','a')}).</p>
+<p><b>Ordre de grandeur.</b> Si n ≤ log(N) &lt; n + 1, alors 10<sup>n</sup> ≤ N &lt; 10<sup>n+1</sup>&nbsp;: un entier N s'écrit alors avec n + 1 chiffres.</p>
+<p><b>Repère semi-logarithmique.</b> Pour u<sub>n</sub> = u<sub>0</sub> × q<sup>n</sup>, log(u<sub>n</sub>) = log(u<sub>0</sub>) + n log(q)&nbsp;: les points (n&nbsp;; log(u<sub>n</sub>)) sont alignés.</p>`,
+qs:[
+()=>{let k,c;do{k=ri(3,8);c=ri(5,95)}while(c%10===0);const vs=decM(100*k+c,2),v=k+c/100,ctx=pick(CTX_N);
+  return{cap0:'Le logarithme donne l\'ordre de grandeur.',
+  setup(){S.reset({lo:-.4,hi:9.4,nlo:-.3,nhi:9.3,cur:0,curLab:'1',curLog:'0'})},
+  prompt:`${ctx} est un nombre entier N tel que log(N) ≈ ${vs}.`,
+  parts:[act('Placer N sur la règle',async()=>{S.set({hl:[k,k+1]});await S.moveCur(v,1100,'N','≈ '+vs);cap(`${k} &lt; log(N) &lt; ${k+1}`)}),
+    ch('N est compris entre :',[OK(`entre ${p10(k)} et ${p10(k+1)}`),NO(`entre ${p10(k-1)} et ${p10(k)}`,`log(N) ≈ ${vs} est entre ${k} et ${k+1}, donc N est entre 10<sup>${k}</sup> et 10<sup>${k+1}</sup>.`),
+      NO(`entre ${p10(k+1)} et ${p10(k+2)}`,`log(N) &lt; ${k+1}, donc N &lt; 10<sup>${k+1}</sup>.`)],{chk:{k:'betwp',v:py(vs)}}),
+    fill('Et donc :','L\'entier N s\'écrit avec {0} chiffres.',[BI(k+1)],`10<sup>${k}</sup> = ${p10(k)} a déjà ${k+1} chiffres, et N &lt; 10<sup>${k+1}</sup>.`,{chk:{k:'v',v:[`floor(Rational('${py(vs)}'))+1`]}})],
+  done:`${k} ≤ log(N) &lt; ${k+1}, donc ${p10(k)} ≤ N &lt; ${p10(k+1)} : N s'écrit avec ${k+1} chiffres.`}},
+()=>{const {a,n,v,A4,f}=bigPow();
+  return{cap0:'Des pas de ×'+a+', beaucoup de pas.',
+  setup(){S.reset({lo:-.4,hi:f+1.5,nlo:-.3,nhi:f+1.4,cur:0,curLab:'1',curLog:''})},
+  prompt:`À la calculatrice, on lit log(${a}) ≈ ${decM(A4,4)}. Combien de chiffres a le nombre entier ${a}<sup>${n}</sup> ?`,
+  parts:[fill('',`log(${a}<sup>${n}</sup>) = ${n} × log(${a}) ≈ {0} (au centième)`,[BD(decM(Math.round(n*A4/100),2))],`Calcule ${n} × ${decM(A4,4)}, puis arrondis au centième.`,
+      {chk:{k:'v',v:[`lg(${a}**${n})`],d:[2]},onOk:async()=>{await hopsFrom(0,n,lg(a),{up:'',lab:j=>a+'^{'+j+'}',ms:Math.max(70,1600/n)});S.set({curLog:'≈ '+decM(Math.round(100*v),2),hl:[f,f+1]})}}),
+    ch(`Donc ${a}<sup>${n}</sup> s'écrit avec :`,[OK(`${f+1} chiffres`),NO(`${f} chiffres`,`10<sup>${f}</sup> ≤ ${a}<sup>${n}</sup> &lt; 10<sup>${f+1}</sup>, et 10<sup>${f}</sup> a déjà ${f+1} chiffres.`),
+      NO(`${f+2} chiffres`,`${a}<sup>${n}</sup> &lt; 10<sup>${f+1}</sup>, le plus petit nombre à ${f+2} chiffres.`),NO(`${n<=f+2&&n>=f?f-1:n} chiffres`,'Le nombre de chiffres se lit sur le logarithme, pas sur l\'exposant.')],{chk:{k:'v',v:`floor(${n}*lg(${a}))+1`}})],
+  done:`${f} ≤ log(${a}<sup>${n}</sup>) &lt; ${f+1} : ${a}<sup>${n}</sup> s'écrit avec ${f+1} chiffres.`}},
+()=>{const p=ri(-1,2),q=p+pick([2,4]),mid=(p+q)/2,lin=decStr((1+10**(q-p))*5,p-1);
+  return{cap0:'Sur une échelle logarithmique, on raisonne sur les exposants.',
+  setup(){S.reset({lo:p-.7,hi:q+.7,cur:null})},
+  prompt:`Sur une échelle logarithmique (comme celle de la règle), quel nombre est placé exactement au milieu entre ${p10(p)} et ${p10(q)} ?`,
+  parts:[ch('',[OK(p10(mid)),NO(lin,`${lin} est le milieu sur une échelle <b>linéaire</b>. Ici, on prend le milieu des logarithmes ${neg(p)} et ${q}.`),
+      NO(decStr(5,q-1),`${decStr(5,q-1)} est la moitié de ${p10(q)} : sur une échelle logarithmique, il est tout près de ${p10(q)}.`),NO(p10(mid+1),`Le milieu de ${neg(p)} et ${q} est ${mid}, pas ${mid+1}.`)],
+    {chk:{k:'v',v:`10**Rational(${p+q},2)`},onOk:async()=>{st().pins.push({e:p,lab:p10(p)},{e:q,lab:p10(q)});
+      await S.grow({a:p,b:mid,col:C.blue,lab:String((q-p)/2),row:0},600);await S.grow({a:mid,b:q,col:C.gold,lab:String((q-p)/2),row:0},600);S.set({cur:mid,curLab:p10(mid),curLog:''})}})],
+  done:`Le milieu des logarithmes est ${frH(neg(p)+' + '+q,2)} = ${mid} : c'est 10<sup>${mid}</sup> = ${p10(mid)}. Sur une échelle logarithmique, les puissances de 10 sont régulièrement espacées.`}},
+()=>{const {a,r,c,d,lin,alt}=eqDist();
+  return{cap0:'Même quotient, même distance.',
+  setup(){S.reset({lo:lg(a)-.35,hi:lg(d)+.35,cur:null})},
+  prompt:`Sur une échelle logarithmique, la distance entre ${a} et ${a*r} est la même qu'entre ${c} et un nombre d plus grand que ${c}. Que vaut d ?`,
+  parts:[ch('',[OK(String(d)),NO(String(lin),`Sur une échelle logarithmique, ce n'est pas la différence qui compte, c'est le quotient : ${a*r} = ${a} × ${r}.`),NO(String(alt),`La distance correspond à « ×${r} », pas à « +${r} ».`)],
+    {chk:{k:'v',v:`Rational(${c}*${a*r},${a})`},onOk:async()=>{await S.grow({a:lg(a),b:lg(a*r),col:C.blue,lab:`log(${r})`,row:0},600);await S.grow({a:lg(c),b:lg(d),col:C.gold,lab:`log(${r})`,row:0},600);
+      S.set({hl:[lg(a),lg(a*r),lg(c),lg(d)]})}})],
+  done:`log(${a*r}) − log(${a}) = log(${frH(a*r,a)}) = log(${r}) et log(${d}) − log(${c}) = log(${frH(d,c)}) = log(${r}) : même quotient, même distance.`}},
+()=>{const q=pick([2,3,5,7]),u0=pick([3,4,6,8].filter(x=>x!==q));
+  return{cap0:'Une suite géométrique sur une échelle logarithmique.',
+  setup(){S.reset({lo:lg(u0)-.3,hi:lg(u0)+3*lg(q)+.4,cur:lg(u0),curLab:String(u0),curLog:''})},
+  prompt:`La suite géométrique u<sub>n</sub> = ${u0} × ${q}<sup>n</sup> est représentée dans un repère semi-logarithmique : on place log(u<sub>n</sub>) en fonction de n. ${given([q])}`,
+  parts:[act('Placer u0, u1, u2, u3',()=>hopsFrom(lg(u0),3,lg(q),{up:'×'+q,low:`log(${q})`,lab:j=>fmtInt(u0*q**j),ms:650})),
+    fill('Transforme l\'expression :',`log(u<sub>n</sub>) = log(${u0}) + n × log({0})<br>d'un rang au suivant, log(u<sub>n</sub>) augmente de {1}`,[BI(q),BD(LMs(q))],
+      `log(${u0} × ${q}<sup>n</sup>) = log(${u0}) + log(${q}<sup>n</sup>) = log(${u0}) + n log(${q}).`,{chk:{k:'v',v:[`${q}`,`lg(${q})`],d:[null,3]}}),
+    ch('Dans ce repère, les points (n ; log(u<sub>n</sub>)) sont :',[OK('alignés'),NO('sur une courbe qui monte de plus en plus vite','log(u<sub>n</sub>) augmente toujours de la même quantité log('+q+') : c\'est une progression régulière.'),NO('sur une courbe qui s\'aplatit','À chaque rang, on ajoute la même longueur log('+q+') : rien ne ralentit.')],{chk:{k:'fixed',ans:'alignés'}})],
+  done:`log(u<sub>n</sub>) = log(${u0}) + n log(${q}) : chaque rang ajoute la même longueur log(${q}) ≈ ${LMs(q)}, les points sont alignés.`}}
+]});
+})();
+</script>
+<script>
+/* ======================= LA RÈGLE À ZÉROS — épreuves finales (Bronze, Argent, Or) ======================= */
+(function(){
+'use strict';
+const N=window.RZ_N;
+const {fmtInt,decStr,decM,p10,ri,pick,shuf,frH,sp,neg,par,LM,LMs,given,py,safe,ansNum}=N;
+const lg=Math.log10;
+const L=x=>`log(${x})`,fl=(b,a)=>frH(L(b),L(a));
+const distinct=(vals,eps)=>vals.every((v,i)=>vals.every((w,j)=>i===j||Math.abs(v-w)>(eps||1e-3)));
+const QC=(level,prompt,choices,explain,chk)=>({type:'qcm',level,prompt,choices,answer:0,explain,chk});
+const TR=(level,prompt,blanks,explain,chk)=>({type:'trous',level,prompt,blanks,explain,chk});
+const A=(s,extra)=>({answers:ansNum(String(s),extra),size:Math.max(3,String(s).replace(/[\s ]/g,'').length+1)});
+const AP=k=>A(p10(k),['10^'+k,'10^('+k+')'].concat(k<0?['1/'+10**(-k)]:[]));
+const EXACT=[[2,50],[4,25],[5,20],[20,50],[25,40],[8,125],[2,500],[4,250],[50,200],[125,80],[5,200],[25,400],[2,5]];
+const ONE=s=>s.replace(/^1 × /,'');
+function pair4(){let a,b,AA,B;do{a=ri(12,98);b=ri(12,98);AA=Math.round(1e4*lg(a));B=Math.round(1e4*lg(b))}
+  while(a%10===0||b%10===0||a===b||AA+B!==Math.round(1e4*lg(a*b))||!safe(1e4*lg(a),0)||!safe(1e4*lg(b),0)||!safe(1e4*lg(a*b),0));return{a,b,A:AA,B}}
+function digits2(lo,hi){let n;do{n=ri(lo,hi)}while(Math.floor(.301*n)!==Math.floor(n*lg(2))||Math.abs(n*lg(2)-Math.round(n*lg(2)))<.02);return n}
+function signQ(level,xs){const x=pick(xs),v=N.parse(x),sg=v>1?'positif':v<1?'négatif':'nul';const ws=['positif','négatif','nul'];
+  return QC(level,`Le nombre log(${x}) est :`,[sg].concat(ws.filter(w=>w!==sg)),v<1?`0 &lt; ${x} &lt; 1, donc log(${x}) &lt; 0.`:v>1?`${x} &gt; 1, donc log(${x}) &gt; 0.`:'log(1) = 0.',{k:'sign',x:py(x)})}
+function cmpQ(level,hard){let m,p,q,m2;do{m=ri(2,9);p=hard?ri(-3,1):ri(0,2);q=p+(hard?pick([-2,-1,1,2]):1);m2=hard?pick([m,ri(2,9)]):m}while(q<-3||q>3);
+  const a=decStr(m,p),b=decStr(m2,q),lt=m*Math.pow(10,p)<m2*Math.pow(10,q),r=lt?'&lt;':'&gt;',w=lt?'&gt;':'&lt;';
+  return QC(level,`Laquelle de ces écritures est juste ?`,[`log(${a}) ${r} log(${b})`,`log(${a}) ${w} log(${b})`,`log(${a}) = log(${b})`],`log est croissante sur ]0 ; +∞[ : comme ${a} ${r} ${b}, on a log(${a}) ${r} log(${b}).`,{k:'rel'})}
+function betw(level,small){let k,mt;mt=pick([12,15,18,24,35,42,48,56,64,72,85,96]);k=small?ri(1,3):ri(-3,4);const b=decStr(mt,k-1);
+  return{b,k}}
+function seuilUp(){let t,K,n0;do{t=pick([2,3,4,5,6]);K=pick([2,3]);n0=lg(K)/lg(1+t/100)}while(Math.abs(n0-Math.round(n0))<.04||!safe(n0,2));return{t,K,n0,q:decStr(100+t,-2),n:Math.ceil(n0)}}
+function seuilDown(){let p,K,n0;do{p=pick([10,15,20,25,30]);K=pick(['0,5','0,25']);n0=lg(N.parse(K))/lg(1-p/100)}while(Math.abs(n0-Math.round(n0))<.04||!safe(n0,2));return{p,K,n0,q:decStr(100-p,-2),n:Math.floor(n0)+1}}
+function axb(){let a,b,x;do{a=ri(2,9);b=ri(a+2,Math.min(a**3,200));x=lg(b)/lg(a)}while(Math.abs(x-Math.round(x))<.06||!safe(x,2)||!distinct([x,lg(b/a),b/a,lg(a)/lg(b)],.01));return{a,b,x}}
+function xab(){let a,b,x;do{a=pick([2,3,4,5]);b=pick([5,7,10,20,30,50,100,200,500]);x=Math.pow(b,1/a)}while(Math.abs(x-Math.round(x))<.05||!safe(x,2)||!distinct([x,b/a,lg(b)/a,Math.pow(b,a)],.01));return{a,b,x}}
+function simpl(){const F=ri(1,6);
+  if(F===1){const n=ri(2,5);return{h:`${n} log(2) + ${n} log(5)`,p:`${n}*lg(2)+${n}*lg(5)`,v:n,steps:`${n} × (log(2) + log(5)) = ${n} × log(10) = ${n}`}}
+  if(F===2){const p=ri(2,6),q=ri(1,3);return{h:`log(10<sup>${p}</sup>) − log(${p10(-q)})`,p:`lg(10**${p})-lg(${py(p10(-q))})`,v:p+q,steps:`${p} − (−${q}) = ${p+q}`}}
+  if(F===3){const n=ri(2,5);return{h:`${n} log(2) − log(${2**n})`,p:`${n}*lg(2)-lg(${2**n})`,v:0,steps:`log(2<sup>${n}</sup>) − log(${2**n}) = 0`}}
+  if(F===4){const m=ri(2,5),s=ri(2,5);return{h:`2 log(${m}) + log(${s}) − log(${m*m*s})`,p:`2*lg(${m})+lg(${s})-lg(${m*m*s})`,v:0,steps:`log(${frH(m*m+' × '+s,m*m*s)}) = log(1) = 0`}}
+  if(F===5){const [a,b]=pick(EXACT),k=Math.round(lg(a*b));return{h:`log(${a}) + log(${b})`,p:`lg(${a})+lg(${b})`,v:k,steps:`log(${fmtInt(a*b)}) = ${k}`}}
+  const a=pick([2,5]),n=ri(2,4),b=(10/a)**n;return{h:`${n} log(${a}) + log(${b})`,p:`${n}*lg(${a})+lg(${b})`,v:n,steps:`log(${a**n}) + log(${b}) = log(${fmtInt(a**n*b)}) = ${n}`}}
+function taux(){const CASES=[[25,3,'Le prix du gaz a augmenté de 25&nbsp;% en 3 ans','up'],[60,4,'Un prix est passé de 100 € à 160 € en 4 ans','up'],[12,6,'Une ville a perdu 12&nbsp;% de sa population en 6 ans','down'],
+  [30,5,'Un loyer a augmenté de 30&nbsp;% en 5 ans','up'],[20,4,'La valeur d\'un téléphone a baissé de 20&nbsp;% en 4 ans','down'],[50,8,'Le nombre d\'adhérents d\'un club a augmenté de 50&nbsp;% en 8 ans','up'],[40,3,'Un prix a augmenté de 40&nbsp;% en 3 ans','up']];
+  let c,tm,Cv;do{c=pick(CASES);Cv=c[3]==='up'?100+c[0]:100-c[0];tm=100*(Math.pow(Cv/100,1/c[1])-1)}while(!safe(tm,1)||!safe(c[0]/c[1],1));
+  return{p:c[0],n:c[1],txt:c[2],up:c[3]==='up',Cs:decStr(Cv,-2),tm,T:decM(Math.round(10*tm),1)}}
+
+/* ------------------------------- BRONZE ------------------------------- */
+const BR={q:{},t:{}};
+BR.q[1]=[()=>{const n=ri(1,4);return QC(1,`Que vaut log(${p10(n)}) ?`,[String(n),String(n+1),n>1?String(n-1):'10'],`${p10(n)} = 10<sup>${n}</sup>, donc log(${p10(n)}) = ${n} : le logarithme compte les zéros.`,{k:'v',v:`lg(${10**n})`})},
+  ()=>{const n=pick([2,3,4,-1,-2]);return QC(1,`On sait que log(b) = ${neg(n)}. Alors b est égal à :`,[p10(n),p10(n+1),fmtInt(10*n)],`log(b) = ${neg(n)} ⟺ b = 10<sup>${neg(n)}</sup> = ${p10(n)}.`,{k:'v',v:`10**(${n})`})}];
+BR.t[1]=[()=>{const n=ri(2,6);return TR(1,`log(${p10(n)}) = {0}`,[A(n)],`${p10(n)} = 10<sup>${n}</sup> : ${n} zéros, donc log(${p10(n)}) = ${n}.`,{k:'v',v:[`lg(${10**n})`]})},
+  ()=>{const k=ri(1,3);return TR(1,`log(${p10(-k)}) = {0}`,[A(neg(-k))],`${p10(-k)} = 10<sup>−${k}</sup>, donc log(${p10(-k)}) = −${k}.`,{k:'v',v:[`lg(Rational(1,${10**k}))`]})}];
+BR.q[2]=[()=>signQ(2,['0,5','0,2','0,04','3','25','0,8','1']),()=>cmpQ(2,false)];
+BR.t[2]=[()=>{const {b,k}=betw(2,true);return TR(2,`Encadre par deux entiers consécutifs : {0} &lt; log(${b}) &lt; {1}`,[A(k),A(k+1)],`${p10(k)} &lt; ${b} &lt; ${p10(k+1)} et log est croissante.`,{k:'v',v:[`floor(lg(${py(b)}))`,`floor(lg(${py(b)}))+1`]})}];
+BR.q[3]=[()=>{let a,b;do{a=ri(11,60);b=ri(3,60)}while(a%10===0||b%10===0||a===b||!distinct([lg(a)+lg(b),lg(a)*lg(b),lg(a+b)],.01));
+    return QC(3,`log(${a} × ${b}) est égal à :`,[`log(${a}) + log(${b})`,`log(${a}) × log(${b})`,`log(${a+b})`],'Le logarithme d\'un produit est la somme des logarithmes : log(a × b) = log(a) + log(b).',{k:'v',v:`lg(${a}*${b})`})},
+  ()=>{const [a,b]=pick(EXACT.slice(0,6).concat([[2,5]])),k=Math.round(lg(a*b));return QC(3,`Que vaut log(${a}) + log(${b}) ?`,[String(k),`log(${a+b})`,fmtInt(a*b)],`log(${a}) + log(${b}) = log(${a} × ${b}) = log(${fmtInt(a*b)}) = ${k}.`,{k:'v',v:`lg(${a})+lg(${b})`})}];
+BR.t[3]=[()=>{const [a,b]=pick(EXACT),k=Math.round(lg(a*b));return TR(3,`log(${a}) + log(${b}) = {0}`,[A(k)],`log(${a}) + log(${b}) = log(${a} × ${b}) = log(${fmtInt(a*b)}) = ${k}.`,{k:'v',v:[`lg(${a})+lg(${b})`]})}];
+BR.q[4]=[()=>{const k=ri(1,3);return QC(4,`Que vaut log(${frH(1,p10(k))}) ?`,[neg(-k),String(k),neg(-(k+1))],`log(${frH(1,'b')}) = −log(b), et log(${p10(k)}) = ${k}.`,{k:'v',v:`lg(Rational(1,${10**k}))`})}];
+BR.t[4]=[()=>{const m=ri(2,9),k=ri(1,3),a=m*10**k;return TR(4,`log(${fmtInt(a)}) − log(${m}) = {0}`,[A(k)],`log(${fmtInt(a)}) − log(${m}) = log(${frH(fmtInt(a),m)}) = log(${p10(k)}) = ${k}.`,{k:'v',v:[`lg(${a})-lg(${m})`]})}];
+BR.q[5]=[()=>{let a,n;do{a=pick([3,5,7]);n=pick([2,3,4])}while(!distinct([n*lg(a),Math.pow(lg(a),n),lg(a*n)],.01));
+    return QC(5,`log(${a}<sup>${n}</sup>) est égal à :`,[`${n} × log(${a})`,`(log(${a}))<sup>${n}</sup>`,`log(${a*n})`],'L\'exposant sort en facteur : log(a<sup>n</sup>) = n × log(a).',{k:'v',v:`lg(${a}**${n})`})}];
+BR.t[5]=[()=>{const a=pick([2,3,5,7]),n=ri(2,6);return TR(5,`log(${a}<sup>${n}</sup>) = {0} × log(${a})`,[A(n)],`log(a<sup>n</sup>) = n × log(a) : ici n = ${n}.`,{k:'v',v:[`lg(${a}**${n})/lg(${a})`]})}];
+BR.q[6]=[()=>{const {a,b}=axb();return QC(6,`${a}<sup>x</sup> = ${b} ⟺ x = ?`,[`${fl(b,a)}`,`log(${frH(b,a)})`,`${frH(b,a)}`],`On prend le log : x × log(${a}) = log(${b}), donc x = log(${b}) ÷ log(${a}).`,{k:'v',v:`lg(${b})/lg(${a})`})},
+  ()=>{const b=pick(['3','7','20','50','0,5']);return QC(6,`10<sup>x</sup> = ${b} ⟺ x = ?`,[`log(${b})`,`${frH(b,10)}`,`10<sup>${b}</sup>`],`Par définition, 10<sup>x</sup> = b ⟺ x = log(b).`,{k:'v',v:`lg(${py(b)})`})}];
+BR.t[6]=[()=>{const s=seuilUp();return TR(6,`On cherche le plus petit entier n tel que ${s.q}<sup>n</sup> ≥ ${s.K}. On a trouvé n ≥ ${fl(s.K,s.q)} ≈ ${decM(Math.round(100*s.n0),2)}. Donc n = {0}.`,[A(s.n)],`n doit être un entier supérieur ou égal à ${decM(Math.round(100*s.n0),2)} : le plus petit est ${s.n}.`,{k:'v',v:[`ceiling(lg(${s.K})/lg(${py(s.q)}))`]})}];
+
+/* ------------------------------- ARGENT ------------------------------- */
+const AR={q:{},t:{}};
+AR.q[1]=[()=>{const k=ri(2,5);return QC(1,`Que vaut log(${p10(-k)}) ?`,[neg(-k),neg(-(k-1)),String(k),neg(-(k+1))],`${p10(-k)} = 10<sup>−${k}</sup> : depuis 1, ${k} pas de ÷10. Attention, il ne suffit pas de compter les zéros après la virgule.`,{k:'v',v:`lg(Rational(1,${10**k}))`})},
+  ()=>{const n=ri(4,8);return QC(1,`Le nombre ${p10(n)} s'écrit avec ${n+1} chiffres. Que vaut log(${p10(n)}) ?`,[String(n),String(n+1),String(n-1)],`${p10(n)} = 10<sup>${n}</sup> : le logarithme compte les zéros (${n}), pas les chiffres.`,{k:'v',v:`lg(${10**n})`})}];
+AR.t[1]=[()=>{const n=pick([-3,-2,-1,2,3,4,5,6,7]);return TR(1,`log(b) = ${neg(n)}, donc b = {0}`,[AP(n)],`log(b) = ${neg(n)} ⟺ b = 10<sup>${neg(n)}</sup> = ${p10(n)}.`,{k:'v',v:[`10**(${n})`]})}];
+AR.q[2]=[()=>cmpQ(2,true),
+  ()=>{const {b,k}=betw(2,false);return QC(2,`Le nombre log(${b}) est compris entre :`,[`${neg(k)} et ${neg(k+1)}`,`${neg(k+1)} et ${neg(k+2)}`,`${neg(k-1)} et ${neg(k)}`],`${p10(k)} &lt; ${b} &lt; ${p10(k+1)} et log est croissante, donc ${neg(k)} &lt; log(${b}) &lt; ${neg(k+1)}.`,{k:'betw',x:py(b)})}];
+AR.t[2]=[()=>{let x;do{x=ri(3,95)}while(x%10===0);const y=pick(['2,5','1,5','0,7','−1,5','3,2','−0,4']);
+  return TR(2,`10<sup>log(${x})</sup> = {0} et log(10<sup>${y}</sup>) = {1}`,[A(x),A(y)],'10<sup>log(x)</sup> = x pour tout x &gt; 0, et log(10<sup>x</sup>) = x pour tout réel x.',{k:'v',v:[`10**lg(${x})`,`lg(10**(${py(y)}))`]})}];
+AR.q[3]=[()=>{const {a,b,A:AA,B}=pair4();return QC(3,`On donne log(${a}) ≈ ${decM(AA,4)} et log(${b}) ≈ ${decM(B,4)}. Alors log(${a} × ${b}) vaut environ :`,
+  [decM(AA+B,4),decM(Math.round(AA*B/1e4),4),decM(Math.round(1e4*lg(a+b)),4),decM(Math.abs(AA-B),4)],`log(${a} × ${b}) = log(${a}) + log(${b}) ≈ ${decM(AA,4)} + ${decM(B,4)} = ${decM(AA+B,4)}.`,{k:'v',v:`lg(${a}*${b})`,d:4})}];
+AR.t[3]=[()=>{const m=pick([2,3,5,7]),k=ri(1,4);return TR(3,`${given([m])} log(${decStr(m,k)}) ≈ {0}`,[A(decM(LM[m]+1000*k,3))],`log(${decStr(m,k)}) = log(${m}) + log(${p10(k)}) ≈ ${LMs(m)} + ${k} = ${decM(LM[m]+1000*k,3)}.`,{k:'v',v:[`lg(${m*10**k})`],d:[3]})}];
+AR.q[4]=[()=>{let a,b;do{b=ri(2,9);a=b*ri(3,24)}while(a<12||a>99||a%10===0||!distinct([lg(a)-lg(b),lg(a)/lg(b),lg(a-b),lg(b)-lg(a)],.01));
+  return QC(4,`log(${frH(a,b)}) est égal à :`,[`log(${a}) − log(${b})`,fl(a,b),`log(${a-b})`,`log(${b}) − log(${a})`],'Le logarithme d\'un quotient est la différence des logarithmes : log(a / b) = log(a) − log(b).',{k:'v',v:`lg(Rational(${a},${b}))`})}];
+AR.t[4]=[()=>{const m=pick([2,3,5,7]);return TR(4,`${given([m])} log(${frH(1,m)}) ≈ {0}`,[A(decM(-LM[m],3))],`log(${frH(1,m)}) = −log(${m}) ≈ −${LMs(m)}.`,{k:'v',v:[`lg(Rational(1,${m}))`],d:[3]})}];
+AR.q[5]=[()=>{let a,n;do{a=pick([3,5,6,7,11,13]);n=pick([2,3,4])}while(!distinct([n*lg(a),Math.pow(lg(a),n),lg(a*n),a*lg(n)],.01));
+    return QC(5,`log(${a}<sup>${n}</sup>) est égal à :`,[`${n} × log(${a})`,`(log(${a}))<sup>${n}</sup>`,`log(${a*n})`,`${a} × log(${n})`],'log(a<sup>n</sup>) = n × log(a) : l\'exposant sort en facteur.',{k:'v',v:`lg(${a}**${n})`})},
+  ()=>{const n=digits2(10,40),f=Math.floor(n*lg(2));return QC(5,`${given([2])} Le nombre 2<sup>${n}</sup> s'écrit avec :`,[`${f+1} chiffres`,`${f} chiffres`,`${f+2} chiffres`,`${n} chiffres`],`log(2<sup>${n}</sup>) = ${n} log(2) ≈ ${n} × 0,301 = ${decM(301*n,3)} : entre ${f} et ${f+1}, donc 2<sup>${n}</sup> a ${f+1} chiffres.`,{k:'v',v:`floor(${n}*lg(2))+1`})}];
+AR.t[5]=[()=>{const k=pick([2,3,4,5,-1,-2,-3]);return TR(5,`On sait que log(a) = ${neg(k)}. Alors log(a<sup>2</sup>) = {0} et log(10a) = {1}.`,[A(neg(2*k)),A(neg(1+k))],`log(a<sup>2</sup>) = 2 log(a) = ${neg(2*k)} et log(10a) = 1 + log(a) = ${neg(1+k)}.`,{k:'v',v:[`2*(${k})`,`1+(${k})`]})}];
+AR.q[6]=[()=>{const s=seuilDown();return QC(6,`On résout ${s.q}<sup>n</sup> &lt; ${s.K}. On obtient n × log(${s.q}) &lt; log(${s.K}), donc :`,[`n &gt; ${fl(s.K,s.q)}`,`n &lt; ${fl(s.K,s.q)}`,`n &gt; ${fl(s.q,s.K)}`,`n &lt; ${fl(s.q,s.K)}`],`log(${s.q}) &lt; 0 : en divisant par log(${s.q}), le sens de l'inégalité change.`,{k:'sol',a:py(s.q),b:py(s.K),op:'<'})},
+  ()=>{const {a,b}=xab();return QC(6,`L'équation x<sup>${a}</sup> = ${b}, avec x &gt; 0, a pour solution :`,[`x = ${b}<sup>1/${a}</sup>`,`x = ${frH(b,a)}`,`x = ${b}<sup>${a}</sup>`,`x = ${frH(L(b),a)}`],`${a} log(x) = log(${b}) : x = ${b}<sup>1/${a}</sup> ; ${frH(L(b),a)} est la valeur de log(x), pas de x.`,{k:'v',v:`Integer(${b})**Rational(1,${a})`})}];
+AR.t[6]=[()=>{const {a,b,x}=axb();return TR(6,`${a}<sup>x</sup> = ${b} ⟺ x = ${fl(b,a)} ≈ {0} (au centième)`,[A(decM(Math.round(100*x),2))],`x = log(${b}) ÷ log(${a}) ≈ ${decM(Math.round(100*x),2)}.`,{k:'v',v:[`lg(${b})/lg(${a})`],d:[2]})}];
+
+/* --------------------------------- OR --------------------------------- */
+const OR={q:{},t:{}};
+OR.q[1]=[()=>{let p,q;do{p=ri(3,6);q=ri(1,3)}while(p<=q);return QC(1,`Que vaut log(${p10(p)} × ${p10(-q)}) ?`,[String(p-q),String(p+q),neg(-(p-q)),String(p*q)],`log(${p10(p)} × ${p10(-q)}) = log(${p10(p)}) + log(${p10(-q)}) = ${p} + (−${q}) = ${p-q}.`,{k:'v',v:`lg(10**${p}*Rational(1,${10**q}))`})}];
+OR.t[1]=[()=>{const p=ri(2,7),q=ri(1,4);return TR(1,`log(10<sup>${p}</sup>) − log(${p10(-q)}) = {0}`,[A(p+q)],`log(10<sup>${p}</sup>) − log(${p10(-q)}) = ${p} − (−${q}) = ${p+q}.`,{k:'v',v:[`lg(10**${p})-lg(Rational(1,${10**q}))`]})}];
+OR.q[2]=[()=>{const p=ri(-1,2),q=p+pick([2,4]),mid=(p+q)/2,lin=decStr((1+10**(q-p))*5,p-1);
+  return QC(2,`Sur une échelle logarithmique, quel nombre est placé exactement au milieu entre ${p10(p)} et ${p10(q)} ?`,[p10(mid),lin,decStr(5,q-1),p10(mid+1)],`On prend le milieu des logarithmes : ${frH(neg(p)+' + '+q,2)} = ${mid}, donc le nombre 10<sup>${mid}</sup> = ${p10(mid)}.`,{k:'v',v:`10**Rational(${p+q},2)`})}];
+OR.t[2]=[()=>{const k=ri(1,3),mt=pick([12,15,25,35,45,64,85]),b=decStr(mt,-k-1);return TR(2,`Encadre par deux entiers consécutifs : {0} &lt; log(${b}) &lt; {1}`,[A(neg(-k)),A(neg(-k+1))],`${p10(-k)} &lt; ${b} &lt; ${p10(-k+1)} et log est croissante, donc −${k} &lt; log(${b}) &lt; ${neg(1-k)}.`,{k:'v',v:[`floor(lg(${py(b)}))`,`floor(lg(${py(b)}))+1`]})}];
+OR.q[3]=[()=>{const {a,b,A:AA,B}=pair4(),f=Math.floor((AA+B)/1e4);return QC(3,`On donne log(${a}) ≈ ${decM(AA,4)} et log(${b}) ≈ ${decM(B,4)}. Sans poser la multiplication, le produit ${a} × ${b} s'écrit avec :`,[`${f+1} chiffres`,`${f} chiffres`,`${f+2} chiffres`],`log(${a} × ${b}) ≈ ${decM(AA,4)} + ${decM(B,4)} = ${decM(AA+B,4)}, entre ${f} et ${f+1} : le produit a ${f+1} chiffres.`,{k:'v',v:`floor(lg(${a}*${b}))+1`})}];
+OR.t[3]=[()=>{const {a,b,A:AA,B}=pair4();return TR(3,`On donne log(${a}) ≈ ${decM(AA,4)} et log(${b}) ≈ ${decM(B,4)}. Alors log(${a} × ${b}) ≈ {0}`,[A(decM(AA+B,4))],`log(${a} × ${b}) = log(${a}) + log(${b}) ≈ ${decM(AA+B,4)}.`,{k:'v',v:[`lg(${a}*${b})`],d:[4]})}];
+OR.q[4]=[()=>{const m=pick([2,3,7]),k=ri(1,3),x=decStr(m,-k),v0=LM[m]-1000*k;return QC(4,`${given([m])} Le nombre log(${x}) vaut environ :`,[decM(v0,3),decM(-LM[m]-1000*k,3),decM(1000*k-LM[m],3),decM(-k*LM[m],3)],`${x} = ${m} × ${p10(-k)}, donc log(${x}) = log(${m}) − ${k} ≈ ${decM(v0,3)}.`,{k:'v',v:`lg(${py(x)})`,d:3})}];
+OR.t[4]=[()=>{const m=pick([2,3,5,7]),k=ri(1,3),x=decStr(m,-k);return TR(4,`${given([m])} log(${x}) ≈ {0}`,[A(decM(LM[m]-1000*k,3))],`log(${x}) = log(${m} × ${p10(-k)}) = log(${m}) − ${k} ≈ ${decM(LM[m]-1000*k,3)}.`,{k:'v',v:[`lg(${py(x)})`],d:[3]})}];
+OR.q[5]=[()=>{const n=digits2(40,100),f=Math.floor(n*lg(2));return QC(5,`${given([2])} Sans calculatrice, le nombre 2<sup>${n}</sup> s'écrit avec :`,[`${f+1} chiffres`,`${f} chiffres`,`${f+2} chiffres`,`${n} chiffres`],`log(2<sup>${n}</sup>) = ${n} log(2) ≈ ${n} × 0,301 = ${decM(301*n,3)}, entre ${f} et ${f+1} : 2<sup>${n}</sup> a ${f+1} chiffres.`,{k:'v',v:`floor(${n}*lg(2))+1`})},
+  ()=>{const s=simpl();return QC(5,`Sans calculatrice, A = ${s.h} est égal à :`,[String(s.v),String(s.v+1),s.v?String(s.v-1):String(s.v+2)],`A = ${s.steps}.`,{k:'v',v:s.p})}];
+OR.t[5]=[()=>{const s=simpl();return TR(5,`Sans calculatrice : ${s.h} = {0}`,[A(s.v)],`On sort les exposants, on regroupe, puis log(10) = 1 : ${s.h} = ${s.steps}.`,{k:'v',v:[s.p]})}];
+OR.q[6]=[()=>{const T=taux(),dv=decM(Math.round(10*T.p/T.n),1);return QC(6,`${T.txt}. Le taux d'évolution annuel moyen est, à 0,1&nbsp;% près :`,[`${T.T}&nbsp;%`,`${T.up?'':'−'}${dv}&nbsp;%`,`${T.up?'':'−'}${T.p}&nbsp;%`],`(1 + t<sub>m</sub>)<sup>${T.n}</sup> = ${T.Cs}, donc t<sub>m</sub> = ${T.Cs}<sup>1/${T.n}</sup> − 1 ≈ ${T.T}&nbsp;% : on ne divise pas ${T.p}&nbsp;% par ${T.n}.`,{k:'v',v:`100*(Rational('${py(T.Cs)}')**Rational(1,${T.n})-1)`,d:1})},
+  ()=>{const s=seuilUp(),C0=pick([500,800,1200]);const lin=Math.ceil(100*(s.K-1)/s.t);
+    const ch=[String(s.n),String(s.n-1),String(lin)];if(!distinct(ch.map(Number),.5))ch[2]=String(s.n+5);
+    return QC(6,`On place ${fmtInt(C0)} € à ${s.t}&nbsp;% par an (intérêts composés). Au bout de combien d'années au minimum le capital dépassera-t-il ${fmtInt(s.K*C0)} € ?`,ch,`${fmtInt(C0)} × ${s.q}<sup>n</sup> ≥ ${fmtInt(s.K*C0)} ⟺ n ≥ ${fl(s.K,s.q)} ≈ ${decM(Math.round(100*s.n0),2)} : il faut ${s.n} ans.`,{k:'v',v:`ceiling(lg(${s.K})/lg(${py(s.q)}))`})}];
+OR.t[6]=[()=>{const s=seuilDown();return TR(6,`Un scooter perd ${s.p}&nbsp;% de sa valeur chaque année. Le plus petit nombre entier d'années n au bout duquel il vaut moins ${s.K==='0,5'?'de la moitié':'du quart'} de son prix d'achat est n = {0}.`,[A(s.n)],`${s.q}<sup>n</sup> &lt; ${s.K} ⟺ n &gt; ${fl(s.K,s.q)} ≈ ${decM(Math.round(100*s.n0),2)} (le sens change car log(${s.q}) &lt; 0) : n = ${s.n}.`,{k:'v',v:[`floor(lg(${py(s.K)})/lg(${py(s.q)}))+1`]})},
+  ()=>{const {a,b,x}=xab();return TR(6,`La solution positive de x<sup>${a}</sup> = ${b} est x ≈ {0} (au centième).`,[A(decM(Math.round(100*x),2))],`x = ${b}<sup>1/${a}</sup> ≈ ${decM(Math.round(100*x),2)}.`,{k:'v',v:[`Integer(${b})**Rational(1,${a})`],d:[2]})}];
+
+function bigPow(lo,hi){let a,n,v,A4;do{a=pick([3,7,11,13]);n=ri(lo,hi);v=n*lg(a);A4=Math.round(1e4*lg(a))}while(Math.abs(v-Math.round(v))<.05||Math.floor(n*A4/1e4)!==Math.floor(v)||!safe(1e4*lg(a),0));return{a,n,A4,f:Math.floor(v)}}
+function eqDist(){const [a,r]=pick([[3,2],[2,3],[4,2],[5,2],[3,3],[2,5],[4,3],[6,2]]),c=pick([15,20,30,40,50,60]);return{a,r,c,d:c*r,lin:c+a*(r-1),alt:c+r}}
+function ordre(kmin,kmax){let k,c;do{k=ri(kmin,kmax);c=ri(5,95)}while(c%10===0);return{k,vs:decM(100*k+c,2)}}
+function ineqR(){let a,b,r;do{a=pick(['0,8','0,9','0,5','1,5','2','3','5']);b=pick(['0,3','0,2','20','50','100','0,5']);r=lg(N.parse(b))/lg(N.parse(a))}while(r<=.3||Math.abs(r-Math.round(r))<.05||!safe(r,2));
+  return{a,b,r,flip:N.parse(a)<1}}
+function ineqP(){let a,b,x;do{a=pick([2,3,4]);b=pick([10,20,30,50,100]);x=Math.pow(b,1/a)}while(Math.abs(x-Math.round(x))<.05||!safe(x,2)||!distinct([x,b/a,lg(b)/a],.01));return{a,b,x}}
+BR.q[7]=[()=>{const {k,vs}=ordre(2,6);return QC(7,`Un nombre entier N vérifie log(N) ≈ ${vs}. Alors N est compris :`,[`entre ${p10(k)} et ${p10(k+1)}`,`entre ${p10(k-1)} et ${p10(k)}`,`entre ${p10(k+1)} et ${p10(k+2)}`],`${k} &lt; log(N) &lt; ${k+1} et log est croissante, donc 10<sup>${k}</sup> &lt; N &lt; 10<sup>${k+1}</sup>.`,{k:'betwp',v:py(vs)})}];
+BR.t[7]=[()=>{const {k,vs}=ordre(2,7);return TR(7,`Un nombre entier N vérifie log(N) ≈ ${vs}. Il s'écrit avec {0} chiffres.`,[A(k+1)],`${p10(k)} ≤ N &lt; ${p10(k+1)} : N a ${k+1} chiffres.`,{k:'v',v:[`floor(Rational('${py(vs)}'))+1`]})}];
+AR.q[7]=[()=>{const {a,r,c,d,lin,alt}=eqDist();return QC(7,`Sur une échelle logarithmique, la distance entre ${a} et ${a*r} est la même qu'entre ${c} et un nombre d plus grand que ${c}. Alors d =`,[String(d),String(lin),String(alt)],`Même distance, même quotient : log(${a*r}) − log(${a}) = log(${r}), donc d = ${c} × ${r} = ${d}.`,{k:'v',v:`Rational(${c}*${a*r},${a})`})}];
+AR.t[7]=[()=>{const {a,n,A4,f}=bigPow(10,30);return TR(7,`On donne log(${a}) ≈ ${decM(A4,4)}. Le nombre entier ${a}<sup>${n}</sup> s'écrit avec {0} chiffres.`,[A(f+1)],`log(${a}<sup>${n}</sup>) = ${n} log(${a}) ≈ ${n} × ${decM(A4,4)} = ${decM(n*A4,4)} : entre ${f} et ${f+1}, donc ${f+1} chiffres.`,{k:'v',v:[`floor(${n}*lg(${a}))+1`]})}];
+OR.q[7]=[()=>{const q=pick([2,3,5,7,'1,05','1,2']),qs=String(q),u0=pick([3,4,6,8].filter(x=>String(x)!==qs));const qv=N.parse(qs);
+    return QC(7,`La suite u<sub>n</sub> = ${u0} × ${qs}<sup>n</sup> est représentée dans un repère semi-logarithmique. Quand n augmente de 1, log(u<sub>n</sub>) augmente de :`,[`log(${qs})`,qs,`log(${u0})`,`log(${decStr(Math.round(u0*qv*100),-2)})`],`log(u<sub>n</sub>) = log(${u0}) + n log(${qs}) : à chaque rang, on ajoute log(${qs}), et les points sont alignés.`,{k:'v',v:`lg(${py(qs)})`})},
+  ()=>{const {a,r,c,d,lin,alt}=eqDist();return QC(7,`Sur une échelle logarithmique, on place ${a}, ${a*r}, ${c} et un nombre d &gt; ${c}, de sorte que d soit aussi loin de ${c} que ${a*r} l'est de ${a}. Alors :`,[`d = ${d}`,`d = ${lin}`,`d = ${alt}`],`log(d) − log(${c}) = log(${a*r}) − log(${a}) = log(${r}), donc d = ${c} × ${r} = ${d}.`,{k:'v',v:`Rational(${c}*${a*r},${a})`})}];
+OR.t[7]=[()=>{const {a,n,A4,f}=bigPow(30,80);return TR(7,`On donne log(${a}) ≈ ${decM(A4,4)}. Sans calculer ${a}<sup>${n}</sup>, on trouve qu'il s'écrit avec {0} chiffres.`,[A(f+1)],`log(${a}<sup>${n}</sup>) = ${n} log(${a}) ≈ ${n} × ${decM(A4,4)} = ${decM(n*A4,4)} : ${f+1} chiffres.`,{k:'v',v:[`floor(${n}*lg(${a}))+1`]})}];
+AR.q[6].push(()=>{const {a,b,r,flip}=ineqR(),o=flip?'&gt;':'&lt;',w=flip?'&lt;':'&gt;';return QC(6,`Les solutions réelles de l'inéquation ${a}<sup>x</sup> &lt; ${b} sont les réels x tels que :`,[`x ${o} ${fl(b,a)}`,`x ${w} ${fl(b,a)}`,`x ${o} ${fl(a,b)}`],flip?`x log(${a}) &lt; log(${b}) et log(${a}) &lt; 0 : en divisant, le sens change.`:`x log(${a}) &lt; log(${b}) et log(${a}) &gt; 0 : le sens est conservé.`,{k:'sol',a:py(a),b:py(b),op:'<'})});
+OR.q[6].push(()=>{const {a,b}=ineqP();return QC(6,`On cherche les réels x &gt; 0 tels que x<sup>${a}</sup> &lt; ${b}. Ce sont les réels x &gt; 0 tels que :`,[`x &lt; ${b}<sup>1/${a}</sup>`,`x &gt; ${b}<sup>1/${a}</sup>`,`x &lt; ${frH(b,a)}`,`x &lt; ${frH(L(b),a)}`],`${a} log(x) &lt; log(${b}) ⟺ log(x) &lt; ${frH(L(b),a)} ⟺ x &lt; ${b}<sup>1/${a}</sup>, car log est croissante.`,{k:'solp',a:String(a),b:String(b),op:'<'})});
+OR.t[6].push(()=>{const {a,b,r,flip}=ineqR();return TR(6,`L'inéquation ${a}<sup>x</sup> &lt; ${b}, d'inconnue x réelle, a pour solutions les réels x ${flip?'&gt;':'&lt;'} ${fl(b,a)} ≈ {0} (au centième).`,[A(decM(Math.round(100*r),2))],`log(${b}) ÷ log(${a}) ≈ ${decM(Math.round(100*r),2)}.`,{k:'v',v:[`lg(${py(b)})/lg(${py(a)})`],d:[2]})});
+
+/* ---------------------- tirage : 6 QCM + 4 trous, les 7 niveaux couverts ---------------------- */
+function build(B,extra){for(let tries=0;tries<200;tries++){
+  const lv=shuf([1,2,3,4,5,6,7]),tl=lv.slice(0,4),ql=lv.slice(4),used=[],out=[];
+  tl.forEach(l=>{const g=pick(B.t[l]);used.push(g);out.push(g())});
+  ql.forEach(l=>{const g=pick(B.q[l]);used.push(g);out.push(g())});
+  const pool=[];extra.forEach(l=>B.q[l].forEach(g=>{if(used.indexOf(g)<0&&pool.indexOf(g)<0)pool.push(g)}));
+  if(pool.length<3)continue;
+  shuf(pool).slice(0,3).forEach(g=>out.push(g()));
+  return shuf(out)}
+  throw new Error('tirage impossible')}
+window.RZ_FIN={bronze:()=>build(BR,[1,2,3]),argent:()=>build(AR,[1,2,3,4,5,6,7]),or:()=>build(OR,[3,4,5,6,7])};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'regle-a-zeros',title:'La Règle à zéros',levels:7,
+  levelNames:['Compter les zéros','Entre deux puissances','Multiplier, c\'est avancer','Diviser, c\'est reculer','Le pas répété','Trouver l\'exposant','L\'échelle logarithmique'],
+  music:'aventure',finals:{bronze:()=>(window.RZ_lastFinal=RZ_FIN.bronze()),argent:()=>(window.RZ_lastFinal=RZ_FIN.argent()),or:()=>(window.RZ_lastFinal=RZ_FIN.or())}});
+RZ.start();
+(function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|INPUT|TEXTAREA|svg)$/i.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(fix)}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>
