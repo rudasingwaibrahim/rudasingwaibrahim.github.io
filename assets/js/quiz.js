@@ -8,6 +8,19 @@
 (function () {
   'use strict';
   var doc = document, body = doc.body;
+  /* Données de la saisie tolérante et du clavier mathématique (avant le retour anticipé : utilisées par SigmaQuiz). */
+  var VARS = [];
+  (function () {
+    var base = [1.37, -2.21, 0.53, 3.09];
+    for (var k = 0; k < base.length; k++) {
+      var o = {}, L = 'abcdefghijklmnopqrstuvwxyz';
+      for (var j = 0; j < L.length; j++) o[L[j]] = base[k] + 0.173 * j * (k + 1);
+      VARS.push(o);
+    }
+  })();
+  var KEYS = [['−', '-'], [',', ','], ['x', 'x'], ['²', '²'], ['√', '√'], ['π', 'π'], ['/', '/'], ['(', '('], [')', ')']];
+  /* Fonctions exportées pour les autres modules (devoirs en ligne) : saisie tolérante, clavier mathématique, rendu KaTeX. */
+  window.SigmaQuiz = { norm: norm, evaluate: evaluate, accept: accept, sameValue: sameValue, md: md, tex: tex, esc: esc, mathPad: mathPad, needKatex: needKatex };
   var root = doc.querySelector('[data-quiz]');
   if (!root) return;
   var SRC = root.getAttribute('data-quiz');
@@ -126,15 +139,6 @@
     if (p !== toks.length) throw new Error('reste');
     return r;
   }
-  var VARS = [];
-  (function () {
-    var base = [1.37, -2.21, 0.53, 3.09];
-    for (var k = 0; k < base.length; k++) {
-      var o = {}, L = 'abcdefghijklmnopqrstuvwxyz';
-      for (var j = 0; j < L.length; j++) o[L[j]] = base[k] + 0.173 * j * (k + 1);
-      VARS.push(o);
-    }
-  })();
   function sameValue(a, b, withVars) {
     try {
       var sets = withVars ? VARS : [null];
@@ -305,7 +309,6 @@
   function scrollTop() { $body.scrollTop = 0; var box = dlg.querySelector('.qz-box'); if (box) box.scrollTop = 0; }
 
   /* ── Clavier mathématique (téléphone) ───────────────────────────── */
-  var KEYS = [['−', '-'], [',', ','], ['x', 'x'], ['²', '²'], ['√', '√'], ['π', 'π'], ['/', '/'], ['(', '('], [')', ')']];
   function mathPad(getInput) {
     var pad = el('div', 'qz-pad');
     pad.setAttribute('role', 'group'); pad.setAttribute('aria-label', 'Clavier mathématique');
