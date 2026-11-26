@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La Ligne Néon · Sigma Arcade</title>
+<meta name="description" content="Nombres réels en Seconde : ensembles de nombres, décimaux, encadrements et arrondis, intervalles, inéquations, intersection et réunion, valeur absolue et distance. Tu tiens la régie lumière d'une rampe de LED : la droite des réels.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on se trompe sans risque et on recommence.
+   IDEA : la droite des réels est une rampe de LED sur un ponton, la nuit, au bord du lagon ; l'élève tient la régie lumière.
+   PICTURE : classer un nombre = le faire entrer dans des zones emboîtées ; un décimal = un zoom ×10 qui finit « pile » ;
+             un intervalle = une lumière bornée par deux crochets ; ∩ = là où deux lumières se mélangent ;
+             |a − b| = un laser ; |x − a| ≤ r = un projecteur centré en a, de rayon r.
+   COLOUR and TYPE : nuit « océan profond », accent violet-bleu pour l'action, or pour la lumière et les réussites, corail pour les erreurs ; Outfit.
+   LAYOUT : scène et légende à gauche (collées en haut sur téléphone), carnet de régie à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);--las:#c3a8ff}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:76ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.ens{font-family:'Cambria Math','STIX Two Math','Noto Sans Math','DejaVu Sans','Segoe UI Symbol',serif;font-weight:400}
+
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.32fr) minmax(340px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#050a16;user-select:none;-webkit-user-select:none}
+#sc{display:block;width:100%;height:clamp(300px,47vh,420px);touch-action:none;-webkit-tap-highlight-color:transparent}
+#sc.grab{cursor:grab}
+.badge{position:absolute;left:10px;top:10px;font:600 13px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--mut);border:1px solid var(--soft);pointer-events:none;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge:empty{display:none}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(17px,1.8vw,21px)/1.4 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;text-wrap:balance}
+.capt .k{color:var(--gold2)}.capt .r{color:var(--ko)}.capt .m{color:var(--mut);font-weight:600}.capt .o{color:var(--ok)}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.55;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr))}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 18px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.opts.wide{grid-template-columns:minmax(0,1fr)}
+.fill{font:700 clamp(20px,2.3vw,24px)/2.1 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:3.4em;height:46px;margin:0 3px;padding:0 6px;font:700 21px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.fr .in{height:44px;font-size:18px;width:2.6em;margin:2px 0}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-width:48px;min-height:46px;padding:0 10px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:700 18px var(--sg-font);font-variant-numeric:tabular-nums;cursor:pointer;transition:border-color .15s,background .15s}
+.chip:hover:not(:disabled){border-color:var(--ac)}
+.chip[aria-pressed=true]{border-color:var(--gold);background:rgba(200,168,75,.18);color:var(--gold2)}
+.chip:disabled{cursor:default}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+.step{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:var(--solid)}
+.step button{width:48px;height:48px;font:600 20px var(--sg-font);border:0;background:transparent;color:var(--ink);cursor:pointer}
+.step button:hover:not(:disabled){background:var(--sg-hover)}
+.step button:disabled{opacity:.3;cursor:not-allowed}
+.step output{min-width:3.4em;height:48px;display:grid;place-items:center;border-left:1px solid var(--soft);border-right:1px solid var(--soft);font:700 21px var(--sg-font);font-variant-numeric:tabular-nums}
+/* réglages de la rampe */
+.lrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 12px}
+.lname{width:100%;font-size:15px;font-weight:600;color:var(--mut)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:6px}
+.seg button{min-height:48px;min-width:48px;padding:0 13px;border-radius:12px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;white-space:nowrap}
+.seg button:hover:not(:disabled){border-color:var(--ac)}
+.seg button[aria-pressed=true]{background:var(--acsoft);border-color:var(--ac);box-shadow:inset 0 0 0 1px var(--ac)}
+.seg button b{font-size:20px;margin-right:4px;color:var(--gold2)}
+.prev{margin:4px 0 12px;font-size:17px;color:var(--mut)}
+.prev b{color:var(--ink);font-size:22px;font-variant-numeric:tabular-nums}
+.zbtn{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.zbtn button{min-height:60px;padding:4px 6px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;transition:border-color .15s,background .15s}
+.zbtn button:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.zbtn button .ens{font-size:24px}
+.zbtn button small{font-size:11.5px;color:var(--mut);margin-top:3px;text-align:center}
+.zbtn button.ko{border-color:var(--ko);opacity:.6}.zbtn button.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}
+.zlog{margin:0 0 12px;padding:0;list-style:none;display:grid;gap:6px;font-variant-numeric:tabular-nums}
+.zlog li{padding:6px 12px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--soft);font-weight:600}
+.zlog li.k{border-color:rgba(200,168,75,.6);background:rgba(200,168,75,.1);color:var(--gold2)}
+.zlog li .m{color:var(--mut);font-weight:500}
+code{font:600 .95em var(--sg-mono);background:rgba(255,255,255,.06);padding:1px 6px;border-radius:6px}
+/* fractions, intervalles, puissances */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.sk-q .fr,.sk-ch .fr{font-size:.95em}
+.iv{white-space:nowrap;font-variant-numeric:tabular-nums}
+sup{font-size:.62em;line-height:0}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb .mk,.win .mk{flex:none}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  #sc{height:clamp(214px,36svh,300px)}
+  .stage{border-radius:14px}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:15.5px;border-radius:10px}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .zbtn{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.zbtn button small{font-size:10px}
+  .seg button{padding:0 10px;font-size:15px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>La Ligne Néon</h1>
+<p>Concert de nuit au bord du lagon. Tu tiens la régie lumière d'une rampe de LED&nbsp;: la droite des nombres réels. Faire entrer un nombre dans sa zone, zoomer, poser des crochets, mélanger deux lumières, tirer un laser, régler un projecteur&nbsp;: chaque geste est une notion du cours.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage"><svg id="sc" role="img" aria-label="Rampe de LED : la droite des nombres réels"></svg><span class="badge" id="badge"></span></div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b>Pas tout à fait.</b><p id="fbp"></p></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+<script>
+/* ======================= LA LIGNE NÉON — nombres, intervalles, scène ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t}return a};
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?Math.min(ms,40):ms));
+const INF=Infinity;
+const eqv=(x,y)=>x===y||Math.abs(x-y)<1e-9;
+
+/* ---------- écritures ---------- */
+function fmt(v){if(v===INF)return '+∞';if(v===-INF)return '−∞';let s=String(Math.round(v*1e6)/1e6);if(s==='-0')s='0';return s.replace('.',',').replace('-','−')}
+const fmtP=v=>v<0?'('+fmt(v)+')':fmt(v);
+const fr=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const pw=n=>`10<sup>−${n}</sup>`;                       // 10⁻ⁿ
+const dz=(i,z)=>{const s=(i/Math.pow(10,z)).toFixed(z);return (s==='-0'?'0':s).replace('.',',').replace('-','−')}; // i / 10^z avec z décimales
+const SETS=['ℝ','ℚ','𝔻','ℤ','ℕ'];
+const SETN=['réels','rationnels','décimaux','entiers relatifs','entiers naturels'];
+
+/* ---------- intervalles ---------- */
+const iv=(a,ai,b,bi)=>({a,ai:a===-INF?false:!!ai,b,bi:b===INF?false:!!bi});
+const lb=I=>I.a===-INF||!I.ai?']':'[';
+const rb=I=>I.b===INF||!I.bi?'[':']';
+const ivT=I=>`${lb(I)}${fmt(I.a)} ; ${fmt(I.b)}${rb(I)}`;
+const ivH=I=>`<span class="iv">${lb(I)}${fmt(I.a)}&nbsp;; ${fmt(I.b)}${rb(I)}</span>`;
+const isR=S=>S.length===1&&S[0].a===-INF&&S[0].b===INF;
+const setT=S=>!S.length?'∅':isR(S)?'ℝ':S.map(ivT).join(' ∪ ');
+const setH=S=>!S.length?'∅':isR(S)?'ℝ':S.map(ivH).join(' ∪ ');
+const inI=(I,v)=>(eqv(v,I.a)?I.ai:v>I.a)&&(eqv(v,I.b)?I.bi:v<I.b);
+const inS=(S,v)=>S.some(I=>inI(I,v));
+const sameI=(I,J)=>eqv(I.a,J.a)&&eqv(I.b,J.b)&&I.ai===J.ai&&I.bi===J.bi;
+const sameS=(S,T)=>S.length===T.length&&S.every((I,k)=>sameI(I,T[k]));
+function inter(I,J){let a,ai,b,bi;
+  if(eqv(I.a,J.a)){a=I.a;ai=I.ai&&J.ai}else if(I.a>J.a){a=I.a;ai=I.ai}else{a=J.a;ai=J.ai}
+  if(eqv(I.b,J.b)){b=I.b;bi=I.bi&&J.bi}else if(I.b<J.b){b=I.b;bi=I.bi}else{b=J.b;bi=J.bi}
+  if(a>b||(eqv(a,b)&&!(ai&&bi)))return [];
+  return [iv(a,ai,b,bi)]}
+function union(I,J){const first=I.a<J.a||(eqv(I.a,J.a)&&I.ai);const P=first?I:J,Q=first?J:I;
+  if(Q.a<P.b&&!eqv(Q.a,P.b)||(eqv(Q.a,P.b)&&(Q.ai||P.bi))){let b,bi;
+    if(eqv(P.b,Q.b)){b=P.b;bi=P.bi||Q.bi}else if(P.b>Q.b){b=P.b;bi=P.bi}else{b=Q.b;bi=Q.bi}
+    return [iv(P.a,eqv(P.a,Q.a)?(P.ai||Q.ai):P.ai,b,bi)]}
+  return [P,Q]}
+const FLIP={'<':'>','>':'<','≤':'≥','≥':'≤'};
+const half=(o,s)=>o==='<'?iv(-INF,0,s,0):o==='≤'?iv(-INF,0,s,1):o==='>'?iv(s,0,INF,0):iv(s,1,INF,0);
+const coefX=a=>a===1?'x':a===-1?'−x':fmt(a)+'x';
+const lin=(a,b)=>coefX(a)+(b>0?' + '+fmt(b):b<0?' − '+fmt(-b):'');
+const absIn=a=>a>0?'x − '+fmt(a):a<0?'x + '+fmt(-a):'x';
+const condOf=I=>I.a===-INF?`x ${I.bi?'≤':'<'} ${fmt(I.b)}`:I.b===INF?`x ${I.ai?'≥':'>'} ${fmt(I.a)}`:`${fmt(I.a)} ${I.ai?'≤':'<'} x ${I.bi?'≤':'<'} ${fmt(I.b)}`;
+
+/* ---------- bruitages ---------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w,f2){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),gn=a.createGain();o.type=type||'triangle';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
+  gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(v,t+.015);gn.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(gn);gn.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const SND={
+  tick(){if(snd)tone(880,.05,.025,'sine')},
+  pop(){if(snd){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)}},
+  soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  hum(){if(snd){tone(220,.5,.035,'sawtooth',0,440);tone(440,.6,.02,'sine',.05,880)}},
+  zoom(){if(snd)tone(300,.35,.03,'sine',0,1200)},
+  zap(){if(snd)tone(1400,.45,.03,'square',0,500)},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))},
+  setOn(v){snd=v},on(){return snd}};
+
+/* =====================================================================
+   SCÈNE : la rampe de LED (SVG dessiné en pixels réels, redessiné à chaque image)
+   ===================================================================== */
+const SC=(()=>{
+const svg=$('sc');
+svg.innerHTML=`<defs>
+<linearGradient id="ln-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#020611"/><stop offset=".62" stop-color="#0a1731"/><stop offset="1" stop-color="#13284d"/></linearGradient>
+<linearGradient id="ln-sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#10264a"/><stop offset="1" stop-color="#050c1a"/></linearGradient>
+<linearGradient id="ln-deck" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d1629"/><stop offset="1" stop-color="#060b16"/></linearGradient>
+<linearGradient id="ln-cA" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#6c8eff" stop-opacity=".46"/><stop offset="1" stop-color="#6c8eff" stop-opacity="0"/></linearGradient>
+<linearGradient id="ln-cG" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e8c766" stop-opacity=".42"/><stop offset="1" stop-color="#e8c766" stop-opacity="0"/></linearGradient>
+<linearGradient id="ln-cW" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#f4f1ff" stop-opacity=".42"/><stop offset="1" stop-color="#f4f1ff" stop-opacity="0"/></linearGradient>
+<linearGradient id="ln-cone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff1c2" stop-opacity=".55"/><stop offset="1" stop-color="#e8c766" stop-opacity=".2"/></linearGradient>
+<linearGradient id="ln-shadow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#01030a" stop-opacity=".2"/><stop offset="1" stop-color="#01030a" stop-opacity=".7"/></linearGradient>
+<radialGradient id="ln-moon"><stop offset="0" stop-color="#e9edf7" stop-opacity=".35"/><stop offset="1" stop-color="#e9edf7" stop-opacity="0"/></radialGradient>
+<filter id="ln-glow" filterUnits="userSpaceOnUse" x="-400" y="-400" width="5000" height="3000"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<filter id="ln-glow2" filterUnits="userSpaceOnUse" x="-400" y="-400" width="5000" height="3000"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs><g id="ln-bg"></g><g id="ln-dyn"></g>`;
+const bg=svg.querySelector('#ln-bg'),dyn=svg.querySelector('#ln-dyn');
+let W=0,H=0,x0=30,x1=300,sy=200;
+const S={lo:-6,hi:6,beams:[],marks:[],laser:null,spot:null,zones:null,mirror:null,flash:[],sweep:1,mid:null,zbox:null};
+const COL={a:'#8ea6ff',g:'#f3cf6a',w:'#f7f4ff',v:'#c3a8ff',k:'#ff6b6b',o:'#5fd27c'};
+const FONT="Outfit,system-ui,sans-serif",MATH="'Cambria Math','STIX Two Math','Noto Sans Math','DejaVu Sans',serif";
+const X=v=>v===-INF?x0-12:v===INF?x1+12:x0+(v-S.lo)/(S.hi-S.lo)*(x1-x0);
+const V=px=>S.lo+(px-x0)/(x1-x0)*(S.hi-S.lo);
+const f1=n=>Math.round(n*10)/10;
+function reset(){S.beams=[];S.marks=[];S.laser=null;S.spot=null;S.zones=null;S.mirror=null;S.flash=[];S.sweep=1;S.mid=null;S.zbox=null}
+function setRange(lo,hi){S.lo=lo;S.hi=hi}
+
+function layout(){const r=svg.getBoundingClientRect();if(!r.width)return;W=Math.round(r.width);H=Math.round(r.height);
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);sy=H-(H<300?56:66);x0=W<520?28:38;x1=W-x0;drawBg();draw()}
+
+function drawBg(){let h=`<rect width="${W}" height="${H}" fill="url(#ln-sky)"/>`;
+  let s=11;const rnd=()=>{s=(s*9301+49297)%233280;return s/233280};
+  const hz=sy-44;
+  for(let i=0;i<Math.round(W*hz/2600);i++){const x=rnd()*W,y=rnd()*(hz-20);h+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="${(rnd()*.9+.3).toFixed(2)}" fill="#fff" opacity="${(rnd()*.45+.2).toFixed(2)}"/>`}
+  const mx=W*.9,my=Math.min(42,H*.13);
+  h+=`<circle cx="${f1(mx)}" cy="${f1(my)}" r="34" fill="url(#ln-moon)"/><path d="M${f1(mx)} ${f1(my-12)} A12 12 0 1 0 ${f1(mx)} ${f1(my+12)} A9 12 0 1 1 ${f1(mx)} ${f1(my-12)}Z" fill="#e9edf7" transform="rotate(-25 ${f1(mx)} ${f1(my)})"/>`;
+  // mer et îlots au loin
+  h+=`<rect x="0" y="${hz}" width="${W}" height="${H-hz}" fill="url(#ln-sea)"/>`;
+  h+=`<path d="M0 ${hz} Q${f1(W*.08)} ${hz-30} ${f1(W*.18)} ${hz-18} Q${f1(W*.26)} ${hz-34} ${f1(W*.36)} ${hz}Z" fill="#071022"/>`;
+  h+=`<path d="M${f1(W*.6)} ${hz} Q${f1(W*.68)} ${hz-15} ${f1(W*.78)} ${hz}Z" fill="#081326"/>`;
+  for(let i=0;i<3;i++){const y=hz+4+i*5,w=24-i*5;h+=`<rect x="${f1(mx-w/2+(i%2?3:-3))}" y="${y}" width="${w}" height="1.4" rx=".7" fill="#e8c766" opacity="${(.32-i*.05).toFixed(2)}"/>`}
+  // ponton
+  h+=`<rect x="0" y="${sy+17}" width="${W}" height="${H-sy-17}" fill="url(#ln-deck)"/><rect x="0" y="${sy+17}" width="${W}" height="1" fill="rgba(232,199,102,.28)"/>`;
+  for(let x=18;x<W;x+=64)h+=`<rect x="${x}" y="${sy+18}" width="4" height="${H-sy-18}" fill="rgba(0,0,0,.25)"/>`;
+  bg.innerHTML=h}
+
+/* graduations : pas des étiquettes 1, 2 ou 5 × 10^k */
+function ticksSvg(){const w=S.hi-S.lo,cand=[],cw=W<520?7.4:8.2,gap=W<520?9:12;
+  for(let k=-6;k<=3;k++)for(const m of [1,2,5])cand.push(m*Math.pow(10,k));
+  const fits=c=>{const e=Math.floor(Math.log10(c)+1e-9),dg=Math.max(0,-e),len=Math.max(dz(Math.round(S.lo/c)*Math.round(c*Math.pow(10,dg)),dg).length,dz(Math.round(S.hi/c)*Math.round(c*Math.pow(10,dg)),dg).length);
+    return (x1-x0)*c/w>=len*cw+gap&&w/c<=16};
+  const ls=cand.find(fits)||cand[cand.length-1],e=Math.floor(Math.log10(ls)+1e-9),base=Math.pow(10,e);
+  let ms=ls/base>1.5?base:base/10;if((x1-x0)/(w/ms)<9)ms=ls;
+  const dig=Math.max(0,-e);let h='';
+  const i0=Math.ceil(S.lo/ms-1e-7),i1=Math.floor(S.hi/ms+1e-7);
+  for(let i=i0;i<=i1;i++){const v=i*ms,px=f1(X(v)),k=Math.round(v/ls),maj=Math.abs(v/ls-k)<1e-6;
+    h+=`<line x1="${px}" y1="${sy+9}" x2="${px}" y2="${sy+(maj?17:13)}" stroke="rgba(200,215,255,${maj?.7:.35})" stroke-width="${maj?1.6:1}"/>`;
+    if(maj){const t=dz(Math.round(k*ls*Math.pow(10,dig)),dig);const zero=Math.abs(k*ls)<1e-12;
+      h+=`<text x="${px}" y="${sy+(W<520?33:35)}" text-anchor="middle" font-family="${FONT}" font-size="${W<520?12.5:14}" font-weight="${zero?800:600}" fill="${zero?'#f0f4ff':'rgba(215,226,255,.86)'}">${t}</text>`}}
+  return h}
+
+/* LED : couleur selon les lumières qui les couvrent (bleu + or = blanc) */
+function stripSvg(){const n=Math.max(24,Math.floor((x1-x0)/9)),st=(x1-x0)/n,cut=x0+S.sweep*(x1-x0)+.5;
+  let h=`<rect x="${f1(x0-10)}" y="${sy-8}" width="${f1(x1-x0+20)}" height="16" rx="8" fill="#08111f" stroke="rgba(120,160,255,.38)"/>`;
+  const led=S.beams.filter(b=>b.led),segs=[];let on='',off='',cur=null;
+  for(let i=0;i<n;i++){const px=x0+(i+.5)*st,v=V(px);let fa=false,fg=false,fw=false;
+    if(px<=cut)for(const b of led)if(inS(b.set,v)){if(b.col==='a')fa=true;else if(b.col==='g')fg=true;else fw=true}
+    const c=fw||(fa&&fg)?'w':fa?'a':fg?'g':null,r=`x="${f1(px-st/2+1.4)}" y="${sy-3.5}" width="${f1(st-2.8)}" height="7" rx="2"`;
+    if(c){on+=`<rect ${r} fill="${COL[c]}"/>`;if(cur&&cur.c===c&&cur.e===i-1){cur.e=i;cur.x2=px+st/2}else{cur={c,e:i,x1:px-st/2,x2:px+st/2};segs.push(cur)}}
+    else off+=`<rect ${r} fill="#1a2742"/>`}
+  const ch=Math.min(150,sy*.45),curt=segs.map(s=>`<rect x="${f1(s.x1)}" y="${f1(sy-8-ch)}" width="${f1(s.x2-s.x1)}" height="${f1(ch)}" fill="url(#ln-c${s.c.toUpperCase()})" style="mix-blend-mode:screen"/>`).join('');
+  return curt+h+off+`<g filter="url(#ln-glow)">${on}</g>`}
+
+function bracket(px,y,dir,col,sc,hot){sc=sc||1;const hh=17*sc,ww=9*sc;
+  return (hot?`<circle cx="${f1(px)}" cy="${y}" r="23" fill="rgba(108,142,255,.13)" stroke="rgba(142,166,255,.6)" stroke-width="1.4" stroke-dasharray="3 3"/>`:'')+
+    `<path d="M${f1(px+dir*ww)} ${f1(y-hh)} H${f1(px)} V${f1(y+hh)} H${f1(px+dir*ww)}" fill="none" stroke="${col}" stroke-width="${3.6*sc}" stroke-linecap="round" stroke-linejoin="round" filter="url(#ln-glow)"/>`}
+function infEnd(side,y,col,sc){sc=sc||1;const px=side<0?x0-4:x1+4,d=side<0?1:-1;
+  return `<path d="M${f1(px+d*11*sc)} ${f1(y-8*sc)} L${f1(px)} ${y} L${f1(px+d*11*sc)} ${f1(y+8*sc)}" fill="none" stroke="${col}" stroke-width="${3*sc}" stroke-linecap="round" stroke-linejoin="round" filter="url(#ln-glow)"/>`+
+    (sc>=1?`<text x="${f1(px+d*16)}" y="${f1(y-22)}" text-anchor="${side<0?'start':'end'}" font-family="${FONT}" font-size="15" font-weight="700" fill="${col}">${side<0?'−∞':'+∞'}</text>`:'')}
+function bracketsSvg(set,y,col,hot,sc){let h='';
+  for(const I of set){h+=I.a===-INF?infEnd(-1,y,col,sc):bracket(X(I.a),y,I.ai?1:-1,col,sc,hot);
+    h+=I.b===INF?infEnd(1,y,col,sc):bracket(X(I.b),y,I.bi?-1:1,col,sc,hot)}
+  return h}
+function bandSvg(b){const y=sy+b.band,c=COL[b.col];let h='';
+  for(const I of b.set){const xa=I.a===-INF?x0-8:X(I.a),xb=I.b===INF?x1+8:X(I.b);
+    h+=`<rect x="${f1(xa)}" y="${y+4}" width="${f1(xb-xa)}" height="${f1(sy-8-y-4)}" fill="${c}" opacity=".22" style="mix-blend-mode:screen"/>`;
+    h+=`<rect x="${f1(xa)}" y="${y-3}" width="${f1(xb-xa)}" height="6" rx="3" fill="${c}" opacity=".95" filter="url(#ln-glow)"/>`}
+  h+=bracketsSvg(b.set,y,c,false,.62);
+  if(b.name){const I=b.set[0],xa=I.a===-INF?x0-8:X(I.a),xb=I.b===INF?x1+8:X(I.b);h+=`<text x="${f1(xa-16)}" y="${y+5}" text-anchor="middle" font-family="${FONT}" font-size="15" font-weight="800" fill="${c}">${b.name}</text>`;if(I.a===-INF)h+=`<text x="${f1((xa+xb)/2)}" y="${y-10}" text-anchor="middle" font-family="${FONT}" font-size="15" font-weight="800" fill="${c}">${b.name}</text>`}
+  return h}
+
+function pill(px,ly,t,col,extra){const w=Math.max(30,12+8.6*[...t].length);
+  return `<g${extra||''}><rect x="${f1(px-w/2)}" y="${ly-14}" width="${f1(w)}" height="28" rx="14" fill="#0c1a30" stroke="${col}" stroke-width="2"/><text x="${f1(px)}" y="${ly+5.5}" text-anchor="middle" font-family="${FONT}" font-size="15" font-weight="700" fill="#f0f4ff">${t}</text></g>`}
+function markSvg(m){const col=COL[m.c||'a'],px=X(m.v),ly=sy-52-(m.lv||0)*32;const dy=m.drop!=null?-(sy-30)*(1-m.drop):0;
+  let h=`<g transform="translate(0 ${f1(dy)})"${m.op!=null?` opacity="${m.op}"`:''}><line x1="${f1(px)}" y1="${ly+14}" x2="${f1(px)}" y2="${sy-9}" stroke="${col}" stroke-width="2" stroke-dasharray="3 3"/>`;
+  h+=m.state==='out'?`<circle cx="${f1(px)}" cy="${sy}" r="7" fill="#050a16" stroke="${COL.k}" stroke-width="2.6"/>`
+    :`<circle cx="${f1(px)}" cy="${sy}" r="6.5" fill="${col}" stroke="#050a16" stroke-width="2"${m.state==='in'?' filter="url(#ln-glow2)"':''}/>`;
+  if(m.t)h+=pill(px,ly,m.t,col);
+  if(m.state)h+=`<text x="${f1(px+12)}" y="${sy-12}" font-family="${MATH}" font-size="18" font-weight="700" fill="${m.state==='in'?COL.o:COL.k}">${m.state==='in'?'∈':'∉'}</text>`;
+  return h+'</g>'}
+function flashSvg(f){const px=f1(X(f.v)),c=COL[f.c||'g'];let h=`<circle cx="${px}" cy="${sy}" r="15" fill="none" stroke="${c}" stroke-width="2.5" filter="url(#ln-glow2)"/>`;
+  for(let k=0;k<8;k++){const a=k*Math.PI/4;h+=`<line x1="${f1(px+Math.cos(a)*19)}" y1="${f1(sy+Math.sin(a)*19)}" x2="${f1(px+Math.cos(a)*27)}" y2="${f1(sy+Math.sin(a)*27)}" stroke="${c}" stroke-width="2" stroke-linecap="round"/>`}
+  return h}
+function laserSvg(){const L=S.laser,y=sy-30,xa=X(L.a),xb=X(L.a+(L.b-L.a)*L.t);let h='';
+  h+=`<rect x="${f1(Math.min(xa,xb))}" y="${y-2}" width="${f1(Math.abs(xb-xa))}" height="4" rx="2" fill="${COL.v}" filter="url(#ln-glow2)"/>`;
+  const lo=Math.min(L.a,L.b),hi=Math.max(L.a,L.b);
+  for(let k=Math.ceil(lo);k<=Math.floor(hi);k++){const ok=L.b>L.a?k<=L.a+(L.b-L.a)*L.t+1e-6:k>=L.a+(L.b-L.a)*L.t-1e-6;if(ok)h+=`<circle cx="${f1(X(k))}" cy="${y}" r="3" fill="#fff"/>`}
+  h+=`<circle cx="${f1(xa)}" cy="${y}" r="5" fill="${COL.v}"/><circle cx="${f1(xb)}" cy="${y}" r="5" fill="${COL.v}"/>`;
+  h+=`<line x1="${f1(xa)}" y1="${y}" x2="${f1(xa)}" y2="${sy-8}" stroke="${COL.v}" stroke-width="1.4" stroke-dasharray="2 3"/><line x1="${f1(xb)}" y1="${y}" x2="${f1(xb)}" y2="${sy-8}" stroke="${COL.v}" stroke-width="1.4" stroke-dasharray="2 3"/>`;
+  if(L.lab&&L.t>=1)h+=pill((xa+xb)/2,y-26,L.lab,COL.v);
+  return h}
+function mirrorSvg(){const M=S.mirror,p0=X(0);let h=`<line x1="${f1(p0)}" y1="${sy-130}" x2="${f1(p0)}" y2="${sy+8}" stroke="${COL.g}" stroke-width="1.6" stroke-dasharray="4 4" opacity=".8"/><text x="${f1(p0)}" y="${sy-136}" text-anchor="middle" font-family="${FONT}" font-size="13" font-weight="700" fill="${COL.g}">× (−1)</text>`;
+  if(M.t>0)M.u.forEach(u=>{h+=`<circle cx="${f1(X(u))}" cy="${sy}" r="6" fill="none" stroke="rgba(200,215,255,.55)" stroke-width="1.6" stroke-dasharray="2 2"/><text x="${f1(X(u))}" y="${sy-14}" text-anchor="middle" font-family="${FONT}" font-size="13" font-weight="600" fill="rgba(200,215,255,.6)">${fmt(u)}</text>`});
+  M.u.forEach((u,k)=>{const xx=u*Math.cos(Math.PI*M.t),px=X(xx),py=sy-40-Math.sin(Math.PI*M.t)*(58+k*16);const lab=fmt(M.t>=.98?-u:u);
+    h+=`<path d="M${f1(px)} ${f1(py+14)} L${f1(px)} ${sy-8}" stroke="${k?COL.g:COL.a}" stroke-width="1.4" stroke-dasharray="2 3"/><circle cx="${f1(px)}" cy="${sy}" r="6.5" fill="${k?COL.g:COL.a}" stroke="#050a16" stroke-width="2"/>`+pill(px,py,lab,k?COL.g:COL.a)});
+  return h}
+function spotSvg(){const P=S.spot,a=P.a,r=P.r,lx=X(a),ly=24,xa=X(a-r),xb=X(a+r);let h='';
+  h+=`<line x1="${f1(x0-20)}" y1="12" x2="${f1(x1+20)}" y2="12" stroke="#2a3656" stroke-width="5"/>`;
+  if(P.mode==='in')h+=`<path d="M${f1(lx-7)} ${ly+9} L${f1(lx+7)} ${ly+9} L${f1(xb)} ${sy-8} L${f1(xa)} ${sy-8}Z" fill="url(#ln-cone)" style="mix-blend-mode:screen"/>`;
+  else if(P.mode==='out')h+=`<path d="M${f1(lx-7)} ${ly+9} L${f1(lx+7)} ${ly+9} L${f1(xb)} ${sy-8} L${f1(xa)} ${sy-8}Z" fill="url(#ln-shadow)" stroke="${COL.g}" stroke-width="1.2" stroke-dasharray="4 4"/>`;
+  h+=`<path d="M${f1(lx-7)} ${ly+9} L${f1(xa)} ${sy-8} M${f1(lx+7)} ${ly+9} L${f1(xb)} ${sy-8}" stroke="${COL.g}" stroke-width="${P.mode==='eq'?2.6:1.4}" opacity="${P.mode==='eq'?1:.7}" fill="none"${P.mode==='eq'?' filter="url(#ln-glow)"':''}/>`;
+  h+=`<path d="M${f1(lx)} 12 V${ly-6}" stroke="#7f8fa8" stroke-width="2"/><rect x="${f1(lx-13)}" y="${ly-7}" width="26" height="16" rx="5" fill="#1c2a48" stroke="#9fb4ff" stroke-width="1.5"/><rect x="${f1(lx-8)}" y="${ly+6}" width="16" height="4" rx="2" fill="#fff1c2"/>`;
+  // centre et rayon
+  const ry=sy-28;
+  h+=`<path d="M${f1(lx)} ${sy-14} l5 6 l-5 6 l-5 -6z" fill="${COL.a}"/>`;
+  h+=`<line x1="${f1(lx)}" y1="${ry}" x2="${f1(xb)}" y2="${ry}" stroke="${COL.a}" stroke-width="2"/><path d="M${f1(xb-7)} ${ry-5} L${f1(xb)} ${ry} L${f1(xb-7)} ${ry+5}" fill="none" stroke="${COL.a}" stroke-width="2"/>`;
+  h+=pill((lx+xb)/2,ry-20,'r = '+fmt(r),COL.a)+pill(lx,ly+34,'a = '+fmt(a),COL.a);
+  return h}
+
+/* zones emboîtées ℝ ⊃ ℚ ⊃ 𝔻 ⊃ ℤ ⊃ ℕ */
+function zr(d){const top0=38,bot=sy-34,avail=bot-top0,band=Math.min(30,(avail-24)/5),dx=Math.min(46,(W-20)*(W<520?.045:.075));
+  return {x:10+d*dx,y:top0+d*band,w:W-20-2*d*dx,h:avail-d*band-d*4,band}}
+function zpos(d){if(d<0){const t=d+1,a={x:X(S.zones.v),y:sy-40},b=zpos(0);return {x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t}}
+  const k=Math.min(4,Math.floor(d)),t=d-k,A=zr(k),B=zr(Math.min(4,k+1));const pa={x:A.x+A.w-30,y:A.y+A.band/2+1},pb={x:B.x+B.w-30,y:B.y+B.band/2+1};
+  return {x:pa.x+(pb.x-pa.x)*t,y:pa.y+(pb.y-pa.y)*t}}
+function zonesSvg(){const Z=S.zones;let h='';
+  for(let d=0;d<5;d++){const r=zr(d),ok=Z.ok>=d,bad=Z.bad===d,sel=Z.sel===d;
+    const st=bad?COL.k:ok?COL.g:sel?COL.a:'rgba(140,170,255,.38)';
+    h+=`<rect x="${f1(r.x)}" y="${f1(r.y)}" width="${f1(r.w)}" height="${f1(r.h)}" rx="${14-d}" fill="${ok?'rgba(232,199,102,.07)':sel?'rgba(108,142,255,.12)':'rgba(10,22,40,.5)'}" stroke="${st}" stroke-width="${ok||bad||sel?2.4:1.3}"${sel&&!ok?' stroke-dasharray="6 4"':''}/>`;
+    h+=`<text x="${f1(r.x+12)}" y="${f1(r.y+r.band*.7)}" font-family="${MATH}" font-size="19" fill="${ok?COL.g:'#dfe7ff'}">${SETS[d]}</text>`;
+    h+=`<text x="${f1(r.x+36)}" y="${f1(r.y+r.band*.68)}" font-family="${FONT}" font-size="${W<520?11.5:13}" font-weight="600" fill="rgba(200,215,255,.75)">${SETN[d]}</text>`}
+  if(Z.tok){const p=zpos(Z.tok.d);h+=pill(p.x,p.y,Z.t,Z.bad>=0?COL.k:COL.g,' filter="url(#ln-glow)"')}
+  return h}
+
+function draw(){if(!W)return;let h='';
+  if(S.zones)h+=zonesSvg();
+  if(S.spot)h+=spotSvg();
+  for(const b of S.beams)if(b.band!=null)h+=bandSvg(b);
+  h+=stripSvg()+ticksSvg();
+  if(S.zbox){const a=X(S.zbox[0]),b=X(S.zbox[1]);h+=`<rect x="${f1(a)}" y="${sy-26}" width="${f1(b-a)}" height="52" rx="6" fill="rgba(108,142,255,.08)" stroke="${COL.a}" stroke-width="1.6" stroke-dasharray="5 4"/><text x="${f1((a+b)/2)}" y="${sy-32}" text-anchor="middle" font-family="${FONT}" font-size="12.5" font-weight="700" fill="${COL.a}">prochain zoom ×10</text>`}
+  if(S.mid!=null)h+=`<line x1="${f1(X(S.mid))}" y1="${sy-22}" x2="${f1(X(S.mid))}" y2="${sy+8}" stroke="${COL.v}" stroke-width="1.6" stroke-dasharray="3 3"/><text x="${f1(X(S.mid))}" y="${sy-27}" text-anchor="middle" font-family="${FONT}" font-size="12" font-weight="600" fill="${COL.v}">milieu</text>`;
+  for(const b of S.beams)if(b.br&&b.band==null)h+=bracketsSvg(b.set,sy,COL[b.col==='a'?'a':b.col==='w'?'w':'g'],b.hot);
+  if(S.laser)h+=laserSvg();
+  if(S.mirror)h+=mirrorSvg();
+  for(const m of S.marks)h+=markSvg(m);
+  for(const f of S.flash)h+=flashSvg(f);
+  dyn.innerHTML=h}
+
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+function tw(ms,f){return new Promise(res=>{if(reduceM||ms<=0){f(1);draw();res();return}const t0=performance.now();
+  const step=now=>{const t=Math.min(1,(now-t0)/ms);f(ease(t));draw();if(t<1)requestAnimationFrame(step);else res()};requestAnimationFrame(step)})}
+/* zoom : l'intervalle visé reste fixe à l'écran pendant le grossissement */
+function zoomTo(L1,H1,ms){const L0=S.lo,H0=S.hi,w0=H0-L0,w1=H1-L1;if(Math.abs(w0-w1)<1e-12){return tw(ms,t=>{S.lo=L0+(L1-L0)*t;S.hi=H0+(H1-H0)*t})}
+  const f=(L1*H0-L0*H1)/(w0-w1);return tw(ms,t=>{const w=Math.pow(w0,1-t)*Math.pow(w1,t);S.lo=f-(f-L0)*w/w0;S.hi=S.lo+w}).then(()=>{S.lo=L1;S.hi=H1;draw()})}
+function sweep(ms){S.sweep=0;return tw(ms,t=>{S.sweep=t})}
+
+/* pointeur (souris, doigt) */
+let H0=null,dragging=false;
+function pt(e){const r=svg.getBoundingClientRect();return {px:e.clientX-r.left,py:e.clientY-r.top}}
+svg.addEventListener('pointerdown',e=>{if(!H0)return;const p=pt(e);if(H0.down&&H0.down(p.px,p.py,V(p.px))!==false){dragging=true;try{svg.setPointerCapture(e.pointerId)}catch(_){}}e.preventDefault()});
+svg.addEventListener('pointermove',e=>{if(!dragging||!H0||!H0.move)return;const p=pt(e);H0.move(p.px,p.py,V(p.px));e.preventDefault()});
+const up=()=>{if(dragging&&H0&&H0.up)H0.up();dragging=false};
+svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+function handler(h){H0=h;svg.classList.toggle('grab',!!(h&&h.grab))}
+function zoneAt(px,py){for(let d=4;d>=0;d--){const r=zr(d);if(px>=r.x&&px<=r.x+r.w&&py>=r.y&&py<=r.y+r.h)return d}return -1}
+
+addEventListener('resize',()=>{clearTimeout(SC._rt);SC._rt=setTimeout(layout,60)});
+return {S,draw,layout,reset,setRange,tw,zoomTo,sweep,handler,X,V,zoneAt,edges:()=>({x0,x1,sy,W,H})};
+})();
+
+window.LN_U={$,ri,pick,shuf,reduceM,sleep,INF,eqv,fmt,fmtP,fr,pw,dz,SETS,SETN,iv,ivT,ivH,setT,setH,isR,inI,inS,sameI,sameS,inter,union,FLIP,half,coefX,lin,absIn,condOf,SND,SC};
+})();
+
+</script>
+<script>
+/* ======================= LA LIGNE NÉON — widgets et déroulé ======================= */
+(function(){
+'use strict';
+const U=window.LN_U,{$,shuf,pick,sleep,INF,eqv,fmt,iv,ivT,ivH,setH,sameI,sameS,SND,SC,SETS,SETN}=U;
+const S=SC.S;
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const cap=h=>{$('capt').innerHTML=h||'&nbsp;'};
+const norm=s=>String(s).toLowerCase().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/[×*·]/g,'x').replace(/^\+/,'');
+
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,busy=false,partState={};
+const LV=[];
+function starsOf(i){try{const g=SigmaKit.passport().games['ligne-neon'];return g&&g.levels[i+1]||0}catch(e){return 0}}
+
+function fb(html){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fb').hidden=false}
+const api={err(why){errs++;SND.soft();fb(why);partState.errors=(partState.errors||0)+1},ok(){fb('');nextPart()}};
+async function guard(f){if(busy)return;busy=true;try{await f()}finally{busy=false}}
+const W={};
+
+/* bouton d'action (animation de démonstration) */
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=()=>guard(async()=>{b.disabled=true;SND.pop();await p.run();
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);api.ok()})};
+
+/* choix */
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts${p.wide?' wide':''}">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=()=>guard(async()=>{const c=p.ch[+b.dataset.j];
+    if(c.ok){box.querySelectorAll('.opt').forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();fb('');if(p.onOk)await p.onOk();api.ok()}
+    else{b.classList.add('ko');b.disabled=true;api.err(c.why);if(p.onKo)await p.onKo(c)}}))};
+
+/* trous */
+W.fill=(p,box)=>{const numeric=p.ans.every(a=>/^[−-]?\d+([,.]\d+)?$/.test(a[0]));
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>`<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" ${numeric?'inputmode="decimal"':''} aria-label="Case ${+i+1}" style="width:${Math.max(2.6,Math.max(...p.ans[i].map(a=>a.length))*.72+1.7)}em">`);
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`;
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=e=>{e.preventDefault();if(busy)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=v.map((x,i)=>p.ans[+ins[i].dataset.i].some(a=>norm(a)===norm(x)));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();guard(async()=>{if(p.onOk)await p.onOk();api.ok()})}
+    else api.err(typeof p.why==='function'?p.why(v,oks):p.why)};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+
+/* la rampe : deux bornes, trois états chacune (incluse, exclue, infini) */
+function boundMsg(side,T,why){const g=side==='a';const v=g?T.a:T.b,inc=g?T.ai:T.bi;
+  if(v===-INF)return 'À gauche, rien ne limite les solutions&nbsp;: la borne gauche est −∞, toujours avec un crochet ouvert ]−∞.';
+  if(v===INF)return 'À droite, rien ne limite les solutions&nbsp;: la borne droite est +∞, toujours avec un crochet ouvert +∞[.';
+  const br=g?(inc?'['+fmt(v):']'+fmt(v)):(inc?fmt(v)+']':fmt(v)+'[');
+  return `La borne ${g?'gauche':'droite'} est ${fmt(v)}, ${inc?'incluse':'exclue'}${why?' ('+why+')':''}&nbsp;: crochet ${inc?'tourné vers l\'intérieur':'tourné vers l\'extérieur'}, <b>${br}</b>.`}
+W.light=(p,box)=>{const st={a:p.init.a,at:p.init.at,b:p.init.b,bt:p.init.bt};partState=st;let done=false;
+  const step=p.step||1,mn=S.lo+step,mx=S.hi-step;
+  const seg=(s,k,lab,gl)=>`<button type="button" data-k="${s}:${k}" aria-pressed="false">${gl?`<b>${gl}</b>`:''}${lab}</button>`;
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+
+   `<div class="lrow"><span class="lname">Borne gauche</span><div class="step"><button type="button" data-m="a:-1" aria-label="Borne gauche vers la gauche">◀</button><output class="o-a"></output><button type="button" data-m="a:1" aria-label="Borne gauche vers la droite">▶</button></div>
+    <div class="seg" role="group" aria-label="Borne gauche">${seg('at','f','incluse','[')}${seg('at','o','exclue',']')}${seg('at','i','−∞','')}</div></div>
+    <div class="lrow"><span class="lname">Borne droite</span><div class="step"><button type="button" data-m="b:-1" aria-label="Borne droite vers la gauche">◀</button><output class="o-b"></output><button type="button" data-m="b:1" aria-label="Borne droite vers la droite">▶</button></div>
+    <div class="seg" role="group" aria-label="Borne droite">${seg('bt','f','incluse',']')}${seg('bt','o','exclue','[')}${seg('bt','i','+∞','')}</div></div>
+    <p class="prev">Ta rampe&nbsp;: <b class="o-iv"></b></p>
+    <div class="btns"><button type="button" class="btn or go">${p.label||'Allumer la rampe'}</button></div>`;
+  const cur=()=>iv(st.at==='i'?-INF:st.a,st.at==='f',st.bt==='i'?INF:st.b,st.bt==='f');
+  function scene(){S.beams=(p.given||[]).concat([{set:[cur()],col:p.col||'g',led:true,br:true,hot:!done}]);SC.draw()}
+  function sync(){box.querySelector('.o-a').textContent=st.at==='i'?'−∞':fmt(st.a);box.querySelector('.o-b').textContent=st.bt==='i'?'+∞':fmt(st.b);
+    box.querySelectorAll('[data-k]').forEach(b=>{const [s,k]=b.dataset.k.split(':');b.setAttribute('aria-pressed',String(st[s]===k))});
+    const ai=st.at==='i',bi=st.bt==='i';
+    box.querySelector('[data-m="a:-1"]').disabled=done||ai||st.a-step<mn-1e-9;box.querySelector('[data-m="a:1"]').disabled=done||ai||st.a+step>(bi?mx:st.b-step)+1e-9;
+    box.querySelector('[data-m="b:-1"]').disabled=done||bi||st.b-step<(ai?mn:st.a+step)-1e-9;box.querySelector('[data-m="b:1"]').disabled=done||bi||st.b+step>mx+1e-9;
+    box.querySelector('.o-iv').innerHTML=ivH(cur());scene()}
+  function fixOrder(side){if(st.at!=='i'&&st.bt!=='i'&&st.a>=st.b-1e-9){if(side==='a')st.a=st.b-step;else st.b=st.a+step}
+    st.a=Math.max(mn,Math.min(mx,st.a));st.b=Math.max(mn,Math.min(mx,st.b));if(st.a>=st.b-1e-9){st.a=Math.max(mn,st.b-step)}}
+  box.addEventListener('click',e=>{if(busy||done)return;const m=e.target.closest('[data-m]'),k=e.target.closest('[data-k]');
+    if(m&&!m.disabled){const [s,d]=m.dataset.m.split(':');st[s]+=+d*step;fixOrder(s);SND.tick();fb('');sync()}
+    if(k){const [s,t]=k.dataset.k.split(':');if(st[s]===t)return;st[s]=t;if(t!=='i')fixOrder(s[0]);SND.tick();fb('');sync()}});
+  // glisser une borne sur la scène
+  let side=null;
+  SC.handler({grab:true,down(px){if(busy||done)return false;const E=SC.edges(),xa=st.at==='i'?E.x0:SC.X(st.a),xb=st.bt==='i'?E.x1:SC.X(st.b);
+      side=Math.abs(px-xa)<=Math.abs(px-xb)?'a':'b';if(Math.min(Math.abs(px-xa),Math.abs(px-xb))>70){side=null;return false}return true},
+    move(px,py,v){if(!side)return;const E=SC.edges();const t=side==='a'?'at':'bt';
+      if(side==='a'&&px<E.x0+4){if(st.at!=='i'){st.at='i';SND.tick();sync()}return}
+      if(side==='b'&&px>E.x1-4){if(st.bt!=='i'){st.bt='i';SND.tick();sync()}return}
+      const sv=Math.round(v/step)*step;if(st[t]==='i')st[t]=p.init[t]==='i'?'f':p.init[t];
+      if(!eqv(sv,st[side])){st[side]=sv;fixOrder(side);SND.tick()}fb('');sync()},
+    up(){side=null}});
+  box.querySelector('.go').onclick=()=>guard(async()=>{const c=cur(),T=p.target;
+    if(sameI(c,T)){done=true;sync();SC.handler(null);box.querySelectorAll('button').forEach(b=>b.disabled=true);SND.hum();
+      await SC.sweep(700);S.flash=[];if(T.a!==-INF)S.flash.push({v:T.a,c:'g'});if(T.b!==INF)S.flash.push({v:T.b,c:'g'});SC.draw();await sleep(450);S.flash=[];SC.draw();api.ok();return}
+    const msg=[];
+    if(!eqv(c.a,T.a)||c.ai!==T.ai)msg.push((eqv(c.a,T.a)?'La position est bonne, mais regarde le crochet. ':'')+boundMsg('a',T,p.whyA));
+    if(!eqv(c.b,T.b)||c.bi!==T.bi)msg.push((eqv(c.b,T.b)?'La position est bonne, mais regarde le crochet. ':'')+boundMsg('b',T,p.whyB));
+    api.err(msg.join('<br>'))});
+  sync()};
+
+/* zones emboîtées */
+const GATE_OK=['','s\'écrit comme une fraction&nbsp;: il entre dans ℚ.','a un nombre fini de décimales&nbsp;: il entre dans 𝔻.','est un entier&nbsp;: il entre dans ℤ.','est un entier positif ou nul&nbsp;: il entre dans ℕ.'];
+function refusal(it){const t=it.tv||it.t;
+  if(it.z===3)return `${t} est négatif&nbsp;: la porte de ℕ reste fermée.`;
+  if(it.z===2)return `${t} n'est pas un entier&nbsp;: la porte de ℤ reste fermée.`;
+  if(it.z===1)return `${t} = ${it.x}&nbsp;: une infinité de décimales, la porte de 𝔻 reste fermée.`;
+  return `${it.t} est irrationnel, ce n'est pas une fraction&nbsp;: la porte de ℚ reste fermée.`}
+W.zones=(p,box)=>{const it=p.item,Z=S.zones;let done=false;partState={z:it.z};
+  const ord=[4,3,2,1,0];
+  box.innerHTML=`<p class="ask">${p.ask||'Touche le plus petit ensemble (la zone la plus intérieure possible)&nbsp;:'}</p><div class="zbtn">${ord.map(d=>`<button type="button" data-d="${d}"><span class="ens">${SETS[d]}</span><small>${SETN[d]}</small></button>`).join('')}</div>`;
+  async function go(d){if(done)return;fb('');Z.sel=d;Z.ok=-1;Z.bad=-1;Z.tok={d:-1};SC.draw();SND.pop();
+    await SC.tw(520,t=>{Z.tok.d=-1+t});Z.ok=0;cap(`Tout nombre de la droite numérique est dans ℝ.`);SC.draw();
+    const tv=it.tv||it.t,lim=Math.min(d,it.z);
+    for(let k=1;k<=lim;k++){await sleep(260);await SC.tw(430,t=>{Z.tok.d=k-1+t});Z.ok=k;SND.tick();cap(`<span class="o">✓</span> ${tv} ${GATE_OK[k]}`);SC.draw()}
+    if(d>it.z){await sleep(200);await SC.tw(240,t=>{Z.tok.d=it.z+.42*t});Z.bad=it.z+1;SC.draw();await SC.tw(260,t=>{Z.tok.d=it.z+.42*(1-t)});
+      cap(`<span class="r">✗</span> ${refusal(it)}`);box.querySelector(`[data-d="${d}"]`).classList.add('ko');
+      api.err(`${refusal(it)} ${it.t} n'appartient pas à ${SETS[d]}&nbsp;: choisis une zone plus grande.`);await sleep(300);Z.bad=-1;SC.draw();return}
+    if(d<it.z){for(let k=d+1;k<=it.z;k++){await sleep(260);await SC.tw(430,t=>{Z.tok.d=k-1+t});Z.ok=k;cap(`<span class="o">✓</span> ${tv} ${GATE_OK[k]}`);SC.draw()}
+      box.querySelector(`[data-d="${d}"]`).classList.add('ko');
+      api.err(`${it.t} appartient bien à ${SETS[d]}, mais il entre plus loin, jusqu'à ${SETS[it.z]}&nbsp;: le plus petit ensemble est la zone la plus intérieure qu'il atteint.`);return}
+    if(it.z<4){await sleep(200);await SC.tw(240,t=>{Z.tok.d=it.z+.42*t});Z.bad=it.z+1;SC.draw();await SC.tw(260,t=>{Z.tok.d=it.z+.42*(1-t)});Z.bad=-1;
+      cap(`<span class="r">✗</span> ${refusal(it)}`);SC.draw()}
+    done=true;box.querySelectorAll('button').forEach(b=>b.disabled=true);box.querySelector(`[data-d="${d}"]`).classList.add('ok');SC.handler(null);api.ok()}
+  box.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(!b.classList.contains('ko'))guard(()=>go(+b.dataset.d))});
+  SC.handler({down(px,py){if(busy||done)return false;const d=SC.zoneAt(px,py);if(d>=0){const b=box.querySelector(`[data-d="${d}"]`);if(b&&!b.classList.contains('ko'))guard(()=>go(d))}return false}})};
+
+/* zoom ×10 */
+W.zoom=(p,box)=>{let z=0;const k=Math.floor(p.x+1e-12);partState={z:0,done:false,landed:false};
+  const tr=z=>p.q?Math.floor(p.q[0]*Math.pow(10,z)/p.q[1]):Math.floor(p.x*Math.pow(10,z)+1e-9);
+  const lands=z=>p.q?((p.q[0]*Math.pow(10,z))%p.q[1]===0):false;
+  SC.setRange(k-3,k+4);S.marks=[{v:p.x,t:p.lab,c:'a'}];S.flash=[];S.mid=null;S.zbox=[k,k+1];SC.draw();cap('Zoom ×10&nbsp;: la caméra découpe l\'intervalle encadré en 10 parts égales.');
+  const L=p.labH||p.lab;
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<ol class="zlog"><li><span class="m">Départ&nbsp;:</span> ${fmt(k)} &lt; ${L} &lt; ${fmt(k+1)}</li></ol><div class="btns"><button type="button" class="btn or zb">Zoomer ×10</button></div>`;
+  const zb=box.querySelector('.zb'),log=box.querySelector('.zlog');
+  const finish=()=>{zb.disabled=true;partState.done=true;S.zbox=null;SC.draw();api.ok()};
+  zb.onclick=()=>guard(async()=>{z++;partState.z=z;SND.zoom();const t=tr(z-1),w=Math.pow(10,-(z-1));S.zbox=null;
+    await SC.zoomTo(t*w,(t+1)*w,reduceMs(650));const nz=tr(z);S.zbox=[nz/Math.pow(10,z),(nz+1)/Math.pow(10,z)];
+    if(lands(z)){partState.landed=true;S.flash=[{v:p.x,c:'g'}];SC.draw();SND.win();
+      log.insertAdjacentHTML('beforeend',`<li class="k"><span class="m">Zoom ${z}&nbsp;:</span> ${L} tombe pile sur la graduation ${dzv(tr(z),z)}&nbsp;!</li>`);
+      cap(`<span class="k">Pile&nbsp;!</span> ${p.labH?L+' = '+dzv(tr(z),z):L} <span class="m">· ${z} décimale${z>1?'s':''}, une graduation de ${U.pw(z)}</span>`);finish();return}
+    log.insertAdjacentHTML('beforeend',`<li><span class="m">Zoom ${z}&nbsp;:</span> ${dzv(tr(z),z)} &lt; ${L} &lt; ${dzv(tr(z)+1,z)}</li>`);
+    cap(`${dzv(tr(z),z)} &lt; ${L} &lt; ${dzv(tr(z)+1,z)} <span class="m">· graduations de ${U.pw(z)}</span>`);
+    if(p.mid&&z===p.n){S.mid=(tr(z)+.5)/Math.pow(10,z);SC.draw()}
+    if((p.mode==='n'&&z>=p.n)||(p.mode!=='n'&&p.mode!=='land'&&z>=p.maxZ))finish()})};
+const reduceMs=ms=>U.reduceM?0:ms;
+const dzv=(i,z)=>U.dz(i,z);
+
+/* points sur la rampe */
+W.points=(p,box)=>{const sel=new Set();let done=false;partState={sel:[]};
+  const vals=[];for(let v=Math.ceil(S.lo+1);v<=Math.floor(S.hi-1);v++)vals.push(v);
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="chips">${vals.map(v=>`<button type="button" class="chip" data-v="${v}" aria-pressed="false" aria-label="Point ${fmt(v)}">${fmt(v)}</button>`).join('')}</div>
+    <div class="btns" style="margin-top:12px"><button type="button" class="btn or go">${p.label||'Allumer ces points'}</button></div>`;
+  function scene(){S.marks=(p.keep||[]).concat([...sel].sort((a,b)=>a-b).map(v=>({v,t:'',c:'g',state:null})));SC.draw()}
+  function tog(v){if(done)return;if(sel.has(v))sel.delete(v);else sel.add(v);partState.sel=[...sel];SND.tick();fb('');
+    box.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',String(sel.has(+c.dataset.v))));scene()}
+  box.querySelectorAll('.chip').forEach(c=>c.onclick=()=>tog(+c.dataset.v));
+  SC.handler({down(px,py,v){if(busy||done)return false;const r=Math.round(v);if(vals.includes(r)&&Math.abs(px-SC.X(r))<26)tog(r);return false}});
+  box.querySelector('.go').onclick=()=>guard(async()=>{const s=[...sel].sort((a,b)=>a-b),t=p.target.slice().sort((a,b)=>a-b);
+    if(s.length===t.length&&s.every((v,k)=>eqv(v,t[k]))){done=true;SC.handler(null);box.querySelectorAll('button').forEach(b=>b.disabled=true);SND.hum();
+      S.flash=t.map(v=>({v,c:'g'}));if(p.onOk)await p.onOk();else{SC.draw();await sleep(600)}S.flash=[];SC.draw();api.ok();return}
+    api.err(p.why(s))});
+  scene()};
+
+/* projecteur centré : centre a, rayon r */
+W.spot=(p,box)=>{const st={a:p.init.a,r:p.init.r};partState=st;let done=false;const step=p.step||1;
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+
+   `<div class="lrow"><span class="lname">Centre a (le projecteur)</span><div class="step"><button type="button" data-m="a:-1" aria-label="Centre vers la gauche">◀</button><output class="o-a"></output><button type="button" data-m="a:1" aria-label="Centre vers la droite">▶</button></div></div>
+    <div class="lrow"><span class="lname">Rayon r (la demi-largeur du faisceau)</span><div class="step"><button type="button" data-m="r:-1" aria-label="Rayon plus petit">−</button><output class="o-r"></output><button type="button" data-m="r:1" aria-label="Rayon plus grand">+</button></div></div>
+    <p class="prev">${p.mode==='out'?'Dans l\'ombre&nbsp;':'Éclairé&nbsp;'}: <b class="o-iv"></b></p>
+    <div class="btns"><button type="button" class="btn or go">${p.label||'Régler le projecteur'}</button></div>`;
+  const lit=()=>p.mode==='out'?[iv(-INF,0,st.a-st.r,1),iv(st.a+st.r,1,INF,0)]:[iv(st.a-st.r,1,st.a+st.r,1)];
+  function sync(){box.querySelector('.o-a').textContent=fmt(st.a);box.querySelector('.o-r').textContent=fmt(st.r);
+    box.querySelector('.o-iv').innerHTML=p.mode==='out'?ivH(iv(st.a-st.r,0,st.a+st.r,0)):ivH(iv(st.a-st.r,1,st.a+st.r,1));
+    box.querySelector('[data-m="a:-1"]').disabled=done||st.a-st.r-step<S.lo+.5-1e-9;box.querySelector('[data-m="a:1"]').disabled=done||st.a+st.r+step>S.hi-.5+1e-9;
+    box.querySelector('[data-m="r:-1"]').disabled=done||st.r-1<1-1e-9;box.querySelector('[data-m="r:1"]').disabled=done||st.a-st.r-1<S.lo+.5-1e-9||st.a+st.r+1>S.hi-.5+1e-9;
+    S.spot={a:st.a,r:st.r,mode:p.mode||'in'};S.beams=[{set:lit(),col:'g',led:true,br:true}];SC.draw()}
+  box.addEventListener('click',e=>{if(busy||done)return;const m=e.target.closest('[data-m]');if(!m||m.disabled)return;const [s,d]=m.dataset.m.split(':');
+    st[s]+=+d*(s==='a'?step:1);SND.tick();fb('');sync()});
+  let mode=null;
+  SC.handler({grab:true,down(px){if(busy||done)return false;const xa=SC.X(st.a),xr=SC.X(st.a+st.r),xl=SC.X(st.a-st.r);
+      mode=Math.abs(px-xa)<Math.min(Math.abs(px-xr),Math.abs(px-xl))?'a':'r';return true},
+    move(px,py,v){if(mode==='a'){const na=Math.round(v/step)*step;if(na-st.r>=S.lo+.5-1e-9&&na+st.r<=S.hi-.5+1e-9&&!eqv(na,st.a)){st.a=na;SND.tick();fb('');sync()}}
+      else if(mode==='r'){const nr=Math.max(1,Math.round(Math.abs(v-st.a)));if(st.a-nr>=S.lo+.5-1e-9&&st.a+nr<=S.hi-.5+1e-9&&nr!==st.r){st.r=nr;SND.tick();fb('');sync()}}},
+    up(){mode=null}});
+  box.querySelector('.go').onclick=()=>guard(async()=>{const T=p.target;
+    if(eqv(st.a,T.a)&&eqv(st.r,T.r)){done=true;sync();SC.handler(null);box.querySelectorAll('button').forEach(b=>b.disabled=true);SND.hum();await SC.sweep(700);
+      S.flash=[{v:T.a-T.r,c:'g'},{v:T.a+T.r,c:'g'}];SC.draw();await sleep(450);S.flash=[];SC.draw();api.ok();return}
+    const m=[];if(!eqv(st.a,T.a))m.push(p.whyA);if(!eqv(st.r,T.r))m.push(p.whyR);api.err(m.join('<br>'))});
+  sync()};
+
+/* ---------- déroulé ---------- */
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function mount(p){if(p.scene)p.scene();const box=partEl();W[p.t](p,box);scrollPart(box)}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');SC.handler(null);
+  pi++;partState={};if(pi<Q.parts.length)mount(Q.parts[pi]);else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:U.reduceM?'auto':'smooth'})}}
+function newQ(){Q=LV[lvl].qs[qi]();pi=0;errs=0;partState={};SC.handler(null);SC.reset();
+  if(Q.range)SC.setRange(Q.range[0],Q.range[1]);if(Q.setup)Q.setup();SC.draw();cap(Q.cap0||'&nbsp;');
+  $('prompt').innerHTML=Q.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();$('badge').textContent=Q.badge||LV[lvl].badge||'';
+  const box=partEl();if(Q.parts[0].scene)Q.parts[0].scene();W[Q.parts[0].t](Q.parts[0],box)}
+function dots(){const N=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:N},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){fb('');SND.win();run.push(errs===0);dots();SC.handler(null);
+  const N=LV[lvl].qs.length,lvlDone=run.length>=N;
+  $('winx').textContent=errs===0?pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=Q.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(Q.onWin)Q.onWin();setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const L=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:L,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==L)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();if(innerWidth>860)$('scol').scrollIntoView({block:'nearest',behavior:U.reduceM?'auto':'smooth'});else scrollTo({top:$('panel').offsetTop-$('scol').offsetHeight-10,behavior:'auto'})};
+function goLevel(l){lvl=l;qi=0;run=[];$('chap').textContent=LV[l].ch;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;renderLv();newQ()}
+function renderLv(){$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${SND.on()}">♪ Bruitages : ${SND.on()?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){const v=!SND.on();SND.setOn(v);try{localStorage.setItem('sigma-fanfare',v?'1':'0')}catch(_){}renderLv();return}
+  if(b.dataset.l!=null&&!busy)goLevel(+b.dataset.l)});
+
+const rep=(k,v)=>v===Infinity?'inf':v===-Infinity?'-inf':typeof v==='function'?undefined:v;
+window.LN_G={W,LV,api,cap,fb,start(){SC.layout();goLevel(0)},
+  state(){const p=Q&&Q.parts[pi];return JSON.parse(JSON.stringify({lvl,qi,nq:LV[lvl].qs.length,pi,np:Q?Q.parts.length:0,busy,part:p||null,ps:partState},rep))},
+  gen(l,k){return JSON.parse(JSON.stringify(LV[l].qs[k](),rep))},nq(l){return LV[l].qs.length},go:goLevel,
+  goQ(l,k){goLevel(l);qi=k;run=Array(k).fill(true);newQ()}};
+})();
+
+</script>
+<script>
+/* ======================= LA LIGNE NÉON — les sept niveaux ======================= */
+(function(){
+'use strict';
+const U=window.LN_U,G=window.LN_G,{ri,pick,shuf,sleep,INF,eqv,fmt,fmtP,fr,pw,dz,SETS,iv,ivT,ivH,setH,setT,inS,inter,union,FLIP,half,coefX,lin,absIn,condOf,SND,SC}=U;
+const S=SC.S,cap=G.cap;
+const ch=(h,ok,why)=>({h,ok:!!ok,why:why||''});
+const uniqCh=list=>{const seen=new Set(),out=[];for(const c of list){const k=c.h.replace(/<[^>]+>/g,'');if(!seen.has(k)){seen.add(k);out.push(c)}}return out};
+const opsTxt={'<':'<','≤':'≤','>':'>','≥':'≥'};
+
+/* ======================= Niveau 1 : les zones (ensembles de nombres) ======================= */
+const NAT=[7,3,0,11,5].map(v=>({h:String(v),t:String(v),e:String(v),v,z:4}));
+const REL=[-4,-2,-9,-1,-6].map(v=>({h:fmt(v),t:fmt(v),e:String(v),v,z:3}));
+const DEC=[
+ {h:'0,75',t:'0,75',e:'Rational(3,4)',v:.75,z:2,s:'0,75 = '+fr(75,100)},
+ {h:'−2,04',t:'−2,04',e:'Rational(-204,100)',v:-2.04,z:2,s:'−2,04 = −'+fr(204,100)},
+ {h:'2,5',t:'2,5',e:'Rational(5,2)',v:2.5,z:2,s:'2,5 = '+fr(25,10)},
+ {h:fr(3,4),t:'3/4',tv:'3/4 = 0,75',e:'Rational(3,4)',v:.75,z:2,s:fr(3,4)+' = 0,75 = '+fr(75,100)},
+ {h:'−'+fr(1,4),t:'−1/4',tv:'−1/4 = −0,25',e:'Rational(-1,4)',v:-.25,z:2,s:'−'+fr(1,4)+' = −0,25 = −'+fr(25,100)},
+ {h:'1,2',t:'1,2',e:'Rational(12,10)',v:1.2,z:2,s:'1,2 = '+fr(12,10)},
+ {h:fr(7,5),t:'7/5',tv:'7/5 = 1,4',e:'Rational(7,5)',v:1.4,z:2,s:fr(7,5)+' = 1,4 = '+fr(14,10)}];
+const RAT=[
+ {h:fr(1,3),t:'1/3',e:'Rational(1,3)',v:1/3,z:1,x:'0,333…'},{h:fr(2,3),t:'2/3',e:'Rational(2,3)',v:2/3,z:1,x:'0,666…'},
+ {h:'−'+fr(5,6),t:'−5/6',e:'Rational(-5,6)',v:-5/6,z:1,x:'−0,8333…'},{h:fr(2,7),t:'2/7',e:'Rational(2,7)',v:2/7,z:1,x:'0,285714…'},
+ {h:fr(4,9),t:'4/9',e:'Rational(4,9)',v:4/9,z:1,x:'0,444…'},{h:fr(1,6),t:'1/6',e:'Rational(1,6)',v:1/6,z:1,x:'0,1666…'}];
+const IRR=[{h:'√2',t:'√2',e:'sqrt(2)',v:Math.SQRT2,z:0},{h:'√3',t:'√3',e:'sqrt(3)',v:Math.sqrt(3),z:0},{h:'π',t:'π',e:'pi',v:Math.PI,z:0},
+ {h:'−√2',t:'−√2',e:'-sqrt(2)',v:-Math.SQRT2,z:0},{h:'√5',t:'√5',e:'sqrt(5)',v:Math.sqrt(5),z:0},{h:'√7',t:'√7',e:'sqrt(7)',v:Math.sqrt(7),z:0}];
+const TRAP=[
+ {h:'√36',t:'√36',tv:'√36 = 6',e:'sqrt(36)',v:6,z:4,f:['√36 = {0}',['6']]},
+ {h:'√49',t:'√49',tv:'√49 = 7',e:'sqrt(49)',v:7,z:4,f:['√49 = {0}',['7']]},
+ {h:'√9',t:'√9',tv:'√9 = 3',e:'sqrt(9)',v:3,z:4,f:['√9 = {0}',['3']]},
+ {h:'−√16',t:'−√16',tv:'−√16 = −4',e:'-sqrt(16)',v:-4,z:3,f:['−√16 = {0}',['−4']]},
+ {h:fr(6,3),t:'6/3',tv:'6/3 = 2',e:'Rational(6,3)',v:2,z:4,f:[fr(6,3)+' = {0}',['2']]},
+ {h:fr('−6',2),t:'−6/2',tv:'−6/2 = −3',e:'Rational(-6,2)',v:-3,z:3,f:[fr('−6',2)+' = {0}',['−3']]},
+ {h:fr(2,6),t:'2/6',tv:'2/6 = 1/3',x:'0,333…',e:'Rational(2,6)',v:1/3,z:1,f:['On simplifie&nbsp;: '+fr(2,6)+' = '+fr(1,'{0}'),['3']]},
+ {h:fr(7,14),t:'7/14',tv:'7/14 = 0,5',e:'Rational(7,14)',v:.5,z:2,f:[fr(7,14)+' = '+fr(1,2)+' = {0}',['0,5']]},
+ {h:fr('(√3)²',6),t:'(√3)²/6',tv:'(√3)²/6 = 0,5',e:'sqrt(3)**2/6',v:.5,z:2,f:['(√3)² = {0}, donc '+fr('(√3)²',6)+' = '+fr(3,6)+' = 0,5',['3']]},
+ {h:fr('−3(√2)²',12),t:'−3(√2)²/12',tv:'−3(√2)²/12 = −0,5',e:'-3*sqrt(2)**2/12',v:-.5,z:2,f:['(√2)² = {0}, donc '+fr('−3(√2)²',12)+' = '+fr('−6',12)+' = −0,5',['2']]},
+ {h:fr('(√5)²',5),t:'(√5)²/5',tv:'(√5)²/5 = 1',e:'sqrt(5)**2/5',v:1,z:4,f:['(√5)² = {0}, donc '+fr('(√5)²',5)+' = '+fr(5,5)+' = 1',['5']]},
+ {h:fr('5(√3)²',15),t:'5(√3)²/15',tv:'5(√3)²/15 = 1',e:'5*sqrt(3)**2/15',v:1,z:4,f:['5 × (√3)² = {0}, donc '+fr('5(√3)²',15)+' = '+fr(15,15)+' = 1',['15']]},
+ {h:'(√2)²',t:'(√2)²',tv:'(√2)² = 2',e:'sqrt(2)**2',v:2,z:4,f:['(√2)² = {0}',['2']]}];
+U.NUMS={NAT,REL,DEC,RAT,IRR,TRAP};
+function zoneDone(it){const z=it.z,outs=SETS.slice(0,z).reverse();
+  if(z===0)return `${it.h} ∈ ℝ mais ${it.h} ∉ ℚ&nbsp;: c'est un nombre irrationnel.`;
+  return `${it.h}${it.tv?' = '+it.tv.split(' = ').slice(1).join(' = '):''} ∈ ${SETS[z]}, donc aussi ${it.h} ∈ ${outs.join(', ').replace(/, ([^,]*)$/,' et $1')}, car ${SETS.slice(0,z+1).reverse().join(' ⊂ ')}.`}
+function qZone(it){const parts=[];
+  if(it.f)parts.push({t:'fill',ask:'D\'abord, simplifie&nbsp;:',tpl:it.f[0],ans:[it.f[1]],why:'Calcule l\'expression avant de choisir une zone&nbsp;: (√a)² = a et √36 = 6 car 6² = 36.',meta:{k:'eqfill'}});
+  parts.push({t:'zones',item:it,meta:{k:'zone',e:it.e,h:it.h,z:it.z}});
+  const lo=Math.floor(it.v)-5;
+  return {prompt:`Quel est le plus petit ensemble auquel appartient <b>${it.h}</b>&nbsp;?`,parts,range:[lo,lo+11],
+    setup(){S.zones={v:it.v,t:it.t,ok:-1,bad:-1,sel:-1,tok:{d:-1}};S.marks=[]},cap0:`${it.t} est placé sur la rampe. Dans quelle zone peut-il entrer&nbsp;?`,done:zoneDone(it),meta:{k:'zone',e:it.e}}}
+const STMT=[
+ ['−2 ∈ ℤ',1,'−2 est un entier relatif.'],['4 ∈ ℕ',1,'4 est un entier positif.'],['ℕ ⊂ ℤ',1,'Tout entier naturel est un entier relatif.'],
+ ['ℤ ⊂ 𝔻',1,'Tout entier est décimal (aucune décimale après la virgule).'],['𝔻 ⊂ ℚ',1,'Tout décimal s\'écrit a/10ⁿ, c\'est une fraction.'],
+ ['ℚ ⊂ ℝ',1,'Toute fraction se place sur la droite numérique.'],['0,5 ∈ 𝔻',1,'0,5 = 5/10 est décimal.'],['√2 ∉ ℚ',1,'√2 est irrationnel (démonstration du cours).'],
+ ['π ∉ ℚ',1,'π est irrationnel.'],[fr(1,3)+' ∉ 𝔻',1,'1/3 = 0,333… n\'est pas décimal.'],['√4 ∈ ℕ',1,'√4 = 2 est un entier naturel.'],['−3 ∉ ℕ',1,'−3 est négatif.']];
+const STMF=[
+ ['−2 ∈ ℕ',0,'−2 est négatif&nbsp;: −2 ∉ ℕ (mais −2 ∈ ℤ).'],['0,5 ∈ ℤ',0,'0,5 n\'est pas un entier&nbsp;: 0,5 ∉ ℤ.'],['π ∈ ℚ',0,'π est irrationnel&nbsp;: π ∉ ℚ.'],
+ ['√2 ∈ ℚ',0,'√2 est irrationnel&nbsp;: √2 ∉ ℚ.'],[fr(1,3)+' ∈ 𝔻',0,'1/3 = 0,333… a une infinité de décimales&nbsp;: 1/3 ∉ 𝔻.'],
+ ['ℝ ⊂ ℚ',0,'√2 est réel mais pas rationnel&nbsp;: c\'est ℚ ⊂ ℝ, pas l\'inverse.'],['𝔻 ⊂ ℤ',0,'0,5 est décimal mais pas entier&nbsp;: c\'est ℤ ⊂ 𝔻.'],
+ ['ℚ ⊂ 𝔻',0,'1/3 est rationnel mais pas décimal&nbsp;: c\'est 𝔻 ⊂ ℚ.'],['5 ⊂ ℤ',0,'5 est un nombre, pas un ensemble&nbsp;: on écrit 5 ∈ ℤ (∈ se lit « appartient à »).'],
+ ['ℕ ∈ ℤ',0,'ℕ est un ensemble&nbsp;: on écrit ℕ ⊂ ℤ (⊂ se lit « est inclus dans »).'],['√4 ∉ ℕ',0,'√4 = 2, donc √4 ∈ ℕ.'],['−3 ∈ ℕ',0,'−3 est négatif&nbsp;: −3 ∉ ℕ.']];
+U.STMT=STMT;U.STMF=STMF;
+function qStmt(){const t=pick(STMT),f=shuf(STMF.slice()).slice(0,3);
+  return {prompt:'Une seule de ces écritures est correcte. Laquelle&nbsp;?',parts:[{t:'choice',ch:[ch(t[0],1)].concat(f.map(x=>ch(x[0],0,x[2]))),meta:{k:'stmt'}}],
+    range:[-5,6],setup(){S.zones={v:0,t:'',ok:4,bad:-1,sel:-1,tok:null}},cap0:'ℕ ⊂ ℤ ⊂ 𝔻 ⊂ ℚ ⊂ ℝ&nbsp;: chaque zone est incluse dans la suivante.',
+    done:`${t[0]}&nbsp;: ${t[2]} Rappel&nbsp;: ∈ relie un nombre à un ensemble, ⊂ relie deux ensembles.`}}
+G.LV.push({t:'Les carrés VIP',ch:'Chapitre 6 · Ensembles de nombres',badge:'Les zones du concert',
+  rule:'<p>ℕ = {0&nbsp;; 1&nbsp;; 2&nbsp;; 3&nbsp;; …}&nbsp;: entiers positifs ou nuls. ℤ&nbsp;: entiers positifs ou négatifs.</p><p>𝔻&nbsp;: nombres a/10ⁿ (a ∈ ℤ, n ∈ ℕ), à nombre fini de décimales. ℚ&nbsp;: nombres a/b (a ∈ ℤ, b ∈ ℤ*). ℝ&nbsp;: tous les nombres de la droite numérique&nbsp;; irrationnels&nbsp;: √2, π, √3.</p><p><b>ℕ ⊂ ℤ ⊂ 𝔻 ⊂ ℚ ⊂ ℝ.</b> Stratégie&nbsp;: simplifier, puis chercher le plus petit ensemble. Attention&nbsp;: ∈ (appartient à) ≠ ⊂ (inclus dans).</p>',
+  qs:[()=>qZone(pick(NAT.concat(REL))),()=>qZone(pick(DEC)),()=>qZone(pick(RAT)),()=>qZone(Math.random()<.6?pick(IRR):pick(TRAP.slice(0,4))),()=>qZone(pick(TRAP.slice(4))),qStmt]});
+
+/* ======================= Niveau 2 : le zoom ×10 (décimaux, encadrements, arrondis) ======================= */
+const IRRZ=[{lab:'√2',e:'sqrt(2)',x:Math.SQRT2},{lab:'√3',e:'sqrt(3)',x:Math.sqrt(3)},{lab:'√5',e:'sqrt(5)',x:Math.sqrt(5)},{lab:'√7',e:'sqrt(7)',x:Math.sqrt(7)},
+ {lab:'√10',e:'sqrt(10)',x:Math.sqrt(10)},{lab:'π',e:'pi',x:Math.PI},{lab:'√6',e:'sqrt(6)',x:Math.sqrt(6)}];
+const RATZ=[[1,3],[2,3],[5,6],[4,9],[1,7],[2,9],[7,12],[1,6]];
+const DECZ=[[3,4],[12,5],[5,4],[3,8],[18,5],[-1,4],[7,20],[5,8],[-3,5],[9,4],[-7,4],[13,8]];
+U.IRRZ=IRRZ;
+const tr4=x=>(Math.floor(x*1e4)/1e4).toFixed(4).replace('.',',');
+const decOf=q=>{let z=0;while((q[0]*Math.pow(10,z))%q[1]!==0)z++;return z};
+const decStr=q=>{const z=decOf(q);return dz(q[0]*Math.pow(10,z)/q[1],z)};
+const truncI=(x,n,q)=>q?Math.floor(q[0]*Math.pow(10,n)/q[1]):Math.floor(x*Math.pow(10,n)+1e-9);
+const variants=s=>{const o=[s];if(s.includes(',')){let t=s.replace(/0+$/,'').replace(/,$/,'');if(t!==s&&t!=='')o.push(t)}return o};
+function qLand(){const q=pick(DECZ),x=q[0]/q[1],lab=decStr(q),z=decOf(q),num=q[0]*Math.pow(10,z)/q[1];
+  return {prompt:`Zoome sur <b>${lab}</b> jusqu'à ce qu'il tombe pile sur une graduation.`,range:[Math.floor(x)-3,Math.floor(x)+4],
+    parts:[{t:'zoom',x,q,lab,mode:'land',ask:'Chaque zoom découpe l\'intervalle en 10 parts égales.',meta:{k:'land',e:`Rational(${q[0]},${q[1]})`,z}},
+      {t:'fill',ask:'Écris-le sous la forme a/10ⁿ&nbsp;:',tpl:`${lab} = ${fr('{0}',Math.pow(10,z))}`,ans:[[fmt(num)]],why:`${lab} a ${z} décimale${z>1?'s':''}&nbsp;: on écrit ${lab} = ${fr(fmt(num),Math.pow(10,z))}.`,meta:{k:'eqfill'}}],
+    done:`${lab} = ${fr(fmt(num),'10'+(z>1?'<sup>'+z+'</sup>':''))}&nbsp;: un nombre décimal tombe pile après un nombre fini de zooms. ${lab} ∈ 𝔻.`}}
+function qNever(){const q=pick(RATZ),x=q[0]/q[1],lab=`${q[0]}/${q[1]}`,labH=fr(q[0],q[1]);
+  return {prompt:`Zoome trois fois sur <b>${labH}</b>.`,range:[-3,4],
+    parts:[{t:'zoom',x,q,lab,labH,mode:'free',maxZ:3,meta:{k:'free',e:`Rational(${q[0]},${q[1]})`}},
+      {t:'choice',ask:`Au prochain zoom, ${labH} tombera-t-il pile sur une graduation&nbsp;?`,wide:1,keep:1,
+       ch:[ch(`Jamais&nbsp;: l'écriture décimale de ${labH} ne s'arrête pas, ${labH} ∉ 𝔻`,1),ch('Oui, au 4<sup>e</sup> zoom',0,`Le motif se répète sans fin (${tr4(x)}…)&nbsp;: il n'y a jamais de dernière décimale.`),
+         ch('Oui, si on zoome assez longtemps',0,`Non&nbsp;: si ${labH} = a/10ⁿ, on aurait ${q[1]}a = ${q[0]} × 10ⁿ, impossible car ${q[1]===7?'7':'3'} ne divise pas ${q[0]} × 10ⁿ = ${q[0]} × 2ⁿ × 5ⁿ.`)],meta:{k:'never',e:`Rational(${q[0]},${q[1]})`}}],
+    done:`${labH} = ${tr4(x)}…&nbsp;: une infinité de décimales. ${labH} ∈ ℚ mais ${labH} ∉ 𝔻 (même démonstration que 1/3 ∉ 𝔻 dans le cours).`}}
+function qEnc(){const r=Math.random()<.75,it=r?pick(IRRZ):null,q=r?null:pick(RATZ),x=r?it.x:q[0]/q[1],lab=r?it.lab:`${q[0]}/${q[1]}`,labH=r?it.lab:fr(q[0],q[1]),n=ri(1,3);
+  const t=truncI(x,n,q),lo=dz(t,n),hi=dz(t+1,n);
+  return {prompt:`Encadre <b>${labH}</b> à ${pw(n)} près&nbsp;: zoome ${n} fois.`,range:[Math.floor(x)-3,Math.floor(x)+4],
+    parts:[{t:'zoom',x,q,lab,labH,mode:'n',n,meta:{k:'zn',e:r?it.e:`Rational(${q[0]},${q[1]})`,n}},
+      {t:'fill',ask:`Encadrement à ${pw(n)} près&nbsp;:`,tpl:`{0} &lt; ${labH} &lt; {1}`,ans:[variants(lo),variants(hi)],why:`Lis les deux graduations qui entourent ${labH} après ${n} zoom${n>1?'s':''}&nbsp;: elles sont espacées de ${pw(n)}.`,
+       meta:{k:'enc',e:r?it.e:`Rational(${q[0]},${q[1]})`,n}}],
+    done:`${lo} &lt; ${labH} &lt; ${hi}&nbsp;: deux nombres à ${n} décimale${n>1?'s':''} distants de ${pw(n)}&nbsp;; ${lo} est la troncature de ${labH} à ${n} décimale${n>1?'s':''}.`}}
+function roundCase(){for(;;){const r=Math.random()<.7,it=r?pick(IRRZ):null,q=r?null:pick(RATZ),x=r?it.x:q[0]/q[1],n=ri(1,3);
+  const t=truncI(x,n,q),d=truncI(x,n+1,q)-10*t,up=d>=5;return {it,q,x,n,t,d,up,lab:r?it.lab:`${q[0]}/${q[1]}`,labH:r?it.lab:fr(q[0],q[1]),e:r?it.e:`Rational(${q[0]},${q[1]})`}}}
+function qRound(){const c=roundCase(),{x,n,t,d,up,lab,labH,q}=c,good=up?t+1:t;
+  const cands=[ch(dz(good,n),1),ch(dz(up?t:t+1,n),0,up?`${dz(t,n)} est la troncature. La ${n+1}<sup>e</sup> décimale est ${d} ≥ 5&nbsp;: on arrondit au-dessus.`:`La ${n+1}<sup>e</sup> décimale est ${d} &lt; 5&nbsp;: on garde ${dz(t,n)} (la LED de gauche est la plus proche).`)];
+  const tn1=truncI(x,n+1,q),dn1=truncI(x,n+2,q)-10*tn1;cands.push(ch(dz(dn1>=5?tn1+1:tn1,n+1),0,`Ça, c'est l'arrondi à ${pw(n+1)}&nbsp;: on demande ${n} décimale${n>1?'s':''}.`));
+  if(n>1){const tm=truncI(x,n-1,q),dm=truncI(x,n,q)-10*tm;cands.push(ch(dz(dm>=5?tm+1:tm,n-1),0,`Ça, c'est l'arrondi à ${pw(n-1)}&nbsp;: on demande ${n} décimales.`))}
+  return {prompt:`Arrondis <b>${labH}</b> à ${pw(n)}&nbsp;: zoome ${n} fois, puis choisis la graduation la plus proche.`,range:[Math.floor(x)-3,Math.floor(x)+4],
+    parts:[{t:'zoom',x,q,lab,labH,mode:'n',n,mid:1,meta:{k:'zn',e:c.e,n}},{t:'choice',ask:`Arrondi de ${labH} à ${pw(n)}&nbsp;:`,ch:uniqCh(cands),meta:{k:'arr',e:c.e,n}}],
+    done:`La ${n+1}<sup>e</sup> décimale de ${labH} est ${d}${up?' ≥ 5&nbsp;: on arrondit au-dessus':' &lt; 5&nbsp;: on tronque'}. ${labH} ≈ ${dz(good,n)} à ${pw(n)} près.`}}
+function qFree(){const dec=Math.random()<.5,q=dec?pick([[5,8],[7,20],[3,8],[9,4],[11,25],[7,40]]):pick([[7,12],[4,9],[5,6],[1,6],[2,7],[5,9]]),x=q[0]/q[1],lab=`${q[0]}/${q[1]}`,labH=fr(q[0],q[1]);
+  const z=dec?decOf(q):0,num=dec?q[0]*Math.pow(10,z)/q[1]:0;
+  return {prompt:`Zoome sur <b>${labH}</b> (quatre zooms au plus).`,range:[Math.floor(x)-3,Math.floor(x)+4],
+    parts:[{t:'zoom',x,q,lab,labH,mode:'free',maxZ:4,meta:{k:'free',e:`Rational(${q[0]},${q[1]})`}},
+      {t:'choice',ask:`${labH} est-il un nombre décimal&nbsp;?`,wide:1,keep:1,ch:[
+        ch(dec?`Oui&nbsp;: ${labH} = ${decStr(q)} = ${fr(fmt(num),Math.pow(10,z))}`:`Oui&nbsp;: ${labH} = ${tr4(x)}`,dec,dec?'':`${tr4(x)} n'est qu'une valeur approchée&nbsp;: le motif se répète sans fin, ${labH} n'est pas décimal.`),
+        ch(`Non&nbsp;: ${labH} a une infinité de décimales`,!dec,dec?`Il est tombé pile au zoom ${z}&nbsp;: ${labH} = ${decStr(q)}, un nombre fini de décimales.`:'')],meta:{k:'isdec',e:`Rational(${q[0]},${q[1]})`}}],
+    done:dec?`${labH} = ${decStr(q)} = ${fr(fmt(num),Math.pow(10,z))} ∈ 𝔻.`:`${labH} ∈ ℚ mais ${labH} ∉ 𝔻&nbsp;: son écriture décimale ne s'arrête jamais.`}}
+G.LV.push({t:'Le zoom ×10',ch:'Chapitre 6 · Décimaux, encadrements, arrondis',badge:'Zoom caméra sur la rampe',
+  rule:'<p>Décimal&nbsp;: s\'écrit a/10ⁿ, nombre fini de décimales. 1/3 = 0,333… ∉ 𝔻 (démonstration&nbsp;: 10ⁿ = 3a est impossible).</p><p>Encadrer x à 10<sup>−n</sup> près&nbsp;: trouver a tel que a ≤ x &lt; a + 10<sup>−n</sup>, où a est la troncature à n décimales.</p><p>Arrondi à 10<sup>−n</sup>&nbsp;: si la (n + 1)<sup>e</sup> décimale est ≥ 5, on arrondit au-dessus&nbsp;; si elle est &lt; 5, on tronque.</p>',
+  qs:[qLand,qNever,qEnc,qRound,qFree]});
+
+/* ======================= Niveau 3 : les crochets (intervalles) ======================= */
+const rb2=()=>Math.random()<.5;
+function rangeAround(vals){const f=vals.filter(v=>isFinite(v));let lo=Math.floor(Math.min(...f))-3,hi=Math.ceil(Math.max(...f))+3;if(f.length===1){lo=f[0]-5;hi=f[0]+5}
+  while(hi-lo<10){lo--;if(hi-lo<10)hi++}return [lo,hi]}
+function initFor(T,rg){const a=T.a===-INF?rg[0]+2:T.a-2,b=T.b===INF?rg[1]-2:T.b+2;return {a:Math.max(rg[0]+1,a),at:'f',b:Math.min(rg[1]-1,Math.max(b,a+1)),bt:'f'}}
+function lightPart(T,rg,ask,extra){return Object.assign({t:'light',target:T,init:initFor(T,rg),ask,meta:{k:'light',tgt:ivT(T)}},extra||{})}
+function rFinite(closed){const a=ri(-4,3),b=a+ri(2,5);return closed?iv(a,1,b,1):(()=>{let ai=rb2(),bi=rb2();if(ai&&bi)(rb2()?ai=false:bi=false);return iv(a,ai,b,bi)})()}
+function rHalf(){const s=ri(-3,4);return rb2()?iv(s,rb2(),INF,0):iv(-INF,0,s,rb2())}
+function qCond(T){const rg=rangeAround([T.a,T.b]),c=condOf(T);
+  return {prompt:`Allume la rampe sur les réels x tels que <b>${c}</b>.`,range:rg,parts:[lightPart(T,rg,'Règle les deux bornes (boutons ou glisser les crochets sur la scène), puis allume.',{meta:{k:'light',tgt:ivT(T),cond:c}})],
+    cap0:`Condition&nbsp;: ${c}`,done:`${c} ⇔ x ∈ ${ivH(T)}${T.a===-INF||T.b===INF?'&nbsp;: du côté de l\'infini, le crochet est toujours ouvert.':'.'}`}}
+function ivLures(T){const L=[iv(T.a,!T.ai,T.b,T.bi),iv(T.a,T.ai,T.b,!T.bi),iv(T.a,!T.ai,T.b,!T.bi)];return L}
+function qRead(){const T=rFinite(false),rg=rangeAround([T.a,T.b]),c=condOf(T);
+  const n1=[ch(ivH(T),1)].concat(ivLures(T).map(L=>ch(ivH(L),0,`Regarde chaque crochet sur la scène&nbsp;: en ${fmt(T.a)} il est tourné ${T.ai?'vers l\'intérieur (incluse)':'vers l\'extérieur (exclue)'}, en ${fmt(T.b)} ${T.bi?'vers l\'intérieur (incluse)':'vers l\'extérieur (exclue)'}.`)));
+  const cs=[[T.ai,T.bi],[!T.ai,T.bi],[T.ai,!T.bi],[!T.ai,!T.bi]].map(([x,y],k)=>ch(`${fmt(T.a)} ${x?'≤':'<'} x ${y?'≤':'<'} ${fmt(T.b)}`,k===0,'Borne incluse ⇔ « ≤ »&nbsp;; borne exclue ⇔ « &lt; ».'));
+  return {prompt:'La régie a allumé cette rampe. Lis-la.',range:rg,setup(){S.beams=[{set:[T],col:'g',led:true,br:true}]},cap0:'Quel intervalle est allumé&nbsp;?',
+    parts:[{t:'choice',ask:'Quelle est la notation de cet intervalle&nbsp;?',ch:n1,meta:{k:'ivl',p:{t:'given',I:ivT(T)}}},{t:'choice',ask:`Les réels x de ${ivH(T)} sont ceux qui vérifient&nbsp;:`,ch:cs,meta:{k:'condch',I:ivT(T)}}],
+    done:`x ∈ ${ivH(T)} ⇔ ${c}.`}}
+function qInfTrap(){const s=ri(-3,4),T=rb2()?iv(-INF,0,s,1):iv(s,0,INF,0),c=condOf(T),rg=rangeAround([s]);
+  const w1=T.a===-INF?`[−∞&nbsp;; ${fmt(s)}]`:`]${fmt(s)}&nbsp;; +∞]`,w2=T.a===-INF?ivH(iv(-INF,0,s,0)):ivH(iv(s,1,INF,0)),w3=T.a===-INF?ivH(iv(s,1,INF,0)):ivH(iv(-INF,0,s,0));
+  return {prompt:`Les réels x tels que <b>${c}</b>.`,range:rg,cap0:`Condition&nbsp;: ${c}`,
+    parts:[{t:'choice',ask:'Quelle écriture est correcte&nbsp;?',ch:[ch(ivH(T),1),ch(`<span class="iv">${w1}</span>`,0,'∞ n\'est pas un nombre&nbsp;: il n\'est jamais atteint, le crochet est toujours ouvert du côté de l\'infini.'),
+      ch(w2,0,`${c}&nbsp;: ${fmt(s)} ${T.a===-INF?'est inclus (≤)':'est exclu (&gt;)'}, regarde le crochet en ${fmt(s)}.`),ch(w3,0,`${c}&nbsp;: les solutions sont ${T.a===-INF?'à gauche':'à droite'} de ${fmt(s)}.`)],meta:{k:'ivl',p:{t:'cond',txt:c}}},
+      Object.assign(lightPart(T,rg,'Allume-la pour vérifier.'),{meta:{k:'light',tgt:ivT(T),cond:c}})],
+    done:`${c} ⇔ x ∈ ${ivH(T)}. Et ℝ = ]−∞&nbsp;; +∞[&nbsp;: ∞ toujours avec un crochet ouvert.`}}
+G.LV.push({t:'Les crochets',ch:'Chapitre 8 · Intervalles de ℝ',badge:'Régie lumière',
+  rule:'<p>Fermé [a&nbsp;; b]&nbsp;: les extrémités appartiennent. Ouvert ]a&nbsp;; b[&nbsp;: les extrémités n\'appartiennent pas. Semi-ouvert [a&nbsp;; b[ ou ]a&nbsp;; b].</p><p>2 ≤ x ≤ 4 ⇔ x ∈ [2&nbsp;; 4]&nbsp;; −1 &lt; x ≤ 3 ⇔ x ∈ ]−1&nbsp;; 3]&nbsp;; x ≥ 2 ⇔ x ∈ [2&nbsp;; +∞[&nbsp;; x ≤ 3 ⇔ x ∈ ]−∞&nbsp;; 3].</p><p>ℝ = ]−∞&nbsp;; +∞[&nbsp;: ∞ toujours avec un crochet ouvert.</p>',
+  qs:[()=>qCond(rFinite(true)),()=>qCond(rFinite(false)),()=>qCond(rHalf()),qRead,qInfTrap]});
+
+/* ======================= Niveau 4 : la bascule (appartenance, inéquations) ======================= */
+function qMember(){const T=rFinite(false),rg=rangeAround([T.a,T.b]);let mid=T.a+1+ri(0,Math.max(0,T.b-T.a-2));if(mid>=T.b)mid=(T.a+T.b)/2;
+  const out=rb2()?T.a-ri(1,2):T.b+ri(1,2);const xs=shuf([T.a,T.b,rb2()?mid:out]);
+  const parts=xs.map(x=>{const inn=inS([T],x),why=eqv(x,T.a)||eqv(x,T.b)?`${fmt(x)} est une borne&nbsp;: le crochet est tourné ${inn?'vers l\'intérieur, elle est incluse':'vers l\'extérieur, elle est exclue'}.`:inn?`${fmt(x)} est entre ${fmt(T.a)} et ${fmt(T.b)}.`:`${fmt(x)} est en dehors, ${x<T.a?'à gauche':'à droite'} de la zone allumée.`;
+    const drop=async()=>{S.marks=[{v:x,t:fmt(x),c:inn?'g':'k',drop:0}];await SC.tw(520,t=>{S.marks[0].drop=t});S.marks[0].state=inn?'in':'out';SC.draw();(inn?SND.pop:SND.soft)();cap(`${fmt(x)} ${inn?'∈':'∉'} I&nbsp;: ${why}`);await sleep(500)};
+    return {t:'choice',ask:`Le nombre ${fmt(x)}&nbsp;:`,keep:1,ch:[ch(`${fmt(x)} ∈ I`,inn,why),ch(`${fmt(x)} ∉ I`,!inn,why)],onOk:drop,onKo:drop,meta:{k:'mem1',I:ivT(T),v:x}}});
+  return {prompt:`I = ${ivH(T)}. Lâche chaque nombre sur la rampe&nbsp;: tombe-t-il dans la lumière&nbsp;?`,range:rg,setup(){S.beams=[{set:[T],col:'g',led:true,br:true}]},cap0:`I = ${ivH(T)}`,parts,
+    done:`x ∈ ${ivH(T)} ⇔ ${condOf(T)}&nbsp;: aux bornes, c'est le crochet qui décide.`}}
+function linParts(a,b,op,c,withLight){const s=(c-b)/a,o=a<0?FLIP[op]:op,T=half(o,s),rg=rangeAround([s]);
+  const parts=[{t:'fill',ask:`${b>0?'On soustrait '+fmt(b):'On ajoute '+fmt(-b)} aux deux membres&nbsp;:`,tpl:`${coefX(a)} ${op} {0}`,ans:[[fmt(c-b)]],why:`${lin(a,b)} ${op} ${fmt(c)} ⇔ ${coefX(a)} ${op} ${fmt(c)} ${b>0?'− '+fmt(b):'+ '+fmt(-b)}.`,meta:{k:'lin1',a,b,op,c}}];
+  if(a<0){parts.push({t:'act',ask:`On va diviser par ${fmt(a)}, un nombre <b>négatif</b>. Regarde ce que la division par un négatif fait à l'ordre.`,label:'▶ Voir la bascule',doneLabel:'Bascule vue',
+      scene(){SC.setRange(-6,6);S.beams=[];S.marks=[];S.mirror=null;SC.draw()},
+      async run(){S.mirror={u:[2,5],t:0};cap('2 &lt; 5');SC.draw();await sleep(500);SND.zoom();await SC.tw(1500,t=>{S.mirror.t=t});cap('2 &lt; 5, mais après × (−1)&nbsp;: −2 &gt; −5. <span class="m">La droite bascule autour de 0, l\'ordre s\'inverse.</span>');await sleep(700)}});
+    parts.push({t:'choice',ask:`${coefX(a)} ${op} ${fmt(c-b)}&nbsp;: on divise par ${fmt(a)}.`,keep:0,
+      ch:uniqCh([ch(`x ${o} ${fmt(s)}`,1),ch(`x ${op} ${fmt(s)}`,0,`On divise par ${fmt(a)} &lt; 0&nbsp;: le sens de l'inégalité s'inverse, « ${op} » devient « ${o} ».`),ch(`x ${o} ${fmt(-s)}`,0,`${fmt(c-b)} ÷ (${fmt(a)}) = ${fmt(s)}&nbsp;: attention au signe du quotient.`),ch(`x ${o} ${fmt(c-b)}`,0,`Il reste à diviser les deux membres par ${fmt(a)}&nbsp;: x ${o} ${fmt(c-b)} ÷ (${fmt(a)}) = ${fmt(s)}.`)]).slice(0,3),meta:{k:'lin2',a,b,op,c},
+      onOk(){S.mirror=null;SC.draw()}})}
+  else parts.push({t:'fill',ask:`On divise par ${fmt(a)}, un nombre positif&nbsp;: le sens ne change pas.`,tpl:`x ${op} {0}`,ans:[[fmt(s)]],why:`${fmt(c-b)} ÷ ${fmt(a)} = ${fmt(s)}.`,meta:{k:'lin2f',a,b,op,c}});
+  if(withLight)parts.push(Object.assign(lightPart(T,rg,'Allume l\'ensemble des solutions&nbsp;:'),{scene(){SC.setRange(rg[0],rg[1]);S.mirror=null;S.marks=[];SC.draw()},meta:{k:'light',tgt:ivT(T),ineq:{a,b,op,c}}}));
+  return {parts,T,s,o,rg}}
+function rLin(neg,ops){for(;;){const a=neg?-ri(2,5):ri(2,5),s=pick([-3,-2,-1,1,2,3,4]),b=pick([-9,-7,-5,-3,-2,-1,1,2,3,4,5,6,8]),op=pick(ops||['<','≤','>','≥']),c=a*s+b;if(Math.abs(c)<=20)return {a,b,op,c,s}}}
+function qLin(neg,ops){const L=rLin(neg,ops),P=linParts(L.a,L.b,L.op,L.c,true);
+  return {prompt:`Résous <b>${lin(L.a,L.b)} ${L.op} ${fmt(L.c)}</b>, puis allume les solutions.`,range:P.rg,parts:P.parts,cap0:`${lin(L.a,L.b)} ${L.op} ${fmt(L.c)}`,
+    done:`${lin(L.a,L.b)} ${L.op} ${fmt(L.c)} ⇔ ${coefX(L.a)} ${L.op} ${fmt(L.c-L.b)} ⇔ x ${P.o} ${fmt(P.s)}${L.a<0?' (division par un négatif&nbsp;: le sens s\'inverse)':''}. Solutions&nbsp;: ${ivH(P.T)}.`}}
+function qDouble(){for(;;){const a=ri(2,3),s1=ri(-3,2),s2=s1+ri(2,4),b=pick([-3,-2,-1,1,2,3]),lop=pick(['≤','<']),rop=pick(['≤','<']),l=a*s1+b,r=a*s2+b,T=iv(s1,lop==='≤',s2,rop==='≤'),rg=rangeAround([s1,s2]);
+  const ex=`${fmt(l)} ${lop} ${lin(a,b)} ${rop} ${fmt(r)}`;
+  return {prompt:`Résous l'encadrement <b>${ex}</b>.`,range:rg,cap0:ex,
+    parts:[{t:'fill',ask:`${b>0?'On soustrait '+fmt(b):'On ajoute '+fmt(-b)} aux trois membres&nbsp;:`,tpl:`{0} ${lop} ${coefX(a)} ${rop} {1}`,ans:[[fmt(l-b)],[fmt(r-b)]],why:`${fmt(l)} ${b>0?'− '+fmt(b):'+ '+fmt(-b)} = ${fmt(l-b)} et ${fmt(r)} ${b>0?'− '+fmt(b):'+ '+fmt(-b)} = ${fmt(r-b)}.`,meta:{k:'dbl1',l,lop,a,b,rop,r}},
+      {t:'fill',ask:`On divise les trois membres par ${a} (positif)&nbsp;:`,tpl:`{0} ${lop} x ${rop} {1}`,ans:[[fmt(s1)],[fmt(s2)]],why:`${fmt(l-b)} ÷ ${a} = ${fmt(s1)} et ${fmt(r-b)} ÷ ${a} = ${fmt(s2)}.`,meta:{k:'dbl2',l,lop,a,b,rop,r}},
+      Object.assign(lightPart(T,rg,'Allume les solutions&nbsp;:'),{meta:{k:'light',tgt:ivT(T),dineq:{l,lop,a,b,rop,r}}})],
+    done:`${ex} ⇔ ${fmt(s1)} ${lop} x ${rop} ${fmt(s2)} ⇔ x ∈ ${ivH(T)}.`}}}
+G.LV.push({t:'La bascule',ch:'Chapitre 8 · Appartenance et inéquations',badge:'Dans la lumière ?',
+  rule:'<p>x ∈ [a&nbsp;; b] ⇔ a ≤ x ≤ b&nbsp;; x ∈ ]a&nbsp;; b[ ⇔ a &lt; x &lt; b.</p><p>Pour résoudre une inéquation, on ajoute ou on soustrait un même nombre aux deux membres, puis on divise par le coefficient de x.</p><p><b>Multiplier ou diviser par un réel &lt; 0 inverse le sens.</b> Exemple&nbsp;: 2 &lt; 5 mais −2 &gt; −5.</p>',
+  qs:[qMember,()=>qLin(false),()=>qLin(true,['<','>']),qDouble,()=>qLin(true,['≤','≥'])]});
+
+/* ======================= Niveau 5 : le mélange (intersection, réunion) ======================= */
+function rPair(){for(;;){const a1=ri(-4,1),b1=a1+ri(3,5),a2=ri(a1+1,b1-1),b2=b1+ri(1,3);if(a2<b1){const I=iv(a1,rb2(),b1,rb2()),J=iv(a2,rb2(),b2,rb2());return rb2()?{I,J}:{I:J,J:I}}}}
+const given=(I,J)=>[{set:[I],col:'a',band:-66,led:false,name:'I'},{set:[J],col:'g',band:-48,led:false,name:'J'}];
+function bwhy(I,J,op){return v=>{const a=inS([I],v),b=inS([J],v),r=op==='∩'?a&&b:a||b;return `${fmt(v)} ${a?'∈':'∉'} I et ${fmt(v)} ${b?'∈':'∉'} J, donc ${fmt(v)} ${r?'∈':'∉'} I ${op} J`}}
+function opLight(I,J,op){const T=(op==='∩'?inter(I,J):union(I,J))[0],rg=rangeAround([I.a,I.b,J.a,J.b]),w=bwhy(I,J,op);
+  return {prompt:`I = ${ivH(I)} (lumière bleue) et J = ${ivH(J)} (lumière dorée). Allume <b>I ${op} J</b> en blanc.`,range:rg,setup(){S.beams=given(I,J)},
+    cap0:op==='∩'?'I ∩ J&nbsp;: là où les deux lumières se mélangent (ET).':'I ∪ J&nbsp;: partout où il y a au moins une lumière (OU).',
+    parts:[Object.assign(lightPart(T,rg,op==='∩'?'Règle la rampe sur la zone commune&nbsp;:':'Règle la rampe sur toute la zone éclairée&nbsp;:'),{given:given(I,J),col:'w',whyA:w(T.a),whyB:w(T.b),meta:{k:'light',tgt:ivT(T),op:{t:op==='∩'?'inter':'union',I:ivT(I),J:ivT(J)}}})],
+    done:`I ${op} J = ${ivH(T)}&nbsp;: ${op==='∩'?'éléments communs à I et à J (ET)':'éléments de I ou de J (OU)'}.`}}
+function opLures(I,J,op){const T=(op==='∩'?inter(I,J):union(I,J))[0],O=(op==='∩'?union(I,J):inter(I,J))[0];
+  return uniqCh([ch(ivH(T),1),ch(ivH(iv(T.a,!T.ai,T.b,T.bi)),0,`${bwhy(I,J,op)(T.a)}.`),ch(ivH(iv(T.a,T.ai,T.b,!T.bi)),0,`${bwhy(I,J,op)(T.b)}.`),ch(ivH(O),0,op==='∩'?'Ça, c\'est la réunion I ∪ J (OU)&nbsp;: l\'intersection ne garde que la zone commune.':'Ça, c\'est l\'intersection I ∩ J (ET)&nbsp;: la réunion garde tout ce qui est éclairé.')]).slice(0,4)}
+function qOps(){const {I,J}=rPair(),rg=rangeAround([I.a,I.b,J.a,J.b]);
+  return {prompt:`I = ${ivH(I)} et J = ${ivH(J)}.`,range:rg,setup(){S.beams=given(I,J).concat([{set:inter(I,J),col:'w',led:true,br:false}])},cap0:'La zone blanche est éclairée par les deux lumières.',
+    parts:[{t:'choice',ask:'I ∩ J =',ch:opLures(I,J,'∩'),meta:{k:'ivl',p:{t:'inter',I:ivT(I),J:ivT(J)}}},
+      {t:'choice',ask:'I ∪ J =',ch:opLures(I,J,'∪'),meta:{k:'ivl',p:{t:'union',I:ivT(I),J:ivT(J)}},scene(){S.beams=given(I,J).concat([{set:union(I,J),col:'w',led:true,br:false}]);SC.draw();cap('Toute la zone éclairée, par l\'une ou l\'autre lumière.')}}],
+    done:`I ∩ J = ${setH(inter(I,J))} et I ∪ J = ${setH(union(I,J))}.`}}
+function qDisjoint(){const a=ri(-4,0),b=a+ri(2,3),c=b+ri(2,4);const I=iv(-INF,0,a,rb2()),J=iv(b,rb2(),c,rb2()),rg=rangeAround([a,b,c]);
+  const U2=union(I,J);
+  return {prompt:`I = ${ivH(I)} et J = ${ivH(J)}.`,range:rg,setup(){S.beams=given(I,J)},cap0:'Les deux lumières ne se touchent pas.',
+    parts:[{t:'choice',ask:'I ∩ J =',ch:[ch('∅',1),ch(ivH(iv(a,1,b,1)),0,`Entre ${fmt(a)} et ${fmt(b)}, il n'y a aucune lumière&nbsp;: ces nombres ne sont ni dans I, ni dans J.`),ch(ivH(iv(-INF,0,c,J.bi)),0,'Ça regroupe tout, mais l\'intersection ne garde que ce qui est dans I ET dans J.')],meta:{k:'ivl',p:{t:'inter',I:ivT(I),J:ivT(J)}}},
+      {t:'choice',ask:'I ∪ J =',ch:[ch(setH(U2),1),ch(ivH(iv(-INF,0,c,J.bi)),0,`Les nombres entre ${fmt(a)} et ${fmt(b)} ne sont pas éclairés&nbsp;: la réunion a un trou, on garde les deux morceaux avec ∪.`),ch('∅',0,'La réunion contient tous les éléments de I et tous ceux de J&nbsp;: elle n\'est pas vide.')],meta:{k:'ivl',p:{t:'union',I:ivT(I),J:ivT(J)}}}],
+    done:`Les intervalles ne se chevauchent pas&nbsp;: I ∩ J = ∅ (ensemble vide) et I ∪ J = ${setH(U2)}.`}}
+function qTouch(){const a=ri(-4,0),b=a+ri(2,3),c=b+ri(2,3),first=rb2();const I=first?iv(a,rb2(),b,0):iv(a,rb2(),b,1),J=first?iv(b,1,c,rb2()):iv(b,0,c,rb2());
+  const T=union(I,J)[0],rg=rangeAround([a,c]),w=bwhy(I,J,'∪');
+  return {prompt:`I = ${ivH(I)} et J = ${ivH(J)} se touchent en ${fmt(b)}.`,range:rg,setup(){S.beams=given(I,J)},cap0:`Regarde de près les crochets en ${fmt(b)}.`,
+    parts:[{t:'choice',ask:'I ∩ J =',ch:[ch('∅',1),ch(`<span class="iv">[${fmt(b)}&nbsp;; ${fmt(b)}]</span>`,0,`${w(b).replace(' ∪ ',' ∩ ').replace('∈ I ∩ J','∉ I ∩ J')}&nbsp;: ${fmt(b)} n'est pas dans les deux à la fois.`),ch(ivH(T),0,'Ça, c\'est la réunion I ∪ J.')],meta:{k:'ivl',p:{t:'inter',I:ivT(I),J:ivT(J)}}},
+      Object.assign(lightPart(T,rg,'Allume I ∪ J en blanc&nbsp;:'),{given:given(I,J),col:'w',whyA:w(T.a),whyB:w(T.b),meta:{k:'light',tgt:ivT(T),op:{t:'union',I:ivT(I),J:ivT(J)}}})],
+    done:`${fmt(b)} est dans un seul des deux intervalles&nbsp;: I ∩ J = ∅, mais I ∪ J = ${ivH(T)} n'a pas de trou.`}}
+G.LV.push({t:'Le mélange',ch:'Chapitre 8 · Intersection et réunion',badge:'Deux lumières',
+  rule:'<p>A ∩ B&nbsp;: éléments communs à A et B (ET). A ∪ B&nbsp;: éléments dans A ou B (OU).</p><p>Exemple&nbsp;: I = [−1&nbsp;; 3] et J = ]0&nbsp;; 4[ donnent I ∩ J = ]0&nbsp;; 3] et I ∪ J = [−1&nbsp;; 4[.</p><p>Quand deux intervalles ne se chevauchent pas, I ∩ J = ∅ (ensemble vide).</p>',
+  qs:[()=>{const p=rPair();return opLight(p.I,p.J,'∩')},()=>{const p=rPair();return opLight(p.I,p.J,'∪')},qOps,qDisjoint,qTouch]});
+
+/* ======================= Niveau 6 : le laser (valeur absolue, distance) ======================= */
+async function laser(a,b,lab){S.laser={a,b,t:0,lab};SND.zap();await SC.tw(900,t=>{S.laser.t=t});S.laser.t=1;SC.draw()}
+function qAbs0(){const v=-ri(2,7);
+  return {prompt:`Quelle est la distance entre <b>${fmt(v)}</b> et 0&nbsp;?`,range:[v-3,v+11>8?8:v+11],setup(){S.marks=[{v,t:fmt(v),c:'a'},{v:0,t:'0',c:'g',lv:1}]},cap0:'|x| est la distance entre x et 0.',
+    parts:[{t:'act',label:'Tirer le laser de 0 à '+fmt(v),async run(){await laser(0,v,'?');cap(`Le laser parcourt ${-v} graduations.`)}},
+      {t:'fill',ask:'Donc&nbsp;:',tpl:`|${fmt(v)}| = {0}`,ans:[[fmt(-v)]],why:`Compte les graduations parcourues par le laser&nbsp;: une distance est toujours positive.`,meta:{k:'num',e:`Abs(${v})`},onOk(){S.laser.lab=String(-v);SC.draw()}}],
+    done:`|${fmt(v)}| = ${fmt(-v)}&nbsp;: comme ${fmt(v)} &lt; 0, |${fmt(v)}| = −(${fmt(v)}) = ${fmt(-v)}.`}}
+function qAbsPM(){const p=ri(3,8);
+  return {prompt:`Calcule <b>|${p}|</b> et <b>|−${p}|</b>.`,range:[-p-2,p+2],setup(){S.marks=[{v:p,t:fmt(p),c:'a'},{v:-p,t:fmt(-p),c:'a'},{v:0,t:'0',c:'g',lv:1}]},
+    parts:[{t:'fill',tpl:`|${p}| = {0} et |−${p}| = {1}`,ans:[[fmt(p)],[fmt(p)]],why:'|x| = x si x ≥ 0 et |x| = −x si x &lt; 0&nbsp;: une valeur absolue n\'est jamais négative.',meta:{k:'nums',e:[`Abs(${p})`,`Abs(${-p})`]},
+      async onOk(){await laser(0,p,fmt(p));await sleep(300);await laser(0,-p,fmt(p))}}],
+    done:`${p} et −${p} sont tous deux à ${p} graduations de 0&nbsp;: |${p}| = |−${p}| = ${p}.`}}
+function qDist(){const a=-ri(1,4),b=ri(1,5),A=rb2()?a:b,B=A===a?b:a,d=Math.abs(A-B);
+  return {prompt:`A est en <b>${fmt(A)}</b>, B en <b>${fmt(B)}</b>. Mesure la distance d(${fmt(A)}, ${fmt(B)}).`,range:rangeAround([A,B]),setup(){S.marks=[{v:A,t:'A',c:'a'},{v:B,t:'B',c:'a'}]},cap0:'d(a, b) = |a − b|',
+    parts:[{t:'act',label:'Tirer le laser de A à B',async run(){await laser(A,B,'?')}},
+      {t:'fill',ask:'Calcule&nbsp;:',tpl:`d(${fmt(A)}, ${fmt(B)}) = |${fmt(A)} − ${fmtP(B)}| = {0}`,ans:[[fmt(d)]],why:`${fmt(A)} − ${fmtP(B)} = ${fmt(A-B)}, et la valeur absolue rend ce nombre positif.`,meta:{k:'num',e:`Abs(${A}-(${B}))`},onOk(){S.laser.lab='d = '+fmt(d);SC.draw()}}],
+    done:`d(${fmt(A)}, ${fmt(B)}) = |${fmt(A)} − ${fmtP(B)}| = |${fmt(A-B)}| = ${fmt(d)}, et aussi |${fmt(B)} − ${fmtP(A)}| = ${fmt(d)}&nbsp;: d(a, b) = d(b, a).`}}
+function qInside(){const p=ri(1,4),q=p+ri(3,6);
+  return {prompt:`Calcule <b>|${p} − ${q}|</b>.`,range:rangeAround([p,q]),setup(){S.marks=[{v:p,t:fmt(p),c:'a'},{v:q,t:fmt(q),c:'a'}]},
+    parts:[{t:'fill',ask:'D\'abord l\'intérieur&nbsp;:',tpl:`${p} − ${q} = {0}`,ans:[[fmt(p-q)]],why:`${p} − ${q} est négatif, car ${q} &gt; ${p}.`,meta:{k:'num',e:`${p}-${q}`}},
+      {t:'fill',ask:'Puis la valeur absolue&nbsp;:',tpl:`|${p} − ${q}| = {0}`,ans:[[fmt(q-p)]],why:`|${fmt(p-q)}| = ${fmt(q-p)}.`,meta:{k:'num',e:`Abs(${p}-${q})`},async onOk(){await laser(p,q,'d = '+fmt(q-p))}}],
+    done:`|${p} − ${q}| = |${fmt(p-q)}| = ${q-p}&nbsp;: c'est la distance entre ${p} et ${q}.`}}
+function qAbsEq(){const r=ri(2,5);
+  return {prompt:`Allume tous les nombres x tels que <b>|x| = ${r}</b>.`,range:[-r-3,r+3],setup(){S.marks=[]},cap0:`Les nombres à distance ${r} de 0.`,
+    parts:[{t:'points',ask:'Touche les graduations (sur la scène ou ci-dessous), puis valide.',target:[-r,r],keep:[{v:0,t:'0',c:'a',lv:1}],
+      why:s=>s.length===1&&Math.abs(s[0])===r?`Oui pour ${fmt(s[0])}, mais il y en a un autre, de l'autre côté de 0&nbsp;: ${fmt(-s[0])} est aussi à ${r} de 0.`:`Cherche les nombres situés à exactement ${r} graduations de 0, de chaque côté.`,
+      meta:{k:'pts',p:{t:'abseq',a:0,r}},async onOk(){S.marks=[{v:0,t:'0',c:'a',lv:1},{v:-r,t:fmt(-r),c:'g'},{v:r,t:fmt(r),c:'g'}];await laser(0,r,fmt(r));await laser(0,-r,fmt(r))}}],
+    done:`|x| = ${r} ⇔ x = −${r} ou x = ${r}&nbsp;: deux nombres opposés, à ${r} de 0.`}}
+G.LV.push({t:'Le laser',ch:'Chapitre 8 · Valeur absolue et distance',badge:'Laser de mesure',
+  rule:'<p>|x| = x si x ≥ 0&nbsp;; |x| = −x si x &lt; 0. |x| est la distance entre x et 0.</p><p>d(a, b) = |a − b| = |b − a|.</p><p>Propriétés&nbsp;: |x| ≥ 0&nbsp;; |ab| = |a| |b|&nbsp;; |a + b| ≤ |a| + |b|.</p>',
+  qs:[qAbs0,qAbsPM,qDist,qInside,qAbsEq]});
+
+/* ======================= Niveau 7 : le projecteur (|x − a| ≤ r, = r, ≥ r) ======================= */
+function spotWhy(a,r){return {whyA:`Le centre est le nombre a de |x − a|&nbsp;: ici |${absIn(a)}|${a<0?` = |x − (${fmt(a)})|`:''}, donc a = ${fmt(a)}.`,whyB:'',whyR:`Le rayon est r = ${fmt(r)}&nbsp;: on éclaire les x dont la distance à ${fmt(a)} vaut au plus ${fmt(r)}.`}}
+function spotPart(a,r,mode,ask){const rg=[a-r-4,a+r+4],w=spotWhy(a,r);let a0=a+(rb2()?2:-2);if(a0-1<rg[0]+.5||a0+1>rg[1]-.5)a0=a+(a0>a?-2:2);
+  return {t:'spot',target:{a,r},init:{a:a0,r:1},mode,ask,whyA:w.whyA,whyR:w.whyR,meta:{k:'spot',a,r}}}
+function qSpotLe(neg){const a=neg?-ri(1,3):ri(0,4),r=ri(1,3),T=iv(a-r,1,a+r,1),rg=[a-r-4,a+r+4],ex=`|${absIn(a)}| ≤ ${r}`;
+  const parts=[spotPart(a,r,'in','Règle le centre et le rayon du projecteur&nbsp;:')];
+  if(!neg)parts.push({t:'choice',ask:`${ex} ⇔ x ∈`,ch:uniqCh([ch(ivH(T),1),ch(ivH(iv(a-r,0,a+r,0)),0,'« ≤ »&nbsp;: les bords du faisceau sont éclairés, les bornes sont incluses.'),
+     ch(ivH(iv(-r,1,r,1)),0,`Le faisceau est centré en ${fmt(a)}, pas en 0.`),ch(ivH(iv(a,1,a+r,1)),0,`Le faisceau s'étend de ${fmt(r)} de chaque côté du centre.`)]),meta:{k:'ivl',p:{t:'abs',a,op:'≤',r}}});
+  else parts.push({t:'fill',ask:'Complète&nbsp;:',tpl:`${ex} ⇔ x ∈ [{0}&nbsp;; {1}]`,ans:[[fmt(a-r)],[fmt(a+r)]],why:`[a − r&nbsp;; a + r] avec a = ${fmt(a)} et r = ${r}.`,meta:{k:'ivfill',shape:'[{0} ; {1}]',p:{t:'abs',a,op:'≤',r}}});
+  return {prompt:`Éclaire les réels x tels que <b>${ex}</b>.`,range:rg,cap0:`${ex}&nbsp;: la distance entre x et ${fmt(a)} est inférieure ou égale à ${r}.`,parts,
+    done:`${ex} ⇔ x ∈ [${fmt(a)} − ${r}&nbsp;; ${fmt(a)} + ${r}] = ${ivH(T)}&nbsp;: intervalle centré en ${fmt(a)}, d'amplitude ${2*r}.`}}
+function qSpotEq(){const a=ri(-2,3),r=ri(2,4),ex=`|${absIn(a)}| = ${r}`;
+  return {prompt:`Allume les réels x tels que <b>${ex}</b>.`,range:[a-r-3,a+r+3],setup(){S.spot={a,r:1,mode:'eq'};S.marks=[]},cap0:`${ex}&nbsp;: la distance entre x et ${fmt(a)} vaut exactement ${r}.`,
+    parts:[{t:'points',ask:'Touche les graduations, puis valide.',target:[a-r,a+r],keep:[{v:a,t:'a = '+fmt(a),c:'a',lv:1}],
+      why:s=>s.length===1&&(eqv(s[0],a-r)||eqv(s[0],a+r))?`Oui pour ${fmt(s[0])}, mais il y a une deuxième solution, de l'autre côté de ${fmt(a)}.`:`Pars de ${fmt(a)} et avance de ${r} vers la droite, puis de ${r} vers la gauche.`,
+      meta:{k:'pts',p:{t:'abseq',a,r}},async onOk(){S.spot={a,r,mode:'eq'};SC.draw();await sleep(700)}}],
+    done:`${ex} ⇔ x = ${fmt(a)} − ${r} = ${fmt(a-r)} ou x = ${fmt(a)} + ${r} = ${fmt(a+r)}&nbsp;: les deux bords du faisceau.`}}
+function qSpotGe(){const a=ri(-1,3),r=ri(1,3),ex=`|${absIn(a)}| ≥ ${r}`,Sg=[iv(-INF,0,a-r,1),iv(a+r,1,INF,0)];
+  return {prompt:`Cette fois le projecteur fait de l'ombre&nbsp;: éclaire les réels x tels que <b>${ex}</b>.`,range:[a-r-4,a+r+4],cap0:`${ex}&nbsp;: la distance entre x et ${fmt(a)} est au moins ${r}.`,
+    parts:[spotPart(a,r,'out','Règle le centre et le rayon de la zone d\'ombre&nbsp;:'),
+      {t:'choice',ask:`${ex} ⇔ x ∈`,ch:uniqCh([ch(setH(Sg),1),ch(ivH(iv(a-r,1,a+r,1)),0,'Ça, c\'est la zone d\'ombre, |x − a| ≤ r&nbsp;: ici on veut l\'extérieur.'),
+        ch(setH([iv(-INF,0,a-r,0),iv(a+r,0,INF,0)]),0,'« ≥ »&nbsp;: les bords sont à distance exactement r, ils sont inclus.'),ch(ivH(iv(a-r,0,a+r,0)),0,'Ça, c\'est l\'intérieur strict&nbsp;: ici on veut les x éloignés du centre.')]),meta:{k:'ivl',p:{t:'abs',a,op:'≥',r}}}],
+    done:`${ex} ⇔ x ≤ ${fmt(a-r)} ou x ≥ ${fmt(a+r)} ⇔ x ∈ ${setH(Sg)}.`}}
+function qFromIv(){for(;;){const a=ri(1,5),r=ri(2,4),p=a-r,q=a+r,T=iv(p,1,q,1),rg=[p-4,q+4];
+  return {prompt:`La régie veut éclairer <b>${ivH(T)}</b>. Place le projecteur.`,range:rg,cap0:`${ivH(T)}&nbsp;: où est son milieu&nbsp;?`,
+    parts:[spotPart(a,r,'in','Le centre est le milieu de l\'intervalle, le rayon la moitié de sa longueur&nbsp;:'),
+      {t:'fill',ask:'Écris la condition&nbsp;:',tpl:`x ∈ ${ivH(T)} ⇔ |x − {0}| ≤ {1}`,ans:[[fmt(a)],[fmt(r)]],why:`Centre&nbsp;: (${fmt(p)} + ${fmt(q)}) ÷ 2 = ${fmt(a)}&nbsp;; rayon&nbsp;: (${fmt(q)} − ${fmtP(p)}) ÷ 2 = ${fmt(r)}.`,meta:{k:'nums',e:[`(${p}+${q})/2`,`(${q}-(${p}))/2`]}}],
+    done:`${ivH(T)} est centré en ${fmt(a)}, de rayon ${r}&nbsp;: x ∈ ${ivH(T)} ⇔ |x − ${fmt(a)}| ≤ ${r}.`}}}
+G.LV.push({t:'Le projecteur',ch:'Chapitre 8 · Intervalle centré',badge:'Projecteur de poursuite',
+  rule:'<p>|x − a| = r ⇔ x = a − r ou x = a + r.</p><p>|x − a| ≤ r ⇔ x ∈ [a − r&nbsp;; a + r]&nbsp;: intervalle centré en a, d\'amplitude 2r.</p><p>|x − a| ≥ r ⇔ x ≤ a − r ou x ≥ a + r.</p><p>Attention&nbsp;: |x + 1| = |x − (−1)|, le centre est −1.</p>',
+  qs:[()=>qSpotLe(false),()=>qSpotLe(true),qSpotEq,qSpotGe,qFromIv]});
+
+})();
+
+</script>
+<script>
+/* ======================= LA LIGNE NÉON — épreuves finales Bronze, Argent, Or ======================= */
+(function(){
+'use strict';
+const U=window.LN_U,{ri,pick,shuf,INF,eqv,fmt,fmtP,fr,pw,dz,SETS,iv,ivT,ivH,setH,inS,inter,union,FLIP,half,coefX,lin,absIn,condOf}=U;
+const N=U.NUMS,plain=h=>String(h).replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();
+function QC(level,prompt,right,wrongs,explain,meta){const seen=new Set([plain(right)]),w=[];
+  for(const x of wrongs){if(x==null)continue;const p=plain(x);if(!seen.has(p)){seen.add(p);w.push(x)}}
+  if(w.length<2)return null;return {type:'qcm',level,prompt,choices:[right].concat(w.slice(0,3)),answer:0,explain,meta}}
+const TR=(level,prompt,blanks,explain,meta)=>({type:'trous',level,prompt,blanks,explain,meta});
+const variants=s=>{const o=[s];if(s.includes(',')){const t=s.replace(/0+$/,'').replace(/,$/,'');if(t!==s&&t!=='')o.push(t)}return o};
+const NB=v=>({answers:variants(fmt(v)),size:Math.max(2,fmt(v).length)});
+const SB=d=>({answers:[SETS[d],'RQDZN'[d]],size:2});
+const rb2=()=>Math.random()<.5;
+const trunc6=x=>(Math.floor(x*1e6)/1e6).toFixed(6).replace('.',',')+'…';
+const truncI=(x,n,q)=>q?Math.floor(q[0]*Math.pow(10,n)/q[1]):Math.floor(x*Math.pow(10,n)+1e-9);
+const rnd=(x,n,q)=>{const t=truncI(x,n,q),d=truncI(x,n+1,q)-10*t;return d>=5?t+1:t};
+const ZW=['Tout nombre de la droite numérique est réel.','s\'écrit comme une fraction','a un nombre fini de décimales','est un entier','est un entier positif ou nul'];
+function setLures(z){return [0,1,2,3,4].filter(d=>d!==z).sort((a,b)=>Math.abs(a-z)-Math.abs(b-z)||a-b).slice(0,3)}
+function setExplain(it){const t=it.tv||it.h;
+  return it.z===0?`${it.h} est irrationnel&nbsp;: il est dans ℝ mais pas dans ℚ.`:it.z===1?`${t} = ${it.x||'…'}&nbsp;: c'est une fraction, mais son écriture décimale est infinie. Plus petit ensemble&nbsp;: ℚ.`:
+    it.z===2?`${t}&nbsp;: nombre fini de décimales, mais pas entier. Plus petit ensemble&nbsp;: 𝔻.`:it.z===3?`${t} est un entier négatif. Plus petit ensemble&nbsp;: ℤ.`:`${t} est un entier positif ou nul. Plus petit ensemble&nbsp;: ℕ.`}
+function qSet(level,it,pre){return QC(level,`${pre||''}Le plus petit ensemble auquel appartient ${it.h} est&nbsp;:`,SETS[it.z],setLures(it.z).map(d=>SETS[d]),setExplain(it),{k:'set',e:it.e,h:it.h})}
+function qStmt(level,T,F){const t=pick(T),f=shuf(F.slice()).slice(0,3);return QC(level,'Quelle écriture est correcte&nbsp;?',t[0],f.map(x=>x[0]),`${t[0]}&nbsp;: ${t[2]} Rappel&nbsp;: ∈ relie un nombre à un ensemble, ⊂ relie deux ensembles.`,{k:'stmt'})}
+function ivL(T){return [iv(T.a,!T.ai,T.b,T.bi),iv(T.a,T.ai,T.b,!T.bi),iv(T.a,!T.ai,T.b,!T.bi)].map(ivH)}
+const rFin=(closed)=>{const a=ri(-4,3),b=a+ri(2,5);if(closed)return iv(a,1,b,1);let ai=rb2(),bi=rb2();if(ai&&bi){if(rb2())ai=false;else bi=false}return iv(a,ai,b,bi)};
+function rPair(){for(;;){const a1=ri(-4,1),b1=a1+ri(3,5),a2=ri(a1+1,b1-1),b2=b1+ri(1,3);if(a2<b1){const I=iv(a1,rb2(),b1,rb2()),J=iv(a2,rb2(),b2,rb2());return rb2()?{I,J}:{I:J,J:I}}}}
+function rLin(neg,ops){for(;;){const a=neg?-ri(2,5):ri(2,5),s=ri(-3,5),b=pick([-9,-7,-5,-3,-2,-1,1,2,3,4,5,6,8]),op=pick(ops||['<','≤','>','≥']),c=a*s+b;if(Math.abs(c)<=24)return {a,b,op,c,s,o:a<0?FLIP[op]:op}}}
+const shape=T=>`${T.a===-INF||!T.ai?']':'['}${T.a===-INF?'−∞':'{0}'}&nbsp;; ${T.b===INF?'+∞':T.a===-INF?'{0}':'{1}'}${T.b===INF||!T.bi?'[':']'}`;
+const shapeT=T=>plain(shape(T));
+const finBlanks=T=>[T.a,T.b].filter(v=>isFinite(v)).map(NB);
+
+/* ============================ BRONZE ============================ */
+const B={
+ set:()=>qSet(1,pick(N.NAT.concat(N.REL,N.DEC.slice(0,3),N.RAT.slice(0,2),N.IRR.slice(0,3)))),
+ stmt:()=>qStmt(1,U.STMT.filter(x=>['−2 ∈ ℤ','4 ∈ ℕ','ℕ ⊂ ℤ','0,5 ∈ 𝔻','√2 ∉ ℚ','−3 ∉ ℕ'].includes(x[0])),U.STMF.filter(x=>['−2 ∈ ℕ','0,5 ∈ ℤ','π ∈ ℚ','√2 ∈ ℚ','−3 ∈ ℕ','5 ⊂ ℤ'].includes(x[0]))),
+ cond:()=>{const T=rFin(rb2());return QC(3,`L'ensemble des réels x tels que ${condOf(T)} est&nbsp;:`,ivH(T),ivL(T),`« ≤ » donne une borne incluse (crochet tourné vers l'intérieur), « &lt; » une borne exclue&nbsp;: ${condOf(T)} ⇔ x ∈ ${ivH(T)}.`,{k:'ivl',p:{t:'cond',txt:condOf(T)}})},
+ half:()=>{const s=ri(-3,5),T=rb2()?iv(s,1,INF,0):iv(-INF,0,s,1),c=condOf(T);
+   return QC(3,`L'ensemble des réels x tels que ${c} est&nbsp;:`,ivH(T),[T.b===INF?`<span class="iv">[${fmt(s)}&nbsp;; +∞]</span>`:`<span class="iv">[−∞&nbsp;; ${fmt(s)}]</span>`,T.b===INF?ivH(iv(s,0,INF,0)):ivH(iv(-INF,0,s,0)),T.b===INF?ivH(iv(-INF,0,s,1)):ivH(iv(s,1,INF,0))],
+     `${c} ⇔ x ∈ ${ivH(T)}&nbsp;: du côté de l'infini, le crochet est toujours ouvert.`,{k:'ivl',p:{t:'cond',txt:c}})},
+ mem:()=>{const v=ri(-3,6),k=ri(0,2);const good=k===0?iv(v-ri(1,3),rb2(),v+ri(1,3),rb2()):k===1?iv(v,1,v+ri(2,4),rb2()):iv(v-ri(2,4),rb2(),v,1);
+   const w=[iv(v,0,v+ri(2,4),rb2()),iv(v-ri(2,4),rb2(),v,0),iv(v+1,rb2(),v+ri(3,5),rb2()),iv(v-ri(4,6),rb2(),v-1,rb2())];const ex=[w[0],w[1]];
+   return QC(4,`Le nombre ${fmt(v)} appartient à l'intervalle&nbsp;:`,ivH(good),shuf(w).map(ivH),`${fmt(v)} ∈ ${ivH(good)}. Aux bornes, c'est le crochet qui décide&nbsp;: dans ${ivH(ex[0])} et dans ${ivH(ex[1])}, le crochet en ${fmt(v)} est tourné vers l'extérieur, donc ${fmt(v)} est exclu.`,{k:'mem',v})},
+ abs:()=>{const n=ri(3,12);return QC(6,`|−${n}| est égal à&nbsp;:`,String(n),['−'+n,'0'],`|−${n}| est la distance entre −${n} et 0&nbsp;: |−${n}| = ${n}. Une valeur absolue n'est jamais négative.`,{k:'num',e:`Abs(${-n})`})},
+ enc:()=>{const it=pick(U.IRRZ),x=it.x,t=truncI(x,1),k=Math.floor(x);
+   return QC(2,`${it.lab} ≈ ${trunc6(x)} Un encadrement de ${it.lab} à ${pw(1)} près est&nbsp;:`,`${dz(t,1)} &lt; ${it.lab} &lt; ${dz(t+1,1)}`,
+     [`${dz(truncI(x,2),2)} &lt; ${it.lab} &lt; ${dz(truncI(x,2)+1,2)}`,`${k} &lt; ${it.lab} &lt; ${k+1}`,`${dz(t-1,1)} &lt; ${it.lab} &lt; ${dz(t,1)}`],
+     `À ${pw(1)} près, on garde une décimale&nbsp;: ${dz(t,1)} &lt; ${it.lab} &lt; ${dz(t+1,1)} (deux nombres distants de 0,1).`,{k:'enc',e:it.e,n:1})},
+ inter:()=>{const a1=ri(-3,1),b1=a1+ri(3,5),a2=ri(a1+1,b1-1),b2=b1+ri(1,3),I=iv(a1,1,b1,1),J=iv(a2,1,b2,1);
+   return QC(5,`${ivH(I)} ∩ ${ivH(J)} est égal à&nbsp;:`,ivH(iv(a2,1,b1,1)),[ivH(iv(a1,1,b2,1)),ivH(iv(a1,1,a2,1)),ivH(iv(b1,1,b2,1))],
+     `L'intersection garde les nombres communs aux deux intervalles&nbsp;: de ${fmt(a2)} à ${fmt(b1)}. ${ivH(iv(a1,1,b2,1))} serait la réunion.`,{k:'ivl',p:{t:'inter',I:ivT(I),J:ivT(J)}})},
+ absle:()=>{const a=ri(1,5),r=ri(1,3);return QC(7,`|x − ${a}| ≤ ${r} équivaut à x ∈&nbsp;:`,ivH(iv(a-r,1,a+r,1)),[ivH(iv(a-r,0,a+r,0)),ivH(iv(-r,1,r,1)),ivH(iv(a,1,a+r,1))],
+   `|x − ${a}| ≤ ${r} ⇔ x ∈ [${a} − ${r}&nbsp;; ${a} + ${r}] = ${ivH(iv(a-r,1,a+r,1))}&nbsp;: intervalle centré en ${a}.`,{k:'ivl',p:{t:'abs',a,op:'≤',r}})}};
+const BT={
+ abs:()=>{const n=ri(2,15);return TR(6,`|−${n}| = {0}`,[NB(n)],`La distance entre −${n} et 0 est ${n}.`,{k:'tr',sp:[{e:`Abs(${-n})`}]})},
+ dist:()=>{const a=ri(1,6),b=a+ri(2,7),A=rb2()?a:b,Bb=A===a?b:a;return TR(6,`d(${A}, ${Bb}) = {0}`,[NB(b-a)],`d(${A}, ${Bb}) = |${A} − ${Bb}| = ${b-a}.`,{k:'tr',sp:[{e:`Abs(${A}-${Bb})`}]})},
+ dec:()=>{const n=pick([75,25,8,125,36,4,305,375].filter(x=>x<1000)),den=n>=100&&n%5===0&&n>=125?1000:100,s=dz(n,den===100?2:3);
+   return TR(2,`${s} = ${fr('{0}',den)}`,[NB(n)],`${s} a ${den===100?2:3} décimales&nbsp;: ${s} = ${fr(n,den)}, c'est un nombre décimal.`,{k:'tr',sp:[{e:`Rational(${n},${den})*${den}`}],eq:1})},
+ round:()=>{const it=pick(U.IRRZ),x=it.x,g=rnd(x,1);return TR(2,`${it.lab} ≈ ${trunc6(x)} L'arrondi de ${it.lab} à ${pw(1)} est {0}.`,[{answers:variants(dz(g,1)),size:4}],
+   `La 2<sup>e</sup> décimale est ${truncI(x,2)-10*truncI(x,1)}&nbsp;: ${truncI(x,2)-10*truncI(x,1)>=5?'on arrondit au-dessus':'on tronque'}, ${it.lab} ≈ ${dz(g,1)}.`,{k:'tr',sp:[{arr:it.e,n:1}]})},
+ cond:()=>{const a=ri(-4,2),b=a+ri(2,6);return TR(3,`x ∈ ${ivH(iv(a,1,b,1))} ⇔ {0} ≤ x ≤ {1}`,[NB(a),NB(b)],`Les crochets sont tournés vers l'intérieur&nbsp;: ${fmt(a)} et ${fmt(b)} sont inclus.`,{k:'tr',sp:[{e:String(a)},{e:String(b)}]})},
+ set:()=>{const n=pick([4,9,16,25,36,49,64,81]),r=Math.sqrt(n);return TR(1,`√${n} = {0}, donc le plus petit ensemble auquel appartient √${n} est {1} (tape N, Z, D, Q ou R).`,[NB(r),SB(4)],
+   `√${n} = ${r} car ${r}² = ${n}&nbsp;: c'est un entier positif, √${n} ∈ ℕ.`,{k:'tr',sp:[{e:`sqrt(${n})`},{set:`sqrt(${n})`}]})},
+ lin:()=>{const a=ri(2,6),s=ri(-4,6),op=pick(['<','≤','>','≥']);return TR(4,`${a}x ${op} ${fmt(a*s)} ⇔ x ${op} {0}`,[NB(s)],`On divise par ${a}, positif&nbsp;: le sens ne change pas, x ${op} ${fmt(s)}.`,{k:'tr',sp:[{lin:{a,b:0,op,c:a*s}}]})},
+ abseq:()=>{const a=ri(1,6),r=ri(1,3);return TR(7,`|x − ${a}| = ${r} ⇔ x = {0} ou x = {1} (du plus petit au plus grand).`,[NB(a-r),NB(a+r)],`Les nombres à distance ${r} de ${a}&nbsp;: ${a} − ${r} = ${fmt(a-r)} et ${a} + ${r} = ${fmt(a+r)}.`,{k:'tr',sp:[{e:`${a}-${r}`},{e:`${a}+${r}`}]})}};
+
+/* ============================ ARGENT ============================ */
+const FRACS=[{h:fr(4,12),e:'Rational(4,12)',z:1,tv:'4/12 = 1/3',x:'0,333…'},{h:fr(6,9),e:'Rational(6,9)',z:1,tv:'6/9 = 2/3',x:'0,666…'},{h:fr(10,15),e:'Rational(10,15)',z:1,tv:'10/15 = 2/3',x:'0,666…'},
+ {h:fr(9,12),e:'Rational(9,12)',z:2,tv:'9/12 = 3/4 = 0,75'},{h:fr(14,35),e:'Rational(14,35)',z:2,tv:'14/35 = 2/5 = 0,4'},{h:fr(12,4),e:'Rational(12,4)',z:4,tv:'12/4 = 3'},{h:fr('−15',5),e:'Rational(-15,5)',z:3,tv:'−15/5 = −3'}];
+const A={
+ set:()=>qSet(1,pick(N.TRAP.concat(FRACS))),
+ stmt:()=>qStmt(1,U.STMT,U.STMF),
+ arr:()=>{for(;;){const r=Math.random()<.7,it=r?pick(U.IRRZ):null,q=r?null:pick([[2,3],[5,6],[1,7],[5,7],[7,9],[1,6]]),x=r?it.x:q[0]/q[1],n=ri(2,3),lab=r?it.lab:fr(q[0],q[1]);
+   const t=truncI(x,n,q),g=rnd(x,n,q),d=truncI(x,n+1,q)-10*t;if(g===t&&Math.random()<.6)continue;
+   const q1=QC(2,`${lab} ${r?'≈':'='} ${trunc6(x)} L'arrondi de ${lab} à ${pw(n)} est&nbsp;:`,dz(g,n),[dz(g===t?t+1:t,n),dz(rnd(x,n+1,q),n+1),dz(rnd(x,n-1,q),n-1)],
+     `La ${n+1}<sup>e</sup> décimale est ${d}${d>=5?' ≥ 5&nbsp;: on arrondit au-dessus':' &lt; 5&nbsp;: on tronque'}. ${lab} ≈ ${dz(g,n)} à ${pw(n)}.`,{k:'arr',e:r?it.e:`Rational(${q[0]},${q[1]})`,n});if(q1)return q1}},
+ read:()=>{const s=ri(-4,5),k=ri(0,3),T=[iv(-INF,0,s,1),iv(-INF,0,s,0),iv(s,1,INF,0),iv(s,0,INF,0)][k];
+   return QC(3,`${ivH(T)} est l'ensemble des réels x tels que&nbsp;:`,condOf(T),[iv(-INF,0,s,1),iv(-INF,0,s,0),iv(s,1,INF,0),iv(s,0,INF,0)].filter((_,j)=>j!==k).map(condOf),
+     `${ivH(T)} ⇔ ${condOf(T)}&nbsp;: crochet tourné vers ${T.ai||T.bi?'l\'intérieur, borne incluse (≤ ou ≥)':'l\'extérieur, borne exclue (&lt; ou &gt;)'}.`,{k:'condch',I:ivT(T)})},
+ ineqneg:()=>{const L=rLin(true),T=half(L.o,L.s);
+   return QC(4,`L'ensemble des solutions de l'inéquation ${lin(L.a,L.b)} ${L.op} ${fmt(L.c)} est&nbsp;:`,ivH(T),[ivH(half(L.op,L.s)),L.s?ivH(half(L.o,-L.s)):null,ivH(T.a===-INF?iv(-INF,0,L.s,!T.bi):iv(L.s,!T.ai,INF,0))],
+     `${lin(L.a,L.b)} ${L.op} ${fmt(L.c)} ⇔ ${coefX(L.a)} ${L.op} ${fmt(L.c-L.b)} ⇔ x ${L.o} ${fmt(L.s)}&nbsp;: on divise par ${fmt(L.a)} &lt; 0, le sens s'inverse.`,{k:'ivl',p:{t:'ineq',a:L.a,b:L.b,op:L.op,c:L.c}})},
+ inter:()=>{const {I,J}=rPair(),T=inter(I,J)[0],O=union(I,J)[0];
+   return QC(5,`I = ${ivH(I)} et J = ${ivH(J)}. Alors I ∩ J =`,ivH(T),[ivH(iv(T.a,!T.ai,T.b,T.bi)),ivH(iv(T.a,T.ai,T.b,!T.bi)),ivH(O)],
+     `I ∩ J garde les nombres communs (ET)&nbsp;: I ∩ J = ${ivH(T)}. À chaque borne, le nombre doit être dans I et dans J.`,{k:'ivl',p:{t:'inter',I:ivT(I),J:ivT(J)}})},
+ union:()=>{if(rb2()){const {I,J}=rPair(),T=union(I,J)[0],O=inter(I,J)[0];
+     return QC(5,`I = ${ivH(I)} et J = ${ivH(J)}. Alors I ∪ J =`,ivH(T),[ivH(iv(T.a,!T.ai,T.b,T.bi)),ivH(iv(T.a,T.ai,T.b,!T.bi)),ivH(O)],
+       `I ∪ J garde tout nombre de I ou de J (OU)&nbsp;: I ∪ J = ${ivH(T)}.`,{k:'ivl',p:{t:'union',I:ivT(I),J:ivT(J)}})}
+   const a=ri(-4,0),b=a+ri(2,3),c=b+ri(2,4),I=iv(-INF,0,a,rb2()),J=iv(b,rb2(),c,rb2());
+   return QC(5,`I = ${ivH(I)} et J = ${ivH(J)}. Alors I ∩ J =`,'∅',[ivH(iv(a,1,b,1)),ivH(iv(-INF,0,c,J.bi)),setH(union(I,J))],`Les deux intervalles n'ont aucun nombre commun&nbsp;: I ∩ J = ∅ (ensemble vide).`,{k:'ivl',p:{t:'inter',I:ivT(I),J:ivT(J)}})},
+ dist:()=>{const a=-ri(1,6),b=ri(1,7),A=rb2()?a:b,Bb=A===a?b:a,d=b-a;
+   return QC(6,`La distance entre ${fmt(A)} et ${fmt(Bb)} est&nbsp;:`,fmt(d),[fmt(-d),fmt(Math.abs(a+b)),fmt(-Math.abs(a+b))],`d(${fmt(A)}, ${fmt(Bb)}) = |${fmt(A)} − ${fmtP(Bb)}| = |${fmt(A-Bb)}| = ${fmt(d)}.`,{k:'num',e:`Abs(${A}-(${Bb}))`})},
+ absc:()=>{const c=ri(1,4),r=ri(2,4),T=iv(-c-r,1,-c+r,1);
+   return QC(7,`|x + ${c}| ≤ ${r} équivaut à x ∈&nbsp;:`,ivH(T),[ivH(iv(c-r,1,c+r,1)),ivH(iv(-c-r,0,-c+r,0)),ivH(iv(-r,1,r,1))],
+     `|x + ${c}| = |x − (−${c})|&nbsp;: centre −${c}, rayon ${r}, donc x ∈ [−${c} − ${r}&nbsp;; −${c} + ${r}] = ${ivH(T)}.`,{k:'ivl',p:{t:'abs',a:-c,op:'≤',r}})},
+ absge:()=>{const a=ri(-2,4),r=ri(1,3),Sg=[iv(-INF,0,a-r,1),iv(a+r,1,INF,0)];
+   return QC(7,`|${absIn(a)}| ≥ ${r} équivaut à x ∈&nbsp;:`,setH(Sg),[ivH(iv(a-r,1,a+r,1)),ivH(iv(a-r,0,a+r,0)),setH([iv(-INF,0,a-r,0),iv(a+r,0,INF,0)])],
+     `|${absIn(a)}| ≥ ${r} ⇔ x ≤ ${fmt(a-r)} ou x ≥ ${fmt(a+r)}&nbsp;: les nombres à distance au moins ${r} de ${fmt(a)}.`,{k:'ivl',p:{t:'abs',a,op:'≥',r}})}};
+const AT={
+ enc:()=>{const it=pick(U.IRRZ),x=it.x,n=3,t=truncI(x,n);return TR(2,`${it.lab} ≈ ${trunc6(x)} Encadrement de ${it.lab} à ${pw(3)} près&nbsp;: {0} &lt; ${it.lab} &lt; {1}`,[{answers:variants(dz(t,3)),size:5},{answers:variants(dz(t+1,3)),size:5}],
+   `On garde 3 décimales&nbsp;: ${dz(t,3)} &lt; ${it.lab} &lt; ${dz(t+1,3)}.`,{k:'tr',sp:[{tr:it.e,n},{up:it.e,n}]})},
+ ineq:()=>{const L=rLin(false),T=half(L.o,L.s);return TR(4,`Les solutions de ${lin(L.a,L.b)} ${L.op} ${fmt(L.c)} forment l'intervalle ${shape(T)}.`,[NB(L.s)],
+   `${lin(L.a,L.b)} ${L.op} ${fmt(L.c)} ⇔ ${coefX(L.a)} ${L.op} ${fmt(L.c-L.b)} ⇔ x ${L.o} ${fmt(L.s)}, soit ${ivH(T)}.`,{k:'tr',ivfill:{shape:shapeT(T),p:{t:'ineq',a:L.a,b:L.b,op:L.op,c:L.c}}})},
+ center:()=>{const a=ri(-2,5),r=ri(2,5),T=iv(a-r,1,a+r,1);return TR(7,`${ivH(T)} est l'ensemble des x tels que |x − a| ≤ r, avec a = {0} et r = {1}.`,[NB(a),NB(r)],
+   `Centre&nbsp;: (${fmt(a-r)} + ${fmt(a+r)}) ÷ 2 = ${fmt(a)}&nbsp;; rayon&nbsp;: (${fmt(a+r)} − ${fmtP(a-r)}) ÷ 2 = ${r}.`,{k:'tr',sp:[{e:`(${a-r}+${a+r})/2`},{e:`(${a+r}-(${a-r}))/2`}]})},
+ abseq:()=>{const a=ri(-3,5),r=ri(2,5);return TR(7,`L'équation |${absIn(a)}| = ${r} a deux solutions&nbsp;: {0} et {1} (du plus petit au plus grand).`,[NB(a-r),NB(a+r)],
+   `x = ${fmt(a)} − ${r} = ${fmt(a-r)} ou x = ${fmt(a)} + ${r} = ${fmt(a+r)}.`,{k:'tr',sp:[{e:`${a}-${r}`},{e:`${a}+${r}`}]})},
+ set:()=>{const it=pick(FRACS.concat(N.RAT.slice(0,4),N.DEC.slice(3)));return TR(1,`Le plus petit ensemble auquel appartient ${it.h} est {0} (tape N, Z, D, Q ou R).`,[SB(it.z)],setExplain(it),{k:'tr',sp:[{set:it.e}],h:it.h})},
+ inter:()=>{const {I,J}=rPair(),T=inter(I,J)[0];return TR(5,`${ivH(I)} ∩ ${ivH(J)} = ${shape(T)}`,finBlanks(T),`Zone commune aux deux intervalles&nbsp;: ${ivH(T)}.`,{k:'tr',ivfill:{shape:shapeT(T),p:{t:'inter',I:ivT(I),J:ivT(J)}}})}};
+
+/* ============================ OR ============================ */
+const OSET=[{h:fr('5(√3)²',15),e:'5*sqrt(3)**2/15',z:4,tv:'15/15 = 1'},{h:fr('−5(√3)²',15),e:'-5*sqrt(3)**2/15',z:3,tv:'−15/15 = −1'},{h:fr('3(√2)²',9),e:'3*sqrt(2)**2/9',z:1,tv:'6/9 = 2/3',x:'0,666…'},
+ {h:fr('−(√3)²',9),e:'-sqrt(3)**2/9',z:1,tv:'−3/9 = −1/3',x:'−0,333…'},{h:fr('(√2)²',4),e:'sqrt(2)**2/4',z:2,tv:'2/4 = 0,5'},{h:fr('7(√2)²',35),e:'7*sqrt(2)**2/35',z:2,tv:'14/35 = 0,4'},
+ {h:'√16 − √9',e:'sqrt(16)-sqrt(9)',z:4,tv:'4 − 3 = 1'},{h:'√9 − √25',e:'sqrt(9)-sqrt(25)',z:3,tv:'3 − 5 = −2'},{h:'(√6)² − 10',e:'sqrt(6)**2-10',z:3,tv:'6 − 10 = −4'},{h:'1 + √2',e:'1+sqrt(2)',z:0},{h:fr('√3',3),e:'sqrt(3)/3',z:0}];
+const O={
+ set:()=>{const it=pick(OSET);return qSet(1,it.z===0?it:Object.assign({},it,{tv:it.h+' = '+it.tv}))},
+ demo:()=>rb2()?QC(2,`Pour démontrer que ${fr(1,3)} ∉ 𝔻, on suppose que ${fr(1,3)} = ${fr('a','10ⁿ')} avec a ∈ ℤ et n ∈ ℕ. On en déduit&nbsp;:`,'10ⁿ = 3a',['3 = 10ⁿ × a','a = 3 × 10ⁿ','10ⁿ = a + 3'],
+     'Produit en croix&nbsp;: 1 × 10ⁿ = 3 × a. Or 10ⁿ = 2ⁿ × 5ⁿ n\'est pas divisible par 3&nbsp;: contradiction.',{k:'demo13'})
+   :QC(1,`Pour démontrer que √2 est irrationnel, on suppose que √2 = ${fr('a','b')} (fraction irréductible). En élevant au carré, on obtient&nbsp;:`,'a² = 2b²',['a = 2b','2a² = b²','a² = 2b'],
+     'Si √2 = a/b, alors 2 = a²/b², donc a² = 2b²&nbsp;: a² est pair, donc a est pair, puis b aussi&nbsp;: contradiction avec « irréductible ».',{k:'demo2'}),
+ taxi:()=>{const [p,k]=pick([[4,2],[6,2],[6,3],[3,3],[8,2]]),s=ri(5,9),M=p+k*s;
+   return QC(4,`Un taxi facture ${p} € de prise en charge, puis ${k} € par kilomètre. Avec ${M} € au plus, la distance d parcourue (en km, d ≥ 0) vérifie&nbsp;:`,`d ∈ ${ivH(iv(0,1,s,1))}`,
+     [`d ∈ ${ivH(iv(-INF,0,s,1))}`,`d ∈ ${ivH(iv(0,1,s,0))}`,`d ∈ ${ivH(iv(0,1,M/k,1))}`],
+     `${p} + ${k}d ≤ ${M} ⇔ ${k}d ≤ ${M-p} ⇔ d ≤ ${s}. Avec d ≥ 0&nbsp;: d ∈ ${ivH(iv(0,1,s,1))}.`,{k:'ivl',pre:'d ∈',p:{t:'ineqdom',a:k,b:p,op:'≤',c:M,lo:0}})},
+ dineq:()=>{const a=-ri(2,3),s1=ri(-3,1),s2=s1+ri(2,4),b=pick([-4,-3,-1,1,2,3,5]),lop=pick(['<','≤']),rop=pick(['<','≤']),l=a*s2+b,r=a*s1+b,T=iv(s1,rop==='≤',s2,lop==='≤');
+   const ex=`${fmt(l)} ${lop} ${lin(a,b)} ${rop} ${fmt(r)}`;
+   return QC(4,`L'ensemble des solutions de ${ex} est&nbsp;:`,ivH(T),[ivH(iv(s1,lop==='≤',s2,rop==='≤')),ivH(iv(s1,1,s2,1)),ivH(iv(s1,0,s2,0)),ivH(iv(-s2,T.bi,-s1,T.ai))],
+     `On soustrait ${fmtP(b)}, puis on divise par ${fmt(a)} &lt; 0&nbsp;: les inégalités changent de sens et les bornes s'échangent. ${ex} ⇔ ${fmt(s1)} ${rop} x ${lop} ${fmt(s2)}.`,{k:'ivl',p:{t:'dineq',l,lop,a,b,rop,r}})},
+ interabs:()=>{const a=ri(-1,4),r=ri(2,4),c=a-r+ri(1,2*r-1),op=pick(['>','≥','<','≤']);const A0=iv(a-r,1,a+r,1),H=half(op,c),T=inter(A0,H)[0];
+   const other=op==='>'||op==='≥'?iv(a-r,1,c,op==='>'):iv(c,op==='≥'?1:op==='<',a+r,1);
+   return QC(7,`L'ensemble des réels x tels que |${absIn(a)}| ≤ ${r} et x ${op} ${fmt(c)} est&nbsp;:`,ivH(T),[ivH(A0),ivH(iv(T.a,!T.ai,T.b,T.bi)),ivH(iv(T.a,T.ai,T.b,!T.bi)),ivH(other)],
+     `|${absIn(a)}| ≤ ${r} ⇔ x ∈ ${ivH(A0)}&nbsp;; on garde l'intersection avec ${ivH(H)}&nbsp;: ${ivH(T)}.`,{k:'ivl',p:{t:'interabs',a,r,op,c}})},
+ distset:()=>{const a=-ri(1,4),r=ri(2,4),T=iv(a-r,1,a+r,1);
+   return QC(7,`Les réels x dont la distance à ${fmt(a)} est inférieure ou égale à ${r} forment l'intervalle&nbsp;:`,ivH(T),[ivH(iv(-a-r,1,-a+r,1)),ivH(iv(a-r,0,a+r,0)),ivH(iv(a,1,a+r,1))],
+     `d(x, ${fmt(a)}) ≤ ${r} ⇔ |x − (${fmt(a)})| ≤ ${r} ⇔ x ∈ ${ivH(T)}.`,{k:'ivl',p:{t:'abs',a,op:'≤',r}})},
+ roundfr:()=>{for(;;){const q=pick([[2,3],[5,6],[1,7],[5,7],[4,7],[7,9],[1,6],[5,9]]),x=q[0]/q[1],n=2,t=truncI(x,n,q),g=rnd(x,n,q);
+   const r=QC(2,`L'arrondi de ${fr(q[0],q[1])} à ${pw(2)} est&nbsp;:`,dz(g,2),[dz(g===t?t+1:t,2),dz(rnd(x,1,q),1),dz(rnd(x,3,q),3)],
+     `${fr(q[0],q[1])} = ${trunc6(x)} La 3<sup>e</sup> décimale est ${truncI(x,3,q)-10*t}&nbsp;: ${fr(q[0],q[1])} ≈ ${dz(g,2)}.`,{k:'arr',e:`Rational(${q[0]},${q[1]})`,n:2});if(r)return r}},
+ py:()=>{const ai=rb2(),bi=rb2(),I=`<span class="iv">${ai?'[':']'}a&nbsp;; b${bi?']':'['}</span>`,c=(x,y)=>`<code>a ${x?'&lt;=':'&lt;'} x ${y?'&lt;=':'&lt;'} b</code>`;
+   return QC(3,`Dans le script Python du cours, quelle condition teste si x ∈ ${I}&nbsp;?`,c(ai,bi),[c(!ai,bi),c(ai,!bi),c(!ai,!bi)],
+     `Borne incluse ⇔ <code>&lt;=</code>, borne exclue ⇔ <code>&lt;</code>&nbsp;: x ∈ ${I} ⇔ a ${ai?'≤':'&lt;'} x ${bi?'≤':'&lt;'} b.`,{k:'py',ai,bi})},
+ center:()=>{const p=ri(-5,0),len=pick([5,7,9,11]),q=p+len,c=(p+q)/2,r=len/2;
+   return QC(7,`L'intervalle ${ivH(iv(p,1,q,1))} est l'ensemble des réels x tels que&nbsp;:`,`|${absIn(c)}| ≤ ${fmt(r)}`,[`|${absIn(r)}| ≤ ${fmt(c)}`,`|${absIn(-c)}| ≤ ${fmt(r)}`,`|${absIn(c)}| ≤ ${fmt(len)}`],
+     `Centre&nbsp;: (${fmt(p)} + ${fmt(q)}) ÷ 2 = ${fmt(c)}&nbsp;; rayon&nbsp;: ${len} ÷ 2 = ${fmt(r)}.`,{k:'absf',lo:p,hi:q})},
+ infun:()=>{const s1=ri(-4,1),s2=s1+ri(2,5),I=iv(-INF,0,s2,rb2()),J=iv(s1,rb2(),INF,0);
+   if(rb2())return QC(5,`I = ${ivH(I)} et J = ${ivH(J)}. Alors I ∪ J =`,'ℝ',[setH(inter(I,J)),'∅',ivH(I)],`Tout réel est dans I ou dans J&nbsp;: I ∪ J = ℝ = ]−∞&nbsp;; +∞[.`,{k:'ivl',p:{t:'union',I:ivT(I),J:ivT(J)}});
+   const T=inter(I,J)[0];return QC(5,`I = ${ivH(I)} et J = ${ivH(J)}. Alors I ∩ J =`,ivH(T),['ℝ',ivH(iv(T.a,!T.ai,T.b,T.bi)),ivH(iv(T.a,T.ai,T.b,!T.bi))],`Les nombres communs vont de ${fmt(s1)} à ${fmt(s2)}&nbsp;: I ∩ J = ${ivH(T)}.`,{k:'ivl',p:{t:'inter',I:ivT(I),J:ivT(J)}})}};
+const OT={
+ demo:()=>rb2()?TR(2,`On suppose ${fr(1,3)} = ${fr('a','10ⁿ')} avec a ∈ ℤ et n ∈ ℕ. Alors 10ⁿ = {0}a, donc 10ⁿ serait divisible par {1}&nbsp;: impossible, car 10ⁿ = 2ⁿ × 5ⁿ.`,[NB(3),NB(3)],
+     'Produit en croix&nbsp;: 10ⁿ = 3a. Les seuls facteurs premiers de 10ⁿ sont 2 et 5, jamais 3&nbsp;: donc 1/3 ∉ 𝔻.',{k:'tr',sp:[{demo:'13'},{demo:'13'}]})
+   :TR(1,`On suppose √2 = ${fr('a','b')} (fraction irréductible). Alors a² = {0}b², donc a² est {1} (pair ou impair).`,[NB(2),{answers:['pair'],size:6}],
+     '2 = a²/b² donne a² = 2b²&nbsp;: a² est pair. Ensuite a est pair, puis b aussi&nbsp;: contradiction.',{k:'tr',sp:[{demo:'2'},{word:'pair'}]}),
+ ineqneg:()=>{const L=rLin(true),T=half(L.o,L.s);return TR(4,`Les solutions de ${lin(L.a,L.b)} ${L.op} ${fmt(L.c)} forment l'intervalle ${shape(T)}.`,[NB(L.s)],
+   `${coefX(L.a)} ${L.op} ${fmt(L.c-L.b)}, puis division par ${fmt(L.a)} &lt; 0&nbsp;: x ${L.o} ${fmt(L.s)}, soit ${ivH(T)}.`,{k:'tr',ivfill:{shape:shapeT(T),p:{t:'ineq',a:L.a,b:L.b,op:L.op,c:L.c}}})},
+ abs:()=>{const a=ri(-4,4),r=ri(2,6),T=iv(a-r,1,a+r,1);return TR(7,`|x − a| ≤ r ⇔ x ∈ ${ivH(T)} lorsque a = {0} et r = {1}.`,[NB(a),NB(r)],
+   `a est le milieu de ${ivH(T)}&nbsp;: ${fmt(a)}&nbsp;; r est la moitié de sa longueur ${2*r}&nbsp;: ${r}.`,{k:'tr',sp:[{e:`(${a-r}+${a+r})/2`},{e:`(${a+r}-(${a-r}))/2`}]})},
+ enc:()=>{const [it,n]=pick([[U.IRRZ[5],4],[U.IRRZ[4],3],[U.IRRZ[1],4],[U.IRRZ[3],4],[U.IRRZ[6],3]]),x=it.x,t=truncI(x,n);
+   return TR(2,`${it.lab} ≈ ${(Math.floor(x*1e8)/1e8).toFixed(8).replace('.',',')}… Encadrement à ${pw(n)} près&nbsp;: {0} &lt; ${it.lab} &lt; {1}`,[{answers:variants(dz(t,n)),size:6},{answers:variants(dz(t+1,n)),size:6}],
+     `${n} décimales&nbsp;: ${dz(t,n)} &lt; ${it.lab} &lt; ${dz(t+1,n)}.`,{k:'tr',sp:[{tr:it.e,n},{up:it.e,n}]})},
+ dist:()=>{const a=-(ri(1,4)+.5),b=ri(1,6)+pick([0,.5]);return TR(6,`Sur une droite graduée en kilomètres, A a pour abscisse ${fmt(a)} et B a pour abscisse ${fmt(b)}. La distance AB vaut {0} km.`,[NB(b-a)],
+   `AB = |${fmt(b)} − ${fmtP(a)}| = |${fmt(b-a)}| = ${fmt(b-a)}.`,{k:'tr',sp:[{e:`Abs(${b}-(${a}))`}]})},
+ interinf:()=>{const s1=ri(-4,1),s2=s1+ri(2,5),I=iv(-INF,0,s2,rb2()),J=iv(s1,rb2(),INF,0),T=inter(I,J)[0];
+   return TR(5,`${ivH(I)} ∩ ${ivH(J)} = ${shape(T)}`,finBlanks(T),`Zone commune&nbsp;: de ${fmt(s1)} à ${fmt(s2)}, ${ivH(T)}.`,{k:'tr',ivfill:{shape:shapeT(T),p:{t:'inter',I:ivT(I),J:ivT(J)}}})},
+ absge:()=>{const c=ri(1,4),r=ri(2,4);return TR(7,`|x + ${c}| ≥ ${r} ⇔ x ≤ {0} ou x ≥ {1}`,[NB(-c-r),NB(-c+r)],`|x + ${c}| = |x − (−${c})|&nbsp;: centre −${c}, rayon ${r}&nbsp;: x ≤ ${fmt(-c-r)} ou x ≥ ${fmt(-c+r)}.`,{k:'tr',sp:[{e:`${-c}-${r}`},{e:`${-c}+${r}`}]})}};
+
+function build(qs,ts){for(let g=0;g<200;g++){const out=[];let bad=false;
+    for(const f of qs){const q=f();if(!q){bad=true;break}out.push(q)}
+    if(bad)continue;for(const f of ts)out.push(f());
+    const pr=new Set(out.map(q=>plain(q.prompt)));if(pr.size<out.length)continue;return shuf(out)}throw new Error('build')}
+const pickN=(o,k)=>shuf(Object.values(o)).slice(0,k);
+window.LN_FIN={
+  bronze:()=>build(pickN(B,6),pickN(BT,4)),
+  argent:()=>build(pickN(A,6),pickN(AT,4)),
+  or:()=>build(pickN(O,6),pickN(OT,4))};
+})();
+
+</script>
+<script>window.SIGMA_MUSIC_STYLE='epique'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'ligne-neon',title:'La Ligne Néon',levels:7,
+  levelNames:['Les carrés VIP','Le zoom ×10','Les crochets','La bascule','Le mélange','Le laser','Le projecteur'],
+  music:'epique',finals:{bronze:()=>(window.LN_lastFinal=LN_FIN.bronze()),argent:()=>(window.LN_lastFinal=LN_FIN.argent()),or:()=>(window.LN_lastFinal=LN_FIN.or())}});
+LN_G.start();
+(function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|INPUT|TEXTAREA|CODE|svg)$/i.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(fix)}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+
+</body>
+</html>
