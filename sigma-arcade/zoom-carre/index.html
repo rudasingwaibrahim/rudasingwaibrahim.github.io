@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zoom Carré · Sigma Arcade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* IDÉE : le viseur carré d'un appareil photo de téléphone.
+   Puissances = appuis répétés sur le zoom (un facteur négatif retourne la photo) ;
+   notation scientifique = régler le zoom ×10 jusqu'à lire entre 1 et 10 sur la règle ;
+   racine carrée = recadrer un carré : son aire et son côté. */
+:root{color-scheme:dark;
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--solid:var(--sg-panel-solid);--raise:var(--sg-raise)}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font);overflow-x:clip}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:72ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+.lv{max-width:1320px;margin:12px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 13px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 12px}
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(340px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:1;width:100%;max-width:min(100%,max(430px,calc(100svh - 330px)));margin:0 auto;border-radius:22px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#03060e;user-select:none;-webkit-user-select:none}
+#vf{display:block;width:100%;height:100%;font-family:var(--sg-font)}
+.badge{position:absolute;left:12px;top:12px;z-index:2;font:600 13px var(--sg-font);padding:4px 11px;border-radius:999px;background:rgba(4,9,20,.74);color:var(--mut);border:1px solid var(--soft);pointer-events:none;max-width:calc(100% - 150px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zv{position:absolute;right:12px;top:12px;z-index:2;font:700 15px var(--sg-font);font-variant-numeric:tabular-nums;padding:3px 12px;border-radius:999px;background:rgba(4,9,20,.74);color:var(--gold2);border:1px solid rgba(200,168,75,.4);pointer-events:none}
+.zv sup,.capt sup{font-size:.62em;line-height:0}
+.capt{max-width:min(100%,max(430px,calc(100svh - 330px)));margin:10px auto 0;min-height:58px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,2.1vw,23px)/1.45 var(--sg-font);font-variant-numeric:tabular-nums;text-align:center;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .3em}
+.capt>span{display:block;max-width:100%}.capt .g{color:var(--gold2)}.capt .ok{color:var(--ok)}.capt .m{color:var(--mut);font-weight:600;font-size:.82em}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.kick{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#9fb4ff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 12px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:2px 14px 10px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.55;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.7}
+.ask{font-weight:600;margin:0 0 10px}
+.ask b{color:var(--gold2)}
+.btn{min-height:48px;padding:0 18px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s;font-variant-numeric:tabular-nums}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn sup{font-size:.65em;line-height:0}
+.btn .cnt{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;background:rgba(0,0,0,.25);font-size:14px}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 18px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fl{font:700 clamp(20px,2.2vw,24px)/2.2 var(--sg-font);font-variant-numeric:tabular-nums;margin:0 0 4px}
+.fl sup{font-size:.62em;vertical-align:.95em;line-height:0}
+.in{width:3.6em;height:46px;margin:0 3px;padding:0 6px;font:700 21px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.w{width:5.4em}.in.xw{width:7.6em}
+sup .in{width:2.7em;height:44px;font-size:18px;vertical-align:baseline}
+.in:focus{outline:3px solid var(--ac);outline-offset:1px}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.kp{display:none;grid-template-columns:repeat(5,minmax(44px,1fr));gap:6px;margin-top:10px;max-width:340px}
+body.touch .kp{display:grid}
+.kp button{min-height:46px;border-radius:10px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:700 19px var(--sg-font);cursor:pointer}
+.kp button:active{background:var(--acsoft)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-width:52px;min-height:48px;padding:0 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:700 18px var(--sg-font);font-variant-numeric:tabular-nums;cursor:pointer}
+.chip:hover:not(:disabled){border-color:var(--ac)}
+.chip.no{border-color:rgba(255,107,107,.45);color:rgba(255,160,150,.85);background:transparent}
+.chip.mid{border-color:rgba(200,168,75,.45)}
+.chip.yes{border-color:var(--gold);background:rgba(200,168,75,.16);color:var(--gold2)}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.fl .fr{line-height:1.25}.fl .fr .in{margin:2px 3px}
+.rt,.nw{white-space:nowrap}.rad{border-top:2px solid currentColor;padding:0 .08em;margin-left:.04em}
+.sk-q .rad,.sk-ch .rad{border-top-width:1.5px}
+.sk-q sup .sk-in{width:3em!important;height:44px;font-size:18px}
+.sk-q .fr .sk-in{margin:3px 4px}
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb.info{background:rgba(108,142,255,.08);border-left-color:var(--ac)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:8px 0 12px}
+.mk{display:inline-flex}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+/* scène */
+.lbl{font:600 13px var(--sg-font);fill:rgba(220,230,255,.8)}
+.lblb{font:700 15px var(--sg-font);fill:#f0f4ff}
+.lblg{font:700 15px var(--sg-font);fill:#e8c766}
+.shake{animation:shake .45s}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+#hdl{cursor:grab;touch-action:none}
+@media (max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .stage{width:auto;height:clamp(210px,36svh,340px);border-radius:16px}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:17px;border-radius:10px;max-width:none}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .fl{font-size:20px}
+  .sk-final-btn .s{display:inline!important}
+  .badge{display:none}
+}
+@media (prefers-reduced-motion:reduce){.win,.shake{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Zoom Carré</h1>
+<p>Ton téléphone a un viseur carré. Chaque appui sur le zoom multiplie l'image, un facteur négatif la retourne, la règle ×10 mesure de l'atome aux étoiles, et chaque carré cache sa racine&nbsp;: son côté.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol">
+  <div class="stage" id="stage" role="img" aria-label="Viseur carré de l'appareil photo">
+    <svg id="vf" viewBox="0 0 400 400" aria-hidden="true"></svg>
+    <span class="badge" id="badge"></span>
+    <span class="zv" id="zv"></span>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+</div>
+<section class="panel" id="panel">
+  <div class="kick" id="kick"></div>
+  <h2 id="lt"></h2>
+  <details class="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <p class="prompt" id="prompt"></p>
+  <div id="work"></div>
+  <div id="fbw"></div>
+  <div id="winw"></div>
+</section>
+</main>
+
+<script>window.SIGMA_MUSIC_STYLE='epique'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+'use strict';
+/* ====================================================================
+   OUTILS : nombres exacts, écritures françaises
+   ==================================================================== */
+const $=id=>document.getElementById(id);
+const MI='−',NN=' ';
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function grp(s){return s.length>4?s.replace(/\B(?=(\d{3})+(?!\d))/g,NN):s}
+function N(n){n=Math.round(n);return (n<0?MI:'')+grp(String(Math.abs(n)))}
+/* M × 10^k en écriture décimale (M entier) */
+function dec(M,k){
+  const neg=M<0;let s=String(Math.abs(M));let ip,fp='';
+  if(k>=0){ip=s+'0'.repeat(k)}else{const q=-k;if(s.length<=q)s='0'.repeat(q-s.length+1)+s;ip=s.slice(0,s.length-q);fp=s.slice(s.length-q).replace(/0+$/,'')}
+  ip=ip.replace(/^0+(?=\d)/,'');
+  let out=grp(ip);
+  if(fp)out+=','+(fp.length>4?fp.replace(/(\d{3})(?=\d)/g,'$1'+NN):fp);
+  return (neg&&out!=='0'?MI:'')+out;
+}
+function decPlain(M,k){return dec(M,k).replace(/ /g,'').replace(MI,'-')}
+const sup=n=>`<sup>${N(n)}</sup>`;
+const bH=b=>typeof b==='string'?b:(b<0?`(${N(b)})`:N(b));
+const pw=(b,n)=>`${bH(b)}${sup(n)}`;
+const rt=x=>`<span class="rt">√<span class="rad">${x}</span></span>`;
+const crt=(c,x)=>(c===1?'':c===-1?MI:N(c))+rt(x);
+const fr=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const ex=h=>`<span class="ex">${h}</span>`;
+const p10=n=>`10${sup(n)}`;
+const dig=M=>String(Math.abs(M)).length;
+function strip(M,e){if(M===0)return[0,0];while(M%10===0){M/=10;e++}return[M,e]}
+/* notation scientifique de M×10^e : [D, n] avec a = D×10^-(len-1) */
+function sciOf(M,e){[M,e]=strip(M,e);return[M,e+dig(M)-1]}
+function sciH(M,e){const[D,n]=sciOf(M,e);return `${dec(D,-(dig(D)-1))} × ${p10(n)}`}
+const mant=(D)=>dec(D,-(dig(D)-1));
+function divDec(a,b){for(let k=0;k<9;k++){const A=a*10**k;if(A%b===0)return[A/b,-k]}return null}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a}
+function frac(p,q){const g=gcd(p,q);p/=g;q/=g;if(q<0){p=-p;q=-q}return q===1?N(p):(p<0?MI:'')+fr(N(Math.abs(p)),N(q))}
+function ipow(b,n){let v=1;for(let i=0;i<n;i++)v*=b;return v}
+/* valeur exacte de b^n : [p,q] */
+function powPQ(b,n){return n>=0?[ipow(b,n),1]:(ipow(b,-n)<0?[-1,-ipow(b,-n)]:[1,ipow(b,-n)])}
+function pqH(pq){return frac(pq[0],pq[1])}
+/* plus grand k tel que k² divise n */
+function kmaxOf(n){let k=1;for(let j=2;j*j<=n;j++)if(n%(j*j)===0)k=j;return k}
+function parseNum(s){
+  s=String(s).replace(/[\s  ]/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.');
+  if(s[0]==='+')s=s.slice(1);
+  let m=s.match(/^(-?)(\d+)\/(\d+)$/);if(m){const q=+m[3];return q?[(m[1]?-1:1)*+m[2],q]:null}
+  m=s.match(/^(-?)(\d*)(?:\.(\d*))?$/);if(!m||!(m[2]+(m[3]||'')).length)return null;
+  const f=m[3]||'';return[(m[1]?-1:1)*Number((m[2]||'0')+f),10**f.length];
+}
+const eqNum=(a,b)=>a&&b&&a[0]*b[1]===b[0]*a[1];
+
+/* ====================================================================
+   SONS (bruitages) — clé partagée sigma-fanfare
+   ==================================================================== */
+let soundOn=true;try{soundOn=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let AC=null;
+function ac(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(AC.state==='suspended')AC.resume();return AC}
+function tone(f,d,v,type,at){const c=ac();if(!c)return;const o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.value=f;const t=c.currentTime+(at||0);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(c.destination);o.start(t);o.stop(t+d+.02)}
+function sfx(k){if(!soundOn)return;try{
+  if(k==='clic'){tone(1800,.04,.05,'square');tone(900,.06,.04,'triangle',.03)}
+  else if(k==='flip'){tone(520,.12,.05,'triangle');tone(780,.12,.04,'triangle',.06)}
+  else if(k==='ok'){tone(660,.14,.07);tone(990,.22,.06,'sine',.09)}
+  else if(k==='ko'){tone(220,.18,.06,'triangle')}
+  else if(k==='pop'){tone(880,.08,.05,'triangle')}
+}catch(e){}}
+
+/* ====================================================================
+   SCÈNE : le viseur carré
+   ==================================================================== */
+const VF=$('vf');
+let SC={mode:null};
+const tw=(d,fn)=>new Promise(r=>{if(RM||d<=0){fn(1);r();return}const t0=performance.now();const f=t=>{const k=Math.min(1,(t-t0)/d);fn(k<1?(k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2):1);if(k<1)requestAnimationFrame(f);else r()};requestAnimationFrame(f)});
+const wait=ms=>new Promise(r=>setTimeout(r,RM?0:ms));
+const SVGDEF=`<defs>
+<clipPath id="clip"><rect width="400" height="400" rx="22"/></clipPath>
+<linearGradient id="g-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#030814"/><stop offset=".62" stop-color="#0d2147"/><stop offset=".63" stop-color="#0e2a4f"/><stop offset="1" stop-color="#04101f"/></linearGradient>
+<linearGradient id="g-sand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2d48a"/><stop offset="1" stop-color="#b98d3d"/></linearGradient>
+<linearGradient id="g-bar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe39a"/><stop offset="1" stop-color="#c8a84b"/></linearGradient>
+<radialGradient id="g-moon"><stop offset="0" stop-color="#fff6d8" stop-opacity=".55"/><stop offset="1" stop-color="#fff6d8" stop-opacity="0"/></radialGradient>
+<linearGradient id="g-sq" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8c766" stop-opacity=".34"/><stop offset="1" stop-color="#c8a84b" stop-opacity=".14"/></linearGradient>
+<pattern id="p-void" width="20" height="20" patternUnits="userSpaceOnUse"><rect width="20" height="20" fill="#050a15"/><path d="M0 0H20V20" fill="none" stroke="#0c1628" stroke-width="1"/></pattern>
+</defs>`;
+/* coins du viseur (cadre de mise au point) */
+const BRK=`<g fill="none" stroke="rgba(240,244,255,.1)" stroke-width="1"><path d="M133.3 0V400M266.7 0V400M0 133.3H400M0 266.7H400"/></g>`;
+const BRK0='';
+/* la photo : un îlot du lagon la nuit (orientée : on voit tout de suite si elle est retournée) */
+const PHOTO=`<rect width="400" height="400" fill="url(#g-sky)"/>
+<g fill="#fff"><circle cx="40" cy="40" r="1.2"/><circle cx="96" cy="88" r=".9"/><circle cx="150" cy="30" r="1.1"/><circle cx="250" cy="64" r=".8"/><circle cx="330" cy="34" r="1.2"/><circle cx="364" cy="110" r=".9"/><circle cx="70" cy="150" r=".8"/><circle cx="300" cy="150" r=".7"/><circle cx="210" cy="18" r=".9"/></g>
+<circle cx="318" cy="84" r="46" fill="url(#g-moon)"/><circle cx="318" cy="84" r="17" fill="#f6efd6"/><circle cx="324" cy="80" r="15" fill="#0c1d3f" opacity=".85"/>
+<path d="M0 252 Q40 238 80 250 Q120 236 160 252" fill="#081a33"/>
+<g stroke="#5f8fd6" stroke-width="1.4" opacity=".45" stroke-linecap="round"><path d="M30 300h40M110 322h60M250 300h50M300 336h60M60 356h50M190 370h40"/></g>
+<ellipse cx="205" cy="262" rx="98" ry="13" fill="#3f78b8" opacity=".35"/>
+<path d="M118 262 Q205 218 292 262Z" fill="url(#g-sand)"/>
+<path d="M206 258 Q192 210 214 150" fill="none" stroke="#7b4f2c" stroke-width="8" stroke-linecap="round"/>
+<path d="M206 258 Q192 210 214 150" fill="none" stroke="#a36d3f" stroke-width="3" stroke-dasharray="3 6" stroke-linecap="round"/>
+<g fill="#2f9a62"><path d="M214 150 Q170 128 136 156 Q176 140 214 154Z"/><path d="M214 150 Q246 118 290 138 Q250 132 216 156Z"/><path d="M214 150 Q196 108 160 102 Q200 120 212 152Z"/><path d="M214 150 Q238 104 272 96 Q236 120 218 152Z"/><path d="M214 150 Q218 176 252 196 Q226 170 216 152Z" fill="#257d4f"/><path d="M214 150 Q196 172 168 190 Q196 168 212 152Z" fill="#257d4f"/></g>
+<g fill="#6b3f1e"><circle cx="208" cy="158" r="5"/><circle cx="219" cy="160" r="5"/><circle cx="213" cy="167" r="4.6"/></g>
+<path d="M262 252 l14 -6 l2 6Z" fill="#e8c766"/><path d="M252 254 h34 l-5 6 h-24Z" fill="#c26a3a"/>
+<rect x="0" y="0" width="400" height="400" fill="none" stroke="#f0f4ff" stroke-width="2" vector-effect="non-scaling-stroke" opacity=".9"/>`;
+function setBadge(t){$('badge').textContent=t}
+function setZv(h){$('zv').innerHTML=h;$('zv').hidden=!h}
+function setCapt(h){$('capt').innerHTML=`<span>${h}</span>`}
+
+/* ---------- mode ZOOM (puissances) ---------- */
+const ZMAX=20,ZMIN=1/16,VB=.14; /* à ×1 la photo mesure 56 unités : l'agrandissement affiché est exact de ×1/16 à ×20 */
+function zScale(n){const v=Math.pow(Math.abs(SC.base),n);return VB*Math.min(ZMAX,Math.max(ZMIN,v))}
+function zAng(n){return (SC.base<0?180*n:0)+(SC.minus?180:0)}
+function zApply(s,a){const g=$('photo');if(g)g.setAttribute('transform',`translate(200 190) rotate(${a}) scale(${s}) translate(-200 -200)`)}
+function bLab(b){return b<0?`(${N(b)})`:N(b)}
+function zValH(b,n,minus){ /* valeur exacte en HTML (ou écriture puissance si trop grande) */
+  const big=n>=0?Math.abs(ipow(b,n))>1e7:Math.abs(ipow(b,-n))>1e7;
+  if(big)return (minus?MI:'')+pw(b,n);
+  let pq=powPQ(b,n);if(minus)pq=[-pq[0],pq[1]];
+  if(pq[1]!==1){const d=divDec(Math.abs(pq[0]),pq[1]);if(d&&String(Math.abs(d[0])).length<=4)return (pq[0]<0?MI:'')+dec(d[0],d[1])}
+  return pqH(pq);
+}
+const SUPC=x=>String(x).replace(/[-−]/g,'⁻').replace(/\d/g,d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[d]);
+function zTxt(b,n){ /* libellé court pour la règle des zooms */
+  const pq=powPQ(b,n),neg=pq[0]*pq[1]<0;
+  if(n>=0)return Math.abs(pq[0])<=9999?N(pq[0]):bLab(b)+SUPC(n);
+  const d=divDec(Math.abs(pq[0]),Math.abs(pq[1]));if(d&&dig(d[0])<=3)return (neg?MI:'')+dec(d[0],d[1]);
+  return Math.abs(pq[1])<=999?(neg?MI:'')+'1/'+Math.abs(pq[1]):bLab(b)+SUPC(n);
+}
+function sceneZoom(o){
+  SC={mode:'zoom',base:o.base,n:o.n||0,lo:o.lo??-1,hi:o.hi??4,minus:!!o.minus,jumps:[]};
+  VF.innerHTML=SVGDEF+`<g clip-path="url(#clip)"><rect width="400" height="400" fill="url(#p-void)"/><g id="photo">${PHOTO}</g>${BRK}<rect x="176" y="166" width="48" height="48" rx="6" fill="none" stroke="rgba(232,199,102,.7)" stroke-width="1.5"/></g><g id="jmp"></g><g id="trk"></g>`;
+  zApply(zScale(SC.n),zAng(SC.n));drawTrack();zInfo();
+  setBadge('Zoom '+(o.base<0?'×('+N(o.base)+')':'×'+N(o.base))+' par appui');
+}
+function tx(k){return 40+(k-SC.lo)*(320/Math.max(1,SC.hi-SC.lo))}
+function drawTrack(){
+  const g=$('trk');if(!g)return;let h=`<rect x="14" y="336" width="372" height="52" rx="26" fill="rgba(4,9,20,.78)" stroke="rgba(120,160,255,.28)"/>`;
+  h+=`<text x="26" y="352" class="lbl" style="font-size:10px">exposant</text>`;
+  const span=SC.hi-SC.lo,many=span>10;
+  for(let k=SC.lo;k<=SC.hi;k++){
+    const x=tx(k),on=k===SC.n;
+    if(!many||k%2===0||on)h+=`<text x="${x}" y="${on?366:368}" text-anchor="middle" class="lbl" style="font-size:${on?0:12}px">${N(k)}</text>`;
+    h+=`<circle cx="${x}" cy="376" r="${k===0?3.4:2.4}" fill="${k===0?'#f0f4ff':'rgba(200,215,255,.55)'}"/>`;
+  }
+  const x=tx(SC.n),t=zTxt(SC.base,SC.n);
+  const tl=xL(t),pwid=Math.max(48,tl.length*7.4+12);h+=`<g><rect x="${x-pwid/2}" y="350" width="${pwid}" height="34" rx="17" fill="#e8c766"/><text x="${x}" y="364" text-anchor="middle" style="font:700 10px Outfit,system-ui,sans-serif;fill:#3b2c00">exp. ${N(SC.n)}</text><text x="${x}" y="379" text-anchor="middle" style="font:800 12px Outfit,system-ui,sans-serif;fill:#1d1400">${tl}</text></g>`;
+  g.innerHTML=h;
+}
+const xL=v=>v.startsWith(MI)?`×(${v})`:'×'+v;
+function zInfo(){
+  const b=SC.base,n=SC.n;
+  setZv(xL(zValH(b,n,SC.minus)));
+  let h;const P=pw(b,n);
+  if(n===0)h=`${(SC.minus?MI:'')+P} = ${SC.minus?MI:''}1 <span class="m">aucun appui : image inchangée</span>`;
+  else if(n>0){const f=n<=5?Array(n).fill(bLab(b)).join(' × '):`${bLab(b)} × … × ${bLab(b)} <span class="m">(${n} facteurs)</span>`;
+    h=SC.minus?`${MI}${P} = ${MI}(${f}) = <span class="g">${zValH(b,n,true)}</span>`:`${P} = ${f} = <span class="g">${zValH(b,n)}</span>`}
+  else h=`${(SC.minus?MI:'')+P} = ${SC.minus?MI:''}${fr(1,pw(b,-n))} = <span class="g">${zValH(b,n,SC.minus)}</span>`;
+  setCapt(h);
+}
+async function zStep(d,dur){
+  const n0=SC.n,n1=n0+d;SC.n=n1;sfx(SC.base<0?'flip':'clic');
+  const s0=zScale(n0),s1=zScale(n1),a0=zAng(n0),a1=zAng(n1);
+  await tw(dur??420,k=>zApply(s0*Math.pow(s1/s0,k),a0+(a1-a0)*k));drawTrack();zInfo();
+}
+async function zFlipMinus(){const s=zScale(SC.n),a0=zAng(SC.n);SC.minus=true;sfx('flip');await tw(520,k=>zApply(s,a0+180*k));zInfo()}
+async function zJump(d,lab){
+  const k0=SC.n,k1=k0+d,x0=tx(k0),x1=tx(k1),hgt=Math.min(70,18+Math.abs(x1-x0)*.35);
+  const g=$('jmp'),col=d>=0?'#9fb4ff':'#ff9b7a';
+  const id='j'+Math.random().toString(36).slice(2,7);
+  g.insertAdjacentHTML('beforeend',`<path id="${id}" d="M${x0} 346 Q${(x0+x1)/2} ${346-2*hgt} ${x1} 346" fill="none" stroke="${col}" stroke-width="3" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/><text x="${(x0+x1)/2}" y="${346-hgt-8}" text-anchor="middle" style="font:800 14px Outfit,system-ui,sans-serif;fill:${col}">${lab}</text>`);
+  const p=$(id),s0=zScale(k0),s1Fin=(SC.n=k1,zScale(k1)),a0=zAng(k0),a1=zAng(k1);SC.n=k0;
+  sfx('clic');
+  await tw(620,k=>{p.setAttribute('stroke-dashoffset',1-k);zApply(s0*Math.pow(s1Fin/s0,k),a0+(a1-a0)*k)});
+  SC.n=k1;drawTrack();zInfo();
+}
+
+/* ---------- mode SCI (notation scientifique) ---------- */
+const ICON={
+atome:`<circle r="8" fill="#e8c766"/><g fill="none" stroke="#9fb4ff" stroke-width="2.5"><ellipse rx="38" ry="13"/><ellipse rx="38" ry="13" transform="rotate(60)"/><ellipse rx="38" ry="13" transform="rotate(-60)"/></g><circle cx="38" r="4" fill="#f0f4ff"/>`,
+adn:`<g fill="none" stroke-width="4" stroke-linecap="round"><path d="M-40 -14 C-26 -14 -26 14 -12 14 S2 -14 16 -14 S30 14 44 14" stroke="#9fb4ff"/><path d="M-40 14 C-26 14 -26 -14 -12 -14 S2 14 16 14 S30 -14 44 -14" stroke="#e8c766"/></g><g stroke="rgba(240,244,255,.6)" stroke-width="2"><path d="M-33 -9v18M-19 -9v18M5 -9v18M19 -9v18"/></g>`,
+virus:`<g stroke="#ff9b7a" stroke-width="3" stroke-linecap="round"><path d="M0 -30v-8M0 30v8M-30 0h-8M30 0h8M21 21l6 6M-21 -21l-6 -6M21 -21l6 -6M-21 21l-6 6"/></g><circle r="27" fill="#5b2f3c" stroke="#ff9b7a" stroke-width="3"/><g fill="#ff9b7a"><circle cx="-8" cy="-6" r="4"/><circle cx="9" cy="5" r="5"/><circle cx="-4" cy="12" r="3"/></g>`,
+globule:`<ellipse rx="40" ry="26" fill="#c0393b"/><ellipse rx="22" ry="12" fill="#8e2427"/>`,
+bacterie:`<rect x="-40" y="-16" width="80" height="32" rx="16" fill="#3fa66b"/><path d="M40 0 q10 -10 18 0 t16 0" fill="none" stroke="#3fa66b" stroke-width="3"/><circle cx="-12" cy="-2" r="5" fill="#257d4f"/><circle cx="12" cy="4" r="4" fill="#257d4f"/>`,
+cheveu:`<path d="M-46 18 C-20 -26 10 34 46 -16" fill="none" stroke="#2b1a10" stroke-width="9" stroke-linecap="round"/><path d="M-46 18 C-20 -26 10 34 46 -16" fill="none" stroke="#7b4f2c" stroke-width="3" stroke-linecap="round"/>`,
+sable:`<path d="M-30 -10 L-8 -28 L24 -20 L36 6 L14 26 L-22 22 Z" fill="#e2c07a"/><path d="M-8 -28 L4 -2 L36 6 M4 -2 L-22 22" stroke="#b98d3d" stroke-width="2" fill="none"/>`,
+fourmi:`<g fill="#2b1a10"><ellipse cx="-26" cy="0" rx="12" ry="9"/><ellipse cx="0" cy="0" rx="9" ry="7"/><ellipse cx="26" cy="0" rx="15" ry="11"/></g><g stroke="#2b1a10" stroke-width="2.5" fill="none"><path d="M-4 4 l-10 16M0 5 l0 18M4 4 l10 16M-4 -4 l-10 -16M0 -5 l0 -18M4 -4 l10 -16M-34 -6 l-12 -12"/></g>`,
+tel:`<rect x="-22" y="-42" width="44" height="84" rx="9" fill="#1b2b4c" stroke="#9fb4ff" stroke-width="3"/><rect x="-16" y="-32" width="32" height="60" rx="3" fill="#0a1628"/><circle cy="35" r="3" fill="#9fb4ff"/>`,
+terrain:`<rect x="-46" y="-28" width="92" height="56" fill="#24804f" stroke="#e9f2ff" stroke-width="2.5"/><path d="M0 -28v56" stroke="#e9f2ff" stroke-width="2"/><circle r="10" fill="none" stroke="#e9f2ff" stroke-width="2"/>`,
+terre:`<circle r="40" fill="#1f5fae"/><path d="M-26 -22 q14 -10 22 2 q8 10 -4 18 q-12 6 -20 -4Z M8 6 q16 -6 24 8 q-4 18 -18 18 q-12 -10 -6 -26Z" fill="#3fa66b"/><circle r="40" fill="none" stroke="#9fd0ff" stroke-width="2" opacity=".6"/>`,
+lune:`<circle cx="-26" cy="8" r="14" fill="#1f5fae"/><circle cx="30" cy="-6" r="9" fill="#d9d4c4"/><path d="M-12 8 H22" stroke="#e8c766" stroke-width="2" stroke-dasharray="4 4"/>`,
+soleil:`<g stroke="#e8c766" stroke-width="3" stroke-linecap="round"><path d="M0 -40v-8M0 40v8M-40 0h-8M40 0h8M28 28l6 6M-28 -28l-6 -6M28 -28l6 -6M-28 28l-6 6"/></g><circle r="32" fill="#f2c14e"/><circle r="32" fill="none" stroke="#ffe39a" stroke-width="3"/>`,
+avion:`<path d="M-44 0 L34 -4 Q46 0 34 4 L-44 0Z" fill="#e9f2ff"/><path d="M-4 -2 L-20 -30 L-10 -30 L14 -2Z M-4 2 L-20 30 L-10 30 L14 2Z M-38 -1 L-46 -14 L-40 -14 L-30 -1Z" fill="#9fb4ff"/>`,
+calc:`<rect x="-36" y="-36" width="72" height="72" rx="14" fill="#1b2b4c" stroke="#9fb4ff" stroke-width="3"/><text y="12" text-anchor="middle" style="font:800 40px Outfit,system-ui,sans-serif;fill:#e8c766">×</text>`
+};
+function band(n){if(n<=-8)return['nano','#170c36','#05030f'];if(n<=-4)return['micro','#05303a','#021219'];if(n<=2)return['à taille humaine','#0d2147','#050c1a'];if(n<=8)return['planète','#0b2a52','#020814'];return['cosmos','#0a0620','#000']}
+function sceneSci(o){
+  SC={mode:'sci',M:o.M,e:o.e,n:o.n,obj:o.obj,unit:o.unit===undefined?'m':o.unit,name:o.name||''};
+  let tk='';for(let i=0;i<=10;i++){const x=40+i*32;tk+=`<path d="M${x} 300v${i%5?10:16}" stroke="#f0f4ff" stroke-width="${i%5?1.5:2.2}"/><text x="${x}" y="334" text-anchor="middle" class="lbl">${i}</text>`;
+    if(i<10)for(let j=1;j<10;j++)tk+=`<path d="M${x+j*3.2} 300v5" stroke="rgba(240,244,255,.45)" stroke-width="1"/>`}
+  VF.innerHTML=SVGDEF+`<g clip-path="url(#clip)"><rect width="400" height="400" id="sbg"/><g id="sdeco"></g>
+  <g transform="translate(200 98)" id="sico">${ICON[o.obj]||ICON.calc}</g>
+  <text x="200" y="168" text-anchor="middle" class="lblb" id="sname"></text>
+  <rect x="72" y="291" width="288" height="9" fill="rgba(95,210,124,.3)"/><text x="216" y="284" text-anchor="middle" class="lbl" style="fill:#8fe0a4;font-size:11px">zone de lecture : de 1 à 10 (10 exclu)</text>
+  <g id="sbar"></g><path d="M40 300H360" stroke="#f0f4ff" stroke-width="2"/>${tk}
+  <text x="200" y="364" text-anchor="middle" class="lblg" id="sunit"></text></g>`;
+  drawSci(Math.log10(sciLen()));
+}
+function sciLen(){return SC.M*Math.pow(10,SC.e-SC.n)}
+function sciNorm(){const r=sciLen();return r>=1-1e-12&&r<10-1e-9}
+function drawSci(lg){
+  const b=band(SC.n);$('sbg').setAttribute('fill',b[2]);
+  $('sdeco').innerHTML=`<circle cx="60" cy="60" r="120" fill="${b[1]}" opacity=".55"/><circle cx="360" cy="150" r="90" fill="${b[1]}" opacity=".35"/><g fill="#fff" opacity=".5"><circle cx="40" cy="200" r="1"/><circle cx="330" cy="40" r="1.2"/><circle cx="370" cy="230" r=".8"/><circle cx="120" cy="30" r=".9"/></g>`;
+  $('sname').innerHTML=SC.name.replace(/&/g,'&amp;').replace(/\^(−?\d+)/g,'<tspan dy="-7" style="font-size:11px">$1</tspan><tspan dy="7"> </tspan>');
+  $('sunit').innerHTML=`1 graduation = 10<tspan dy="-7" style="font-size:11px">${N(SC.n)}</tspan><tspan dy="7">${SC.unit?' '+SC.unit:''}</tspan>`;
+  const len=Math.pow(10,lg),w=len*32;let h='';
+  if(w<2.2)h=`<circle cx="42" cy="239" r="3.5" fill="#ffe39a"/><text x="52" y="220" class="lbl" style="fill:#ffe39a">trop petit pour être lu : zoome !</text>`;
+  else if(len>10.4)h=`<rect x="40" y="226" width="372" height="26" rx="6" fill="url(#g-bar)"/><path d="M368 230 l14 9 l-14 9" fill="#1d1400"/><text x="44" y="218" class="lbl" style="fill:#ffe39a">trop long : dépasse la règle, dézoome !</text>`;
+  else h=`<rect x="40" y="226" width="${Math.max(3,w)}" height="26" rx="6" fill="url(#g-bar)"/><path d="M${40+w} 220v80" stroke="#ffe39a" stroke-width="2" stroke-dasharray="3 3"/>`;
+  $('sbar').innerHTML=h;
+  const r=dec(SC.M,SC.e-SC.n);
+  setZv(`lecture ${r}`);
+  setBadge('Règle ×10 · échelle '+b[0]);
+  setCapt(`<span class="g">${r}</span> × ${p10(SC.n)}${SC.unit?' '+SC.unit:''}${sciNorm()?' <span class="ok">✓ notation scientifique</span>':''}`);
+}
+async function sciZoom(d){ /* d=-1 : zoom avant (graduation 10 fois plus petite) */
+  const l0=Math.log10(sciLen());SC.n+=d;const l1=Math.log10(sciLen());sfx('clic');
+  await tw(380,k=>{drawSciBar(l0+(l1-l0)*k)});drawSci(l1);
+}
+function drawSciBar(lg){const len=Math.pow(10,lg),w=Math.min(len,11.6)*32;$('sbar').innerHTML=w<2.2?`<circle cx="42" cy="239" r="3.5" fill="#ffe39a"/>`:`<rect x="40" y="226" width="${w}" height="26" rx="6" fill="url(#g-bar)"/>`}
+
+/* ---------- mode CARRÉ (racines carrées) ---------- */
+const OX=60,OY=332,SZ=272;
+function sceneSq(o){
+  SC={mode:'sq',dec:!!o.dec,s:o.s,max:o.max,lab:o.lab||null,neg:false};
+  drawSq();setBadge('Recadrage carré · aire et côté');
+}
+function sqSide(){return SC.dec?SC.s/10:SC.s}
+function sqSideH(){return SC.dec?dec(SC.s,-1):N(SC.s)}
+function sqAreaH(){return SC.dec?dec(SC.s*SC.s,-2):N(SC.s*SC.s)}
+function drawSq(shake){
+  const u=SZ/SC.max;let g='';
+  for(let i=0;i<=SC.max;i++){g+=`<path d="M${OX+i*u} ${OY}V${OY-SZ}M${OX} ${OY-i*u}H${OX+SZ}" stroke="rgba(120,160,255,${SC.dec?.38:.22})" stroke-width="${SC.dec?1.4:1}"/>`}
+  if(SC.dec&&u>=40)for(let i=0;i<=SC.max*10;i++)if(i%10)g+=`<path d="M${OX+i*u/10} ${OY}V${OY-SZ}M${OX} ${OY-i*u/10}H${OX+SZ}" stroke="rgba(120,160,255,.1)" stroke-width="1"/>`;
+  const sd=sqSide()*u,top=OY-sd;
+  let lbl='';
+  for(let i=0;i<=SC.max;i++)lbl+=`<text x="${OX+i*u}" y="${OY+16}" text-anchor="middle" class="lbl" style="font-size:11px">${i}</text>`;
+  const aT=SC.lab&&SC.lab.area?SC.lab.area:'aire = '+sqAreaH();
+  const sT=SC.lab&&SC.lab.side?SC.lab.side:'côté = '+sqSideH();
+  VF.innerHTML=SVGDEF+`<g clip-path="url(#clip)"><rect width="400" height="400" fill="#050c1a"/><rect x="${OX}" y="${OY-SZ}" width="${SZ}" height="${SZ}" fill="#07142a"/>${g}${lbl}
+  <g id="sqg" class="${shake?'shake':''}"><rect x="${OX}" y="${top}" width="${Math.max(0,sd)}" height="${Math.max(0,sd)}" fill="url(#g-sq)" stroke="#e8c766" stroke-width="3"/>
+  ${sd>6?`<text x="${OX+sd/2}" y="${top+sd/2+5}" text-anchor="middle" class="lblg" style="font-size:${sd>110?17:13}px">${aT}</text>`:''}
+  <path d="M${OX} ${OY+24}H${OX+sd}" stroke="#9fb4ff" stroke-width="2.5"/><text x="${OX+Math.max(sd,60)/2}" y="${OY+42}" text-anchor="middle" class="lblb" style="font-size:14px;fill:#9fb4ff">${sT}</text>
+  <circle id="hdl" cx="${OX+sd}" cy="${top}" r="15" fill="#6c8eff" stroke="#f0f4ff" stroke-width="2.5"/></g></g>`;
+  setZv('aire '+sqAreaH());
+  setCapt(SC.lab&&SC.lab.capt?SC.lab.capt:`côté ${sqSideH()} → aire ${sqSideH()}<sup>2</sup> = <span class="g">${sqAreaH()}</span>`);
+  wireHandle();
+}
+function wireHandle(){const h=$('hdl');if(!h)return;
+  h.onpointerdown=e=>{if(!SQ_CB)return;e.preventDefault();h.setPointerCapture(e.pointerId);
+    const mv=ev=>{const pt=VF.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const p=pt.matrixTransform(VF.getScreenCTM().inverse());
+      const u=SZ/SC.max;let s=Math.round(Math.max(p.x-OX,OY-p.y)/u*(SC.dec?10:1));s=Math.max(SC.dec?1:1,Math.min(SC.max*(SC.dec?10:1),s));
+      if(s!==SC.s){SC.s=s;sfx('clic');drawSqKeep();SQ_CB&&SQ_CB(false)}};
+    const up=()=>{h.removeEventListener('pointermove',mv);h.removeEventListener('pointerup',up);h.removeEventListener('pointercancel',up);SQ_CB&&SQ_CB(true)};
+    h.addEventListener('pointermove',mv);h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up)};
+}
+let SQ_CB=null;
+function drawSqKeep(){const cap=$('hdl')&&$('hdl').hasPointerCapture;drawSq();}
+async function sqTo(s){const s0=SC.s;const st=s>s0?1:-1;for(let v=s0+st;st>0?v<=s:v>=s;v+=st){SC.s=v;drawSq();await wait(60)}}
+
+/* tuiles : √N = k√b */
+function sceneTile(o){SC={mode:'tile',N:o.N,k:o.k||1,c:o.c||1};drawTile();setBadge('Mosaïque · carreaux carrés')}
+function drawTile(){
+  const N0=SC.N,k=SC.k,ok=N0%(k*k)===0,b=N0/(k*k),S0=256,x0=72,y0=58,t=S0/k;let h='';
+  if(k===1)h=`<rect x="${x0}" y="${y0}" width="${S0}" height="${S0}" fill="url(#g-sq)" stroke="#e8c766" stroke-width="3"/><text x="${x0+S0/2}" y="${y0+S0/2+6}" text-anchor="middle" class="lblg" style="font-size:20px">aire ${N(N0)}</text>`;
+  else{
+    h=`<rect x="${x0}" y="${y0}" width="${S0}" height="${S0}" fill="${ok?'none':'rgba(255,107,107,.08)'}" stroke="${ok?'#e8c766':'#ff6b6b'}" stroke-width="3"/>`;
+    for(let i=0;i<k;i++)for(let j=0;j<k;j++){
+      if(ok)h+=`<rect x="${x0+i*t+2}" y="${y0+j*t+2}" width="${t-4}" height="${t-4}" rx="3" fill="url(#g-sq)" stroke="#e8c766" stroke-width="1.2"/>`+(t>=34?`<text x="${x0+i*t+t/2}" y="${y0+j*t+t/2+5}" text-anchor="middle" class="lblg" style="font-size:${t>=60?15:11}px">${N(b)}</text>`:'');
+    }
+    if(!ok)for(let i=1;i<k;i++)h+=`<path d="M${x0+i*t} ${y0}V${y0+S0}M${x0} ${y0+i*t}H${x0+S0}" stroke="#ff6b6b" stroke-width="1.5" stroke-dasharray="6 5"/>`;
+  }
+  const sideTxt=k===1?`côté √${N(N0)}`:ok?`côté = ${k} × √${N(b)}`:`${N(N0)} ÷ ${k*k} n'est pas entier`;
+  VF.innerHTML=SVGDEF+`<g clip-path="url(#clip)"><rect width="400" height="400" fill="#050c1a"/>${h}
+  <path d="M${x0} 334H${x0+S0}" stroke="${ok||k===1?'#9fb4ff':'#ff6b6b'}" stroke-width="2.5"/><text x="200" y="358" text-anchor="middle" class="lblb" style="fill:${ok||k===1?'#9fb4ff':'#ff9b7a'}">${sideTxt}</text></g>`;
+  setZv(k===1?'aire '+N(N0):ok?`${k*k} carreaux`:'ça ne tombe pas juste');
+  setCapt(k===1?`${rt(N(N0))} : un carré d'aire ${N(N0)}`:ok?`${rt(N(N0))} = ${rt(N(k*k)+' × '+N(b))} = ${rt(N(k*k))} × ${rt(N(b))} = <span class="g">${crt(k,N(b))}</span>`:`${k}<sup>2</sup> = ${k*k} ne divise pas ${N(N0)}`);
+}
+
+/* deux carrés côte à côte puis fusionnés : √a + √b ≠ √(a + b) */
+function sceneMerge(o){SC={mode:'merge',a:o.a,b:o.b,t:0};drawMerge(0);setBadge('Deux carrés · un seul carré')}
+function drawMerge(t){
+  const ra=Math.sqrt(SC.a),rb=Math.sqrt(SC.b),rc=Math.sqrt(SC.a+SC.b),u=300/(ra+rb+.6),x0=40,y0=300;
+  let h='';
+  if(t<1){const op=1-t;
+    h+=`<g opacity="${op}"><rect x="${x0}" y="${y0-ra*u}" width="${ra*u}" height="${ra*u}" fill="rgba(108,142,255,.22)" stroke="#9fb4ff" stroke-width="2.5"/><text x="${x0+ra*u/2}" y="${y0-ra*u/2+5}" text-anchor="middle" class="lblb">${N(SC.a)}</text>
+    <rect x="${x0+ra*u}" y="${y0-rb*u}" width="${rb*u}" height="${rb*u}" fill="rgba(200,168,75,.22)" stroke="#e8c766" stroke-width="2.5"/><text x="${x0+ra*u+rb*u/2}" y="${y0-rb*u/2+5}" text-anchor="middle" class="lblg">${N(SC.b)}</text>
+    </g>`}
+  h+=`<path d="M${x0} ${y0+20}H${x0+(ra+rb)*u}" stroke="#ff9b7a" stroke-width="3"/><text x="${x0+(ra+rb)*u/2}" y="${y0+40}" text-anchor="middle" class="lblb" style="fill:#ff9b7a">√${SC.a} + √${SC.b} = ${N(ra)} + ${N(rb)} = ${N(ra+rb)}</text>`;
+  if(t>0){h+=`<g opacity="${t}"><rect x="${x0}" y="${y0-rc*u}" width="${rc*u}" height="${rc*u}" fill="rgba(95,210,124,.16)" stroke="#5fd27c" stroke-width="3"/><text x="${x0+rc*u/2}" y="${y0-rc*u/2+5}" text-anchor="middle" class="lblb">${N(SC.a)} + ${N(SC.b)} = ${N(SC.a+SC.b)}</text>
+    <path d="M${x0} ${y0+56}H${x0+rc*u}" stroke="#5fd27c" stroke-width="3"/><text x="${x0+rc*u/2}" y="${y0+76}" text-anchor="middle" class="lblb" style="fill:#8fe0a4">côté √${SC.a+SC.b} = ${N(rc)}</text></g>`}
+  VF.innerHTML=SVGDEF+`<g clip-path="url(#clip)"><rect width="400" height="400" fill="#050c1a"/>${h}</g>`;
+  setZv(t<1?'côte à côte':'fusionnés');
+  setCapt(t<1?`${rt(N(SC.a))} + ${rt(N(SC.b))} = ${N(ra)} + ${N(rb)} = <span class="g">${N(ra+rb)}</span>`:`${rt(N(SC.a)+' + '+N(SC.b))} = ${rt(N(SC.a+SC.b))} = <span class="g">${N(rc)}</span> <span class="m">≠ ${N(ra+rb)}</span>`);
+}
+
+/* même famille : rangées de carreaux de côté √a */
+function sceneRow(o){SC={mode:'row',rows:o.rows.map(r=>({rad:r.rad,col:r.col,items:[]}))};drawRow();setBadge('Même famille · même carreau')}
+function drawRow(){
+  let h='',y=70;
+  SC.rows.forEach((r,ri)=>{
+    const live=r.items.filter(x=>x.st!=='gone');const n=r.items.length;const w=Math.min(30,330/Math.max(10,n));
+    h+=`<text x="34" y="${y-12}" class="lblb" style="fill:${r.col}">carreaux de côté √${r.rad}</text>`;
+    r.items.forEach((it,i)=>{const x=34+i*(w+2);const c=it.st==='out'?'#ff6b6b':r.col;const op=it.st==='gone'?0:it.st==='out'?.35:1;
+      h+=`<rect x="${x}" y="${y}" width="${w}" height="${w}" rx="3" fill="${c}" fill-opacity="${it.st==='out'?.12:.28}" stroke="${c}" stroke-width="1.6" opacity="${op}"/>`});
+    const cnt=r.items.filter(x=>x.st==='in').length;
+    h+=`<text x="34" y="${y+w+24}" class="lblg">longueur : ${cnt===0?'0':cnt===1?'':N(cnt)}√${r.rad}</text>`;
+    y+=130;
+  });
+  VF.innerHTML=SVGDEF+`<g clip-path="url(#clip)"><rect width="400" height="400" fill="#050c1a"/>${h}</g>`;
+  setZv('');
+}
+async function rowAdd(ri,n,neg){const r=SC.rows[ri];
+  if(!neg){for(let i=0;i<n;i++){r.items.push({st:'in'});sfx('pop');drawRow();await wait(110)}}
+  else{let c=0;for(let i=r.items.length-1;i>=0&&c<n;i--)if(r.items[i].st==='in'){r.items[i].st='out';c++;sfx('clic');drawRow();await wait(110)}
+    await wait(260);r.items=r.items.filter(x=>x.st==='in');drawRow()}}
+
+/* grand carré : (p + √q)² */
+function sceneDev(o){SC={mode:'dev',p:o.p,q:o.q,t:0};drawDev(0);setBadge('Le grand carré · développement')}
+function drawDev(t){
+  const p=SC.p,rq=Math.sqrt(SC.q),u=256/(p+rq),x0=72,y0=58,P=p*u,R=rq*u;
+  const op=i=>Math.max(0,Math.min(1,t*4-i));
+  let h=`<rect x="${x0}" y="${y0}" width="${P+R}" height="${P+R}" fill="none" stroke="rgba(240,244,255,.5)" stroke-width="2" stroke-dasharray="6 5"/>`;
+  h+=`<g opacity="${op(0)}"><rect x="${x0}" y="${y0}" width="${P}" height="${P}" fill="rgba(200,168,75,.22)" stroke="#e8c766" stroke-width="2.5"/><text x="${x0+P/2}" y="${y0+P/2+6}" text-anchor="middle" class="lblg" style="font-size:18px">${N(p)}² = ${N(p*p)}</text></g>`;
+  h+=`<g opacity="${op(1)}"><rect x="${x0+P}" y="${y0}" width="${R}" height="${P}" fill="rgba(183,156,255,.18)" stroke="#b79cff" stroke-width="2.5"/><text x="${x0+P+R/2}" y="${y0+P/2+5}" text-anchor="middle" class="lblb" style="fill:#d6c8ff;font-size:13px">${N(p)}√${SC.q}</text></g>`;
+  h+=`<g opacity="${op(2)}"><rect x="${x0}" y="${y0+P}" width="${P}" height="${R}" fill="rgba(183,156,255,.18)" stroke="#b79cff" stroke-width="2.5"/><text x="${x0+P/2}" y="${y0+P+R/2+5}" text-anchor="middle" class="lblb" style="fill:#d6c8ff;font-size:13px">${N(p)}√${SC.q}</text></g>`;
+  h+=`<g opacity="${op(3)}"><rect x="${x0+P}" y="${y0+P}" width="${R}" height="${R}" fill="rgba(108,142,255,.24)" stroke="#9fb4ff" stroke-width="2.5"/><text x="${x0+P+R/2}" y="${y0+P+R/2+5}" text-anchor="middle" class="lblb" style="font-size:13px">${SC.q}</text></g>`;
+  h+=`<path d="M${x0} ${y0+P+R+16}H${x0+P}" stroke="#e8c766" stroke-width="3"/><path d="M${x0+P} ${y0+P+R+16}H${x0+P+R}" stroke="#9fb4ff" stroke-width="3"/>
+  <text x="${x0+P/2}" y="${y0+P+R+36}" text-anchor="middle" class="lblg">${N(p)}</text><text x="${x0+P+R/2}" y="${y0+P+R+36}" text-anchor="middle" class="lblb" style="fill:#9fb4ff">√${SC.q}</text>`;
+  VF.innerHTML=SVGDEF+`<g clip-path="url(#clip)"><rect width="400" height="400" fill="#050c1a"/>${h}</g>`;
+  setZv(t>=1?'aire totale':'');
+  setCapt(t>=1?`(${N(p)} + ${rt(SC.q)})<sup>2</sup> = ${N(p*p)} + 2 × ${N(p)}${rt(SC.q)} + ${SC.q} = <span class="g">${N(p*p+SC.q)} + ${N(2*p)}${rt(SC.q)}</span>`:`un carré de côté ${N(p)} + ${rt(SC.q)}`);
+}
+
+function setScene(sc){
+  SQ_CB=null;
+  if(!sc)return;
+  if(sc.mode==='zoom')sceneZoom(sc);else if(sc.mode==='sci')sceneSci(sc);else if(sc.mode==='sq')sceneSq(sc);
+  else if(sc.mode==='tile')sceneTile(sc);else if(sc.mode==='merge')sceneMerge(sc);else if(sc.mode==='row')sceneRow(sc);else if(sc.mode==='dev')sceneDev(sc);
+}
+
+/* ====================================================================
+   NIVEAUX : générateurs de questions
+   Une question : {prompt, scene, parts:[…], rule}
+   Parties : zoom | jumps | sci | side | tile | act | choice | fill
+   ==================================================================== */
+const prodH=(b,n)=>Array(n).fill(bLab(b)).join(' × ');
+function C(ask,good,bad,why,o){ /* QCM : good = html juste, bad = [[html, pourquoi]…] */
+  const all=[[good,null],...bad.filter((x,i,a)=>x[0]!==good&&a.findIndex(y=>y[0]===x[0])===i)];
+  const ord=shuf(all.map((_,i)=>i));
+  return Object.assign({t:'choice',ask,choices:ord.map(i=>all[i][0]),ok:ord.indexOf(0),why:ord.map(i=>all[i][1]),good:why},o||{});
+}
+function F(ask,tpl,ans,hint,o){return Object.assign({t:'fill',ask,tpl:Array.isArray(tpl)?tpl:[tpl],ans:ans.map(String),hint},o||{})}
+
+const OBJ={
+ atome:{name:'Diamètre d’un atome d’hydrogène',M:1,e:-10},
+ adn:{name:'Largeur d’une molécule d’ADN',M:2,e:-9},
+ virus:{name:'Taille d’un virus de la grippe',M:1,e:-7},
+ globule:{name:'Diamètre d’un globule rouge',M:7,e:-6},
+ bacterie:{name:'Longueur d’une bactérie',M:2,e:-6},
+ cheveu:{name:'Épaisseur d’un cheveu',M:7,e:-5},
+ sable:{name:'Taille d’un grain de sable',M:5,e:-4},
+ fourmi:{name:'Longueur d’une fourmi',M:5,e:-3},
+ tel:{name:'Hauteur d’un smartphone',M:15,e:-2},
+ terrain:{name:'Longueur d’un terrain de football',M:105,e:0},
+ avion:{name:'Distance Mamoudzou – Paris',M:8,e:6},
+ terre:{name:'Diamètre de la Terre',M:1274,e:4},
+ lune:{name:'Distance Terre – Lune',M:384,e:6},
+ soleil:{name:'Distance Terre – Soleil',M:15,e:10}
+};
+const SMALL=['adn','virus','globule','bacterie','cheveu','sable','fourmi','atome'],BIG=['avion','terre','lune','soleil','terrain'];
+
+const LV=[];
+/* ---------- Niveau 1 : Le déclic ---------- */
+LV.push({name:'Le déclic',kick:'Définition d’une puissance',
+cours:`<p>Pour a ≠ 0 et n entier naturel non nul&nbsp;: a<sup>n</sup> = a × a × … × a (n facteurs).</p><p>a<sup>1</sup> = a&nbsp;; a<sup>0</sup> = 1&nbsp;; 0<sup>n</sup> = 0&nbsp;; 1<sup>n</sup> = 1.</p><p>(−3)<sup>4</sup> = 81 mais −3<sup>4</sup> = −81&nbsp;: les parenthèses changent tout&nbsp;!</p>`,
+gen(){return[
+ ()=>{const a=pick([2,3,5,10]),n=a===2?ri(3,5):a===3?ri(2,4):a===5?ri(2,3):ri(2,4),v=ipow(a,n);
+  return{scene:{mode:'zoom',base:a,lo:-1,hi:Math.max(n+1,4)},prompt:`Ton zoom multiplie l'image par <b>${a}</b> à chaque appui. Enchaîne <b>${n}</b> appuis&nbsp;: l'image est multipliée ${n} fois de suite par ${a}.`,
+  parts:[{t:'zoom',ask:`Appuie ${n} fois sur ×${a}.`,target:n,ops:['mul']},F('Combien vaut le zoom total&nbsp;?',`${ex(pw(a,n))} = {0}`,[N(v)],`${pw(a,n)} = ${prodH(a,n)} : multiplie ${n} fois ${a} par lui-même (et non ${a} × ${n}).`,{w:1})],
+  rule:`${pw(a,n)} = ${prodH(a,n)} = ${N(v)}&nbsp;: ${n} facteurs égaux à ${a}.`}},
+ ()=>{const b=pick([4,7,6,9,-4,-5]),n=b<0?ri(3,4):ri(3,6);
+  return{scene:{mode:'zoom',base:b,lo:-1,hi:n+1},prompt:`Écris ce produit sous la forme d'une seule puissance.`,
+  parts:[F(`Compte les facteurs&nbsp;:`,`${ex(prodH(b,n))} = ${bLab(b)}<sup>{0}</sup>`,[n],`Compte les facteurs égaux à ${bLab(b)} : il y en a ${n}.`,{then:async()=>{for(let i=0;i<n;i++)await zStep(1,300)}})],
+  rule:`${prodH(b,n)} = ${pw(b,n)}&nbsp;: l'exposant compte les facteurs.`}},
+ ()=>{const b=pick([-2,-3]),n=b===-2?ri(2,5):ri(2,4),v=ipow(b,n);
+  return{scene:{mode:'zoom',base:b,lo:-1,hi:Math.max(n+1,4)},prompt:`Le zoom vaut maintenant <b>×(${N(b)})</b>&nbsp;: il agrandit ×${-b} <b>et retourne</b> l'image (le signe moins).`,
+  parts:[{t:'zoom',ask:`Appuie ${n} fois sur ×(${N(b)}) et observe la photo.`,target:n,ops:['mul']},
+   C(`${ex(pw(b,n))} est-il positif ou négatif&nbsp;?`,v>0?'positif':'négatif',[[v>0?'négatif':'positif',`${n} retournements : ${n%2?'un nombre impair, la photo finit à l’envers : négatif':'un nombre pair, la photo revient à l’endroit : positif'}.`]],'',{kind:'sign'}),
+   F('Sa valeur&nbsp;:',`${ex(pw(b,n))} = {0}`,[N(v)],`${pw(b,n)} = ${prodH(b,n)} : ${-b}<sup>${n}</sup> = ${N(Math.abs(v))}, avec le signe trouvé.`,{w:1})],
+  rule:`${pw(b,n)} = ${N(v)}&nbsp;: un nombre ${n%2?'impair':'pair'} de facteurs négatifs donne un résultat ${v>0?'positif':'négatif'}.`}},
+ ()=>{const[a,n]=pick([[2,4],[2,6],[3,2],[3,4],[4,2],[5,2]]),v=ipow(a,n);
+  return{scene:{mode:'zoom',base:-a,lo:-1,hi:Math.max(n+1,4)},prompt:`Deux écritures qui se ressemblent&nbsp;: <b>(${MI}${a})<sup>${n}</sup></b> et <b>${MI}${a}<sup>${n}</sup></b>.`,
+  parts:[{t:'act',ask:`Avec les parenthèses, chaque facteur est ${MI}${a}&nbsp;:`,label:`Jouer (${MI}${a})<sup>${n}</sup>`,run:async()=>{sceneZoom({base:-a,lo:-1,hi:Math.max(n+1,4)});await wait(200);for(let i=0;i<n;i++)await zStep(1,360)}},
+   {t:'act',ask:`Sans parenthèses, la puissance ne porte que sur ${a}, puis le signe moins retourne une seule fois&nbsp;:`,label:`Jouer ${MI}${a}<sup>${n}</sup>`,run:async()=>{await wait(300);sceneZoom({base:a,lo:-1,hi:Math.max(n+1,4)});await wait(200);for(let i=0;i<n;i++)await zStep(1,360);await zFlipMinus()}},
+   C(`Alors ${ex(MI+pw(a,n))} = &nbsp;?`,N(-v),[[N(v),`C'est (${MI}${a})<sup>${n}</sup>. Sans parenthèses, on calcule d'abord ${a}<sup>${n}</sup> = ${N(v)}, puis on prend l'opposé.`],[N(-a*n),`${a}<sup>${n}</sup> n'est pas ${a} × ${n} : c'est ${prodH(a,n)}.`],[N(a*n),`${a}<sup>${n}</sup> n'est pas ${a} × ${n}, et le signe moins reste devant.`]])],
+  rule:`(${MI}${a})<sup>${n}</sup> = ${N(v)} mais ${MI}${a}<sup>${n}</sup> = ${MI}(${a}<sup>${n}</sup>) = ${N(-v)}&nbsp;: les parenthèses changent tout.`}},
+ ()=>{const vt=pick(['zero','zero','un','nul','unite']);let q;
+  if(vt==='zero'){const a=pick([-7,3,15,-4,9]);q={scene:{mode:'zoom',base:a,lo:-2,hi:3},prompt:`Zéro appui sur le zoom ×${bLab(a)}&nbsp;: la photo n'a pas bougé.`,
+   parts:[C(`${ex(pw(a,0))} = &nbsp;?`,'1',[['0','Aucun appui ne met pas l’image à zéro : elle reste ×1.'],[N(a),`${pw(a,1)} vaut ${N(a)}, pas ${pw(a,0)}.`],['−1','Le zoom reste ×1 : la photo n’est ni agrandie ni retournée.']].filter(x=>x[0]!==N(a)||a!==1))],rule:`Pour tout a ≠ 0&nbsp;: a<sup>0</sup> = 1. Ici ${pw(a,0)} = 1.`}}
+  else if(vt==='un'){const a=pick([9,12,-6,25]);q={scene:{mode:'zoom',base:a,n:1,lo:-1,hi:3},prompt:`Un seul appui sur le zoom ×${bLab(a)}.`,
+   parts:[C(`${ex(pw(a,1))} = &nbsp;?`,N(a),[['1','Un appui multiplie par '+N(a)+' : '+pw(a,1)+' = '+N(a)+'.'],['0','Un appui multiplie par '+N(a)+'.'],[N(a*a),`${N(a*a)} = ${pw(a,2)} : deux facteurs, pas un.`]])],rule:`a<sup>1</sup> = a&nbsp;: un seul facteur. Ici ${pw(a,1)} = ${N(a)}.`}}
+  else if(vt==='nul'){const n=ri(3,9);q={scene:{mode:'zoom',base:2,lo:-1,hi:3},prompt:`Et si le nombre multiplié est 0&nbsp;?`,
+   parts:[C(`${ex(pw(0,n))} = &nbsp;?`,'0',[['1',`${pw(0,n)} = 0 × 0 × … × 0 : un produit de zéros vaut 0.`],[N(n),`L'exposant ${n} compte les facteurs, tous égaux à 0.`]])],rule:`0<sup>n</sup> = 0 pour n entier non nul.`}}
+  else{const n=ri(8,30);q={scene:{mode:'zoom',base:1,lo:-1,hi:4},prompt:`Le zoom ×1 ne change rien à la photo, même répété.`,
+   parts:[C(`${ex(pw(1,n))} = &nbsp;?`,'1',[[N(n),`1 × 1 × … × 1 = 1 : l'exposant ne s'ajoute pas.`],['0','1 × 1 × … × 1 = 1.']])],rule:`1<sup>n</sup> = 1.`}}
+  return q},
+ ()=>{const n=ri(7,16),v=n%2?-1:1;
+  return{scene:{mode:'zoom',base:-1,lo:-1,hi:n+1},prompt:`Le zoom ×(${MI}1) ne change pas la taille&nbsp;: il retourne seulement la photo. On appuie ${n} fois.`,
+  parts:[F('Prévois le résultat&nbsp;:',`${ex(pw(-1,n))} = {0}`,[N(v)],`Chaque facteur ${MI}1 retourne la photo : ${n} retournements, ${n%2?'impair : elle finit à l’envers (−1)':'pair : elle revient à l’endroit (1)'}.`,{then:async()=>{for(let i=0;i<n;i++)await zStep(1,150)}})],
+  rule:`(${MI}1)<sup>n</sup> = 1 si n est pair, ${MI}1 si n est impair. Ici n = ${n}.`}},
+ ()=>{const[a,V]=pick([[3,100],[2,1000],[5,1000],[2,500],[3,500],[7,1000]]);let n=0;while(ipow(a,n)<=V)n++;
+  return{scene:{mode:'zoom',base:a,lo:-1,hi:n+1},prompt:`Le premier dépassement&nbsp;: à partir de combien d'appuis sur ×${a} le zoom dépasse-t-il <b>×${N(V)}</b>&nbsp;?`,
+  parts:[{t:'zoom',ask:`Appuie sur ×${a} jusqu'à dépasser ${N(V)}.`,target:n,ops:['mul']},F('La première puissance de '+a+' supérieure à '+N(V)+'&nbsp;:',`${a}<sup>{0}</sup> &gt; ${N(V)}`,[n],`${pw(a,n-1)} = ${N(ipow(a,n-1))} ne dépasse pas ${N(V)}, mais ${pw(a,n)} = ${N(ipow(a,n))} le dépasse.`,{kind:'first',first:{b:a,V,dir:'>'}})],
+  rule:`${pw(a,n-1)} = ${N(ipow(a,n-1))} ≤ ${N(V)} &lt; ${N(ipow(a,n))} = ${pw(a,n)}&nbsp;: la première puissance de ${a} supérieure à ${N(V)} est ${pw(a,n)}.`}}
+]}});
+
+/* ---------- Niveau 2 : Zoom arrière ---------- */
+LV.push({name:'Zoom arrière',kick:'Exposants négatifs',
+cours:`<p>Pour a ≠ 0&nbsp;: a<sup>−1</sup> = ${fr(1,'a')} et a<sup>−n</sup> = ${fr(1,'a<sup>n</sup>')}.</p><p>Exemple&nbsp;: ${fr(1,'4<sup>2</sup>')} = 4<sup>−2</sup>. Un exposant négatif ne rend pas le nombre négatif&nbsp;!</p>`,
+gen(){return[
+ ()=>{const k=ri(1,3),v=ipow(2,k);
+  return{scene:{mode:'zoom',base:2,lo:-4,hi:2},prompt:`Le bouton ÷2 dézoome&nbsp;: la photo est divisée par 2 à chaque appui. Un appui en arrière, c'est l'exposant ${MI}1.`,
+  parts:[{t:'zoom',ask:`Atteins l'exposant ${N(-k)}.`,target:-k,ops:['div','mul']},F('Lis la règle des zooms&nbsp;:',`${ex(pw(2,-k))} = ${fr(1,'{0}')}`,[N(v)],`${pw(2,-k)} = ${fr(1,pw(2,k))} : ${k} division${k>1?'s':''} par 2.`)],
+  rule:`${pw(2,-k)} = ${fr(1,pw(2,k))} = ${fr(1,N(v))} = ${dec(...divDec(1,v))}.`}},
+ ()=>{const k=ri(2,4);
+  return{scene:{mode:'zoom',base:10,lo:-5,hi:2},prompt:`Avec le zoom ×10, chaque appui en arrière divise par 10.`,
+  parts:[{t:'zoom',ask:`Atteins l'exposant ${N(-k)}.`,target:-k,ops:['div','mul']},F('Écris le résultat en écriture décimale&nbsp;:',`${ex(pw(10,-k))} = {0}`,[dec(1,-k)],`${pw(10,-k)} = ${fr(1,N(ipow(10,k)))} : ${k} chiffres après la virgule, le dernier est 1.`,{w:2})],
+  rule:`${pw(10,-k)} = ${fr(1,N(ipow(10,k)))} = ${dec(1,-k)}.`}},
+ ()=>{const a=pick([2,3,4,5,7]),n=ri(2,a>4?3:4);
+  return{scene:{mode:'zoom',base:a,lo:-n-1,hi:2},prompt:`Diviser ${n} fois par ${a}, c'est ${n} appuis en arrière.`,
+  parts:[F('Écris sous la forme d’une puissance de '+a+'&nbsp;:',`${ex(fr(1,pw(a,n)))} = ${a}<sup>{0}</sup>`,[N(-n)],`${fr(1,'a<sup>n</sup>')} = a<sup>−n</sup> : l'exposant devient négatif.`,{then:async()=>{for(let i=0;i<n;i++)await zStep(-1,340)}})],
+  rule:`${fr(1,pw(a,n))} = ${pw(a,-n)}.`}},
+ ()=>{const[a,n]=pick([[2,3],[3,2],[4,2],[5,2],[2,4],[10,3],[5,1],[7,1],[9,1]]),v=ipow(a,n);
+  const bad=n===1?[[N(-a),'Un exposant négatif ne rend pas le nombre négatif : il donne l’inverse.'],[MI+fr(1,N(a)),`${pw(a,-1)} est positif : c'est l'inverse de ${a}.`]]
+   :[[N(-v),'Un exposant négatif ne rend pas le nombre négatif : il donne l’inverse.'],[N(-a*n),`${pw(a,-n)} n'est pas ${a} × (${N(-n)}).`],[fr(1,N(a*n)),`${pw(a,n)} = ${prodH(a,n)}, pas ${a} × ${n}.`]];
+  return{scene:{mode:'zoom',base:a,n:-n,lo:-n-1,hi:2},prompt:`Le viseur affiche l'exposant ${N(-n)} avec le zoom ×${a}.`,
+  parts:[C(`${ex(pw(a,-n))} = &nbsp;?`,fr(1,N(v)),bad)],rule:`${pw(a,-n)} = ${fr(1,pw(a,n))} = ${fr(1,N(v))}&nbsp;: un nombre positif.`}},
+ ()=>{const[b,k,dsp]=pick([[2,2,'0,25'],[2,3,'0,125'],[2,1,'0,5'],[10,3,'0,001'],[10,4,'0,0001'],[3,3,fr(1,27)],[5,2,fr(1,25)],[7,2,fr(1,49)]]);
+  return{scene:{mode:'zoom',base:b,lo:-k-1,hi:2},prompt:`Retrouve l'exposant qui donne ${dsp} avec le zoom ×${b}.`,
+  parts:[{t:'zoom',ask:`Cherche ×${dsp} sur la règle des zooms.`,target:-k,ops:['div','mul']},F('Donc&nbsp;:',`${ex(dsp)} = ${b}<sup>{0}</sup>`,[N(-k)],`${dsp} = ${fr(1,pw(b,k))} = ${pw(b,-k)}.`)],
+  rule:`${dsp} = ${fr(1,pw(b,k))} = ${pw(b,-k)}.`}},
+ ()=>{const[b,k]=pick([[-2,1],[-2,2],[-2,3],[-3,1],[-3,2]]),pq=powPQ(b,-k),v=ipow(-b,k);
+  const good=pqH(pq),opp=pqH([-pq[0],pq[1]]);
+  return{scene:{mode:'zoom',base:b,lo:-4,hi:2},prompt:`Dézoomer avec ×(${N(b)})&nbsp;: chaque appui divise par ${-b} <b>et</b> retourne la photo.`,
+  parts:[{t:'zoom',ask:`Atteins l'exposant ${N(-k)}.`,target:-k,ops:['div','mul']},
+   C(`${ex(pw(b,-k))} = &nbsp;?`,good,[[opp,`${k} retournement${k>1?'s':''} : la photo finit ${k%2?'à l’envers : le résultat est négatif':'à l’endroit : le résultat est positif'}.`],[N(ipow(b,k)),`L'exposant négatif donne l'inverse : ${fr(1,pw(b,k))}.`],[N(b*k)===N(ipow(b,k))?N(-ipow(b,k)):N(b*k),`${pw(b,-k)} = ${fr(1,pw(b,k))}, ce n'est pas un produit par l'exposant.`]])],
+  rule:`${pw(b,-k)} = ${fr(1,pw(b,k))} = ${good}.`}},
+ ()=>{const[V,Vh]=pick([[100,'0,01'],[1000,'0,001'],[10,'0,1'],[50,'0,02']]);let k=0;while(ipow(2,k)<=V)k++;
+  return{scene:{mode:'zoom',base:2,lo:-k-1,hi:1},prompt:`Dézoome avec ÷2&nbsp;: à partir de quel exposant le zoom devient-il plus petit que <b>×${Vh}</b>&nbsp;?`,
+  parts:[{t:'zoom',ask:`Recule jusqu'à passer sous ${Vh}.`,target:-k,ops:['div','mul']},F('La première puissance de 2 inférieure à '+Vh+'&nbsp;:',`2<sup>{0}</sup> &lt; ${Vh}`,[N(-k)],`${pw(2,-(k-1))} = ${fr(1,N(ipow(2,k-1)))} est encore au-dessus de ${Vh}, ${pw(2,-k)} = ${fr(1,N(ipow(2,k)))} passe en dessous.`,{kind:'first',first:{b:2,V:Vh,dir:'<'}})],
+  rule:`${pw(2,-k)} = ${fr(1,N(ipow(2,k)))} &lt; ${Vh} ≤ ${fr(1,N(ipow(2,k-1)))} = ${pw(2,-(k-1))}.`}}
+]}});
+
+/* ---------- Niveau 3 : Combos ---------- */
+LV.push({name:'Combos',kick:'Règles de calcul',
+cours:`<p>a<sup>n</sup> × a<sup>p</sup> = a<sup>n+p</sup>&nbsp;; ${fr('a<sup>n</sup>','a<sup>p</sup>')} = a<sup>n−p</sup>&nbsp;; (a<sup>n</sup>)<sup>p</sup> = a<sup>n×p</sup>&nbsp;; (ab)<sup>n</sup> = a<sup>n</sup>b<sup>n</sup>.</p><p>Exemples&nbsp;: 4<sup>5</sup> × 4<sup>7</sup> = 4<sup>12</sup>&nbsp;; ${fr('5<sup>4</sup>','5<sup>6</sup>')} = 5<sup>−2</sup>&nbsp;; 6<sup>7</sup> × 9<sup>7</sup> = 54<sup>7</sup>.</p>`,
+gen(){return[
+ ()=>{const a=pick([2,3,4,5,7,10]),n=ri(2,7),p=ri(2,8);
+  return{scene:{mode:'zoom',base:a,lo:0,hi:n+p+1},prompt:`Deux rafales de zoom à la suite&nbsp;: d'abord ${pw(a,n)}, puis ${pw(a,p)}.`,
+  parts:[{t:'jumps',ask:'Lance les deux rafales.',btns:[{label:`×${pw(a,n)}`,d:n},{label:`×${pw(a,p)}`,d:p}]},F('Où arrive-t-on&nbsp;?',`${ex(pw(a,n)+' × '+pw(a,p))} = ${a}<sup>{0}</sup>`,[n+p],`Les sauts s'enchaînent : on ajoute les exposants, ${n} + ${p}.`)],
+  rule:`${pw(a,n)} × ${pw(a,p)} = ${a}<sup>${n}+${p}</sup> = ${pw(a,n+p)}.`}},
+ ()=>{const a=pick([2,3,5,7,10]),n=ri(2,6),p=Math.random()<.65?ri(n+1,n+4):ri(1,n-1);
+  return{scene:{mode:'zoom',base:a,lo:Math.min(0,n-p)-1,hi:n+1},prompt:`Une rafale en avant de ${n} appuis, puis ${p} appuis en arrière.`,
+  parts:[{t:'jumps',ask:'Lance les deux rafales.',btns:[{label:`×${pw(a,n)}`,d:n},{label:`÷${pw(a,p)}`,d:-p}]},F('Où arrive-t-on&nbsp;?',`${ex(fr(pw(a,n),pw(a,p)))} = ${a}<sup>{0}</sup>`,[N(n-p)],`Diviser par ${pw(a,p)}, c'est reculer de ${p} : ${n} − ${p} = ${N(n-p)}.`)],
+  rule:`${fr(pw(a,n),pw(a,p))} = ${a}<sup>${n}−${p}</sup> = ${pw(a,n-p)}.`}},
+ ()=>{const a=pick([2,3,5,7]),n=pick([2,3,4,-2,-3]),p=ri(2,n<0?3:5);
+  const lo=Math.min(0,n*p)-1,hi=Math.max(0,n*p)+1;
+  return{scene:{mode:'zoom',base:a,lo,hi},prompt:`La rafale ${pw(a,n)} est répétée ${p} fois.`,
+  parts:[{t:'jumps',ask:`Lance ${p} fois la rafale.`,btns:[{label:`×${pw(a,n)}`,d:n,times:p}]},F('Où arrive-t-on&nbsp;?',`${ex(`(${pw(a,n)})${sup(p)}`)} = ${a}<sup>{0}</sup>`,[N(n*p)],`${p} rafales de ${N(n)} : on multiplie les exposants, ${N(n)} × ${p}.`)],
+  rule:`(${pw(a,n)})${sup(p)} = ${a}<sup>${N(n)}×${p}</sup> = ${pw(a,n*p)}.`}},
+ ()=>{const a=pick([2,3,5]);let n,p;do{n=ri(2,5);p=ri(2,5)}while(n+p===n*p||n===p);
+  const vt=pick(['prod','prod','puis']);
+  if(vt==='prod')return{scene:{mode:'zoom',base:a,lo:0,hi:n+p+1},prompt:`Piège classique&nbsp;: on ne multiplie ni les exposants, ni les nombres.`,
+   parts:[C(`${ex(pw(a,n)+' × '+pw(a,p))} = &nbsp;?`,pw(a,n+p),[[pw(a,n*p),`On ajoute les exposants (${n} + ${p}), on ne les multiplie pas.`],[pw(a*a,n+p),`Le nombre ${a} reste ${a} : on ne multiplie pas ${a} × ${a}.`],[pw(a*a,n*p),`Le nombre reste ${a} et on ajoute les exposants.`]],'',{then:async()=>{await zJump(n,'+'+n);await zJump(p,'+'+p)}})],rule:`${pw(a,n)} × ${pw(a,p)} = ${pw(a,n+p)}&nbsp;: même nombre, on ajoute les exposants.`};
+  return{scene:{mode:'zoom',base:a,lo:0,hi:n*p+1},prompt:`Piège classique&nbsp;: puissance d'une puissance.`,
+   parts:[C(`${ex(`(${pw(a,n)})${sup(p)}`)} = &nbsp;?`,pw(a,n*p),[[pw(a,n+p),`(${pw(a,n)})${sup(p)} = ${Array(p).fill(pw(a,n)).join(' × ')} : on multiplie les exposants.`],[`${p} × ${pw(a,n)}`,`L'exposant ${p} répète ${p} fois le facteur ${pw(a,n)} : ce n'est pas une multiplication par ${p}.`]],'',{then:async()=>{for(let i=0;i<p;i++)await zJump(n,'+'+n)}})],rule:`(${pw(a,n)})${sup(p)} = ${pw(a,n*p)}&nbsp;: on multiplie les exposants.`}},
+ ()=>{const[a,b]=pick([[6,9],[2,5],[3,4],[2,7],[5,4],[3,10]]),n=ri(2,7);
+  return{scene:{mode:'zoom',base:a,lo:0,hi:n+1},prompt:`Deux zooms à la fois&nbsp;: ×${a} et ×${b} à chaque appui, ${n} appuis.`,
+  parts:[F('Écris avec une seule puissance&nbsp;:',`${ex(pw(a,n)+' × '+pw(b,n))} = {0}<sup>${n}</sup>`,[a*b],`À chaque appui, on multiplie par ${a} et par ${b}, donc par ${a} × ${b}.`,{then:async()=>{sceneZoom({base:a*b,lo:0,hi:n+1});await wait(150);for(let i=0;i<n;i++)await zStep(1,280)}})],
+  rule:`${pw(a,n)} × ${pw(b,n)} = (${a} × ${b})${sup(n)} = ${pw(a*b,n)}.`}},
+ ()=>{const a=pick([2,3,7]),n=ri(2,4),m=pick([2,3]),p=ri(2,4),q=ri(1,4);const r=n+m*p-q;
+  return{scene:{mode:'zoom',base:a,lo:Math.min(0,r)-1,hi:n+m*p+1},prompt:`Le grand combo&nbsp;: une rafale, une rafale répétée, puis un retour en arrière.`,
+  parts:[{t:'jumps',ask:'Lance toutes les rafales.',btns:[{label:`×${pw(a,n)}`,d:n},{label:`×${pw(a,m)}`,d:m,times:p},{label:`÷${pw(a,q)}`,d:-q}]},F('Résultat&nbsp;:',`${ex(fr(`${pw(a,n)} × (${pw(a,m)})${sup(p)}`,pw(a,q)))} = ${a}<sup>{0}</sup>`,[N(r)],`${n} + ${m} × ${p} − ${q} = ${N(r)}.`)],
+  rule:`${fr(`${pw(a,n)} × (${pw(a,m)})${sup(p)}`,pw(a,q))} = ${a}<sup>${n}+${m*p}−${q}</sup> = ${pw(a,r)}.`}}
+]}});
+
+/* ---------- Niveau 4 : Règle ×10 ---------- */
+function sciQ(D0,n0){const[D,n]=sciOf(D0,n0);return{D,n,a:mant(D)}}
+LV.push({name:'Règle ×10',kick:'Notation scientifique',
+cours:`<p>Un nombre est en notation scientifique s'il s'écrit a × 10<sup>n</sup> avec 1 ≤ |a| &lt; 10 et n ∈ ℤ.</p><p>Exemple&nbsp;: 28 × 10<sup>−13</sup> = 2,8 × 10<sup>−12</sup>.</p>`,
+gen(){
+ const sm=pick(SMALL),bg=pick(BIG);
+ const mk=(key,dir)=>{const o=OBJ[key],s=sciQ(o.M,o.e);
+  return{scene:{mode:'sci',M:o.M,e:o.e,n:0,obj:key,name:o.name},prompt:`${o.name}&nbsp;: environ <b>${dec(o.M,o.e)} m</b>. Sur la règle, 1 graduation vaut 1 m.`,
+  parts:[{t:'sci',ask:dir<0?'Zoome jusqu’à pouvoir lire la longueur entre 1 et 10 graduations.':'Dézoome jusqu’à ce que la longueur tienne sur la règle, entre 1 et 10 graduations.'},
+   F('Écris-la en notation scientifique&nbsp;:',`${ex(dec(o.M,o.e))} = {0} × 10<sup>{1}</sup>`,[s.a,N(s.n)],`Lis la règle : ${s.a} graduations de ${p10(s.n)} m.`,{kind:'sci',unit:'m',w:1})],
+  rule:`${dec(o.M,o.e)} = ${s.a} × ${p10(s.n)}&nbsp;: ${Math.abs(s.n)} zoom${Math.abs(s.n)>1?'s':''} ${s.n<0?'avant':'arrière'}, et la virgule a bougé d'autant de rangs.`}};
+ return[
+ ()=>mk(sm,-1),
+ ()=>mk(bg,1),
+ ()=>{let D,n,s;do{D=pick([28,45,36,72,125,315,12,64]);n=ri(-14,14);s=sciQ(D,n)}while(!n||!s.n);
+  return{scene:{mode:'sci',M:D,e:n,n:n,obj:'calc',name:`${N(D)} × 10^${N(n)}`,unit:''},prompt:`Le nombre <b>${N(D)} × ${p10(n)}</b> n'est pas en notation scientifique&nbsp;: ${N(D)} dépasse 10.`,
+  parts:[{t:'sci',ask:'Règle le zoom pour lire entre 1 et 10.'},F('Écris-le en notation scientifique&nbsp;:',`${ex(N(D)+' × '+p10(n))} = {0} × 10<sup>{1}</sup>`,[s.a,N(s.n)],`${N(D)} = ${s.a} × ${p10(s.n-n)}, donc on ajoute ${s.n-n} à l'exposant.`,{kind:'sci',w:1})],
+  rule:`${N(D)} × ${p10(n)} = ${s.a} × ${p10(s.n-n)} × ${p10(n)} = ${s.a} × ${p10(s.n)}.`}},
+ ()=>{const[D,k]=pick([[45,-2],[32,-3],[7,-1],[85,-2],[5,-2],[12,-3]]),n=pick([5,7,-4,-6,3,9]),s=sciQ(D,n+k);
+  return{scene:{mode:'sci',M:D,e:n+k,n:n,obj:'calc',name:`${dec(D,k)} × 10^${N(n)}`,unit:''},prompt:`Le nombre <b>${dec(D,k)} × ${p10(n)}</b> n'est pas en notation scientifique&nbsp;: ${dec(D,k)} est plus petit que 1.`,
+  parts:[{t:'sci',ask:'Règle le zoom pour lire entre 1 et 10.'},F('Écris-le en notation scientifique&nbsp;:',`${ex(dec(D,k)+' × '+p10(n))} = {0} × 10<sup>{1}</sup>`,[s.a,N(s.n)],`${dec(D,k)} = ${s.a} × ${p10(s.n-n)} : l'exposant diminue.`,{kind:'sci',w:1})],
+  rule:`${dec(D,k)} × ${p10(n)} = ${s.a} × ${p10(s.n)}.`}},
+ ()=>{const D=pick([32,407,58,125,9,73,206]),n=ri(-8,8)||4,L=dig(D);const w=(sh)=>`${dec(D,-(L-1)+sh)} × ${p10(n-sh)}`;
+  const opts=[0,1,-1,2].map(sh=>w(sh));
+  return{scene:{mode:'sci',M:D,e:n-(L-1),n:n,obj:'calc',name:'Laquelle est la bonne écriture ?',unit:''},prompt:`Ces quatre écritures désignent le même nombre.`,
+  parts:[C('Laquelle est en notation scientifique&nbsp;?',opts[0],[[opts[1],'Le nombre devant la puissance de 10 dépasse 10.'],[opts[2],'Le nombre devant la puissance de 10 est plus petit que 1.'],[opts[3],'Le nombre devant la puissance de 10 dépasse 10.']],'',{kind:'nsci'})],
+  rule:`${opts[0]}&nbsp;: 1 ≤ ${mant(D)} &lt; 10.`}},
+ ()=>{const D=pick([407,25,6,318,52,9]),n=pick([-3,-4,-2,3,4,5]),L=dig(D);
+  return{scene:{mode:'sci',M:D,e:n-(L-1),n:n,obj:'calc',name:'Retour à la graduation 1',unit:''},prompt:`Retour à l'écriture décimale&nbsp;: on part de <b>${mant(D)} × ${p10(n)}</b>.`,
+  parts:[F('Écris ce nombre en écriture décimale&nbsp;:',`${ex(mant(D)+' × '+p10(n))} = {0}`,[dec(D,n-(L-1))],`Multiplier par ${p10(n)}, c'est décaler la virgule de ${Math.abs(n)} rang${Math.abs(n)>1?'s':''} vers la ${n>0?'droite':'gauche'}.`,{w:2,then:async()=>{const st=n>0?-1:1;while(SC.n!==0){await sciZoom(st);await wait(60)}}})],
+  rule:`${mant(D)} × ${p10(n)} = ${dec(D,n-(L-1))}.`}}
+]}});
+
+/* ---------- Niveau 5 : Calibrage ---------- */
+LV.push({name:'Calibrage',kick:'Calculs en notation scientifique',
+cours:`<p>10<sup>n</sup> × 10<sup>p</sup> = 10<sup>n+p</sup>&nbsp;; ${fr('10<sup>n</sup>','10<sup>p</sup>')} = 10<sup>n−p</sup>&nbsp;; (10<sup>n</sup>)<sup>p</sup> = 10<sup>np</sup>.</p><p>On regroupe les nombres d'un côté, les puissances de 10 de l'autre, puis on remet en notation scientifique. Exemple&nbsp;: 4 × 7 × 10<sup>−5</sup> × 10<sup>−8</sup> = 28 × 10<sup>−13</sup> = 2,8 × 10<sup>−12</sup>.</p>`,
+gen(){
+ const fin=(exH,M,e,o)=>{const s=sciQ(M,e);return F('En notation scientifique&nbsp;:',`${ex(exH)} = {0} × 10<sup>{1}</sup>`,[s.a,N(s.n)],'Le nombre devant 10<sup>n</sup> doit être entre 1 et 10 (10 exclu).',Object.assign({kind:'sci',w:1},o||{}))};
+ return[
+ ()=>{let a,b;do{a=ri(2,9);b=ri(2,9)}while(a*b<10);const n=pick([-5,-3,-7,4,6,2,-2]),p=pick([-8,-4,3,5,-6,7]);const E=`(${a} × ${p10(n)}) × (${b} × ${p10(p)})`;
+  return{scene:{mode:'sci',M:a*b,e:n+p,n:n+p,obj:'calc',name:'Le produit',unit:''},prompt:`Calcule <b>${E}</b>.`,
+  parts:[F('On regroupe&nbsp;:',[`${ex(a+' × '+b)} = {0}`,`${ex(p10(n)+' × '+p10(p))} = 10<sup>{1}</sup>`],[a*b,N(n+p)],`Nombres ensemble : ${a} × ${b}. Puissances ensemble : on ajoute les exposants.`),{t:'sci',ask:`${a*b} dépasse 10&nbsp;: règle le zoom.`},fin(E,a*b,n+p)],
+  rule:`${E} = ${a*b} × ${p10(n+p)} = ${sciH(a*b,n+p)}.`}},
+ ()=>{let a,b,n,p,q;do{[a,b]=pick([[2,8],[3,4],[4,5],[6,8],[3,5],[2,5],[1,4],[7,8]]);n=pick([6,3,-2,5,-4]);p=pick([-2,4,-5,2,8]);q=divDec(a,b)}while(sciOf(q[0],q[1]+n-p)[1]===0);const E=fr(`${a} × ${p10(n)}`,`${b} × ${p10(p)}`);
+  return{scene:{mode:'sci',M:q[0],e:q[1]+n-p,n:n-p,obj:'calc',name:'Le quotient',unit:''},prompt:`Calcule ce quotient.`,
+  parts:[F('On regroupe&nbsp;:',[`${ex(fr(a,b))} = {0}`,`${ex(fr(p10(n),p10(p)))} = 10<sup>{1}</sup>`],[dec(q[0],q[1]),N(n-p)],`On divise les nombres, et on soustrait les exposants : ${N(n)} − (${N(p)}).`,{w:1}),{t:'sci',ask:`${dec(q[0],q[1])} est plus petit que 1&nbsp;: règle le zoom.`},fin(E,q[0],q[1]+n-p)],
+  rule:`${E} = ${dec(q[0],q[1])} × ${p10(n-p)} = ${sciH(q[0],q[1]+n-p)}.`}},
+ ()=>{let a,b,c,q,n,p,r;do{a=ri(2,9);b=ri(2,9);c=pick([4,8,16,20,25,40,50,56,64,32]);q=divDec(a*b,c);n=pick([-4,3,-2,5]);p=pick([8,-6,4,-3]);r=pick([-9,2,-5,6])}while(!q||dig(q[0])>4||q[1]===0||sciOf(q[0],q[1]+n+p-r)[1]===0);const E=fr(`${a} × ${p10(n)} × ${b} × ${p10(p)}`,`${c} × ${p10(r)}`);
+  return{scene:{mode:'sci',M:q[0],e:q[1]+n+p-r,n:n+p-r,obj:'calc',name:'Le calcul',unit:''},prompt:`Un calcul complet, comme dans le cours.`,
+  parts:[F('On regroupe&nbsp;:',[`${ex(fr(`${a} × ${b}`,c))} = {0}`,`${ex(fr(`${p10(n)} × ${p10(p)}`,p10(r)))} = 10<sup>{1}</sup>`],[dec(q[0],q[1]),N(n+p-r)],`Exposant : ${N(n)} + (${N(p)}) − (${N(r)}).`,{w:1}),{t:'sci',ask:'Règle le zoom.'},fin(E,q[0],q[1]+n+p-r)],
+  rule:`${E} = ${dec(q[0],q[1])} × ${p10(n+p-r)} = ${sciH(q[0],q[1]+n+p-r)}.`}},
+ ()=>{let n,p,q,set;do{n=ri(-6,6);p=ri(-9,-2);q=ri(-6,-1);set=new Set([n+p-q,n+p+q,n-p-q,n-p+q])}while(set.size<4||n===0);
+  const E=fr(`${p10(n)} × ${p10(p)}`,p10(q));
+  return{scene:{mode:'zoom',base:10,lo:Math.min(0,n,n+p,n+p-q)-1,hi:Math.max(0,n,n+p,n+p-q)+1},prompt:`Attention aux signes des exposants.`,
+  parts:[C(`${ex(E)} = &nbsp;?`,p10(n+p-q),[[p10(n+p+q),`Diviser par ${p10(q)}, c'est soustraire ${N(q)} : − (${N(q)}) = +${-q}.`],[p10(n-p-q),`Multiplier par ${p10(p)}, c'est ajouter ${N(p)}.`],[p10(n-p+q),`On ajoute l'exposant du produit, on soustrait celui du dénominateur.`]],'',{then:async()=>{await zJump(n,(n>0?'+':'')+N(n));await zJump(p,N(p));await zJump(-q,'+'+(-q))}})],
+  rule:`${E} = 10<sup>${N(n)}+(${N(p)})−(${N(q)})</sup> = ${p10(n+p-q)}.`}},
+ ()=>{const a=pick([2,3,4,5,6,7,8,9]),n=pick([3,-2,4,-3,5,-4]);const E=`(${a} × ${p10(n)})${sup(2)}`;
+  return{scene:{mode:'sci',M:a*a,e:2*n,n:2*n,obj:'calc',name:'Le carré',unit:''},prompt:`Calcule <b>${E}</b>.`,
+  parts:[F('On élève chaque facteur au carré&nbsp;:',[`${ex(pw(a,2))} = {0}`,`${ex(`(${p10(n)})${sup(2)}`)} = 10<sup>{1}</sup>`],[a*a,N(2*n)],`(ab)<sup>2</sup> = a<sup>2</sup>b<sup>2</sup> et (10<sup>n</sup>)<sup>2</sup> = 10<sup>2n</sup>.`),...(a*a>=10?[{t:'sci',ask:'Règle le zoom.'}]:[]),fin(E,a*a,2*n)],
+  rule:`${E} = ${a*a} × ${p10(2*n)} = ${sciH(a*a,2*n)}.`}},
+ ()=>{const vt=pick(['lum','disque','lum']);
+  if(vt==='lum'){const E=`(3 × ${p10(8)}) × (5 × ${p10(2)})`;return{scene:{mode:'sci',M:15,e:10,n:10,obj:'soleil',name:'Distance Soleil – Terre'},prompt:`La lumière parcourt environ <b>3 × ${p10(8)} m</b> par seconde. Elle met environ <b>5 × ${p10(2)} s</b> pour venir du Soleil. Quelle distance a-t-elle parcourue&nbsp;?`,
+   parts:[F('On regroupe&nbsp;:',[`${ex('3 × 5')} = {0}`,`${ex(p10(8)+' × '+p10(2))} = 10<sup>{1}</sup>`],[15,10],'3 × 5, et on ajoute les exposants.'),{t:'sci',ask:'Règle le zoom.'},fin(E,15,10,{unit:'m'})],rule:`${E} = 15 × ${p10(10)} = 1,5 × ${p10(11)} m&nbsp;: la distance Terre – Soleil.`}}
+  const E=fr(`2 × ${p10(12)}`,`4 × ${p10(9)}`);return{scene:{mode:'sci',M:5,e:2,n:3,obj:'tel',name:'Nombre de vidéos',unit:''},prompt:`Un disque contient <b>2 × ${p10(12)}</b> octets. Une vidéo occupe <b>4 × ${p10(9)}</b> octets. Combien de vidéos peut-on y ranger&nbsp;?`,
+   parts:[F('On regroupe&nbsp;:',[`${ex(fr(2,4))} = {0}`,`${ex(fr(p10(12),p10(9)))} = 10<sup>{1}</sup>`],['0,5',3],'2 ÷ 4, et on soustrait les exposants.',{w:1}),{t:'sci',ask:'0,5 est plus petit que 1&nbsp;: règle le zoom.'},fin(E,5,2)],rule:`${E} = 0,5 × ${p10(3)} = 5 × ${p10(2)} = 500 vidéos.`}}
+]}});
+
+/* ---------- Niveau 6 : Le carré ---------- */
+LV.push({name:'Le carré',kick:'Racine carrée',
+cours:`<p>La racine carrée de a ≥ 0 est l'unique réel positif dont le carré est a. √a n'existe pas si a &lt; 0.</p><p>(√a)<sup>2</sup> = a&nbsp;; √(a<sup>2</sup>) = |a|. Attention&nbsp;: √a + √b ≠ √(a + b).</p><p>Exemples&nbsp;: √9 = 3 car 3<sup>2</sup> = 9&nbsp;; √6,76 = 2,6&nbsp;; √2 ≈ 1,4142.</p>`,
+gen(){return[
+ ()=>{const n=ri(3,9);
+  return{scene:{mode:'sq',s:1,max:10},prompt:`Recadre la photo en un carré d'aire <b>${n*n}</b> carreaux.`,
+  parts:[{t:'side',ask:'Agrandis le carré (boutons ou poignée bleue).',target:n},F('Le côté est la racine carrée de l’aire&nbsp;:',`${ex(rt(n*n))} = {0}`,[n],`Le côté ${n} donne l'aire ${n} × ${n} = ${n*n}.`)],
+  rule:`√${n*n} = ${n} car ${n}<sup>2</sup> = ${n*n} et ${n} ≥ 0.`}},
+ ()=>{const[A,s]=pick([[9,3],[25,5],[49,7],[144,12],[169,13],[676,26],[225,15]]);
+  return{scene:{mode:'sq',dec:true,s:10,max:3},prompt:`On zoome sur les petits carreaux&nbsp;: chaque grand carreau mesure 1 de côté, les petits 0,1. Vise une aire de <b>${dec(A,-2)}</b>.`,
+  parts:[{t:'side',ask:'Règle le côté au dixième près.',target:s},F('Donc&nbsp;:',`${ex(rt(dec(A,-2)))} = {0}`,[dec(s,-1)],`${dec(s,-1)} × ${dec(s,-1)} = ${dec(A,-2)}.`,{w:1})],
+  rule:`√${dec(A,-2)} = ${dec(s,-1)} car ${dec(s,-1)}<sup>2</sup> = ${dec(A,-2)}.`}},
+ ()=>{const n=pick([2,3,5,6,7,8]);let k=1;while((k+1)*(k+1)<n*100)k++;
+  const lo=dec(k,-1),hi=dec(k+1,-1);
+  return{scene:{mode:'sq',dec:true,s:10,max:3},prompt:`Un carré d'aire <b>${n}</b> a-t-il un côté décimal&nbsp;? Balaye les côtés de 0,1 en 0,1 pour encadrer ${rt(n)} à 0,1 près.`,
+  parts:[{t:'side',ask:`Règle le côté sur ${lo}, puis sur ${hi}, et regarde l'aire.`,visit:[k,k+1]},
+   C(`Que peut-on dire de ${ex(rt(n))}&nbsp;?`,`${lo} &lt; ${rt(n)} &lt; ${hi}`,[[`${rt(n)} = ${lo}`,`${lo}<sup>2</sup> = ${dec(k*k,-2)}, ce n'est pas ${n}.`],[`${rt(n)} = ${hi}`,`${hi}<sup>2</sup> = ${dec((k+1)*(k+1),-2)}, ce n'est pas ${n}.`],[`${hi} &lt; ${rt(n)} &lt; ${dec(k+2,-1)}`,`${hi}<sup>2</sup> = ${dec((k+1)*(k+1),-2)} dépasse déjà ${n}.`]],'',{kind:'enc'})],
+  rule:`${lo}<sup>2</sup> = ${dec(k*k,-2)} &lt; ${n} &lt; ${dec((k+1)*(k+1),-2)} = ${hi}<sup>2</sup>, donc ${lo} &lt; √${n} &lt; ${hi}. √${n} n'a pas d'écriture décimale exacte.`}},
+ ()=>{const a=pick([4,9,16,25,36]);
+  return{scene:{mode:'sq',s:Math.sqrt(a),max:7},prompt:`On demande au recadrage un carré d'aire <b>${MI}${a}</b>.`,
+  parts:[{t:'act',ask:'Essaie&nbsp;:',label:`Viser une aire de ${MI}${a}`,run:async()=>{await sqTo(0);SC.lab={capt:`aucun carré n'a une aire négative`,area:' ',side:'côté ?'};drawSq(true);sfx('ko');await wait(500)}},
+   C(`${ex(rt(MI+a))} = &nbsp;?`,`${rt(MI+a)} n'existe pas`,[[N(-Math.sqrt(a)),`(${N(-Math.sqrt(a))})<sup>2</sup> = ${a}, pas ${MI}${a}. Un carré n'est jamais négatif.`],[N(Math.sqrt(a)),`${N(Math.sqrt(a))}<sup>2</sup> = ${a}, pas ${MI}${a}.`]],'',{kind:'nexiste'})],
+  rule:`Un carré est toujours positif ou nul&nbsp;: √a n'existe pas si a &lt; 0.`}},
+ ()=>{const a=ri(3,9),b=pick([2,3,5,6,7,10,11]);
+  return{scene:{mode:'sq',s:a,max:10,lab:{capt:`(${MI}${a})<sup>2</sup> = ${a*a} : l'aire est ${a*a}, le côté est ${a}`}},prompt:`Un côté est une longueur&nbsp;: il est toujours positif.`,
+  parts:[F('Calcule&nbsp;:',`${ex(rt(`(${MI}${a})${sup(2)}`))} = {0}`,[a],`(${MI}${a})<sup>2</sup> = ${a*a}, et √${a*a} = ${a} (positif). √(a<sup>2</sup>) = |a|.`),
+   F('Et dans l’autre sens&nbsp;:',`${ex(`(${rt(b)})${sup(2)}`)} = {0}`,[b],`√${b} est le nombre positif dont le carré est ${b}.`,{then:async()=>{SC.lab={capt:`un carré de côté ${rt(b)} a pour aire <span class="g">${b}</span>`,side:'côté √'+b,area:'aire = '+b};SC.max=4;SC.dec=true;SC.s=Math.round(Math.sqrt(b)*10);drawSq()}})],
+  rule:`√((${MI}${a})<sup>2</sup>) = |${MI}${a}| = ${a}&nbsp;; (√${b})<sup>2</sup> = ${b}.`}},
+ ()=>{const[a,b]=pick([[9,16],[36,64],[25,144],[64,36],[16,9],[81,144]]);const ra=Math.sqrt(a),rb=Math.sqrt(b),rc=Math.sqrt(a+b);
+  return{scene:{mode:'merge',a,b},prompt:`Piège classique&nbsp;: deux carrés d'aires ${a} et ${b}.`,
+  parts:[F('Côte à côte, les côtés s’ajoutent&nbsp;:',`${ex(rt(a)+' + '+rt(b))} = {0}`,[ra+rb],`√${a} = ${ra} et √${b} = ${rb}.`),
+   {t:'act',ask:'Fusionne-les en un seul carré de même aire totale&nbsp;:',label:'Fusionner les deux carrés',run:async()=>{sfx('pop');await tw(900,k=>drawMerge(k))}},
+   F('Le côté du grand carré&nbsp;:',`${ex(rt(`${a} + ${b}`))} = {0}`,[rc],`${a} + ${b} = ${a+b} et √${a+b} = ${rc}.`)],
+  rule:`√${a} + √${b} = ${ra+rb} mais √(${a} + ${b}) = ${rc}&nbsp;: √a + √b ≠ √(a + b).`}}
+]}});
+
+/* ---------- Niveau 7 : La mosaïque ---------- */
+const EXTR=[8,12,18,20,27,28,32,45,48,50,63,72,75,80,98];
+LV.push({name:'La mosaïque',kick:'Calculs avec les racines carrées',
+cours:`<p>Pour a, b ≥ 0&nbsp;: √a × √b = √(ab)&nbsp;; pour b &gt; 0&nbsp;: ${fr('√a','√b')} = √(${fr('a','b')}).</p><p>√n = k√b&nbsp;: k<sup>2</sup> est le plus grand carré parfait qui divise n (exemple&nbsp;: √72 = √(36 × 2) = 6√2).</p><p>k√a + l√a = (k + l)√a (même famille uniquement). (√a − √b)(√a + √b) = a − b.</p>`,
+gen(){const N1=pick(EXTR);let N2;do{N2=pick([48,72,75,98,200,125,50,27,45,80])}while(N2===N1);return[
+ ()=>{const k=kmaxOf(N1),b=N1/(k*k);
+  return{scene:{mode:'tile',N:N1},prompt:`Découpe le carré d'aire <b>${N1}</b> en k × k carreaux carrés égaux d'aire entière, avec <b>k le plus grand possible</b>.`,
+  parts:[{t:'tile',ask:'Choisis le nombre k de carreaux par côté.',N:N1},F('Écris la racine sous la forme a√b&nbsp;:',`${ex(rt(N1))} = {0}${rt('{1}')}`,[k,b],`${N1} = ${k*k} × ${b} et √${k*k} = ${k}.`,{kind:'ksqrt'})],
+  rule:`√${N1} = √(${k*k} × ${b}) = ${k}√${b}.`}},
+ ()=>{const[a,b]=pick([[32,2],[3,27],[5,20],[8,18],[2,50],[12,3],[7,28],[6,24]]);const s=Math.sqrt(a*b);
+  return{scene:{mode:'sq',s,max:Math.max(8,s+1),lab:{capt:`côté ${rt(a)} × ${rt(b)} : aire ${a} × ${b} = ${a*b}`,side:'côté √'+a+' × √'+b}},prompt:`Un carré a pour côté <b>${rt(a)} × ${rt(b)}</b>. Son aire vaut ${a} × ${b}.`,
+  parts:[F('Calcule&nbsp;:',`${ex(rt(a)+' × '+rt(b))} = {0}`,[s],`√${a} × √${b} = √(${a} × ${b}) = √${a*b}.`)],
+  rule:`√${a} × √${b} = √${a*b} = ${s}.`}},
+ ()=>{const[a,b,p,q]=pick([[98,2,7,1],[75,3,5,1],[50,72,5,6],[12,27,2,3],[8,50,2,5],[45,5,3,1],[18,8,3,2]]);
+  return{scene:{mode:'tile',N:a},prompt:`Un quotient de racines&nbsp;: on rentre tout sous une seule racine.`,
+  parts:[F(q===1?'Calcule&nbsp;:':'Calcule (fraction irréductible)&nbsp;:',q===1?`${ex(fr(rt(a),rt(b)))} = {0}`:`${ex(fr(rt(a),rt(b)))} = ${fr('{0}','{1}')}`,q===1?[p]:[p,q],`${fr('√a','√b')} = √(${fr('a','b')}) : simplifie d'abord ${fr(a,b)}.`)],
+  rule:`${fr(rt(a),rt(b))} = √(${fr(a,b)}) = ${q===1?'√'+(p*p):'√('+fr(p*p,q*q)+')'} = ${q===1?p:fr(p,q)}.`}},
+ ()=>{const c=pick([2,3,5]);const k=kmaxOf(N2),b=N2/(k*k);
+  return{scene:{mode:'tile',N:N2},prompt:`Simplifie <b>${c}${rt(N2)}</b>&nbsp;: d'abord la mosaïque de ${N2}, puis on multiplie par ${c}.`,
+  parts:[{t:'tile',ask:'Choisis le nombre k de carreaux par côté.',N:N2},F('Écris sous la forme a√b&nbsp;:',`${ex(c+rt(N2))} = {0}${rt('{1}')}`,[c*k,b],`√${N2} = ${k}√${b}, donc ${c}√${N2} = ${c} × ${k}√${b}.`,{kind:'ksqrt'})],
+  rule:`${c}√${N2} = ${c} × ${k}√${b} = ${c*k}√${b}.`}},
+ ()=>{const r=pick([2,3,5,7]);const k=ri(2,5),l=ri(1,k-1),m=ri(2,6);const r2=pick([2,3,5,7].filter(x=>x!==r)),k2=ri(2,6),l2=ri(1,3);
+  return{scene:{mode:'row',rows:[{rad:r,col:'#e8c766'},{rad:r2,col:'#9fb4ff'}]},prompt:`Même famille = même carreau. On aligne des carreaux de côté √${r} (et d'autres de côté √${r2}).`,
+  parts:[{t:'act',ask:`Joue ${k}√${r} − ${l===1?'':l}√${r} + ${m}√${r}&nbsp;:`,label:'Aligner les carreaux',run:async()=>{await rowAdd(0,k);await rowAdd(0,l,true);await rowAdd(0,m)}},
+   F('Résultat&nbsp;:',`${ex(`${k}${rt(r)} − ${l===1?'':l}${rt(r)} + ${m}${rt(r)}`)} = {0}${rt(r)}`,[k-l+m],`${k} − ${l} + ${m} = ${k-l+m} carreaux de côté √${r}.`),
+   F('Deux familles, deux rangées&nbsp;:',`${ex(`${k}${rt(r)} + ${k2}${rt(r2)} + ${m}${rt(r)} − ${l2===1?'':l2}${rt(r2)}`)} = {0}${rt(r)} + {1}${rt(r2)}`,[k+m,k2-l2],`On regroupe chaque famille : √${r} d'un côté, √${r2} de l'autre. On ne mélange pas les familles.`,{then:async()=>{SC.rows[0].items=[];SC.rows[1].items=[];drawRow();await rowAdd(0,k);await rowAdd(1,k2);await rowAdd(0,m);await rowAdd(1,l2,true)}})],
+  rule:`k√a + l√a = (k + l)√a, uniquement dans la même famille.`}},
+ ()=>{const[r,p,s]=pick([[2,1,2],[2,2,3],[3,2,3],[5,1,2],[2,3,1],[3,1,3]]);const A=p*p*r,B=s*s*r;const good=crt(p+s,r);
+  return{scene:{mode:'tile',N:B},prompt:`Piège classique&nbsp;: √a + √b ≠ √(a + b).`,
+  parts:[C(`${ex(rt(A)+' + '+rt(B))} = &nbsp;?`,good,[[rt(A+B),`√a + √b ≠ √(a + b) : on ne peut pas ajouter sous la racine.`],[N(p+s),`La racine ne disparaît pas : ${rt(A)} = ${crt(p,r)} et ${rt(B)} = ${crt(s,r)}.`],[crt(p*s,r),`Simplifie chaque racine (${crt(p,r)} et ${crt(s,r)}), puis ajoute : ${p} + ${s}.`]])],
+  rule:`${rt(A)} + ${rt(B)} = ${crt(p,r)} + ${crt(s,r)} = ${good}, et non √${A+B}.`}},
+ ()=>{const p=ri(2,5),q=pick([2,3,5,6,7]);
+  return{scene:{mode:'dev',p,q},prompt:`Le grand carré&nbsp;: son côté mesure <b>${p} + ${rt(q)}</b>.`,
+  parts:[{t:'act',ask:'Découpe-le en quatre morceaux&nbsp;:',label:'Construire le grand carré',run:async()=>{sfx('pop');await tw(1400,k=>drawDev(k))}},
+   F('Développe et réduis&nbsp;:',`${ex(`(${p} + ${rt(q)})${sup(2)}`)} = {0} + {1}${rt(q)}`,[p*p+q,2*p],`${p}<sup>2</sup> + 2 × ${p} × √${q} + (√${q})<sup>2</sup> = ${p*p} + ${2*p}√${q} + ${q}.`)],
+  rule:`(${p} + √${q})<sup>2</sup> = ${p*p} + ${2*p}√${q} + ${q} = ${p*p+q} + ${2*p}√${q}.`}}
+]}});
+
+/* ====================================================================
+   MOTEUR DE JEU
+   ==================================================================== */
+const GAME='zoom-carre';
+const S={lvl:0,qi:0,qs:[],q:null,pi:0,qerr:0,score:0,res:[],busy:false};
+function stars(L){try{const g=SigmaKit.passport().games[GAME];return g&&g.levels[L+1]||0}catch(e){return 0}}
+function renderLv(){
+  $('lv').innerHTML=LV.map((l,i)=>{const s=stars(i);return `<button data-l="${i}" aria-pressed="${i===S.lvl}">${i+1}. ${l.name}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+   `<span class="sp"></span><button class="tool" id="snd" aria-pressed="${soundOn}">♪ Bruitages : ${soundOn?'oui':'non'}</button>`;
+}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){soundOn=!soundOn;try{localStorage.setItem('sigma-fanfare',soundOn?'1':'0')}catch(err){}renderLv();if(soundOn)sfx('pop');return}
+  if(S.busy)return;startLevel(+b.dataset.l)});
+function startLevel(L){S.lvl=L;S.qi=0;S.score=0;S.res=[];S.qs=LV[L].gen().map(f=>f());renderLv();
+  $('kick').textContent=`Niveau ${L+1} · ${LV[L].kick}`;$('lt').textContent=LV[L].name;$('rule').innerHTML=LV[L].cours;showQ()}
+function dots(){$('dots').innerHTML=S.qs.map((_,i)=>`<span class="dot ${i<S.res.length?(S.res[i]?'g':'r'):i===S.qi?'c':''}"></span>`).join('');$('qn').textContent=`Question ${S.qi+1} sur ${S.qs.length}`}
+function showQ(){
+  const q=S.q=S.qs[S.qi];S.pi=0;S.qerr=0;
+  dots();$('prompt').innerHTML=q.prompt;$('work').innerHTML='';$('fbw').innerHTML='';$('winw').innerHTML='';
+  setScene(q.scene);renderPart();
+}
+function fb(msg,kind){$('fbw').innerHTML=msg?`<div class="fb ${kind||''}" id="fb"><span class="mk">${SigmaKit.maki(kind==='info'?'neutre':'pense')}</span><div>${msg}</div></div>`:''}
+function err(msg){S.qerr++;sfx('ko');fb(`<b>Pas tout à fait.</b><p>${msg}</p>`)}
+async function busy(fn){S.busy=true;document.body.classList.add('busy');try{await fn()}finally{S.busy=false;document.body.classList.remove('busy')}}
+function partDone(el){el.classList.add('done');el.querySelectorAll('button,input').forEach(x=>x.disabled=true);fb('');S.pi++;
+  if(S.pi<S.q.parts.length)renderPart();else win()}
+function win(){
+  const ok=!S.qerr;if(ok)S.score++;S.res.push(ok);dots();sfx('ok');
+  const last=S.qi===S.qs.length-1;
+  $('winw').innerHTML=`<div class="win" id="win"><div class="top"><span class="mk">${SigmaKit.maki(ok?'bravo':'joie')}</span><div class="big">${ok?'Du premier coup&nbsp;!':'Réussi&nbsp;!'}</div></div><p>${S.q.rule}</p><button class="btn or" id="next">${last?'Terminer le niveau':'Question suivante →'}</button></div>`;
+  $('next').onclick=()=>{if(S.busy)return;if(last)endLevel();else{S.qi++;showQ();window.scrollTo({top:Math.min(window.scrollY,$('panel').offsetTop-8)})}};
+  setTimeout(()=>{try{$('next').focus({preventScroll:true})}catch(e){}},60);
+}
+function endLevel(){
+  const L=S.lvl;
+  SigmaKit.levelComplete({level:L+1,score:S.score,total:S.qs.length}).then(v=>{renderLv();
+    if(v==='next'&&L+1<LV.length)startLevel(L+1);else if(v==='replay')startLevel(L)});
+}
+const nw=t=>t.replace(/(\{\d+\}) × 10<sup>(\{\d+\})<\/sup>/g,'<span class="nw">$1 × 10<sup>$2</sup></span>');
+const KP=['1','2','3','4','5','6','7','8','9','0','−',',','/','⌫'];/* 5 colonnes */
+function renderPart(){
+  const p=S.q.parts[S.pi],el=document.createElement('div');el.className='part';el.dataset.t=p.t;
+  let h=p.ask?`<p class="ask">${p.ask}</p>`:'';
+  if(p.t==='zoom'){p.cur=SC.n;h+=`<div class="btns">${p.ops.map((op,i)=>`<button class="btn ${i===0?'or':''} zb" data-op="${op}">${op==='mul'?'×':'÷'}${bLab(SC.base)}</button>`).join('')}</div><p class="hint">Exposant atteint&nbsp;: <b class="zn">${N(SC.n)}</b> · objectif&nbsp;: ${N(p.target)}</p>`}
+  else if(p.t==='jumps'){p.left=p.btns.map(b=>b.times||1);h+=`<div class="btns">${p.btns.map((b,i)=>`<button class="btn ${i===0?'or':''} jb" data-j="${i}">${b.label}${(b.times||1)>1?`<span class="cnt">${b.times} fois</span>`:''}</button>`).join('')}</div>`}
+  else if(p.t==='sci')h+=`<div class="btns"><button class="btn or sb" data-d="-1">Zoom avant · ×10</button><button class="btn sb" data-d="1">Zoom arrière · ÷10</button></div><p class="hint">Zoom avant&nbsp;: la graduation devient 10 fois plus petite, la lecture est multipliée par 10.</p>`;
+  else if(p.t==='side'){const steps=SC.dec?[[-10,'−1'],[-1,'−0,1'],[1,'+0,1'],[10,'+1']]:[[-1,'− 1'],[1,'+ 1']];p.seen=new Set([SC.s]);
+    h+=`<div class="btns">${steps.map(s=>`<button class="btn ${s[0]>0?'or':''} qb" data-d="${s[0]}" aria-label="côté ${s[1]}">côté ${s[1]}</button>`).join('')}</div>`}
+  else if(p.t==='tile'){const kk=Math.min(10,Math.floor(Math.sqrt(p.N)));p.kmax=kmaxOf(p.N);h+=`<div class="chips">${Array.from({length:kk-1},(_,i)=>i+2).map(k=>`<button class="chip" data-k="${k}">${k}</button>`).join('')}</div>`}
+  else if(p.t==='act')h+=`<div class="btns"><button class="btn or act">${p.label}</button></div>`;
+  else if(p.t==='choice')h+=`<div class="opts">${p.choices.map((c,j)=>`<button class="opt" data-j="${j}">${c}</button>`).join('')}</div>`;
+  else if(p.t==='fill'){p.tries=0;let i=0;const cls=p.w===2?'in xw':p.w?'in w':'in';
+    h+=`<form class="ff" novalidate>${p.tpl.map(t=>`<div class="fl">${nw(t).replace(/\{(\d+)\}/g,(_,k)=>`<input class="${cls}" data-i="${k}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Réponse ${+k+1}">`)}${p.unit?' '+p.unit:''}</div>`).join('')}
+    <div class="btns"><button class="btn or" type="submit">Valider</button></div><div class="kp" aria-label="Pavé numérique">${KP.map(k=>`<button type="button" data-k="${k}" aria-label="${k==='⌫'?'effacer':k}">${k}</button>`).join('')}</div></form>`}
+  el.innerHTML=h;$('work').appendChild(el);wire(p,el);
+}
+function wire(p,el){
+  if(p.t==='zoom'){el.querySelectorAll('.zb').forEach(b=>b.onclick=()=>{if(S.busy)return;busy(async()=>{
+    await zStep(b.dataset.op==='mul'?1:-1);el.querySelector('.zn').textContent=N(SC.n);
+    if(SC.n===p.target){sfx('ok');partDone(el)}
+    else if((b.dataset.op==='mul'&&SC.n>p.target&&p.ops.length===1)){SC.n=0;await wait(250);sceneZoom({base:SC.base,lo:SC.lo,hi:SC.hi});el.querySelector('.zn').textContent='0';fb('Trop loin&nbsp;! On repart de zéro.','info')}
+    else if(Math.abs(SC.n-p.target)>6){fb('Tu t’éloignes&nbsp;: change de sens.','info')}
+  })})}
+  else if(p.t==='jumps'){el.querySelectorAll('.jb').forEach(b=>b.onclick=()=>{if(S.busy)return;const j=+b.dataset.j;if(!p.left[j])return;busy(async()=>{
+    const d=p.btns[j].d;await zJump(d,(d>0?'+':MI)+Math.abs(d));p.left[j]--;
+    const c=b.querySelector('.cnt');if(c)c.textContent=p.left[j]?`encore ${p.left[j]}`:'fait';if(!p.left[j])b.disabled=true;
+    if(p.left.every(x=>!x))partDone(el)})})}
+  else if(p.t==='sci'){el.querySelectorAll('.sb').forEach(b=>b.onclick=()=>{if(S.busy)return;busy(async()=>{await sciZoom(+b.dataset.d);if(sciNorm()){sfx('ok');partDone(el)}})})}
+  else if(p.t==='side'){const chk=()=>{p.seen.add(SC.s);if(p.target!==undefined?SC.s===p.target:p.visit.every(v=>p.seen.has(v))){SQ_CB=null;sfx('ok');partDone(el)}};
+    SQ_CB=(end)=>{p.seen.add(SC.s);if(end)chk()};
+    el.querySelectorAll('.qb').forEach(b=>b.onclick=()=>{if(S.busy)return;const s=SC.s+(+b.dataset.d),mx=SC.max*(SC.dec?10:1);if(s<1||s>mx){fb('Le carré ne peut pas sortir du viseur.','info');return}SC.s=s;sfx('clic');drawSq();chk()})}
+  else if(p.t==='tile'){el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{if(S.busy)return;const k=+b.dataset.k;SC.k=k;drawTile();
+    if(p.N%(k*k)){b.classList.add('no');err(`${k} × ${k} = ${k*k} carreaux : ${N(p.N)} ÷ ${k*k} n'est pas un nombre entier.`)}
+    else if(k<p.kmax){b.classList.add('mid');sfx('pop');fb(`Juste&nbsp;: √${p.N} = ${k}√${p.N/(k*k)}. Mais √${p.N/(k*k)} se simplifie encore&nbsp;: essaie plus de carreaux.`,'info')}
+    else{b.classList.add('yes');sfx('ok');partDone(el)}})}
+  else if(p.t==='act'){el.querySelector('.act').onclick=()=>{if(S.busy)return;busy(async()=>{await p.run();partDone(el)})}}
+  else if(p.t==='choice'){el.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{if(S.busy)return;const j=+b.dataset.j;
+    if(j===p.ok){b.classList.add('ok');sfx('ok');if(p.then)busy(async()=>{el.querySelectorAll('.opt').forEach(x=>x.disabled=true);await p.then();partDone(el)});else partDone(el)}
+    else{b.classList.add('ko');b.disabled=true;err(p.why[j]||'Relis la règle du cours.')}})}
+  else if(p.t==='fill'){const f=el.querySelector('form'),ins=[...el.querySelectorAll('.in')];let last=ins[0];
+    if(document.body.classList.contains('touch'))ins.forEach(i=>i.setAttribute('inputmode','none'));
+    ins.forEach(i=>{i.onfocus=()=>{last=i};i.oninput=()=>i.classList.remove('ko')});
+    el.querySelectorAll('.kp button').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(!last||last.disabled)return;if(k==='⌫')last.value=last.value.slice(0,-1);else last.value+=k;last.classList.remove('ko')});
+    setTimeout(()=>{try{if(!document.body.classList.contains('touch'))ins[0].focus({preventScroll:true})}catch(e){}},30);
+    f.onsubmit=e=>{e.preventDefault();if(S.busy)return;
+      let all=true;ins.forEach(i=>{const k=+i.dataset.i,ok=eqNum(parseNum(i.value),parseNum(p.ans[k]));i.classList.toggle('ok',ok);i.classList.toggle('ko',!ok);if(!ok)all=false});
+      if(all){sfx('ok');if(p.then)busy(async()=>{ins.forEach(x=>x.disabled=true);await p.then();partDone(el)});else partDone(el);return}
+      p.tries++;const empty=ins.some(i=>!i.value.trim());
+      err((empty?'Remplis chaque case. ':'')+p.hint+(p.tries>=2?`<br>Réponse attendue&nbsp;: <b style="display:inline">${p.ans.join(' ; ')}</b>. Recopie-la pour continuer.`:''));
+      const bad=ins.find(i=>i.classList.contains('ko'));if(bad&&!document.body.classList.contains('touch'))bad.focus()}}
+}
+
+/* ====================================================================
+   ÉPREUVES FINALES : Bronze, Argent, Or
+   ==================================================================== */
+function QC(level,prompt,good,bad,explain,kind){const ch=[good];bad.forEach(b=>{if(!ch.includes(b))ch.push(b)});if(ch.length<3)return null;return{type:'qcm',level,prompt,choices:ch.slice(0,4),answer:0,explain,kind}}
+function TR(level,prompt,answers,explain,kind,size){return{type:'trous',level,prompt:nw(prompt),blanks:answers.map((a,i)=>({answers:Array.isArray(a)?a:[String(a)],size:(Array.isArray(size)?size[i]:size)||4})),explain,kind}}
+const alt=s=>{const p=String(s).replace(/ /g,'');const a=[p];if(p.includes(MI))a.push(p.replace(MI,'-'));return a};
+const FIN={b:{qcm:{},trous:{}},a:{qcm:{},trous:{}},o:{qcm:{},trous:{}}};
+/* --- Bronze --- */
+FIN.b.qcm[1]=[()=>{const b=pick([-2,-3]),n=b===-2?pick([3,5]):3,v=ipow(b,n);return QC(1,`${ex(pw(b,n))} est égal à&nbsp;:`,N(v),[N(-v),N(b*n),N(-b*n)],`${pw(b,n)} = ${prodH(b,n)} = ${N(v)} : un nombre impair de facteurs négatifs donne un résultat négatif.`)},
+ ()=>{const a=pick([3,4,5]);return QC(1,`${ex(MI+pw(a,2))} est égal à&nbsp;:`,N(-a*a),[N(a*a),N(-2*a),N(2*a)],`Sans parenthèses, le carré porte seulement sur ${a}&nbsp;: ${MI}${pw(a,2)} = ${MI}(${a} × ${a}) = ${N(-a*a)}.`)},
+ ()=>{const a=pick([-7,3,15,-4,9]);return QC(1,`${ex(pw(a,0))} est égal à&nbsp;:`,'1',['0',N(a),'−1'],`Pour tout nombre a non nul, a<sup>0</sup> = 1.`)}];
+FIN.b.trous[1]=[()=>{const a=pick([2,3,5,10]),n=a===5?ri(2,3):a===10?ri(2,5):ri(2,4);return TR(1,`${ex(pw(a,n))} = {0}`,[[String(ipow(a,n))]],`${pw(a,n)} = ${prodH(a,n)} = ${N(ipow(a,n))}.`,'',6)},
+ ()=>{const n=ri(4,11),v=n%2?-1:1;return TR(1,`${ex(pw(-1,n))} = {0}`,[alt(N(v))],`(${MI}1)<sup>n</sup> vaut 1 si n est pair, ${MI}1 si n est impair.`,'',3)}];
+FIN.b.qcm[2]=[()=>{const k=ri(2,4);return QC(2,`${ex(pw(10,-k))} est égal à&nbsp;:`,dec(1,-k),[N(-ipow(10,k)),dec(1,-k+1),N(-10*k)],`${pw(10,-k)} = ${fr(1,N(ipow(10,k)))} = ${dec(1,-k)} : un exposant négatif donne un nombre positif plus petit que 1.`)},
+ ()=>{const[a,n]=pick([[2,3],[3,2],[5,2],[4,2]]);return QC(2,`${ex(pw(a,-n))} est égal à&nbsp;:`,fr(1,N(ipow(a,n))),[N(-ipow(a,n)),N(-a*n),fr(1,N(a*n))],`a<sup>−n</sup> = ${fr(1,'a<sup>n</sup>')} : ${pw(a,-n)} = ${fr(1,pw(a,n))} = ${fr(1,N(ipow(a,n)))}.`)}];
+FIN.b.trous[2]=[()=>{const[a,d,f]=pick([[2,'0,5','1/2'],[4,'0,25','1/4'],[5,'0,2','1/5'],[10,'0,1','1/10']]);return TR(2,`${ex(pw(a,-1))} = {0}`,[[d,f]],`a<sup>−1</sup> = ${fr(1,'a')} : ${pw(a,-1)} = ${fr(1,a)} = ${d}.`,'',4)},
+ ()=>{const a=pick([2,3,7]),n=ri(2,4);return TR(2,`${ex(fr(1,pw(a,n)))} = ${a}<sup>{0}</sup>`,[alt(N(-n))],`${fr(1,'a<sup>n</sup>')} = a<sup>−n</sup>.`,'',3)}];
+FIN.b.qcm[3]=[()=>{const a=pick([2,3,5]);let n,p;do{n=ri(2,5);p=ri(2,5)}while(n+p===n*p);return QC(3,`${ex(pw(a,n)+' × '+pw(a,p))} est égal à&nbsp;:`,pw(a,n+p),[pw(a,n*p),pw(a*a,n+p),pw(a*a,n*p)],`Même nombre : on ajoute les exposants, ${pw(a,n)} × ${pw(a,p)} = ${pw(a,n+p)}.`)}];
+FIN.b.trous[3]=[()=>{const a=pick([3,7,10]),n=ri(5,9),p=ri(2,n-1);return TR(3,`${ex(fr(pw(a,n),pw(a,p)))} = ${a}<sup>{0}</sup>`,[[String(n-p)]],`On soustrait les exposants&nbsp;: ${n} − ${p} = ${n-p}.`,'',3)},
+ ()=>{const a=pick([2,5]),n=ri(2,4),p=ri(2,3);return TR(3,`${ex(`(${pw(a,n)})${sup(p)}`)} = ${a}<sup>{0}</sup>`,[[String(n*p)]],`Puissance d'une puissance&nbsp;: on multiplie les exposants, ${n} × ${p} = ${n*p}.`,'',3)}];
+FIN.b.qcm[4]=[()=>{const D=pick([32,407,58,125,73]),n=ri(2,6),L=dig(D),w=sh=>`${dec(D,-(L-1)+sh)} × ${p10(n-sh)}`;return QC(4,'Laquelle de ces écritures est en notation scientifique&nbsp;?',w(0),[w(1),w(-1),w(2)],`En notation scientifique, le nombre devant 10<sup>n</sup> est entre 1 et 10 (10 exclu)&nbsp;: ${w(0)}.`,'nsci')}];
+FIN.b.trous[4]=[()=>{const d=ri(2,9),k=ri(3,6);return TR(4,`${ex(dec(d,k))} = ${d} × 10<sup>{0}</sup>`,[[String(k)]],`${dec(d,k)} : ${k} zéros après ${d}, donc ${d} × ${p10(k)}.`,'',3)},
+ ()=>{const d=ri(2,9),k=ri(2,5);return TR(4,`${ex(dec(d,-k))} = ${d} × 10<sup>{0}</sup>`,[alt(N(-k))],`${dec(d,-k)} : le chiffre ${d} est au rang des ${fr(1,N(ipow(10,k)))}, donc ${d} × ${p10(-k)}.`,'',3)}];
+FIN.b.qcm[5]=[()=>{let n,p;do{n=ri(-6,6);p=ri(-6,6)}while(!n||!p||!(n+p)||new Set([n+p,n*p,n-p]).size<3);return QC(5,`${ex(p10(n)+' × '+p10(p))} est égal à&nbsp;:`,p10(n+p),[p10(n*p),`100${sup(n+p)}`,p10(n-p)],`10<sup>n</sup> × 10<sup>p</sup> = 10<sup>n+p</sup> : ${N(n)} + (${N(p)}) = ${N(n+p)}.`)}];
+FIN.b.trous[5]=[()=>{let a,b;do{a=ri(1,4);b=ri(2,4)}while(a*b>=10||a===1);const n=ri(2,5),p=ri(2,5);return TR(5,`${ex(`(${a} × ${p10(n)}) × (${b} × ${p10(p)})`)} = {0} × 10<sup>{1}</sup>`,[[String(a*b)],[String(n+p)]],`On multiplie ${a} × ${b} = ${a*b} et on ajoute les exposants ${n} + ${p} = ${n+p}.`,'sci',3)}];
+FIN.b.qcm[6]=[()=>{const n=ri(4,9);return QC(6,`${ex(rt(n*n))} est égal à&nbsp;:`,N(n),[N(-n),dec(n*n*5,-1),N(2*n)],`√${n*n} est le nombre positif dont le carré vaut ${n*n}&nbsp;: c'est ${n}.`)},
+ ()=>{const a=pick([4,9,16,25]);return QC(6,`${ex(rt(MI+a))} est égal à&nbsp;:`,`${rt(MI+a)} n'existe pas`,[N(-Math.sqrt(a)),N(Math.sqrt(a))],`Un carré n'est jamais négatif&nbsp;: √a n'existe pas si a &lt; 0.`,'nexiste')}];
+FIN.b.trous[6]=[()=>{const n=ri(6,13);return TR(6,`${ex(rt(n*n))} = {0}`,[[String(n)]],`${n}<sup>2</sup> = ${n*n}, donc √${n*n} = ${n}.`,'',3)},
+ ()=>{const b=pick([3,7,11]);return TR(6,`${ex(`(${rt(b)})${sup(2)}`)} = {0}`,[[String(b)]],`(√a)<sup>2</sup> = a.`,'',3)}];
+FIN.b.qcm[7]=[()=>{const[a,b]=pick([[2,8],[3,12],[2,18],[2,32]]);const s=Math.sqrt(a*b);return QC(7,`${ex(rt(a)+' × '+rt(b))} est égal à&nbsp;:`,N(s),[rt(a+b),N(a*b),crt(2,a+b)],`√a × √b = √(ab)&nbsp;: √${a} × √${b} = √${a*b} = ${s}.`)}];
+FIN.b.trous[7]=[()=>{const n=pick([8,12,18,20,27,45,50]),k=kmaxOf(n);return TR(7,`${ex(rt(n))} = {0}${rt('{1}')}`,[[String(k)],[String(n/(k*k))]],`${n} = ${k*k} × ${n/(k*k)}, donc √${n} = ${k}√${n/(k*k)}.`,'ksqrt',3)}];
+/* --- Argent --- */
+FIN.a.qcm[1]=[()=>{const[a,n]=pick([[2,4],[3,4],[2,6],[5,2]]);return QC(1,`${ex(MI+pw(a,n))} est égal à&nbsp;:`,N(-ipow(a,n)),[N(ipow(a,n)),N(-a*n),N(a*n)],`Sans parenthèses&nbsp;: ${MI}${pw(a,n)} = ${MI}(${pw(a,n)}) = ${N(-ipow(a,n))}. C'est (${MI}${a})<sup>${n}</sup> qui vaut ${N(ipow(a,n))}.`)},
+ ()=>{const b=pick([-2,-3]),n=b===-2?pick([3,5,7]):pick([3,5]),v=ipow(b,n);return QC(1,`${ex(pw(b,n))} est égal à&nbsp;:`,N(v),[N(-v),N(b*n),N(-b*n)],`${n} facteurs négatifs (nombre impair)&nbsp;: le résultat est négatif, ${N(v)}.`)}];
+FIN.a.qcm[1].push(()=>{const[a,V]=pick([[2,1000],[3,200],[5,2000],[2,100]]);let n=0;while(ipow(a,n)<=V)n++;return Object.assign(QC(1,`La première puissance de ${a} supérieure à ${N(V)} est&nbsp;:`,pw(a,n),[pw(a,n-1),pw(a,n+1),N(ipow(a,n-1))],`${pw(a,n-1)} = ${N(ipow(a,n-1))} ≤ ${N(V)} et ${pw(a,n)} = ${N(ipow(a,n))} &gt; ${N(V)}.`),{kind:'first',first:{b:a,V,dir:'>'}})});
+FIN.a.trous[1]=[()=>{const[b,n]=pick([[-2,5],[-3,3],[-2,4],[-5,2],[-10,3]]);return TR(1,`${ex(pw(b,n))} = {0}`,[alt(N(ipow(b,n)))],`${pw(b,n)} = ${prodH(b,n)} = ${N(ipow(b,n))}.`,'',6)},
+ ()=>{const a=pick([2,3]),n=a===2?pick([4,6]):4;return TR(1,`${ex(MI+pw(a,n))} = {0}`,[alt(N(-ipow(a,n)))],`Sans parenthèses, la puissance porte seulement sur ${a}&nbsp;: ${MI}${pw(a,n)} = ${N(-ipow(a,n))}.`,'',5)}];
+FIN.a.qcm[2]=[()=>{const[b,k]=pick([[-2,3],[-2,1],[-3,1],[-2,5]]);const pq=powPQ(b,-k);return QC(2,`${ex(pw(b,-k))} est égal à&nbsp;:`,pqH(pq),[pqH([-pq[0],pq[1]]),N(ipow(b,k)),N(b*k)===N(ipow(b,k))?N(-b*k):N(b*k)],`${pw(b,-k)} = ${fr(1,pw(b,k))} = ${pqH(pq)}.`)},
+ ()=>{const a=pick([3,4,6]);return QC(2,`${ex(fr(1,pw(a,2)))} est égal à&nbsp;:`,pw(a,-2),[`(${MI}${a})${sup(2)}`,MI+pw(a,2),`${a}<sup>${MI}1</sup>`],`${fr(1,'a<sup>n</sup>')} = a<sup>−n</sup>&nbsp;: ${fr(1,pw(a,2))} = ${pw(a,-2)}.`)}];
+FIN.a.trous[2]=[()=>{const a=pick([2,5,7]),n=ri(2,3);return TR(2,`${ex(pw(a,-n))} = ${fr(1,'{0}')}`,[[String(ipow(a,n))]],`${pw(a,-n)} = ${fr(1,pw(a,n))} = ${fr(1,N(ipow(a,n)))}.`,'',4)},
+ ()=>{const k=ri(3,6);return TR(2,`${ex(dec(1,-k))} = 10<sup>{0}</sup>`,[alt(N(-k))],`${dec(1,-k)} = ${fr(1,N(ipow(10,k)))} = ${p10(-k)}.`,'',3)}];
+FIN.a.qcm[3]=[()=>{const a=pick([2,3,7]);let n,p;do{n=ri(2,5);p=ri(2,5)}while(n+p===n*p);return QC(3,`${ex(`(${pw(a,n)})${sup(p)}`)} est égal à&nbsp;:`,pw(a,n*p),[pw(a,n+p),`${p} × ${pw(a,n)}`,pw(a*a,n*p)],`(a<sup>n</sup>)<sup>p</sup> = a<sup>n×p</sup>&nbsp;: ${pw(a,n*p)}.`)},
+ ()=>{const a=pick([5,3,2]),n=ri(2,5),p=ri(n+1,n+4);return QC(3,`${ex(fr(pw(a,n),pw(a,p)))} est égal à&nbsp;:`,pw(a,n-p),[pw(a,p-n),pw(a,n+p),pw(1,n-p)],`On soustrait les exposants&nbsp;: ${n} − ${p} = ${N(n-p)}.`)}];
+FIN.a.trous[3]=[()=>{const[a,b]=pick([[6,9],[2,5],[3,4],[2,7]]),n=ri(3,7);return TR(3,`${ex(pw(a,n)+' × '+pw(b,n))} = {0}<sup>${n}</sup>`,[[String(a*b)]],`(ab)<sup>n</sup> = a<sup>n</sup>b<sup>n</sup>&nbsp;: ${pw(a,n)} × ${pw(b,n)} = ${pw(a*b,n)}.`,'',3)},
+ ()=>{const a=pick([3,7,10]),n=ri(2,6),p=ri(-8,-2);return TR(3,`${ex(pw(a,n)+' × '+pw(a,p))} = ${a}<sup>{0}</sup>`,[alt(N(n+p))],`On ajoute les exposants&nbsp;: ${n} + (${N(p)}) = ${N(n+p)}.`,'',3)}];
+FIN.a.qcm[4]=[()=>{const[M,e]=pick([[52,-5],[384,6],[7,-6],[1274,4],[15,-2],[45,-4]]);const s=sciQ(M,e),L=dig(s.D);const w=sh=>`${dec(s.D,-(L-1)+sh)} × ${p10(s.n-sh)}`;
+ return QC(4,`Notation scientifique de ${ex(dec(M,e))}&nbsp;:`,w(0),[w(1),`${s.a} × ${p10(-s.n)}`,`${s.a} × ${p10(s.n+(s.n>0?-1:1))}`],`${dec(M,e)} = ${w(0)}, avec 1 ≤ ${s.a} &lt; 10.`,'nsci_of')}];
+FIN.a.trous[4]=[()=>{const o=OBJ[pick([...SMALL,...BIG])],s=sciQ(o.M,o.e);return TR(4,`${o.name} (en m)&nbsp;: ${ex(dec(o.M,o.e))} = {0} × 10<sup>{1}</sup>`,[alt(s.a),alt(N(s.n))],`${dec(o.M,o.e)} = ${s.a} × ${p10(s.n)}.`,'sci',[4,3])},
+ ()=>{const D=pick([28,45,36,72,125]),n=pick([-13,-8,6,9]),s=sciQ(D,n);return TR(4,`En notation scientifique&nbsp;: ${ex(N(D)+' × '+p10(n))} = {0} × 10<sup>{1}</sup>`,[alt(s.a),alt(N(s.n))],`${N(D)} = ${s.a} × ${p10(s.n-n)}, donc ${N(D)} × ${p10(n)} = ${s.a} × ${p10(s.n)}.`,'sci',[4,3])}];
+FIN.a.qcm[5]=[()=>{let a,b;do{a=ri(2,9);b=ri(2,9)}while(a*b<10);const n=pick([-5,-3,4]),p=pick([-8,-2,6]);const s=sciQ(a*b,n+p);return QC(5,`${ex(`(${a} × ${p10(n)}) × (${b} × ${p10(p)})`)} en notation scientifique&nbsp;:`,`${s.a} × ${p10(s.n)}`,[`${a*b} × ${p10(n+p)}`,`${s.a} × ${p10(n*p+1)}`,`${s.a} × ${p10(n+p-1)}`],`${a} × ${b} = ${a*b} et ${N(n)} + (${N(p)}) = ${N(n+p)}, puis ${a*b} = ${s.a} × 10.`,'nsci_of')}];
+FIN.a.trous[5]=[()=>{const[a,b]=pick([[8,4],[6,3],[9,3],[8,2]]),n=pick([6,5,-3]),p=pick([-2,3,-6]);const s=sciQ(a/b,n-p);return TR(5,`${ex(fr(`${a} × ${p10(n)}`,`${b} × ${p10(p)}`))} = {0} × 10<sup>{1}</sup>`,[alt(s.a),alt(N(s.n))],`${a} ÷ ${b} = ${a/b} et ${N(n)} − (${N(p)}) = ${N(n-p)}.`,'sci',[4,3])},
+ ()=>{let a,b;do{a=ri(2,9);b=ri(2,9)}while(a*b<10);const n=-ri(2,5),p=-ri(2,8);const s=sciQ(a*b,n+p);return TR(5,`${ex(`${a} × ${p10(n)} × ${b} × ${p10(p)}`)} = {0} × 10<sup>{1}</sup> (notation scientifique)`,[alt(s.a),alt(N(s.n))],`${a} × ${b} = ${a*b} = ${s.a} × 10 et ${N(n)} + (${N(p)}) + 1 = ${N(s.n)}.`,'sci',[4,3])}];
+FIN.a.qcm[6]=[()=>{const[a,b]=pick([[9,16],[36,64],[25,144]]);return QC(6,`${ex(rt(`${a} + ${b}`))} est égal à&nbsp;:`,N(Math.sqrt(a+b)),[N(Math.sqrt(a)+Math.sqrt(b)),N(a+b),dec(5*(a+b),-1)],`√(${a} + ${b}) = √${a+b} = ${Math.sqrt(a+b)}. Attention&nbsp;: √a + √b ≠ √(a + b).`)},
+ ()=>{const a=ri(3,9);return QC(6,`${ex(rt(`(${MI}${a})${sup(2)}`))} est égal à&nbsp;:`,N(a),[N(-a),`${rt(`(${MI}${a})${sup(2)}`)} n'existe pas`,N(a*a)],`(${MI}${a})<sup>2</sup> = ${a*a} et √${a*a} = ${a}&nbsp;: √(a<sup>2</sup>) = |a|.`)}];
+FIN.a.trous[6]=[()=>{const[A,s]=pick([[676,26],[9,3],[144,12],[25,5],[169,13]]);return TR(6,`${ex(rt(dec(A,-2)))} = {0}`,[alt(dec(s,-1))],`${dec(s,-1)}<sup>2</sup> = ${dec(A,-2)}.`,'',4)},
+ ()=>{const a=ri(4,9);return TR(6,`${ex(rt(`(${MI}${a})${sup(2)}`))} = {0}`,[[String(a)]],`√(a<sup>2</sup>) = |a|&nbsp;: √((${MI}${a})<sup>2</sup>) = ${a}.`,'',3)}];
+FIN.a.qcm[7]=[()=>{const[r,p,s]=pick([[2,1,2],[3,1,2],[2,2,3],[5,1,2]]);const A=p*p*r,B=s*s*r;return QC(7,`${ex(rt(A)+' + '+rt(B))} est égal à&nbsp;:`,crt(p+s,r),[rt(A+B),crt(p*s,r),crt(p+s,2*r)],`${rt(A)} = ${crt(p,r)} et ${rt(B)} = ${crt(s,r)}, même famille&nbsp;: ${crt(p+s,r)}.`)},
+ ()=>{const[a,b,p,q]=pick([[50,72,5,6],[12,27,2,3],[8,50,2,5],[18,8,3,2]]);return QC(7,`${ex(fr(rt(a),rt(b)))} est égal à&nbsp;:`,fr(p,q),[fr(p*p,q*q),fr(q,p),rt(a-b>0?a-b:b-a)],`${fr('√a','√b')} = √(${fr('a','b')})&nbsp;: √(${fr(a,b)}) = √(${fr(p*p,q*q)}) = ${fr(p,q)}.`)}];
+FIN.a.trous[7]=[()=>{const n=pick([48,72,75,98,63,80]),k=kmaxOf(n);return TR(7,`${ex(rt(n))} = {0}${rt('{1}')}`,[[String(k)],[String(n/(k*k))]],`${n} = ${k*k} × ${n/(k*k)} (plus grand carré parfait&nbsp;: ${k*k}), donc √${n} = ${k}√${n/(k*k)}.`,'ksqrt',3)},
+ ()=>{const r=pick([2,3,5]),a=ri(2,4),b=ri(3,8),c=ri(2,3);return TR(7,`${ex(rt(a*a*r)+' + '+b+rt(r)+' − '+rt(c*c*r))} = {0}${rt(r)}`,[[String(a+b-c)]],`${rt(a*a*r)} = ${crt(a,r)} et ${rt(c*c*r)} = ${crt(c,r)}, donc ${a} + ${b} − ${c} = ${a+b-c}.`,'',3)}];
+/* --- Or --- */
+FIN.o.qcm[1]=[()=>{const n=pick([2,3]),p=pick([3,4]);const s=n+p,v=ipow(-2,s);return QC(1,`${ex(pw(-2,n)+' × '+pw(-2,p))} est égal à&nbsp;:`,N(v),[N(-v),N(ipow(-2,n*p)),N(ipow(4,s))],`Même nombre ${MI}2&nbsp;: (${MI}2)<sup>${n}+${p}</sup> = (${MI}2)<sup>${s}</sup> = ${N(v)}.`)},
+ ()=>{const a=pick([2,3]),n=pick([2,4]);const v=ipow(a,n);return QC(1,`${ex(`${MI}${pw(a,n)} + (${MI}${a})${sup(n)}`)} est égal à&nbsp;:`,'0',[N(2*v),N(-2*v),N(v)],`${MI}${pw(a,n)} = ${N(-v)} et (${MI}${a})<sup>${n}</sup> = ${N(v)}&nbsp;: la somme vaut 0.`)}];
+FIN.o.trous[1]=[()=>{const n=ri(2,5);return TR(1,`${ex(pw(2,n)+' + '+pw(2,n))} = 2<sup>{0}</sup>`,[[String(n+1)]],`${pw(2,n)} + ${pw(2,n)} = 2 × ${pw(2,n)} = ${pw(2,n+1)} (et non 2<sup>${2*n}</sup>).`,'',3)},
+ ()=>{const a=pick([3,4,5]);return TR(1,`${ex(`(${MI}${a})${sup(2)} − ${pw(a,2)} + (${MI}${a})${sup(0)}`)} = {0}`,[['1']],`(${MI}${a})<sup>2</sup> = ${a*a}, ${pw(a,2)} = ${a*a} et (${MI}${a})<sup>0</sup> = 1&nbsp;: le total vaut 1.`,'',3)}];
+FIN.o.qcm[2]=[()=>{return QC(2,`${ex(pw(8,3)+' × '+pw(4,-2))} est égal à&nbsp;:`,pw(2,5),[pw(2,9),pw(2,13),pw(2,1)],`${pw(8,3)} = ${pw(2,9)} et ${pw(4,-2)} = ${pw(2,-4)}, donc 2<sup>9−4</sup> = ${pw(2,5)}.`)},
+ ()=>{const k=pick([2,3]);return QC(2,`${ex(`${pw(2,-k)} × ${pw(4,k)}`)} est égal à&nbsp;:`,N(ipow(2,k)),[fr(1,N(ipow(2,k))),'1',N(ipow(8,k))],`${pw(4,k)} = ${pw(2,2*k)}, donc 2<sup>${MI}${k}+${2*k}</sup> = ${pw(2,k)} = ${ipow(2,k)}.`)}];
+FIN.o.trous[2]=[()=>{const a=pick([2,3]),n=pick([-2,-3]),p=pick([-2,-3]),q=n*p;return TR(2,`${ex(`(${pw(a,n)})${sup(p)} × ${pw(a,-q)}`)} = {0}`,[['1']],`(${pw(a,n)})<sup>${N(p)}</sup> = ${pw(a,q)}, puis ${pw(a,q)} × ${pw(a,-q)} = ${pw(a,0)} = 1.`,'',3)},
+ ()=>{const n=ri(4,6),m=ri(1,3),p=ri(n+1,n+3);return TR(2,`${ex(fr(`${pw(2,n)} × ${pw(2,-m)}`,pw(2,p)))} = 2<sup>{0}</sup>`,[alt(N(n-m-p))],`${n} + (${N(-m)}) − ${p} = ${N(n-m-p)}.`,'',3)}];
+FIN.o.trous[2].push(()=>{const[V,Vh]=pick([[1000,'0,001'],[100,'0,01'],[10000,'0,0001']]);let k=0;while(ipow(2,k)<=V)k++;return Object.assign(TR(2,`Première puissance de 2 inférieure à ${Vh}&nbsp;: 2<sup>{0}</sup> &lt; ${Vh}`,[alt(N(-k))],`${pw(2,-(k-1))} = ${fr(1,N(ipow(2,k-1)))} ≥ ${Vh} et ${pw(2,-k)} = ${fr(1,N(ipow(2,k)))} &lt; ${Vh}.`,'first',3),{first:{b:2,V:Vh,dir:'<'}})});
+FIN.o.qcm[3]=[()=>{const a=pick([3,5]);let n,p,q,r;do{n=ri(2,4);p=ri(2,3);q=ri(2,9);r=n*p-q}while(!r||n+p===n*p);return QC(3,`${ex(fr(`(${pw(a,n)})${sup(p)}`,pw(a,q)))} est égal à&nbsp;:`,pw(a,r),[pw(a,n+p-q),pw(a,n*p+q),pw(a,-r)],`(${pw(a,n)})<sup>${p}</sup> = ${pw(a,n*p)}, puis ${n*p} − ${q} = ${N(r)}.`)}];
+FIN.o.trous[3]=[()=>{const a=4;return TR(3,`${ex(fr(`${pw(a,3)} × ${pw(a,-5)}`,`(${pw(a,2)})${sup(-3)}`))} = 4<sup>{0}</sup>`,[['4']],`Numérateur&nbsp;: 4<sup>3−5</sup> = 4<sup>−2</sup>. Dénominateur&nbsp;: 4<sup>−6</sup>. Donc 4<sup>−2−(−6)</sup> = 4<sup>4</sup>.`,'',3)},
+ ()=>{const[a,b]=pick([[2,5],[4,25],[5,2]]),n=ri(3,6);return TR(3,`${ex(pw(a,n)+' × '+pw(b,n))} = 10<sup>{0}</sup>`,[[String(n*(a*b===10?1:2))]],`(${a} × ${b})<sup>${n}</sup> = ${pw(a*b,n)} = ${a*b===10?pw(10,n):`(${pw(10,2)})${sup(n)} = ${pw(10,2*n)}`}.`,'',3)}];
+FIN.o.qcm[4]=[()=>{const[g,c]=pick([[[7,-6],[7,-5]],[[1,-7],[1,-5]],[[2,-9],[2,-7]]]);const r=ipow(10,c[1]-g[1]);return Object.assign(QC(4,`Un objet mesure ${g[0]} × ${p10(g[1])} m, un autre ${c[0]} × ${p10(c[1])} m. Le second est plus grand que le premier&nbsp;:`,`${N(r)} fois`,[`${c[1]-g[1]} fois`,`${N(r*10)} fois`,`${fr(1,N(r))} fois`],`${fr(`${c[0]} × ${p10(c[1])}`,`${g[0]} × ${p10(g[1])}`)} = 10<sup>${N(c[1])}−(${N(g[1])})</sup> = ${N(r)}.`),{audit:`(${c[0]}*10**(${c[1]}))/(${g[0]}*10**(${g[1]}))`,kind:'fois'})}];
+FIN.o.trous[4]=[()=>{const a=pick([2,3,4,6,7,8,9]),n=pick([-3,-2,4]);const s=sciQ(a*a,2*n);return TR(4,`${ex(`(${a} × ${p10(n)})${sup(2)}`)} = {0} × 10<sup>{1}</sup> (notation scientifique)`,[alt(s.a),alt(N(s.n))],`${a}<sup>2</sup> = ${a*a} et (10<sup>${N(n)}</sup>)<sup>2</sup> = ${p10(2*n)}, d'où ${sciH(a*a,2*n)}.`,'sci',[4,3])},
+ ()=>{return TR(4,`${ex(fr(`7 × ${p10(-4)} × 5 × ${p10(8)}`,`56 × ${p10(-9)}`))} = {0} × 10<sup>{1}</sup> (notation scientifique)`,[['6,25'],['12']],`${fr(35,56)} = 0,625 et 10<sup>−4+8+9</sup> = 10<sup>13</sup>&nbsp;: 0,625 × 10<sup>13</sup> = 6,25 × 10<sup>12</sup>.`,'sci',[4,3])}];
+FIN.o.qcm[5]=[()=>{const v=pick([[6.4,10,3.2,6,'64','32'],[4.8,9,1.2,6,'48','12'],[9,12,4.5,8,'9','45']]);const[M1,e1,M2,e2,s1,s2]=v;const q=M1/M2,e=e1-e2;
+ const cap=`${dec(+s1,-(s1.length-1))} × ${p10(e1)}`,ph=`${dec(+s2,-(s2.length-1))} × ${p10(e2)}`;
+ return Object.assign(QC(5,`Une carte mémoire contient ${cap} octets. Une photo occupe ${ph} octets. Nombre de photos que l'on peut enregistrer&nbsp;:`,`${N(q)} × ${p10(e)}`,[`${N(q)} × ${p10(e1+e2)}`,`${dec(Math.round((M1-M2)*10),-1)} × ${p10(e)}`,`${N(q)} × ${p10(e2-e1)}`],`${fr(cap,ph)} = ${N(q)} × 10<sup>${e1}−${e2}</sup> = ${N(q)} × ${p10(e)}.`),{audit:`(${M1}*10**${e1})/(${M2}*10**${e2})`,kind:'situ'})}];
+FIN.o.trous[5]=[()=>{return Object.assign(TR(5,`La lumière parcourt 3 × ${p10(8)} m par seconde et met 5 × ${p10(2)} s pour venir du Soleil. Distance Soleil – Terre&nbsp;: {0} × 10<sup>{1}</sup> m.`,[['1,5'],['11']],`3 × 5 = 15 et 10<sup>8+2</sup> = 10<sup>10</sup>&nbsp;: 15 × 10<sup>10</sup> = 1,5 × 10<sup>11</sup> m.`,'sci',[4,3]),{audit:'3*10**8*5*10**2'})},
+ ()=>{const[a,b]=pick([[3,5],[4,6],[2,8]]);const n=-ri(3,6),p=-ri(2,5);const s=sciQ(a*b,n+p);return TR(5,`${ex(`${a} × ${p10(n)} × ${b} × ${p10(p)}`)} = {0} × 10<sup>{1}</sup> (notation scientifique)`,[alt(s.a),alt(N(s.n))],`${a} × ${b} = ${a*b} et ${N(n)} + (${N(p)}) = ${N(n+p)}, puis ${sciH(a*b,n+p)}.`,'sci',[4,3])}];
+FIN.o.qcm[6]=[()=>{const[A,k,b]=pick([[72,6,2],[50,5,2],[18,3,2],[75,5,3],[98,7,2]]);return Object.assign(QC(6,`Un terrain carré a une aire de ${A} m². La longueur de son côté, en m, est&nbsp;:`,crt(k,b),[N(A/2),crt(b,k),crt(k*k,b)],`Le côté vaut √${A} = √(${k*k} × ${b}) = ${k}√${b} m (et non ${A} ÷ 2).`),{audit:`sqrt(${A})`,kind:'situ'})}];
+FIN.o.trous[6]=[()=>{const[c,r]=pick([[3,2],[2,3],[2,5],[5,2]]);return Object.assign(TR(6,`Un carré a pour côté ${crt(c,r)} cm. Son aire vaut {0} cm².`,[[String(c*c*r)]],`(${crt(c,r)})<sup>2</sup> = ${c}<sup>2</sup> × (√${r})<sup>2</sup> = ${c*c} × ${r} = ${c*c*r}.`,'',3),{audit:`(${c}*sqrt(${r}))**2`})},
+ ()=>{const[A,k,b]=pick([[50,5,2],[72,6,2],[18,3,2],[75,5,3]]);return Object.assign(TR(6,`Un carré a une aire de ${A} cm². Son périmètre vaut {0}${rt('{1}')} cm.`,[[String(4*k)],[String(b)]],`Côté&nbsp;: √${A} = ${k}√${b}&nbsp;; périmètre&nbsp;: 4 × ${k}√${b} = ${4*k}√${b} cm.`,'ksqrt',3),{audit:`4*sqrt(${A})`})}];
+FIN.o.qcm[7]=[()=>{const[a,b]=pick([[5,3],[7,2],[8,5],[10,3]]);return QC(7,`${ex(`(${rt(a)} − ${rt(b)})(${rt(a)} + ${rt(b)})`)} est égal à&nbsp;:`,N(a-b),[N(a+b),rt(a-b),`${N(a-b)} − 2${rt(a*b)}`],`(√a − √b)(√a + √b) = a − b = ${a} − ${b} = ${a-b}.`)}];
+FIN.o.trous[7]=[()=>{const[p,q]=pick([[1,7],[3,2],[4,3],[2,5]]);const sg=pick([1,-1]);return TR(7,`${ex(sg>0?`(${rt(q)} + ${p})${sup(2)}`:`(${p} − ${rt(q)})${sup(2)}`)} = {0} ${sg>0?'+':'−'} {1}${rt(q)}`,[[String(p*p+q)],[String(2*p)]],`(a ${sg>0?'+':'−'} b)<sup>2</sup> = a<sup>2</sup> ${sg>0?'+':'−'} 2ab + b<sup>2</sup>&nbsp;: ${p*p} + ${q} ${sg>0?'+':'−'} ${2*p}√${q}.`,'',3)},
+ ()=>{const r=pick([2,3]);const[a,b,c]=r===2?pick([[2,3,1],[1,3,1],[3,2,1]]):pick([[2,5,3],[1,4,2]]);return TR(7,`${ex(`${rt(a*a*r)} + ${rt(b*b*r)} − ${rt(c*c*r)}`)} = {0}${rt(r)}`,[[String(a+b-c)]],`On simplifie chaque racine&nbsp;: ${crt(a,r)} + ${crt(b,r)} − ${crt(c,r)} = ${crt(a+b-c,r)}.`,'',3)}];
+
+function buildFinal(t){
+  for(let tries=0;tries<200;tries++){
+    let lv=[1,2,3,4,5,6,7];
+    lv=lv.concat(t==='b'?shuf([1,2,4,6,1,6]).slice(0,3):shuf([1,2,3,4,5,6,7]).slice(0,3));
+    const types=shuf(['qcm','qcm','qcm','qcm','qcm','qcm','trous','trous','trous','trous']);
+    lv=shuf(lv);const Q=[],seen=new Set();let ok=true;
+    for(let i=0;i<10;i++){let q=null;for(let k=0;k<30&&!q;k++){const pool=FIN[t][types[i]][lv[i]];const g=pick(pool);const c=g();if(c&&!seen.has(c.prompt))q=c}
+      if(!q){ok=false;break}seen.add(q.prompt);Q.push(q)}
+    if(ok){window.ZC_lastFinal=Q;return Q}
+  }
+  throw new Error('épreuve impossible');
+}
+
+/* ====================================================================
+   DÉMARRAGE
+   ==================================================================== */
+if(matchMedia('(pointer: coarse)').matches)document.body.classList.add('touch');
+SigmaKit.init({game:GAME,title:'Zoom Carré',levels:LV.length,levelNames:LV.map(l=>l.name),music:'epique',
+  finals:{bronze:()=>buildFinal('b'),argent:()=>buildFinal('a'),or:()=>buildFinal('o')}});
+startLevel(0);
+/* interface de test (lecture seule) */
+window.ZC={state:()=>{const p=S.q&&S.q.parts[S.pi];return{lvl:S.lvl,qi:S.qi,nq:S.qs.length,pi:S.pi,busy:S.busy,score:S.score,
+  sc:{mode:SC.mode,n:SC.n,s:SC.s,k:SC.k,dec:SC.dec},
+  part:p?{t:p.t,target:p.target,ops:p.ops,ans:p.ans,ok:p.ok,N:p.N,kmax:p.N?kmaxOf(p.N):null,visit:p.visit,btns:p.btns&&p.btns.map(b=>({d:b.d,times:b.times||1})),nchoices:p.choices&&p.choices.length}:null}},
+  gen:L=>LV[L].gen().map(f=>{const q=f();return{prompt:q.prompt,rule:q.rule,scene:q.scene,parts:q.parts.map(p=>({t:p.t,ask:p.ask,tpl:p.tpl,ans:p.ans,choices:p.choices,ok:p.ok,kind:p.kind,first:p.first,target:p.target,N:p.N,visit:p.visit,btns:p.btns&&p.btns.map(b=>({d:b.d,times:b.times||1,label:b.label}))}))}}),
+  final:t=>buildFinal(t),start:startLevel};
+</script>
+</body>
+</html>
