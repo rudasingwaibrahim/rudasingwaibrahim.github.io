@@ -199,7 +199,7 @@
     fanfare('level');
     var name = cfg.levelNames && cfg.levelNames[o.level - 1] ? ' · ' + cfg.levelNames[o.level - 1] : '';
     var last = o.level >= cfg.levels;
-    var msg = n === 3 ? 'Sans faute&nbsp;: bravo\u00a0!' : n === 2 ? 'Très bien joué\u00a0!' : 'Niveau terminé : rejoue-le pour gagner plus d\'étoiles.';
+    var msg = n === 3 ? 'Sans faute&nbsp;: bravo\u00a0!' : n === 2 ? 'Très bien joué\u00a0!' : 'Niveau terminé\u00a0: rejoue-le pour gagner plus d\'étoiles.';
     return new Promise(function (res) {
       var m = modal('<div class="sk-head">' + maki(n === 3 ? 'bravo' : 'joie') + '<div><h2>Niveau ' + o.level + ' réussi&nbsp;!</h2><p>' + cfg.title + name + '</p></div></div>' +
         '<div class="sk-body sk-big"><div>' + stars(n) + '</div><p style="margin:10px 0 0;font-size:18px"><b>' + o.score + ' / ' + o.total + '</b> du premier coup. ' + msg + '</p>' +
@@ -219,7 +219,7 @@
   function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   /* ---------------- trois épreuves : Bronze, Argent, Or ---------------- */
   var TIERS = [
-    { id: 'bronze', name: 'Bronze', sub: 'Les bases', desc: 'Les automatismes indispensables : une étape, des nombres simples.', col: '#cd7f32', col2: '#8a4f1c' },
+    { id: 'bronze', name: 'Bronze', sub: 'Les bases', desc: 'Les automatismes indispensables\u00a0: une étape, des nombres simples.', col: '#cd7f32', col2: '#8a4f1c' },
     { id: 'argent', name: 'Argent', sub: 'La maîtrise', desc: 'Toute la notion, avec les pièges classiques.', col: '#c9d2de', col2: '#7d8896' },
     { id: 'or', name: 'Or', sub: 'L’expert', desc: 'Plusieurs étapes, des notions mélangées, des situations concrètes.', col: '#e8c766', col2: '#a8862c' }
   ];
@@ -263,7 +263,7 @@
     var cards = TIERS.filter(function (t) { return F[t.id]; }).map(function (t) {
       var r = f[t.id], open = unlocked(t.id), got = !!(r && r.acquis);
       var st = got ? '<span class="sk-ti-st ok">Médaille obtenue · record ' + r.best + ' / ' + r.total + '</span>'
-        : r ? '<span class="sk-ti-st">Record : ' + r.best + ' / ' + r.total + ' · il faut ' + Math.ceil(.8 * r.total) + '</span>'
+        : r ? '<span class="sk-ti-st">Record\u00a0: ' + r.best + ' / ' + r.total + ' · il faut ' + Math.ceil(.8 * r.total) + '</span>'
         : open ? '<span class="sk-ti-st">À tenter</span>'
         : '<span class="sk-ti-st lock">🔒 Obtiens d’abord la médaille ' + (t.id === 'or' ? 'd’Argent' : 'de Bronze') + '</span>';
       return '<div class="sk-ti' + (open ? '' : ' locked') + (got ? ' got' : '') + '">' + medal(t.id, got) +
@@ -272,7 +272,7 @@
     }).join('');
     var m = modal('<div class="sk-head">' + maki('pense') + '<div><h2>Épreuves finales</h2><p>' + cfg.title + ' · 10 questions sans aide, 8 bonnes réponses pour la médaille.</p></div></div>' +
       '<div class="sk-body"><div class="sk-tis">' + cards + '</div>' +
-      '<details class="sk-prof"><summary>Professeur : débloquer les trois épreuves</summary>' +
+      '<details class="sk-prof"><summary>Professeur\u00a0: débloquer les trois épreuves</summary>' +
       '<form class="sk-prof-f"><input class="sk-in" style="width:9em" placeholder="code" aria-label="Code professeur" autocomplete="off"><button class="sk-btn gh" type="submit">Débloquer</button><span class="sk-prof-m"></span></form></details>' +
       '<div class="sk-row"><button class="sk-btn gh" data-x="1">Fermer</button></div></div>');
     m.el.addEventListener('click', function (e) {
@@ -362,7 +362,7 @@
   /* ---------------- bouton « Épreuves » ---------------- */
   function mountFinalButton() {
     var b = document.createElement('button'); b.type = 'button'; b.className = 'sk-final-btn sk-launch';
-    b.innerHTML = medal('or', true) + '<span class="l">Épreuves finales</span><span class="s">Épreuves</span>'; b.title = 'Épreuves finales : Bronze, Argent, Or';
+    b.innerHTML = medal('or', true) + '<span class="l">Épreuves finales</span><span class="s">Épreuves</span>'; b.title = 'Épreuves finales\u00a0: Bronze, Argent, Or';
     b.onclick = function () { openFinal(); };
     var hdr = document.querySelector('header');
     if (hdr) { b.classList.remove('sk-launch'); b.style.margin = '8px 0 0'; hdr.appendChild(b); }
