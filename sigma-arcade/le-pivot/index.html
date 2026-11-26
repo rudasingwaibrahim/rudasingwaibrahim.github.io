@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le Pivot · Sigma Arcade</title>
+<meta name="description" content="Statistiques à deux variables en Terminale technologique : nuage de points, point moyen G, ajustement affine, droite des moindres carrés, calculatrice, interpolation et extrapolation, changement de variable. On fait tourner une droite autour de G et la somme des carrés des écarts fond sous les yeux.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours.
+   IDEA : la droite d'ajustement est une aiguille fixée sur le point moyen G ; on la fait pivoter et les carrés des écarts
+          verticaux grossissent ou fondent ; la droite des moindres carrés est celle où leur somme est la plus petite.
+   PICTURE : un repère de nuit ; points bleus, G doré, carrés corail qui deviennent or au minimum ; jauge de la somme à droite.
+   COLOUR and TYPE : « océan profond », violet-bleu pour la droite qu'on manipule et l'action, or pour G et les réussites,
+          corail pour les écarts ; Outfit.
+   LAYOUT : scène et légende à gauche (collées en haut sur téléphone), carnet du statisticien à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);--blue:#7fb2ff}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:72ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible,.stage:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:1000/620;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#050a16;user-select:none;-webkit-user-select:none}
+.stage.grab{touch-action:none;cursor:grab}.stage.grab:active{cursor:grabbing}
+.stage.pick{touch-action:none;cursor:crosshair}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg text{font-family:var(--sg-font)}
+.badge{position:absolute;left:10px;top:10px;z-index:2;font:600 13px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--mut);border:1px solid var(--soft);pointer-events:none;max-width:calc(100% - 200px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge:empty{display:none}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,23px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .45em}
+.capt .k{color:var(--gold2)}.capt .b{color:#9fb4ff}.capt .c{color:#ff8f8f}.capt .m{color:var(--mut);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin:8px 0 0;font-size:14px;color:var(--mut)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.legend .lm i{background:var(--blue)}.legend .lg i{background:var(--gold2);box-shadow:0 0 6px rgba(232,199,102,.7)}
+.legend .ld i{border-radius:2px;width:18px;height:3px;background:#8ea6ff;vertical-align:3px}
+.legend .ls i{border-radius:2px;background:rgba(255,107,107,.3);border:1px solid #ff8f8f}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.5;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(19px,2.2vw,23px)/2.2 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.4em;height:46px;margin:0 3px;padding:0 6px;font:700 21px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+/* tableaux de données */
+.tbw{overflow-x:auto;margin:4px 0 10px;-webkit-overflow-scrolling:touch}
+.tb{border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:17px}
+.tb th,.tb td{padding:5px 11px;border:1px solid var(--soft);text-align:center;white-space:nowrap}
+.tb th{font-weight:700;color:#aebfff;background:rgba(108,142,255,.08);font-style:italic}
+.tb td.hl{background:rgba(200,168,75,.16);color:var(--gold2);font-weight:700}
+.sk-q .tb{font-size:17px;margin:6px 0}
+.sk-q .tbw{margin:6px 0 4px}
+.v{font-style:italic}
+.nw{white-space:nowrap}
+.ov{text-decoration:overline;text-decoration-thickness:1.5px}
+/* le pilotage de la droite */
+.pilot{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
+.pilot .btn{min-width:52px;padding:0 12px;font-size:20px}
+.pilot input[type=range]{width:100%;height:44px;accent-color:#6c8eff;cursor:pointer;margin:0}
+.ro{display:flex;flex-wrap:wrap;gap:6px 18px;margin:10px 0 0;font-size:16px;color:var(--mut);font-variant-numeric:tabular-nums}
+.ro b{color:var(--ink)}.ro .tr-d{color:var(--ok)}.ro .tr-u{color:#ff8f8f}
+/* écran de calculatrice (générique) */
+.calc{margin:4px 0 12px;border-radius:14px;background:linear-gradient(160deg,#0b1a14,#07120e);border:1px solid rgba(127,224,170,.28);padding:12px 14px;
+  font:600 16px/1.45 var(--sg-mono);color:#bff5d6;font-variant-numeric:tabular-nums;box-shadow:inset 0 0 30px rgba(127,224,170,.06)}
+.calc .ct{font:600 12px var(--sg-font);letter-spacing:.08em;text-transform:uppercase;color:rgba(191,245,214,.6);margin-bottom:6px}
+.calc table{border-collapse:collapse;width:100%;max-width:280px}
+.calc td,.calc th{padding:1px 8px;text-align:right;border-bottom:1px dashed rgba(127,224,170,.16)}
+.calc th{font-weight:700;color:#7fe0aa}
+.calc td.e{opacity:0}
+.calc td.in2{animation:cin .25s ease-out}
+@keyframes cin{from{opacity:0;transform:translateY(-4px)}}
+.calc .res{margin-top:8px;white-space:pre-wrap}
+.calc .res b{color:#e9fff2}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+.sup{font-size:.72em;vertical-align:.55em;line-height:0}
+.sk-q .sup,.sk-ch .sup{font-size:.7em}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.rad{border-top:2px solid currentColor;padding:0 .08em;margin-left:.04em}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.97);border-bottom:1px solid var(--soft)}
+  .stage{aspect-ratio:600/470;max-height:40svh;margin:auto}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+  .legend{display:none}
+}
+@media (max-width:520px){
+  .badge{display:none}
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .tb{font-size:15.5px}.tb th,.tb td{padding:4px 8px}
+  .calc{font-size:14.5px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win,.calc td.in2{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Le Pivot</h1>
+<p>Un nuage de points, un point moyen G et une droite qui pivote autour de lui. À chaque point, son écart vertical et le carré de cet écart&nbsp;: fais tourner la droite et regarde la somme des carrés fondre jusqu'à la droite des moindres carrés.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Repère : nuage de points, point moyen G et droite d'ajustement" tabindex="-1">
+    <svg id="scene" viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+    <span class="badge" id="badge"></span>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+  <div class="legend" id="legend"><span class="lm"><i></i>points M<sub>i</sub></span><span class="lg"><i></i>point moyen G</span><span class="ld"><i></i>droite d'ajustement</span><span class="ls"><i></i>carrés des écarts verticaux</span></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+
+<script>
+/* ======================= LE PIVOT — outils numériques, sons, animations ======================= */
+window.LP_N=(function(){
+'use strict';
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+/* arrondi décimal exact (pas d'erreur du type 1,005) */
+function r(v,d){if(!isFinite(v))return v;const s=v<0?-1:1,w=Math.abs(Number(v.toPrecision(12)));return s*Number(Math.round(Number(w+'e'+d))+'e-'+d)}
+/* écriture française : virgule, signe −, espace fine pour les milliers */
+function f(v,d){if(d===undefined)d=6;let x=r(v,d);if(Object.is(x,-0)||x===0)x=0;const neg=x<0;let s=Math.abs(x).toFixed(d);
+  if(s.indexOf('.')>=0)s=s.replace(/0+$/,'').replace(/\.$/,'');let [i,dd]=s.split('.');
+  if(i.length>=4)i=i.replace(/\B(?=(\d{3})+(?!\d))/g,' ');return (neg?'−':'')+i+(dd?','+dd:'')}
+/* toutes les écritures acceptées d'un nombre arrondi à d décimales */
+function ans(v,d){const x=r(v,d),s=f(x,d),out=[s];const dec=(s.split(',')[1]||'').length;
+  for(let k=dec+1;k<=Math.max(d,dec);k++){out.push(f(x,d).replace(/^([−\d ]+)(,\d*)?$/,(m,a,b)=>a+','+((b||',').slice(1)+'0'.repeat(k-dec))))}
+  out.push(s.replace(/ /g,''));return [...new Set(out)]}
+/* équation réduite y = ax + b, sans « 1x », « + − » ni « 0x » */
+function eq(a,b,y,x,da,db){y=y||'y';x=x||'x';da=da===undefined?6:da;db=db===undefined?6:db;a=r(a,da);b=r(b,db);
+  let s='';if(a===0)s=f(b,db);else{s=(a===1?'':a===-1?'−':f(a,da))+x;if(b>0)s+=' + '+f(b,db);else if(b<0)s+=' − '+f(-b,db)}
+  return y+' = '+s}
+function aff(a,b,x,da,db){return eq(a,b,'#',x,da,db).replace(/^# = /,'')}
+function mean(a){return a.reduce((s,v)=>s+v,0)/a.length}
+function reg(xs,ys){const xm=mean(xs),ym=mean(ys);let sxy=0,sxx=0;xs.forEach((x,i)=>{sxy+=(x-xm)*(ys[i]-ym);sxx+=(x-xm)*(x-xm)});const a=sxy/sxx;return{a,b:ym-a*xm,xm,ym}}
+function sse(xs,ys,a,b){let s=0;xs.forEach((x,i)=>{const e=ys[i]-(a*x+b);s+=e*e});return s}
+/* nombre à au plus k décimales ? */
+function dec(v,k){return Math.abs(r(v,k)-v)<1e-9}
+/* résidus entiers r (Σr = 0, Σ x·r = 0, pas tous nuls) : la droite des moindres carrés est alors exactement celle qu'on a choisie */
+function resid(xs,amp,minNZ){const n=xs.length;for(let t=0;t<20000;t++){const v=xs.map(()=>ri(-amp,amp));
+  if(v.reduce((s,x)=>s+x,0)!==0)continue;if(xs.reduce((s,x,i)=>s+x*v[i],0)!==0)continue;
+  if(v.filter(x=>x!==0).length<Math.min(minNZ||n-1,n))continue;return v}return xs.map(()=>0)}
+/* repère « propre » */
+function nice(lo,hi,want){want=want||7;const span=Math.max(hi-lo,1e-9);const steps=[.1,.2,.25,.5,1,2,2.5,5,10,20,25,50,100,200,250,500,1000];
+  let st=steps.find(s=>span/s<=want)||1000;let a=Math.floor(lo/st+1e-9)*st,b=Math.ceil(hi/st-1e-9)*st;
+  if(lo-a<.2*st)a-=st;if(b-hi<.2*st)b+=st;return[r(a,6),r(b,6),st]}
+const fmtCoord=(x,y,d)=>'('+f(x,d)+' ; '+f(y,d)+')';
+return{ri,pick,shuf,r,f,ans,eq,aff,mean,reg,sse,dec,resid,nice,fmtCoord};
+})();
+
+window.LP_S=(function(){
+'use strict';
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let ac=null;
+function ctx(){if(!snd)return null;try{if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();return ac}catch(e){return null}}
+function tone(f,d,v,type,w){const a=ctx();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v||.05,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+let lastTick=0;
+const SND={pop(){tone(660,.12,.05);tone(990,.14,.035,'sine',.05)},soft(){tone(220,.22,.05,'sine');tone(185,.25,.04,'sine',.08)},
+  tick(hi){const n=performance.now();if(n-lastTick<45)return;lastTick=n;tone(hi?1320:880,.05,.022,'square')},
+  win(){[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.22,.05,'triangle',i*.08))},
+  gold(){[783.99,987.77,1174.66].forEach((f,i)=>tone(f,.35,.05,'sine',i*.06))}};
+const sound={get:()=>snd,set:v=>{snd=v;try{localStorage.setItem('sigma-fanfare',v?'1':'0')}catch(_){}}};
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?Math.min(ms,30):ms));
+/* interpolation temporelle : fn(t) avec t de 0 à 1 */
+function tween(ms,fn,ease){ease=ease||(t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2);
+  if(reduceM||ms<=0){fn(1);return Promise.resolve()}
+  return new Promise(res=>{const t0=performance.now();function step(n){const t=Math.min(1,(n-t0)/ms);fn(ease(t));if(t<1)requestAnimationFrame(step);else res()}requestAnimationFrame(step)})}
+return{SND,sound,sleep,tween,reduceM};
+})();
+</script>
+
+<script>
+/* ======================= LE PIVOT — la scène (repère, nuage, G, droite, écarts, carrés, jauge) ======================= */
+window.LP_V=(function(){
+'use strict';
+const N=window.LP_N,$=id=>document.getElementById(id);
+const svg=$('scene'),stage=$('stage');
+let W=1000,H=620,mob=false;
+const st={};
+function reset(){Object.assign(st,{reserve:false,frame:null,frame2:null,mt:0,pts:[],G:null,G1:null,G2:null,line:null,lines:[],seg:0,sq:0,gauge:null,read:[],band:null,curve:null,cursor:null,bad:null,means:null,gold:0,ghost:null,split:null})}
+reset();
+function layout(){const w=stage.clientWidth||1000;const m=w<620;if(m!==mob||!svg.dataset.l){mob=m;W=mob?600:1000;H=mob?470:620;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.dataset.l='1'}}
+function box(){const g=!!st.gauge||!!st.reserve;return mob?{L:62,R:g?468:584,T:22,B:H-50}:{L:92,R:g?812:966,T:34,B:H-58}}
+const fx=(fr,b)=>x=>b.L+(x-fr.x[0])/(fr.x[1]-fr.x[0])*(b.R-b.L);
+const fy=(fr,b)=>y=>b.B-(y-fr.y[0])/(fr.y[1]-fr.y[0])*(b.B-b.T);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const FS=()=>mob?15:15;
+function lineSeg(a,b,fr,B,x0,x1){/* segment de la droite y = ax + b à l'intérieur de la fenêtre (x entre x0 et x1) */
+  x0=x0===undefined?fr.x[0]:x0;x1=x1===undefined?fr.x[1]:x1;const ylo=fr.y[0],yhi=fr.y[1];
+  let p=[];const c=(x)=>a*x+b;
+  if(Math.abs(a)<1e-12){if(b>=ylo&&b<=yhi)p=[[x0,b],[x1,b]]}
+  else{const xa=(ylo-b)/a,xb=(yhi-b)/a;const lo=Math.max(x0,Math.min(xa,xb)),hi=Math.min(x1,Math.max(xa,xb));if(lo<hi)p=[[lo,c(lo)],[hi,c(hi)]]}
+  return p}
+function axes(fr,B,op,side){const X=fx(fr,B),Y=fy(fr,B);let h='';const fs=mob?14:15;
+  const [x0,x1,sx]=fr.x,[y0,y1,sy]=fr.y;const ux=fr.ux||sx,uy=fr.uy||sy;
+  // quadrillage fin
+  h+=`<g opacity="${op}">`;
+  if(side!=='y'){for(let x=x0;x<=x1+1e-9;x=N.r(x+ux,6))h+=`<line x1="${X(x)}" y1="${B.T}" x2="${X(x)}" y2="${B.B}" stroke="rgba(120,160,255,${Math.abs(N.r((x-x0)/sx,6)%1)<1e-6?.16:.07})" stroke-width="1"/>`}
+  if(side!=='x'){for(let y=y0;y<=y1+1e-9;y=N.r(y+uy,6))h+=`<line x1="${B.L}" y1="${Y(y)}" x2="${B.R}" y2="${Y(y)}" stroke="rgba(120,160,255,${Math.abs(N.r((y-y0)/sy,6)%1)<1e-6?.16:.07})" stroke-width="1"/>`}
+  // graduations
+  if(side!=='y'){for(let x=x0;x<=x1+1e-9;x=N.r(x+sx,6)){if(fr.skipX0&&x===x0)continue;h+=`<text x="${X(x)}" y="${B.B+(mob?20:22)}" text-anchor="middle" font-size="${fs}" font-weight="600" fill="rgba(220,230,255,.78)">${N.f(x,4)}</text>`}}
+  if(side!=='x'){for(let y=y0;y<=y1+1e-9;y=N.r(y+sy,6))h+=`<text x="${B.L-8}" y="${Y(y)+5}" text-anchor="end" font-size="${fs}" font-weight="600" fill="rgba(220,230,255,.78)">${N.f(y,4)}</text>`}
+  // titres d'axes
+  if(side!=='y')h+=`<text x="${B.R}" y="${B.B-8}" text-anchor="end" font-size="${mob?15:16}" font-weight="700" font-style="italic" fill="#c9d6ff">${esc(fr.xl||'x')}</text>`;
+  if(side!=='x')h+=`<text x="${B.L+8}" y="${B.T+14}" font-size="${mob?15:16}" font-weight="700" font-style="italic" fill="#c9d6ff">${esc(fr.yl||'y')}</text>`;
+  return h+'</g>'}
+function render(){layout();const B=box();const fr=st.frame;
+  let h=`<defs><linearGradient id="lp-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#040916"/><stop offset="1" stop-color="#0d1c3c"/></linearGradient>
+  <radialGradient id="lp-g"><stop offset="0" stop-color="#ffe9a6"/><stop offset=".5" stop-color="#e8c766"/><stop offset="1" stop-color="#a8862c"/></radialGradient>
+  <filter id="lp-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <clipPath id="lp-clip"><rect x="${B.L}" y="${B.T}" width="${B.R-B.L}" height="${B.B-B.T}"/></clipPath></defs>
+  <rect width="${W}" height="${H}" fill="url(#lp-sky)"/>`;
+  h+=`<g fill="#fff" opacity=".5"><circle cx="${W*.12}" cy="${H*.08}" r=".9"/><circle cx="${W*.46}" cy="${H*.05}" r=".7"/><circle cx="${W*.83}" cy="${H*.06}" r="1"/><circle cx="${W*.95}" cy="${H*.3}" r=".7"/><circle cx="${W*.6}" cy="${H*.12}" r=".6"/></g>`;
+  if(!fr){paint(h,'');return}
+  h+=`<rect x="${B.L}" y="${B.T}" width="${B.R-B.L}" height="${B.B-B.T}" rx="6" fill="rgba(8,18,38,.55)" stroke="rgba(120,160,255,.14)"/>`;
+  const mt=st.frame2?st.mt:0;
+  const X=fx(fr,B),Y=fy(fr,B),Y2=st.frame2?fy(st.frame2,B):Y,X2=st.frame2?fx(st.frame2,B):X;
+  // bande « plage des données »
+  if(st.band){const a=X(st.band.x0),b=X(st.band.x1);h+=`<rect x="${a}" y="${B.T}" width="${b-a}" height="${B.B-B.T}" fill="rgba(95,210,124,${.07*st.band.op})" clip-path="url(#lp-clip)"/>`+
+    `<path d="M${a} ${B.T}V${B.B}M${b} ${B.T}V${B.B}" stroke="rgba(95,210,124,${.55*st.band.op})" stroke-width="1.5" stroke-dasharray="5 5"/>`+
+    `<text x="${(a+b)/2}" y="${B.T+20}" text-anchor="middle" font-size="${mob?13:14}" font-weight="700" fill="rgba(127,224,160,${st.band.op})">plage des données</text>`}
+  if(st.frame2){const f2=st.frame2,sx=JSON.stringify(fr.x)===JSON.stringify(f2.x)&&fr.xl===f2.xl,sy=JSON.stringify(fr.y)===JSON.stringify(f2.y)&&fr.yl===f2.yl;
+    h+=axes(fr,B,sx?1:1-mt,'x')+axes(fr,B,sy?1:1-mt,'y');if(!sx&&mt>0)h+=axes(f2,B,mt,'x');if(!sy&&mt>0)h+=axes(f2,B,mt,'y')}
+  else h+=axes(fr,B,1);
+  h+=`<path d="M${B.L} ${B.T}V${B.B}H${B.R}" stroke="rgba(200,215,255,.55)" stroke-width="1.6" fill="none"/>`;
+  const hs=h;h=`<g clip-path="url(#lp-clip)">`;
+  // courbe d'un modèle
+  if(st.curve){const c=st.curve;let d='';const n=90;for(let i=0;i<=n;i++){const x=fr.x[0]+(fr.x[1]-fr.x[0])*i/n*c.t;const y=c.f(x);if(!isFinite(y))continue;d+=(d?'L':'M')+X(x).toFixed(1)+' '+Math.max(-2000,Math.min(3000,Y(y))).toFixed(1)}
+    h+=`<path d="${d}" stroke="#e8c766" stroke-width="${mob?3:3.5}" fill="none" stroke-linecap="round" opacity=".95"/>`}
+  // droites secondaires (candidates, (G1G2)…)
+  st.lines.forEach(l=>{const p=lineSeg(l.a,l.b,fr,B);if(!p.length)return;
+    h+=`<line x1="${X(p[0][0])}" y1="${Y(p[0][1])}" x2="${X(p[1][0])}" y2="${Y(p[1][1])}" stroke="${l.col||'#8ea6ff'}" stroke-width="${l.w||3}" ${l.dash?`stroke-dasharray="${l.dash}"`:''} opacity="${l.op===undefined?1:l.op}" stroke-linecap="round"/>`;
+    if(l.lab){const xl=fr.x[0]+(fr.x[1]-fr.x[0])*(l.lx||.88),yl=l.a*xl+l.b;h+=`<text x="${X(xl)}" y="${Y(yl)-12}" text-anchor="middle" font-size="${mob?15:17}" font-weight="800" fill="${l.col||'#8ea6ff'}" stroke="#050a16" stroke-width="4" paint-order="stroke">${esc(l.lab)}</text>`}});
+  // écarts verticaux et carrés
+  const L=st.line;
+  if(L&&st.pts.length&&(st.seg>0||st.sq>0)&&mt===0){const gold=st.gold;
+    st.pts.forEach(p=>{if(p.s<1)return;const yq=L.a*p.x+L.b,x=X(p.x),y1=Y(p.y),y2=Y(yq),d=y1-y2,side=Math.abs(d);
+      if(st.sq>0){const s=side*st.sq;const right=x+s<=B.R||x-s<B.L;const rx=right?x:x-s;const ry=Math.min(y1,y2)+(d>0?0:0);
+        const top=d>0?y2:y1;
+        h+=`<rect x="${rx}" y="${d>0?y2:y2-s}" width="${s}" height="${s}" fill="${gold?`rgba(232,199,102,${.16+.1*gold})`:'rgba(255,107,107,.17)'}" stroke="${gold?'#e8c766':'#ff8f8f'}" stroke-width="1.2" stroke-opacity=".75"/>`}
+      if(st.seg>0){const ye=y2+(y1-y2)*st.seg;h+=`<line x1="${x}" y1="${y2}" x2="${x}" y2="${ye}" stroke="${gold?'#e8c766':'#ff8f8f'}" stroke-width="2.4" stroke-dasharray="${st.seg<1?'':'0'}"/>`+
+        `<circle cx="${x}" cy="${y2}" r="${mob?3.5:4}" fill="#050a16" stroke="${gold?'#e8c766':'#ff8f8f'}" stroke-width="1.8"/>`}})}
+  // droite principale
+  if(L&&mt===0){const p=lineSeg(L.a,L.b,fr,B);if(p.length){
+    if(L.x0!==undefined){/* trait plein sur la plage, pointillés au-delà (extrapolation) */
+      const q=lineSeg(L.a,L.b,fr,B,L.x0,L.x1);
+      h+=`<line x1="${X(p[0][0])}" y1="${Y(p[0][1])}" x2="${X(p[1][0])}" y2="${Y(p[1][1])}" stroke="#8ea6ff" stroke-width="${mob?2.6:3}" stroke-dasharray="9 8" opacity=".75"/>`;
+      if(q.length)h+=`<line x1="${X(q[0][0])}" y1="${Y(q[0][1])}" x2="${X(q[1][0])}" y2="${Y(q[1][1])}" stroke="#8ea6ff" stroke-width="${mob?4:4.5}" stroke-linecap="round"/>`}
+    else h+=`<line x1="${X(p[0][0])}" y1="${Y(p[0][1])}" x2="${X(p[1][0])}" y2="${Y(p[1][1])}" stroke="${st.gold?'#f3d98a':'#8ea6ff'}" stroke-width="${mob?4:4.5}" stroke-linecap="round" opacity="${L.op===undefined?1:L.op}" ${st.gold?'filter="url(#lp-glow)"':''}/>`;
+    if(L.lab){const xl=fr.x[0]+(fr.x[1]-fr.x[0])*.9,yl=L.a*xl+L.b;h+=`<text x="${X(xl)}" y="${Y(yl)-14}" text-anchor="middle" font-size="${mob?16:18}" font-weight="800" font-style="italic" fill="#c9d6ff" stroke="#050a16" stroke-width="4" paint-order="stroke">${esc(L.lab)}</text>`}}}
+  h+='</g>';
+  // lectures graphiques
+  st.read.forEach(rd=>{const c=rd.col||'#e8c766';const xa=X(rd.x),ya=Y(rd.y),t=rd.t;let d='';
+    if(rd.dir==='xy'){const t1=Math.min(1,t*2),t2=Math.max(0,t*2-1);d=`M${xa} ${B.B}V${B.B+(ya-B.B)*t1}`;if(t2>0)d+=`M${xa} ${ya}H${xa+(B.L-xa)*t2}`}
+    else{const t1=Math.min(1,t*2),t2=Math.max(0,t*2-1);d=`M${B.L} ${ya}H${B.L+(xa-B.L)*t1}`;if(t2>0)d+=`M${xa} ${ya}V${ya+(B.B-ya)*t2}`}
+    h+=`<path d="${d}" stroke="${c}" stroke-width="2.4" stroke-dasharray="7 6" fill="none"/>`;
+    if(t>=.5)h+=`<circle cx="${xa}" cy="${ya}" r="${mob?6:7}" fill="${c}" stroke="#050a16" stroke-width="2"/>`;
+    if(t>=1){const lx=rd.dir==='xy'?`${N.f(rd.y,2)}`:`${N.f(rd.x,2)}`;
+      if(rd.dir==='xy')h+=`<rect x="${B.L+4}" y="${ya-26}" width="${lx.length*9+18}" height="22" rx="11" fill="rgba(4,9,20,.85)" stroke="${c}"/><text x="${B.L+13}" y="${ya-10}" font-size="14" font-weight="800" fill="${c}">${lx}</text>`;
+      else h+=`<rect x="${xa-(lx.length*9+18)/2}" y="${B.B-28}" width="${lx.length*9+18}" height="22" rx="11" fill="rgba(4,9,20,.85)" stroke="${c}"/><text x="${xa}" y="${B.B-12}" text-anchor="middle" font-size="14" font-weight="800" fill="${c}">${lx}</text>`}});
+  // moyennes : les abscisses (puis les ordonnées) glissent vers la moyenne
+  if(st.means){const m=st.means;st.pts.forEach(p=>{if(m.tx>0){const x=X(p.x+(m.xm-p.x)*m.tx);h+=`<path d="M${x} ${B.B-7}l6 7l-6 7l-6-7z" fill="#e8c766" opacity=".85"/>`}
+      if(m.ty>0){const y=Y(p.y+(m.ym-p.y)*m.ty);h+=`<path d="M${B.L-7} ${y}l7-6l7 6l-7 6z" fill="#e8c766" opacity=".85"/>`}});
+    if(m.tx>=1)h+=`<text x="${X(m.xm)}" y="${B.B-14}" text-anchor="middle" font-size="${mob?15:16}" font-weight="800" fill="#e8c766" stroke="#050a16" stroke-width="4" paint-order="stroke">x̄ = ${N.f(m.xm,3)}</text>`;
+    if(m.ty>=1)h+=`<text x="${B.L+12}" y="${Y(m.ym)-10}" font-size="${mob?15:16}" font-weight="800" fill="#e8c766" stroke="#050a16" stroke-width="4" paint-order="stroke">ȳ = ${N.f(m.ym,3)}</text>`;
+    if(m.guide){const gx=X(m.xm),gy=Y(m.ym);h+=`<path d="M${gx} ${B.B}V${gy}M${B.L} ${gy}H${gx}" stroke="#e8c766" stroke-width="1.6" stroke-dasharray="${(m.guide*6).toFixed(1)} 6" opacity=".7"/>`}}
+  // séparation en deux groupes (méthode des points moyens)
+  if(st.split!==null&&st.split!==undefined){const xs=X(st.split);h+=`<path d="M${xs} ${B.T+6}V${B.B}" stroke="rgba(200,215,255,.45)" stroke-width="1.5" stroke-dasharray="3 6"/>`}
+  // points du nuage
+  st.pts.forEach((p,i)=>{if(!(p.s>0))return;const x=mt>0&&p.zx!==undefined?X(p.x)+(X2(p.zx)-X(p.x))*mt:X(p.x),y=mt>0&&p.z!==undefined?Y(p.y)+(Y2(p.z)-Y(p.y))*mt:Y(p.y);const r=(mob?6.5:7.5)*p.s;
+    const col=p.col||'#7fb2ff';
+    h+=`<circle cx="${x}" cy="${y}" r="${r+4}" fill="${col}" opacity=".16"/><circle cx="${x}" cy="${y}" r="${r}" fill="${col}" stroke="#050a16" stroke-width="2"/>`;
+    if(p.lab&&p.s>=1)h+=`<text x="${x+11}" y="${y-11}" font-size="${mob?14:15}" font-weight="700" fill="#c9d6ff" stroke="#050a16" stroke-width="4" paint-order="stroke">${esc(p.lab)}</text>`});
+  // G1, G2, G
+  [['G1','#ffb67a'],['G2','#ffb67a'],['G','url(#lp-g)']].forEach(([k,c])=>{const g=st[k];if(!g||!(g.s>0))return;const x=X(g.x),y=Y(g.y),r=(mob?8:9.5)*g.s;
+    h+=`<g><circle cx="${x}" cy="${y}" r="${r+12}" fill="${k==='G'?'rgba(232,199,102,.1)':'rgba(0,0,0,0)'}"/><circle cx="${x}" cy="${y}" r="${r+6}" fill="${k==='G'?'rgba(232,199,102,.22)':'rgba(255,182,122,.2)'}"/>`+
+      (k==='G'?`<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" stroke="#fff3cc" stroke-width="1.5"/><circle cx="${x}" cy="${y}" r="${r*.32}" fill="#3b2c00"/>`
+      :`<rect x="${x-r*.8}" y="${y-r*.8}" width="${r*1.6}" height="${r*1.6}" transform="rotate(45 ${x} ${y})" fill="${c}" stroke="#050a16" stroke-width="1.5"/>`)+'</g>';
+    if(g.s>=1){const t=k==='G'?'G':k==='G1'?'G₁':'G₂';h+=`<text x="${x+(g.lx||14)}" y="${y+(g.ly||-14)}" font-size="${mob?17:19}" font-weight="800" fill="${k==='G'?'#f3d98a':'#ffcfa6'}" stroke="#050a16" stroke-width="4" paint-order="stroke">${t}</text>`}});
+  // fantôme (point à placer, retour sur erreur)
+  if(st.bad){const b=st.bad,x=X(b.x),y=Y(b.y);h+=`<g opacity="${b.op}"><path d="M${x-9} ${y-9}L${x+9} ${y+9}M${x+9} ${y-9}L${x-9} ${y+9}" stroke="#ff6b6b" stroke-width="3" stroke-linecap="round"/>`+
+    `<text x="${x>B.R-110?x-12:x+12}" y="${y>B.B-30?y-14:y+24}" text-anchor="${x>B.R-110?'end':'start'}" font-size="15" font-weight="700" fill="#ff8f8f" stroke="#050a16" stroke-width="4" paint-order="stroke">${N.fmtCoord(b.x,b.y,3)}</text></g>`}
+  if(st.cursor){const c=st.cursor,x=X(c.x),y=Y(c.y);h+=`<g pointer-events="none"><path d="M${x} ${B.T}V${B.B}M${B.L} ${y}H${B.R}" stroke="rgba(232,199,102,.35)" stroke-width="1" stroke-dasharray="4 5"/>`+
+    `<circle cx="${x}" cy="${y}" r="11" fill="none" stroke="#e8c766" stroke-width="2"/><circle cx="${x}" cy="${y}" r="2.5" fill="#e8c766"/>`+
+    `<text x="${x+(x>B.R-120?-14:14)}" y="${y-14}" text-anchor="${x>B.R-120?'end':'start'}" font-size="15" font-weight="800" fill="#f3d98a" stroke="#050a16" stroke-width="4" paint-order="stroke">${N.fmtCoord(c.x,c.y,3)}</text></g>`}
+  // jauge de la somme des carrés
+  if(st.gauge){const g=st.gauge;const gx=mob?B.R+44:B.R+62,gw=mob?30:40,gt=B.T+(mob?52:66),gb=B.B;const hh=(gb-gt)*Math.min(1,g.S/g.max);
+    const best=(gb-gt)*Math.min(1,g.best/g.max),col=g.ok?'#e8c766':'#ff8f8f';
+    h+=`<text x="${gx+gw/2}" y="${B.T+(mob?12:16)}" text-anchor="middle" font-size="${mob?12.5:14}" font-weight="700" fill="rgba(220,230,255,.85)">Somme des</text>`+
+      `<text x="${gx+gw/2}" y="${B.T+(mob?27:34)}" text-anchor="middle" font-size="${mob?12.5:14}" font-weight="700" fill="rgba(220,230,255,.85)">carrés</text>`+
+      `<rect x="${gx}" y="${gt}" width="${gw}" height="${gb-gt}" rx="6" fill="rgba(255,255,255,.04)" stroke="rgba(120,160,255,.25)"/>`+
+      `<rect x="${gx+3}" y="${gb-hh}" width="${gw-6}" height="${Math.max(0,hh-3)}" rx="4" fill="${col}" opacity="${g.ok?.95:.75}"/>`+
+      `<path d="M${gx-8} ${gb-best}H${gx+gw+8}" stroke="#e8c766" stroke-width="2"/><path d="M${gx-8} ${gb-best}l-6-5v10z" fill="#e8c766"/>`+
+      `<text x="${gx+gw/2}" y="${gt-(mob?8:10)}" text-anchor="middle" font-size="${mob?15:18}" font-weight="800" fill="${col}">${N.f(g.S,g.d===undefined?1:g.d)}</text>`}
+  paint(hs,h)}
+let lastS=null,gS=null,gD=null;
+function paint(a,b){if(!gS||!gS.isConnected){svg.innerHTML='<g id="lp-s"></g><g id="lp-d"></g>';gS=svg.firstChild;gD=svg.lastChild;lastS=null}
+  if(a!==lastS){gS.innerHTML=a;lastS=a}gD.innerHTML=b}
+/* conversion écran → données */
+function toData(cx,cy){const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal,sc=Math.min(r.width/vb.width,r.height/vb.height);
+  const ox=(r.width-vb.width*sc)/2,oy=(r.height-vb.height*sc)/2,sx=(cx-r.left-ox)/sc,sy=(cy-r.top-oy)/sc,B=box(),fr=st.frame;
+  return{x:fr.x[0]+(sx-B.L)/(B.R-B.L)*(fr.x[1]-fr.x[0]),y:fr.y[0]+(B.B-sy)/(B.B-B.T)*(fr.y[1]-fr.y[0]),inside:sx>=B.L-10&&sx<=B.R+10&&sy>=B.T-10&&sy<=B.B+10}}
+function toClient(x,y){const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal,sc=Math.min(r.width/vb.width,r.height/vb.height);
+  const ox=(r.width-vb.width*sc)/2,oy=(r.height-vb.height*sc)/2,B=box(),fr=st.frame;
+  return{x:r.left+ox+sc*(B.L+(x-fr.x[0])/(fr.x[1]-fr.x[0])*(B.R-B.L)),y:r.top+oy+sc*(B.B-(y-fr.y[0])/(fr.y[1]-fr.y[0])*(B.B-B.T))}}
+const stats={n:0,t:0,max:0};
+let raf=0;function draw(){if(raf)return;raf=requestAnimationFrame(()=>{raf=0;const t0=performance.now();render();const d=performance.now()-t0;stats.n++;stats.t+=d;stats.max=Math.max(stats.max,d)})}
+addEventListener('resize',()=>{svg.dataset.l='';draw()});
+return{st,stats,reset,render,draw,toData,toClient,box,get mob(){return mob}};
+})();
+</script>
+
+<script>
+/* ======================= LE PIVOT — moteur des niveaux (questions en étapes) ======================= */
+window.LP_G=(function(){
+'use strict';
+const N=window.LP_N,S=window.LP_S,V=window.LP_V,SND=S.SND,st=V.st,$=id=>document.getElementById(id);
+const cap=h=>{$('capt').innerHTML=h||'&nbsp;'};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const knorm=s=>String(s).toLowerCase().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/[×*·]/g,'x').replace(/^\+/,'');
+const GAME='le-pivot';
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,busy=false,stageMode=null;
+function starsOf(i){try{const g=SigmaKit.passport().games[GAME];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function fb(html){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fb').hidden=false}
+const api={err(why){errs++;SND.soft();fb(why)},ok(){fb('');nextPart()}};
+const W={};
+/* action : un bouton qui lance une animation */
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+(p.html||'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run(box)}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);api.ok()}};
+/* choix : on peut se tromper, on recommence */
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):N.shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{if(busy)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){box.querySelectorAll('.opt').forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else{b.classList.add('ko');b.disabled=true;api.err(c.why)}})};
+/* trous : nombres (valeur exacte) ou mots */
+const pnum=v=>{const s=String(v).trim().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(',','.');return /^-?\d+(\.\d+)?$|^-?\.\d+$/.test(s)?Number(s):NaN};
+const okBlank=(b,v)=>b.r!==undefined?Math.abs(pnum(v)-b.r)<1e-9:b.w.some(a=>knorm(a)===knorm(v));
+W.fill=(p,box)=>{
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const b=p.b[+i];return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" ${b.r!==undefined?'inputmode="decimal"':''} aria-label="Case ${+i+1}" style="width:${b.size||4.4}em">`});
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+(p.hint?`<p class="hint">${p.hint}</p>`:'');
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=v.map((x,i)=>okBlank(p.b[+ins[i].dataset.i],x));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else api.err(typeof p.why==='function'?p.why(v.map(pnum),oks):p.why)};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+
+/* placer un point : toucher le repère (ou flèches + Entrée) */
+W.place=(p,box)=>{box.innerHTML=`<p class="ask">${p.ask}</p><p class="hint" style="margin-top:0">Touche le repère à l'emplacement du point. Au clavier&nbsp;: sélectionne le repère, déplace la cible avec les flèches puis appuie sur Entrée.</p>`+
+  `<div class="btns"><button type="button" class="btn gh kb">Placer au clavier</button></div>`;
+  const fr=st.frame,ux=fr.ux||fr.x[2],uy=fr.uy||fr.y[2];
+  const snap=(x,y)=>({x:N.r(Math.round((x-fr.x[0])/ux)*ux+fr.x[0],6),y:N.r(Math.round((y-fr.y[0])/uy)*uy+fr.y[0],6)});
+  function tryAt(x,y){if(busy)return;const c=snap(x,y);st.cursor=null;
+    if(Math.abs(c.x-p.x)<1e-9&&Math.abs(c.y-p.y)<1e-9){st.bad=null;const pt={x:p.x,y:p.y,s:0,lab:p.lab};st.pts.push(pt);setMode(null);busy=true;
+      S.tween(380,t=>{pt.s=t<.7?t/.7*1.25:1.25-(t-.7)/.3*.25;V.draw()}).then(()=>{pt.s=1;V.draw();busy=false;SND.pop();api.ok()})}
+    else{st.bad={x:c.x,y:c.y,op:1};V.draw();
+      const swap=Math.abs(c.x-p.y)<1e-9&&Math.abs(c.y-p.x)<1e-9;
+      api.err(swap?`Tu as placé ${N.fmtCoord(c.x,c.y)}&nbsp;: abscisse et ordonnée sont inversées. Dans le couple (<span class="v">x</span> ; <span class="v">y</span>), on lit d'abord <span class="v">x</span> sur l'axe horizontal, puis <span class="v">y</span> sur l'axe vertical.`
+        :`Ce point a pour coordonnées ${N.fmtCoord(c.x,c.y)}. On cherche ${N.fmtCoord(p.x,p.y)}&nbsp;: avance de ${N.f(p.x)} sur l'axe horizontal, puis monte jusqu'à ${N.f(p.y)}.`)}}
+  setMode('pick',{down(d){if(d.inside)tryAt(d.x,d.y)},move(d){if(!d.inside){st.cursor=null;V.draw();return}st.cursor=snap(d.x,d.y);V.draw()},leave(){st.cursor=null;V.draw()},
+    key(e){if(!st.cursor)st.cursor=snap((fr.x[0]+fr.x[1])/2,(fr.y[0]+fr.y[1])/2);const c=st.cursor;
+      const m={ArrowLeft:[-ux,0],ArrowRight:[ux,0],ArrowUp:[0,uy],ArrowDown:[0,-uy]}[e.key];
+      if(m){e.preventDefault();c.x=N.r(Math.min(fr.x[1],Math.max(fr.x[0],c.x+m[0])),6);c.y=N.r(Math.min(fr.y[1],Math.max(fr.y[0],c.y+m[1])),6);V.draw()}
+      else if(e.key==='Enter'||e.key===' '){e.preventDefault();tryAt(c.x,c.y)}}});
+  box.querySelector('.kb').onclick=()=>{const s=$('stage');s.focus({preventScroll:true});if(!st.cursor)st.cursor=snap((fr.x[0]+fr.x[1])/2,(fr.y[0]+fr.y[1])/2);V.draw()}};
+
+/* faire pivoter la droite autour de G (ou la faire glisser) jusqu'au minimum de la somme des carrés */
+W.pivot=(p,box)=>{const shift=p.kind==='shift';const K=p.K||12;let k=p.k0;const xs=p.xs,ys=p.ys,xm=N.mean(xs),ym=N.mean(ys);
+  const val=kk=>shift?p.b0+kk*p.step:p.a0+kk*p.step;
+  const lineOf=kk=>shift?{a:p.a0,b:val(kk)}:{a:val(kk),b:ym-val(kk)*xm};
+  let best=Infinity,prevS=null,done=false;const dS=p.d===undefined?1:p.d;
+  const Sof=kk=>{const l=lineOf(kk);return N.sse(xs,ys,l.a,l.b)};
+  let maxS=0;for(let kk=-K;kk<=K;kk++)maxS=Math.max(maxS,Sof(kk));
+  box.innerHTML=`<p class="ask">${p.ask}</p><div class="pilot"><button type="button" class="btn gh m" aria-label="${shift?'Descendre la droite':'Tourner dans un sens'}">${shift?'▼':'↻'}</button>`+
+    `<input type="range" min="${-K}" max="${K}" step="1" value="${k}" aria-label="${shift?'Hauteur de la droite':'Inclinaison de la droite'}">`+
+    `<button type="button" class="btn gh p" aria-label="${shift?'Monter la droite':'Tourner dans l\'autre sens'}">${shift?'▲':'↺'}</button></div>`+
+    `<div class="ro" aria-live="polite"></div><p class="hint">${shift?'Glisse sur le repère, ou utilise ▲ ▼ et le curseur : la droite monte ou descend sans tourner.':'Glisse sur le repère pour faire tourner la droite autour de G, ou utilise ↺ ↻ et le curseur.'}</p>`;
+  const rg=box.querySelector('input'),ro=box.querySelector('.ro');
+  function upd(silent){const l=lineOf(k);st.line=Object.assign(st.line||{},{a:l.a,b:l.b});const s=Sof(k);best=Math.min(best,s);
+    st.gauge={S:s,max:maxS,best,ok:false,d:dS};
+    const tr=prevS===null||Math.abs(s-prevS)<1e-12?'':s<prevS?'<span class="tr-d">▼ elle diminue</span>':'<span class="tr-u">▲ elle augmente</span>';
+    ro.innerHTML=`<span>Droite&nbsp;: <b>${N.eq(l.a,l.b,'y','x',4,4)}</b></span><span>Somme des carrés&nbsp;: <b>${N.f(s,dS)}</b> ${tr}</span>`;
+    cap(`<span class="b">${N.eq(l.a,l.b,'y','x',4,4)}</span><span class="m">·</span><span class="c">somme des carrés ${N.f(s,dS)}</span>`);
+    if(!silent&&prevS!==null&&Math.abs(s-prevS)>1e-12)SND.tick(s<prevS);prevS=s;rg.value=k;V.draw()}
+  function set(kk,fin){if(done)return;kk=Math.max(-K,Math.min(K,kk));if(kk!==k){k=kk;upd()}if(fin)check()}
+  async function check(){if(done||k!==0)return;done=true;setMode(null);rg.disabled=true;box.querySelectorAll('.pilot .btn').forEach(b=>b.disabled=true);
+    st.gauge.ok=true;busy=true;{const l=lineOf(k);cap(`<span class="k">${N.eq(l.a,l.b,'y','x',4,4)}</span><span class="m">·</span><span class="k">somme des carrés minimale : ${N.f(Sof(k),dS)}</span>`)}await S.tween(500,t=>{st.gold=t;V.draw()});SND.gold();busy=false;
+    ro.insertAdjacentHTML('beforeend','<span style="color:var(--gold2);font-weight:700">★ Plus petite somme possible&nbsp;!</span>');api.ok()}
+  rg.oninput=()=>set(+rg.value,false);rg.onchange=()=>set(+rg.value,true);
+  rg.onkeyup=()=>check();
+  box.querySelector('.m').onclick=()=>set(k-1,true);box.querySelector('.p').onclick=()=>set(k+1,true);
+  setMode('grab',{down(d){this.drag=true;this.move(d)},move(d){if(!this.drag||done)return;
+      if(shift){set(Math.round((d.y-p.a0*d.x-p.b0)/p.step),false)}
+      else{const dx=d.x-xm;if(Math.abs(dx)<(st.frame.x[1]-st.frame.x[0])*.04)return;set(Math.round(((d.y-ym)/dx-p.a0)/p.step),false)}},
+    up(){if(this.drag){this.drag=false;check()}},leave(){},key(e){if(e.key==='ArrowLeft'||e.key==='ArrowDown'){e.preventDefault();set(k-1,true)}else if(e.key==='ArrowRight'||e.key==='ArrowUp'){e.preventDefault();set(k+1,true)}}});
+  st.gold=0;upd(true)};
+
+/* mode d'interaction de la scène */
+let handler=null;
+function setMode(m,h){stageMode=m;handler=h||null;const s=$('stage');s.classList.toggle('grab',m==='grab');s.classList.toggle('pick',m==='pick');s.tabIndex=m?0:-1;if(!m){st.cursor=null}}
+(function(){const s=$('stage');const pos=e=>V.toData(e.clientX,e.clientY);
+  s.addEventListener('pointerdown',e=>{if(!handler||busy)return;e.preventDefault();try{s.setPointerCapture(e.pointerId)}catch(_){}handler.down&&handler.down(pos(e))});
+  s.addEventListener('pointermove',e=>{if(!handler)return;handler.move&&handler.move(pos(e))});
+  s.addEventListener('pointerup',e=>{if(!handler)return;handler.up&&handler.up(pos(e))});
+  s.addEventListener('pointercancel',()=>{if(handler&&handler.up)handler.up()});
+  s.addEventListener('pointerleave',e=>{if(handler&&handler.leave&&e.pointerType==='mouse')handler.leave()});
+  s.addEventListener('keydown',e=>{if(handler&&handler.key)handler.key(e)})})();
+
+/* ---------- déroulé d'une question ---------- */
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;if(pi<Q.parts.length){const p=Q.parts[pi],box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:S.reduceM?'auto':'smooth'})}}
+const LV=[];
+function newQ(){setMode(null);V.reset();Q=LV[lvl].qs[qi]();pi=0;errs=0;
+  $('badge').textContent='';if(Q.setup)Q.setup();V.render();cap(Q.cap0||'&nbsp;');
+  $('prompt').innerHTML=Q.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  const box=partEl();W[Q.parts[0].t](Q.parts[0],box)}
+function dots(){const n=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:n},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){fb('');setMode(null);SND.win();run.push(errs===0);dots();
+  const n=LV[lvl].qs.length,lvlDone=run.length>=n;
+  $('winx').textContent=errs===0?N.pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):N.pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=Q.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(Q.onWin)Q.onWin();
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lnum=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lnum,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lnum)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:S.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];
+  $('chap').textContent=`Statistiques à deux variables · Niveau ${l+1} sur ${LV.length}`;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('cours').open=false;renderLv();newQ()}
+function renderLv(){const snd=S.sound.get();$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){S.sound.set(!S.sound.get());renderLv();SND.pop();return}
+  goLevel(+b.dataset.l)});
+
+/* ---------- fabriques ---------- */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+const ch=(ask,list,o)=>Object.assign({t:'choice',ask,ch:list},o||{});
+const fill=(ask,tpl,b,why,o)=>Object.assign({t:'fill',ask,tpl,b,why},o||{});
+const place=(ask,x,y,lab)=>({t:'place',ask,x,y,lab});
+const pivot=o=>Object.assign({t:'pivot'},o);
+const OK=h=>({h,ok:true}),NO=(h,why)=>({h,why});
+const BR=(r,size)=>{r=N.r(r,9);return{r,sol:N.f(r).replace(/ /g,''),size}};   // trou numérique (valeur exacte)
+const BW=(w,size)=>({w,sol:w[0],size});                               // trou en mots
+
+window.LP={start(){const m=/[?&]niveau=(\d)/.exec(location.search);goLevel(m?Math.min(+m[1]-1,LV.length-1):0)},
+  state:()=>{const p=Q&&Q.parts[pi];return{lvl,qi,nq:LV[lvl]&&LV[lvl].qs.length,busy,pi,win:!$('win').hidden,au:Q&&Q.au,
+    part:p?{t:p.t,sol:p.b?p.b.map(b=>b.sol):null,choices:p.ch?p.ch.map(c=>({ok:!!c.ok})):null,x:p.x,y:p.y,k0:p.k0,a0:p.a0,b0:p.b0,kind:p.kind,xs:p.xs,ys:p.ys}:null}},
+  LV,goLevel,renderLv,get Q(){return Q}};
+return{LV,W,act,ch,fill,place,pivot,OK,NO,BR,BW,cap,MAKI,api,renderLv};
+})();
+</script>
+
+<script>
+/* ======================= LE PIVOT — les sept niveaux ======================= */
+(function(){
+'use strict';
+const N=window.LP_N,S=window.LP_S,V=window.LP_V,G=window.LP_G,st=V.st;
+const {act,ch,fill,place,pivot,OK,NO,BR,BW,cap}=G;
+const v=s=>`<span class="v">${s}</span>`;
+const XB='<span class="ov v">x</span>',YB='<span class="ov v">y</span>';
+const sub=(s,i)=>`${v(s)}<sub>${i}</sub>`;
+const tb=(xs,ys,o)=>{o=o||{};const xl=o.xl||sub('x','i'),yl=o.yl||sub('y','i');const td=(a,i)=>`<td${o.hl===i?' class="hl"':''}>${N.f(a)}</td>`;
+  return `<div class="tbw"><table class="tb"><tr><th>${xl}</th>${xs.map(td).join('')}</tr><tr><th>${yl}</th>${ys.map(td).join('')}</tr></table></div>`};
+const C=(x,y)=>`<span class="nw">${N.fmtCoord(x,y)}</span>`;
+const EQ=(a,b,y,x,da,db)=>`<span class="nw">${N.eq(a,b,y,x,da,db)}</span>`;
+function frame(xs,ys,o){o=o||{};let xa=Math.min(...xs),xb=Math.max(...xs),ya=Math.min(...ys),yb=Math.max(...ys);
+  if(o.x0!==undefined)xa=Math.min(xa,o.x0);if(o.x1!==undefined)xb=Math.max(xb,o.x1);if(o.y0!==undefined)ya=Math.min(ya,o.y0);if(o.y1!==undefined)yb=Math.max(yb,o.y1);
+  const fx=N.nice(xa,xb,o.nx||6),fy=N.nice(ya,yb,o.ny||6);
+  if(xa>=0&&fx[0]<0)fx[0]=0;if(ya>=0&&fy[0]<0)fy[0]=0;
+  if(o.zero!==false){if(fx[0]>0&&fx[0]<=2*fx[2])fx[0]=0;if(fy[0]>0&&fy[0]<=2*fy[2])fy[0]=0}
+  return{x:fx,y:fy,xl:o.xl||'x',yl:o.yl||'y',ux:o.ux,uy:o.uy}}
+const setPts=(xs,ys,lab,s)=>{st.pts=xs.map((x,i)=>({x,y:ys[i],s:s===undefined?1:s,lab:lab?'M'+(i+1):''}))};
+async function popAll(gap){const L=st.pts.filter(p=>!(p.s>=1));for(const p of L){await S.tween(200,t=>{p.s=t<.7?t/.7*1.25:1.25-(t-.7)/.3*.25;V.draw()});p.s=1;S.SND.tick(true);await S.sleep(gap||70)}V.draw()}
+async function popG(k,x,y,o){st[k]=Object.assign({x,y,s:0},o||{});await S.tween(420,t=>{st[k].s=t<.7?t/.7*1.3:1.3-(t-.7)/.3*.3;V.draw()});st[k].s=1;V.draw();S.SND.pop()}
+async function meansX(xm,ym){st.means=st.means||{tx:0,ty:0,xm,ym,guide:0};st.means.xm=xm;st.means.ym=ym;await S.tween(900,t=>{st.means.tx=t;V.draw()})}
+async function meansY(xm,ym){st.means=st.means||{tx:0,ty:0,xm,ym,guide:0};st.means.xm=xm;st.means.ym=ym;await S.tween(900,t=>{st.means.ty=t;V.draw()})}
+async function guides(){await S.tween(500,t=>{st.means.guide=t;V.draw()})}
+async function drawLine(a,b,o){st.line=Object.assign({a,b,op:0},o||{});await S.tween(650,t=>{st.line.op=t;V.draw()});st.line.op=1;V.draw()}
+async function growSeg(){await S.tween(700,t=>{st.seg=t;V.draw()})}
+async function growSq(){await S.tween(800,t=>{st.sq=t;V.draw()})}
+async function read(x,y,dir,col){const rd={x,y,dir,t:0,col};st.read.push(rd);await S.tween(1100,t=>{rd.t=t;V.draw()},t=>t);rd.t=1;V.draw()}
+async function morph(f2,keepAfter){st.frame2=f2;await S.tween(1500,t=>{st.mt=t;V.draw()});
+  if(keepAfter){st.pts.forEach(p=>{if(p.zx!==undefined){p.ox=p.x;p.x=p.zx;delete p.zx}if(p.z!==undefined){p.oy=p.y;p.y=p.z;delete p.z}});st.frame=f2;st.frame2=null;st.mt=0;V.draw()}}
+const stepNice=v=>{const L=[.01,.02,.025,.05,.1,.2,.25,.5,1,2,2.5,5,10,20,25,50];return L.find(s=>s>=v*.999)||50};
+
+/* ---------- contextes (données presque alignées, droite des moindres carrés exacte) ---------- */
+const CTX=[
+ {id:'rev',t:'Dans une classe de Terminale, on relève pour quelques élèves le nombre '+v('x')+' d\'heures de révision par semaine et la note '+v('y')+' obtenue au bac blanc (sur 20).',
+  xs:[1,2,3,4,5,6,7,8],a:[1.5,2],b:[2,3,4],u:.5,amp:2,ymax:20,xl:'heures',yl:'note',xu:'h',yu:'points'},
+ {id:'eau',t:'Au snack du lycée, on relève la température '+v('x')+' (en °C) et le nombre '+v('y')+' de bouteilles d\'eau fraîche vendues dans la journée.',
+  xs:[22,24,26,28,30,32,34],a:[6,8],b:[-120,-100],u:2,amp:3,ymax:200,xl:'°C',yl:'bouteilles',xu:'°C',yu:'bouteilles'},
+ {id:'pub',t:'Une boutique en ligne relève son budget publicitaire '+v('x')+' (en centaines d\'euros) et ses ventes '+v('y')+' (en milliers d\'euros).',
+  xs:[5,10,15,20,25,30,35,40],a:[1.5,2,2.5],b:[6,8,10],u:1,amp:3,ymax:120,xl:'budget',yl:'ventes',xu:'centaines d\'euros',yu:'milliers d\'euros'},
+ {id:'taxi',t:'Un chauffeur de taxi de Mamoudzou relève la distance '+v('x')+' (en km) et le prix '+v('y')+' (en euros) de quelques courses.',
+  xs:[2,4,6,8,10,12,14],a:[1.5,2],b:[3,4,5],u:.5,amp:2,ymax:40,xl:'km',yl:'€',xu:'km',yu:'€'},
+ {id:'abo',t:'Une créatrice de vidéos relève, pour le mois de rang '+v('x')+', son nombre '+v('y')+' d\'abonnés (en milliers).',
+  xs:[1,2,3,4,5,6,7,8],a:[2.5,3,4],b:[10,12],u:1,amp:2,ymax:60,xl:'mois',yl:'abonnés',xu:'',yu:'milliers d\'abonnés'},
+ {id:'scoot',t:'Sur un site d\'annonces, on relève l\'âge '+v('x')+' (en années) et le prix de revente '+v('y')+' (en centaines d\'euros) de scooters du même modèle.',
+  xs:[1,2,3,4,5,6,7],a:[-2,-2.5,-3],b:[24,26,28],u:.5,amp:2,ymax:30,xl:'âge',yl:'prix',xu:'ans',yu:'centaines d\'euros'}];
+function lin(n,o){o=o||{};for(let t=0;t<400;t++){const c=o.ctx||N.pick(CTX);if(c.xs.length<n)continue;const i0=N.ri(0,c.xs.length-n);const xs=c.xs.slice(i0,i0+n);
+  const a=N.pick(c.a),b=N.pick(c.b),r=N.resid(xs.map(x=>x/(xs[1]-xs[0])),c.amp,n-1);
+  const ys=xs.map((x,i)=>N.r(a*x+b+r[i]*c.u,3));if(ys.some(y=>y<=0||y>c.ymax))continue;if(ys.every((y,i)=>Math.abs(y-(a*xs[i]+b))<1e-9))continue;
+  const R=N.reg(xs,ys);if(Math.abs(R.a-a)>1e-9||Math.abs(R.b-b)>1e-9)continue;
+  return{c,xs,ys,a,b,xm:R.xm,ym:R.ym}}throw new Error('lin')}
+
+/* ===================== NIVEAU 1 · Le nuage ===================== */
+function smallSeries(){for(let t=0;t<500;t++){const xs=N.shuf([1,2,3,4,5,6,7,8]).slice(0,5).sort((a,b)=>a-b);const up=Math.random()<.6;
+  const a=N.pick([1,1.5]),b=N.ri(1,3);const ys=xs.map(x=>Math.round(up?a*x+b+N.ri(-1,1):13-a*x+N.ri(-1,1)));
+  if(ys.some(y=>y<1||y>13))continue;if(new Set(xs.map((x,i)=>x+','+ys[i])).size<5)continue;if(ys.filter((y,i)=>y!==xs[i]).length<4)continue;return{xs,ys,up}}}
+const F1=()=>({x:[0,9,1],y:[0,14,2],ux:1,uy:1,xl:'x',yl:'y'});
+const ORD=['1re','2e','3e','4e','5e','6e'];
+const L1={t:'Le nuage',badge:'Niveau 1 · Série et nuage',rule:`<p>Une <b>série statistique à deux variables</b> est une liste de couples (${sub('x',1)} ; ${sub('y',1)}), (${sub('x',2)} ; ${sub('y',2)}), …, (${sub('x','n')} ; ${sub('y','n')}). Dans un tableau, on associe les valeurs d'une même colonne.</p><p>Le <b>nuage de points</b> est l'ensemble des points ${sub('M','i')}(${sub('x','i')} ; ${sub('y','i')}) placés dans un repère&nbsp;: d'abord l'abscisse ${sub('x','i')} (axe horizontal), puis l'ordonnée ${sub('y','i')} (axe vertical).</p>`,qs:[]};
+L1.qs.push(()=>{const d=smallSeries(),k=[1,2,3].find(i=>d.xs[i]!==d.ys[i]),x=d.xs[k],y=d.ys[k];
+  const dec=[C(y,x),C(x,d.ys[k===1?2:1]),C(d.xs[k-1],x)].filter((h,i,A)=>h!==C(x,y)&&A.indexOf(h)===i);
+  return{au:{k:'couple',xs:d.xs,ys:d.ys,i:k},prompt:`Le tableau donne une série statistique à deux variables.${tb(d.xs,d.ys,{hl:k})}`,
+    setup(){st.frame=F1()},cap0:'Le repère est prêt&nbsp;: à toi de construire le nuage.',
+    parts:[ch(`Quel couple correspond à la ${ORD[k]} colonne&nbsp;?`,[OK(C(x,y))].concat(dec.map(h=>NO(h,`On lit les deux valeurs <b>d'une même colonne</b>&nbsp;: d'abord ${sub('x',k+1)} = ${N.f(x)} (ligne du haut), puis ${sub('y',k+1)} = ${N.f(y)}.`)))),
+      place(`Place le point ${sub('M',k+1)}${C(x,y)} dans le repère.`,x,y,'M'+(k+1)),
+      act('Faire apparaître tout le nuage',async()=>{d.xs.forEach((xx,i)=>{if(i!==k)st.pts.push({x:xx,y:d.ys[i],s:0,lab:'M'+(i+1)})});st.pts.sort((a,b)=>a.x-b.x);await popAll();cap(`Le nuage&nbsp;: <span class="b">5 points</span> ${sub('M','i')}(${sub('x','i')} ; ${sub('y','i')})`)})],
+    done:`Chaque colonne du tableau donne un couple, et chaque couple un point&nbsp;: les ${d.xs.length} points forment le <b>nuage de points</b>.`}});
+L1.qs.push(()=>{const d=smallSeries();const ids=N.shuf([0,1,2,3,4].filter(i=>d.xs[i]!==d.ys[i])).slice(0,2).sort((a,b)=>a-b);
+  return{au:{k:'couple',xs:d.xs,ys:d.ys},prompt:`Voici une série statistique à deux variables.${tb(d.xs,d.ys)}`,
+    setup(){st.frame=F1();d.xs.forEach((x,i)=>{if(ids.indexOf(i)<0)st.pts.push({x,y:d.ys[i],s:1,lab:'M'+(i+1)})})},cap0:'Il manque deux points au nuage.',
+    parts:[place(`Place le point ${sub('M',ids[0]+1)} associé à la ${ORD[ids[0]]} colonne.`,d.xs[ids[0]],d.ys[ids[0]],'M'+(ids[0]+1)),
+      place(`Place maintenant le point ${sub('M',ids[1]+1)}.`,d.xs[ids[1]],d.ys[ids[1]],'M'+(ids[1]+1)),
+      ch(`Observe l'allure générale du nuage. Quand ${v('x')} augmente, ${v('y')}…`,[OK(d.up?'a tendance à augmenter':'a tendance à diminuer'),NO(d.up?'a tendance à diminuer':'a tendance à augmenter','Lis le nuage de gauche à droite&nbsp;: les points montent-ils ou descendent-ils dans l\'ensemble&nbsp;?'),NO('reste constant','Les ordonnées changent nettement d\'un point à l\'autre&nbsp;: regarde si, globalement, elles montent ou descendent.')])],
+    done:`Le nuage est complet. Son allure générale est ${d.up?'croissante':'décroissante'}&nbsp;: c'est la première chose à observer avant tout ajustement.`}});
+L1.qs.push(()=>{const d=smallSeries();const k=N.ri(0,4);let w;do{w=N.ri(1,13)}while(w===d.ys[k]||Math.abs(w-d.ys[k])<2);const ys2=d.ys.slice();ys2[k]=w;
+  const A=N.ri(0,4)===k?(k+1)%5:N.ri(0,4);const ia=A===k?(k+1)%5:A;
+  return{au:{k:'couple',xs:d.xs,ys:d.ys,i:ia,bad:k},prompt:`Le nuage ci-contre représente une série statistique. Le point ${v('A')} est mis en évidence.`,
+    setup(){st.frame=F1();setPts(d.xs,d.ys,false);st.pts[ia].col='#ffb67a';st.pts[ia].lab='A'},cap0:'Lis le nuage&nbsp;: abscisse d\'abord, ordonnée ensuite.',
+    parts:[fill(`Lis les coordonnées du point ${v('A')}.`,`${v('A')}( {0} ; {1} )`,[BR(d.xs[ia],2.6),BR(d.ys[ia],2.6)],(vv,ok)=>vv[0]===d.ys[ia]&&vv[1]===d.xs[ia]?'Tu as inversé&nbsp;: l\'abscisse se lit sur l\'axe horizontal et s\'écrit en premier.':'Descends verticalement jusqu\'à l\'axe horizontal pour l\'abscisse, puis va horizontalement jusqu\'à l\'axe vertical pour l\'ordonnée.'),
+      ch(`Un élève a recopié la série dans ce tableau, avec une erreur dans une colonne.${tb(d.xs,ys2)}Dans quelle colonne est l'erreur (le nuage fait foi)&nbsp;?`,
+        [0,1,2,3,4].map(i=>i===k?OK(`${ORD[i]} colonne`):NO(`${ORD[i]} colonne`,`Le point ${C(d.xs[i],ys2[i])} est bien dans le nuage. Compare chaque colonne avec un point du nuage.`)),{keep:true,
+        onOk:async()=>{st.bad={x:d.xs[k],y:w,op:1};V.draw();cap(`Le point ${N.fmtCoord(d.xs[k],w)} n'est pas dans le nuage&nbsp;: c'est ${N.fmtCoord(d.xs[k],d.ys[k])}.`)}})],
+    done:`Un nuage se lit comme un tableau&nbsp;: chaque point donne un couple (${sub('x','i')} ; ${sub('y','i')}). Ici, la ${ORD[k]} colonne devait contenir ${sub('y',k+1)} = ${d.ys[k]}.`}});
+L1.qs.push(()=>{const d=smallSeries();let k=[0,1,2,3,4].find(i=>d.xs[i]!==d.ys[i]&&d.ys[i]<=9);if(k===undefined)k=0;
+  return{au:{k:'couple',xs:d.xs,ys:d.ys,i:k},prompt:`Dans la série ci-dessous, attention au piège de l'ordre des coordonnées.${tb(d.xs,d.ys,{hl:k})}`,
+    setup(){st.frame=F1();d.xs.forEach((x,i)=>{if(i!==k)st.pts.push({x,y:d.ys[i],s:1,lab:''})})},cap0:'Un point manque encore.',
+    parts:[place(`Place le point associé à la colonne en surbrillance.`,d.xs[k],d.ys[k],''),
+      ch('Le nuage de points associé à une série statistique à deux variables est…',[OK(`l'ensemble des points ${sub('M','i')}(${sub('x','i')} ; ${sub('y','i')})`),
+        NO(`l'ensemble des points ${sub('M','i')}(${sub('y','i')} ; ${sub('x','i')})`,'L\'ordre compte&nbsp;: l\'abscisse est la valeur de '+v('x')+', l\'ordonnée celle de '+v('y')+'.'),
+        NO('la ligne brisée qui relie les points dans l\'ordre du tableau','On ne relie pas les points&nbsp;: le nuage est seulement l\'ensemble des points.'),
+        NO('la droite qui passe par le premier et le dernier point','Une droite viendra plus tard (ajustement)&nbsp;: le nuage, ce sont uniquement les points.')])],
+    done:'Le nuage de points, ce sont les points '+sub('M','i')+'('+sub('x','i')+' ; '+sub('y','i')+'), et rien d\'autre&nbsp;: on ne les relie pas.'}});
+
+/* ===================== NIVEAU 2 · Le point moyen ===================== */
+function meanSeries(n,maxX,maxY,dec){for(let t=0;t<2000;t++){const xs=N.shuf(Array.from({length:maxX},(_,i)=>i+1)).slice(0,n).sort((a,b)=>a-b);
+  const up=Math.random()<.65;const ys=xs.map(x=>{const b=up?1+x*(maxY-2)/maxX:maxY-1-x*(maxY-2)/maxX;return N.r(b+N.ri(-2,2)*(dec?.5:1),1)}).map(y=>dec?y:Math.round(y));
+  if(ys.some(y=>y<1||y>maxY))continue;const xm=N.mean(xs),ym=N.mean(ys);if(!N.dec(xm,2)||!N.dec(ym,2))continue;if(n===3&&(!N.dec(xm,0)||!N.dec(ym,1)))continue;
+  if(xs.some((x,i)=>Math.abs(x-xm)<1e-9&&Math.abs(ys[i]-ym)<1e-9))continue;return{xs,ys,xm,ym}}}
+const F2=()=>({x:[0,9,1],y:[0,14,2],ux:1,uy:1});
+const L2={t:'Le point moyen',badge:'Niveau 2 · Point moyen G',rule:`<p>Le <b>point moyen</b> du nuage est le point G(${XB} ; ${YB}) avec</p><p>${XB} = (${sub('x',1)} + ${sub('x',2)} + … + ${sub('x','n')}) ÷ ${v('n')} &nbsp;et&nbsp; ${YB} = (${sub('y',1)} + ${sub('y',2)} + … + ${sub('y','n')}) ÷ ${v('n')}.</p><p>On calcule séparément la moyenne des abscisses et celle des ordonnées. G se situe au «&nbsp;centre&nbsp;» du nuage.</p>`,qs:[]};
+const whyMean=(vals,m,n,name)=>(u)=>{const s=vals.reduce((a,b)=>a+b,0);if(Math.abs(u[0]-s)<1e-9)return `Tu as la somme ${N.f(s)}&nbsp;: il reste à la diviser par le nombre de valeurs, ${n}.`;
+  return `Additionne les ${n} valeurs de ${name}, puis divise par ${n}&nbsp;: (${vals.map(x=>N.f(x)).join(' + ')}) ÷ ${n}.`};
+L2.qs.push(()=>{const d=meanSeries(3,8,13,false);
+  return{au:{k:'G',xs:d.xs,ys:d.ys},prompt:`On considère la série&nbsp;: ${d.xs.map((x,i)=>C(x,d.ys[i])).join(', ')}.`,
+    setup(){st.frame=F2();setPts(d.xs,d.ys,true)},cap0:'Trois points. Où est leur «&nbsp;centre&nbsp;»&nbsp;?',
+    parts:[fill(`Calcule la moyenne des abscisses.`,`${XB} = ( ${d.xs.join(' + ')} ) ÷ 3 = {0}`,[BR(d.xm)],whyMean(d.xs,d.xm,3,'x'),{onOk:async()=>{await meansX(d.xm,d.ym);cap(`<span class="k">${XB} = ${N.f(d.xm)}</span>`)}}),
+      fill(`Calcule la moyenne des ordonnées.`,`${YB} = ( ${d.ys.join(' + ')} ) ÷ 3 = {0}`,[BR(d.ym)],whyMean(d.ys,d.ym,3,'y'),{onOk:async()=>{await meansY(d.xm,d.ym);cap(`<span class="k">${XB} = ${N.f(d.xm)}</span><span class="m">·</span><span class="k">${YB} = ${N.f(d.ym)}</span>`)}}),
+      act('Placer le point moyen G',async()=>{await guides();await popG('G',d.xm,d.ym);cap(`<span class="k">G${N.fmtCoord(d.xm,d.ym)}</span>`)})],
+    done:`G${C(d.xm,d.ym)}&nbsp;: les abscisses se sont rassemblées en ${XB}, les ordonnées en ${YB}. G est au centre du nuage.`}});
+L2.qs.push(()=>{const d=meanSeries(4,8,13,true);
+  return{au:{k:'G',xs:d.xs,ys:d.ys},prompt:`Voici une série de quatre couples.${tb(d.xs,d.ys)}`,setup(){st.frame=F2();setPts(d.xs,d.ys,true)},cap0:'Quatre points&nbsp;: calcule G.',
+    parts:[fill('Détermine les coordonnées du point moyen G.',`G( {0} ; {1} )`,[BR(d.xm,3),BR(d.ym,3)],(u,ok)=>{
+        if(Math.abs(u[0]-d.ym)<1e-9&&Math.abs(u[1]-d.xm)<1e-9)return 'Les coordonnées sont inversées&nbsp;: G a pour abscisse la moyenne des '+sub('x','i')+' et pour ordonnée la moyenne des '+sub('y','i')+'.';
+        const sx=d.xs.reduce((a,b)=>a+b,0),sy=d.ys.reduce((a,b)=>a+b,0);
+        if(Math.abs(u[0]-sx/3)<1e-6||Math.abs(u[1]-sy/3)<1e-6||Math.abs(u[0]-sx/5)<1e-6)return 'Il y a <b>4</b> couples&nbsp;: on divise chaque somme par 4.';
+        return `${XB} = ${N.f(sx)} ÷ 4 et ${YB} = ${N.f(sy)} ÷ 4. ${ok[0]?'L\'abscisse est juste&nbsp;; vérifie l\'ordonnée.':ok[1]?'L\'ordonnée est juste&nbsp;; vérifie l\'abscisse.':''}`},
+      {onOk:async()=>{await Promise.all([meansX(d.xm,d.ym),meansY(d.xm,d.ym)]);await guides();await popG('G',d.xm,d.ym);cap(`<span class="k">G${N.fmtCoord(d.xm,d.ym)}</span>`)}})],
+    done:`${XB} = ${N.f(d.xs.reduce((a,b)=>a+b,0))} ÷ 4 = ${N.f(d.xm)} et ${YB} = ${N.f(d.ys.reduce((a,b)=>a+b,0))} ÷ 4 = ${N.f(d.ym)}.`}});
+L2.qs.push(()=>{const d=meanSeries(5,8,13,false);const mx=(Math.min(...d.xs)+Math.max(...d.xs))/2,my=(Math.min(...d.ys)+Math.max(...d.ys))/2;
+  const sx=d.xs.reduce((a,b)=>a+b,0),sy=d.ys.reduce((a,b)=>a+b,0);
+  let dec=[[d.ym,d.xm,'Les coordonnées sont inversées&nbsp;: l\'abscisse de G est la moyenne des '+sub('x','i')+'.'],[d.xs[2],d.ys[2],'Ce point est celui de la colonne du milieu&nbsp;: G n\'est pas forcément un point du nuage, il faut calculer les moyennes.'],[mx,my,'Ce sont les milieux des valeurs extrêmes, pas les moyennes&nbsp;: additionne toutes les valeurs puis divise par 5.'],[N.r(sx/4,2),N.r(sy/4,2),'Il y a 5 couples&nbsp;: on divise par 5.']]
+    .filter(c=>!(Math.abs(c[0]-d.xm)<1e-9&&Math.abs(c[1]-d.ym)<1e-9));dec=dec.filter((c,i)=>dec.findIndex(e=>e[0]===c[0]&&e[1]===c[1])===i).slice(0,3);
+  return{au:{k:'G',xs:d.xs,ys:d.ys},prompt:`Voici une série de cinq couples.${tb(d.xs,d.ys)}`,setup(){st.frame=F2();setPts(d.xs,d.ys,true)},cap0:'Cinq points.',
+    parts:[ch('Quel est le point moyen G de ce nuage&nbsp;?',[OK('G'+C(d.xm,d.ym))].concat(dec.map(c=>NO('G'+C(c[0],c[1]),c[2]))),{onOk:async()=>{await Promise.all([meansX(d.xm,d.ym),meansY(d.xm,d.ym)]);await guides();await popG('G',d.xm,d.ym)}})],
+    done:`${XB} = ${sx} ÷ 5 = ${N.f(d.xm)} et ${YB} = ${sy} ÷ 5 = ${N.f(d.ym)}&nbsp;: G${C(d.xm,d.ym)}.`}});
+L2.qs.push(()=>{const L=lin(6);const d={xs:L.xs,ys:L.ys,xm:L.xm,ym:L.ym};
+  return{au:{k:'G',xs:d.xs,ys:d.ys},prompt:`${L.c.t}${tb(d.xs,d.ys)}`,setup(){st.frame=frame(d.xs,d.ys,{xl:L.c.xl,yl:L.c.yl});setPts(d.xs,d.ys,false)},cap0:'Six points&nbsp;: calculatrice autorisée.',
+    parts:[fill(`Calcule ${XB}.`,`${XB} = {0}`,[BR(d.xm,3.4)],whyMean(d.xs,d.xm,6,'x'),{onOk:async()=>{await meansX(d.xm,d.ym)}}),
+      fill(`Calcule ${YB}.`,`${YB} = {0}`,[BR(d.ym,3.4)],whyMean(d.ys,d.ym,6,'y'),{onOk:async()=>{await meansY(d.xm,d.ym)}}),
+      act('Placer G dans le repère',async()=>{await guides();await popG('G',d.xm,d.ym);cap(`<span class="k">G${N.fmtCoord(d.xm,d.ym)}</span>`)})],
+    done:`G${C(d.xm,d.ym)} résume la position du nuage. Bientôt, la droite d'ajustement va pivoter autour de lui.`}});
+
+/* ===================== NIVEAU 3 · Ajuster ===================== */
+const L3={t:'Ajuster',badge:'Niveau 3 · Ajustement affine',rule:`<p>Lorsque les points du nuage semblent <b>presque alignés</b>, on peut effectuer un <b>ajustement affine</b> par une droite d'équation ${v('y')} = ${v('a')}${v('x')} + ${v('b')} qui modélise la tendance générale.</p><p><b>Esprit critique.</b> Si le nuage est nettement courbé, il faut envisager un autre modèle ou un changement de variable.</p><p><b>Méthode des points moyens.</b> On partage le nuage en deux groupes, on calcule le point moyen ${sub('G',1)} de chaque groupe et ${sub('G',2)}, puis on trace la droite (${sub('G',1)}${sub('G',2)}).</p>`,qs:[]};
+function curved(){const kind=N.pick(['exp','dec']);for(let t=0;t<200;t++){
+  if(kind==='exp'){const c=N.pick([2,3,4]),q=N.pick([1.5,1.6]);const xs=[1,2,3,4,5,6,7];const ys=xs.map(x=>N.r(c*Math.pow(q,x),1));if(Math.max(...ys)>200)continue;return{xs,ys,kind}}
+  const xs=[1,2,3,4,5,6,7];const ys=xs.map(x=>N.r(60/x+N.pick([0,1,2]),1));return{xs,ys,kind}}}
+L3.qs.push(()=>{const L=lin(N.ri(6,7));
+  return{au:{k:'concept'},prompt:`${L.c.t}${tb(L.xs,L.ys)}`,setup(){st.frame=frame(L.xs,L.ys,{xl:L.c.xl,yl:L.c.yl});setPts(L.xs,L.ys,false)},cap0:'Observe le nuage avant de modéliser.',
+    parts:[ch('Un ajustement affine semble-t-il pertinent&nbsp;?',[OK('Oui&nbsp;: les points semblent presque alignés.'),NO('Non&nbsp;: les points ne sont pas exactement alignés.','Un ajustement ne demande pas que les points soient exactement alignés&nbsp;: il suffit qu\'ils le soient <b>presque</b>.'),NO('Non&nbsp;: il faudrait une droite qui passe par tous les points.','La droite d\'ajustement modélise la <b>tendance générale</b>&nbsp;; elle ne passe pas forcément par les points.')]),
+      ch('On modélise alors la tendance par une droite d\'équation…',[OK(`${v('y')} = ${v('a')}${v('x')} + ${v('b')}`),NO(`${v('y')} = ${v('a')}${v('x')}<span class="sup">2</span>`,'Une droite a une équation de la forme '+v('y')+' = '+v('a')+v('x')+' + '+v('b')+'.'),NO(`${v('x')} = ${v('a')}`,'Cette équation donne une droite verticale, qui ne peut pas modéliser la tendance du nuage.')],
+        {onOk:async()=>{await drawLine(L.a,L.b);cap(`<span class="b">${N.eq(L.a,L.b)}</span>`)}})],
+    done:`Le nuage est presque aligné&nbsp;: la droite ${EQ(L.a,L.b)} décrit bien sa tendance générale.`}});
+L3.qs.push(()=>{const d=curved();const R=N.reg(d.xs,d.ys);
+  return{au:{k:'concept'},prompt:`Voici une série statistique.${tb(d.xs,d.ys)}`,setup(){st.frame=frame(d.xs,d.ys,{y0:0});setPts(d.xs,d.ys,false)},cap0:'Observe bien l\'allure du nuage.',
+    parts:[ch('Un ajustement affine semble-t-il pertinent&nbsp;?',[OK('Non&nbsp;: le nuage est nettement courbé&nbsp;; il faut envisager un autre modèle ou un changement de variable.'),
+        NO(d.kind==='exp'?`Oui&nbsp;: ${v('y')} augmente quand ${v('x')} augmente.`:`Oui&nbsp;: ${v('y')} diminue quand ${v('x')} augmente.`,'Le sens de variation ne suffit pas&nbsp;: il faut que les points soient presque alignés. Ici, le nuage se courbe nettement.'),
+        NO('Oui&nbsp;: on peut toujours tracer une droite à travers un nuage.','On peut toujours tracer une droite, mais elle n\'est pas toujours pertinente&nbsp;: avant de modéliser, on observe le nuage.')]),
+      act('Essayer quand même une droite',async()=>{await drawLine(R.a,R.b);await growSeg();cap('Les écarts sont grands et suivent un motif&nbsp;: la droite ne convient pas.')})],
+    done:'Esprit critique&nbsp;: un nuage courbé ne se modélise pas par une droite. Au niveau 7, un changement de variable le redressera.'}});
+L3.qs.push(()=>{let xs,ys,g1,g2;for(let t=0;t<500;t++){const x0=N.pick([2,4,6,8]),dx=2;xs=[0,1,2,3,4,5].map(i=>x0+dx*i);const a=N.pick([4,5,6]),b=N.ri(0,10);
+    ys=xs.map(x=>a*x+b+N.ri(-6,6));if(ys.some(y=>y<=0))continue;g1=[N.mean(xs.slice(0,3)),N.mean(ys.slice(0,3))];g2=[N.mean(xs.slice(3)),N.mean(ys.slice(3))];
+    if(!N.dec(g1[1],0)||!N.dec(g2[1],0)||g2[1]<=g1[1])continue;break}
+  const ag=(g2[1]-g1[1])/(g2[0]-g1[0]),bg=g1[1]-ag*g1[0];
+  return{au:{k:'G12',xs,ys},prompt:`On applique la méthode des points moyens à la série suivante.${tb(xs,ys)}${sub('G',1)} est le point moyen des trois premiers points et ${sub('G',2)} celui des trois derniers.`,
+    setup(){st.frame=frame(xs,ys,{y0:0});setPts(xs,ys,false);st.pts.forEach((p,i)=>p.col=i<3?'#7fb2ff':'#b79cff');st.split=(xs[2]+xs[3])/2},cap0:'Deux groupes de trois points.',
+    parts:[fill(`Calcule les coordonnées de ${sub('G',1)}.`,`${sub('G',1)}( {0} ; {1} )`,[BR(g1[0],3),BR(g1[1],3)],(u)=>`${sub('G',1)} est le point moyen des <b>trois premiers</b> points&nbsp;: (${xs.slice(0,3).join(' + ')}) ÷ 3 et (${ys.slice(0,3).join(' + ')}) ÷ 3.`,
+        {onOk:async()=>{await popG('G1',g1[0],g1[1])}}),
+      fill(`Calcule les coordonnées de ${sub('G',2)}.`,`${sub('G',2)}( {0} ; {1} )`,[BR(g2[0],3),BR(g2[1],3)],(u)=>`${sub('G',2)} est le point moyen des <b>trois derniers</b> points&nbsp;: (${xs.slice(3).join(' + ')}) ÷ 3 et (${ys.slice(3).join(' + ')}) ÷ 3.`,
+        {onOk:async()=>{await popG('G2',g2[0],g2[1])}}),
+      act(`Tracer la droite (${sub('G',1)}${sub('G',2)})`,async()=>{await drawLine(ag,bg);cap(`La droite (G₁G₂) est une droite d'ajustement du nuage.`)})],
+    done:`${sub('G',1)}${C(g1[0],g1[1])} et ${sub('G',2)}${C(g2[0],g2[1])}&nbsp;: la droite (${sub('G',1)}${sub('G',2)}) suit la tendance du nuage. C'est la méthode des points moyens.`}});
+L3.qs.push(()=>{const L=lin(6);const fr=frame(L.xs,L.ys,{xl:L.c.xl,yl:L.c.yl});const span=fr.y[1]-fr.y[0];
+  const lines=N.shuf([{a:L.a,b:L.b,ok:true},{a:-L.a,b:L.ym+L.a*L.xm,why:'Cette droite descend alors que le nuage monte (ou l\'inverse)&nbsp;: elle ne suit pas la tendance générale.'},{a:L.a,b:L.b+(L.a>0?1:-1)*N.r(span*.28,0),why:'Elle a la bonne direction, mais tous les points sont du même côté&nbsp;: elle est trop décalée pour ajuster le nuage.'}]);
+  const labs=['D₁','D₂','D₃'];
+  return{au:{k:'concept'},prompt:`${L.c.t}${tb(L.xs,L.ys)}Trois droites sont proposées pour ajuster ce nuage.`,
+    setup(){st.frame=fr;setPts(L.xs,L.ys,false);const cols=['#8ea6ff','#ffb67a','#7fe0aa'];st.lines=lines.map((l,i)=>({a:l.a,b:l.b,col:cols[i],lab:labs[i],w:3,lx:.15+.33*i}))},cap0:'Laquelle suit la tendance générale du nuage&nbsp;?',
+    parts:[ch('Quelle droite réalise un ajustement affine convenable de ce nuage&nbsp;?',lines.map((l,i)=>l.ok?OK(`${labs[i]}`):NO(`${labs[i]}`,l.why)),{keep:true,
+      onOk:async()=>{const i=lines.findIndex(l=>l.ok);st.lines.forEach((l,j)=>{l.op=j===i?1:.25});V.draw();await popG('G',L.xm,L.ym);cap(`<span class="b">${labs[i]}&nbsp;: ${N.eq(L.a,L.b)}</span>`)}})],
+    done:'Une bonne droite d\'ajustement suit la direction du nuage et passe au milieu des points, autant au-dessus qu\'en dessous.'}});
+
+/* ===================== NIVEAU 4 · Le pivot (moindres carrés) ===================== */
+const L4={t:'Le pivot',badge:'Niveau 4 · Moindres carrés',rule:`<p>Pour chaque point ${sub('M','i')} du nuage, on mesure l'<b>écart vertical</b> ${sub('M','i')}${sub('Q','i')} entre le point et le point ${sub('Q','i')} de la droite de même abscisse.</p><p>La <b>droite des moindres carrés</b> (droite de régression de ${v('y')} en ${v('x')}) est la droite ${v('y')} = ${v('a')}${v('x')} + ${v('b')} qui <b>minimise la somme des carrés des écarts verticaux</b>.</p><p>Elle passe toujours par le point moyen G(${XB} ; ${YB}).</p>`,qs:[]};
+function pivSet(L,o){o=o||{};const fr=frame(L.xs,L.ys,{xl:L.c.xl,yl:L.c.yl,y0:o.y0});const sc=(fr.y[1]-fr.y[0])/(fr.x[1]-fr.x[0]);
+  const step=stepNice(Math.max(Math.abs(L.a)*.1,sc*.06));let k0;do{k0=N.pick([-1,1])*N.ri(5,10)}while(Math.abs(L.a+k0*step)<1e-9);
+  const bstep=stepNice((fr.y[1]-fr.y[0])*.035);const bk0=N.pick([-1,1])*N.ri(5,9);return{fr,step,k0,bstep,bk0}}
+L4.qs.push(()=>{const L=lin(5);const P=pivSet(L);
+  return{au:{k:'piv',xs:L.xs,ys:L.ys,a:L.a,b:L.b},prompt:`${L.c.t}${tb(L.xs,L.ys)}La droite est fixée en G comme une aiguille&nbsp;: elle ne peut que <b>tourner autour de G</b>.`,
+    setup(){st.reserve=true;st.frame=P.fr;setPts(L.xs,L.ys,true);st.G={x:L.xm,y:L.ym,s:1};const a=L.a+P.k0*P.step;st.line={a,b:L.ym-a*L.xm}},cap0:'Une droite qui passe par G, mais mal inclinée.',
+    parts:[act(`Afficher les écarts verticaux ${sub('M','i')}${sub('Q','i')}`,async()=>{await growSeg();cap('Chaque segment corail est un écart vertical entre un point et la droite.')}),
+      act('Construire le carré de chaque écart',async()=>{await growSq();cap('Les grands écarts donnent de très grands carrés.')}),
+      pivot({ask:'Fais tourner la droite autour de G jusqu\'à rendre la somme des carrés des écarts la plus petite possible.',xs:L.xs,ys:L.ys,a0:L.a,step:P.step,k0:P.k0,d:2})],
+    done:`Aucune autre inclinaison ne fait mieux&nbsp;: c'est la <b>droite des moindres carrés</b>, ${EQ(L.a,L.b)}.`}});
+L4.qs.push(()=>{const L=lin(6);const P=pivSet(L);
+  return{au:{k:'piv',xs:L.xs,ys:L.ys,a:L.a,b:L.b},prompt:`${L.c.t}${tb(L.xs,L.ys)}`,
+    setup(){st.reserve=true;st.frame=P.fr;setPts(L.xs,L.ys,false);st.G={x:L.xm,y:L.ym,s:1};const a=L.a+P.k0*P.step;st.line={a,b:L.ym-a*L.xm};st.seg=1;st.sq=1},cap0:'Les carrés sont affichés&nbsp;: à toi de les faire fondre.',
+    parts:[pivot({ask:'Fais pivoter la droite autour de G jusqu\'au minimum de la somme des carrés.',xs:L.xs,ys:L.ys,a0:L.a,step:P.step,k0:P.k0,d:2}),
+      ch('La droite des moindres carrés est la droite qui…',[OK('rend la somme des carrés des écarts verticaux la plus petite possible'),NO('passe par le plus grand nombre de points du nuage','Elle peut ne passer par aucun point&nbsp;! Ce qui compte, c\'est la somme des carrés des écarts verticaux.'),
+        NO('passe par le premier et le dernier point du nuage','Relier deux points ne tient pas compte des autres&nbsp;: on minimise la somme des carrés des écarts verticaux.'),NO('rend la somme des écarts horizontaux la plus petite possible','Les écarts mesurés sont <b>verticaux</b>&nbsp;: entre '+sub('M','i')+' et le point '+sub('Q','i')+' de la droite de même abscisse.')])],
+    done:`Droite des moindres carrés&nbsp;: ${EQ(L.a,L.b)}. Elle ne passe pas forcément par les points, mais elle rend la somme des carrés des écarts verticaux minimale.`}});
+L4.qs.push(()=>{const L=lin(5);const P=pivSet(L);
+  return{au:{k:'piv',xs:L.xs,ys:L.ys,a:L.a,b:L.b},prompt:`${L.c.t}${tb(L.xs,L.ys)}Cette fois, la droite a déjà la bonne inclinaison, mais elle n'est pas à la bonne hauteur&nbsp;: elle peut seulement <b>monter ou descendre</b>.`,
+    setup(){st.reserve=true;st.frame=P.fr;setPts(L.xs,L.ys,false);st.G={x:L.xm,y:L.ym,s:1};st.line={a:L.a,b:L.b+P.bk0*P.bstep};st.seg=1;st.sq=1},cap0:'Même pente, mauvaise hauteur.',
+    parts:[pivot({kind:'shift',ask:'Fais glisser la droite verticalement jusqu\'à rendre la somme des carrés la plus petite possible.',xs:L.xs,ys:L.ys,a0:L.a,b0:L.b,step:P.bstep,k0:P.bk0,d:2}),
+      ch('À ce moment-là, que remarques-tu&nbsp;?',[OK('La droite passe par le point moyen G.'),NO('La droite passe par l\'origine du repère.','Regarde le point doré&nbsp;: la droite optimale passe par lui.'),NO('La droite passe par le premier point du nuage.','Regarde plutôt le point doré G&nbsp;: c\'est par lui que passe la droite optimale.')])],
+    done:'La droite des moindres carrés passe <b>toujours</b> par le point moyen G. C\'est pour cela qu\'on peut la chercher en la faisant pivoter autour de G.'}});
+L4.qs.push(()=>{const L=lin(N.ri(6,7));const P=pivSet(L);
+  return{au:{k:'piv',xs:L.xs,ys:L.ys,a:L.a,b:L.b},prompt:`${L.c.t}${tb(L.xs,L.ys)}Le point moyen est G${C(L.xm,L.ym)}.`,
+    setup(){st.reserve=true;st.frame=P.fr;setPts(L.xs,L.ys,false);st.G={x:L.xm,y:L.ym,s:1};const a=L.a+P.k0*P.step;st.line={a,b:L.ym-a*L.xm};st.seg=1;st.sq=1},cap0:'Trouve la meilleure inclinaison.',
+    parts:[pivot({ask:'Trouve la droite des moindres carrés en la faisant pivoter autour de G.',xs:L.xs,ys:L.ys,a0:L.a,step:P.step,k0:P.k0,d:2}),
+      fill(`Vérifie par le calcul que G est sur la droite ${EQ(L.a,L.b)}.`,`${N.f(L.a)} × ${N.f(L.xm)} ${L.b<0?'−':'+'} ${N.f(Math.abs(L.b))} = {0}`,[BR(N.r(L.a*L.xm+L.b,6),3.4)],'Calcule d\'abord le produit, puis ajoute (ou retranche) le second nombre.')],
+    done:`On trouve ${N.f(L.a*L.xm+L.b)} = ${YB}&nbsp;: les coordonnées de G vérifient l'équation, G est bien sur la droite des moindres carrés.`}});
+
+/* ===================== NIVEAU 5 · La calculatrice ===================== */
+const L5={t:'La calculatrice',badge:'Niveau 5 · Droite de régression',rule:`<p>En pratique, les coefficients ${v('a')} et ${v('b')} de la droite des moindres carrés ${v('y')} = ${v('a')}${v('x')} + ${v('b')} sont fournis par la <b>calculatrice</b> (ou un tableur).</p><p>On saisit les ${sub('x','i')} dans une première liste, les ${sub('y','i')} dans une deuxième, puis on lance la <b>régression linéaire</b> (${v('a')}${v('x')} + ${v('b')}).</p><p>Contrôle&nbsp;: la droite de régression passe toujours par G(${XB} ; ${YB}).</p>`,qs:[]};
+const calcHTML=(xs)=>`<div class="calc" aria-label="Écran de calculatrice"><div class="ct">Statistiques · listes</div><table><tr><th>Liste 1</th><th>Liste 2</th></tr>${xs.map(()=>'<tr><td class="e"></td><td class="e"></td></tr>').join('')}</table><div class="res"></div></div>`;
+async function calcFill(box,xs,ys){const tds=[...box.querySelectorAll('.calc td')];for(let i=0;i<xs.length;i++){const a=tds[2*i],b=tds[2*i+1];a.textContent=N.f(xs[i]);b.textContent=N.f(ys[i]);a.className=b.className='in2';S.SND.tick(true);await S.sleep(140)}}
+async function calcRun(box,a,b,dg){const r=box.querySelector('.res');const fa=N.f(a,dg),fb=N.f(b,dg);r.innerHTML='Régression linéaire (ax+b)…';await S.sleep(500);r.innerHTML=`y = ax + b\n<b>a = ${fa}</b>\n<b>b = ${fb}</b>`;S.SND.pop()}
+L5.qs.push(()=>{const L=lin(5);
+  const dec=[[L.b,L.a,`Tu as inversé ${v('a')} et ${v('b')}&nbsp;: ${v('a')} multiplie ${v('x')}, ${v('b')} s'ajoute.`],[L.a,-L.b,'Attention au signe de '+v('b')+'&nbsp;: recopie-le tel que l\'affiche la calculatrice.']].filter(c=>!(c[0]===L.a&&c[1]===L.b));
+  return{au:{k:'reg',xs:L.xs,ys:L.ys},prompt:`${L.c.t}${tb(L.xs,L.ys)}`,setup(){st.frame=frame(L.xs,L.ys,{xl:L.c.xl,yl:L.c.yl});setPts(L.xs,L.ys,false)},cap0:'Place la série dans la calculatrice.',
+    parts:[act('Saisir les listes',async(box)=>{await calcFill(box,L.xs,L.ys)},{html:calcHTML(L.xs),ask:`Les ${sub('x','i')} vont dans la liste 1, les ${sub('y','i')} dans la liste 2.`}),
+      act('Lancer la régression linéaire (ax + b)',async(box)=>{const pb=box.previousElementSibling;await calcRun(pb,L.a,L.b,9)}),
+      ch('Quelle est l\'équation de la droite de régression&nbsp;?',[OK(EQ(L.a,L.b)),NO(`${v('x')} = ${N.aff(L.a,L.b,'y')}`,'On cherche la droite de régression de '+v('y')+' en '+v('x')+'&nbsp;: '+v('y')+' = '+v('a')+v('x')+' + '+v('b')+'.')].concat(dec.map(c=>NO(EQ(c[0],c[1]),c[2]))),
+        {onOk:async()=>{await drawLine(L.a,L.b);await popG('G',L.xm,L.ym);cap(`<span class="b">${N.eq(L.a,L.b)}</span><span class="m">passe par</span><span class="k">G${N.fmtCoord(L.xm,L.ym)}</span>`)}})],
+    done:`La calculatrice donne ${v('a')} = ${N.f(L.a)} et ${v('b')} = ${N.f(L.b)}&nbsp;: ${EQ(L.a,L.b)}. Elle passe bien par G.`}});
+L5.qs.push(()=>{let xs,ys,R;for(let t=0;t<500;t++){const c=N.pick(CTX.filter(c=>c.u>=1));const i0=N.ri(0,c.xs.length-6);xs=c.xs.slice(i0,i0+6);const a=N.pick(c.a),b=N.pick(c.b);
+    ys=xs.map(x=>Math.round(a*x+b+N.ri(-3,3)*c.u));if(ys.some(y=>y<=0))continue;R=N.reg(xs,ys);if(N.dec(R.a,3)||N.dec(R.b,3))continue;if(Math.abs(N.r(R.b,2))<.1)continue;var cx=c;break}
+  const ra=N.r(R.a,2),rb=N.r(R.b,2);
+  return{au:{k:'reg2',xs,ys},prompt:`${cx.t}${tb(xs,ys)}`,setup(){st.frame=frame(xs,ys,{xl:cx.xl,yl:cx.yl});setPts(xs,ys,false)},cap0:'Cette fois, les coefficients ne «&nbsp;tombent&nbsp;» pas juste.',
+    parts:[act('Saisir les listes puis lancer la régression',async(box)=>{await calcFill(box,xs,ys);await calcRun(box,R.a,R.b,9)},{html:calcHTML(xs)}),
+      fill('Écris l\'équation de la droite de régression, coefficients arrondis au centième.',`${v('y')} = {0}${v('x')} ${rb<0?'−':'+'} {1}`,[BR(ra,4),BR(Math.abs(rb),4)],(u)=>{
+          if(Math.abs(u[0]-N.r(R.a,1))<1e-9||Math.abs(u[1]-N.r(Math.abs(R.b),1))<1e-9)return 'Au <b>centième</b>, on garde deux chiffres après la virgule.';
+          if(Math.abs(u[0]-Math.trunc(R.a*100)/100)<1e-9||Math.abs(u[1]-Math.trunc(Math.abs(R.b)*100)/100)<1e-9)return 'Arrondir n\'est pas tronquer&nbsp;: regarde le 3<sup>e</sup> chiffre après la virgule pour savoir s\'il faut augmenter le 2<sup>e</sup>.';
+          return `Lis ${v('a')} et ${v('b')} sur l'écran puis arrondis-les au centième (deux chiffres après la virgule).`},
+        {onOk:async()=>{await drawLine(R.a,R.b);await popG('G',R.xm,R.ym);cap(`<span class="b">${N.eq(ra,rb)}</span>`)}})],
+    done:`${v('a')} ≈ ${N.f(ra)} et ${v('b')} ≈ ${N.f(rb)}&nbsp;: ${EQ(ra,rb)}.`}});
+L5.qs.push(()=>{const L=lin(5);
+  return{au:{k:'reg',xs:L.xs,ys:L.ys},prompt:`${L.c.t}${tb(L.xs,L.ys)}La calculatrice donne la droite de régression ${EQ(L.a,L.b)}.`,setup(){st.frame=frame(L.xs,L.ys,{xl:L.c.xl,yl:L.c.yl});setPts(L.xs,L.ys,false);st.line={a:L.a,b:L.b}},cap0:'Contrôlons ce résultat avec G.',
+    parts:[fill('Calcule les coordonnées du point moyen.',`G( {0} ; {1} )`,[BR(L.xm,3.4),BR(L.ym,3.4)],`${XB} = (${L.xs.map(x=>N.f(x)).join(' + ')}) ÷ 5 et ${YB} = (${L.ys.map(x=>N.f(x)).join(' + ')}) ÷ 5.`,{onOk:async()=>{await popG('G',L.xm,L.ym)}}),
+      fill(`Remplace ${v('x')} par ${XB} dans l'équation.`,`${N.f(L.a)} × ${N.f(L.xm)} ${L.b<0?'−':'+'} ${N.f(Math.abs(L.b))} = {0}`,[BR(N.r(L.a*L.xm+L.b,6),3.4)],'Calcule d\'abord le produit, puis ajoute (ou retranche) le second nombre.',
+        {onOk:async()=>{await S.tween(600,t=>{st.gold=t;V.draw()});cap(`<span class="k">${N.f(L.a*L.xm+L.b)} = ${N.f(L.ym)}</span><span class="m">: G est sur la droite</span>`)}})],
+    done:`On retrouve ${YB} = ${N.f(L.ym)}&nbsp;: G appartient à la droite. Ce contrôle détecte beaucoup d'erreurs de saisie.`}});
+L5.qs.push(()=>{const L=lin(5);const fr=frame(L.xs,L.ys,{xl:L.c.xl,yl:L.c.yl});
+  let alt=[{a:L.b,b:L.a,why:`${v('a')} et ${v('b')} sont inversés&nbsp;: avec ${XB} = ${N.f(L.xm)}, on trouve ${N.f(L.b*L.xm+L.a)}, pas ${YB} = ${N.f(L.ym)}.`},{a:L.a,b:-L.b,why:`Erreur de signe sur ${v('b')}&nbsp;: avec ${XB} = ${N.f(L.xm)}, on trouve ${N.f(-L.b+L.a*L.xm)}, pas ${YB} = ${N.f(L.ym)}.`},{a:L.a,b:L.b+(L.b>0?-1:1)*Math.max(2,N.r(Math.abs(L.b)/2,0)),why:`Avec ${XB} = ${N.f(L.xm)}, cette équation ne donne pas ${YB} = ${N.f(L.ym)}&nbsp;: la droite ne passe pas par G.`}]
+    .filter(c=>!(c.a===L.a&&c.b===L.b)&&Math.abs(c.a*L.xm+c.b-L.ym)>1e-6);alt=alt.slice(0,2);
+  const all=N.shuf([{a:L.a,b:L.b,ok:true}].concat(alt));const labs=['D₁','D₂','D₃'];
+  return{au:{k:'regpick',xs:L.xs,ys:L.ys},prompt:`${L.c.t}${tb(L.xs,L.ys)}Trois élèves recopient le résultat de leur calculatrice&nbsp;: ${all.map((l,i)=>`${labs[i]}&nbsp;: ${EQ(l.a,l.b)}`).join('&nbsp;; ')}.`,
+    setup(){st.frame=fr;setPts(L.xs,L.ys,false);const cols=['#8ea6ff','#ffb67a','#7fe0aa'];st.lines=all.map((l,i)=>({a:l.a,b:l.b,col:cols[i],lab:labs[i],w:3,lx:.15+.33*i}))},cap0:'Un seul a bien recopié. Indice&nbsp;: le point moyen.',
+    parts:[ch('Laquelle est la droite de régression&nbsp;?',all.map((l,i)=>l.ok?OK(`${labs[i]}&nbsp;: ${EQ(l.a,l.b)}`):NO(`${labs[i]}&nbsp;: ${EQ(l.a,l.b)}`,l.why)),{keep:true,
+      onOk:async()=>{const i=all.findIndex(l=>l.ok);st.lines.forEach((l,j)=>{l.op=j===i?1:.2});await popG('G',L.xm,L.ym);cap(`<span class="k">G${N.fmtCoord(L.xm,L.ym)}</span><span class="m">est sur</span><span class="b">${labs[i]}</span>`)}})],
+    done:`G${C(L.xm,L.ym)} vérifie ${EQ(L.a,L.b)}&nbsp;: ${N.f(L.a)} × ${N.f(L.xm)} ${L.b<0?'−':'+'} ${N.f(Math.abs(L.b))} = ${N.f(L.ym)}.`}});
+
+/* ===================== NIVEAU 6 · Prévoir ===================== */
+const L6={t:'Prévoir',badge:'Niveau 6 · Interpolation, extrapolation',rule:`<p>Une droite d'ajustement permet d'estimer une valeur de ${v('y')} pour une valeur de ${v('x')} donnée (on calcule ${v('a')}${v('x')} + ${v('b')}), ou une valeur de ${v('x')} pour une valeur de ${v('y')} donnée (on résout ${v('a')}${v('x')} + ${v('b')} = ${v('y')}).</p><p><b>Interpolation</b>&nbsp;: l'abscisse est à l'intérieur de la plage des données observées. <b>Extrapolation</b>&nbsp;: elle est à l'extérieur.</p><p>Une interpolation est en général plus fiable qu'une extrapolation&nbsp;: en dehors du domaine étudié, la tendance peut changer.</p>`,qs:[]};
+const IE=(inside,lo,hi,x)=>inside?[OK('une interpolation'),NO('une extrapolation',`${N.f(x)} est compris entre ${N.f(lo)} et ${N.f(hi)}&nbsp;: on reste à l'intérieur de la plage des données.`)]
+  :[OK('une extrapolation'),NO('une interpolation',`${N.f(x)} n'est pas compris entre ${N.f(lo)} et ${N.f(hi)}&nbsp;: on sort de la plage des données.`)];
+function predSet(L,xe){const lo=L.xs[0],hi=L.xs[L.xs.length-1];const fr=frame(L.xs,L.ys.concat([L.a*xe+L.b]),{x0:Math.min(lo,xe),x1:Math.max(hi,xe),xl:L.c.xl,yl:L.c.yl});
+  return()=>{st.frame=fr;setPts(L.xs,L.ys,false);st.line={a:L.a,b:L.b,x0:lo,x1:hi};st.band={x0:lo,x1:hi,op:1}}}
+L6.qs.push(()=>{let L,xe;for(let t=0;t<200;t++){L=lin(N.ri(5,6));const dx=L.xs[1]-L.xs[0];xe=L.xs[N.ri(0,L.xs.length-2)]+dx/2;if(N.dec(xe,1))break}const ye=N.r(L.a*xe+L.b,6),lo=L.xs[0],hi=L.xs[L.xs.length-1];
+  return{au:{k:'val',a:L.a,b:L.b,x:xe,lo,hi},prompt:`${L.c.t} On a obtenu l'ajustement ${EQ(L.a,L.b)} à partir des données suivantes.${tb(L.xs,L.ys)}`,setup:predSet(L,xe),cap0:`<span class="b">${N.eq(L.a,L.b)}</span>`,
+    parts:[fill(`Estime ${v('y')} pour ${v('x')} = ${N.f(xe)}.`,`${v('y')} = ${N.f(L.a)} × ${N.f(xe)} ${L.b<0?'−':'+'} ${N.f(Math.abs(L.b))} = {0}`,[BR(ye,4)],'Remplace '+v('x')+' par '+N.f(xe)+' dans l\'équation&nbsp;: produit d\'abord, puis somme.',{onOk:async()=>{await read(xe,ye,'xy')}}),
+      ch('Cette estimation est…',IE(true,lo,hi,xe))],
+    done:`${v('x')} = ${N.f(xe)} est dans la plage [${N.f(lo)} ; ${N.f(hi)}]&nbsp;: c'est une <b>interpolation</b>, en général fiable.`}});
+L6.qs.push(()=>{const L=lin(N.ri(5,6));const dx=L.xs[1]-L.xs[0],lo=L.xs[0],hi=L.xs[L.xs.length-1];let xe=hi+dx*N.ri(1,2);if(L.a*xe+L.b<=0)xe=hi+dx;const ye=N.r(L.a*xe+L.b,6);
+  return{au:{k:'val',a:L.a,b:L.b,x:xe,lo,hi},prompt:`${L.c.t} On a obtenu l'ajustement ${EQ(L.a,L.b)} à partir des données suivantes.${tb(L.xs,L.ys)}`,setup:predSet(L,xe),cap0:`<span class="b">${N.eq(L.a,L.b)}</span>`,
+    parts:[fill(`Estime ${v('y')} pour ${v('x')} = ${N.f(xe)}.`,`${v('y')} = {0}`,[BR(ye,4)],'Remplace '+v('x')+' par '+N.f(xe)+' dans '+N.eq(L.a,L.b)+'.',{onOk:async()=>{await read(xe,ye,'xy','#ff9b7a')}}),
+      ch('Cette estimation est…',IE(false,lo,hi,xe))],
+    done:`${N.f(xe)} est au-delà de ${N.f(hi)}&nbsp;: c'est une <b>extrapolation</b>. On prolonge la tendance observée (pointillés), avec prudence.`}});
+L6.qs.push(()=>{let L,xe,ye,lo,hi;for(let t=0;t<300;t++){L=lin(N.ri(5,6));const dx=L.xs[1]-L.xs[0];lo=L.xs[0];hi=L.xs[L.xs.length-1];
+    xe=N.pick([lo+dx/2,lo+dx*1.5,hi+dx,lo+dx*2.5].filter(x=>x!==hi));ye=N.r(L.a*xe+L.b,6);if(ye>0&&N.dec(ye,2)&&N.dec(xe,1))break}
+  const ins=xe>=lo&&xe<=hi;
+  return{au:{k:'inv',a:L.a,b:L.b,y:ye,lo,hi},prompt:`${L.c.t} L'ajustement obtenu est ${EQ(L.a,L.b)}, pour des données relevées de ${v('x')} = ${N.f(lo)} à ${v('x')} = ${N.f(hi)}.`,setup:predSet(L,xe),cap0:`<span class="b">${N.eq(L.a,L.b)}</span>`,
+    parts:[fill(`Pour quelle valeur de ${v('x')} obtient-on ${v('y')} = ${N.f(ye)}&nbsp;?`,`${N.aff(L.a,L.b)} = ${N.f(ye)} &nbsp;donc&nbsp; ${v('x')} = {0}`,[BR(xe,4)],(u)=>{
+        if(Math.abs(u[0]-N.r(L.a*ye+L.b,6))<1e-6)return 'Ici, c\'est '+v('y')+' qui est connu&nbsp;: on résout l\'équation '+N.aff(L.a,L.b)+' = '+N.f(ye)+'.';
+        return `Retranche ${N.f(L.b)} aux deux membres, puis divise par ${N.f(L.a)}.`},{onOk:async()=>{await read(xe,ye,'yx',ins?'#e8c766':'#ff9b7a')}}),
+      ch('Cette estimation est…',IE(ins,lo,hi,xe))],
+    done:`${v('x')} = (${N.f(ye)} ${L.b<0?'+':'−'} ${N.f(Math.abs(L.b))}) ÷ ${N.f(L.a)} = ${N.f(xe)}&nbsp;: ${ins?'interpolation':'extrapolation'}.`}});
+L6.qs.push(()=>{const L=lin(6);const lo=L.xs[0],hi=L.xs[L.xs.length-1],dx=L.xs[1]-L.xs[0];const far=hi+dx*N.ri(4,6);const xi=lo+dx*N.ri(1,4)+dx/2;
+  const fr=frame(L.xs,L.ys.concat([Math.max(0,L.a*far+L.b)]),{x0:lo,x1:far,xl:L.c.xl,yl:L.c.yl});
+  return{au:{k:'concept'},prompt:`${L.c.t} Le modèle ${EQ(L.a,L.b)} a été établi pour ${v('x')} compris entre ${N.f(lo)} et ${N.f(hi)}. On l'utilise pour ${v('x')} = ${N.f(far)}.`,
+    setup(){st.frame=fr;setPts(L.xs,L.ys,false);st.line={a:L.a,b:L.b,x0:lo,x1:hi};st.band={x0:lo,x1:hi,op:1}},cap0:'Très loin de la plage des données…',
+    parts:[ch('Que penser de cette estimation&nbsp;?',[OK('C\'est une extrapolation lointaine&nbsp;: la tendance peut changer, l\'estimation est fragile.'),NO('C\'est une interpolation, donc elle est fiable.',`${N.f(far)} est bien au-delà de ${N.f(hi)}&nbsp;: c'est une extrapolation.`),NO('Elle est exacte, puisque la droite est celle des moindres carrés.','La droite résume les données observées&nbsp;; elle ne garantit rien en dehors du domaine étudié.')],{onOk:async()=>{await read(far,L.a*far+L.b,'xy','#ff9b7a')}}),
+      ch(`Laquelle de ces deux estimations est la plus fiable&nbsp;?`,[OK(`celle pour ${v('x')} = ${N.f(xi)}`),NO(`celle pour ${v('x')} = ${N.f(far)}`,'Une interpolation est en général plus fiable qu\'une extrapolation.'),NO('elles sont aussi fiables l\'une que l\'autre','À l\'intérieur des données, on s\'appuie sur des observations&nbsp;; au-delà, on fait le pari que la tendance continue.')],{onOk:async()=>{await read(xi,L.a*xi+L.b,'xy')}})],
+    done:'Une interpolation est en général plus fiable qu\'une extrapolation&nbsp;: au-delà des données, la tendance observée peut changer.'}});
+
+/* ===================== NIVEAU 7 · Changer de variable ===================== */
+const L7={t:'Changer de variable',badge:'Niveau 7 · Changement de variable',rule:`<p>Lorsque le nuage n'est pas presque aligné, on effectue le <b>changement de variable donné</b> dans l'énoncé, par exemple ${v('z')} = log(${v('y')}), ${v('u')} = <span class="fr"><span>1</span><span>${v('t')}</span></span> ou ${v('z')} = √<span class="rad">${v('x')}</span>, afin d'obtenir un nuage presque aligné.</p><p>On réalise l'ajustement affine sur les nouvelles variables, puis on <b>revient au modèle initial</b>&nbsp;:</p><p>log(${v('y')}) = ${v('a')}${v('x')} + ${v('b')} ⇒ ${v('y')} = 10<span class="sup">${v('a')}${v('x')} + ${v('b')}</span>&nbsp;; &nbsp;<span class="fr"><span>1</span><span>${v('t')}</span></span> = ${v('a')}${v('x')} + ${v('b')} ⇒ ${v('t')} = <span class="fr"><span>1</span><span>${v('a')}${v('x')} + ${v('b')}</span></span>&nbsp;; &nbsp;${v('y')} = ${v('a')}${v('z')} + ${v('b')} avec ${v('z')} = √<span class="rad">${v('x')}</span> ⇒ ${v('y')} = ${v('a')}√<span class="rad">${v('x')}</span> + ${v('b')}.</p>`,qs:[]};
+const lg=y=>Math.log10(y);
+function expSeries(){const c=N.pick([5,10,20,25]),q=N.pick([2,3]),n=q===3?4:5;const xs=Array.from({length:n},(_,i)=>i+1);const ys=xs.map(x=>c*Math.pow(q,x-1));
+  const zs=ys.map(y=>N.r(lg(y),2));const R=N.reg(xs,zs);return{xs,ys,zs,R,c,q}}
+const P10=(a,b,da,db)=>`10<span class="sup">${N.aff(a,b,'x',da,db)}</span>`;
+function zFrame(d){const zmax=Math.max(...d.zs);return{x:d.fr.x,y:[0,Math.ceil(zmax*2+.4)/2,.5],xl:'x',yl:'z = log(y)'}}
+L7.qs.push(()=>{const d=expSeries();d.fr=frame(d.xs,d.ys,{y0:0});const k=N.ri(1,d.xs.length-1);
+  return{au:{k:'log',y:d.ys[k]},prompt:`Une population de micro-algues est observée en laboratoire&nbsp;: ${v('x')} est le jour de la mesure et ${v('y')} le nombre de milliers de cellules.${tb(d.xs,d.ys)}`,
+    setup(){st.frame=d.fr;setPts(d.xs,d.ys,false);st.pts.forEach((p,i)=>p.z=lg(d.ys[i]))},cap0:'Le nuage monte de plus en plus vite.',
+    parts:[ch('Un ajustement affine direct semble-t-il pertinent&nbsp;?',[OK('Non&nbsp;: le nuage est nettement courbé.'),NO('Oui&nbsp;: '+v('y')+' augmente quand '+v('x')+' augmente.','Croissant ne veut pas dire aligné&nbsp;: les écarts entre deux valeurs successives de '+v('y')+' grandissent, le nuage se courbe.')]),
+      act(`Poser ${v('z')} = log(${v('y')})`,async()=>{await morph(zFrame(d),true);cap('Le nouveau nuage des points (x ; z)')},{ask:'L\'énoncé propose le changement de variable '+v('z')+' = log('+v('y')+').'}),
+      fill(`Calcule ${sub('z',k+1)} = log(${N.f(d.ys[k])}), arrondi au centième.`,`${sub('z',k+1)} ≈ {0}`,[BR(N.r(lg(d.ys[k]),2),3.4)],'Utilise la touche log de la calculatrice, puis arrondis à deux chiffres après la virgule.'),
+      ch(`Le nuage des points (${sub('x','i')} ; ${sub('z','i')}) est…`,[OK('presque aligné&nbsp;: un ajustement affine de '+v('z')+' en '+v('x')+' devient pertinent'),NO('toujours aussi courbé','Regarde la scène&nbsp;: après le changement de variable, les points se sont alignés.')])],
+    done:`Avec ${v('z')} = log(${v('y')}), le nuage courbé est devenu presque aligné&nbsp;: on peut maintenant faire un ajustement affine de ${v('z')} en ${v('x')}.`}});
+L7.qs.push(()=>{const d=expSeries();d.fr=frame(d.xs,d.ys,{y0:0});const a=N.r(d.R.a,2),b=N.r(d.R.b,2);const zf=zFrame(d);
+  return{au:{k:'zreg',xs:d.xs,zs:d.zs,a,b},prompt:`On reprend une croissance de micro-algues, avec ${v('z')} = log(${v('y')}).${tb(d.xs,d.ys)}${tb(d.xs,d.zs,{yl:sub('z','i')})}La calculatrice donne la droite de régression de ${v('z')} en ${v('x')}&nbsp;: ${EQ(a,b,'z')} (coefficients arrondis au centième).`,
+    setup(){st.frame=zf;setPts(d.xs,d.zs,false);st.pts.forEach((p,i)=>p.z=d.ys[i]);st.line={a,b}},cap0:`<span class="b">${N.eq(a,b,'z')}</span>`,
+    parts:[ch(`On en déduit une relation entre ${v('y')} et ${v('x')}&nbsp;:`,[OK(`${v('y')} = ${P10(a,b)}`),NO(EQ(a,b),'Ça, c\'est l\'expression de '+v('z')+'&nbsp;! Il faut revenir à '+v('y')+'&nbsp;: log('+v('y')+') = '+N.aff(a,b)+'.'),
+        NO(`${v('y')} = log(${N.aff(a,b)})`,'Si log('+v('y')+') = '+N.aff(a,b)+', alors '+v('y')+' = 10 à la puissance '+N.aff(a,b)+'.'),NO(`${v('y')} = 10<span class="sup">${N.f(a)}</span>${v('x')} + ${N.f(b)}`,'Tout l\'exposant est '+N.aff(a,b)+'&nbsp;: '+v('y')+' = 10<span class="sup">'+N.aff(a,b)+'</span>.')]),
+      act('Revenir au modèle initial',async()=>{st.line=null;V.draw();await morph({x:d.fr.x,y:d.fr.y,xl:'x',yl:'y'},true);st.curve={f:x=>Math.pow(10,a*x+b),t:0};await S.tween(1100,t=>{st.curve.t=t;V.draw()});cap(`<span class="k">y = 10<span class="sup">${N.aff(a,b)}</span></span>`)})],
+    done:`log(${v('y')}) = ${N.aff(a,b)} donc ${v('y')} = ${P10(a,b)}&nbsp;: la courbe dorée épouse le nuage de départ.`}});
+L7.qs.push(()=>{const al=N.pick([.02,.03,.05]),be=N.pick([1.2,1.5,1.8]);const lo=0,hi=N.pick([20,40]);const xe=N.pick([hi/2,hi+10]);const ye=N.r(Math.pow(10,al*xe+be),0);
+  const xs=[0,1,2,3,4].map(i=>i*hi/4),ys=xs.map(x=>Math.pow(10,al*x+be));
+  const fr=frame(xs,ys.concat([ye]),{x1:Math.max(hi,xe),y0:0});
+  return{au:{k:'exp',a:al,b:be,x:xe,d:0},prompt:`Une métropole étudie sa population ${v('y')} (en milliers d'habitants) en fonction du rang ${v('x')} de l'année, pour ${v('x')} allant de ${lo} à ${hi}. Avec ${v('z')} = log(${v('y')}), un ajustement affine de ${v('z')} en ${v('x')} donne ${EQ(al,be,'z')}.`,
+    setup(){st.frame=fr;setPts(xs,ys,false);st.curve={f:x=>Math.pow(10,al*x+be),t:1};st.band={x0:lo,x1:hi,op:1}},cap0:`<span class="k">y = 10<span class="sup">${N.aff(al,be)}</span></span>`,
+    parts:[fill(`Estime la population pour ${v('x')} = ${xe}, arrondie au millier d'habitants.`,`${v('y')} = 10<span class="sup">${N.f(al)} × ${xe} + ${N.f(be)}</span> ≈ {0} milliers`,[BR(ye,4)],(u)=>{
+        if(Math.abs(u[0]-N.r(al*xe+be,4))<1e-6)return 'Tu as calculé '+v('z')+'&nbsp;: il reste à revenir à '+v('y')+' = 10<span class="sup">'+v('z')+'</span>.';
+        return `Calcule d'abord l'exposant ${N.f(al)} × ${xe} + ${N.f(be)} = ${N.f(al*xe+be)}, puis 10 à cette puissance.`},{onOk:async()=>{await read(xe,Math.pow(10,al*xe+be),'xy',xe<=hi?'#e8c766':'#ff9b7a')}}),
+      ch('Cette estimation est…',IE(xe>=lo&&xe<=hi,lo,hi,xe))],
+    done:`${v('y')} = 10<span class="sup">${N.f(al*xe+be)}</span> ≈ ${N.f(ye)} milliers d'habitants (${xe<=hi?'interpolation':'extrapolation'}).`}});
+L7.qs.push(()=>{const a=N.pick([1.5,2,2.5]),b=N.pick([1,2,3]);const xs=[1,4,9,16,25,36];const ys=xs.map(x=>N.r(a*Math.sqrt(x)+b+N.pick([-.2,0,.2]),1));const fr=frame(xs,ys,{y0:0});
+  const zs=xs.map(x=>Math.sqrt(x));const ua=N.pick([.5,2,3]),ub=N.pick([1,4]);
+  return{au:{k:'concept'},prompt:`Pour la série ci-dessous, l'énoncé propose le changement de variable ${v('z')} = √<span class="rad">${v('x')}</span>.${tb(xs,ys)}`,
+    setup(){st.frame=fr;setPts(xs,ys,false);st.pts.forEach((p,i)=>p.zx=zs[i])},cap0:'Un nuage courbé qui s\'aplatit.',
+    parts:[act(`Poser ${v('z')} = √x`,async()=>{await morph({x:[0,7,1],y:fr.y,xl:'z = √x',yl:'y'},true);cap('Le nuage des points (z ; y) est presque aligné.')}),
+      ch(`La calculatrice donne ${EQ(a,b,'y','z')}. Quelle relation entre ${v('y')} et ${v('x')} en déduit-on&nbsp;?`,[OK(`${v('y')} = ${N.f(a)}√<span class="rad">${v('x')}</span> + ${N.f(b)}`),NO(EQ(a,b),'On remplace '+v('z')+' par √'+v('x')+', pas par '+v('x')+'.'),NO(`${v('y')} = √<span class="rad">${N.aff(a,b)}</span>`,'Seul '+v('z')+' est remplacé par √'+v('x')+'&nbsp;: la racine porte sur '+v('x')+' uniquement.'),NO(`${v('y')} = ${N.f(a)}${v('x')}<span class="sup">2</span> + ${N.f(b)}`,v('z')+' = √'+v('x')+'&nbsp;: on remplace '+v('z')+' par √'+v('x')+', pas par '+v('x')+'².')],
+        {onOk:async()=>{st.pts.forEach(p=>{p.zx=p.ox});await morph({x:fr.x,y:fr.y,xl:'x',yl:'y'},true);st.curve={f:x=>a*Math.sqrt(Math.max(0,x))+b,t:0};await S.tween(900,t=>{st.curve.t=t;V.draw()})}}),
+      ch(`Autre cas&nbsp;: avec ${v('u')} = <span class="fr"><span>1</span><span>${v('t')}</span></span>, on obtient ${EQ(ua,ub,'u')}. Alors…`,[OK(`${v('t')} = <span class="fr"><span>1</span><span>${N.aff(ua,ub)}</span></span>`),NO(`${v('t')} = ${N.aff(ua,ub)}`,'Ça, c\'est '+v('u')+'&nbsp;: '+v('u')+' = 1/'+v('t')+', donc '+v('t')+' = 1/'+v('u')+'.'),NO(`${v('t')} = <span class="fr"><span>1</span><span>${N.aff(ua,0)}</span></span> + ${N.f(ub)}`,'C\'est tout le dénominateur '+N.aff(ua,ub)+' qui passe sous la barre&nbsp;: '+v('t')+' = 1/('+N.aff(ua,ub)+').')])],
+    done:`Méthode générale&nbsp;: changement de variable donné, ajustement affine sur les nouvelles variables, puis retour au modèle initial en remplaçant la variable transformée.`}});
+
+G.LV.push({t:L1.t,badge:L1.badge,rule:L1.rule,qs:L1.qs},L2,L3,L4,L5,L6,L7);
+})();
+</script>
+
+<script>
+/* ======================= LE PIVOT — épreuves finales (Bronze, Argent, Or) ======================= */
+window.LP_FIN=(function(){
+'use strict';
+const N=window.LP_N;
+const v=s=>`<span class="v">${s}</span>`;const sub=(s,i)=>`${v(s)}<sub>${i}</sub>`;
+const XB='<span class="ov v">x</span>',YB='<span class="ov v">y</span>';
+const tb=(xs,ys,o)=>{o=o||{};const xl=o.xl||sub('x','i'),yl=o.yl||sub('y','i');return `<div class="tbw"><table class="tb"><tr><th>${xl}</th>${xs.map(a=>`<td>${N.f(a)}</td>`).join('')}</tr><tr><th>${yl}</th>${ys.map(a=>`<td>${N.f(a)}</td>`).join('')}</tr></table></div>`};
+const C=(x,y)=>`<span class="nw">${N.fmtCoord(x,y)}</span>`;
+const EQ=(a,b,y,x,da,db)=>`<span class="nw">${N.eq(a,b,y,x,da,db)}</span>`;
+const P10=(a,b)=>`10<span class="sup">${N.aff(a,b)}</span>`;
+const FR=(n,d)=>`<span class="fr"><span>${n}</span><span>${d}</span></span>`;
+const RAD=s=>`√<span class="rad">${s}</span>`;
+const PN=x=>x<0?'('+N.f(x)+')':N.f(x);
+const ORD=['1re','2e','3e','4e','5e','6e','7e','8e'];
+const txt=h=>String(h).replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
+function qcm(level,prompt,good,bads,explain,au){const seen=new Set([txt(good)]);const ch=[good];for(const b of bads){const t=txt(b);if(!seen.has(t)){seen.add(t);ch.push(b)}if(ch.length===4)break}
+  if(ch.length<3)throw new Error('qcm: pas assez de leurres');return{type:'qcm',level,prompt,choices:ch,answer:0,explain,au}}
+function trous(level,prompt,blanks,explain,au){return{type:'trous',level,prompt,blanks,explain,au}}
+const A=(v,d,size)=>({answers:N.ans(v,d===undefined?6:d),size:size||4});
+const ser=(n,lo,hi,dec)=>{for(;;){const xs=N.shuf(Array.from({length:hi-lo+1},(_,i)=>lo+i)).slice(0,n).sort((a,b)=>a-b);const up=Math.random()<.6;
+  const ys=xs.map(x=>N.r((up?2+x*1.4:20-x*1.4)+N.ri(-2,2)*(dec?.5:1),1)).map(y=>dec?y:Math.round(y));if(ys.some(y=>y<=0))continue;
+  if(new Set(ys).size<n)continue;return{xs,ys}}};
+function meanS(n,lo,hi,dec,dd){for(let t=0;t<5000;t++){const d=ser(n,lo,hi,dec);const xm=N.mean(d.xs),ym=N.mean(d.ys);if(N.dec(xm,dd)&&N.dec(ym,dd))return Object.assign(d,{xm,ym})}throw new Error('meanS')}
+/* séries presque alignées à droite de régression exacte */
+const CT=[{t:'le nombre '+v('x')+' d\'heures de révision par semaine et la note '+v('y')+' obtenue au bac blanc',xs:[1,2,3,4,5,6,7,8],a:[1.5,2],b:[2,3,4],u:.5,amp:2,max:20},
+  {t:'le budget publicitaire '+v('x')+' (en centaines d\'euros) et les ventes '+v('y')+' (en milliers d\'euros) d\'une boutique',xs:[5,10,15,20,25,30,35,40],a:[1.5,2,2.5],b:[6,8,10],u:1,amp:3,max:150},
+  {t:'la distance '+v('x')+' (en km) et le prix '+v('y')+' (en euros) de courses de taxi à Mamoudzou',xs:[2,4,6,8,10,12,14],a:[1.5,2],b:[3,4,5],u:.5,amp:2,max:40},
+  {t:'l\'âge '+v('x')+' (en années) et le prix de revente '+v('y')+' (en centaines d\'euros) de scooters',xs:[1,2,3,4,5,6,7],a:[-2,-2.5,-3],b:[24,26,28],u:.5,amp:2,max:30}];
+function lin(n){for(let t=0;t<500;t++){const c=N.pick(CT);if(c.xs.length<n)continue;const i0=N.ri(0,c.xs.length-n),xs=c.xs.slice(i0,i0+n),a=N.pick(c.a),b=N.pick(c.b);
+  const r=N.resid(xs.map(x=>x/(xs[1]-xs[0])),c.amp,n-1);const ys=xs.map((x,i)=>N.r(a*x+b+r[i]*c.u,3));if(ys.some(y=>y<=0||y>c.max))continue;
+  const R=N.reg(xs,ys);if(Math.abs(R.a-a)>1e-9||Math.abs(R.b-b)>1e-9)continue;if(ys.every((y,i)=>Math.abs(y-a*xs[i]-b)<1e-9))continue;return{c,xs,ys,a,b,xm:R.xm,ym:R.ym}}throw new Error('lin')}
+
+/* ---------- Niveau 1 · série et nuage ---------- */
+const Q1={qcm(T){
+    if(T===1){const d=ser(5,1,9,false);const k=N.ri(0,4);let p=[d.ys[k],d.xs[k]];
+      if(d.xs.some((x,i)=>x===p[0]&&d.ys[i]===p[1])||p[0]===p[1]){const j=(k+1)%5;p=[d.xs[j],d.ys[(j+1)%5]];if(d.xs.some((x,i)=>x===p[0]&&d.ys[i]===p[1]))return Q1.qcm(1)}
+      const others=N.shuf([0,1,2,3,4]).slice(0,3);
+      return qcm(1,`On considère la série statistique suivante.${tb(d.xs,d.ys)}Lequel de ces points <b>n'appartient pas</b> au nuage de points associé&nbsp;?`,C(p[0],p[1]),others.map(i=>C(d.xs[i],d.ys[i])),
+        `Le nuage est formé des points (${sub('x','i')} ; ${sub('y','i')}) lus colonne par colonne&nbsp;: ${C(p[0],p[1])} n'en fait pas partie.`,{k:'notin',xs:d.xs,ys:d.ys})}
+    const n=T===0?4:6,d=T===0?ser(4,1,9,false):ser(6,1,12,true);const k=N.ri(1,n-2);
+    return qcm(1,`${T===2?'On relève, pour six élèves, la durée '+v('x')+' (en heures) passée sur les réseaux sociaux un samedi et le temps '+v('y')+' (en heures) passé à réviser ce jour-là.':'On considère la série statistique suivante.'}${tb(d.xs,d.ys)}Le point associé à la ${ORD[k]} colonne a pour coordonnées…`,
+      C(d.xs[k],d.ys[k]),[C(d.ys[k],d.xs[k]),C(d.xs[k],d.ys[k+1]),C(d.xs[k-1],d.ys[k]),C(d.xs[k],d.xs[k+1])],
+      `On lit les deux valeurs d'une même colonne, l'abscisse ${sub('x',k+1)} d'abord&nbsp;: ${C(d.xs[k],d.ys[k])}.`,{k:'couple',xs:d.xs,ys:d.ys,i:k})},
+  trous(T){if(T===2){const d=ser(6,1,12,true);const perm=N.shuf([0,1,2,3,4,5]);const xs=perm.map(i=>d.xs[i]),ys=perm.map(i=>d.ys[i]);const k=N.ri(0,5);
+      return trous(1,`Les couples d'une série ont été notés dans le désordre.${tb(xs,ys)}Dans le nuage, le point d'abscisse ${N.f(xs[k])} a pour ordonnée {0}.`,[A(ys[k],1)],
+        `On cherche la colonne où ${v('x')} = ${N.f(xs[k])}&nbsp;: elle donne ${v('y')} = ${N.f(ys[k])}.`,{k:'ord',xs,ys,x:xs[k]})}
+    const n=T===0?4:5,d=ser(n,1,T===0?9:12,T===1);const k=N.ri(0,n-1);
+    return trous(1,`On considère la série statistique suivante.${tb(d.xs,d.ys)}La ${ORD[k]} colonne donne le point ${sub('M',k+1)}( {0} ; {1} ).`,[A(d.xs[k],1,3),A(d.ys[k],1,3)],
+      `${sub('M',k+1)} a pour abscisse ${sub('x',k+1)} = ${N.f(d.xs[k])} et pour ordonnée ${sub('y',k+1)} = ${N.f(d.ys[k])}.`,{k:'couple',xs:d.xs,ys:d.ys,i:k})}};
+
+/* ---------- Niveau 2 · point moyen ---------- */
+const Q2={qcm(T){let d,ctx='On considère la série statistique suivante.';
+    if(T===0)d=meanS(3,1,9,false,0);else if(T===1)d=meanS(N.pick([4,5]),1,12,true,2);else{const L=lin(6);d={xs:L.xs,ys:L.ys,xm:L.xm,ym:L.ym};ctx='On relève '+L.c.t+'.'}
+    const n=d.xs.length,sx=d.xs.reduce((a,b)=>a+b,0),sy=d.ys.reduce((a,b)=>a+b,0);
+    const mid=[(Math.min(...d.xs)+Math.max(...d.xs))/2,(Math.min(...d.ys)+Math.max(...d.ys))/2];
+    const bad=[[d.ym,d.xm],[sx/(n-1),sy/(n-1)],mid,T===0?[sx,sy]:[d.xs[Math.floor(n/2)],d.ys[Math.floor(n/2)]]].filter(p=>N.dec(p[0],2)&&N.dec(p[1],2));
+    return qcm(2,`${ctx}${tb(d.xs,d.ys)}Le point moyen G de ce nuage est…`,'G'+C(d.xm,d.ym),bad.map(p=>'G'+C(p[0],p[1])),
+      `${XB} = ${N.f(sx)} ÷ ${n} = ${N.f(d.xm)} et ${YB} = ${N.f(sy)} ÷ ${n} = ${N.f(d.ym)}.`,{k:'G',xs:d.xs,ys:d.ys})},
+  trous(T){if(T===2){for(;;){const d=meanS(4,1,12,false,1);const k=3,sx3=d.xs.slice(0,3).reduce((a,b)=>a+b,0),sy3=d.ys.slice(0,3).reduce((a,b)=>a+b,0);
+      return trous(2,`Une série compte quatre couples&nbsp;: ${d.xs.slice(0,3).map((x,i)=>C(x,d.ys[i])).join(', ')} et un quatrième couple (${sub('x',4)} ; ${sub('y',4)}). Son point moyen est G${C(d.xm,d.ym)}. Alors ${sub('x',4)} = {0} et ${sub('y',4)} = {1}.`,
+        [A(d.xs[3],1,3),A(d.ys[3],1,3)],`La somme des abscisses vaut 4 × ${N.f(d.xm)} = ${N.f(4*d.xm)}, donc ${sub('x',4)} = ${N.f(4*d.xm)} − ${sx3} = ${N.f(d.xs[3])}&nbsp;; de même ${sub('y',4)} = ${N.f(4*d.ym)} − ${sy3} = ${N.f(d.ys[3])}.`,{k:'G4',xs3:d.xs.slice(0,3),ys3:d.ys.slice(0,3),xm:d.xm,ym:d.ym})}}
+    const d=T===0?meanS(N.pick([3,4]),1,9,false,1):meanS(5,1,12,true,2);const n=d.xs.length;
+    return trous(2,`On considère la série&nbsp;: ${d.xs.map((x,i)=>C(x,d.ys[i])).join(', ')}. Son point moyen est G( {0} ; {1} ).`,[A(d.xm,2,3),A(d.ym,2,3)],
+      `${XB} = (${d.xs.map(x=>N.f(x)).join(' + ')}) ÷ ${n} = ${N.f(d.xm)} et ${YB} = (${d.ys.map(x=>N.f(x)).join(' + ')}) ÷ ${n} = ${N.f(d.ym)}.`,{k:'G',xs:d.xs,ys:d.ys})}};
+
+/* ---------- Niveau 3 · ajustement affine, points moyens ---------- */
+function g12(n){for(;;){const h=n/2,x0=N.ri(1,4),dx=N.pick([1,2]);const xs=Array.from({length:n},(_,i)=>x0+dx*i);const a=N.pick([3,4,5]),b=N.ri(2,12);
+  const ys=xs.map(x=>a*x+b+N.ri(-4,4));const g1=[N.mean(xs.slice(0,h)),N.mean(ys.slice(0,h))],g2=[N.mean(xs.slice(h)),N.mean(ys.slice(h))];
+  if(!N.dec(g1[0],2)||!N.dec(g1[1],2)||!N.dec(g2[0],2)||!N.dec(g2[1],2)||g2[1]<=g1[1])continue;return{xs,ys,g1,g2,h}}}
+const Q3={qcm(T){
+    if(T===0)return qcm(3,'Lorsque les points d\'un nuage semblent presque alignés, on peut effectuer un ajustement affine par une droite d\'équation…',
+      `${v('y')} = ${v('a')}${v('x')} + ${v('b')}`,[`${v('y')} = ${v('a')}${v('x')}<span class="sup">2</span>`,`${v('y')} = ${FR(v('a'),v('x'))}`,`${v('x')} = ${v('a')}`],
+      'Un ajustement affine utilise une droite d\'équation '+v('y')+' = '+v('a')+v('x')+' + '+v('b')+'.',{k:'concept'});
+    if(T===1){if(Math.random()<.5){const c=N.pick([3,5]),xs=[1,2,3,4,5,6],ys=xs.map(x=>c*Math.pow(2,x-1));
+        return qcm(3,`On considère la série suivante.${tb(xs,ys)}Un ajustement affine de ${v('y')} en ${v('x')} est-il pertinent&nbsp;?`,'Non&nbsp;: le nuage est nettement courbé.',
+          [`Oui&nbsp;: ${v('y')} augmente quand ${v('x')} augmente.`,'Oui&nbsp;: un ajustement affine est toujours pertinent.'],
+          `Les valeurs de ${v('y')} doublent à chaque pas&nbsp;: le nuage se courbe nettement, une droite ne convient pas.`,{k:'concept'})}
+      const L=lin(6);return qcm(3,`On relève ${L.c.t}.${tb(L.xs,L.ys)}Un ajustement affine est-il pertinent&nbsp;?`,'Oui&nbsp;: les points du nuage semblent presque alignés.',
+        ['Non&nbsp;: les points ne sont pas exactement alignés.','Non&nbsp;: aucune droite ne passe par tous les points.'],'Il suffit que les points soient <b>presque</b> alignés&nbsp;: la droite modélise la tendance générale.',{k:'concept'})}
+    const d=g12(6),a=(d.g2[1]-d.g1[1])/(d.g2[0]-d.g1[0]),b=d.g1[1]-a*d.g1[0];if(!N.dec(a,2)||!N.dec(b,2))return Q3.qcm(2);
+    const af=(d.ys[5]-d.ys[0])/(d.xs[5]-d.xs[0]),bf=d.ys[0]-af*d.xs[0];
+    const bads=[N.dec(af,2)&&N.dec(bf,2)?EQ(af,bf):null,EQ(a,-b),EQ(1/a,b,'y','x',2,2),EQ(a,d.g1[1])].filter(Boolean);
+    return qcm(3,`On applique la méthode des points moyens à la série suivante, en prenant les trois premiers points puis les trois derniers.${tb(d.xs,d.ys)}La droite (${sub('G',1)}${sub('G',2)}) a pour équation…`,EQ(a,b),bads,
+      `${sub('G',1)}${C(d.g1[0],d.g1[1])} et ${sub('G',2)}${C(d.g2[0],d.g2[1])}&nbsp;: coefficient directeur (${N.f(d.g2[1])} − ${N.f(d.g1[1])}) ÷ (${N.f(d.g2[0])} − ${N.f(d.g1[0])}) = ${N.f(a)}, puis ${v('b')} = ${N.f(b)}.`,{k:'g12eq',xs:d.xs,ys:d.ys})},
+  trous(T){const d=g12(T===0?4:T===1?6:8);const which=T===0?1:N.pick([1,2]);const g=which===1?d.g1:d.g2;
+    const grp=which===1?(T===0?'deux premiers':T===1?'trois premiers':'quatre premiers'):(T===1?'trois derniers':'quatre derniers');
+    return trous(3,`Méthode des points moyens.${tb(d.xs,d.ys)}Le point moyen ${sub('G',which)} des ${grp} points a pour coordonnées ( {0} ; {1} ).`,[A(g[0],2,3),A(g[1],2,3)],
+      `On fait la moyenne des abscisses puis des ordonnées des ${grp} points&nbsp;: ${sub('G',which)}${C(g[0],g[1])}.`,{k:'G12',xs:d.xs,ys:d.ys,which})}};
+
+/* ---------- Niveau 4 · moindres carrés ---------- */
+const Q4={qcm(T){
+    if(T===0)return qcm(4,'La droite des moindres carrés d\'un nuage est la droite qui…','rend la somme des carrés des écarts verticaux la plus petite possible',
+      ['passe par le plus grand nombre de points du nuage','passe par le premier et le dernier point du nuage','rend la somme des écarts horizontaux la plus petite possible'],
+      'On mesure l\'écart vertical entre chaque point et la droite&nbsp;; la droite des moindres carrés minimise la somme de leurs carrés.',{k:'concept'});
+    if(T===1)return qcm(4,'La droite de régression de '+v('y')+' en '+v('x')+' passe toujours par…','le point moyen G('+XB+' ; '+YB+') du nuage',['l\'origine du repère','le premier point du nuage','le point du nuage d\'ordonnée la plus grande'],
+      'Propriété du cours&nbsp;: le point moyen G appartient toujours à la droite de régression.',{k:'concept'});
+    for(;;){const e1=N.shuf([2,-1,-1,0]),e2=N.shuf([1,1,-1,-1]);const s1=e1.reduce((s,x)=>s+x*x,0),s2=e2.reduce((s,x)=>s+x*x,0);if(s1===s2)continue;
+      const good=s1<s2?1:2,bad=3-good;const f=e=>e.map(x=>N.f(x)).join(' ; ');
+      return qcm(4,`Deux droites ${sub('D',1)} et ${sub('D',2)} sont proposées pour ajuster un nuage de quatre points. Les écarts verticaux (point − droite) valent&nbsp;: pour ${sub('D',1)}&nbsp;: ${f(e1)}&nbsp;; pour ${sub('D',2)}&nbsp;: ${f(e2)}. Au sens des moindres carrés…`,
+        `${sub('D',good)} est la meilleure, car la somme des carrés vaut ${good===1?s1:s2} contre ${good===1?s2:s1}`,[`${sub('D',bad)} est la meilleure, car la somme des carrés vaut ${good===1?s2:s1} contre ${good===1?s1:s2}`,'les deux droites se valent, car la somme des écarts est nulle dans les deux cas',`${sub('D',bad)} est la meilleure, car elle a le plus petit écart`],
+        `Sommes des carrés&nbsp;: ${s1} pour ${sub('D',1)} et ${s2} pour ${sub('D',2)}. La somme des écarts (nulle ici) ne permet pas de comparer.`,{k:'sq2',e1,e2,good})}},
+  trous(T){
+    if(T===0)return trous(4,'La droite de régression d\'un nuage passe toujours par le point {0} du nuage.',[{answers:['moyen','moyen G','G','point moyen','moyen g'],size:5}],'Le point moyen G('+XB+' ; '+YB+') appartient toujours à la droite de régression.',{k:'concept'});
+    if(T===1){const e=Array.from({length:5},()=>N.pick([-3,-2,-1,1,2,3]));const s=e.reduce((a,x)=>a+x*x,0);
+      return trous(4,`Pour une droite d'ajustement, les écarts verticaux entre les cinq points du nuage et la droite valent ${e.map(x=>N.f(x)).join('&nbsp;; ')}. La somme des carrés de ces écarts vaut {0}.`,[A(s,0,3)],
+        `On élève chaque écart au carré (un carré est toujours positif) puis on additionne&nbsp;: ${e.map(x=>'('+N.f(x)+')²').join(' + ')} = ${s}.`,{k:'S',e})}
+    for(;;){const a=N.pick([1.5,2,2.5,-1.5,-2,3]),xm=N.pick([4,5,6,8]),b=N.pick([3,4,5,6,8,10]);const ym=a*xm+b;if(ym<=0)continue;
+      return trous(4,`La droite de régression d'une série a pour coefficient directeur ${v('a')} = ${N.f(a)}, et le point moyen du nuage est G${C(xm,ym)}. Son équation s'écrit ${v('y')} = ${N.f(a)}${v('x')} + ${v('b')} avec ${v('b')} = {0}.`,[A(b,2,3)],
+        `G est sur la droite&nbsp;: ${N.f(ym)} = ${N.f(a)} × ${xm} + ${v('b')}, donc ${v('b')} = ${N.f(ym)} − ${PN(a*xm)} = ${N.f(b)}.`,{k:'bG',a,xm,ym})}}};
+
+/* ---------- Niveau 5 · calculatrice ---------- */
+function messy(){for(;;){const xs=[1,2,3,4,5,6].map(x=>x*N.pick([1,2])).filter((x,i,A)=>A.indexOf(x)===i).sort((a,b)=>a-b);if(xs.length<5)continue;const a=N.pick([2,3,4]),b=N.ri(3,15);
+  const ys=xs.map(x=>a*x+b+N.ri(-3,3));const R=N.reg(xs,ys);if(N.dec(R.a,3)||N.dec(R.b,3))continue;if(Math.abs(N.r(R.a,1)-N.r(R.a,2))<1e-9||Math.abs(N.r(R.b,1)-N.r(R.b,2))<1e-9)continue;
+  if(Math.trunc(R.a*100)/100===N.r(R.a,2)&&Math.trunc(Math.abs(R.b)*100)/100===N.r(Math.abs(R.b),2))continue;return{xs,ys,R}}}
+const Q5={qcm(T){
+    if(T===0){const a=N.pick([1.5,2,2.5,3,0.8]),b=N.pick([4,5,7,12,-3]);if(a===b)return Q5.qcm(0);
+      return qcm(5,`Pour une série statistique, la calculatrice affiche, pour la régression linéaire (${v('a')}${v('x')} + ${v('b')})&nbsp;: ${v('a')} = ${N.f(a)} et ${v('b')} = ${N.f(b)}. La droite de régression a pour équation…`,EQ(a,b),[EQ(b,a),`${v('x')} = ${N.aff(a,b,'y')}`,EQ(a,-b)],
+        `${v('a')} multiplie ${v('x')} et ${v('b')} s'ajoute&nbsp;: ${EQ(a,b)}.`,{k:'eq',a,b})}
+    if(T===1){const d=messy(),ra=N.r(d.R.a,2),rb=N.r(d.R.b,2);
+      return qcm(5,`Pour la série ci-dessous, la calculatrice affiche ${v('a')} = ${N.f(d.R.a,9)} et ${v('b')} = ${N.f(d.R.b,9)}.${tb(d.xs,d.ys)}Avec des coefficients arrondis au centième, la droite de régression a pour équation…`,EQ(ra,rb),
+        [EQ(Math.trunc(d.R.a*100)/100,Math.sign(d.R.b)*Math.trunc(Math.abs(d.R.b)*100)/100),EQ(N.r(d.R.a,1),N.r(d.R.b,1)),EQ(rb,ra),EQ(ra,-rb)],
+        `Au centième&nbsp;: ${v('a')} ≈ ${N.f(ra)} et ${v('b')} ≈ ${N.f(rb)} (on regarde le 3<sup>e</sup> chiffre après la virgule pour arrondir).`,{k:'reg2',xs:d.xs,ys:d.ys})}
+    const L=lin(5);const all=[[L.b,L.a],[L.a,-L.b],[L.a,L.b+(L.b>0?-2:2)],[-L.a,L.b]].filter(p=>Math.abs(p[0]*L.xm+p[1]-L.ym)>1e-6);
+    return qcm(5,`On relève ${L.c.t}.${tb(L.xs,L.ys)}Une seule de ces équations peut être celle de la droite de régression obtenue à la calculatrice. Laquelle&nbsp;?`,EQ(L.a,L.b),all.map(p=>EQ(p[0],p[1])),
+      `G${C(L.xm,L.ym)} doit appartenir à la droite&nbsp;: ${N.f(L.a)} × ${N.f(L.xm)} ${L.b<0?'−':'+'} ${N.f(Math.abs(L.b))} = ${N.f(L.ym)}. Les autres équations ne passent pas par G.`,{k:'regpick',xs:L.xs,ys:L.ys})},
+  trous(T){
+    if(T===0){const a=N.pick([1.5,2,3,4]),b=N.pick([2,5,6,9]);return trous(5,`La calculatrice affiche, pour la régression linéaire&nbsp;: ${v('a')} = ${N.f(a)} et ${v('b')} = ${N.f(b)}. La droite de régression a pour équation ${v('y')} = {0}${v('x')} + {1}.`,[A(a,2,3),A(b,2,3)],
+      `${v('a')} est le coefficient de ${v('x')} et ${v('b')} le terme constant&nbsp;: ${EQ(a,b)}.`,{k:'eqb',a,b})}
+    if(T===1){const d=messy(),ra=N.r(d.R.a,2),rb=N.r(d.R.b,2);
+      return trous(5,`Pour une série, la calculatrice affiche ${v('a')} = ${N.f(d.R.a,9)} et ${v('b')} = ${N.f(d.R.b,9)}. Avec des coefficients arrondis au centième&nbsp;: ${v('y')} = {0}${v('x')} ${rb<0?'−':'+'} {1}.`,[A(ra,2),A(Math.abs(rb),2)],
+        `Au centième&nbsp;: ${N.f(d.R.a,9)} ≈ ${N.f(ra)} et ${N.f(d.R.b,9)} ≈ ${N.f(rb)}.`,{k:'round2',a:d.R.a,b:d.R.b,sa:N.f(d.R.a,9),sb:N.f(d.R.b,9)})}
+    const L=lin(5);return trous(5,`On relève ${L.c.t}.${tb(L.xs,L.ys)}La calculatrice donne le coefficient directeur ${v('a')} = ${N.f(L.a)} de la droite de régression, mais l'élève a oublié de noter ${v('b')}. Sachant que la droite passe par le point moyen, ${v('b')} = {0}.`,[A(L.b,3)],
+      `G${C(L.xm,L.ym)}&nbsp;; ${YB} = ${v('a')}${XB} + ${v('b')} donne ${v('b')} = ${N.f(L.ym)} − ${PN(L.a)} × ${N.f(L.xm)} = ${N.f(L.b)}.`,{k:'regb',xs:L.xs,ys:L.ys,a:L.a})}};
+
+/* ---------- Niveau 6 · interpolation, extrapolation ---------- */
+const Q6={qcm(T){
+    if(T===0){const lo=1,hi=N.pick([8,10,12]);const ins=Math.random()<.5;const x=ins?N.ri(lo+1,hi-1):hi+N.ri(3,8);
+      return qcm(6,`Une série a été observée pour ${v('x')} allant de ${lo} à ${hi}. Estimer, avec une droite d'ajustement, la valeur de ${v('y')} pour ${v('x')} = ${x}, c'est faire…`,ins?'une interpolation':'une extrapolation',[ins?'une extrapolation':'une interpolation','un changement de variable','un calcul de point moyen'],
+        `${x} est ${ins?'à l\'intérieur':'à l\'extérieur'} de la plage [${lo} ; ${hi}]&nbsp;: c'est une ${ins?'interpolation':'extrapolation'}.`,{k:'ie',lo,hi,x})}
+    if(T===1){const a=N.pick([1.5,2.5,3,4]),b=N.pick([5,8,12,20]),x=N.pick([6,7,9,11]);const y=a*x+b;
+      return qcm(6,`Un ajustement affine donne ${EQ(a,b)}, pour des données observées de ${v('x')} = 2 à ${v('x')} = 14. L'estimation de ${v('y')} pour ${v('x')} = ${x} est…`,`${N.f(y)}, par interpolation`,[`${N.f(y)}, par extrapolation`,`${N.f(a*x)}, par interpolation`,`${N.f(a*(x+b))}, par interpolation`,`${N.f(N.r((x-b)/a,2))}, par interpolation`],
+        `${N.f(a)} × ${x} + ${N.f(b)} = ${N.f(y)}, et ${x} est entre 2 et 14&nbsp;: interpolation.`,{k:'valie',a,b,x,lo:2,hi:14})}
+    for(;;){const a=N.pick([4.5,5,6,7.5]),b=N.pick([50,60,80]);const xe=N.ri(7,12);const y=a*xe+b;if(!N.dec(y,0))continue;
+      return qcm(6,`Le chiffre d'affaires ${v('y')} (en milliers d'euros) d'une entreprise est modélisé par ${EQ(a,b)}, où ${v('x')} est le rang de l'année (${v('x')} = 0 en 2018), d'après les données de 2018 à 2024. Selon ce modèle, le chiffre d'affaires atteindrait ${N.f(y)} milliers d'euros…`,
+        `en ${2018+xe}, par extrapolation`,[`en ${2018+xe}, par interpolation`,`en ${2018+xe-1}, par extrapolation`,`en ${2018+Math.round(y/a)}, par extrapolation`,`en ${xe}, par extrapolation`],
+        `${N.aff(a,b)} = ${N.f(y)} donne ${v('x')} = (${N.f(y)} − ${b}) ÷ ${N.f(a)} = ${xe}, soit l'année 2018 + ${xe} = ${2018+xe}&nbsp;; c'est au-delà de 2024&nbsp;: extrapolation.`,{k:'year',a,b,y,y0:2018,lo:0,hi:6})}},
+  trous(T){
+    if(T===0){const a=N.pick([2,3,4,5]),b=N.pick([1,2,6,10]),x=N.ri(2,9);return trous(6,`Une droite d'ajustement a pour équation ${EQ(a,b)}. Pour ${v('x')} = ${x}, on estime ${v('y')} = {0}.`,[A(a*x+b,2,3)],
+      `On remplace ${v('x')} par ${x}&nbsp;: ${a} × ${x} + ${b} = ${a*x+b}.`,{k:'val',a,b,x})}
+    if(T===1){for(;;){const a=N.pick([1.5,2.5,4,0.5]),b=N.pick([10,12,20]),x=N.ri(4,30);const y=a*x+b;if(!N.dec(y,1))continue;
+      return trous(6,`Un ajustement affine donne ${EQ(a,b)}. On cherche ${v('x')} tel que ${v('y')} = ${N.f(y)}&nbsp;: ${v('x')} = {0}.`,[A(x,2,3)],
+        `On résout ${N.aff(a,b)} = ${N.f(y)}&nbsp;: ${N.f(a)}${v('x')} = ${N.f(y-b)}, donc ${v('x')} = ${x}.`,{k:'inv',a,b,y})}}
+    for(;;){const L=lin(5);const dx=L.xs[1]-L.xs[0],lo=L.xs[0],hi=L.xs[4];const out=Math.random()<.6;const x=out?hi+dx*N.ri(1,3):lo+dx*N.ri(0,3)+dx/2;const y=L.a*x+L.b;if(y<=0||!N.dec(y,3)||!N.dec(x,2))continue;
+      return trous(6,`On relève ${L.c.t}.${tb(L.xs,L.ys)}La calculatrice donne la droite de régression ${EQ(L.a,L.b)}. Pour ${v('x')} = ${N.f(x)}, on estime ${v('y')} = {0}&nbsp;; il s'agit d'une {1}.`,
+        [A(y,3),{answers:[out?'extrapolation':'interpolation'],size:8}],`${N.f(L.a)} × ${N.f(x)} ${L.b<0?'−':'+'} ${N.f(Math.abs(L.b))} = ${N.f(y)}&nbsp;; ${N.f(x)} est ${out?'en dehors':'à l\'intérieur'} de la plage [${N.f(lo)} ; ${N.f(hi)}]&nbsp;: ${out?'extrapolation':'interpolation'}.`,{k:'valie',a:L.a,b:L.b,x,lo,hi})}}};
+
+/* ---------- Niveau 7 · changement de variable ---------- */
+const Q7={qcm(T){const a=N.pick([.02,.05,.3,.4]),b=N.pick([1.2,1.5,2]);
+    if(T===0)return qcm(7,`On pose ${v('z')} = log(${v('y')}) et un ajustement affine donne ${EQ(a,b,'z')}. On en déduit…`,`${v('y')} = ${P10(a,b)}`,[EQ(a,b),`${v('y')} = log(${N.aff(a,b)})`,`${v('y')} = 10<span class="sup">${N.f(a)}</span>${v('x')} + ${N.f(b)}`],
+      `log(${v('y')}) = ${N.aff(a,b)} donc ${v('y')} = ${P10(a,b)}.`,{k:'concept'});
+    if(T===1){const ua=N.pick([.5,2,3]),ub=N.pick([1,4,5]);return qcm(7,`On pose ${v('u')} = ${FR(1,v('t'))} et un ajustement affine donne ${EQ(ua,ub,'u')}. On en déduit…`,`${v('t')} = ${FR(1,N.aff(ua,ub))}`,[`${v('t')} = ${N.aff(ua,ub)}`,`${v('t')} = ${FR(1,N.aff(ua,0))} + ${N.f(ub)}`,`${v('t')} = ${FR(N.f(ua),v('x'))} + ${N.f(ub)}`],
+      `${FR(1,v('t'))} = ${N.aff(ua,ub)} donc ${v('t')} = ${FR(1,N.aff(ua,ub))}.`,{k:'concept'})}
+    if(Math.random()<.5){const ra=N.pick([1.5,2,2.5]),rb=N.pick([1,3,4]);return qcm(7,`On pose ${v('z')} = ${RAD(v('x'))} et la calculatrice donne ${EQ(ra,rb,'y','z')}. On en déduit…`,`${v('y')} = ${N.f(ra)}${RAD(v('x'))} + ${N.f(rb)}`,[EQ(ra,rb),`${v('y')} = ${RAD(N.aff(ra,rb))}`,`${v('y')} = ${N.f(ra)}${v('x')}<span class="sup">2</span> + ${N.f(rb)}`],
+      `On remplace ${v('z')} par ${RAD(v('x'))}&nbsp;: ${v('y')} = ${N.f(ra)}${RAD(v('x'))} + ${N.f(rb)}.`,{k:'concept'})}
+    const c=N.pick([3,5,8]),xs=[0,1,2,3,4,5],ys=xs.map(x=>c*Math.pow(3,x));
+    return qcm(7,`Une grandeur semble croître de façon exponentielle&nbsp;:${tb(xs,ys)}Quel changement de variable rend le nuage presque aligné, avant de revenir au modèle initial&nbsp;?`,`${v('z')} = log(${v('y')}), puis ${v('y')} = 10<span class="sup">${v('z')}</span>`,[`${v('z')} = log(${v('y')}), puis ${v('y')} = log(${v('z')})`,`${v('z')} = ${v('y')}<span class="sup">2</span>, puis ${v('y')} = ${RAD(v('z'))}`,'aucun, car un ajustement affine direct est pertinent'],
+      `Pour une croissance exponentielle, on pose ${v('z')} = log(${v('y')})&nbsp;: le nuage (${v('x')} ; ${v('z')}) devient presque aligné, puis on revient à ${v('y')} = 10<span class="sup">${v('z')}</span>.`,{k:'concept'})},
+  trous(T){
+    if(T===0){const y=N.pick([10,100,1000,10000]);return trous(7,`On pose ${v('z')} = log(${v('y')}). Pour ${v('y')} = ${N.f(y)}, on obtient ${v('z')} = {0}.`,[A(Math.round(Math.log10(y)),0,3)],
+      `log(${N.f(y)}) = ${Math.round(Math.log10(y))}, car ${N.f(y)} = 10<span class="sup">${Math.round(Math.log10(y))}</span>.`,{k:'log',y,d:0})}
+    if(T===1){let y;do{y=N.pick([15,25,40,60,75,120,250,350,500,800])*N.pick([1,1,10])}while(Number.isInteger(Math.log10(y)));
+      return trous(7,`On pose ${v('z')} = log(${v('y')}). Pour ${v('y')} = ${N.f(y)}, on obtient ${v('z')} ≈ {0} (arrondi au centième).`,[A(N.r(Math.log10(y),2),2)],
+        `À la calculatrice, log(${N.f(y)}) ≈ ${N.f(Math.log10(y),4)}, soit ${N.f(N.r(Math.log10(y),2))} au centième.`,{k:'log',y,d:2})}
+    for(;;){const a=N.pick([.02,.03,.04,.05]),b=N.pick([1.2,1.5,1.8,2]),x=N.pick([5,10,15,20,25]);const e=a*x+b,y=Math.pow(10,e);if(Math.abs(y-Math.round(y))>.4&&Math.abs(y-Math.round(y))<.45)continue;if(Number.isInteger(N.r(e,6)))continue;
+      return trous(7,`On pose ${v('z')} = log(${v('y')}) et l'ajustement affine donne ${EQ(a,b,'z')}. Pour ${v('x')} = ${x}, le modèle donne ${v('y')} ≈ {0} (arrondi à l'unité).`,[A(Math.round(y),0,4)],
+        `${v('z')} = ${N.f(a)} × ${x} + ${N.f(b)} = ${N.f(e)}, puis ${v('y')} = 10<span class="sup">${N.f(e)}</span> ≈ ${N.f(Math.round(y))}.`,{k:'exp',a,b,x,d:0})}}};
+
+const QL=[Q1,Q2,Q3,Q4,Q5,Q6,Q7];
+function build(T){for(let tries=0;tries<50;tries++){try{
+    const lv=N.shuf([1,2,3,4,5,6,7]);const tr=lv.slice(0,4),qc=lv.slice(4);
+    const extra=T===0?N.shuf([1,2,3,6]).slice(0,3):N.shuf([1,2,3,4,5,6,7]).slice(0,3);
+    const out=tr.map(l=>QL[l-1].trous(T)).concat(qc.concat(extra).map(l=>QL[l-1].qcm(T)));
+    const ps=out.map(q=>txt(q.prompt)+'|'+(q.choices?q.choices.map(txt).sort().join('|'):''));if(new Set(ps).size<out.length)continue;
+    return N.shuf(out)}catch(e){if(tries>45)throw e}}}
+return{bronze:()=>build(0),argent:()=>build(1),or:()=>build(2),QL};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'le-pivot',title:'Le Pivot',levels:7,
+  levelNames:['Le nuage','Le point moyen','Ajuster','Le pivot','La calculatrice','Prévoir','Changer de variable'],
+  music:'aventure',finals:{bronze:()=>(window.LP_lastFinal=LP_FIN.bronze()),argent:()=>(window.LP_lastFinal=LP_FIN.argent()),or:()=>(window.LP_lastFinal=LP_FIN.or())}});
+LP.start();
+(function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|INPUT|TEXTAREA|svg)$/i.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(fix)}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+
+</body>
+</html>

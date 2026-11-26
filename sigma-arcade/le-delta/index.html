@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le Delta · Sigma Arcade</title>
+<meta name="description" content="Probabilités conditionnelles en Terminale technologique : P_A(B), tableaux croisés d'effectifs, arbres pondérés, formule des probabilités totales, indépendance. Un flux de population se ramifie comme un delta : chaque branche a l'épaisseur de son poids.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours.
+   IDEA : une population s'écoule comme un fleuve et se ramifie en delta ; chaque bras a l'épaisseur de son poids.
+          « Sachant A » : on ferme les autres bras, le bras A devient le fleuve entier (100 %).
+   PICTURE : un delta de lumière la nuit ; des particules coulent, se séparent aux nœuds, se rejoignent à la confluence.
+   COLOUR and TYPE : nuit « océan profond » ; bleu pour A, lilas pour Ā, or pour B ; violet-bleu pour l'action ; Outfit.
+   LAYOUT : scène et bandeau à gauche (collés en haut sur téléphone), carnet de bord à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);
+--ca:#7fb2ff;--cna:#c3a6ff;--c3:#6fd3c1}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:72ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .labb{border-color:rgba(200,168,75,.6)}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(340px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:1000/600;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#050a16;user-select:none;-webkit-user-select:none}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg text{font-family:var(--sg-font)}
+.badge{position:absolute;right:10px;top:10px;z-index:2;font:600 13px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--mut);border:1px solid var(--soft);pointer-events:none;max-width:calc(100% - 260px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,23px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .35em}
+.capt .k{color:var(--gold2)}.capt .a{color:var(--ca)}.capt .na{color:var(--cna)}.capt .m{color:var(--mut);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin:8px 0 0;font-size:14px;color:var(--mut)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.legend .la i{background:var(--ca)}.legend .lna i{background:var(--cna)}
+.legend .lb i{border-radius:3px;width:18px;background:rgba(232,199,102,.35);border:1px solid rgba(232,199,102,.8)}
+.legend .lw i{border-radius:3px;width:18px;height:6px;background:rgba(127,178,255,.45);vertical-align:2px}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.5;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(19px,2.2vw,22px)/2.3 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.4em;height:46px;margin:0 3px;padding:0 6px;font:700 20px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+/* écritures */
+.ov{text-decoration:overline;text-decoration-thickness:.07em;text-underline-offset:0}
+.pr{white-space:nowrap}
+.pr sub{font-size:.68em;vertical-align:-.32em;line-height:0;margin:0 .04em}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.nw{white-space:nowrap}
+.ea{color:var(--ca)}.ena{color:var(--cna)}.eb{color:var(--gold2)}
+/* tableau croisé d'effectifs */
+.ctw{overflow-x:auto;margin:10px 0 6px}
+.ct{border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums;font-size:17px;line-height:1.3;min-width:min(100%,330px)}
+.ct th,.ct td{padding:7px 12px;text-align:right;border-bottom:1px solid var(--soft);transition:background .3s,color .3s,opacity .3s}
+.ct thead th{font-size:14px;color:var(--mut);font-weight:600;vertical-align:bottom}
+.ct tbody th{text-align:left;font-weight:600;color:var(--ink);font-size:15px}
+.ct .tot{color:var(--mut)}
+.ct td{font-weight:700}
+.ct.f .dim{opacity:.28}
+.ct .on{background:rgba(127,178,255,.14)}
+.ct .gl{background:rgba(232,199,102,.2);color:var(--gold2);box-shadow:inset 0 0 0 1.5px rgba(232,199,102,.7)}
+.ct .den{background:rgba(127,178,255,.26);box-shadow:inset 0 0 0 1.5px rgba(127,178,255,.8)}
+.sk-q .ct{font-size:16px}.sk-q .ct th,.sk-q .ct td{padding:5px 10px}
+.sk-q .pr sub,.sk-ch .pr sub{font-size:.66em}
+.sk-q .fr,.sk-ch .fr{font-size:.92em}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+/* Mon delta */
+.lab h3{margin:16px 0 4px;font-size:14px;color:var(--mut);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.sl{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 12px;margin:4px 0}
+.sl label{font-weight:600}
+.sl output{font:700 18px var(--sg-font);color:var(--gold2);font-variant-numeric:tabular-nums;min-width:3.2em;text-align:right}
+.sl input[type=range]{grid-column:1/-1;width:100%;height:44px;margin:0;accent-color:var(--ac);cursor:pointer}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer}
+.seg button:hover{border-color:var(--ac)}
+.seg button[aria-pressed=true]{background:var(--acsoft);border-color:var(--ac)}
+.stat{margin:14px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.stat div{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--soft)}
+.stat b{display:block;font-size:21px;color:var(--gold2);font-variant-numeric:tabular-nums}
+.stat span{font-size:14px;color:var(--mut)}
+.lpop{transform-box:fill-box;transform-origin:center;animation:lpop .45s cubic-bezier(.2,1.5,.4,1)}
+@keyframes lpop{from{transform:scale(.4);opacity:0}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.97);border-bottom:1px solid var(--soft)}
+  .stage{aspect-ratio:560/480;max-height:39svh;margin:auto}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+  .legend{display:none}
+}
+@media (max-width:520px){
+  .badge{display:none}
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .ct{font-size:16px}.ct th,.ct td{padding:6px 8px}
+  .sk-q .ct th,.sk-q .ct td{padding:4px 6px}.sk-q .ct{font-size:15px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win,.lpop{animation:none}.ct th,.ct td{transition:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Le Delta</h1>
+<p>Une population s'écoule comme un fleuve et se ramifie en delta&nbsp;: chaque bras a l'épaisseur de son poids. «&nbsp;Sachant A&nbsp;», on ferme tous les autres bras et le bras A devient le fleuve entier. Les morceaux de B se rejoignent à la confluence… et l'on peut même remonter le courant.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Le delta : un flux de population qui se ramifie, chaque bras ayant l'épaisseur de sa probabilité">
+    <svg id="scene" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+    <span class="badge" id="badge"></span>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+  <div class="legend" id="legend"><span class="lw"><i></i>épaisseur d'un bras = sa part de la population</span><span class="la"><i></i>premier événement</span><span class="lna"><i></i>son contraire</span><span class="lb"><i></i>événement observé</span></div>
+</div>
+<section class="panel" id="panel">
+  <div id="game">
+    <div class="chap" id="chap"></div>
+    <h2 id="lvt"></h2>
+    <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+    <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+    <div class="prompt" id="prompt"></div>
+    <div id="work"></div>
+    <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+    <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+      <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+  </div>
+  <div id="labv" class="lab" hidden>
+    <div class="chap">Mon delta</div>
+    <h2>Règle les vannes toi-même</h2>
+    <p class="hint" style="margin-top:0">Fais varier les trois poids de l'arbre, puis observe&nbsp;: sachant A, confluence de B, remontée du courant, indépendance.</p>
+    <div class="sl"><label for="lpa"><span class="pr">P(A)</span></label><output id="opa"></output><input type="range" id="lpa" min="1" max="19" step="1" value="8" aria-label="P(A)"></div>
+    <div class="sl"><label for="lq1"><span class="pr">P<sub>A</sub>(B)</span></label><output id="oq1"></output><input type="range" id="lq1" min="0" max="20" step="1" value="6" aria-label="P_A(B)"></div>
+    <div class="sl"><label for="lq2"><span class="pr">P<sub><span class="ov">A</span></sub>(B)</span></label><output id="oq2"></output><input type="range" id="lq2" min="0" max="20" step="1" value="12" aria-label="P_Ā(B)"></div>
+    <h3>Regarder</h3>
+    <div class="seg" id="lview"></div>
+    <div class="stat" id="lstat"></div>
+  </div>
+</section>
+</main>
+<script>
+/* ======================= LE DELTA — nombres exacts, écritures et notations ======================= */
+window.DL_N=(function(){
+'use strict';
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t}return a};
+const R=(n,d)=>{if(d===undefined)d=1;if(d<0){n=-n;d=-d}const g=gcd(n,d)||1;return{n:n/g,d:d/g}};
+const add=(x,y)=>R(x.n*y.d+y.n*x.d,x.d*y.d);
+const sub=(x,y)=>R(x.n*y.d-y.n*x.d,x.d*y.d);
+const mul=(x,y)=>R(x.n*y.n,x.d*y.d);
+const div=(x,y)=>R(x.n*y.d,x.d*y.n);
+const cmp=(x,y)=>Math.sign(x.n*y.d-y.n*x.d);
+const eq=(x,y)=>cmp(x,y)===0;
+const val=x=>x.n/x.d;
+const one=R(1),zero=R(0);
+const comp=x=>sub(one,x);
+const C=k=>R(k,100);                 // centièmes : C(35) = 0,35
+const M=k=>R(k,1000);                // millièmes
+const isDec=r=>{let d=r.d;while(d%2===0)d/=2;while(d%5===0)d/=5;return d===1};
+const ndec=r=>{let k=0;while(k<12&&((Math.abs(r.n)*Math.pow(10,k))%r.d))k++;return k};
+const NB=' ',NNB=' ';
+function fmtInt(n){const s=String(Math.abs(n));const g=s.length>4?s.replace(/\B(?=(\d{3})+(?!\d))/g,NB):s;return (n<0?'−':'')+g}
+/* écriture décimale exacte (virgule) ; minDig : nombre minimal de décimales */
+function dec(r,minDig){minDig=minDig||0;const k=ndec(r),kk=Math.max(k,minDig),p=Math.pow(10,kk),v=Math.round(Math.abs(r.n)*p/r.d);
+  const ip=Math.floor(v/p),fp=kk?String(v-ip*p).padStart(kk,'0'):'';return (r.n<0?'−':'')+fmtInt(ip)+(kk?','+fp:'')}
+/* arrondi exact à k décimales (demi vers le haut, nombres positifs) */
+function round(r,k){const p=Math.pow(10,k);return R(Math.floor((2*r.n*p+r.d)/(2*r.d)),p)}
+const pct=r=>dec(mul(r,R(100)))+NNB+'%';
+const frH=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const numH=r=>r.d===1?fmtInt(r.n):isDec(r)&&ndec(r)<=4?dec(r):frH(fmtInt(r.n),fmtInt(r.d));
+const numT=r=>r.d===1?fmtInt(r.n):isDec(r)&&ndec(r)<=4?dec(r):`${r.n}/${r.d}`;
+/* toutes les écritures acceptées d'un rationnel : décimale (complétée), fraction réduite, pourcentage */
+function ans(r,extra){const out=[];const push=s=>{if(s&&out.indexOf(s)<0)out.push(s)};
+  if(isDec(r)&&ndec(r)<=6){const d0=dec(r).replace(/ /g,'');push(d0);if(r.d!==1){const k=ndec(r);for(let j=k+1;j<=Math.max(4,k);j++)push(dec(r,j))}}
+  if(r.d!==1)push(`${r.n}/${r.d}`);
+  if(r.d!==1&&r.n<=r.d){const h=mul(r,R(100));if(isDec(h)&&ndec(h)<=3)push(dec(h)+'%')}
+  (extra||[]).forEach(push);return out}
+/* arrondi à k décimales : seule l'écriture arrondie (et son pourcentage) */
+function ansApprox(r,k){const a=round(r,k),out=[dec(a,k)];const h=mul(a,R(100));out.push(dec(h)+'%');return out}
+/* lecture d'une saisie : entier, décimal (virgule ou point), fraction a/b (décimaux permis), pourcentage */
+function parse(s){s=String(s).replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.');
+  if(!s)return null;
+  const P=t=>{const m=/^(-?)(\d*)(?:\.(\d+))?$/.exec(t);if(!m||!(m[2]||m[3]))return null;const ip=m[2]||'0',fp=m[3]||'';if(fp.length>9)return null;return R(parseInt(ip+fp,10)*(m[1]?-1:1),Math.pow(10,fp.length))};
+  let m=/^(.*)%$/.exec(s);if(m){const x=P(m[1]);return x?div(x,R(100)):null}
+  m=/^([^/]+)\/([^/]+)$/.exec(s);if(m){const a=P(m[1]),b=P(m[2]);return a&&b&&b.n?div(a,b):null}
+  return P(s)}
+/* nombre de décimales écrites dans une saisie */
+const typedDec=s=>{s=String(s).replace(/\s+/g,'').replace(/,/g,'.');const m=/\.(\d+)$/.exec(s);return m?m[1].length:0};
+/* hasard */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+/* notations : '~A' = A barre ; P('A ∩ ~B','A') = P_A(A ∩ B barre) */
+const ev=s=>String(s).replace(/~([A-ZΩ][₁₂₃]?)/g,'<span class="ov">$1</span>');
+const P=(x,c)=>`<span class="pr">P${c?`<sub>${ev(c)}</sub>`:''}(${ev(x)})</span>`;
+const I=(a,b)=>`${a} ∩ ${b}`;
+return{gcd,R,add,sub,mul,div,cmp,eq,val,one,zero,comp,C,M,isDec,ndec,fmtInt,dec,round,pct,frH,numH,numT,ans,ansApprox,parse,typedDec,ri,pick,shuf,ev,P,I,NB,NNB};
+})();
+</script>
+<script>
+/* ======================= LE DELTA — la scène (delta pondéré, particules, sachant, confluence) ======================= */
+window.DL_S=(function(){
+'use strict';
+const N=window.DL_N,NS='http://www.w3.org/2000/svg',svg=document.getElementById('scene');
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let W=1000,H=600,narrow=false;
+function el(tag,a,parent){const e=document.createElementNS(NS,tag);if(a)for(const k in a)e.setAttribute(k,a[k]);if(parent)parent.appendChild(e);return e}
+const C={gold:'#e8c766',gold2:'#f6dc8a',ink:'#f0f4ff',mut:'rgba(200,215,255,.66)',ac:'#6c8eff',ac2:'#a9bcff',
+  br:['#7fb2ff','#c3a6ff','#6fd3c1'],brF:['rgba(127,178,255,','rgba(195,166,255,','rgba(111,211,193,']};
+
+/* ---------- bruitages (interrupteur partagé avec le kit) ---------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const SND={
+  pop(){if(snd){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)}},
+  soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))},
+  gate(){if(snd){tone(196,.25,.05,'sine');tone(294,.3,.04,'sine',.12);tone(392,.35,.035,'sine',.24)}},
+  flow(){if(snd){[330,392,494,587].forEach((f,i)=>tone(f,.25,.025,'sine',i*.07))}},
+  merge(){if(snd){tone(523.25,.3,.04,'triangle');tone(659.25,.3,.04,'triangle',.1);tone(784,.45,.045,'triangle',.22)}},
+  flip(){if(snd){tone(587,.15,.03,'sine');tone(440,.18,.03,'sine',.09);tone(587,.2,.03,'sine',.2)}}};
+const sound={get:()=>snd,set:v=>{snd=v;try{localStorage.setItem('sigma-fanfare',v?'1':'0')}catch(_){}}};
+
+/* ---------- état ---------- */
+const st={tree:null,lab:{},focus:-1,kf:0,km:0,kb:0,kg:0,fade:1,hl:null,fresh:{}};
+let L={},Lay=null;
+
+/* étiquettes : '~A' = A barre, '_X' = indice X ; « ? » = valeur cherchée ; « ! » en tête = valeur mise en avant */
+function parseL(s){const segs=[];let i=0,cur='';s=String(s);
+  while(i<s.length){const ch=s[i];
+    if(ch==='_'||ch==='~'){if(cur){segs.push({t:cur});cur=''}let sub=false,ov=false;if(s[i]==='_'){sub=true;i++}if(s[i]==='~'){ov=true;i++}
+      let tok=s[i++]||'';while(i<s.length&&/[₁₂₃]/.test(s[i]))tok+=s[i++];segs.push({t:tok,sub,ov});continue}
+    cur+=ch;i++}
+  if(cur)segs.push({t:cur});return segs}
+/* mesures de texte mises en cache (largeur, position des barres) : pas de relecture de mise en page à chaque image */
+const MC=new Map();let mEl=null;
+function rawTxt(parent,x,y,segs,a){const t=el('text',Object.assign({x,y},a||{}),parent);
+  segs.forEach(sg=>{const sp=el('tspan',sg.sub?{'baseline-shift':'sub','font-size':'70%'}:null,t);sp.textContent=sg.t});return t}
+function measure(s,fs,w){const key=s+'|'+fs+'|'+w;const m0=MC.get(key);if(m0)return m0;const segs=parseL(s);
+  if(!mEl||!mEl.isConnected)mEl=el('g',{opacity:0},svg);
+  const t=rawTxt(mEl,0,0,segs,{'font-size':fs,'font-weight':w});let wd=0;const ov=[];
+  try{wd=t.getComputedTextLength();let idx=0;segs.forEach(sg=>{if(sg.ov){const e0=t.getExtentOfChar(idx),e1=t.getExtentOfChar(idx+sg.t.length-1);
+      if(e0.width)ov.push([e0.x+.6,e1.x+e1.width-.6,e0.y+e0.height*(sg.sub?.2:.14),sg.sub])}idx+=sg.t.length})}catch(e){}
+  mEl.removeChild(t);const m={w:wd||String(s).replace(/[_~]/g,'').length*fs*.55,ov,segs};if(wd)MC.set(key,m);return m}
+function txt(parent,x,y,s,a){a=a||{};const fs=+a['font-size']||17,m=measure(s,fs,a['font-weight']||400),t=rawTxt(parent,x,y,m.segs,a);
+  m.ov.forEach(([x0,x1,yy,sb])=>el('line',{x1:(x+x0).toFixed(1),x2:(x+x1).toFixed(1),y1:(y+yy).toFixed(1),y2:(y+yy).toFixed(1),stroke:a.fill||C.ink,'stroke-width':sb?1.4:1.9,'stroke-linecap':'round'},parent));
+  return t}
+/* pastille centrée en (x, y) ; o.kind : 'w' poids, 'ask' cherché, 'hot' mis en avant, 'name', 'leaf' */
+function pill(parent,x,y,parts,o){o=o||{};const g=el('g',{opacity:o.op===undefined?1:o.op},parent);if(o.pop&&!reduceM)g.setAttribute('class','lpop');
+  const fs=o.fs||(narrow?20:17),bg=el('rect',null,g),tg=el('g',null,g);
+  const items=(Array.isArray(parts)?parts:[parts]).map(p=>typeof p==='string'?{s:p}:p);
+  const widths=items.map(p=>measure(p.s,p.fs||fs,p.w||700).w);
+  const gap=fs*.45,tot=widths.reduce((a,b)=>a+b,0)+gap*(items.length-1);
+  let cx=-tot/2;items.forEach((p,i)=>{txt(tg,cx,0,p.s,{'font-size':p.fs||fs,'font-weight':p.w||700,fill:p.c||C.ink});cx+=widths[i]+gap});
+  const padX=fs*.55,h=fs*1.55;let X=x;if(o.clampL!==undefined)X=Math.max(o.clampL+tot/2+padX,X);if(o.clampR!==undefined)X=Math.min(o.clampR-tot/2-padX,X);
+  tg.setAttribute('transform',`translate(${X.toFixed(1)} ${(y+fs*.36).toFixed(1)})`);
+  const k=o.kind||'w',st2={w:['rgba(6,12,26,.9)','rgba(200,215,255,.35)'],ask:['#16234a',C.ac2],hot:['#2a2414',C.gold],name:['rgba(6,12,26,.9)',o.col||'rgba(200,215,255,.45)'],leaf:['rgba(6,12,26,.88)','rgba(200,215,255,.28)']}[k];
+  Object.entries({x:(X-tot/2-padX).toFixed(1),y:(y-h/2).toFixed(1),width:(tot+2*padX).toFixed(1),height:h.toFixed(1),rx:(h/2).toFixed(1),fill:st2[0],stroke:st2[1],'stroke-width':k==='ask'?1.6:1.1}).forEach(([a,v])=>bg.setAttribute(a,v));
+  if(k==='ask')bg.setAttribute('stroke-dasharray','5 4');
+  g.dataset.w=tot+2*padX;return g}
+/* valeur d'étiquette → pastille */
+function labParts(v,col){if(v===null||v===undefined)return null;v=String(v);
+  if(v==='?')return{parts:[{s:'?',c:C.ac2,w:800}],kind:'ask'};
+  if(v[0]==='!')return{parts:[{s:v.slice(1),c:C.gold2,w:800}],kind:'hot'};
+  return{parts:[{s:v,c:col||C.ink}],kind:'w'}}
+
+/* ---------- géométrie du delta ---------- */
+function cols(){return narrow?{xs:30,xn:192,xl:352,xc:486}:{xs:62,xn:366,xl:664,xc:884}}
+function Tsz(){return narrow?132:156}
+const bzX=(x0,x1,a)=>{const xm=(x0+x1)/2,m=1-a;return m*m*m*x0+3*m*m*a*xm+3*m*a*a*xm+a*a*a*x1};
+const bzY=(y0,y1,a)=>{const m=1-a,w=m*m*m+3*m*m*a;return y0*w+y1*(1-w)};
+function lay(){const t=st.tree,k=t.p.length,c=cols(),T=Tsz(),top=narrow?54:58,bot=H-(narrow?40:46),nL=2*k;
+  const PB=t.p.reduce((s,p,i)=>N.add(s,N.mul(p,t.q[i])),N.zero),pb=N.val(PB);
+  const km=st.km,kb=st.kb,mb=pb>0?1+kb*(1/pb-1):1,stackTop=H/2-T*pb*mb/2;
+  const out={c,T,k,PB,pb,mb,stackTop,src:{x:c.xs,y0:H/2-T/2,y1:H/2+T/2},br:[]};let acc=0,accB=0;
+  for(let i=0;i<k;i++){const p=N.val(t.p[i]),q=N.val(t.q[i]),foc=st.focus===i?st.kf:0,m=p>0?1+foc*(1/p-1):1;
+    const op=st.focus<0?1:st.focus===i?1:1-.9*st.kf;
+    const s0=out.src.y0+T*acc,s1=s0+T*p;acc+=p;
+    const ly0=top+(bot-top)*(2*i+.5)/nL,ly1=top+(bot-top)*(2*i+1.5)/nL,ny=(ly0+ly1)/2;
+    const hN=T*p*m,n0=ny-hN/2,n1=ny+hN/2,nm=n0+hN*q,hB=T*p*q*m,hNB=T*p*(1-q)*m;
+    const sh=T*p*q*mb,sy0=stackTop+T*accB*mb;accB+=p*q;
+    const bx=c.xl+(c.xc-c.xl)*km,bcy=ly0+(sy0+sh/2-ly0)*km,bh=hB+(sh-hB)*km;
+    out.br.push({i,p,q,m,op,s0,s1,ny,n0,n1,nm,hN,ly0,ly1,
+      leaf:[{x:bx,y0:bcy-bh/2,y1:bcy+bh/2,cy:bcy,h:bh},{x:c.xl,y0:ly1-hNB/2,y1:ly1+hNB/2,cy:ly1,h:hNB}]})}
+  return out}
+function ribbon(parent,x0,a0,a1,x1,b0,b1,fill,op){const xm=(x0+x1)/2;
+  return el('path',{d:`M${x0.toFixed(1)} ${a0.toFixed(1)} C${xm.toFixed(1)} ${a0.toFixed(1)} ${xm.toFixed(1)} ${b0.toFixed(1)} ${x1.toFixed(1)} ${b0.toFixed(1)} L${x1.toFixed(1)} ${b1.toFixed(1)} C${xm.toFixed(1)} ${b1.toFixed(1)} ${xm.toFixed(1)} ${a1.toFixed(1)} ${x0.toFixed(1)} ${a1.toFixed(1)}Z`,fill,opacity:op.toFixed(3)},parent)}
+
+/* ---------- décor ---------- */
+function build(){svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.innerHTML='';
+  const d=el('defs',null,svg);
+  d.innerHTML=`<linearGradient id="dl-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#030816"/><stop offset=".7" stop-color="#0a1732"/><stop offset="1" stop-color="#0e1d3e"/></linearGradient>
+  <radialGradient id="dl-halo"><stop offset="0" stop-color="#6c8eff" stop-opacity=".15"/><stop offset="1" stop-color="#6c8eff" stop-opacity="0"/></radialGradient>
+  <linearGradient id="dl-src" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e8f0ff" stop-opacity=".0"/><stop offset="1" stop-color="#e8f0ff" stop-opacity=".5"/></linearGradient>
+  <filter id="dl-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+  el('rect',{width:W,height:H,fill:'url(#dl-sky)'},svg);
+  el('ellipse',{cx:W*.55,cy:H*.5,rx:W*.6,ry:H*.5,fill:'url(#dl-halo)'},svg);
+  const stars=el('g',{fill:'#fff'},svg);let seed=11;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  for(let i=0;i<40;i++)el('circle',{cx:(rnd()*W).toFixed(1),cy:(rnd()*H).toFixed(1),r:(.5+rnd()*.8).toFixed(2),opacity:(.12+rnd()*.35).toFixed(2)},stars);
+  L.all=el('g',null,svg);L.rib=el('g',null,L.all);L.bars=el('g',null,L.all);L.pt=el('g',null,L.all);L.lab=el('g',null,L.all);L.over=el('g',null,L.all);
+  ptEls=[]}
+
+/* ---------- dessin ---------- */
+function draw(){if(!st.tree){L.rib.innerHTML=L.bars.innerHTML=L.lab.innerHTML=L.over.innerHTML='';return}
+  const t=st.tree,lab=st.lab||{},Y=lay(),c=Y.c,fs=narrow?20:17;Lay=Y;
+  L.all.setAttribute('opacity',st.fade.toFixed(3));
+  L.rib.innerHTML='';L.bars.innerHTML='';L.lab.innerHTML='';L.over.innerHTML='';
+  const hl=st.hl,dimHL=(i,j)=>!hl?1:(hl[0]===i&&(j===undefined||hl[1]===j||hl[1]===undefined))?1:.3;
+  const srcOp=(st.focus>=0?1-.75*st.kf:1)*(1-.45*st.kb);
+  /* source : la population entière */
+  el('rect',{x:c.xs-10,y:Y.src.y0,width:10,height:Y.T,rx:3,fill:'#e8f0ff',opacity:(.85*srcOp).toFixed(3)},L.bars);
+  el('rect',{x:c.xs-44,y:Y.src.y0,width:34,height:Y.T,fill:'url(#dl-src)',opacity:(.6*srcOp).toFixed(3)},L.bars);
+  Y.br.forEach((b,i)=>{const col=C.br[i%3],F=C.brF[i%3],o1=b.op*(1-.55*st.kb)*dimHL(i);
+    ribbon(L.rib,c.xs,b.s0,b.s1,c.xn-5,b.n0,b.n1,F+'.30)',o1);
+    /* deux bras sortant du nœud : B (or) en haut, B barre en bas */
+    const oB=b.op*dimHL(i,0),oNB=b.op*(1-.75*st.km)*dimHL(i,1);
+    ribbon(L.rib,c.xn+5,b.n0,b.nm,b.leaf[0].x,b.leaf[0].y0,b.leaf[0].y1,'rgba(232,199,102,.30)',oB);
+    ribbon(L.rib,c.xn+5,b.nm,b.n1,b.leaf[1].x,b.leaf[1].y0,b.leaf[1].y1,F+'.13)',oNB);
+    /* barres : nœud et feuilles */
+    el('rect',{x:c.xn-5,y:b.n0,width:10,height:Math.max(1,b.hN),rx:2,fill:col,opacity:(.95*b.op*dimHL(i)).toFixed(3)},L.bars);
+    if(b.hN*b.q>2)el('rect',{x:c.xn-5,y:b.n0,width:10,height:b.hN*b.q,rx:2,fill:C.gold,opacity:(.9*b.op*dimHL(i)).toFixed(3)},L.bars);
+    el('rect',{x:b.leaf[0].x,y:b.leaf[0].y0,width:9,height:Math.max(1.5,b.leaf[0].h),rx:2,fill:st.km>0?col:C.gold,opacity:oB.toFixed(3)},L.bars);
+    if(st.km>0)el('rect',{x:b.leaf[0].x+9,y:b.leaf[0].y0,width:3,height:Math.max(1.5,b.leaf[0].h),fill:C.gold,opacity:oB.toFixed(3)},L.bars);
+    el('rect',{x:b.leaf[1].x,y:b.leaf[1].y0,width:9,height:Math.max(1.5,b.leaf[1].h),rx:2,fill:'rgba(200,215,255,.55)',opacity:oNB.toFixed(3)},L.bars)});
+  /* ----- étiquettes ----- */
+  const fresh=st.fresh;st.fresh={};
+  const srcLab=lab.src===undefined?null:lab.src;
+  const sx=narrow?c.xs+2:c.xs-12,sy=Y.src.y0-(narrow?22:22);
+  pill(L.lab,sx,sy,[{s:'Ω',c:C.ink,w:800}].concat(srcLab?[{s:srcLab,c:C.mut,w:600}]:[]),{kind:'name',op:srcOp,clampL:4,pop:fresh.src});
+  Y.br.forEach((b,i)=>{const col=C.br[i%3],nm=t.f[i];
+    /* poids de la branche de premier niveau, au milieu du bras */
+    const a=.5,mx=bzX(c.xs,c.xn-5,a),my=(bzY(b.s0,b.n0,a)+bzY(b.s1,b.n1,a))/2;
+    const v1=labParts(lab.b1&&lab.b1[i]);if(v1)pill(L.lab,mx,my,v1.parts,{kind:v1.kind,op:b.op*(1-.6*st.kb)*dimHL(i),pop:fresh['b1'+i]});
+    /* nom du nœud */
+    const nv=lab.n&&lab.n[i];const nparts=[{s:nm,c:col,w:800}];if(nv)nparts.push({s:nv,c:nv==='?'?C.ac2:C.ink,w:700});
+    pill(L.lab,c.xn,b.n0-(narrow?20:19),nparts,{kind:'name',col,op:b.op*(1-.5*st.kb)*dimHL(i),pop:fresh['n'+i]});
+    /* poids des bras B / B barre */
+    [0,1].forEach(j=>{const lf=b.leaf[j],a2=.52,x2=bzX(c.xn+5,lf.x,a2),yy0=j?b.nm:b.n0,yy1=j?b.n1:b.nm,y2=(bzY(yy0,lf.y0,a2)+bzY(yy1,lf.y1,a2))/2;
+      const v=labParts(lab.b2&&lab.b2[i]&&lab.b2[i][j]);
+      if(v)pill(L.lab,x2,y2+(j?8:-8),v.parts,{kind:v.kind,op:b.op*(j?1-.85*st.km:1-.6*st.kb)*dimHL(i,j),pop:fresh['b2'+i+j]});
+      /* feuille : nom de l'intersection et valeur */
+      const lv=lab.leaf&&lab.leaf[i]&&lab.leaf[i][j];const nmL=`${nm} ∩ ${j?t.nb:t.b}`;
+      const parts=[{s:nmL,c:j?C.mut:C.gold2,w:700}];
+      if(lv!==null&&lv!==undefined){const lp=labParts(lv);parts.push(lp.parts[0])}
+      const lo=j?b.op*(1-.8*st.km)*dimHL(i,1):b.op*(1-st.km)*dimHL(i,0);
+      if(lo>.02){const w=narrow?0:0;pill(L.lab,lf.x+14+w,lf.cy,parts,{kind:lv==='?'?'ask':(lv&&String(lv)[0]==='!')?'hot':'leaf',op:lo,clampL:lf.x+14,clampR:W-6,pop:fresh['l'+i+j]})}})});
+  /* confluence : les morceaux de B réunis */
+  if(st.km>.02){const top=Y.stackTop,hB=Y.T*Y.pb*Y.mb,xc=c.xc+12;
+    el('rect',{x:xc,y:top,width:10,height:Math.max(2,hB),rx:2,fill:C.gold,opacity:(st.km*.95).toFixed(3)},L.over);
+    if(lab.merged&&st.km>.6){const v=labParts(lab.merged);pill(L.lab,xc+5,top-(narrow?22:20),[{s:t.b,c:C.gold2,w:800},v.parts[0]],{kind:v.kind==='ask'?'ask':'hot',op:Math.min(1,(st.km-.6)/.4),clampR:W-6,clampL:4,pop:fresh.merged})}
+    if(st.kb>.02){/* remonter le courant : la confluence devient le nouvel univers */
+      el('rect',{x:xc-6,y:top-4,width:22,height:hB+8,rx:6,fill:'none',stroke:C.gold,'stroke-width':1.6,'stroke-dasharray':'5 4',opacity:st.kb.toFixed(3)},L.over);
+      if(lab.bayes){const v=labParts(lab.bayes);pill(L.lab,xc+5,top+hB+(narrow?26:24),v.parts,{kind:v.kind,op:st.kb,clampR:W-6,clampL:4,pop:fresh.bayes})}}}
+  /* sachant : cadre du nouvel univers */
+  if(st.focus>=0&&st.kf>.02){const b=Y.br[st.focus],x0=c.xn-14,x1=Math.max(b.leaf[0].x,b.leaf[1].x)+12,y0=Math.min(b.n0,b.leaf[0].y0,b.leaf[1].y0)-44,y1=Math.max(b.n1,b.leaf[1].y1)+14;
+    el('rect',{x:x0,y:y0,width:x1-x0,height:y1-y0,rx:14,fill:'rgba(232,199,102,.04)',stroke:C.gold,'stroke-width':1.5,'stroke-dasharray':'6 5',opacity:(st.kf*.85).toFixed(3)},L.bars);
+    const ft=lab.focus||`Sachant ${t.f[st.focus]} : 100 %`;pill(L.lab,(x0+x1)/2,y0,[{s:ft,c:C.gold2,w:800}],{kind:'hot',op:st.kf,clampL:6,clampR:W-6,pop:fresh.focus})}
+  /* comparer : la part de B dans chaque bras (indépendance) */
+  if(st.kg>.02)drawGauges(Y);
+  placePoints(performance.now())}
+function drawGauges(Y){const t=st.tree,g=el('g',{opacity:st.kg.toFixed(3)},L.over),fs=narrow?18:16,bw=narrow?118:170,lw=narrow?96:104,rows=t.p.length+1,rh=narrow?34:30;
+  const x0=narrow?8:12,y0=narrow?H-rows*rh-18:H-rows*rh-20,wbox=lw+bw+(narrow?70:74);
+  el('rect',{x:x0,y:y0-12,width:wbox,height:rows*rh+18,rx:12,fill:'rgba(5,10,22,.93)',stroke:'rgba(232,199,102,.55)','stroke-width':1.2},g);
+  const list=t.p.map((p,i)=>({lab:`_${t.f[i].replace(/^~/,'~')}`,f:N.val(t.q[i]),col:C.br[i%3],r:t.q[i],name:t.f[i]})).concat([{lab:'',f:Y.pb,col:C.ink,r:Y.PB,name:'Ω'}]);
+  list.forEach((r,k)=>{const y=y0+k*rh+rh/2;
+    txt(g,x0+10,y+fs*.36,r.name==='Ω'?`P(${t.b})`:`P_${r.name}(${t.b})`,{'font-size':fs,'font-weight':700,fill:r.col});
+    el('rect',{x:x0+lw,y:y-7,width:bw,height:14,rx:7,fill:'rgba(200,215,255,.12)'},g);
+    el('rect',{x:x0+lw,y:y-7,width:Math.max(0,bw*r.f),height:14,rx:7,fill:C.gold,opacity:.9},g);
+    const v=el('text',{x:x0+lw+bw+8,y:y+fs*.36,'font-size':fs,'font-weight':800,fill:C.gold2},g);v.textContent=N.numT(r.r)});
+  const xl=x0+lw+bw*Y.pb;el('line',{x1:xl,x2:xl,y1:y0-6,y2:y0+rows*rh,stroke:C.ink,'stroke-width':1.5,'stroke-dasharray':'4 4',opacity:.8},g)}
+
+/* ---------- particules : chaque point est une personne qui suit son chemin ---------- */
+let pts=[],ptEls=[];
+function seed(){const t=st.tree;pts=[];if(!t)return;const n=narrow?96:140,w=[];
+  t.p.forEach((p,i)=>{const pv=N.val(p),q=N.val(t.q[i]);w.push([i,0,pv*q],[i,1,pv*(1-q)])});
+  const raw=w.map(x=>x[2]*n),base=raw.map(Math.floor);let left=n-base.reduce((a,b)=>a+b,0);
+  raw.map((r,k)=>[r-base[k],k]).sort((a,b)=>b[0]-a[0]).forEach(([,k])=>{if(left>0){base[k]++;left--}});
+  let s=7;const rnd=()=>(s=(s*16807)%2147483647)/2147483647;
+  w.forEach((x,k)=>{for(let m=0;m<base[k];m++)pts.push({i:x[0],j:x[1],u:.08+.84*rnd(),ph:rnd()})});
+  L.pt.innerHTML='';ptEls=pts.map(p=>el('circle',{r:narrow?3.4:3,fill:C.br[p.i%3]},L.pt))}
+function ppos(p,Y,s){const b=Y.br[p.i],c=Y.c;if(!b)return null;
+  if(s<.42){const a=s/.42,f=p.j?b.q+p.u*(1-b.q):p.u*b.q;return[bzX(c.xs,c.xn-5,a),bzY(b.s0,b.n0,a)*(1-f)+bzY(b.s1,b.n1,a)*f]}
+  const lf=b.leaf[p.j];
+  if(s<.86){const a=(s-.42)/.44,y0=p.j?b.nm:b.n0,y1=p.j?b.n1:b.nm;return[bzX(c.xn+5,lf.x,a),bzY(y0,lf.y0,a)*(1-p.u)+bzY(y1,lf.y1,a)*p.u]}
+  return[lf.x+4+(s-.86)*30,lf.y0*(1-p.u)+lf.y1*p.u]}
+function placePoints(now){if(!Lay||!st.tree||ptEls.length!==pts.length)return;const Y=Lay,dur=4600;
+  for(let k=0;k<pts.length;k++){const p=pts[k],e=ptEls[k],s=reduceM?(p.ph*.86):((now/dur+p.ph)%1),xy=ppos(p,Y,s);if(!xy){e.setAttribute('opacity',0);continue}
+    const b=Y.br[p.i];let o=b.op*(p.j?1-.8*st.km:1)*(s<.42?1-.55*st.kb:1);
+    if(st.hl&&!(st.hl[0]===p.i&&(st.hl[1]===undefined||st.hl[1]===p.j)))o*=.25;
+    if(!reduceM)o*=s<.05?s/.05:s>.93?(1-s)/.07:1;
+    e.setAttribute('cx',xy[0].toFixed(1));e.setAttribute('cy',xy[1].toFixed(1));e.setAttribute('opacity',o.toFixed(2))}}
+let rafP=0;function loopP(now){rafP=requestAnimationFrame(loopP);if(!document.hidden)placePoints(now)}
+if(!reduceM)rafP=requestAnimationFrame(loopP);
+
+/* ---------- transitions ---------- */
+let token=0;
+const ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+function tween(key,to,dur){const my=++token,from=st[key];if(reduceM||dur<=0){st[key]=to;draw();return Promise.resolve()}
+  return new Promise(res=>{const t0=performance.now();function f(now){if(my!==token){res();return}const k=Math.min(1,(now-t0)/dur);st[key]=from+(to-from)*ease(k);draw();if(k<1)requestAnimationFrame(f);else res()}requestAnimationFrame(f)})}
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?Math.min(ms,30):ms));
+const $=id=>document.getElementById(id);
+const api={};
+api.badge=h=>{$('badge').textContent=h||''};
+/* nouvelle scène : arbre {f:[noms], b, nb, p:[…], q:[…]} et étiquettes */
+api.reset=(tree,lab)=>{token++;st.tree=tree;st.lab=lab||{};st.focus=-1;st.kf=0;st.km=0;st.kb=0;st.kg=0;st.fade=1;st.hl=null;st.fresh={};seed();draw()};
+api.lab=(o,fresh)=>{st.lab=Object.assign({},st.lab,o);(fresh||[]).forEach(k=>st.fresh[k]=1);draw()};
+api.setLab=(path,v)=>{/* path : 'b1.1', 'b2.0.1', 'leaf.1.0', 'n.0', 'src', 'merged', 'bayes', 'focus' */
+  const ks=path.split('.'),root=ks[0];let o=st.lab[root];
+  if(ks.length===1)st.lab[root]=v;else{o=st.lab[root]=JSON.parse(JSON.stringify(o||[]));if(ks.length===2)o[+ks[1]]=v;else{o[+ks[1]]=o[+ks[1]]||[];o[+ks[1]][+ks[2]]=v}}
+  st.fresh[root==='leaf'?'l'+ks[1]+ks[2]:root==='b2'?'b2'+ks[1]+ks[2]:root==='b1'?'b1'+ks[1]:root==='n'?'n'+ks[1]:root]=1;draw()};
+api.focus=async i=>{st.focus=i;st.kf=0;SND.gate();await tween('kf',1,reduceM?0:1100)};
+api.unfocus=async()=>{if(st.focus<0)return;await tween('kf',0,reduceM?0:700);st.focus=-1;draw()};
+api.merge=async()=>{SND.merge();await tween('km',1,reduceM?0:1400)};
+api.bayes=async()=>{SND.gate();await tween('kb',1,reduceM?0:1100)};
+api.gauges=async()=>{SND.flow();await tween('kg',1,reduceM?0:600)};
+api.highlight=async(i,j)=>{st.hl=i===null?null:[i,j];SND.flow();draw();await sleep(900)};
+api.flip=async(tree,lab)=>{SND.flip();await tween('fade',0,reduceM?0:450);st.tree=tree;st.lab=lab||{};st.focus=-1;st.kf=st.km=st.kb=st.kg=0;st.hl=null;seed();draw();await tween('fade',1,reduceM?0:550)};
+api.state=()=>({tree:st.tree?{f:st.tree.f,p:st.tree.p,q:st.tree.q}:null,focus:st.focus,kf:st.kf,km:st.km,kb:st.kb,kg:st.kg,lab:st.lab,pts:pts.length});
+api.treeOf=D=>({f:D.f,b:D.b,nb:'~'+D.b,p:D.p,q:D.q});
+api.pose=o=>{token++;Object.assign(st,o);draw()};
+api.SND=SND;api.sound=sound;api.sleep=sleep;api.reduceM=reduceM;api.redraw=()=>draw();
+const mq=matchMedia('(max-width:860px)');
+function fit(){const nr=mq.matches;if(nr===narrow&&svg.childNodes.length)return;narrow=nr;W=nr?560:1000;H=nr?480:600;build();seed();draw()}
+api.fit=fit;mq.addEventListener?mq.addEventListener('change',fit):mq.addListener(fit);fit();
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{MC.clear();draw()});
+return api;
+})();
+</script>
+<script>
+/* ======================= LE DELTA — moteur (questions en étapes, tableau, valeurs, notations) ======================= */
+window.DL_G=(function(){
+'use strict';
+const N=window.DL_N,S=window.DL_S,SND=S.SND,$=id=>document.getElementById(id);
+const {R,add,mul,div,comp,P,I,ev,fmtInt}=N;
+const cap=h=>{$('capt').innerHTML=h||'&nbsp;'};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const knorm=s=>String(s).toLowerCase().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/[×*·]/g,'x').replace(/^\+/,'');
+const GAME='le-delta';
+
+/* ---------- valeurs exactes d'une donnée (tableau, arbre, ou P(A), P(B), P(A ∩ B)) ---------- */
+function tabSums(c){const r=[c[0][0]+c[0][1],c[1][0]+c[1][1]],k=[c[0][0]+c[1][0],c[0][1]+c[1][1]];return{r,k,t:r[0]+r[1]}}
+function V(w,D){const s=w.split(':');
+  if(D.type==='tab'){const c=D.c,{r,k,t}=tabSums(c);
+    const cnt=key=>key==='t'?t:key[0]==='r'?r[+key[1]]:key[0]==='k'?k[+key[1]]:c[+key[1]][+key[2]];
+    if(s[0]==='n')return R(cnt(s[1]));
+    if(s[0]==='P')return R(cnt(s[1]),t);
+    if(s[0]==='Pr')return R(c[+s[1]][+s[2]],r[+s[1]]);      /* P_{ligne i}(colonne j) */
+    if(s[0]==='Pk')return R(c[+s[2]][+s[1]],k[+s[1]])}      /* P_{colonne j}(ligne i) */
+  if(D.type==='tree'){const p=D.p,q=D.q,i=+s[1],j=+s[2],PB=p.reduce((a,x,m)=>add(a,mul(x,q[m])),R(0));
+    switch(s[0]){case 'p':return p[i];case 'np':return comp(p[i]);case 'q':return q[i];case 'nq':return comp(q[i]);
+      case 'l':return mul(p[i],j?comp(q[i]):q[i]);case 'PB':return PB;case 'PnB':return comp(PB);case 'by':return div(mul(p[i],q[i]),PB)}}
+  if(D.type==='pab'){switch(s[0]){case 'pA':return D.pA;case 'pB':return D.pB;case 'I':return D.pI;case 'prod':return mul(D.pA,D.pB);case 'qA':return div(D.pI,D.pA)}}
+  throw new Error('valeur inconnue '+w)}
+/* notation d'une valeur */
+function NT(w,D){const s=w.split(':');
+  if(D.type==='tab'){const rr=D.r,kk=D.k,nm=key=>key[0]==='r'?rr[+key[1]]:kk[+key[1]];
+    if(s[0]==='P'&&s[1][0]==='c')return P(I(rr[+s[1][1]],kk[+s[1][2]]));
+    if(s[0]==='P')return P(nm(s[1]));
+    if(s[0]==='Pr')return P(kk[+s[2]],rr[+s[1]]);
+    if(s[0]==='Pk')return P(rr[+s[2]],kk[+s[1]])}
+  if(D.type==='tree'){const f=D.f,b=D.b,nb='~'+D.b,i=+s[1],j=+s[2];
+    switch(s[0]){case 'p':return P(f[i]);case 'q':return P(b,f[i]);case 'nq':return P(nb,f[i]);case 'l':return P(I(f[i],j?nb:b));case 'PB':return P(b);case 'PnB':return P(nb);case 'by':return P(f[i],b)}}
+  if(D.type==='pab'){switch(s[0]){case 'pA':return P('A');case 'pB':return P('B');case 'I':return P(I('A','B'));case 'qA':return P('B','A')}}
+  return w}
+/* tableau croisé d'effectifs ; les cases chiffrées portent data-k (c00…, r0, k0, t) */
+function tabH(D,X,id){const c=D.c,{r,k,t}=tabSums(c),f=n=>fmtInt(n);
+  return `<div class="ctw"><table class="ct"${id?` id="${id}"`:''}><thead><tr><th></th><th>${X.kl[0]} (${ev(D.k[0])})</th><th>${X.kl[1]} (${ev(D.k[1])})</th><th>Total</th></tr></thead><tbody>`+
+    [0,1].map(i=>`<tr><th>${X.rl[i]} (${ev(D.r[i])})</th><td data-k="c${i}0">${f(c[i][0])}</td><td data-k="c${i}1">${f(c[i][1])}</td><td class="tot" data-k="r${i}">${f(r[i])}</td></tr>`).join('')+
+    `<tr><th>Total</th><td class="tot" data-k="k0">${f(k[0])}</td><td class="tot" data-k="k1">${f(k[1])}</td><td class="tot" data-k="t">${f(t)}</td></tr></tbody></table></div>`}
+/* mise en lumière dans le tableau de l'énoncé : keep 'r0'|'k1' (le reste s'éteint), num (numérateur, or), den (dénominateur) */
+function hl(spec){const tb=document.querySelector('#prompt .ct');if(!tb)return;
+  const inKeep=(k,keep)=>keep[0]==='r'?(k==='r'+keep[1]||(k[0]==='c'&&k[1]===keep[1])):(k==='k'+keep[1]||(k[0]==='c'&&k[2]===keep[1]));
+  tb.classList.toggle('f',!!(spec&&spec.keep));
+  tb.querySelectorAll('[data-k]').forEach(e=>{const k=e.dataset.k;e.classList.remove('dim','on','gl','den');if(!spec)return;
+    if(spec.keep){if(inKeep(k,spec.keep))e.classList.add('on');else e.classList.add('dim')}
+    if(spec.num===k)e.classList.add('gl');if(spec.den===k)e.classList.add('den')})}
+
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,mode='game',busy=false;
+function starsOf(i){try{const g=SigmaKit.passport().games[GAME];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function fb(html){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fb').hidden=false}
+const api={err(why){errs++;SND.soft();fb(why)},ok(){fb('');nextPart()}};
+const W={};
+/* action : un bouton qui lance une animation */
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);api.ok()}};
+/* choix : on peut se tromper, on recommence */
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):N.shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{if(busy)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){box.querySelectorAll('.opt').forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else{b.classList.add('ko');b.disabled=true;api.err(c.why)}})};
+/* trous : valeur exacte (décimal, fraction, pourcentage), arrondi, ou mot ; p.anyOrder : groupes de trous permutables */
+function okBlank(b,v){if(b.w)return b.w.some(a=>knorm(a)===knorm(v));const x=N.parse(v);if(!x)return false;if(N.eq(x,b.r))return true;
+  if(b.approx!==undefined)return N.eq(x,N.round(b.r,b.approx));return false}
+W.fill=(p,box)=>{
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const b=p.b[+i];return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" ${b.w?'':'inputmode="decimal"'} aria-label="Case ${+i+1}" style="width:${b.size||4.4}em">`});
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+(p.hint?`<p class="hint">${p.hint}</p>`:'');
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=v.map((x,i)=>okBlank(p.b[+ins[i].dataset.i],x));
+    (p.anyOrder||[]).forEach(g=>{const vals=g.map(k=>v[k]),used=[];let all=true;
+      g.forEach(k=>{const m=vals.findIndex((x,u)=>used.indexOf(u)<0&&okBlank(p.b[k],x));if(m<0)all=false;else used.push(m)});
+      if(all)g.forEach(k=>oks[k]=true)});
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else api.err(typeof p.why==='function'?p.why(v,oks):p.why)};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+
+/* ---------- déroulé d'une question ---------- */
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;if(pi<Q.parts.length){const p=Q.parts[pi],box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:S.reduceM?'auto':'smooth'})}}
+const LV=[];
+function newQ(){Q=LV[lvl].qs[qi]();pi=0;errs=0;
+  S.badge(LV[lvl].badge||'');if(Q.setup)Q.setup();cap(Q.cap0||'&nbsp;');
+  $('prompt').innerHTML=Q.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  const box=partEl();W[Q.parts[0].t](Q.parts[0],box)}
+function dots(){const n=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:n},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){fb('');SND.win();run.push(errs===0);dots();
+  const n=LV[lvl].qs.length,lvlDone=run.length>=n;
+  $('winx').textContent=errs===0?N.pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):N.pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=Q.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(Q.onWin)Q.onWin();
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lnum=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lnum,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lnum||mode!=='game')return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:S.reduceM?'auto':'smooth'})};
+function goLevel(l){mode='game';lvl=l;qi=0;run=[];$('game').hidden=false;$('labv').hidden=true;
+  $('chap').textContent=`Probabilités conditionnelles · Niveau ${l+1} sur ${LV.length}`;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('cours').open=false;renderLv();newQ()}
+function renderLv(){const snd=S.sound.get();$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${mode==='game'&&i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<button type="button" class="labb" data-l="lab" aria-pressed="${mode==='lab'}">★ Mon delta</button><span class="sp"></span>`+
+  `<button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){S.sound.set(!S.sound.get());renderLv();SND.pop();return}
+  if(b.dataset.l==='lab'){mode='lab';$('game').hidden=true;$('labv').hidden=false;renderLv();window.DL_LAB.open();return}
+  goLevel(+b.dataset.l)});
+
+/* ---------- fabriques ---------- */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+const ch=(ask,list,o)=>Object.assign({t:'choice',ask,ch:list},o||{});
+const fill=(ask,tpl,b,why,o)=>Object.assign({t:'fill',ask,tpl,b,why},o||{});
+const OK=(h,x)=>Object.assign({h,ok:true},x||{}),NO=(h,why,x)=>Object.assign({h,why},x||{});
+/* trou numérique calculé à partir de la donnée D : what = 'Pr:0:1', 'l:1:0', 'PB'… */
+const BV=(D,what,o)=>{const r=V(what,D);o=o||{};return Object.assign({r,what,sol:o.approx!==undefined?N.dec(N.round(r,o.approx),o.approx):N.numT(r).replace(/ /g,'')},o)};
+
+window.DL={start(){const m=/[?&]niveau=(\d)/.exec(location.search);goLevel(m?Math.min(+m[1]-1,LV.length-1):0)},
+  state:()=>{const p=Q&&Q.parts[pi];return{lvl,qi,nq:LV[lvl]&&LV[lvl].qs.length,busy,mode,pi,win:!$('win').hidden,
+    part:p?{t:p.t,sol:p.b?p.b.map(b=>b.sol):null,choices:p.ch?p.ch.map(c=>({ok:!!c.ok})):null}:null,scene:S.state()}},
+  LV,goLevel,renderLv,V,NT,get mode(){return mode},set mode(v){mode=v}};
+return{LV,W,act,ch,fill,OK,NO,BV,V,NT,tabH,hl,tabSums,cap,MAKI,knorm,api,renderLv,setMode:v=>{mode=v}};
+})();
+</script>
+<script>
+/* ======================= LE DELTA — contextes, données et les sept niveaux ======================= */
+(function(){
+'use strict';
+const N=window.DL_N,S=window.DL_S,G=window.DL_G,{LV,act,ch,fill,OK,NO,BV,V,NT,tabH,hl,tabSums,cap}=G;
+const {R,C,add,sub,mul,div,comp,eq,cmp,val,dec,pct,numH,numT,frH,fmtInt,round,isDec,ndec,P,I,ev,ri,pick,shuf}=N;
+const lv=r=>numT(r);                  /* écriture d'une étiquette de la scène */
+const F=n=>fmtInt(n);
+
+/* ---------- tableaux croisés d'effectifs : contextes ---------- */
+const TABX=[
+ {unit:'élèves',r:['F','~F'],k:['S','~S'],rl:['Filles','Garçons'],kl:['En club','Sans club'],rG:['filles','garçons'],kG:['élèves inscrits en club','élèves sans club'],
+  rIn:['parmi les filles','parmi les garçons'],kIn:['parmi les élèves inscrits en club','parmi les élèves sans club'],
+  rSoit:['soit une fille','soit un garçon'],kSoit:['soit inscrite dans un club de sport','ne soit inscrite dans aucun club'],
+  rDef:'la personne est une fille',kDef:'la personne est inscrite dans un club de sport',
+  intro:t=>`Au lycée, on a demandé à ${t} élèves de Terminale s'ils sont inscrits dans un club de sport.`,sizes:[200,250,400,500]},
+ {unit:'salariés',r:['F','~F'],k:['C','~C'],rl:['Femmes','Hommes'],kl:['Cadres','Non-cadres'],rG:['femmes','hommes'],kG:['cadres','non-cadres'],
+  rIn:['parmi les femmes','parmi les hommes'],kIn:['parmi les cadres','parmi les non-cadres'],
+  rSoit:['soit une femme','soit un homme'],kSoit:['soit cadre','ne soit pas cadre'],
+  rDef:'la personne est une femme',kDef:'la personne est cadre',
+  intro:t=>`Une entreprise de Mamoudzou compte ${t} salariés.`,sizes:[200,400,500,800,1000]},
+ {unit:'passagers',r:['P','~P'],k:['Q','~Q'],rl:['Petite-Terre','Grande-Terre'],kl:['Chaque jour','Parfois'],rG:['habitants de Petite-Terre','habitants de Grande-Terre'],kG:['passagers quotidiens','passagers occasionnels'],
+  rIn:['parmi les habitants de Petite-Terre','parmi les habitants de Grande-Terre'],kIn:['parmi les passagers quotidiens','parmi les passagers occasionnels'],
+  rSoit:['habite en Petite-Terre','habite en Grande-Terre'],kSoit:['prenne la barge chaque jour','ne prenne pas la barge chaque jour'],
+  rDef:'la personne habite en Petite-Terre',kDef:'la personne prend la barge chaque jour',
+  intro:t=>`Un matin, on interroge ${t} passagers de la barge entre Petite-Terre et Grande-Terre.`,sizes:[200,250,400,500]},
+ {unit:'candidats',r:['A','~A'],k:['R','~R'],rl:['Accompagnée','Classique'],kl:['Reçu','Recalé'],rG:['candidats en conduite accompagnée','candidats en formation classique'],kG:['candidats reçus','candidats recalés'],
+  rIn:['parmi les candidats en conduite accompagnée','parmi les candidats en formation classique'],kIn:['parmi les candidats reçus','parmi les candidats recalés'],
+  rSoit:['ait suivi la conduite accompagnée','ait suivi la formation classique'],kSoit:['soit reçue du premier coup','ne soit pas reçue du premier coup'],
+  rDef:'la personne a suivi la conduite accompagnée',kDef:'la personne est reçue au permis du premier coup',
+  intro:t=>`Une auto-école a présenté ${t} candidats à l'examen du permis de conduire.`,sizes:[200,250,400,500]},
+ {unit:'spectateurs',r:['L','~L'],k:['J','~J'],rl:['En ligne','Au guichet'],kl:['Moins de 25 ans','25 ans et plus'],rG:['spectateurs ayant acheté en ligne','spectateurs ayant acheté au guichet'],kG:['spectateurs de moins de 25 ans','spectateurs de 25 ans et plus'],
+  rIn:['parmi les spectateurs qui ont acheté leur billet en ligne','parmi les spectateurs qui ont acheté leur billet au guichet'],kIn:['parmi les spectateurs de moins de 25 ans','parmi les spectateurs de 25 ans et plus'],
+  rSoit:['ait acheté son billet en ligne','ait acheté son billet au guichet'],kSoit:['ait moins de 25 ans','ait 25 ans ou plus'],
+  rDef:'la personne a acheté son billet en ligne',kDef:'la personne a moins de 25 ans',
+  intro:t=>`Un festival de musique a accueilli ${t} spectateurs.`,sizes:[400,500,800,1000]}];
+const defsT=(D,X)=>`On note ${ev(D.r[0])}&nbsp;: «&nbsp;${X.rDef}&nbsp;» et ${ev(D.k[0])}&nbsp;: «&nbsp;${X.kDef}&nbsp;».`;
+/* effectifs : conditionnelles par ligne et par colonne décimales ; o.indep : lignes proportionnelles ; o.neq : totaux de ligne et de colonne tous différents */
+function genTab(X,o){o=o||{};
+  for(let n=0;n<3000;n++){const t=pick(X.sizes),f=ri(6,14);if((t*f)%20)continue;const r0=t*f/20,r1=t-r0;
+    const a0=ri(3,16),a1=o.indep?a0:ri(2,17);if(!o.indep&&a1===a0)continue;
+    if((r0*a0)%20||(r1*a1)%20)continue;const c00=r0*a0/20,c10=r1*a1/20,c01=r0-c00,c11=r1-c10;if(Math.min(c00,c01,c10,c11)<=0)continue;
+    const k0=c00+c10,k1=c01+c11,okd=r=>isDec(r)&&ndec(r)<=3;
+    if(!okd(R(c00,k0))||!okd(R(c01,k1)))continue;
+    if(o.neq&&new Set([r0,r1,k0,k1]).size<4)continue;
+    return{type:'tab',c:[[c00,c01],[c10,c11]],r:X.r,k:X.k,x:TABX.indexOf(X)}}
+  return{type:'tab',c:o.indep?[[180,120],[120,80]]:[[120,280],[180,220]],r:X.r,k:X.k,x:TABX.indexOf(X)}}
+function TB(o){const X=pick(TABX),D=genTab(X,o),s=tabSums(D.c);return Object.assign({X,D},s)}
+/* arbre de la scène à partir du tableau : d'abord les lignes (ou d'abord les colonnes) */
+function tabTree(D,byCol){const c=D.c,{r,k,t}=tabSums(c);
+  return byCol?{f:D.k,b:D.r[0],nb:D.r[1],p:[R(k[0],t),R(k[1],t)],q:[R(c[0][0],k[0]),R(c[0][1],k[1])]}
+    :{f:D.r,b:D.k[0],nb:D.k[1],p:[R(r[0],t),R(r[1],t)],q:[R(c[0][0],r[0]),R(c[1][0],r[1])]}}
+function tabLab(D,byCol){const c=D.c,{r,k,t}=tabSums(c);
+  return byCol?{src:F(t),n:[F(k[0]),F(k[1])],leaf:[[F(c[0][0]),F(c[1][0])],[F(c[0][1]),F(c[1][1])]]}
+    :{src:F(t),n:[F(r[0]),F(r[1])],leaf:[[F(c[0][0]),F(c[0][1])],[F(c[1][0]),F(c[1][1])]]}}
+const focusTxt=(name,n)=>`Sachant ${name} : ${F(n)} = 100 %`;
+
+/* ---------- arbres pondérés : contextes ---------- */
+const TREEX=[
+ {f:'T',b:'H',fI:['l\'habitant prend les transports en commun','l\'habitant ne prend pas les transports en commun'],fQ:['que l\'habitant prenne les transports en commun','que l\'habitant ne prenne pas les transports en commun'],
+  bI:['l\'habitant arrive à l\'heure','l\'habitant n\'arrive pas à l\'heure'],bQ:['qu\'il arrive à l\'heure','qu\'il n\'arrive pas à l\'heure'],
+  cs:(i,q)=>`Parmi ${['les habitants qui prennent les transports en commun','ceux qui ne les prennent pas'][i]}, ${pct(q)} arrivent à l'heure.`,
+  story:D=>`Dans une ville, ${pct(D.p[0])} des habitants prennent les transports en commun pour aller travailler. Parmi eux, ${pct(D.q[0])} arrivent à l'heure&nbsp;; parmi ceux qui ne les prennent pas, ${pct(D.q[1])} arrivent à l'heure.`,
+  who:'un habitant',pr:[20,25,30,35,40,45,60,65],q0:[70,75,80,85,90],q1:[40,50,55,60,65]},
+ {f:'M',b:'T',fI:['la personne est malade','la personne n\'est pas malade'],fQ:['que la personne soit malade','que la personne ne soit pas malade'],
+  bI:['le test est positif','le test est négatif'],bQ:['que son test soit positif','que son test soit négatif'],
+  cs:(i,q)=>`Le test est positif chez ${pct(q)} ${['des malades','des personnes saines'][i]}.`,
+  story:D=>`Une maladie touche ${pct(D.p[0])} de la population. Un test de dépistage est positif chez ${pct(D.q[0])} des malades et chez ${pct(D.q[1])} des personnes saines.`,
+  who:'une personne',pr:[1,2,4,5,8,10],q0:[85,90,95,98],q1:[2,3,4,5,10]},
+ {f:'A',b:'D',fI:['la pièce vient de la machine A','la pièce vient de la machine B'],fQ:['que la pièce vienne de la machine A','que la pièce vienne de la machine B'],
+  bI:['la pièce est défectueuse','la pièce n\'est pas défectueuse'],bQ:['qu\'elle soit défectueuse','qu\'elle ne soit pas défectueuse'],
+  cs:(i,q)=>`${pct(q)} des pièces de la machine ${['A','B'][i]} sont défectueuses.`,
+  story:D=>`Une usine fabrique des pièces sur deux machines&nbsp;: la machine A produit ${pct(D.p[0])} des pièces, la machine B le reste. ${pct(D.q[0])} des pièces de A sont défectueuses, contre ${pct(D.q[1])} des pièces de B.`,
+  who:'une pièce',pr:[30,40,55,60,65,70],q0:[2,3,4,5],q1:[4,6,8,10],extra:' (<span class="ov">A</span>&nbsp;: «&nbsp;la pièce vient de la machine B&nbsp;»)'},
+ {f:'M',b:'R',fI:['la mer est agitée','la mer est calme'],fQ:['que la mer soit agitée','que la mer soit calme'],
+  bI:['la barge part en retard','la barge part à l\'heure'],bQ:['que la barge parte en retard','que la barge parte à l\'heure'],
+  cs:(i,q)=>`${['Quand la mer est agitée','Quand la mer est calme'][i]}, la barge part en retard avec une probabilité de ${dec(q)}.`,
+  story:D=>`Un jour donné, la mer est agitée avec une probabilité de ${dec(D.p[0])}. Quand la mer est agitée, la barge part en retard avec une probabilité de ${dec(D.q[0])}&nbsp;; quand elle est calme, avec une probabilité de ${dec(D.q[1])}.`,
+  who:'un jour',pr:[20,25,30,35,40],q0:[40,50,60,70],q1:[5,10,15,20]},
+ {f:'C',b:'R',fI:['le candidat a suivi la conduite accompagnée','le candidat a suivi la formation classique'],fQ:['que le candidat ait suivi la conduite accompagnée','que le candidat ait suivi la formation classique'],
+  bI:['le candidat est reçu du premier coup','le candidat n\'est pas reçu du premier coup'],bQ:['qu\'il soit reçu du premier coup','qu\'il ne soit pas reçu du premier coup'],
+  cs:(i,q)=>`Parmi les candidats ${['en conduite accompagnée','en formation classique'][i]}, ${pct(q)} sont reçus du premier coup.`,
+  story:D=>`Dans une auto-école, ${pct(D.p[0])} des candidats ont suivi la conduite accompagnée. Parmi eux, ${pct(D.q[0])} sont reçus au permis du premier coup&nbsp;; parmi les autres, ${pct(D.q[1])}.`,
+  who:'un candidat',pr:[20,25,30,35,40,45],q0:[70,75,80],q1:[50,55,60]},
+ {f:'V',b:'G',fI:['la personne est vaccinée','la personne n\'est pas vaccinée'],fQ:['que la personne soit vaccinée','que la personne ne soit pas vaccinée'],
+  bI:['la personne attrape la grippe','la personne n\'attrape pas la grippe'],bQ:['qu\'elle attrape la grippe','qu\'elle n\'attrape pas la grippe'],
+  cs:(i,q)=>`${pct(q)} des ${['personnes vaccinées','personnes non vaccinées'][i]} attrapent la grippe.`,
+  story:D=>`Dans un lycée, ${pct(D.p[0])} des personnes sont vaccinées contre la grippe. Pendant l'hiver, ${pct(D.q[0])} des personnes vaccinées attrapent la grippe, contre ${pct(D.q[1])} des personnes non vaccinées.`,
+  who:'une personne',pr:[40,45,55,60,70],q0:[5,10,15],q1:[20,25,30,40]},
+ {f:'E',b:'L',fI:['le colis est envoyé en express','le colis est envoyé en standard'],fQ:['que le colis soit envoyé en express','que le colis soit envoyé en standard'],
+  bI:['le colis arrive à l\'heure','le colis arrive en retard'],bQ:['qu\'il arrive à l\'heure','qu\'il arrive en retard'],
+  cs:(i,q)=>`${pct(q)} des colis ${['express','standard'][i]} arrivent à l'heure.`,
+  story:D=>`Un site de vente en ligne envoie ${pct(D.p[0])} de ses colis en express et les autres en standard. ${pct(D.q[0])} des colis express arrivent à l'heure, contre ${pct(D.q[1])} des colis standard.`,
+  who:'un colis',pr:[20,30,35,40,60],q0:[90,95,98],q1:[70,75,80,85]}];
+const defsY=(Y,D)=>`On note ${ev(D.f[0])}&nbsp;: «&nbsp;${Y.fI[0]}&nbsp;»${Y.extra||''} et ${ev(D.b)}&nbsp;: «&nbsp;${Y.bI[0]}&nbsp;».`;
+function TR(o){o=o||{};const Y=o.ctx!==undefined?TREEX[o.ctx]:pick(o.only?o.only.map(k=>TREEX[k]):TREEX);
+  for(let n=0;n<400;n++){const p0=C(pick(Y.pr)),q0=C(pick(Y.q0)),q1=o.indep?q0:C(pick(Y.q1));
+    const D={type:'tree',f:[Y.f,'~'+Y.f],b:Y.b,p:[p0,comp(p0)],q:[q0,q1],y:TREEX.indexOf(Y)};if(o.test&&!o.test(D))continue;return{Y,D}}
+  const p0=C(Y.pr[0]),D={type:'tree',f:[Y.f,'~'+Y.f],b:Y.b,p:[p0,comp(p0)],q:[C(Y.q0[0]),o.indep?C(Y.q0[0]):C(Y.q1[0])],y:TREEX.indexOf(Y)};return{Y,D}}
+/* arbre « A, B » abstrait, poids au dixième ou au vingtième */
+function TA(test){for(let n=0;n<2000;n++){const p0=R(ri(1,9),10),q0=R(ri(1,19),20),q1=R(ri(1,19),20);
+    const D={type:'tree',f:['A','~A'],b:'B',p:[p0,comp(p0)],q:[q0,q1]};if(!test||test(D))return D}
+  return{type:'tree',f:['A','~A'],b:'B',p:[R(2,5),R(3,5)],q:[R(3,10),R(1,5)]}}
+const tr=D=>({f:D.f,b:D.b,nb:'~'+D.b,p:D.p,q:D.q});
+const wl=D=>({src:'1',b1:D.p.map(lv),b2:D.p.map((_,i)=>[lv(D.q[i]),lv(comp(D.q[i]))])});
+const nb=D=>'~'+D.b;
+const pathQ=(Y,i,j)=>`${Y.fQ[i]} et ${Y.bQ[j]}`;
+const dist=a=>{for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++)if(eq(a[i],a[j]))return false;return true};
+
+/* =====================================================================
+   Niveau 1 · Parmi… (tableau croisé, restreindre la population)
+   ===================================================================== */
+LV.push({t:'Parmi…',badge:'Niveau 1 · Restreindre la population',
+ rule:`<p><b>Probabilité conditionnelle.</b> Soit A et B deux événements avec ${P('A')} ≠ 0&nbsp;: ${P('B','A')} = ${frH(P('A ∩ B'),P('A'))}.</p><p>${P('B','A')} est la probabilité que B se réalise <b>sachant que</b> A est réalisé&nbsp;: <b>on restreint l'univers à A</b>, puis on calcule la proportion de B dans ce nouvel univers.</p><p>Méthode par tableau&nbsp;: pour ${P('B','A')}, regarder uniquement la ligne (ou la colonne) de A, puis calculer la fraction dans cette restriction.</p><p>Sur la scène, «&nbsp;sachant A&nbsp;» ferme tous les autres bras&nbsp;: le bras A devient le fleuve entier (100&nbsp;%).</p>`,
+ qs:[
+ ()=>{const {X,D,r,k,t}=TB(),i=ri(0,1),j=ri(0,1),c=D.c[i][j],w=`Pr:${i}:${j}`,v=V(w,D);
+  return{D,setup:()=>S.reset(tabTree(D),tabLab(D)),cap0:`${F(t)} ${X.unit}&nbsp;: tout le delta`,
+   prompt:`${X.intro(F(t))}${tabH(D,X)}On choisit une personne au hasard <b>${X.rIn[i]}</b>. Quelle est la probabilité qu'elle ${X.kSoit[j]}&nbsp;?`,
+   parts:[ch('Dans quelle population tire-t-on ?',[
+      OK(`Les ${F(r[i])} ${X.rG[i]}`),
+      NO(`Les ${F(t)} ${X.unit}`,`«&nbsp;${X.rIn[i]}&nbsp;»&nbsp;: on ne tire plus parmi tous les ${X.unit}. L'univers est restreint aux ${X.rG[i]}.`),
+      NO(`Les ${F(k[j])} ${X.kG[j]}`,`Les ${X.kG[j]}, c'est ce que l'on observe à l'intérieur, pas la population dans laquelle on tire.`)],
+     {onOk:async()=>{hl({keep:'r'+i});S.lab({focus:focusTxt(D.r[i],r[i])});cap(`Sachant ${ev(D.r[i])}&nbsp;: les <span class="k">${F(r[i])} ${X.rG[i]}</span> forment le nouvel univers`);await S.focus(i)}}),
+    fill('Dans cette ligne, compte puis divise.',`${NT(w,D)} = {0} / {1} = {2}`,[BV(D,`n:c${i}${j}`),BV(D,`n:r${i}`),BV(D,w)],
+     `On reste dans la ligne ${ev(D.r[i])}&nbsp;: ${F(c)} personnes sur ${F(r[i])}. La division donne un nombre entre 0 et 1.`,
+     {onOk:async()=>{hl({keep:'r'+i,num:`c${i}${j}`,den:'r'+i});S.setLab(`b2.${i}.${j}`,'!'+lv(v));cap(`${NT(w,D)} = ${frH(F(c),F(r[i]))} = <span class="k">${numH(v)}</span>`)}})],
+   done:`${NT(w,D)} = ${frH(F(c),F(r[i]))} = ${numH(v)}&nbsp;: on compte ${F(c)} personnes sur les ${F(r[i])} ${X.rG[i]}, et non sur les ${F(t)} ${X.unit}.`}},
+ ()=>{const {X,D,r,k,t}=TB(),i=ri(0,1),j=ri(0,1),c=D.c[i][j],w=`P:c${i}${j}`,v=V(w,D),w1=`Pr:${i}:${j}`,w2=`Pk:${j}:${i}`;
+  return{D,setup:()=>S.reset(tabTree(D),tabLab(D)),cap0:`${F(t)} ${X.unit}&nbsp;: tout le delta`,
+   prompt:`${X.intro(F(t))}${tabH(D,X)}On choisit une personne au hasard <b>parmi les ${F(t)} ${X.unit}</b>. Quelle est la probabilité qu'elle ${X.rSoit[i]} <b>et</b> qu'elle ${X.kSoit[j]}&nbsp;?`,
+   parts:[ch('Quelle notation convient ?',[OK(NT(w,D),{nt:w}),
+      NO(NT(w1,D),`Ce serait «&nbsp;${X.rIn[i]}&nbsp;» seulement. Ici, on tire parmi tous les ${X.unit}&nbsp;: aucune restriction.`,{nt:w1}),
+      NO(NT(w2,D),`Ce serait «&nbsp;${X.kIn[j]}&nbsp;» seulement. Ici, on tire parmi tous les ${X.unit}.`,{nt:w2})],
+     {what:w,onOk:async()=>{hl({num:`c${i}${j}`,den:'t'});cap(`Un seul chemin&nbsp;: ${ev(D.r[i])} puis ${ev(D.k[j])}, sur tout l'univers`);await S.highlight(i,j)}}),
+    fill('Tout l\'univers sert de référence.',`${NT(w,D)} = {0} / {1} = {2}`,[BV(D,`n:c${i}${j}`),BV(D,'n:t'),BV(D,w)],
+     `Pas de restriction&nbsp;: ${F(c)} personnes sur les ${F(t)} ${X.unit}.`,
+     {onOk:()=>{S.setLab(`leaf.${i}.${j}`,'!'+lv(v));cap(`${NT(w,D)} = ${frH(F(c),F(t))} = <span class="k">${numH(v)}</span>`)}})],
+   done:`${NT(w,D)} = ${frH(F(c),F(t))} = ${numH(v)}. «&nbsp;et&nbsp;» sans «&nbsp;parmi&nbsp;»&nbsp;: c'est une intersection, on divise par le total général.`}},
+ ()=>{const {X,D,r,k,t}=TB(),i=ri(0,1),w0=`Pr:${i}:0`,w1=`Pr:${i}:1`,v0=V(w0,D),v1=V(w1,D),pr=V(`P:r${i}`,D);
+  return{D,setup:()=>S.reset(tabTree(D),tabLab(D)),cap0:`${F(t)} ${X.unit}&nbsp;: tout le delta`,
+   prompt:`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} On se place <b>${X.rIn[i]}</b>.`,
+   parts:[act(`Sachant ${ev(D.r[i])}&nbsp;: fermer les autres bras`,async()=>{hl({keep:'r'+i});S.lab({focus:focusTxt(D.r[i],r[i])});cap(`Nouvel univers&nbsp;: les <span class="k">${F(r[i])} ${X.rG[i]}</span>`);await S.focus(i)}),
+    fill('Chaque personne de ce nouvel univers est soit dans '+ev(D.k[0])+', soit dans '+ev(D.k[1])+'.',`${NT(w0,D)} = {0} et ${NT(w1,D)} = {1}`,[BV(D,w0),BV(D,w1)],
+     `Divise chaque effectif de la ligne ${ev(D.r[i])} par ${F(r[i])}.`,
+     {onOk:()=>{hl({keep:'r'+i,den:'r'+i});S.setLab(`b2.${i}.0`,'!'+lv(v0));S.setLab(`b2.${i}.1`,'!'+lv(v1));cap(`${numH(v0)} + ${numH(v1)} = <span class="k">1</span>`)}}),
+    ch(`Que vaut ${NT(w0,D)} + ${NT(w1,D)}&nbsp;?`,[OK('1',{v:R(1)}),
+      NO(`${numH(pr)}, c'est-à-dire ${NT(`P:r${i}`,D)}`,`${NT(`P:r${i}`,D)} mesure la place de ${ev(D.r[i])} dans tout l'univers. Ici, on reste dans ${ev(D.r[i])}&nbsp;: les deux parts remplissent tout le nouvel univers.`,{v:pr}),
+      NO('Cela dépend du tableau','Toujours 1&nbsp;: sachant '+ev(D.r[i])+', chaque personne est soit dans '+ev(D.k[0])+', soit dans '+ev(D.k[1])+'.')])],
+   done:`${NT(w1,D)} = 1 − ${NT(w0,D)}&nbsp;: dans le nouvel univers, les deux bras se partagent 100&nbsp;% du flux.`}},
+ ()=>{const {X,D,r,k,t}=TB(),i=ri(0,1),wA='P:k0',wB=`Pr:${i}:0`,vA=V(wA,D),vB=V(wB,D),s=cmp(vB,vA),gt=s>0?'&gt;':'&lt;',lt=s>0?'&lt;':'&gt;';
+  return{D,setup:()=>S.reset(tabTree(D),tabLab(D)),cap0:`${F(t)} ${X.unit}&nbsp;: tout le delta`,
+   prompt:`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} Compare la proportion de ${ev(D.k[0])} dans tout l'univers et <b>${X.rIn[i]}</b>.`,
+   parts:[fill('Dans tout l\'univers&nbsp;:',`${NT(wA,D)} = {0}`,[BV(D,wA)],`${NT(wA,D)}&nbsp;: total de la colonne ${ev(D.k[0])} divisé par le total général ${F(t)}.`,
+      {onOk:()=>{hl({num:'k0',den:'t'});cap(`${NT(wA,D)} = ${frH(F(k[0]),F(t))} = <span class="k">${numH(vA)}</span>`)}}),
+    act(`Sachant ${ev(D.r[i])}&nbsp;: fermer les autres bras`,async()=>{hl({keep:'r'+i});S.lab({focus:focusTxt(D.r[i],r[i])});await S.focus(i)}),
+    fill('Dans le nouvel univers&nbsp;:',`${NT(wB,D)} = {0}`,[BV(D,wB)],`${NT(wB,D)}&nbsp;: on divise par ${F(r[i])}, le total de la ligne ${ev(D.r[i])}.`,
+      {onOk:()=>{hl({keep:'r'+i,num:`c${i}0`,den:'r'+i});S.setLab(`b2.${i}.0`,'!'+lv(vB));cap(`${NT(wB,D)} = ${numH(vB)} et ${NT(wA,D)} = ${numH(vA)}`)}}),
+    ch('Conclusion&nbsp;:',[OK(`${NT(wB,D)} ${gt} ${NT(wA,D)}`),
+      NO(`${NT(wB,D)} = ${NT(wA,D)}`,`On ne divise pas par le même total (${F(r[i])} et ${F(t)})&nbsp;: compare ${numH(vB)} et ${numH(vA)}.`),
+      NO(`${NT(wB,D)} ${lt} ${NT(wA,D)}`,`Compare les deux valeurs calculées&nbsp;: ${numH(vB)} et ${numH(vA)}.`)])],
+   done:`${NT(wB,D)} = ${numH(vB)} et ${NT(wA,D)} = ${numH(vA)}&nbsp;: restreindre l'univers change la proportion. ${s>0?'Plus':'Moins'} de ${ev(D.k[0])} ${X.rIn[i]} que dans l'ensemble.`}}]});
+
+/* =====================================================================
+   Niveau 2 · Dans quel ordre ? (P_A(B) n'est pas P_B(A))
+   ===================================================================== */
+const flipFocus=async(D,j,k)=>{await S.flip(tabTree(D,true),tabLab(D,true));hl({keep:'k'+j});S.lab({focus:focusTxt(D.k[j],k[j])});await S.focus(j)};
+const rowFocus=async(D,i,r)=>{if(S.state().tree.f[0]!==D.r[0])await S.flip(tabTree(D),tabLab(D));hl({keep:'r'+i});S.lab({focus:focusTxt(D.r[i],r[i])});await S.focus(i)};
+LV.push({t:'Dans quel ordre ?',badge:'Niveau 2 · Sachant qui ?',
+ rule:`<p>${P('B','A')} se lit «&nbsp;B sachant A&nbsp;»&nbsp;: la condition, écrite en indice, est la population où l'on se place.</p><p>${P('A','B')} se lit «&nbsp;A sachant B&nbsp;»&nbsp;: on se place dans B. En général, <b>${P('B','A')} ≠ ${P('A','B')}</b>&nbsp;: même numérateur ${P('A ∩ B')}, mais pas le même dénominateur.</p><p>Exemple du cours (800 patients)&nbsp;: ${P('A','G')} = ${frH(383,674)} ≈ 57&nbsp;% (parmi les guéris).</p><p>Sur la scène, «&nbsp;retourner le delta&nbsp;» fait passer la condition en premier.</p>`,
+ qs:[
+ ()=>{const {X,D,r,k,t}=TB({neq:true}),i=ri(0,1),j=ri(0,1),c=D.c[i][j],w=`Pk:${j}:${i}`,v=V(w,D),w1=`Pr:${i}:${j}`,w2=`P:c${i}${j}`;
+  return{D,setup:()=>S.reset(tabTree(D),tabLab(D)),cap0:`Le delta s'ouvre d'abord sur ${ev(D.r[0])} et ${ev(D.r[1])}`,
+   prompt:`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} On choisit une personne au hasard <b>${X.kIn[j]}</b>. Quelle est la probabilité qu'elle ${X.rSoit[i]}&nbsp;?`,
+   parts:[ch('Quelle notation convient ?',[OK(NT(w,D),{nt:w}),
+      NO(NT(w1,D),`${NT(w1,D)} se lit «&nbsp;${ev(D.k[j])} sachant ${ev(D.r[i])}&nbsp;»&nbsp;: on se placerait ${X.rIn[i]}. Or on tire ${X.kIn[j]}.`,{nt:w1}),
+      NO(NT(w2,D),`Ce serait parmi tous les ${X.unit}. Ici, on se place ${X.kIn[j]}.`,{nt:w2})],{what:w}),
+    act(`Retourner le delta&nbsp;: d'abord ${ev(D.k[0])} ou ${ev(D.k[1])}`,async()=>{await flipFocus(D,j,k);cap(`Sachant ${ev(D.k[j])}&nbsp;: les <span class="k">${F(k[j])} ${X.kG[j]}</span> forment le nouvel univers`)}),
+    fill('On reste dans la colonne de la condition.',`${NT(w,D)} = {0} / {1} = {2}`,[BV(D,`n:c${i}${j}`),BV(D,`n:k${j}`),BV(D,w)],
+     `Dénominateur&nbsp;: le total de la colonne ${ev(D.k[j])}, soit ${F(k[j])}.`,
+     {onOk:()=>{hl({keep:'k'+j,num:`c${i}${j}`,den:'k'+j});S.setLab(`b2.${j}.${i}`,'!'+lv(v));cap(`${NT(w,D)} = ${frH(F(c),F(k[j]))} = <span class="k">${numH(v)}</span>`)}})],
+   done:`${NT(w,D)} = ${frH(F(c),F(k[j]))} = ${numH(v)}&nbsp;: la condition ${ev(D.k[j])} fixe le dénominateur.`}},
+ ()=>{const {X,D,r,k,t}=TB({neq:true}),i=ri(0,1),j=ri(0,1),c=D.c[i][j],wr=`Pr:${i}:${j}`,wk=`Pk:${j}:${i}`,vr=V(wr,D),vk=V(wk,D);
+  return{D,setup:()=>S.reset(tabTree(D),tabLab(D)),cap0:'Même case du tableau, deux questions différentes',
+   prompt:`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} Calcule ${NT(wr,D)} puis ${NT(wk,D)}.`,
+   parts:[act(`Sachant ${ev(D.r[i])}`,async()=>{await rowFocus(D,i,r)}),
+    fill('',`${NT(wr,D)} = {0}`,[BV(D,wr)],`Sachant ${ev(D.r[i])}&nbsp;: divise ${F(c)} par le total de la ligne ${ev(D.r[i])}.`,
+     {onOk:()=>{hl({keep:'r'+i,num:`c${i}${j}`,den:'r'+i});S.setLab(`b2.${i}.${j}`,'!'+lv(vr));cap(`${NT(wr,D)} = ${frH(F(c),F(r[i]))} = <span class="k">${numH(vr)}</span>`)}}),
+    act(`Retourner le delta&nbsp;: sachant ${ev(D.k[j])}`,async()=>{await flipFocus(D,j,k)}),
+    fill('',`${NT(wk,D)} = {0}`,[BV(D,wk)],`Sachant ${ev(D.k[j])}&nbsp;: divise ${F(c)} par le total de la colonne ${ev(D.k[j])}.`,
+     {onOk:()=>{hl({keep:'k'+j,num:`c${i}${j}`,den:'k'+j});S.setLab(`b2.${j}.${i}`,'!'+lv(vk));cap(`${NT(wk,D)} = ${frH(F(c),F(k[j]))} = <span class="k">${numH(vk)}</span>`)}}),
+    ch('Que remarques-tu&nbsp;?',[OK('Les deux sont différentes&nbsp;: la condition change le dénominateur'),
+      NO('Elles sont égales, car c\'est la même case du tableau',`Même numérateur ${F(c)}, mais pas le même dénominateur&nbsp;: ${F(r[i])} d'un côté, ${F(k[j])} de l'autre.`),
+      NO('On ne peut pas comparer une ligne et une colonne','On peut comparer les deux nombres obtenus&nbsp;: '+numH(vr)+' et '+numH(vk)+'.')])],
+   done:`${NT(wr,D)} = ${numH(vr)} mais ${NT(wk,D)} = ${numH(vk)}&nbsp;: l'ordre compte.`}},
+ ()=>{const {X,D,r,k,t}=TB({neq:true}),i=ri(0,1),j=ri(0,1),c=D.c[i][j],kind=pick(['Pr','Pk','P']);
+  const wr=`Pr:${i}:${j}`,wk=`Pk:${j}:${i}`,wp=`P:c${i}${j}`,w=kind==='Pr'?wr:kind==='Pk'?wk:wp,v=V(w,D);
+  const phr=kind==='Pr'?`On choisit une personne au hasard ${X.rIn[i]}. Probabilité qu'elle ${X.kSoit[j]}&nbsp;?`
+    :kind==='Pk'?`On choisit une personne au hasard ${X.kIn[j]}. Probabilité qu'elle ${X.rSoit[i]}&nbsp;?`
+    :`On choisit une personne au hasard parmi les ${F(t)} ${X.unit}. Probabilité qu'elle ${X.rSoit[i]} et qu'elle ${X.kSoit[j]}&nbsp;?`;
+  const den=kind==='Pr'?r[i]:kind==='Pk'?k[j]:t;
+  const why={[wr]:`${NT(wr,D)}&nbsp;: on se placerait ${X.rIn[i]}.`,[wk]:`${NT(wk,D)}&nbsp;: on se placerait ${X.kIn[j]}.`,[wp]:`${NT(wp,D)}&nbsp;: on tirerait parmi tous les ${X.unit}, sans restriction.`};
+  return{D,setup:()=>S.reset(tabTree(D),tabLab(D)),cap0:'Lis bien où l\'on se place',
+   prompt:`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} <b>${phr}</b>`,
+   parts:[ch('Quelle notation convient ?',[wr,wk,wp].map(x=>x===w?OK(NT(x,D),{nt:x}):NO(NT(x,D),why[x],{nt:x})),{what:w}),
+    act(kind==='Pr'?`Sachant ${ev(D.r[i])}`:kind==='Pk'?`Retourner le delta&nbsp;: sachant ${ev(D.k[j])}`:`Suivre le chemin ${ev(D.r[i])} puis ${ev(D.k[j])}`,
+     async()=>{if(kind==='Pr')await rowFocus(D,i,r);else if(kind==='Pk')await flipFocus(D,j,k);else{hl({num:`c${i}${j}`,den:'t'});await S.highlight(i,j)}}),
+    fill('',`${NT(w,D)} = {0}`,[BV(D,w)],`Le dénominateur est le total de la population où l'on se place&nbsp;: ${F(den)}.`,
+     {onOk:()=>{hl(kind==='Pr'?{keep:'r'+i,num:`c${i}${j}`,den:'r'+i}:kind==='Pk'?{keep:'k'+j,num:`c${i}${j}`,den:'k'+j}:{num:`c${i}${j}`,den:'t'});cap(`${NT(w,D)} = ${frH(F(c),F(den))} = <span class="k">${numH(v)}</span>`)}})],
+   done:`${NT(w,D)} = ${frH(F(c),F(den))} = ${numH(v)}.`}},
+ ()=>{let T0;for(let n=0;n<50;n++){T0=TB({neq:true});const {D,r,k,t}=T0;const vs=[R(D.c[0][0],k[0]),R(D.c[0][0],r[0]),R(D.c[0][0],t),R(k[0],t)];if(dist(vs))break}
+  const {X,D,r,k,t}=T0,i=0,j=0,c=D.c[0][0],w=`Pk:0:0`,v=V(w,D);
+  return{D,setup:()=>S.reset(tabTree(D),tabLab(D)),cap0:`Le delta s'ouvre d'abord sur ${ev(D.r[0])} et ${ev(D.r[1])}`,
+   prompt:`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} On cherche ${NT(w,D)}.`,
+   parts:[ch(`Quel calcul donne ${NT(w,D)}&nbsp;?`,[OK(frH(F(c),F(k[0])),{v:R(c,k[0])}),
+      NO(frH(F(c),F(r[0])),`C'est ${NT('Pr:0:0',D)}&nbsp;: on diviserait par la ligne ${ev(D.r[0])}. Pour «&nbsp;sachant ${ev(D.k[0])}&nbsp;», on divise par le total de la colonne ${ev(D.k[0])}.`,{v:R(c,r[0])}),
+      NO(frH(F(c),F(t)),`C'est ${NT('P:c00',D)}&nbsp;: on diviserait par tout l'univers.`,{v:R(c,t)}),
+      NO(frH(F(k[0]),F(t)),`C'est ${NT('P:k0',D)}&nbsp;: la proportion de ${ev(D.k[0])} dans tout l'univers.`,{v:R(k[0],t)})],{what:w}),
+    act(`Retourner le delta&nbsp;: sachant ${ev(D.k[0])}`,async()=>{await flipFocus(D,0,k)}),
+    fill('',`${NT(w,D)} = {0}`,[BV(D,w)],`${F(c)} divisé par ${F(k[0])}.`,{onOk:()=>{hl({keep:'k0',num:'c00',den:'k0'});S.setLab('b2.0.0','!'+lv(v));cap(`${NT(w,D)} = <span class="k">${numH(v)}</span>`)}})],
+   done:`${NT(w,D)} = ${frH(F(c),F(k[0]))} = ${numH(v)}.`}}]});
+
+/* =====================================================================
+   Niveau 3 · Les poids (arbre pondéré : lire, compléter)
+   ===================================================================== */
+LV.push({t:'Les poids',badge:'Niveau 3 · Arbre pondéré',
+ rule:`<p><b>Règles de l'arbre.</b> La somme des probabilités sur les branches issues d'un même nœud est égale à 1.</p><p>Au premier niveau&nbsp;: ${P('A')} et ${P('~A')} = 1 − ${P('A')}. Au second niveau, des probabilités conditionnelles&nbsp;: ${P('B','A')}, ${P('~B','A')} = 1 − ${P('B','A')}, ${P('B','~A')}…</p><p>Méthode&nbsp;: 1. reporter les probabilités connues sur les branches&nbsp;; 2. compléter avec 1 − p pour chaque nœud.</p><p>Sur la scène, l'épaisseur de chaque bras est sa part de la population.</p>`,
+ qs:[
+ ()=>{const {Y,D}=TR(),[p0,p1]=D.p,[q0,q1]=D.q;
+  return{D,setup:()=>S.reset(tr(D),{src:'1',b1:[lv(p0),'?'],b2:[[lv(q0),'?'],[lv(q1),'?']]}),cap0:'Les branches connues sont posées&nbsp;: complète les autres',
+   prompt:`${Y.story(D)} ${defsY(Y,D)} Complète l'arbre pondéré.`,
+   parts:[fill('Premier nœud&nbsp;: ses branches ont une somme égale à 1.',`${P(D.f[1])} = 1 − ${dec(p0)} = {0}`,[BV(D,'p:1')],`${P(D.f[1])} = 1 − ${P(D.f[0])}.`,
+      {onOk:()=>{S.setLab('b1.1','!'+lv(p1));cap(`${dec(p0)} + ${dec(p1)} = <span class="k">1</span>`)}}),
+    fill('Deuxièmes nœuds&nbsp;: même règle sur chacun.',`${NT('nq:0',D)} = {0} et ${NT('nq:1',D)} = {1}`,[BV(D,'nq:0'),BV(D,'nq:1')],
+     `Sur chaque nœud, 1 − la branche connue&nbsp;: 1 − ${dec(q0)} et 1 − ${dec(q1)}.`,{onOk:()=>{S.setLab('b2.0.1','!'+lv(comp(q0)));S.setLab('b2.1.1','!'+lv(comp(q1)));cap('L\'arbre est complet')}}),
+    ch(`Pourquoi ${NT('nq:0',D)} = 1 − ${NT('q:0',D)}&nbsp;?`,[OK('Les branches issues d\'un même nœud ont une somme égale à 1'),
+      NO(`Parce que ${P(D.f[0])} + ${P(D.f[1])} = 1`,`C'est vrai, mais pour le premier nœud. Ici, on est au nœud ${ev(D.f[0])}&nbsp;: ses deux branches ${ev(D.b)} et ${ev(nb(D))} ont une somme égale à 1.`),
+      NO(`Parce que ${NT('nq:0',D)} = ${P(nb(D))}`,`Non&nbsp;: ${NT('nq:0',D)} est une probabilité sachant ${ev(D.f[0])}&nbsp;; en général, elle n'est pas égale à ${P(nb(D))}.`)])],
+   done:`Arbre complet&nbsp;: ${dec(p0)} et ${dec(p1)} au premier nœud, puis ${dec(q0)} et ${dec(comp(q0))}, ${dec(q1)} et ${dec(comp(q1))}.`}},
+ ()=>{const {Y,D}=TR(),i=ri(0,1),o=1-i;
+  const opts=[['q:'+i,null],['PB',`${P(D.b)} n'est écrite sur aucune branche&nbsp;: on l'obtient en additionnant des chemins (niveau 5).`],
+    ['l:'+i+':0',`${P(I(D.f[i],D.b))} se lit au bout du chemin&nbsp;: c'est un produit de deux branches.`],['by:'+i,`Ordre inversé&nbsp;: sur cette branche, on part de ${ev(D.f[i])}. La condition est ${ev(D.f[i])}, pas ${ev(D.b)}.`]];
+  return{D,setup:()=>S.reset(tr(D),wl(D)),cap0:'L\'arbre est pondéré&nbsp;: lis-le',
+   prompt:`${Y.story(D)} ${defsY(Y,D)} Que représente le nombre <b>${dec(D.q[i])}</b> porté par la branche qui va de ${ev(D.f[i])} vers ${ev(D.b)}&nbsp;?`,
+   parts:[ch('',opts.map(([x,why])=>why?NO(NT(x,D),why,{nt:x}):OK(NT(x,D),{nt:x})),{what:'q:'+i,onOk:async()=>{cap(`${NT('q:'+i,D)} = <span class="k">${dec(D.q[i])}</span>&nbsp;: la part de ${ev(D.b)} dans le bras ${ev(D.f[i])}`);await S.highlight(i,0)}}),
+    fill(`Lis une autre branche&nbsp;: celle qui va de ${ev(D.f[o])} vers ${ev(nb(D))}.`,`${NT('nq:'+o,D)} = {0}`,[BV(D,'nq:'+o)],`Lis le nombre porté par la branche ${ev(D.f[o])} → ${ev(nb(D))}.`,
+     {onOk:async()=>{cap(`${NT('nq:'+o,D)} = <span class="k">${dec(comp(D.q[o]))}</span>`);await S.highlight(o,1)}})],
+   done:`Au second niveau, chaque branche porte une probabilité conditionnelle&nbsp;: ${NT('q:'+i,D)} = ${dec(D.q[i])}.`}},
+ ()=>{const {Y,D}=TR(),[p0,p1]=D.p,[q0,q1]=D.q;
+  const sent=Y.cs(0,q0);
+  return{D,setup:()=>S.reset(tr(D),{src:'1',b1:['?','?'],b2:[['?','?'],['?','?']]}),cap0:'Un arbre vide&nbsp;: traduis l\'énoncé',
+   prompt:`${Y.story(D)} ${defsY(Y,D)}`,
+   parts:[ch(`«&nbsp;${sent}&nbsp;» se traduit par&nbsp;:`,[OK(`${NT('q:0',D)} = ${dec(q0)}`,{nt:'q:0'}),
+      NO(`${P(D.b)} = ${dec(q0)}`,`La phrase ne parle pas de toute la population, seulement du bras ${ev(D.f[0])}&nbsp;: c'est une probabilité sachant ${ev(D.f[0])}.`,{nt:'PB'}),
+      NO(`${P(I(D.f[0],D.b))} = ${dec(q0)}`,`${P(I(D.f[0],D.b))} concerne toute la population&nbsp;; ici, on se place dans ${ev(D.f[0])}.`,{nt:'l:0:0'}),
+      NO(`${P(D.f[0],D.b)} = ${dec(q0)}`,`Ordre inversé&nbsp;: la population de référence est ${ev(D.f[0])}, donc ${ev(D.f[0])} va en indice.`,{nt:'by:0'})],
+     {what:'q:0',onOk:()=>{S.setLab('b2.0.0','!'+lv(q0));cap(`${NT('q:0',D)} = <span class="k">${dec(q0)}</span>`)}}),
+    fill('Premier nœud&nbsp;:',`${P(D.f[0])} = {0} et ${P(D.f[1])} = {1}`,[BV(D,'p:0'),BV(D,'p:1')],`Lis la proportion de ${ev(D.f[0])} dans l'énoncé, puis complète à 1.`,
+     {onOk:()=>{S.setLab('b1.0','!'+lv(p0));S.setLab('b1.1','!'+lv(p1))}}),
+    fill('Deuxièmes nœuds&nbsp;:',`${NT('nq:0',D)} = {0}, ${NT('q:1',D)} = {1} et ${NT('nq:1',D)} = {2}`,[BV(D,'nq:0'),BV(D,'q:1'),BV(D,'nq:1')],
+     `Sachant ${ev(D.f[1])}&nbsp;: l'énoncé donne ${dec(q1)}. Puis complète chaque nœud à 1.`,
+     {onOk:()=>{S.setLab('b2.0.1','!'+lv(comp(q0)));S.setLab('b2.1.0','!'+lv(q1));S.setLab('b2.1.1','!'+lv(comp(q1)));cap('L\'arbre est complet')}})],
+   done:`Chaque «&nbsp;parmi…&nbsp;» de l'énoncé devient une branche du second niveau.`}},
+ ()=>{const D=TA(),[p0,p1]=D.p,[q0,q1]=D.q;
+  return{D,setup:()=>S.reset(tr(D),{src:'1',b1:['?',lv(p1)],b2:[['?',lv(comp(q0))],[lv(q1),'?']]}),cap0:'Trois poids connus, trois à trouver',
+   prompt:`On donne ${P('~A')} = ${dec(p1)}, ${P('~B','A')} = ${dec(comp(q0))} et ${P('B','~A')} = ${dec(q1)}. Complète l'arbre pondéré.`,
+   parts:[fill('Sur chaque nœud, complète à 1.',`${P('A')} = {0}, ${P('B','A')} = {1} et ${P('~B','~A')} = {2}`,[BV(D,'p:0'),BV(D,'q:0'),BV(D,'nq:1')],
+     `${P('A')} = 1 − ${dec(p1)}&nbsp;; ${P('B','A')} = 1 − ${dec(comp(q0))}&nbsp;; ${P('~B','~A')} = 1 − ${dec(q1)}.`,
+     {onOk:()=>{S.setLab('b1.0','!'+lv(p0));S.setLab('b2.0.0','!'+lv(q0));S.setLab('b2.1.1','!'+lv(comp(q1)));cap('L\'arbre est complet')}}),
+    ch(`Où lit-on ${P('B','~A')} = ${dec(q1)}&nbsp;?`,[OK(`Sur la branche qui va de ${ev('~A')} vers B`),
+      NO(`Sur la branche qui va de B vers ${ev('~A')}`,'Dans cet arbre, on part d\'abord de A ou de '+ev('~A')+'&nbsp;: la condition est au départ de la branche.'),
+      NO('Au bout du chemin '+ev('~A')+' → B',`Au bout du chemin, on lit ${P(I('~A','B'))}, un produit.`)],{onOk:async()=>{await S.highlight(1,0)}})],
+   done:`${P('A')} = ${dec(p0)}, ${P('B','A')} = ${dec(q0)}, ${P('~B','~A')} = ${dec(comp(q1))}.`}}]});
+
+/* =====================================================================
+   Niveau 4 · Les chemins (P(A ∩ B) = P(A) × P_A(B))
+   ===================================================================== */
+LV.push({t:'Les chemins',badge:'Niveau 4 · Le produit le long du chemin',
+ rule:`<p><b>La probabilité d'un chemin est le produit des probabilités de ses branches.</b></p><p>${P('A ∩ B')} = ${P('A')} × ${P('B','A')}. Exemple du cours&nbsp;: ${P('A')} = 0,4 et ${P('B','A')} = 0,3, donc ${P('A ∩ B')} = 0,4 × 0,3 = 0,12.</p><p>À l'envers&nbsp;: ${P('B','A')} = ${frH(P('A ∩ B'),P('A'))}.</p><p>La somme des probabilités de toutes les feuilles vaut 1.</p><p>Sur la scène, le bras ${ev('A')} garde la part ${P('A')} du flux, et sa branche B en garde la part ${P('B','A')}&nbsp;: au bout, il reste le produit.</p>`,
+ qs:[
+ ()=>{const {Y,D}=TR(),i=ri(0,1),j=ri(0,1),w=`l:${i}:${j}`,pi=D.p[i],qj=j?comp(D.q[i]):D.q[i],v=V(w,D);
+  return{D,setup:()=>S.reset(tr(D),wl(D)),cap0:'Le flux se partage à chaque nœud',
+   prompt:`${Y.story(D)} ${defsY(Y,D)} On cherche la probabilité ${pathQ(Y,i,j)}.`,
+   parts:[act(`Suivre le chemin ${ev(D.f[i])} → ${ev(j?nb(D):D.b)}`,async()=>{cap(`Le chemin ${ev(D.f[i])} puis ${ev(j?nb(D):D.b)}`);await S.highlight(i,j)}),
+    fill('On multiplie les poids du chemin.',`${NT(w,D)} = ${dec(pi)} × ${dec(qj)} = {0}`,[BV(D,w)],`Multiplie les deux nombres du chemin&nbsp;: ${dec(pi)} × ${dec(qj)}.`,
+     {onOk:()=>{S.setLab(`leaf.${i}.${j}`,'!'+lv(v));cap(`${NT(w,D)} = <span class="k">${dec(v)}</span>`)}})],
+   done:`${NT(w,D)} = ${P(D.f[i])} × ${NT((j?'nq:':'q:')+i,D)} = ${dec(pi)} × ${dec(qj)} = ${dec(v)}.`}},
+ ()=>{const {Y,D}=TR(),ws=['l:0:0','l:0:1','l:1:0','l:1:1'],vs=ws.map(x=>V(x,D)),PB=V('PB',D);
+  return{D,setup:()=>S.reset(tr(D),Object.assign(wl(D),{leaf:[['?','?'],['?','?']]})),cap0:'Quatre chemins, quatre feuilles',
+   prompt:`${Y.story(D)} ${defsY(Y,D)} Calcule les probabilités des quatre feuilles.`,
+   parts:[fill('Un produit par chemin&nbsp;:',ws.map((x,k)=>`${NT(x,D)} = {${k}}`).join('<br>'),ws.map(x=>BV(D,x)),`Pour chaque feuille, multiplie les deux branches de son chemin.`,
+     {onOk:()=>{ws.forEach((x,k)=>S.setLab(`leaf.${x[2]}.${x[4]}`,'!'+lv(vs[k])));cap(vs.map(dec).join(' + ')+' = <span class="k">1</span>')}}),
+    ch('Que vaut la somme des quatre feuilles&nbsp;?',[OK('1',{v:R(1)}),
+      NO(`${dec(PB)}`,`${dec(PB)}, c'est ${P(D.b)}&nbsp;: seulement les feuilles ${ev(D.b)}. Les quatre feuilles, elles, se partagent toute la population.`,{v:PB}),
+      NO('2','2 serait la somme des branches des deux nœuds du second niveau. Les feuilles se partagent toute la population&nbsp;: 1.',{v:R(2)})])],
+   done:`${vs.map(dec).join(' + ')} = 1&nbsp;: le flux se partage sans rien perdre.`}},
+ ()=>{const D=TA(D=>ndec(mul(D.p[0],D.q[0]))<=3&&!eq(D.q[0],D.p[0])),[p0]=D.p,[q0]=D.q,l=mul(p0,q0);
+  return{D,setup:()=>S.reset(tr(D),{src:'1',b1:D.p.map(lv),b2:[['?','?'],[lv(D.q[1]),lv(comp(D.q[1]))]],leaf:[['!'+lv(l),null],[null,null]]}),cap0:'On connaît le bout du chemin',
+   prompt:`On donne ${P('A')} = ${dec(p0)} et ${P('A ∩ B')} = ${dec(l)}. On cherche ${P('B','A')}.`,
+   parts:[ch(`Quelle égalité utiliser&nbsp;?`,[OK(`${P('B','A')} = ${frH(P('A ∩ B'),P('A'))}`),
+      NO(`${P('B','A')} = ${P('A ∩ B')} × ${P('A')}`,`Le chemin est un produit&nbsp;: ${P('A ∩ B')} = ${P('A')} × ${P('B','A')}. Pour retrouver la branche, on divise.`),
+      NO(`${P('B','A')} = ${P('A')} − ${P('A ∩ B')}`,`On ne soustrait pas&nbsp;: le chemin est un produit, on divise donc par ${P('A')}.`)]),
+    fill('',`${P('B','A')} = ${frH(dec(l),dec(p0))} = {0} et ${P('~B','A')} = {1}`,[BV(D,'q:0'),BV(D,'nq:0')],`${dec(l)} ÷ ${dec(p0)}, puis 1 − ce résultat.`,
+     {onOk:()=>{S.setLab('b2.0.0','!'+lv(q0));S.setLab('b2.0.1','!'+lv(comp(q0)));cap(`${P('B','A')} = <span class="k">${dec(q0)}</span>`)}})],
+   done:`${P('B','A')} = ${frH(dec(l),dec(p0))} = ${dec(q0)}&nbsp;: c'est la définition ${P('B','A')} = ${frH(P('A ∩ B'),P('A'))}.`}},
+ ()=>{const {Y,D}=TR(),i=1,j=ri(0,1),w=`l:${i}:${j}`,v=V(w,D),wq=(j?'nq:':'q:')+i;
+  const bad1=j?'PnB':'PB';
+  return{D,setup:()=>S.reset(tr(D),wl(D)),cap0:'Choisis le bon chemin',
+   prompt:`${Y.story(D)} ${defsY(Y,D)} On choisit ${Y.who} au hasard. Probabilité ${pathQ(Y,i,j)}&nbsp;?`,
+   parts:[ch('Quelle notation convient ?',[OK(NT(w,D),{nt:w}),
+      NO(NT(wq,D),`${NT(wq,D)} n'est que la deuxième branche du chemin. On veut les deux à la fois&nbsp;: une intersection.`,{nt:wq}),
+      NO(NT(bad1,D),`${NT(bad1,D)} ne tient pas compte de ${ev(D.f[i])}. On veut les deux à la fois&nbsp;: une intersection.`,{nt:bad1})],
+     {what:w,onOk:async()=>{await S.highlight(i,j)}}),
+    fill('Le produit le long du chemin&nbsp;:',`${NT(w,D)} = {0} × {1} = {2}`,[BV(D,'p:'+i),BV(D,wq),BV(D,w)],
+     `${P(D.f[i])} = 1 − ${dec(D.p[0])} et ${NT(wq,D)} se lit sur la branche. Puis multiplie.`,
+     {anyOrder:[[0,1]],onOk:()=>{S.setLab(`leaf.${i}.${j}`,'!'+lv(v));cap(`${NT(w,D)} = <span class="k">${dec(v)}</span>`)}})],
+   done:`${NT(w,D)} = ${dec(D.p[i])} × ${dec(V(wq,D))} = ${dec(v)}.`}}]});
+
+/* =====================================================================
+   Niveau 5 · La confluence (formule des probabilités totales)
+   ===================================================================== */
+const PART3=[[50,30,20],[40,35,25],[45,30,25],[60,25,15],[50,25,25],[40,40,20]];
+function T3(){const ps=pick(PART3),qs=shuf([2,3,4,5,6,8]).slice(0,3);return{type:'tree',f:['A₁','A₂','A₃'],b:'D',p:ps.map(C),q:qs.map(C)}}
+LV.push({t:'La confluence',badge:'Niveau 5 · Probabilités totales',
+ rule:`<p><b>Formule des probabilités totales.</b> Si A et ${ev('~A')} forment une partition de l'univers&nbsp;:</p><p>${P('B')} = ${P('A ∩ B')} + ${P('~A ∩ B')} = ${P('A')} × ${P('B','A')} + ${P('~A')} × ${P('B','~A')}.</p><p>Généralisation&nbsp;: pour une partition A₁, A₂, …, Aₙ, ${P('B')} est la somme des ${P('Aₖ')} × ${P('B','Aₖ')}.</p><p>Sur la scène, les morceaux de B coulent dans des bras différents&nbsp;: à la confluence, ils se rejoignent en un seul fleuve B.</p>`,
+ qs:[
+ ()=>{const {Y,D}=TR(),l0=V('l:0:0',D),l1=V('l:1:0',D),PB=V('PB',D);
+  return{D,setup:()=>S.reset(tr(D),Object.assign(wl(D),{leaf:[[lv(l0),null],[lv(l1),null]],merged:'?'})),cap0:`${ev(D.b)} coule dans deux bras différents`,
+   prompt:`${Y.story(D)} ${defsY(Y,D)} On cherche ${P(D.b)}.`,
+   parts:[act(`Réunir les deux morceaux de ${ev(D.b)}`,async()=>{cap(`Les deux morceaux de ${ev(D.b)} se rejoignent`);await S.merge()}),
+    fill('À la confluence, on additionne.',`${P(D.b)} = {0} + {1} = {2}`,[BV(D,'l:0:0'),BV(D,'l:1:0'),BV(D,'PB')],`Additionne les deux feuilles ${ev(D.b)}&nbsp;: ${dec(l0)} et ${dec(l1)}.`,
+     {anyOrder:[[0,1]],onOk:()=>{S.setLab('merged','!'+lv(PB));cap(`${P(D.b)} = ${dec(l0)} + ${dec(l1)} = <span class="k">${dec(PB)}</span>`)}})],
+   done:`${P(D.b)} = ${P(I(D.f[0],D.b))} + ${P(I(D.f[1],D.b))} = ${dec(l0)} + ${dec(l1)} = ${dec(PB)}.`}},
+ ()=>{let T0;for(let n=0;n<80;n++){T0=TR();const D=T0.D,[q0,q1]=D.q;const vs=[V('PB',D),add(q0,q1),div(add(q0,q1),R(2)),mul(D.p[0],q0)];if(dist(vs))break}
+  const {Y,D}=T0,[q0,q1]=D.q,PB=V('PB',D);
+  return{D,setup:()=>S.reset(tr(D),Object.assign(wl(D),{merged:'?'})),cap0:'Combien de B au total&nbsp;?',
+   prompt:`${Y.story(D)} ${defsY(Y,D)} Que vaut ${P(D.b)}&nbsp;?`,
+   parts:[ch('',[OK(`${dec(D.p[0])} × ${dec(q0)} + ${dec(D.p[1])} × ${dec(q1)} = ${dec(PB)}`,{v:PB}),
+      NO(`${dec(q0)} + ${dec(q1)} = ${dec(add(q0,q1))}`,`On n'additionne pas les branches du second niveau&nbsp;: chacune est une part de son propre bras. Il faut d'abord multiplier le long de chaque chemin.`,{v:add(q0,q1)}),
+      NO(`(${dec(q0)} + ${dec(q1)}) ÷ 2 = ${dec(div(add(q0,q1),R(2)))}`,`La moyenne simple oublie que les deux bras n'ont pas la même épaisseur (${dec(D.p[0])} et ${dec(D.p[1])}).`,{v:div(add(q0,q1),R(2))}),
+      NO(`${dec(D.p[0])} × ${dec(q0)} = ${dec(mul(D.p[0],q0))}`,`C'est un seul chemin&nbsp;: il manque le morceau de ${ev(D.b)} qui coule dans le bras ${ev(D.f[1])}.`,{v:mul(D.p[0],q0)})],
+     {what:'PB',onOk:async()=>{S.lab({leaf:[[lv(V('l:0:0',D)),null],[lv(V('l:1:0',D)),null]]});await S.merge();S.setLab('merged','!'+lv(PB));cap(`${P(D.b)} = <span class="k">${dec(PB)}</span>`)}}),
+    fill('Et l\'événement contraire&nbsp;:',`${P(nb(D))} = {0}`,[BV(D,'PnB')],`${P(nb(D))} = 1 − ${P(D.b)}.`,{onOk:()=>cap(`${P(nb(D))} = 1 − ${dec(PB)} = <span class="k">${dec(comp(PB))}</span>`)})],
+   done:`${P(D.b)} = ${P(D.f[0])} × ${NT('q:0',D)} + ${P(D.f[1])} × ${NT('q:1',D)} = ${dec(PB)}.`}},
+ ()=>{const D=T3(),ls=[0,1,2].map(i=>V(`l:${i}:0`,D)),PB=V('PB',D);
+  return{D,setup:()=>S.reset(tr(D),{src:'1',b1:D.p.map(lv),b2:D.p.map((_,i)=>[lv(D.q[i]),lv(comp(D.q[i]))]),merged:'?'}),cap0:'Trois ateliers, trois bras',
+   prompt:`Trois ateliers A₁, A₂ et A₃ fabriquent respectivement ${pct(D.p[0])}, ${pct(D.p[1])} et ${pct(D.p[2])} des pièces d'une usine. Leurs taux de pièces défectueuses sont ${pct(D.q[0])}, ${pct(D.q[1])} et ${pct(D.q[2])}. On choisit une pièce au hasard&nbsp;; Aₖ&nbsp;: «&nbsp;la pièce vient de l'atelier Aₖ&nbsp;» et D&nbsp;: «&nbsp;la pièce est défectueuse&nbsp;». A₁, A₂, A₃ forment une partition de l'univers.`,
+   parts:[act('Réunir les trois morceaux de D',async()=>{S.lab({leaf:ls.map(()=>['?',null])});cap('Trois morceaux de D se rejoignent');await S.merge()}),
+    fill('Un produit par chemin, puis la somme.',`${P('D')} = {0} + {1} + {2} = {3}`,[BV(D,'l:0:0'),BV(D,'l:1:0'),BV(D,'l:2:0'),BV(D,'PB')],
+     `Chaque morceau&nbsp;: ${P('Aₖ')} × ${P('D','Aₖ')}, par exemple ${dec(D.p[0])} × ${dec(D.q[0])}.`,
+     {anyOrder:[[0,1,2]],onOk:()=>{S.lab({leaf:ls.map(x=>['!'+lv(x),null])});S.setLab('merged','!'+lv(PB));cap(`${P('D')} = ${ls.map(dec).join(' + ')} = <span class="k">${dec(PB)}</span>`)}})],
+   done:`${P('D')} = ${ls.map(dec).join(' + ')} = ${dec(PB)}, soit ${pct(PB)} de pièces défectueuses.`}},
+ ()=>{const {Y,D}=TR(),PB=V('PB',D);
+  return{D,setup:()=>S.reset(tr(D),Object.assign(wl(D),{merged:'?'})),cap0:'Toute la formule d\'un coup',
+   prompt:`${Y.story(D)} ${defsY(Y,D)} On choisit ${Y.who} au hasard.`,
+   parts:[act(`Faire confluer ${ev(D.b)}`,async()=>{S.lab({leaf:[['?',null],['?',null]]});await S.merge()}),
+    fill('',`${P(D.b)} = {0}`,[BV(D,'PB')],`${P(D.b)} = ${P(D.f[0])} × ${NT('q:0',D)} + ${P(D.f[1])} × ${NT('q:1',D)} = ${dec(D.p[0])} × ${dec(D.q[0])} + ${dec(D.p[1])} × ${dec(D.q[1])}.`,
+     {hint:`${P(D.b)} = ${P(D.f[0])} × ${NT('q:0',D)} + ${P(D.f[1])} × ${NT('q:1',D)}`,onOk:()=>{S.lab({leaf:[['!'+lv(V('l:0:0',D)),null],['!'+lv(V('l:1:0',D)),null]]});S.setLab('merged','!'+lv(PB));cap(`${P(D.b)} = <span class="k">${dec(PB)}</span>`)}}),
+    fill('',`${P(nb(D))} = {0}`,[BV(D,'PnB')],`1 − ${dec(PB)}.`)],
+   done:`${P(D.b)} = ${dec(PB)} et ${P(nb(D))} = ${dec(comp(PB))}.`}}]});
+
+/* =====================================================================
+   Niveau 6 · Remonter le courant (P_B(A) = P(A ∩ B) / P(B))
+   ===================================================================== */
+const bayesLab=(D,t)=>t;
+LV.push({t:'Remonter le courant',badge:'Niveau 6 · Sachant B, d\'où vient-on ?',
+ rule:`<p>Pour «&nbsp;remonter&nbsp;» l'arbre, on applique la définition&nbsp;: ${P('A','B')} = ${frH(P('A ∩ B'),P('B'))}, avec ${P('B')} donnée par la formule des probabilités totales.</p><p>Exemple du cours (test médical)&nbsp;: ${P('M')} = 0,02, ${P('T','M')} = 0,85, ${P('T','~M')} = 0,05. ${P('T')} = 0,017 + 0,049 = 0,066 et ${P('M','T')} = ${frH('0,017','0,066')} ≈ 0,26.</p><p>Même si le test est positif, il n'y a qu'environ 26&nbsp;% de chance d'être malade&nbsp;: la maladie est rare.</p><p>Sur la scène, la confluence B devient le nouvel univers&nbsp;: on regarde de quel bras vient chaque morceau.</p>`,
+ qs:[
+ ()=>{let T0;for(let n=0;n<100;n++){T0=TR({ctx:1});const D=T0.D,b=round(V('by:0',D),2);if(dist([b,D.q[0],D.p[0],round(V('PB',D),2)])&&ndec(V('PB',D))<=4)break}
+  const {Y,D}=T0,l0=V('l:0:0',D),PB=V('PB',D),by=V('by:0',D),ap=round(by,2);
+  return{D,setup:()=>S.reset(tr(D),Object.assign(wl(D),{leaf:[[lv(l0),null],[lv(V('l:1:0',D)),null]],merged:'?'})),cap0:'Un test positif… mais d\'où vient-il&nbsp;?',
+   prompt:`${Y.story(D)} ${defsY(Y,D)} Le test d'une personne est positif. Quelle est la probabilité qu'elle soit malade&nbsp;?`,
+   parts:[act('Réunir les tests positifs',async()=>{await S.merge()}),
+    fill('',`${P('T')} = {0}`,[BV(D,'PB')],`${P('T')} = ${dec(l0)} + ${dec(V('l:1:0',D))}.`,{onOk:()=>{S.setLab('merged','!'+lv(PB));cap(`${P('T')} = <span class="k">${dec(PB)}</span>`)}}),
+    act('Sachant T&nbsp;: remonter le courant',async()=>{S.lab({bayes:'?'});cap('Les tests positifs deviennent le nouvel univers');await S.bayes()}),
+    fill('Part du bras M dans la confluence&nbsp;:',`${P('M','T')} = ${frH(P('M ∩ T'),P('T'))} = {0} / {1}`,[BV(D,'l:0:0'),BV(D,'PB')],`Numérateur&nbsp;: le morceau venu de M, ${dec(l0)}. Dénominateur&nbsp;: toute la confluence, ${dec(PB)}.`),
+    ch(`Donc ${P('M','T')} ≈`,[OK(dec(ap,2),{v:ap,approx:2}),
+      NO(dec(D.q[0]),`${dec(D.q[0])}, c'est ${P('T','M')}&nbsp;: la fiabilité du test chez les malades. Ici, on se place parmi les tests positifs.`,{v:D.q[0]}),
+      NO(dec(D.p[0]),`${dec(D.p[0])}, c'est ${P('M')}&nbsp;: la part des malades dans toute la population.`,{v:D.p[0]})],
+     {what:'by:0',onOk:()=>{S.setLab('bayes','!'+`_TP(M) ≈ ${dec(ap,2)}`.replace('_TP','P_T'));cap(`${P('M','T')} ≈ <span class="k">${dec(ap,2)}</span>`)}})],
+   done:cmp(ap,R(1,2))<0?`${P('M','T')} = ${frH(dec(l0),dec(PB))} ≈ ${dec(ap,2)}&nbsp;: même avec un test positif, la probabilité d'être malade n'est que d'environ ${dec(mul(ap,R(100)))}&nbsp;%, car la maladie est rare.`
+     :`${P('M','T')} = ${frH(dec(l0),dec(PB))} ≈ ${dec(ap,2)}&nbsp;: environ ${dec(mul(ap,R(100)))}&nbsp;% des tests positifs correspondent à des malades. Ce n'est pas ${P('T','M')} = ${dec(D.q[0])}.`}},
+ ()=>{const D=TA(D=>{const b=V('by:0',D);return isDec(b)&&ndec(b)<=2&&ndec(V('PB',D))<=3&&!eq(b,D.q[0])}),PB=V('PB',D),by=V('by:0',D);
+  return{D,setup:()=>S.reset(tr(D),Object.assign(wl(D),{leaf:[[lv(V('l:0:0',D)),null],[lv(V('l:1:0',D)),null]],merged:'?'})),cap0:'Remonter de B vers A',
+   prompt:`On donne ${P('A')} = ${dec(D.p[0])}, ${P('B','A')} = ${dec(D.q[0])} et ${P('B','~A')} = ${dec(D.q[1])}. On cherche ${P('A','B')}.`,
+   parts:[act('Réunir les morceaux de B',async()=>{await S.merge()}),
+    fill('',`${P('B')} = {0}`,[BV(D,'PB')],`${P('B')} = ${dec(V('l:0:0',D))} + ${dec(V('l:1:0',D))}.`,{onOk:()=>{S.setLab('merged','!'+lv(PB))}}),
+    act('Sachant B&nbsp;: remonter le courant',async()=>{S.lab({bayes:'?'});await S.bayes()}),
+    fill('',`${P('A','B')} = ${frH(P('A ∩ B'),P('B'))} = {0}`,[BV(D,'by:0')],`${dec(V('l:0:0',D))} ÷ ${dec(PB)}.`,
+     {onOk:()=>{S.setLab('bayes',`!P_B(A) = ${lv(by)}`);cap(`${P('A','B')} = <span class="k">${dec(by)}</span>`)}})],
+   done:`${P('A','B')} = ${frH(dec(V('l:0:0',D)),dec(PB))} = ${dec(by)}, alors que ${P('B','A')} = ${dec(D.q[0])}.`}},
+ ()=>{const {Y,D}=TR({only:[0,2,4,6]}),PB=V('PB',D),by=V('by:0',D),ap=round(by,2);
+  return{D,setup:()=>S.reset(tr(D),Object.assign(wl(D),{merged:'?'})),cap0:'D\'abord, lire la question',
+   prompt:`${Y.story(D)} ${defsY(Y,D)} On sait que ${Y.bI[0]}. Quelle est la probabilité ${Y.fQ[0]}&nbsp;?`,
+   parts:[ch('Quelle notation convient ?',[OK(NT('by:0',D),{nt:'by:0'}),
+      NO(NT('q:0',D),`${NT('q:0',D)}&nbsp;: on se placerait dans ${ev(D.f[0])}. Or on sait que ${ev(D.b)} est réalisé&nbsp;: c'est ${ev(D.b)} qui va en indice.`,{nt:'q:0'}),
+      NO(NT('l:0:0',D),`${NT('l:0:0',D)}&nbsp;: aucune restriction. Ici, on sait que ${ev(D.b)} est réalisé.`,{nt:'l:0:0'})],{what:'by:0'}),
+    act(`Réunir ${ev(D.b)}, puis remonter le courant`,async()=>{S.lab({leaf:[[lv(V('l:0:0',D)),null],[lv(V('l:1:0',D)),null]]});await S.merge();S.setLab('merged','!'+lv(PB));S.lab({bayes:'?'});await S.bayes()}),
+    fill('Arrondis au centième.',`${NT('by:0',D)} = ${frH(dec(V('l:0:0',D)),dec(PB))} ≈ {0}`,[BV(D,'by:0',{approx:2})],`Divise ${dec(V('l:0:0',D))} par ${dec(PB)}, puis arrondis au centième.`,
+     {onOk:()=>{S.setLab('bayes',`!≈ ${dec(ap,2)}`);cap(`${NT('by:0',D)} ≈ <span class="k">${dec(ap,2)}</span>`)}})],
+   done:`${NT('by:0',D)} = ${frH(NT('l:0:0',D),P(D.b))} ≈ ${dec(ap,2)}.`}},
+ ()=>{const {Y,D}=TR({ctx:2,test:D=>!eq(round(V('by:0',D),2),round(V('by:1',D),2))}),PB=V('PB',D),b0=V('by:0',D),b1=V('by:1',D),a0=round(b0,2),a1=round(b1,2),big=cmp(b0,b1)>0?0:1;
+  return{D,setup:()=>S.reset(tr(D),Object.assign(wl(D),{merged:'?'})),cap0:'Une pièce défectueuse&nbsp;: A ou B&nbsp;?',
+   prompt:`${Y.story(D)} ${defsY(Y,D)} Une pièce est défectueuse. Vient-elle plutôt de la machine A ou de la machine B&nbsp;?`,
+   parts:[act('Réunir les pièces défectueuses',async()=>{S.lab({leaf:[[lv(V('l:0:0',D)),null],[lv(V('l:1:0',D)),null]]});await S.merge()}),
+    fill('',`${P('D')} = {0}`,[BV(D,'PB')],`${dec(V('l:0:0',D))} + ${dec(V('l:1:0',D))}.`,{onOk:()=>S.setLab('merged','!'+lv(PB))}),
+    act('Sachant D&nbsp;: remonter le courant',async()=>{await S.bayes()}),
+    fill('Arrondis au centième.',`${P('A','D')} ≈ {0} et ${P('~A','D')} ≈ {1}`,[BV(D,'by:0',{approx:2}),BV(D,'by:1',{approx:2})],
+     `${frH(dec(V('l:0:0',D)),dec(PB))} et ${frH(dec(V('l:1:0',D)),dec(PB))}, arrondis au centième.`,{onOk:()=>{S.setLab('bayes',`!A : ${dec(a0,2)} · B : ${dec(a1,2)}`)}}),
+    ch('Conclusion&nbsp;:',[OK(`Plutôt de la machine ${big?'B':'A'}`),NO(`Plutôt de la machine ${big?'A':'B'}`,`Compare ${dec(a0,2)} et ${dec(a1,2)}&nbsp;: la plus grande part de la confluence D vient de la machine ${big?'B':'A'}.`),
+      NO('On ne peut pas savoir','On peut&nbsp;: les deux probabilités sachant D se comparent directement.')])],
+   done:`${P('A','D')} ≈ ${dec(a0,2)} et ${P('~A','D')} ≈ ${dec(a1,2)}&nbsp;: une pièce défectueuse vient plutôt de la machine ${big?'B':'A'}.`}}]});
+
+/* =====================================================================
+   Niveau 7 · Indépendance
+   ===================================================================== */
+const DICE=[
+ {nm:'dé',txt:'On lance un dé équilibré à six faces. A&nbsp;: «&nbsp;obtenir un nombre pair&nbsp;» et B&nbsp;: «&nbsp;obtenir un multiple de 3&nbsp;».',f:['A','~A'],b:'B',p:[R(1,2),R(1,2)],q:[R(1,3),R(1,3)]},
+ {nm:'dé',txt:'On lance un dé équilibré à six faces. A&nbsp;: «&nbsp;obtenir un nombre pair&nbsp;» et B&nbsp;: «&nbsp;obtenir au moins 4&nbsp;».',f:['A','~A'],b:'B',p:[R(1,2),R(1,2)],q:[R(2,3),R(1,3)]},
+ {nm:'dé',txt:'On lance un dé équilibré à six faces. A&nbsp;: «&nbsp;obtenir un nombre pair&nbsp;» et B&nbsp;: «&nbsp;obtenir au plus 2&nbsp;».',f:['A','~A'],b:'B',p:[R(1,2),R(1,2)],q:[R(1,3),R(1,3)]},
+ {nm:'32',txt:'On tire une carte au hasard dans un jeu de 32 cartes. T&nbsp;: «&nbsp;tirer un trèfle&nbsp;» et R&nbsp;: «&nbsp;tirer un roi&nbsp;».',f:['T','~T'],b:'R',p:[R(1,4),R(3,4)],q:[R(1,8),R(1,8)]},
+ {nm:'52',txt:'On tire une carte au hasard dans un jeu de 52 cartes. C&nbsp;: «&nbsp;tirer un cœur&nbsp;» et R&nbsp;: «&nbsp;tirer un roi&nbsp;».',f:['C','~C'],b:'R',p:[R(1,4),R(3,4)],q:[R(1,13),R(1,13)]}];
+const indepD=D=>eq(D.q[0],D.q[1]);
+LV.push({t:'Indépendance',badge:'Niveau 7 · Indépendance',
+ rule:`<p><b>Définition.</b> Pour un événement A de probabilité non nulle, B est indépendant de A si ${P('B','A')} = ${P('B')}&nbsp;: savoir que A est réalisé ne change pas la probabilité de B.</p><p>Lorsque A et B sont de probabilités non nulles, la propriété est symétrique et équivaut à ${P('A ∩ B')} = ${P('A')} × ${P('B')}.</p><p>Exemple du cours&nbsp;: jeu de 32 cartes, ${P('R')} = ${frH(4,32)} = ${frH(1,8)} et ${P('R','T')} = ${frH(1,8)}&nbsp;: R et T sont indépendants.</p><p>Sur la scène, on compare la part de B dans chaque bras&nbsp;: si elle est la même partout, la barre ne bouge pas.</p>`,
+ qs:[
+ ()=>{const ind=Math.random()<.5,{Y,D}=TR({only:[0,2,3,4,5,6],indep:ind,test:D=>ind||!eq(D.q[0],D.q[1])}),PB=V('PB',D);
+  return{D,setup:()=>S.reset(tr(D),wl(D)),cap0:'Savoir A change-t-il quelque chose pour B&nbsp;?',
+   prompt:`${Y.story(D)} ${defsY(Y,D)} Les événements ${ev(D.f[0])} et ${ev(D.b)} sont-ils indépendants&nbsp;?`,
+   parts:[act(`Comparer la part de ${ev(D.b)} dans chaque bras`,async()=>{await S.gauges();cap(`${NT('q:0',D)} = ${dec(D.q[0])}, ${NT('q:1',D)} = ${dec(D.q[1])}, ${P(D.b)} = <span class="k">${dec(PB)}</span>`)}),
+    ch('',[ind?OK(`Oui&nbsp;: ${NT('q:0',D)} = ${P(D.b)} = ${dec(PB)}`):NO(`Oui&nbsp;: ${NT('q:0',D)} = ${P(D.b)}`,`Compare&nbsp;: ${NT('q:0',D)} = ${dec(D.q[0])} et ${P(D.b)} = ${dec(PB)}. Ils sont différents.`),
+      ind?NO(`Non&nbsp;: ${NT('q:0',D)} ≠ ${P(D.b)}`,`Compare&nbsp;: ${NT('q:0',D)} = ${dec(D.q[0])} et ${P(D.b)} = ${dec(PB)}. Ils sont égaux.`):OK(`Non&nbsp;: ${NT('q:0',D)} = ${dec(D.q[0])} ≠ ${P(D.b)} = ${dec(PB)}`),
+      NO('On ne peut pas savoir sans tableau','L\'arbre suffit&nbsp;: compare '+NT('q:0',D)+' et '+P(D.b)+'.')]),
+    fill('',`${P(D.b)} = {0}`,[BV(D,'PB')],`${P(D.b)} = ${dec(D.p[0])} × ${dec(D.q[0])} + ${dec(D.p[1])} × ${dec(D.q[1])}.`)],
+   done:ind?`Savoir ${ev(D.f[0])} ne change rien&nbsp;: ${NT('q:0',D)} = ${NT('q:1',D)} = ${P(D.b)} = ${dec(PB)}. ${ev(D.f[0])} et ${ev(D.b)} sont indépendants.`
+     :`${NT('q:0',D)} = ${dec(D.q[0])} ≠ ${P(D.b)} = ${dec(PB)}&nbsp;: ${ev(D.f[0])} et ${ev(D.b)} ne sont pas indépendants.`}},
+ ()=>{const E=pick(DICE),D={type:'tree',f:E.f,b:E.b,p:E.p,q:E.q},PB=V('PB',D),ind=indepD(D);
+  return{D,setup:()=>S.reset(tr(D),{src:'1',b1:D.p.map(lv),b2:D.p.map(()=>['?','?'])}),cap0:'Une expérience équiprobable',
+   prompt:`${E.txt} Sont-ils indépendants&nbsp;?`,
+   parts:[fill('Compte les issues.',`${P(D.b)} = {0} et ${NT('q:0',D)} = {1}`,[BV(D,'PB'),BV(D,'q:0')],
+     E.nm==='dé'?`${P(D.b)}&nbsp;: issues favorables sur 6. ${NT('q:0',D)}&nbsp;: on ne garde que les 3 issues de A.`:`${P(D.b)}&nbsp;: 4 rois sur ${E.nm} cartes. ${NT('q:0',D)}&nbsp;: on ne garde que les ${E.nm==='32'?8:13} cartes de ${ev(D.f[0])}.`,
+     {onOk:()=>{S.lab({b2:D.p.map((_,i)=>[lv(D.q[i]),lv(comp(D.q[i]))])},['b200','b201','b210','b211'])}}),
+    act(`Comparer la part de ${ev(D.b)} dans chaque bras`,async()=>{await S.gauges()}),
+    ch('',[ind?OK(`Oui&nbsp;: ${NT('q:0',D)} = ${P(D.b)}`):NO(`Oui&nbsp;: ${NT('q:0',D)} = ${P(D.b)}`,`${NT('q:0',D)} = ${numH(D.q[0])} et ${P(D.b)} = ${numH(PB)}&nbsp;: différents.`),
+      ind?NO(`Non&nbsp;: ${NT('q:0',D)} ≠ ${P(D.b)}`,`${NT('q:0',D)} = ${numH(D.q[0])} et ${P(D.b)} = ${numH(PB)}&nbsp;: égaux.`):OK(`Non&nbsp;: ${NT('q:0',D)} ≠ ${P(D.b)}`),
+      NO('Non, car ils peuvent se réaliser en même temps','Pouvoir se réaliser ensemble n\'empêche pas l\'indépendance&nbsp;: on compare '+NT('q:0',D)+' et '+P(D.b)+'.')])],
+   done:`${NT('q:0',D)} = ${numH(D.q[0])} et ${P(D.b)} = ${numH(PB)}&nbsp;: ${ind?'indépendants':'pas indépendants'}.`}},
+ ()=>{let D;for(let n=0;n<500;n++){const pA=R(ri(2,8),10),pB=R(ri(2,8),10),ind=Math.random()<.5,d=ind?R(0):R(pick([-4,-2,2,4]),100),pI=add(mul(pA,pB),d);
+    if(cmp(pI,R(0))<=0||cmp(pI,pA)>=0||cmp(pI,pB)>=0||cmp(sub(pB,pI),comp(pA))>=0)continue;D={type:'pab',pA,pB,pI};break}
+  const {pA,pB,pI}=D,pr=mul(pA,pB),ind=eq(pr,pI),T={type:'tree',f:['A','~A'],b:'B',p:[pA,comp(pA)],q:[div(pI,pA),div(sub(pB,pI),comp(pA))]};
+  return{D,setup:()=>S.reset(tr(T),{src:'1',b1:T.p.map(lv),b2:[[null,null],[null,null]],leaf:[['!'+lv(pI),null],[null,null]]}),cap0:'Trois nombres suffisent',
+   prompt:`On donne ${P('A')} = ${dec(pA)}, ${P('B')} = ${dec(pB)} et ${P('A ∩ B')} = ${dec(pI)}. A et B sont-ils indépendants&nbsp;?`,
+   parts:[fill('Calcule le produit.',`${P('A')} × ${P('B')} = {0}`,[BV(D,'prod')],`${dec(pA)} × ${dec(pB)}.`),
+    ch('',[OK(ind?`Oui&nbsp;: ${P('A')} × ${P('B')} = ${P('A ∩ B')}`:`Non&nbsp;: ${P('A')} × ${P('B')} = ${dec(pr)} ≠ ${dec(pI)}`),
+      ind?NO(`Non&nbsp;: ${P('A')} × ${P('B')} ≠ ${P('A ∩ B')}`,`${dec(pr)} = ${dec(pI)}&nbsp;: l'égalité est vraie.`):NO(`Oui&nbsp;: ${P('A')} × ${P('B')} = ${P('A ∩ B')}`,`${dec(pr)} ≠ ${dec(pI)}&nbsp;: l'égalité est fausse.`),
+      NO(`Oui, car ${P('A ∩ B')} ≠ 0`,'Indépendants ne veut pas dire incompatibles&nbsp;: on teste '+P('A ∩ B')+' = '+P('A')+' × '+P('B')+'.')],
+     {onOk:async()=>{S.lab({b2:T.q.map(q=>[lv(q),lv(comp(q))])});await S.gauges()}})],
+   done:`${P('A')} × ${P('B')} = ${dec(pr)} ${ind?'=':'≠'} ${P('A ∩ B')} = ${dec(pI)}&nbsp;: ${ind?'A et B sont indépendants':'A et B ne sont pas indépendants'}.`}},
+ ()=>{const ind=Math.random()<.5,{X,D,r,k,t}=TB({indep:ind}),w0='P:k0',w1='Pr:0:0',v0=V(w0,D),v1=V(w1,D),same=eq(v0,v1);
+  return{D,setup:()=>S.reset(tabTree(D),tabLab(D)),cap0:`${F(t)} ${X.unit}`,
+   prompt:`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} Les événements ${ev(D.r[0])} et ${ev(D.k[0])} sont-ils indépendants&nbsp;?`,
+   parts:[fill('',`${NT(w0,D)} = {0} et ${NT(w1,D)} = {1}`,[BV(D,w0),BV(D,w1)],`${NT(w0,D)}&nbsp;: divise par ${F(t)}. ${NT(w1,D)}&nbsp;: divise par ${F(r[0])}.`,
+     {onOk:()=>{hl({keep:'r0',num:'c00',den:'r0'});S.lab({b2:[[lv(v1),lv(comp(v1))],[lv(V('Pr:1:0',D)),lv(comp(V('Pr:1:0',D)))]]})}}),
+    act(`Comparer la part de ${ev(D.k[0])} dans chaque bras`,async()=>{await S.gauges()}),
+    ch('',[same?OK(`Oui&nbsp;: ${NT(w1,D)} = ${NT(w0,D)}`):NO(`Oui&nbsp;: ${NT(w1,D)} = ${NT(w0,D)}`,`Compare les deux valeurs calculées&nbsp;: ${NT(w1,D)} = ${numH(v1)} et ${NT(w0,D)} = ${numH(v0)} sont différentes.`),
+      same?NO(`Non&nbsp;: ${NT(w1,D)} ≠ ${NT(w0,D)}`,`Compare les deux valeurs calculées&nbsp;: ${NT(w1,D)} = ${numH(v1)} et ${NT(w0,D)} = ${numH(v0)} sont égales.`):OK(`Non&nbsp;: ${NT(w1,D)} ≠ ${NT(w0,D)}`),
+      NO('On ne peut pas le savoir avec un tableau','Le tableau suffit&nbsp;: compare '+NT(w1,D)+' et '+NT(w0,D)+'.')])],
+   done:`${NT(w1,D)} = ${numH(v1)} et ${NT(w0,D)} = ${numH(v0)}&nbsp;: ${same?'indépendants':'pas indépendants'}.`}}]});
+window.DL_L={TABX,TREEX,genTab,TB,TR,TA,T3,tabTree,tabLab,tr,wl,DICE,defsT,defsY,pathQ,dist};
+})();
+</script>
+<script>
+/* ======================= LE DELTA — épreuves finales Bronze, Argent, Or ======================= */
+(function(){
+'use strict';
+const N=window.DL_N,G=window.DL_G,L=window.DL_L,{V,NT,tabH,tabSums}=G;
+const {R,C,add,sub,mul,div,comp,eq,cmp,dec,pct,numH,numT,frH,fmtInt,round,isDec,ndec,ans,ansApprox,P,I,ev,ri,pick,shuf}=N;
+const {TB,TR,TA,T3,DICE,defsT,defsY,dist}=L;
+const F=n=>fmtInt(n);
+const ser=D=>JSON.parse(JSON.stringify(D));
+/* QCM : bonne réponse en premier (le kit mélange l'affichage) */
+function qcm(level,prompt,good,bad,explain,meta){return{type:'qcm',level,prompt,choices:[good].concat(bad),answer:0,explain,meta}}
+function trous(level,prompt,blanks,explain,meta){return{type:'trous',level,prompt,blanks,explain,meta}}
+const BL=(D,w,o)=>{o=o||{};const r=V(w,D);return{answers:o.approx!==undefined?ansApprox(r,o.approx):ans(r,o.extra),size:o.size||4}};
+const dg=r=>isDec(r)?ndec(r):6;                 /* « taille » d'un nombre : nombre de décimales */
+const mxOf=rs=>Math.max.apply(null,rs.map(dg));
+const M=(k,D,o)=>Object.assign({k,D:ser(D)},o);
+/* données « P(A), P(B), P(A ∩ B) » */
+function PAB(ind){for(let n=0;n<500;n++){const pA=R(ri(2,8),10),pB=R(ri(2,8),10),d=ind?R(0):R(pick([-4,-2,2,4]),100),pI=add(mul(pA,pB),d);
+    if(cmp(pI,R(0))<=0||cmp(pI,pA)>=0||cmp(pI,pB)>=0||cmp(sub(pB,pI),comp(pA))>=0)continue;return{type:'pab',pA,pB,pI}}
+  return{type:'pab',pA:R(3,10),pB:R(2,5),pI:R(3,25)}}
+
+/* ===================== Bronze · Les bases (une étape) ===================== */
+const BRONZE={qcm:[
+ {lv:1,f:()=>{const {X,D,r,k,t}=TB({neq:true}),i=ri(0,1),j=ri(0,1),c=D.c[i][j],w=`Pr:${i}:${j}`;
+   return qcm(1,`${X.intro(F(t))}${tabH(D,X)}On choisit une personne au hasard ${X.rIn[i]}. La probabilité qu'elle ${X.kSoit[j]} est&nbsp;:`,
+    frH(F(c),F(r[i])),[frH(F(c),F(t)),frH(F(c),F(k[j]))],`«&nbsp;${X.rIn[i]}&nbsp;»&nbsp;: on divise par le total de la ligne, ${F(r[i])}. ${NT(w,D)} = ${frH(F(c),F(r[i]))}.`,
+    M('vals',D,{what:w,vals:[R(c,r[i]),R(c,t),R(c,k[j])],steps:1,mx:1}))}},
+ {lv:2,f:()=>{const {X,D,t}=TB(),i=ri(0,1),j=ri(0,1),w=`Pk:${j}:${i}`,b1=`Pr:${i}:${j}`,b2=`P:c${i}${j}`;
+   return qcm(2,`${X.intro(F(t))} ${defsT(D,X)} On choisit une personne au hasard ${X.kIn[j]}. La probabilité qu'elle ${X.rSoit[i]} se note&nbsp;:`,
+    NT(w,D),[NT(b1,D),NT(b2,D)],`On se place ${X.kIn[j]}&nbsp;: la condition ${ev(D.k[j])} s'écrit en indice. C'est ${NT(w,D)}.`,M('nts',D,{what:w,nts:[w,b1,b2],steps:1,mx:1}))}},
+ {lv:3,f:()=>{const D=TA(D=>!eq(D.q[0],R(1,2))),q=D.q[0];
+   return qcm(3,`${P('B','A')} = ${dec(q)}. Alors ${P('~B','A')} =`,dec(comp(q)),[dec(q),'1'],`Les branches issues du nœud A ont une somme égale à 1&nbsp;: ${P('~B','A')} = 1 − ${dec(q)} = ${dec(comp(q))}.`,
+    M('vals',D,{what:'nq:0',vals:[comp(q),q,R(1)],steps:1,mx:dg(q)}))}},
+ {lv:3,f:()=>{const D=TA(),ws=['q:0','PB','l:0:0','by:0'];
+   return qcm(3,'Dans un arbre pondéré qui commence par A et '+ev('~A')+', le nombre porté par la branche qui va de A vers B est&nbsp;:',NT(ws[0],D),ws.slice(1).map(w=>NT(w,D)),
+    `Au second niveau, chaque branche porte une probabilité conditionnelle&nbsp;: de A vers B, c'est ${P('B','A')}.`,M('nts',D,{what:'q:0',nts:ws,steps:1,mx:1}))}},
+ {lv:4,f:()=>{const D=TA(D=>dist([mul(D.p[0],D.q[0]),add(D.p[0],D.q[0]),D.q[0]])&&ndec(mul(D.p[0],D.q[0]))<=3),[p]=D.p,[q]=D.q;
+   return qcm(4,`${P('A')} = ${dec(p)} et ${P('B','A')} = ${dec(q)}. Alors ${P('A ∩ B')} =`,dec(mul(p,q)),[dec(add(p,q)),dec(q)],
+    `Produit le long du chemin&nbsp;: ${P('A ∩ B')} = ${P('A')} × ${P('B','A')} = ${dec(p)} × ${dec(q)} = ${dec(mul(p,q))}.`,M('vals',D,{what:'l:0:0',vals:[mul(p,q),add(p,q),q],steps:1,mx:dg(mul(p,q))}))}},
+ {lv:5,f:()=>{const D=TA(D=>dist([V('PB',D),mul(V('l:0:0',D),V('l:1:0',D)),V('l:0:0',D)])&&ndec(V('PB',D))<=3),a=V('l:0:0',D),b=V('l:1:0',D),PB=V('PB',D);
+   return qcm(5,`A et ${ev('~A')} forment une partition de l'univers. ${P('A ∩ B')} = ${dec(a)} et ${P('~A ∩ B')} = ${dec(b)}. Alors ${P('B')} =`,dec(PB),[dec(mul(a,b)),dec(a)],
+    `Probabilités totales&nbsp;: ${P('B')} = ${P('A ∩ B')} + ${P('~A ∩ B')} = ${dec(a)} + ${dec(b)} = ${dec(PB)}.`,M('vals',D,{what:'PB',vals:[PB,mul(a,b),a],steps:1,mx:dg(PB)}))}},
+ {lv:6,f:()=>{const D=TA(D=>{const b=V('by:0',D);return isDec(b)&&ndec(b)<=2&&ndec(V('PB',D))<=2&&dist([b,mul(V('l:0:0',D),V('PB',D)),V('l:0:0',D)])}),l=V('l:0:0',D),PB=V('PB',D),by=V('by:0',D);
+   return qcm(6,`${P('A ∩ B')} = ${dec(l)} et ${P('B')} = ${dec(PB)}. Alors ${P('A','B')} =`,dec(by),[dec(mul(l,PB)),dec(l)],
+    `Définition&nbsp;: ${P('A','B')} = ${frH(P('A ∩ B'),P('B'))} = ${frH(dec(l),dec(PB))} = ${dec(by)}.`,M('vals',D,{what:'by:0',vals:[by,mul(l,PB),l],steps:1,mx:dg(by)}))}},
+ {lv:7,f:()=>{const D=PAB(true),{pA,pB}=D,pr=mul(pA,pB);
+   return qcm(7,`A et B sont indépendants, ${P('A')} = ${dec(pA)} et ${P('B')} = ${dec(pB)}. Alors ${P('A ∩ B')} =`,dec(pr),[dec(add(pA,pB)),'0'],
+    `Indépendants&nbsp;: ${P('A ∩ B')} = ${P('A')} × ${P('B')} = ${dec(pA)} × ${dec(pB)} = ${dec(pr)}. Attention&nbsp;: indépendants ne veut pas dire incompatibles.`,M('vals',D,{what:'prod',vals:[pr,add(pA,pB),R(0)],steps:1,mx:dg(pr)}))}}],
+trous:[
+ {lv:1,f:()=>{const {X,D,r,t}=TB(),i=ri(0,1),j=ri(0,1),c=D.c[i][j],w=`Pr:${i}:${j}`;
+   return trous(1,`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} ${NT(w,D)} = {0}`,[BL(D,w,{extra:[`${c}/${r[i]}`]})],`On reste dans la ligne ${ev(D.r[i])}&nbsp;: ${NT(w,D)} = ${frH(F(c),F(r[i]))} = ${numH(V(w,D))}.`,M('fill',D,{what:[w],steps:1,mx:1}))}},
+ {lv:1,f:()=>{const {X,D,t}=TB(),i=ri(0,1),j=ri(0,1),c=D.c[i][j],w=`P:c${i}${j}`;
+   return trous(1,`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} ${NT(w,D)} = {0}`,[BL(D,w,{extra:[`${c}/${t}`]})],`Intersection, sans restriction&nbsp;: ${frH(F(c),F(t))} = ${numH(V(w,D))}.`,M('fill',D,{what:[w],steps:1,mx:1}))}},
+ {lv:2,f:()=>{const {X,D,k,t}=TB(),i=ri(0,1),j=ri(0,1),c=D.c[i][j],w=`Pk:${j}:${i}`;
+   return trous(2,`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} ${NT(w,D)} = {0}`,[BL(D,w,{extra:[`${c}/${k[j]}`]})],`Sachant ${ev(D.k[j])}&nbsp;: on reste dans la colonne ${ev(D.k[j])}. ${frH(F(c),F(k[j]))} = ${numH(V(w,D))}.`,M('fill',D,{what:[w],steps:1,mx:1}))}},
+ {lv:3,f:()=>{const D=TA();
+   return trous(3,`${P('A')} = ${dec(D.p[0])}, donc ${P('~A')} = {0}.`,[BL(D,'p:1')],`${P('~A')} = 1 − ${dec(D.p[0])} = ${dec(D.p[1])}.`,M('fill',D,{what:['p:1'],steps:1,mx:dg(D.p[1])}))}},
+ {lv:4,f:()=>{const D=TA(D=>ndec(mul(D.p[0],D.q[0]))<=3);
+   return trous(4,`${P('A')} = ${dec(D.p[0])} et ${P('B','A')} = ${dec(D.q[0])}, donc ${P('A ∩ B')} = {0}.`,[BL(D,'l:0:0')],`Produit le long du chemin&nbsp;: ${P('A ∩ B')} = ${P('A')} × ${P('B','A')} = ${dec(D.p[0])} × ${dec(D.q[0])} = ${dec(V('l:0:0',D))}.`,M('fill',D,{what:['l:0:0'],steps:1,mx:dg(V('l:0:0',D))}))}},
+ {lv:5,f:()=>{const D=TA(D=>ndec(V('PB',D))<=3),a=V('l:0:0',D),b=V('l:1:0',D);
+   return trous(5,`A et ${ev('~A')} forment une partition de l'univers. ${P('A ∩ B')} = ${dec(a)} et ${P('~A ∩ B')} = ${dec(b)}, donc ${P('B')} = {0}.`,[BL(D,'PB')],`Probabilités totales&nbsp;: ${P('B')} = ${P('A ∩ B')} + ${P('~A ∩ B')} = ${dec(a)} + ${dec(b)} = ${dec(V('PB',D))}.`,M('fill',D,{what:['PB'],steps:1,mx:dg(V('PB',D))}))}},
+ {lv:6,f:()=>{const D=TA(D=>{const b=V('by:0',D);return isDec(b)&&ndec(b)<=2&&ndec(V('PB',D))<=2}),l=V('l:0:0',D),PB=V('PB',D);
+   return trous(6,`${P('A ∩ B')} = ${dec(l)} et ${P('B')} = ${dec(PB)}, donc ${P('A','B')} = {0}.`,[BL(D,'by:0')],`${P('A','B')} = ${frH(dec(l),dec(PB))} = ${dec(V('by:0',D))}.`,M('fill',D,{what:['by:0'],steps:1,mx:dg(V('by:0',D))}))}},
+ {lv:7,f:()=>{const D=PAB(true);
+   return trous(7,`A et B sont indépendants, ${P('A')} = ${dec(D.pA)} et ${P('B')} = ${dec(D.pB)}. Donc ${P('A ∩ B')} = {0}.`,[BL(D,'prod')],`Indépendants&nbsp;: ${P('A ∩ B')} = ${P('A')} × ${P('B')} = ${dec(D.pA)} × ${dec(D.pB)} = ${dec(V('prod',D))}.`,M('fill',D,{what:['prod'],steps:1,mx:dg(V('prod',D))}))}}]};
+
+/* ===================== Argent · La maîtrise ===================== */
+const ARGENT={qcm:[
+ {lv:1,f:()=>{let T0;for(let n=0;n<60;n++){T0=TB({neq:true});const {D,r,k,t}=T0;if(dist([R(D.c[0][0],r[0]),R(D.c[0][0],t),R(k[0],t),R(D.c[0][0],k[0])]))break}
+   const {X,D,r,k,t}=T0,c=D.c[0][0],w='Pr:0:0',vs=[R(c,r[0]),R(c,t),R(k[0],t),R(c,k[0])];
+   return qcm(1,`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} ${NT(w,D)} =`,numH(vs[0]),vs.slice(1).map(numH),
+    `Sachant ${ev(D.r[0])}&nbsp;: on reste dans la ligne ${ev(D.r[0])}. ${frH(F(c),F(r[0]))} = ${numH(vs[0])}.`,M('vals',D,{what:w,vals:vs,steps:2,mx:mxOf([vs[0]])}))}},
+ {lv:2,f:()=>{const {X,D,r,k,t}=TB({neq:true}),i=ri(0,1),j=ri(0,1),c=D.c[i][j],w=`Pk:${j}:${i}`,vs=[R(c,k[j]),R(c,r[i]),R(c,t)];
+   return qcm(2,`${X.intro(F(t))}${tabH(D,X)}On choisit une personne au hasard ${X.kIn[j]}. La probabilité qu'elle ${X.rSoit[i]} est&nbsp;:`,numH(vs[0]),vs.slice(1).map(numH),
+    `On se place ${X.kIn[j]}&nbsp;: ${NT(w,D)} = ${frH(F(c),F(k[j]))} = ${numH(vs[0])}.`,M('vals',D,{what:w,vals:vs,steps:2,mx:mxOf([vs[0]])}))}},
+ {lv:3,f:()=>{const {Y,D}=TR(),ws=['q:0','PB','l:0:0','by:0'],q=D.q[0];
+   return qcm(3,`${defsY(Y,D)} La phrase «&nbsp;${Y.cs(0,q)}&nbsp;» se traduit par&nbsp;:`,`${NT(ws[0],D)} = ${dec(q)}`,ws.slice(1).map(w=>`${NT(w,D)} = ${dec(q)}`),
+    `On se place dans ${ev(D.f[0])}&nbsp;: c'est une probabilité conditionnelle, ${NT('q:0',D)} = ${dec(q)}.`,M('nts',D,{what:'q:0',nts:ws,steps:2,mx:dg(q)}))}},
+ {lv:4,f:()=>{let T0;for(let n=0;n<80;n++){T0=TR();const D=T0.D;if(dist([V('l:1:1',D),V('l:1:0',D),V('l:0:1',D),comp(V('l:1:0',D))]))break}
+   const {Y,D}=T0,vs=[V('l:1:1',D),V('l:1:0',D),V('l:0:1',D),comp(V('l:1:0',D))];
+   return qcm(4,`${Y.story(D)} ${defsY(Y,D)} ${NT('l:1:1',D)} =`,dec(vs[0]),vs.slice(1).map(dec),
+    `${NT('l:1:1',D)} = ${P(D.f[1])} × ${NT('nq:1',D)} = ${dec(D.p[1])} × ${dec(comp(D.q[1]))} = ${dec(vs[0])}.`,M('vals',D,{what:'l:1:1',vals:vs,steps:2,mx:dg(vs[0])}))}},
+ {lv:5,f:()=>{let T0;for(let n=0;n<80;n++){T0=TR();const D=T0.D,[q0,q1]=D.q;if(dist([V('PB',D),add(q0,q1),div(add(q0,q1),R(2)),mul(D.p[0],q0)]))break}
+   const {Y,D}=T0,[q0,q1]=D.q,vs=[V('PB',D),add(q0,q1),div(add(q0,q1),R(2)),mul(D.p[0],q0)];
+   return qcm(5,`${Y.story(D)} ${defsY(Y,D)} ${P(D.b)} =`,dec(vs[0]),vs.slice(1).map(dec),
+    `Probabilités totales&nbsp;: ${P(D.b)} = ${dec(D.p[0])} × ${dec(q0)} + ${dec(D.p[1])} × ${dec(q1)} = ${dec(vs[0])}.`,M('vals',D,{what:'PB',vals:vs,steps:2,mx:dg(vs[0])}))}},
+ {lv:6,f:()=>{let T0;for(let n=0;n<100;n++){T0=TR({ctx:1});const D=T0.D;if(dist([round(V('by:0',D),2),D.q[0],D.p[0]]))break}
+   const {Y,D}=T0,ap=round(V('by:0',D),2),vs=[ap,D.q[0],D.p[0]];
+   return qcm(6,`${Y.story(D)} ${defsY(Y,D)} Arrondie au centième, ${P('M','T')} vaut&nbsp;:`,dec(ap,2),[dec(D.q[0]),dec(D.p[0])],
+    `${P('T')} = ${dec(V('l:0:0',D))} + ${dec(V('l:1:0',D))} = ${dec(V('PB',D))}, puis ${P('M','T')} = ${frH(dec(V('l:0:0',D)),dec(V('PB',D)))} ≈ ${dec(ap,2)}. Ne pas confondre avec ${P('T','M')} = ${dec(D.q[0])}.`,
+    M('vals',D,{what:'by:0',approx:2,vals:vs,steps:3,mx:4}))}},
+ {lv:7,f:()=>{const ind=Math.random()<.5,D=PAB(ind),{pA,pB,pI}=D,pr=mul(pA,pB);
+   const good=ind?`Oui, car ${P('A')} × ${P('B')} = ${dec(pr)} = ${P('A ∩ B')}`:`Non, car ${P('A')} × ${P('B')} = ${dec(pr)} ≠ ${P('A ∩ B')}`;
+   const bad=[ind?`Non, car ${P('A')} × ${P('B')} ≠ ${P('A ∩ B')}`:`Oui, car ${P('A')} × ${P('B')} = ${P('A ∩ B')}`,`Oui, car ${P('A ∩ B')} ≠ 0`];
+   return qcm(7,`${P('A')} = ${dec(pA)}, ${P('B')} = ${dec(pB)} et ${P('A ∩ B')} = ${dec(pI)}. A et B sont-ils indépendants&nbsp;?`,good,bad,
+    `On compare ${P('A')} × ${P('B')} = ${dec(pr)} et ${P('A ∩ B')} = ${dec(pI)}&nbsp;: ${ind?'égaux, donc indépendants':'différents, donc pas indépendants'}.`,M('indep',D,{verdicts:[ind?'oui':'non',ind?'non':'oui','faux'],steps:2,mx:2}))}}],
+trous:[
+ {lv:1,f:()=>{const {X,D,r,t}=TB(),i=ri(0,1),j=ri(0,1),c=D.c[i][j];
+   return trous(1,`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} ${NT(`P:r${i}`,D)} = {0} et ${NT(`Pr:${i}:${j}`,D)} = {1}`,[BL(D,`P:r${i}`,{extra:[`${r[i]}/${t}`]}),BL(D,`Pr:${i}:${j}`,{extra:[`${c}/${r[i]}`]})],
+    `${NT(`P:r${i}`,D)} = ${frH(F(r[i]),F(t))}&nbsp;; sachant ${ev(D.r[i])}, on divise par ${F(r[i])}&nbsp;: ${frH(F(c),F(r[i]))}.`,M('fill',D,{what:[`P:r${i}`,`Pr:${i}:${j}`],steps:2,mx:1}))}},
+ {lv:2,f:()=>{const {X,D,k,t}=TB(),i=ri(0,1),j=ri(0,1),c=D.c[i][j],w=`Pk:${j}:${i}`;
+   return trous(2,`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} On choisit une personne au hasard ${X.kIn[j]}. La probabilité qu'elle ${X.rSoit[i]} est {0}.`,[BL(D,w,{extra:[`${c}/${k[j]}`]})],
+    `${NT(w,D)} = ${frH(F(c),F(k[j]))} = ${numH(V(w,D))}.`,M('fill',D,{what:[w],steps:2,mx:dg(V(w,D))}))}},
+ {lv:3,f:()=>{const D=TA();
+   return trous(3,`On donne ${P('~A')} = ${dec(D.p[1])} et ${P('~B','A')} = ${dec(comp(D.q[0]))}. Alors ${P('A')} = {0} et ${P('B','A')} = {1}.`,[BL(D,'p:0'),BL(D,'q:0')],
+    `Sur chaque nœud, la somme des branches vaut 1&nbsp;: ${P('A')} = 1 − ${dec(D.p[1])} et ${P('B','A')} = 1 − ${dec(comp(D.q[0]))}.`,M('fill',D,{what:['p:0','q:0'],steps:2,mx:dg(D.q[0])}))}},
+ {lv:4,f:()=>{const D=TA(D=>ndec(mul(D.p[0],D.q[0]))<=3),l=V('l:0:0',D);
+   return trous(4,`${P('A')} = ${dec(D.p[0])} et ${P('A ∩ B')} = ${dec(l)}. Alors ${P('B','A')} = {0}.`,[BL(D,'q:0')],`${P('B','A')} = ${frH(P('A ∩ B'),P('A'))} = ${frH(dec(l),dec(D.p[0]))} = ${dec(D.q[0])}.`,M('fill',D,{what:['q:0'],steps:2,mx:dg(D.q[0])}))}},
+ {lv:5,f:()=>{const {Y,D}=TR();
+   return trous(5,`${Y.story(D)} ${defsY(Y,D)} ${P(D.b)} = {0}`,[BL(D,'PB')],`${dec(D.p[0])} × ${dec(D.q[0])} + ${dec(D.p[1])} × ${dec(D.q[1])} = ${dec(V('PB',D))}.`,M('fill',D,{what:['PB'],steps:2,mx:dg(V('PB',D))}))}},
+ {lv:6,f:()=>{const D=TA(D=>{const b=V('by:0',D);return isDec(b)&&ndec(b)<=2&&ndec(V('PB',D))<=3});
+   return trous(6,`On donne ${P('A')} = ${dec(D.p[0])}, ${P('B','A')} = ${dec(D.q[0])} et ${P('B','~A')} = ${dec(D.q[1])}. Alors ${P('B')} = {0} et ${P('A','B')} = {1}.`,[BL(D,'PB'),BL(D,'by:0')],
+    `${P('B')} = ${dec(V('l:0:0',D))} + ${dec(V('l:1:0',D))} = ${dec(V('PB',D))}, puis ${P('A','B')} = ${frH(dec(V('l:0:0',D)),dec(V('PB',D)))} = ${dec(V('by:0',D))}.`,M('fill',D,{what:['PB','by:0'],steps:2,mx:dg(V('PB',D))}))}},
+ {lv:7,f:()=>{const E=pick(DICE),D={type:'tree',f:E.f,b:E.b,p:E.p,q:E.q};
+   return trous(7,`${E.txt} ${P(D.b)} = {0} et ${NT('q:0',D)} = {1}${isDec(V('PB',D))&&isDec(D.q[0])?'':' (sous forme de fractions)'}.`,[BL(D,'PB'),BL(D,'q:0')],
+    `${P(D.b)} = ${numH(V('PB',D))} et ${NT('q:0',D)} = ${numH(D.q[0])}&nbsp;: ${eq(V('PB',D),D.q[0])?'égales, donc indépendants':'différentes, donc pas indépendants'}.`,M('fill',D,{what:['PB','q:0'],steps:2,mx:2,dice:E.txt}))}}]};
+
+/* ===================== Or · L'expert (plusieurs étapes, situations) ===================== */
+const OR={qcm:[
+ {lv:6,f:()=>{let T0;for(let n=0;n<100;n++){T0=TR({ctx:1});const D=T0.D;if(dist([round(V('by:0',D),2),D.q[0],round(V('PB',D),2),D.p[0]]))break}
+   const {Y,D}=T0,ap=round(V('by:0',D),2),vs=[ap,D.q[0],round(V('PB',D),2),D.p[0]];
+   return qcm(6,`${Y.story(D)} Le test d'une personne est positif. La probabilité qu'elle soit malade, arrondie au centième, est&nbsp;:`,dec(ap,2),[dec(D.q[0]),dec(vs[2],2),dec(D.p[0])],
+    `${P('T')} = ${dec(V('PB',D))} puis ${P('M','T')} = ${frH(dec(V('l:0:0',D)),dec(V('PB',D)))} ≈ ${dec(ap,2)}${cmp(ap,R(1,2))<0?'&nbsp;: la maladie est rare, beaucoup de tests positifs viennent de personnes saines':''}. Ne pas confondre avec ${P('T','M')} = ${dec(D.q[0])}.`,
+    M('vals',D,{what:'by:0',approx:2,vals:vs,steps:3,mx:4}))}},
+ {lv:6,f:()=>{const {Y,D}=TR({ctx:2,test:D=>!eq(round(V('by:0',D),2),round(V('by:1',D),2))}),a0=round(V('by:0',D),2),a1=round(V('by:1',D),2),big=cmp(a0,a1)>0?0:1,nm=['A','B'];
+   return qcm(6,`${Y.story(D)} Une pièce prise au hasard est défectueuse. Elle vient plutôt de&nbsp;:`,`la machine ${nm[big]}, car ${P(D.f[big],'D')} ≈ ${dec(big?a1:a0,2)}`,
+    [`la machine ${nm[1-big]}, car ${P(D.f[1-big],'D')} ≈ ${dec(big?a0:a1,2)}`,'on ne peut pas conclure sans le nombre de pièces'],
+    `${P('A','D')} ≈ ${dec(a0,2)} et ${P('~A','D')} ≈ ${dec(a1,2)}&nbsp;: la plus grande part des pièces défectueuses vient de la machine ${nm[big]}.`,M('usine',D,{big,steps:3,mx:4}))}},
+ {lv:7,f:()=>{const ind=Math.random()<.5,{X,D,t}=TB({indep:ind}),a=V('Pr:0:0',D),b=V('P:k0',D);
+   const good=ind?`Oui&nbsp;: ${NT('Pr:0:0',D)} = ${NT('P:k0',D)} = ${numH(b)}`:`Non&nbsp;: ${NT('Pr:0:0',D)} = ${numH(a)} et ${NT('P:k0',D)} = ${numH(b)}`;
+   const bad=[ind?`Non&nbsp;: ${NT('Pr:0:0',D)} ≠ ${NT('P:k0',D)}`:`Oui&nbsp;: ${NT('Pr:0:0',D)} = ${NT('P:k0',D)}`,'On ne peut pas savoir sans arbre'];
+   return qcm(7,`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} Les événements ${ev(D.r[0])} et ${ev(D.k[0])} sont-ils indépendants&nbsp;?`,good,bad,
+    `${NT('Pr:0:0',D)} = ${numH(a)} et ${NT('P:k0',D)} = ${numH(b)}&nbsp;: ${ind?'égales, donc indépendants':'différentes, donc pas indépendants'}.`,M('indepT',D,{verdicts:[ind?'oui':'non',ind?'non':'oui','faux'],steps:3,mx:dg(a)}))}},
+ {lv:5,f:()=>{let D;for(let n=0;n<80;n++){D=T3();const s=D.q.reduce((a,q)=>add(a,q),R(0));if(dist([V('PB',D),s,div(s,R(3)),D.q[0]]))break}
+   const s=D.q.reduce((a,q)=>add(a,q),R(0)),vs=[V('PB',D),s,div(s,R(3)),D.q[0]];
+   return qcm(5,`Trois ateliers A₁, A₂ et A₃ fabriquent respectivement ${pct(D.p[0])}, ${pct(D.p[1])} et ${pct(D.p[2])} des pièces d'une usine, avec des taux de pièces défectueuses de ${pct(D.q[0])}, ${pct(D.q[1])} et ${pct(D.q[2])}. La probabilité qu'une pièce prise au hasard soit défectueuse est&nbsp;:`,
+    dec(vs[0]),vs.slice(1).map(numH),`Probabilités totales avec la partition A₁, A₂, A₃&nbsp;: ${D.p.map((p,i)=>`${dec(p)} × ${dec(D.q[i])}`).join(' + ')} = ${dec(vs[0])}.`,M('vals',D,{what:'PB',vals:vs,steps:4,mx:dg(vs[0])}))}},
+ {lv:2,f:()=>{const {X,D,r,k,t}=TB({neq:true}),i=ri(0,1),j=ri(0,1),c=D.c[i][j],v=R(c,r[i]);
+   const claims=[[`Pr:${i}:${j}`,v],[`Pk:${j}:${i}`,v],[`P:c${i}${j}`,v]];
+   return qcm(2,`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} Laquelle de ces égalités est vraie&nbsp;?`,`${NT(claims[0][0],D)} = ${numH(v)}`,claims.slice(1).map(([w])=>`${NT(w,D)} = ${numH(v)}`),
+    `${numH(v)} = ${frH(F(c),F(r[i]))}&nbsp;: on divise par le total de la ligne ${ev(D.r[i])}, c'est donc ${NT(claims[0][0],D)}.`,M('claims',D,{claims,steps:3,mx:dg(v)}))}},
+ {lv:3,f:()=>{let D;for(let n=0;n<80;n++){D=TA();const [p0,p1]=D.p,[q0,q1]=D.q;if(dist([mul(p0,q0),mul(p1,comp(q0)),mul(p0,comp(q0)),mul(p1,q1)])&&ndec(mul(p0,q0))<=3)break}
+   const [p0,p1]=D.p,[q0,q1]=D.q,vs=[mul(p0,q0),mul(p1,comp(q0)),mul(p0,comp(q0)),mul(p1,q1)];
+   return qcm(3,`On donne ${P('~A')} = ${dec(p1)}, ${P('~B','A')} = ${dec(comp(q0))} et ${P('B','~A')} = ${dec(q1)}. Alors ${P('A ∩ B')} =`,dec(vs[0]),vs.slice(1).map(dec),
+    `${P('A')} = 1 − ${dec(p1)} = ${dec(p0)} et ${P('B','A')} = 1 − ${dec(comp(q0))} = ${dec(q0)}, donc ${P('A ∩ B')} = ${dec(p0)} × ${dec(q0)} = ${dec(vs[0])}.`,M('vals',D,{what:'l:0:0',vals:vs,steps:3,mx:dg(vs[0])}))}},
+ {lv:1,f:()=>{let T0;for(let n=0;n<60;n++){T0=TB({neq:true});const {D,r,k,t}=T0;if(dist([R(D.c[0][0],t),R(D.c[0][0],r[0]),R(k[0],t)]))break}
+   const {X,D,r,k,t}=T0,c=D.c[0][0],vs=[R(c,t),R(c,r[0]),R(k[0],t)];
+   return qcm(1,`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} ${NT('P:r0',D)} × ${NT('Pr:0:0',D)} =`,numH(vs[0]),vs.slice(1).map(numH),
+    `${NT('P:r0',D)} × ${NT('Pr:0:0',D)} = ${NT('P:c00',D)} = ${frH(F(c),F(t))} = ${numH(vs[0])}.`,M('vals',D,{what:'P:c00',vals:vs,steps:3,mx:dg(vs[0])}))}}],
+trous:[
+ {lv:5,f:()=>{const {Y,D}=TR();
+   return trous(5,`${Y.story(D)} ${defsY(Y,D)} ${P(D.f[1])} = {0} et ${P(D.b)} = {1}.`,[BL(D,'p:1'),BL(D,'PB')],
+    `${P(D.f[1])} = 1 − ${dec(D.p[0])}&nbsp;; ${P(D.b)} = ${dec(D.p[0])} × ${dec(D.q[0])} + ${dec(D.p[1])} × ${dec(D.q[1])} = ${dec(V('PB',D))}.`,M('fill',D,{what:['p:1','PB'],steps:3,mx:dg(V('PB',D))}))}},
+ {lv:6,f:()=>{const {Y,D}=TR({only:[0,2,4,6],test:D=>!isDec(V('by:0',D))||ndec(V('by:0',D))>2});
+   return trous(6,`${Y.story(D)} ${defsY(Y,D)} On sait que ${Y.bI[0]}. La probabilité ${Y.fQ[0]}, arrondie au centième, est {0}.`,[BL(D,'by:0',{approx:2})],
+    `${P(D.b)} = ${dec(V('PB',D))}, puis ${NT('by:0',D)} = ${frH(dec(V('l:0:0',D)),dec(V('PB',D)))} ≈ ${dec(round(V('by:0',D),2),2)}.`,M('fill',D,{what:['by:0'],approx:[2],steps:3,mx:4}))}},
+ {lv:7,f:()=>{const D=PAB(true);
+   return trous(7,`A et B sont indépendants, ${P('A')} = ${dec(D.pA)} et ${P('B')} = ${dec(D.pB)}. Alors ${P('A ∩ B')} = {0} et ${P('B','A')} = {1}.`,[BL(D,'prod'),BL(D,'qA')],
+    `${P('A ∩ B')} = ${dec(D.pA)} × ${dec(D.pB)} = ${dec(V('prod',D))}, et indépendants&nbsp;: ${P('B','A')} = ${P('B')} = ${dec(D.pB)}.`,M('fill',D,{what:['prod','qA'],steps:3,mx:dg(V('prod',D))}))}},
+ {lv:2,f:()=>{const {X,D,r,k,t}=TB({neq:true}),i=ri(0,1),j=ri(0,1),c=D.c[i][j];
+   return trous(2,`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} ${NT(`Pr:${i}:${j}`,D)} = {0} et ${NT(`Pk:${j}:${i}`,D)} = {1}.`,[BL(D,`Pr:${i}:${j}`,{extra:[`${c}/${r[i]}`]}),BL(D,`Pk:${j}:${i}`,{extra:[`${c}/${k[j]}`]})],
+    `Même numérateur ${F(c)}, mais deux dénominateurs&nbsp;: ${F(r[i])} (ligne) et ${F(k[j])} (colonne).`,M('fill',D,{what:[`Pr:${i}:${j}`,`Pk:${j}:${i}`],steps:3,mx:Math.max(dg(V(`Pr:${i}:${j}`,D)),dg(V(`Pk:${j}:${i}`,D)))}))}},
+ {lv:4,f:()=>{const D=TA(D=>ndec(mul(D.p[0],D.q[0]))>=2&&ndec(mul(D.p[0],D.q[0]))<=3),l=V('l:0:0',D);
+   return trous(4,`${P('A')} = ${dec(D.p[0])} et ${P('A ∩ B')} = ${dec(l)}. Alors ${P('B','A')} = {0} et ${P('~B','A')} = {1}.`,[BL(D,'q:0'),BL(D,'nq:0')],
+    `${P('B','A')} = ${frH(dec(l),dec(D.p[0]))} = ${dec(D.q[0])}, puis ${P('~B','A')} = 1 − ${dec(D.q[0])} = ${dec(comp(D.q[0]))}.`,M('fill',D,{what:['q:0','nq:0'],steps:3,mx:dg(l)}))}},
+ {lv:5,f:()=>{const D=T3();
+   return trous(5,`Trois ateliers A₁, A₂ et A₃ fabriquent respectivement ${pct(D.p[0])}, ${pct(D.p[1])} et ${pct(D.p[2])} des pièces d'une usine, avec des taux de pièces défectueuses de ${pct(D.q[0])}, ${pct(D.q[1])} et ${pct(D.q[2])}. On note D&nbsp;: «&nbsp;la pièce est défectueuse&nbsp;». ${P('D')} = {0}`,[BL(D,'PB')],
+    `${D.p.map((p,i)=>`${dec(p)} × ${dec(D.q[i])}`).join(' + ')} = ${dec(V('PB',D))}.`,M('fill',D,{what:['PB'],steps:4,mx:dg(V('PB',D))}))}},
+ {lv:6,f:()=>{const D=TA(D=>{const b=V('by:0',D);return isDec(b)&&ndec(b)<=2&&ndec(V('PB',D))<=3&&ndec(V('PB',D))>=2});
+   return trous(6,`On donne ${P('A')} = ${dec(D.p[0])}, ${P('B','A')} = ${dec(D.q[0])} et ${P('B','~A')} = ${dec(D.q[1])}. Alors ${P('A','B')} = {0} et ${P('~A','B')} = {1}.`,[BL(D,'by:0'),BL(D,'by:1')],
+    `${P('B')} = ${dec(V('PB',D))}, puis ${P('A','B')} = ${frH(dec(V('l:0:0',D)),dec(V('PB',D)))} = ${dec(V('by:0',D))} et ${P('~A','B')} = 1 − ${dec(V('by:0',D))}.`,M('fill',D,{what:['by:0','by:1'],steps:3,mx:dg(V('PB',D))}))}}]};
+
+/* tirage : 6 QCM + 4 trous distincts, mélangés, les sept niveaux représentés */
+function build(B){for(let n=0;n<400;n++){const q=shuf(B.qcm.slice()).slice(0,6),t=shuf(B.trous.slice()).slice(0,4);
+    const lv=new Set(q.concat(t).map(x=>x.lv));if(lv.size<7)continue;
+    return shuf(q.map(x=>x.f()).concat(t.map(x=>x.f())))}
+  const q=B.qcm.slice(0,6),t=B.trous.slice(0,4);return shuf(q.map(x=>x.f()).concat(t.map(x=>x.f())))}
+window.DL_FIN={bronze:()=>build(BRONZE),argent:()=>build(ARGENT),or:()=>build(OR),banks:{BRONZE,ARGENT,OR}};
+})();
+</script>
+<script>
+/* ======================= LE DELTA — Mon delta (vannes libres) ======================= */
+window.DL_LAB=(function(){
+'use strict';
+const N=window.DL_N,S=window.DL_S,G=window.DL_G,$=id=>document.getElementById(id);
+const {R,comp,dec,numH,numT,eq,round,isDec,ndec,P}=N;
+const VIEWS=[['tree','L\'arbre'],['fa','Sachant A'],['fna','Sachant <span class="ov">A</span>'],['merge','Confluence de B'],['bayes','Remonter&nbsp;: sachant B'],['indep','Comparer les bras']];
+let view='tree',busy=false;
+const data=()=>{const p=R(+$('lpa').value,20),q1=R(+$('lq1').value,20),q2=R(+$('lq2').value,20);return{type:'tree',f:['A','~A'],b:'B',p:[p,comp(p)],q:[q1,q2]}};
+const lv=r=>numT(r);
+const approxH=r=>isDec(r)&&ndec(r)<=3?dec(r):'≈ '+dec(round(r,3));
+function labs(D){const PB=G.V('PB',D),by=eq(PB,R(0))?null:G.V('by:0',D);
+  return{src:'1',b1:D.p.map(lv),b2:D.p.map((_,i)=>[lv(D.q[i]),lv(comp(D.q[i]))]),
+    leaf:[0,1].map(i=>[0,1].map(j=>lv(G.V(`l:${i}:${j}`,D)))),merged:'!'+lv(PB),
+    bayes:by?'!'+`P_B(A) ${approxH(by)}`.replace(/P_B\(A\) (\d)/,'P_B(A) = $1'):null}}
+function stats(D){const PB=G.V('PB',D),l=G.V('l:0:0',D),by=eq(PB,R(0))?null:G.V('by:0',D),ind=eq(D.q[0],D.q[1]);
+  $('opa').textContent=dec(D.p[0]);$('oq1').textContent=dec(D.q[0]);$('oq2').textContent=dec(D.q[1]);
+  $('lstat').innerHTML=`<div><b>${dec(l)}</b><span>${P('A ∩ B')} = ${P('A')} × ${P('B','A')}</span></div><div><b>${dec(PB)}</b><span>${P('B')} (probabilités totales)</span></div>`+
+    `<div><b>${by?approxH(by):'—'}</b><span>${P('A','B')} = ${'P(A ∩ B) ÷ P(B)'.replace('P(A ∩ B)',P('A ∩ B')).replace('P(B)',P('B'))}</span></div><div><b>${ind?'Oui':'Non'}</b><span>A et B indépendants&nbsp;: ${ind?`${P('B','A')} = ${P('B')}`:`${P('B','A')} ≠ ${P('B')}`}</span></div>`}
+function seg(){$('lview').innerHTML=VIEWS.map(([k,t])=>`<button type="button" data-v="${k}" aria-pressed="${k===view}">${t}</button>`).join('')}
+function pose(D){const v=view,o={focus:-1,kf:0,km:0,kb:0,kg:0};
+  if(v==='fa'){o.focus=0;o.kf=1}else if(v==='fna'){o.focus=1;o.kf=1}else if(v==='merge'){o.km=1}else if(v==='bayes'){o.km=1;o.kb=eq(G.V('PB',D),R(0))?0:1}else if(v==='indep'){o.kg=1}
+  return o}
+function show(anim){const D=data(),L=labs(D);if(view!=='bayes')L.bayes=null;
+  S.reset(S.treeOf(D),L);stats(D);
+  const o=pose(D);if(view==='fa'||view==='fna')S.lab({focus:`Sachant ${D.f[o.focus]} : 100 %`});
+  if(!anim){S.pose(o);return}
+  busy=true;(async()=>{try{if(o.focus>=0)await S.focus(o.focus);else if(o.km){await S.merge();if(o.kb)await S.bayes()}else if(o.kg)await S.gauges()}finally{busy=false}})()}
+['lpa','lq1','lq2'].forEach(id=>$(id).addEventListener('input',()=>show(false)));
+$('lview').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;view=b.dataset.v;seg();S.SND.pop();show(true)});
+function open(){seg();S.badge('Mon delta · vannes libres');$('capt').innerHTML='Règle les trois poids, puis choisis ce que tu regardes';show(false)}
+return{open,state:()=>({view,busy,D:data()})};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'le-delta',title:'Le Delta',levels:7,
+  levelNames:['Parmi…','Dans quel ordre ?','Les poids','Les chemins','La confluence','Remonter le courant','Indépendance'],
+  music:'aventure',finals:{bronze:()=>(window.DL_lastFinal=DL_FIN.bronze()),argent:()=>(window.DL_lastFinal=DL_FIN.argent()),or:()=>(window.DL_lastFinal=DL_FIN.or())}});
+DL.start();
+(function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|INPUT|TEXTAREA|svg)$/i.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(fix)}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>

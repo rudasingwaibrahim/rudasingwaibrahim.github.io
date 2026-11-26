@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Envol &amp; Plongée · Sigma Arcade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* IDÉE : le lagon de nuit. La surface de l'eau est l'axe des abscisses (hauteur 0).
+   Une lanterne suit f(x) = k × a^x : à chaque pas de temps, sa hauteur est multipliée par a.
+   Elle s'envole (a > 1) ou redescend vers l'eau sans jamais la toucher (0 < a < 1) ;
+   sous la surface (k < 0), une luciole des mers fait le mouvement miroir.
+   L'axe vertical se dézoome pendant l'envol : la croissance exponentielle se voit. */
+:root{color-scheme:dark;
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--line2:var(--sg-border);
+--ac:var(--sg-accent);--acs:var(--sg-accent-soft);--gold:var(--sg-gold);--goldb:var(--sg-gold-bright);
+--ok:var(--sg-ok);--ko:var(--sg-coral);--sea:#62d9cf;--bg:var(--sg-bg2)}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font);overflow-x:clip}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+.back{display:inline-flex;align-items:center;min-height:44px;margin:0 0 2px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+h1{font-size:clamp(30px,3.8vw,44px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:72ch}
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 40px;display:grid;grid-template-columns:minmax(0,1.18fr) minmax(0,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line2);box-shadow:var(--sg-shadow-card);background:#050c19}
+#sc{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none}
+.capt{margin-top:10px;min-height:52px;padding:8px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--line2);
+  font:600 clamp(16px,1.6vw,19px)/1.45 var(--sg-font);display:flex;align-items:center;justify-content:center;text-align:center;font-variant-numeric:tabular-nums}
+.capt .k{color:var(--goldb)}.capt .c{color:var(--sea)}.capt .m{color:var(--mut);font-weight:500}
+/* scène */
+.gl{stroke:rgba(140,170,255,.13);stroke-width:1}
+.gt{fill:rgba(200,215,255,.62);font:600 12px var(--sg-font);text-anchor:end;font-variant-numeric:tabular-nums}
+.tk{stroke:rgba(220,230,255,.55);stroke-width:1.4}
+.tt{fill:rgba(220,230,255,.8);font:600 12.5px var(--sg-font);text-anchor:middle;font-variant-numeric:tabular-nums}
+.tt.z{fill:#fff;font-weight:800}
+.surf{stroke:#9ec7ff;stroke-width:2;stroke-opacity:.75}
+.cv{fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.cv.g{stroke:var(--goldb)}.cv.c{stroke:var(--sea)}.cv.b{stroke:#8ea6ff}.cv.o{stroke:#ff9b7a}
+.cv.ghost{stroke-width:2;stroke-dasharray:5 6;opacity:.5}
+.dt{stroke:#0a1628;stroke-width:1.5}
+.dt.g{fill:var(--goldb)}.dt.c{fill:var(--sea)}.dt.b{fill:#a9bbff}.dt.o{fill:#ff9b7a}.dt.w{fill:#f0f4ff}
+.dl{font:700 12.5px var(--sg-font);fill:#f0f4ff;paint-order:stroke;stroke:#060d1a;stroke-width:4px;stroke-linejoin:round;font-variant-numeric:tabular-nums}
+.al{fill:none;stroke:rgba(232,199,102,.55);stroke-width:1.3}
+.al.c{stroke:rgba(98,217,207,.6)}.al.b{stroke:rgba(142,166,255,.7)}.al.o{stroke:rgba(255,155,122,.75)}
+.at{font:800 12px var(--sg-font);fill:var(--goldb);text-anchor:middle;paint-order:stroke;stroke:#060d1a;stroke-width:4px}
+.at.c{fill:var(--sea)}.at.b{fill:#b9c8ff}.at.o{fill:#ffb59c}
+.sp{font-size:9px}
+.thr{stroke:var(--goldb);stroke-width:1.8;stroke-dasharray:7 5}
+.thl{font:700 13px var(--sg-font);fill:var(--goldb);text-anchor:end;paint-order:stroke;stroke:#060d1a;stroke-width:4px}
+.rg{fill:rgba(232,199,102,.10)}.rgl{stroke:var(--goldb);stroke-width:5;stroke-linecap:round}
+.bub rect{fill:rgba(6,13,26,.86);stroke:rgba(232,199,102,.6)}.bub text{font:700 13px var(--sg-font);fill:#fff4d6;text-anchor:middle}
+.bub.c rect{stroke:rgba(98,217,207,.7)}.bub.c text{fill:#d9fffb}
+.ring{fill:none;stroke:#fff3c4;stroke-width:2}
+.chap{position:absolute;left:12px;top:10px;padding:3px 12px;border-radius:999px;background:rgba(6,13,26,.72);border:1px solid var(--line2);font:600 13px var(--sg-font);color:var(--mut)}
+/* panneau */
+.lv{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.lv button{min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s;font-variant-numeric:tabular-nums}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-selected=true]{background:var(--ac);color:var(--sg-on-accent);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .st{color:var(--goldb);margin-left:4px;letter-spacing:-1px}.lv button[aria-selected=true] .st{color:#5a4300}
+.lv .snd{border-style:dashed}.lv .snd[aria-pressed=true]{border-color:var(--ac);background:var(--acs)}
+.panel{background:var(--sg-panel);border:1px solid var(--line2);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,28px) 22px}
+.kick{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#b9c8ff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 12px}
+details.cours{border:1px solid var(--line2);border-radius:12px;background:rgba(255,255,255,.025);margin:0 0 14px}
+details.cours summary{min-height:46px;display:flex;align-items:center;padding:0 14px;font-weight:600;cursor:pointer;list-style:none}
+details.cours summary::before{content:'▸';margin-right:8px;color:var(--ac);transition:transform .15s}
+details.cours[open] summary::before{transform:rotate(90deg)}
+details.cours summary::-webkit-details-marker{display:none}
+details.cours .in{padding:0 16px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+details.cours .in p{margin:6px 0}
+.runtop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 10px;color:var(--mut);font-size:15px;font-variant-numeric:tabular-nums}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acs)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.cons{font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);margin:4px 0 2px}
+.prompt{font-size:18.5px;line-height:1.55;margin:0 0 14px}
+.prompt .fml,.fml{font-weight:700;white-space:nowrap}
+sup{font-size:.68em;line-height:0;vertical-align:.62em}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.05;font-size:.92em;margin:0 .1em}
+.fr>span:first-child{border-bottom:1.5px solid currentColor;padding:0 .15em .08em}.fr>span:last-child{padding:.08em .15em 0}
+.form{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font:700 clamp(20px,2.2vw,24px)/1.4 var(--sg-font);margin:6px 0 4px}
+.form input{width:5.4em;height:52px;padding:0 8px;font:700 22px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:12px;background:var(--bg);color:var(--ink)}
+.form input.ok{border-color:var(--ok);color:var(--ok)}.form input.ko{border-color:var(--ko);color:var(--ko)}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--sg-raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--sg-on-accent);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 0}
+.chs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:10px}
+.opt{min-height:56px;padding:10px 16px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:600 18px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.12)}
+.opt:disabled{cursor:default}
+.code{font:500 15px/1.6 var(--sg-mono);background:#071326;border:1px solid var(--line2);border-radius:12px;padding:10px 14px;margin:0 0 12px;overflow-x:auto;white-space:pre}
+.code .ln{display:block;padding:0 6px;border-radius:6px}.code .ln.on{background:var(--acs);box-shadow:inset 3px 0 0 var(--ac)}
+.code .kw{color:#c3a6ff}.code .nb{color:var(--goldb)}
+.vars{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 12px;font-variant-numeric:tabular-nums}
+.vars span{padding:6px 14px;border-radius:999px;background:var(--bg);border:1.5px solid var(--line);font-weight:700}
+.fb{margin-top:14px;padding:14px 16px;border-radius:14px;line-height:1.5;display:flex;gap:12px;align-items:flex-start}
+.fb .sk-maki{width:58px;height:58px;flex:none}
+.fb.ok{background:rgba(95,210,124,.1);border:1px solid rgba(95,210,124,.35)}
+.fb.ko{background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.4)}
+.fb b.v{display:block;font-size:19px;margin-bottom:2px}.fb.ok b.v{color:var(--ok)}.fb.ko b.v{color:var(--goldb)}
+.fb p{margin:4px 0}
+body.busy .ctl{pointer-events:none;opacity:.55}
+@media (max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--line2)}
+  .stage{border-radius:12px}
+  #sc{max-height:34svh;margin:auto}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:15px;border-radius:10px}
+  .chap{font-size:11.5px;top:6px;left:8px;padding:2px 9px}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .opt{font-size:17px}
+  .code{font-size:13.5px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.btn,.opt{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+  <h1>Envol &amp; Plongée</h1>
+  <p>Nuit sur le lagon. La surface de l'eau est l'axe des abscisses&nbsp;; une lanterne suit <span class="fml">f(<i>x</i>) = <i>k</i> × <i>a</i><sup><i>x</i></sup></span>&nbsp;: à chaque pas de temps, sa hauteur est <b>multipliée par le même nombre <i>a</i></b>. Elle s'envole, ou redescend vers l'eau sans jamais la toucher&nbsp;; sous la surface, une luciole des mers fait le mouvement miroir.</p>
+</header>
+<main class="app">
+  <div class="scol">
+    <div class="stage">
+      <svg id="sc" viewBox="0 0 720 400" role="img" aria-label="Le lagon de nuit : la courbe de la fonction exponentielle suivie par la lanterne">
+        <defs>
+          <linearGradient id="g-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#040a17"/><stop offset=".7" stop-color="#0d1c3a"/><stop offset="1" stop-color="#1b2f57"/></linearGradient>
+          <linearGradient id="g-sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0e3050"/><stop offset=".35" stop-color="#082339"/><stop offset="1" stop-color="#030c17"/></linearGradient>
+          <radialGradient id="g-glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffd47a" stop-opacity=".65"/><stop offset=".45" stop-color="#ffb347" stop-opacity=".18"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/></radialGradient>
+          <radialGradient id="g-glowc" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#8ffcf0" stop-opacity=".6"/><stop offset=".45" stop-color="#3fd6c8" stop-opacity=".17"/><stop offset="1" stop-color="#3fd6c8" stop-opacity="0"/></radialGradient>
+          <radialGradient id="g-moon" cx=".4" cy=".4" r=".6"><stop offset="0" stop-color="#fffbe9"/><stop offset="1" stop-color="#e5dcc0"/></radialGradient>
+          <linearGradient id="g-lan" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e8902c"/><stop offset=".5" stop-color="#ffd27a"/><stop offset="1" stop-color="#e8902c"/></linearGradient>
+          <clipPath id="clip-plot"><rect x="60" y="0" width="660" height="400"/></clipPath>
+        </defs>
+        <g id="sc-bg"></g>
+        <g id="sc-dyn"></g>
+      </svg>
+      <div class="chap" id="chap">Le lagon, 21&nbsp;h</div>
+    </div>
+    <div class="capt" id="capt" aria-live="polite"></div>
+  </div>
+  <div>
+    <nav class="lv" id="lv" role="tablist" aria-label="Niveaux"></nav>
+    <section class="panel" id="panel" aria-live="polite"></section>
+  </div>
+</main>
+
+<script>
+/* ======================= ENVOL & PLONGÉE — outils et scène ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+/* ---------- nombres à la française ---------- */
+const NB='\u202f';
+function fr(v,d){d=d==null?6:d;let r=Math.round(v*Math.pow(10,d))/Math.pow(10,d);if(Math.abs(r)<1e-12)r=0;
+  let s=Math.abs(r).toFixed(d);if(s.indexOf('.')>=0)s=s.replace(/0+$/,'').replace(/\.$/,'');
+  let p=s.split('.'),i=p[0];if(i.length>3)i=i.replace(/\B(?=(\d{3})+(?!\d))/g,NB);
+  return (r<0?'−':'')+i+(p[1]?','+p[1]:'')}
+const X='<i>x</i>';
+const E=e=>typeof e==='number'?fr(e):e;
+function pw(b,e){return '<span class="fml">'+E(b)+'<sup>'+E(e)+'</sup></span>'}
+function kx(k,a,v){v=v||X;const p=E(a)+'<sup>'+v+'</sup>';return '<span class="fml">'+(k===1?p:k===-1?'−'+p:fr(k)+' × '+p)+'</span>'}
+function frac(n,d){return '<span class="fr"><span>'+E(n)+'</span><span>'+E(d)+'</span></span>'}
+const pct=t=>(t>0?'+':'−')+fr(Math.abs(t))+'\u00a0%';
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function shuf(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const near=(a,b)=>Math.abs(a-b)<=1e-9*Math.max(1,Math.abs(a),Math.abs(b));
+/* lecture d'une saisie : « 1 800 », « 0,125 », « −3 », « 1/8 », « 10 % » */
+function parseNum(s){s=String(s).trim().replace(/[\s\u00a0\u202f]/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/%$/,'').replace(/^\+/,'');
+  let m=/^(-?\d+(?:\.\d+)?)\/(-?\d+(?:\.\d+)?)$/.exec(s);if(m){const d=+m[2];return d?+m[1]/d:NaN}
+  return /^-?(\d+\.?\d*|\.\d+)$/.test(s)?+s:NaN}
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?Math.min(ms,60):ms));
+
+/* ---------- sons ---------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function blip(f,d,v,type,when){if(!snd)return;const c=ac();if(!c)return;const t=c.currentTime+(when||0),o=c.createOscillator(),g=c.createGain();
+  o.type=type||'sine';o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v||.06,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(g).connect(c.destination);o.start(t);o.stop(t+d+.02)}
+const SND={
+  hop(v,up){const l=Math.max(-6,Math.min(6,Math.log2(Math.abs(v)||1)/2));blip(523*Math.pow(2,(up?l:-Math.abs(l))/4),.16,.05,'triangle')},
+  ok(){blip(659,.14,.06);blip(880,.22,.06,'sine',.1)},
+  ko(){blip(220,.22,.05,'triangle')},
+  pop(){blip(740,.08,.04)}
+};
+
+/* ---------- la scène ---------- */
+const W=720,H=400,L=60,RX=704,T=26,B=392;
+const bgG=$('sc-bg'),dyn=$('sc-dyn');
+let st=null,raf=0,anims=0;
+function Ys(){return st.mode==='sea'?84:332}
+function hgt(){return st.mode==='sea'?B-Ys()-14:Ys()-T-8}
+const fv=(s,x)=>s.k*Math.pow(s.a,x);
+const sx=x=>L+(x-st.xmin)/(st.xmax-st.xmin)*(RX-L-14);
+const sy=v=>Ys()-v/st.lim*hgt();
+function cur(){return st.segs[st.segs.length-1]}
+function nice(l){const raw=l/4,p=Math.pow(10,Math.floor(Math.log10(raw))),m=raw/p;return (m<=1?1:m<=2?2:m<=5?5:10)*p}
+function limTarget(){let m=0;
+  st.segs.forEach(s=>{const a=Math.min(s.x0,s.xe),b=Math.max(s.x0,s.xe);for(let i=0;i<=24;i++)m=Math.max(m,Math.abs(fv(s,a+(b-a)*i/24)))});
+  if(st.line)m=Math.max(m,Math.abs(st.line.v));
+  if(st.stairs)st.stairs.pts.slice(0,st.stairs.n).forEach(p=>m=Math.max(m,Math.abs(p[1])));
+  (st.marks||[]).forEach(p=>m=Math.max(m,Math.abs(p.v)));
+  if(st.limFix)m=Math.max(m,st.limFix);
+  return (m||1)*1.3}
+/* étiquettes SVG : « 2^{−3} » → exposant */
+function sv(s){return String(s).replace(/\^\{([^}]*)\}/g,'<tspan class="sp" dy="-6">$1</tspan><tspan dy="6">\u200a</tspan>')}
+function drawBg(){
+  const ys=Ys(),o=[];
+  o.push(`<rect width="${W}" height="${ys}" fill="url(#g-sky)"/>`);
+  let seed=7;const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280};
+  for(let i=0;i<70;i++){const x=rnd()*W,y=rnd()*(ys-14),r=rnd()*1.1+.3;o.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}" fill="#fff" opacity="${(.25+rnd()*.5).toFixed(2)}"/>`)}
+  if(st.mode==='sky'){o.push('<circle cx="628" cy="66" r="26" fill="url(#g-glow)" opacity=".5"/><circle cx="628" cy="66" r="15" fill="url(#g-moon)"/><circle cx="634" cy="61" r="13" fill="#0b1630" opacity=".9"/>')}
+  else o.push('<circle cx="650" cy="30" r="9" fill="url(#g-moon)"/><circle cx="654" cy="27" r="8" fill="#0b1630" opacity=".9"/>');
+  /* île lointaine, à l'horizon */
+  const s=st.mode==='sky'?1:.55;
+  o.push(`<path d="M${470} ${ys} C ${500} ${ys-14*s} ${520} ${ys-30*s} ${545} ${ys-34*s} C ${560} ${ys-36*s} ${570} ${ys-52*s} ${585} ${ys-58*s} C ${600} ${ys-50*s} ${612} ${ys-30*s} ${640} ${ys-22*s} C ${665} ${ys-16*s} ${690} ${ys-8*s} ${720} ${ys-4*s} L720 ${ys}Z" fill="#081326"/>`);
+  o.push(`<g fill="#ffd47a" opacity=".55"><circle cx="560" cy="${ys-6*s}" r="1.3"/><circle cx="575" cy="${ys-9*s}" r="1.1"/><circle cx="612" cy="${ys-5*s}" r="1.3"/><circle cx="650" cy="${ys-4*s}" r="1"/></g>`);
+  o.push(`<rect y="${ys}" width="${W}" height="${H-ys}" fill="url(#g-sea)"/>`);
+  for(let i=0;i<14;i++){const y=ys+6+i*i*1.9;if(y>H)break;o.push(`<path d="M${(i*53)%140} ${y.toFixed(1)} h${60+(i*37)%90} m${90+(i*29)%60} 0 h${40+(i*17)%70} m${70+(i*41)%80} 0 h${50+(i*23)%60}" stroke="#8ec5ff" stroke-opacity="${(.12-i*.006).toFixed(3)}" stroke-width="1.2"/>`)}
+  if(st.mode==='sea'){for(let i=0;i<4;i++)o.push(`<path d="M${120+i*150} ${ys} l${-40+i*8} ${H-ys} h40 Z" fill="#9fe8ff" opacity=".035"/>`)}
+  bgG.innerHTML=o.join('');
+}
+function lantern(xp,yp,v){
+  if(v>=0)return `<g transform="translate(${xp.toFixed(1)} ${yp.toFixed(1)})"><circle r="34" fill="url(#g-glow)"/><path d="M-8 -11 Q-12 0 -8 11 L8 11 Q12 0 8 -11Z" fill="url(#g-lan)" stroke="#9a5d1c" stroke-width="1.2"/><path d="M-2.5 -9 Q-5 0 -2.5 9 M2.5 -9 Q5 0 2.5 9" stroke="#fff1c2" stroke-width="1" fill="none" opacity=".75"/><rect x="-6" y="-14" width="12" height="3.5" rx="1.2" fill="#4a2c12"/><rect x="-6" y="10.5" width="12" height="3.5" rx="1.2" fill="#4a2c12"/></g>`;
+  return `<g transform="translate(${xp.toFixed(1)} ${yp.toFixed(1)})"><circle r="32" fill="url(#g-glowc)"/><path d="M-10 3 Q-10 -11 0 -11 Q10 -11 10 3 Q5 1 0 3 Q-5 1 -10 3Z" fill="#8ffcf0" stroke="#2aa79c" stroke-width="1"/><path d="M-6 3 q-3 6 0 12 M0 3 q3 7 0 14 M6 3 q-3 6 0 12" stroke="#8ffcf0" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".85"/><circle cx="-3" cy="-4" r="2" fill="#fff" opacity=".7"/></g>`;
+}
+function powLab(s,n){return fr(s.a)+'^{'+fr(n)+'}'}
+function valLab(v){const a=Math.abs(v);return fr(v,a>=100?1:a>=1?3:a>=.01?4:6)}
+function render(){
+  if(!st)return;const ys=Ys(),o=[],sea=st.mode==='sea';
+  /* quadrillage et graduations verticales */
+  const step=nice(st.lim),dg=Math.max(0,-Math.floor(Math.log10(step)))+1;
+  for(let v=step;v<st.lim*.985;v+=step){const val=sea?-v:v,y=sy(val);o.push(`<line class="gl" x1="${L}" x2="${RX}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}"/><text class="gt" x="${L-8}" y="${(y+4).toFixed(1)}">${fr(val,dg)}</text>`)}
+  /* surface = axe des abscisses */
+  o.push(`<line class="surf" x1="${L-10}" x2="${W}" y1="${ys}" y2="${ys}"/>`+(st.xmin<-.2?`<text class="gt" x="${L-8}" y="${ys+4}">0</text>`:''));
+  const span=st.xmax-st.xmin,ev=span>14?2:1;
+  for(let n=Math.ceil(st.xmin);n<=st.xmax;n++){const x=sx(n);o.push(`<line class="tk" x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${ys-4}" y2="${ys+4}"/>`);
+    if(n%ev===0)o.push(`<text class="tt${n===0?' z':''}" x="${x.toFixed(1)}" y="${sea?ys-9:ys+20}">${fr(n)}</text>`)}
+  o.push(`<text class="tt" x="${W-10}" y="${sea?ys-9:ys+20}" style="text-anchor:end;font-style:italic">x</text>`);
+  /* zone solution d'une inéquation */
+  if(st.region){const r=st.region,a=sx(Math.max(st.xmin,r.from)),b=sx(Math.min(st.xmax,r.to));
+    o.push(`<rect class="rg" x="${a.toFixed(1)}" y="${T-26}" width="${(b-a).toFixed(1)}" height="${ys-T+26}"/><line class="rgl" x1="${a.toFixed(1)}" x2="${b.toFixed(1)}" y1="${ys}" y2="${ys}"/>`);
+    const xb=sx(r.at);o.push(`<circle cx="${xb.toFixed(1)}" cy="${ys}" r="6" fill="${r.incl?'#e8c766':'#060d1a'}" stroke="#e8c766" stroke-width="2.4"/>`)}
+  /* seuil */
+  if(st.line){const y=sy(st.line.v);o.push(`<line class="thr" x1="${L}" x2="${RX}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}"/><text class="thl" x="${RX-4}" y="${(y-7).toFixed(1)}">${sv(st.line.lab)}</text>`)}
+  o.push('<g clip-path="url(#clip-plot)">');
+  /* courbes complètes en pointillés */
+  (st.full||[]).forEach(c=>{let d='';const n=160;for(let i=0;i<=n;i++){const x=st.xmin+(st.xmax-st.xmin)*i/n;let y=sy(fv(c,x));y=Math.max(-60,Math.min(H+60,y));d+=(i?'L':'M')+sx(x).toFixed(1)+' '+y.toFixed(1)}
+    o.push(`<path class="cv ghost ${c.col||'g'}" d="${d}"/>`)});
+  /* escalier d'évolutions successives */
+  if(st.stairs){const S=st.stairs,P=S.pts.slice(0,S.n);
+    if(P.length>1)o.push(`<path class="cv o" style="stroke-width:2.6" d="${P.map((p,i)=>(i?'L':'M')+sx(p[0]).toFixed(1)+' '+sy(p[1]).toFixed(1)).join('')}"/>`);
+    P.forEach((p,i)=>{if(i){const q=P[i-1],x0=sx(q[0]),y0=sy(q[1]),x1=sx(p[0]),y1=sy(p[1]),cx=(x0+x1)/2,cy=Math.min(y0,y1)-26;
+      o.push(`<text class="at o" x="${cx.toFixed(1)}" y="${cy.toFixed(1)}">${S.labs[i-1]}</text>`)}
+      o.push(`<circle class="dt o" cx="${sx(p[0]).toFixed(1)}" cy="${sy(p[1]).toFixed(1)}" r="5"/><text class="dl" x="${(sx(p[0])+8).toFixed(1)}" y="${(sy(p[1])+18).toFixed(1)}">${valLab(p[1])}</text>`)})}
+  /* points fixes (termes d'une suite…) */
+  (st.marks||[]).forEach(p=>{o.push(`<circle class="dt w" cx="${sx(p.x).toFixed(1)}" cy="${sy(p.v).toFixed(1)}" r="5"/>`+(p.lab?`<text class="dl" x="${(sx(p.x)+8).toFixed(1)}" y="${(sy(p.v)-9).toFixed(1)}">${sv(p.lab)}</text>`:''))});
+  /* trajets de la lanterne */
+  const seen={};
+  st.segs.forEach(s=>{const a=s.x0,b=s.xe;if(Math.abs(b-a)<1e-9)return;const n=Math.max(8,Math.ceil(Math.abs(b-a)*24));let d='';
+    for(let i=0;i<=n;i++){const x=a+(b-a)*i/n;let y=sy(fv(s,x));y=Math.max(-60,Math.min(H+60,y));d+=(i?'L':'M')+sx(x).toFixed(1)+' '+y.toFixed(1)}
+    o.push(`<path class="cv ${s.col}" d="${d}"/>`)});
+  st.segs.forEach(s=>{if(s.noHops)return;const dir=s.xe>=s.x0?1:-1,lo=Math.min(s.x0,s.xe),hi=Math.max(s.x0,s.xe);
+    for(let n=Math.ceil(lo-1e-9);n<=hi+1e-9;n++){
+      const m=n+dir;if(m<lo-1e-9||m>hi+1e-9||s.noArc)continue;
+      if(!Number.isInteger(s.x0)&&(dir>0?n<s.x0:n>s.x0))continue;
+      const x0=sx(n),y0=sy(fv(s,n)),x1=sx(m),y1=sy(fv(s,m)),cx=(x0+x1)/2,cy=s.k>0?Math.min(y0,y1)-24:Math.max(y0,y1)+24;
+      o.push(`<path class="al ${s.col}" d="M${x0.toFixed(1)} ${y0.toFixed(1)} Q${cx.toFixed(1)} ${cy.toFixed(1)} ${x1.toFixed(1)} ${y1.toFixed(1)}"/>`);
+      if(s.arcLab!==false)o.push(`<text class="at ${s.col}" x="${cx.toFixed(1)}" y="${(s.k>0?cy+6:cy+2).toFixed(1)}">${s.sym||(dir>0?'×':'÷')+fr(s.a)}</text>`)}
+    for(let n=Math.ceil(lo-1e-9);n<=hi+1e-9;n++){const key=n+'|'+fr(fv(s,n),9);if(seen[key])continue;seen[key]=1;
+      const v=fv(s,n),x=sx(n),y=sy(v);o.push(`<circle class="dt ${s.col}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.6"/>`);
+      if(st.lab!=='none')o.push(`<text class="dl" x="${(x+7).toFixed(1)}" y="${(s.k>0?y+17:y-9).toFixed(1)}">${sv(st.lab==='pow'?powLab(s,n):valLab(v))}</text>`)}});
+  st.segs.forEach(s=>{if(!s.endLab||Math.abs(s.xe-s.x0)<1e-9)return;const v=fv(s,s.xe),x=sx(s.xe),y=sy(v);
+    o.push(`<circle class="dt ${s.col}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.6"/><text class="dl" x="${(x+8).toFixed(1)}" y="${(y+18).toFixed(1)}">${sv(typeof s.endLab==='string'?s.endLab:(st.lab==='pow'?powLab(s,s.xe):valLab(v)))}</text>`)});
+  o.push('</g>');
+  /* lanterne */
+  if(!st.hide){const s=cur(),v=fv(s,s.xe),xp=sx(s.xe),yp=Math.max(T-14,Math.min(H-6,sy(v)));
+    if(v>0){const dd=Math.max(0,1-(ys-yp)/220);o.push(`<ellipse cx="${xp.toFixed(1)}" cy="${ys+7}" rx="${(10+dd*18).toFixed(1)}" ry="3" fill="#ffd47a" opacity="${(.12+dd*.5).toFixed(2)}"/>`)}
+    if(st.ring>0){const r=(1-st.ring)*30+8;o.push(`<circle class="ring" cx="${xp.toFixed(1)}" cy="${yp.toFixed(1)}" r="${r.toFixed(1)}" opacity="${st.ring.toFixed(2)}"/>`)}
+    o.push(lantern(xp,yp,v));
+    if(st.bub){const t=typeof st.bub==='function'?st.bub(s,v):st.bub,w=Math.max(60,t.replace(/\^\{|\}/g,'').length*7.4+18);let bx=Math.min(W-w/2-6,Math.max(L+w/2,xp)),by=v>0?yp-40:yp+46;
+      if(by<16)by=yp+44;if(by>H-10)by=yp-42;
+      o.push(`<g class="bub${v<0?' c':''}"><rect x="${(bx-w/2).toFixed(1)}" y="${(by-15).toFixed(1)}" width="${w.toFixed(1)}" height="24" rx="12"/><text x="${bx.toFixed(1)}" y="${(by+2).toFixed(1)}">${sv(t)}</text></g>`)}}
+  dyn.innerHTML=o.join('');
+}
+function loop(){raf=0;if(!st)return;const tg=limTarget();st.lim+=(tg-st.lim)*(reduceM?1:.14);if(st.ring>0)st.ring=Math.max(0,st.ring-.05);
+  render();if(anims>0||Math.abs(tg-st.lim)>tg*.002||st.ring>0)raf=requestAnimationFrame(loop);else{st.lim=tg;render()}}
+function kick(){if(!raf)raf=requestAnimationFrame(loop)}
+const SC={
+  reset(o){o=o||{};st=Object.assign({k:1,a:2,xmin:-1,xmax:8,x0:0,lab:'val',line:null,region:null,full:[],stairs:null,marks:[],bub:null,hide:false,ring:0,limFix:0},o);
+    st.mode=o.mode||(st.k<0?'sea':'sky');st.segs=[{k:st.k,a:st.a,x0:st.x0,xe:st.x0,col:st.k<0?'c':'g'}];st.lim=limTarget();drawBg();render();kick()},
+  travel(x1,o){o=o||{};const p=cur(),x0=p.xe;const s={k:o.k!=null?o.k:p.k,a:o.a!=null?o.a:p.a,x0,xe:x0,col:o.col||(((o.k!=null?o.k:p.k)<0)?'c':'g'),sym:o.sym,endLab:o.endLab,arcLab:o.arcLab,noHops:o.noHops,noArc:o.noArc};
+    if(o.from!=null){s.x0=s.xe=o.from}
+    st.segs.push(s);const a0=s.x0,dist=Math.abs(x1-a0),dur=reduceM?0:(o.dur||Math.max(420,dist*(o.per||430)));
+    let lastN=Math.floor(a0+1e-9);anims++;kick();
+    return new Promise(res=>{const t0=performance.now();
+      function step(t){const u=dur?Math.min(1,(t-t0)/dur):1,e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;s.xe=a0+(x1-a0)*e;
+        const nN=Math.floor(s.xe+1e-9);if(nN!==lastN){if(Number.isInteger(nN)||true){SND.hop(fv(s,s.xe),x1>a0&&s.a>1===s.k>0);st.ring=1}lastN=nN}
+        if(u<1)requestAnimationFrame(step);else{s.xe=x1;anims--;kick();setTimeout(res,reduceM?0:120)}}
+      requestAnimationFrame(step)})},
+  set(o){Object.assign(st,o);if(o.mode)drawBg();kick()},
+  get st(){return st},
+  stairsStep(){st.stairs.n++;SND.hop(st.stairs.pts[st.stairs.n-1][1],true);st.ring=1;kick()},
+  ring(){st.ring=1;kick()}
+};
+function capt(h){$('capt').innerHTML=h?'<span>'+h+'</span>':''}
+window.EPU={fr,X,E,pw,kx,frac,pct,ri,pick,shuf,near,parseNum,sleep,SND,SC,capt,reduceM,get snd(){return snd},set snd(v){snd=v}};
+})();
+</script>
+
+<script>
+/* ======================= ENVOL & PLONGÉE — les sept niveaux ======================= */
+(function(){
+'use strict';
+const {fr,X,E,pw,kx,frac,pct,ri,pick,shuf,near,SC,capt,sleep}=window.EPU;
+const ex=(b,e)=>fr(b)+'^{'+E(e)+'}';                 // étiquette SVG « 2^{3} »
+const cx=(k,a,x)=>(k===1?'':fr(k)+' × ')+ex(a,x);       // « 200 × 3^{2} » pour les bulles
+const C=s=>'<span class="c">'+s+'</span>',K=s=>'<span class="k">'+s+'</span>';
+const wordVar=(k,a)=>a===1?'constante':(k>0)===(a>1)?'croissante':'décroissante';
+
+/* ---------- Niveau 1 · Le facteur ---------- */
+const L1=[
+()=>{const k=pick([100,200,300,500]),a=pick([2,3]),n=a===3?pick([2,3]):pick([3,4]),v=k*Math.pow(a,n);
+  return {cons:'Calcule',steps:1,prompt:`Une vidéo vient d'être publiée&nbsp;: à l'instant <i>x</i> = 0, elle a <b>${fr(k)}</b> vues. Chaque heure, le nombre de vues est <b>multiplié par ${a}</b>. Combien de vues au bout de <b>${n} heures</b>&nbsp;?`,
+  form:'{0} vues',blanks:[[v]],chk:{kind:'val',k,a,x:n},
+  async setup(){SC.reset({k,a,xmin:0,xmax:n+1.5,bub:(s,v)=>'f = '+fr(v,1)});capt(`${C('x = 0')}&nbsp;: ${fr(k)} vues. Regarde la première heure…`);await sleep(500);await SC.travel(1);capt(`1 heure plus tard&nbsp;: ${fr(k)} × ${a} = ${fr(k*a)} vues.`)},
+  async reveal(){await SC.travel(n);capt(`f(${n}) = ${fr(k)} × ${pw(a,n)} = ${K(fr(v))}`)},
+  why(x){return near(x,k*a*n)?`Tu as multiplié par ${a} × ${n}. Or on multiplie par ${a} <b>à chaque heure</b>&nbsp;: ${n} fois de suite.`:near(x,k+a*n)||near(x,k*(1+a*n))?`Ce n'est pas un ajout&nbsp;: on <b>multiplie</b> par ${a} à chaque heure.`:`Fais les sauts un par un&nbsp;: ${fr(k)} × ${a}, puis encore × ${a}…`},
+  fix:`${fr(k)} × ${pw(a,n)} = ${fr(v)}&nbsp;: c'est la suite géométrique de premier terme ${fr(k)} et de raison ${a}.`}},
+()=>{const [k,a]=pick([[350,1.04],[12,0.75],[80,3],[2500,1.5],[45,0.9]]);
+  return {cons:'Point de départ',steps:1,prompt:`La lanterne suit f(<i>x</i>) = ${kx(k,a)}. À quelle hauteur est-elle à l'instant <i>x</i> = 0&nbsp;?`,
+  form:'f(0) = {0}',blanks:[[k]],chk:{kind:'f0',k,a},
+  async setup(){SC.reset({k,a,xmin:-3,xmax:4,x0:-3,full:[{k,a,col:'g'}],bub:null});capt('La lanterne arrive de la gauche…')},
+  async reveal(){await SC.travel(0,{noArc:true});SC.ring();capt(`f(0) = ${fr(k)} × ${pw(a,0)} = ${fr(k)} × 1 = ${K(fr(k))}&nbsp;: la courbe passe par (0&nbsp;; ${fr(k)}).`)},
+  why(x){return near(x,k*a)?`Attention&nbsp;: ${pw(a,0)} = 1, pas ${fr(a)}.`:near(x,0)?`${pw(a,0)} ne vaut pas 0&nbsp;: pour tout <i>a</i> &gt; 0, <i>a</i><sup>0</sup> = 1.`:near(x,1)?`<i>a</i><sup>0</sup> = 1, mais il reste le facteur ${fr(k)}.`:'Remplace <i>x</i> par 0 et souviens-toi que <i>a</i><sup>0</sup> = 1.'},
+  fix:`f(0) = ${fr(k)} × ${pw(a,0)} = ${fr(k)} × 1 = ${fr(k)}.`}},
+()=>{const [k,a]=pick([[50,1.2],[100,1.5],[200,0.8],[400,0.5],[100,1.1],[250,0.6]]),v1=k*a,v2=k*a*a;
+  return {cons:'Trouve le facteur',steps:1,prompt:`La lanterne est passée par ces trois hauteurs, aux instants 0, 1 et 2&nbsp;: <b>${fr(k)}</b>, <b>${fr(v1)}</b>, <b>${fr(v2)}</b>. Par quel nombre <i>a</i> sa hauteur est-elle multipliée à chaque pas&nbsp;?`,
+  form:'<i>a</i> = {0}',blanks:[[a]],chk:{kind:'ratio',k,a},
+  async setup(){SC.reset({k,a,xmin:0,xmax:5});await sleep(300);await SC.travel(2,{sym:'×\u2009?'});capt(`f(0) = ${fr(k)} · f(1) = ${fr(v1)} · f(2) = ${fr(v2)}`)},
+  async reveal(){SC.st.segs.forEach(s=>s.sym=null);await SC.travel(4);capt(`Chaque pas&nbsp;: ${C('× '+fr(a))} ${a<1?': la lanterne redescend vers l\'eau':': la lanterne s\'envole'}.`)},
+  why(x){return near(x,v1-k)?'Ça, c\'est une différence. La hauteur est <b>multipliée</b>&nbsp;: calcule f(1) ÷ f(0).':near(x,k/v1)?'C\'est l\'inverse&nbsp;: calcule f(1) ÷ f(0), et non f(0) ÷ f(1).':`Calcule ${fr(v1)} ÷ ${fr(k)}.`},
+  fix:`${fr(v1)} ÷ ${fr(k)} = ${fr(a)} et ${fr(v2)} ÷ ${fr(v1)} = ${fr(a)}&nbsp;: même facteur à chaque pas, c'est une suite géométrique de raison ${fr(a)}.`}},
+()=>{const k=pick([4,8,20]),a=pick([0.5,0.6,0.4]);
+  return {cons:'Observe',steps:1,prompt:`La lanterne suit f(<i>x</i>) = ${kx(k,a)} et descend vers l'eau. Finira-t-elle par <b>toucher la surface</b>, c'est-à-dire f(<i>x</i>) = 0&nbsp;?`,type:'choice',chk:{kind:'pos',k,a},
+  choices:[{h:`Non&nbsp;: <i>a</i><sup><i>x</i></sup> &gt; 0 pour tout réel <i>x</i>, donc f(<i>x</i>) &gt; 0.`,ok:1},{h:'Oui, quand <i>x</i> devient assez grand.',why:`Elle s'en approche de plus en plus, mais ${pw(a,X)} reste strictement positif&nbsp;: ${fr(k)} × un nombre positif n'est jamais 0.`},
+    {h:`Oui, dès que <i>x</i> = ${2*k}.`,why:`f(${2*k}) = ${fr(k)} × ${pw(a,2*k)}&nbsp;: c'est tout petit, mais strictement positif.`}],
+  async setup(){SC.reset({k,a,xmin:0,xmax:12,bub:(s,v)=>'f = '+fr(v,6)});await SC.travel(4);capt(`Chaque pas&nbsp;: × ${fr(a)}. La lanterne se rapproche de l'eau…`)},
+  async reveal(){await SC.travel(12,{per:300});capt(`f(12) = ${fr(k)} × ${pw(a,12)} ≈ ${fr(k*Math.pow(a,12),6)} &gt; 0&nbsp;: elle frôle l'eau sans jamais la toucher.`)},
+  fix:`Pour tout réel <i>x</i>, ${pw(a,X)} &gt; 0, donc f(<i>x</i>) = ${kx(k,a)} &gt; 0&nbsp;: la fonction est strictement positive.`}},
+()=>{const c=pick([{k:80,t:-15,ctx:'d'},{k:1200,t:5,ctx:'c'},{k:15000,t:-20,ctx:'v'},{k:250,t:12,ctx:'a'},{k:3000,t:-8,ctx:'p'},{k:500,t:3,ctx:'c'}]);
+  const k=c.k,t=c.t,a=1+t/100;
+  const txt={c:`Un capital de ${fr(k)}&nbsp;€ est placé à ${fr(t)}&nbsp;% par an.`,v:`Une voiture d'occasion vaut ${fr(k)}&nbsp;€&nbsp;; elle perd ${fr(-t)}&nbsp;% de sa valeur chaque année.`,
+    a:`Un compte a ${fr(k)} abonnés&nbsp;; ce nombre augmente de ${fr(t)}&nbsp;% chaque mois.`,p:`Une forêt compte ${fr(k)} arbres malades&nbsp;; ce nombre baisse de ${fr(-t)}&nbsp;% chaque année grâce à un traitement.`,
+    d:`Le prix d'un smartphone est de ${fr(k)}&nbsp;€&nbsp;; il baisse de ${fr(-t)}&nbsp;% chaque trimestre.`}[c.ctx];
+  const lin=`<span class="fml">${fr(k)} ${t>0?'+':'−'} ${fr(Math.abs(k*t/100))}<i>x</i></span>`;
+  return {cons:'Choisis le modèle',steps:2,prompt:`${txt} Quelle fonction donne la valeur au bout de <i>x</i> périodes&nbsp;?`,type:'choice',chk:{kind:'model',k,t},
+  choices:[{h:'f(<i>x</i>) = '+kx(k,a),ok:1},{h:'f(<i>x</i>) = '+kx(k,Math.abs(t)/100),why:`${fr(Math.abs(t)/100)} est le taux, pas le coefficient multiplicateur&nbsp;: ${t>0?'augmenter':'baisser'} de ${fr(Math.abs(t))}&nbsp;%, c'est multiplier par 1 ${t>0?'+':'−'} ${fr(Math.abs(t)/100)} = ${fr(a)}.`},
+    {h:'f(<i>x</i>) = '+kx(k,1-t/100),why:`Le sens est inversé&nbsp;: une ${t>0?'hausse':'baisse'} de ${fr(Math.abs(t))}&nbsp;% correspond au coefficient ${fr(a)}.`},
+    {h:'f(<i>x</i>) = '+lin,why:'Ce modèle ajoute la même quantité à chaque période (évolution linéaire). Ici, le <b>pourcentage</b> est constant&nbsp;: on multiplie à chaque période.'}],
+  async setup(){SC.reset({k,a,xmin:0,xmax:8});capt(`${C('x = 0')}&nbsp;: valeur ${fr(k)}.`)},
+  async reveal(){await SC.travel(6);capt(`Même pourcentage à chaque période → même facteur ${C('× '+fr(a))}&nbsp;: f(<i>x</i>) = ${kx(k,a)}.`)},
+  fix:`${t>0?'Hausse':'Baisse'} de ${fr(Math.abs(t))}&nbsp;% → coefficient multiplicateur ${fr(a)}&nbsp;: f(<i>x</i>) = ${kx(k,a)}.`}},
+()=>{const k=pick([1000,2000,500]),t=pick([5,4,2]),a=1+t/100,[mo,x]=pick([[6,0.5],[18,1.5],[3,0.25]]),v=k*Math.pow(a,x);
+  return {cons:'Du discret au continu',steps:2,prompt:`Un capital de ${fr(k)}&nbsp;€ est placé à ${t}&nbsp;% par an&nbsp;: après <i>n</i> années entières, il vaut <i>u</i><sub><i>n</i></sub> = ${kx(k,a,'<i>n</i>')}. La fonction f(<i>x</i>) = ${kx(k,a)} prolonge cette suite. Quelle expression donne le capital au bout de <b>${mo} mois</b>&nbsp;?`,type:'choice',chk:{kind:'cont',k,a,x},
+  choices:[{h:kx(k,a,fr(x)),ok:1},{h:kx(k,a,fr(mo)),why:`L'unité de <i>x</i> est l'année&nbsp;: ${mo} mois = ${fr(x)} année${x>=2?'s':''}.`},
+    {h:`<span class="fml">${fr(k)} × ${fr(a)} × ${fr(x)}</span>`,why:`On ne multiplie pas par la durée&nbsp;: la durée se place en <b>exposant</b>.`},
+    {h:'On ne peut pas le calculer&nbsp;: <i>n</i> doit être entier.',why:'Avec la suite, oui&nbsp;; mais la fonction exponentielle est définie pour <b>tout réel</b> <i>x</i>&nbsp;: c\'est son intérêt.'}],
+  async setup(){SC.reset({k,a,xmin:0,xmax:3,lab:'val',marks:[0,1,2,3].map(n=>({x:n,v:k*Math.pow(a,n),lab:'u'+'₀₁₂₃'[n]}))});capt(`Les termes de la suite&nbsp;: un point par année entière.`)},
+  async reveal(){SC.set({marks:[]});await SC.travel(x,{noHops:true,endLab:'f('+fr(x)+')'});capt(`f(${fr(x)}) = ${fr(k)} × ${pw(a,fr(x))} ≈ ${K(fr(v,2)+'&nbsp;€')}`)},
+  fix:`${mo} mois = ${fr(x)} année${x>=2?'s':''}&nbsp;: capital f(${fr(x)}) = ${fr(k)} × ${pw(a,fr(x))} ≈ ${fr(v,2)}&nbsp;€.`}}
+];
+
+/* ---------- Niveau 2 · Les sauts s'ajoutent ---------- */
+const L2=[
+()=>{const a=pick([2,3]),m=ri(2,4),n=ri(2,4);
+  return {cons:'Produit',steps:1,prompt:`La lanterne part de ${pw(a,0)} = 1 et fait des sauts «&nbsp;× ${a}&nbsp;». Complète&nbsp;: ${pw(a,m)} × ${pw(a,n)} = ${pw(a,'?')}`,
+  form:'exposant&nbsp;: {0}',blanks:[[m+n]],chk:{kind:'mul',a,m,n},
+  async setup(){SC.reset({k:1,a,xmin:0,xmax:m+n+1,lab:'pow',bub:null});await sleep(250);await SC.travel(m,{col:'b'});capt(`${pw(a,m)}&nbsp;: ${m} sauts × ${a} depuis 1. Puis × ${pw(a,n)}&nbsp;: encore ${n} sauts.`)},
+  async reveal(){await SC.travel(m+n);capt(`${m} sauts + ${n} sauts = ${m+n} sauts&nbsp;: ${pw(a,m)} × ${pw(a,n)} = ${K(pw(a,m+n))}`)},
+  why(x){return near(x,m*n)?'Tu as multiplié les exposants. Pour un produit de puissances de même base, on les <b>additionne</b>&nbsp;: les sauts s\'enchaînent.':'Compte les sauts&nbsp;: les premiers, puis ceux qui s\'ajoutent.'},
+  fix:`${pw(a,m)} × ${pw(a,n)} = ${pw(a,m+'+'+n)} = ${pw(a,m+n)}.`}},
+()=>{const b=pick([2,3,5,7]);let m=ri(2,5),n=ri(2,5);if(m===2&&n===2)n=3;
+  return {cons:'Choisis',steps:1,type:'choice',prompt:`Que vaut ${pw(b,m)} × ${pw(b,n)}&nbsp;?`,chk:{kind:'mulc',b,m,n},
+  choices:[{h:pw(b,m+n),ok:1},{h:pw(b,m*n),why:'On n\'a pas à multiplier les exposants&nbsp;: dans un produit, ils s\'<b>additionnent</b>.'},{h:pw(b*b,m+n),why:`La base ne change pas&nbsp;: ${b} reste ${b}. Seuls les exposants s'additionnent.`},{h:pw(b*b,m*n),why:'Deux erreurs&nbsp;: la base ne change pas, et les exposants s\'additionnent.'}],
+  async setup(){SC.reset({k:1,a:b,xmin:0,xmax:m+n+1,lab:'pow'});await SC.travel(m,{col:'b'});capt(`${pw(b,m)}&nbsp;: ${m} sauts × ${b}.`)},
+  async reveal(){await SC.travel(m+n);capt(`${m} + ${n} = ${m+n} sauts&nbsp;: ${K(pw(b,m+n))}`)},
+  fix:`<i>a</i><sup><i>x</i></sup> × <i>a</i><sup><i>y</i></sup> = <i>a</i><sup><i>x</i>+<i>y</i></sup>&nbsp;: ${pw(b,m)} × ${pw(b,n)} = ${pw(b,m+n)}.`}},
+()=>{const [p,q]=pick([[2.5,1.5],[1.5,0.5],[0.5,2.5],[3.5,0.5],[1.5,1.5]]);
+  return {cons:'Exposants décimaux',steps:1,prompt:`La règle marche aussi avec des exposants non entiers&nbsp;: ${pw(2,fr(p))} × ${pw(2,fr(q))} = ${pw(2,'?')}`,
+  form:'exposant&nbsp;: {0}',blanks:[[p+q]],chk:{kind:'mul',a:2,m:p,n:q},
+  async setup(){SC.reset({k:1,a:2,xmin:0,xmax:p+q+1,lab:'pow'});await SC.travel(p,{col:'b',endLab:true,noHops:true});capt(`La lanterne avance de ${fr(p)} unité${p>=2?'s':''} de temps…`)},
+  async reveal(){await SC.travel(p+q,{endLab:true,noHops:true});capt(`${fr(p)} + ${fr(q)} = ${fr(p+q)}&nbsp;: ${K(pw(2,fr(p+q)))}`)},
+  why(x){return near(x,p*q)?'Dans un produit, on additionne les exposants (on ne les multiplie pas).':'Additionne les deux exposants.'},
+  fix:`${pw(2,fr(p))} × ${pw(2,fr(q))} = ${pw(2,fr(p)+'+'+fr(q))} = ${pw(2,fr(p+q))}.`}},
+()=>{const a=2,m=pick([2,3]),n=pick([2,3]);
+  return {cons:'Puissance d\'une puissance',steps:1,prompt:`${pw('('+pw(a,m)+')',n)}, c'est ${n} paquets de ${m} sauts. Complète&nbsp;: ${pw('('+pw(a,m)+')',n)} = ${pw(a,'?')}`,
+  form:'exposant&nbsp;: {0}',blanks:[[m*n]],chk:{kind:'pow',a,m,n},
+  async setup(){SC.reset({k:1,a,xmin:0,xmax:m*n+1,lab:'pow'});await SC.travel(m,{col:'b'});capt(`Un paquet&nbsp;: ${pw(a,m)} = ${m} sauts. Il en faut ${n}.`)},
+  async reveal(){for(let i=2;i<=n;i++)await SC.travel(m*i,{col:i%2?'b':'g'});capt(`${n} paquets de ${m} sauts = ${n} × ${m} = ${m*n} sauts&nbsp;: ${K(pw(a,m*n))}`)},
+  why(x){return near(x,m+n)?`Tu as additionné. Ici on répète ${n} fois le paquet de ${m} sauts&nbsp;: on <b>multiplie</b> les exposants.`:near(x,Math.pow(m,n))?'Ce n\'est pas une puissance des exposants&nbsp;: on les multiplie.':`Compte&nbsp;: ${n} paquets de ${m}.`},
+  fix:`(<i>a</i><sup><i>x</i></sup>)<sup><i>n</i></sup> = <i>a</i><sup><i>nx</i></sup>&nbsp;: ${pw('('+pw(a,m)+')',n)} = ${pw(a,m*n)}.`}},
+()=>{const a=2,m=ri(3,5);let n=ri(1,m+2);if(n===m)n=m+1;const e=m-n;
+  return {cons:'Avec un exposant négatif',steps:2,prompt:`Complète&nbsp;: ${pw(a,m)} × ${pw(a,'−'+n)} = ${pw(a,'?')}`,
+  form:'exposant&nbsp;: {0}',blanks:[[e]],chk:{kind:'mul',a,m,n:-n},
+  async setup(){SC.reset({k:1,a,xmin:Math.min(0,e)-1,xmax:m+1,lab:'pow'});await SC.travel(m,{col:'b'});capt(`${pw(a,m)}, puis × ${pw(a,'−'+n)}&nbsp;: ${n} sauts <b>en arrière</b>.`)},
+  async reveal(){await SC.travel(e);capt(`${m} + (−${n}) = ${fr(e)}&nbsp;: ${K(pw(a,fr(e)))}`)},
+  why(x){return near(x,m+n)?`L'exposant −${n} est négatif&nbsp;: ${m} + (−${n}) = ${fr(e)}.`:near(x,-m*n)?'Produit → on additionne les exposants.':`Calcule ${m} + (−${n}).`},
+  fix:`${pw(a,m)} × ${pw(a,'−'+n)} = ${pw(a,m+'+(−'+n+')')} = ${pw(a,fr(e))}.`}}
+];
+
+/* ---------- Niveau 3 · Marche arrière ---------- */
+const L3=[
+()=>{const [a,n]=pick([[2,1],[2,2],[2,3],[10,1],[10,2],[4,1],[5,1]]),v=1/Math.pow(a,n);
+  return {cons:'Remonte le temps',steps:1,prompt:`Avancer d'un pas, c'est × ${a}&nbsp;; reculer d'un pas, c'est ÷ ${a}. La lanterne part de ${pw(a,0)} = 1 et recule de ${n} pas. Combien vaut ${pw(a,'−'+n)}&nbsp;? <span style="color:var(--mut)">(écriture décimale ou fraction)</span>`,
+  form:`${pw(a,'−'+n)} = {0}`,blanks:[[v]],chk:{kind:'neg',a,n},
+  async setup(){SC.reset({k:1,a,xmin:-n-1,xmax:3,lab:'pow',bub:(s,v)=>fr(v,4)});SC.ring();capt(`${pw(a,0)} = 1&nbsp;: la lanterne est à la hauteur 1.`)},
+  async reveal(){await SC.travel(-n);capt(`${pw(a,'−'+n)} = ${frac(1,pw(a,n))} = ${frac(1,Math.pow(a,n))} = ${K(fr(v))}`)},
+  why(x){return x<0?`Une puissance d'un nombre positif n'est <b>jamais négative</b>&nbsp;: ${pw(a,'−'+n)} = ${frac(1,pw(a,n))}.`:near(x,Math.pow(a,n))?`C'est ${pw(a,n)}. Reculer, c'est diviser&nbsp;: ${pw(a,'−'+n)} = ${frac(1,pw(a,n))}.`:`Divise 1 par ${a}, ${n} fois.`},
+  fix:`<i>a</i><sup>−<i>x</i></sup> = ${frac(1,'<i>a</i><sup><i>x</i></sup>')}&nbsp;: ${pw(a,'−'+n)} = ${frac(1,Math.pow(a,n))} = ${fr(v)}.`}},
+()=>{const b=pick([3,4,5,10]);
+  return {cons:'Choisis',steps:1,type:'choice',prompt:`Que vaut ${pw(b,'−2')}&nbsp;?`,chk:{kind:'negc',b,n:2},
+  choices:[{h:frac(1,b*b),ok:1},{h:fr(-b*b),why:'Un exposant négatif ne rend pas le résultat négatif&nbsp;: il donne un <b>inverse</b>.'},{h:fr(-2*b),why:`${pw(b,'−2')} n'est pas un produit −2 × ${b}&nbsp;: c'est ${frac(1,pw(b,2))}.`},{h:frac(1,2*b),why:`${pw(b,2)} = ${b} × ${b} = ${b*b}, pas 2 × ${b}.`}],
+  async setup(){SC.reset({k:1,a:b,xmin:-3,xmax:2,lab:'pow'});capt(`${pw(b,0)} = 1. Pour ${pw(b,'−2')}, il faut reculer de 2 pas.`)},
+  async reveal(){await SC.travel(-2);capt(`${pw(b,'−2')} = ${frac(1,pw(b,2))} = ${K(frac(1,b*b))}`)},
+  fix:`${pw(b,'−2')} = ${frac(1,pw(b,2))} = ${frac(1,b*b)}.`}},
+()=>{const a=pick([2,3]),m=ri(5,7),n=ri(2,4);
+  return {cons:'Quotient',steps:1,prompt:`Diviser par ${pw(a,n)}, c'est reculer de ${n} pas. Complète&nbsp;: ${frac(pw(a,m),pw(a,n))} = ${pw(a,'?')}`,
+  form:'exposant&nbsp;: {0}',blanks:[[m-n]],chk:{kind:'div',a,m,n},
+  async setup(){SC.reset({k:1,a,xmin:0,xmax:m+1,lab:'pow'});await SC.travel(m,{col:'b'});capt(`${pw(a,m)}&nbsp;: ${m} pas en avant. Puis ÷ ${pw(a,n)}.`)},
+  async reveal(){await SC.travel(m-n);capt(`${m} − ${n} = ${m-n}&nbsp;: ${K(pw(a,m-n))}`)},
+  why(x){return near(x,m/n)?'On ne divise pas les exposants&nbsp;: on les <b>soustrait</b>.':near(x,m+n)?'Diviser, c\'est reculer&nbsp;: on soustrait les exposants.':`Calcule ${m} − ${n}.`},
+  fix:`${frac('<i>a</i><sup><i>x</i></sup>','<i>a</i><sup><i>y</i></sup>')} = <i>a</i><sup><i>x</i>−<i>y</i></sup>&nbsp;: ${frac(pw(a,m),pw(a,n))} = ${pw(a,m-n)}.`}},
+()=>{const a=pick([2,3]),m=ri(1,3),n=m+ri(2,3),e=m-n;
+  return {cons:'Quotient',steps:2,prompt:`Complète&nbsp;: ${frac(pw(a,m),pw(a,n))} = ${pw(a,'?')}`,
+  form:'exposant&nbsp;: {0}',blanks:[[e]],chk:{kind:'div',a,m,n},
+  async setup(){SC.reset({k:1,a,xmin:e-1,xmax:m+1,lab:'pow'});await SC.travel(m,{col:'b'});capt(`${pw(a,m)}, puis ${n} pas en arrière&nbsp;: on va passer sous ${pw(a,0)} = 1.`)},
+  async reveal(){await SC.travel(e);capt(`${m} − ${n} = ${fr(e)}&nbsp;: ${K(pw(a,fr(e)))} = ${frac(1,pw(a,-e))}`)},
+  why(x){return near(x,-e)?`Attention à l'ordre&nbsp;: exposant du haut moins exposant du bas, ${m} − ${n} = ${fr(e)}.`:`Calcule ${m} − ${n}.`},
+  fix:`${frac(pw(a,m),pw(a,n))} = ${pw(a,m+'−'+n)} = ${pw(a,fr(e))} = ${frac(1,pw(a,-e))}.`}},
+()=>{const a=pick([2,3,4]),m=ri(1,3),n=ri(2,4),e=-(m+n);
+  return {cons:'Deux reculs',steps:2,prompt:`Complète&nbsp;: ${pw(a,'−'+m)} × ${pw(a,'−'+n)} = ${pw(a,'?')}`,
+  form:'exposant&nbsp;: {0}',blanks:[[e]],chk:{kind:'mul',a,m:-m,n:-n},
+  async setup(){SC.reset({k:1,a,xmin:e-1,xmax:2,lab:'pow'});await SC.travel(-m,{col:'b'});capt(`${pw(a,'−'+m)}&nbsp;: ${m} pas en arrière. Puis encore ${n}.`)},
+  async reveal(){await SC.travel(e);capt(`(−${m}) + (−${n}) = ${fr(e)}&nbsp;: ${K(pw(a,fr(e)))}`)},
+  why(x){return near(x,m+n)?'Les deux exposants sont négatifs&nbsp;: la somme est négative.':near(x,m*n)?'Produit → on additionne les exposants.':`Calcule (−${m}) + (−${n}).`},
+  fix:`${pw(a,'−'+m)} × ${pw(a,'−'+n)} = ${pw(a,'−'+m+'+(−'+n+')')} = ${pw(a,fr(e))}.`}}
+];
+
+/* ---------- Niveau 4 · Envol ou plongée ---------- */
+const VAR=['croissante','décroissante','constante'];
+function varQ(k,a,steps,cons){const w=wordVar(k,a),sea=k<0;
+  const why={croissante:'',décroissante:'',constante:'Elle ne serait constante que si <i>a</i> = 1.'};
+  const expl=sea?(a>1?`<i>a</i> = ${fr(a)} &gt; 1&nbsp;: ${pw(a,X)} grandit… mais <i>k</i> = ${fr(k)} &lt; 0&nbsp;: f(<i>x</i>) devient de plus en plus <b>négatif</b>. La luciole plonge&nbsp;: <b>décroissante</b>.`
+      :`0 &lt; <i>a</i> = ${fr(a)} &lt; 1&nbsp;: ${pw(a,X)} diminue vers 0, et <i>k</i> = ${fr(k)} &lt; 0&nbsp;: f(<i>x</i>) remonte vers 0. La luciole remonte vers la surface&nbsp;: <b>croissante</b>.`)
+    :(a>1?`<i>a</i> = ${fr(a)} &gt; 1 et <i>k</i> = ${fr(k)} &gt; 0&nbsp;: la lanterne s'envole, <b>croissante</b>.`:`0 &lt; <i>a</i> = ${fr(a)} &lt; 1 et <i>k</i> = ${fr(k)} &gt; 0&nbsp;: la lanterne redescend, <b>décroissante</b>.`);
+  const hint=sea?`Ici <i>k</i> = ${fr(k)} &lt; 0&nbsp;: la courbe est sous la surface, le tableau s'inverse par rapport au cas <i>k</i> &gt; 0. Compare <i>a</i> à 1, puis tiens compte du signe de <i>k</i>.`
+    :`Compare <i>a</i> = ${fr(a)} à 1&nbsp;: à chaque pas, la hauteur est multipliée par un nombre ${a>1?'plus grand':'plus petit'} que 1.`;
+  return {cons:cons||'Envol ou plongée&nbsp;?',steps,type:'choice',chk:{kind:'var',k,a},prompt:`Sur ℝ, la fonction f(<i>x</i>) = ${kx(k,a)} est…`,
+    choices:VAR.map(v=>v===w?{h:v,ok:1}:{h:v,why:v==='constante'?why.constante:hint}),
+    async setup(){SC.reset({k,a,xmin:-3,xmax:4,x0:-3,lab:'none',bub:null,hide:false});capt(`<i>a</i> = ${fr(a)} ${a>1?'&gt;':'&lt;'} 1 · <i>k</i> = ${fr(k)} ${k>0?'&gt;':'&lt;'} 0 ${sea?'· sous la surface':''}`)},
+    async reveal(){await SC.travel(4,{per:330,noArc:true});capt(sea?`La luciole ${w==='croissante'?'remonte vers la surface':'plonge'}&nbsp;: f est ${K(w)}.`:`La lanterne ${w==='croissante'?'s\'envole':'redescend vers l\'eau'}&nbsp;: f est ${K(w)}.`)},
+    fix:expl}}
+const L4=[
+()=>varQ(1,pick([2,1.5,3,1.2]),1,'Envol ou plongée&nbsp;?'),
+()=>varQ(1,pick([0.5,0.8,0.4,0.9]),1),
+()=>{const [k,a]=pick([[-4,0.2],[3,0.4],[-2,7],[6,1.5],[-3,5],[9,0.8]]);
+  return {cons:'Identifie',steps:1,prompt:`On écrit f(<i>x</i>) = <i>k</i> × <i>a</i><sup><i>x</i></sup>. Pour f(<i>x</i>) = ${kx(k,a)}, que valent <i>k</i> et <i>a</i>&nbsp;?`,
+  form:'<i>k</i> = {0} <i>a</i> = {1}',blanks:[[k],[a]],chk:{kind:'ka',k,a},
+  async setup(){SC.reset({k,a,xmin:-2,xmax:4,x0:0,lab:'none'});SC.ring();capt(`La courbe passe par (0&nbsp;; <i>k</i>) puisque <i>a</i><sup>0</sup> = 1.`)},
+  async reveal(){await SC.travel(4,{noArc:false,arcLab:true});capt(`<i>k</i> = ${K(fr(k))} (point de départ) · <i>a</i> = ${K(fr(a))} (facteur à chaque pas)&nbsp;: f est ${wordVar(k,a)}.`)},
+  why(x){return 'Le coefficient <i>k</i> est devant (avec son signe), la base <i>a</i> est le nombre élevé à la puissance <i>x</i>.'},
+  fix:`f(<i>x</i>) = ${kx(k,a)}&nbsp;: <i>k</i> = ${fr(k)} et <i>a</i> = ${fr(a)}.`}},
+()=>varQ(pick([-3,-2,-4,-5]),pick([2,5,1.5,3]),2,'Sous la surface'),
+()=>varQ(pick([-4,-2,-5,-3]),pick([0.5,0.2,0.8,0.3]),2,'Sous la surface'),
+()=>{const k=pick([3,2,9,5]),a=pick([0.4,0.5,0.7]);
+  return {cons:'Justifie',steps:2,type:'choice',chk:{kind:'just',k,a},prompt:`Quelle phrase étudie correctement le sens de variation de f(<i>x</i>) = ${kx(k,a)} sur ℝ&nbsp;?`,
+  choices:[{h:`f est décroissante, car 0 &lt; <i>a</i> &lt; 1 et <i>k</i> &gt; 0.`,ok:1},{h:'f est croissante, car <i>a</i> &gt; 0 et <i>k</i> &gt; 0.',why:'<i>a</i> &gt; 0 est toujours vrai&nbsp;: ce qui compte, c\'est de comparer <i>a</i> à <b>1</b>.'},
+    {h:'f est croissante, car <i>k</i> &gt; 0.',why:'Le signe de <i>k</i> ne suffit pas&nbsp;: il faut aussi comparer <i>a</i> à 1.'},{h:`f est décroissante, car <i>a</i> &lt; <i>k</i>.`,why:'Comparer <i>a</i> et <i>k</i> n\'a pas de sens ici&nbsp;: on compare <i>a</i> à 1 et on regarde le signe de <i>k</i>.'}],
+  async setup(){SC.reset({k,a,xmin:-2,xmax:5,x0:-2,lab:'none'});capt('Méthode&nbsp;: 1. identifier <i>a</i> et <i>k</i>&nbsp;; 2. comparer <i>a</i> à 1&nbsp;; 3. signe de <i>k</i>.')},
+  async reveal(){await SC.travel(5,{per:320,noArc:true});capt(`<i>a</i> = ${fr(a)} &lt; 1, <i>k</i> = ${fr(k)} &gt; 0&nbsp;: ${K('décroissante')}.`)},
+  fix:`<i>a</i> = ${fr(a)}&nbsp;: 0 &lt; <i>a</i> &lt; 1, et <i>k</i> = ${fr(k)} &gt; 0&nbsp;: f est décroissante sur ℝ.`}}
+];
+
+/* ---------- Niveau 5 · Même base ---------- */
+const OPS={'>':'&gt;','≥':'≥','<':'&lt;','≤':'≤'},REV={'>':'<','≥':'≤','<':'>','≤':'≥'},OPP={'>':'≤','≥':'<','<':'≥','≤':'>'};
+function ineqQ(a,n,op){const corr=a>1?op:REV[op],v=Math.pow(a,n),xr=a>1?(op==='>'||op==='≥'):(op==='<'||op==='≤');
+  const cs=[{h:`<i>x</i> ${OPS[corr]} ${n}`,ok:1},{h:`<i>x</i> ${OPS[REV[corr]]} ${n}`,why:a>1?`Ici <i>a</i> = ${fr(a)} &gt; 1&nbsp;: la fonction est croissante, on <b>garde</b> le sens.`:`Ici 0 &lt; <i>a</i> = ${fr(a)} &lt; 1&nbsp;: la fonction est décroissante, on <b>change</b> le sens.`},
+    {h:`<i>x</i> ${OPS[corr]} ${fr(v)}`,why:`On compare les <b>exposants</b> (${n}), pas la valeur ${pw(a,n)} = ${fr(v)}.`}];
+  return {cons:a>1?'Inéquation, a > 1':'Inéquation, 0 < a < 1',steps:2,type:'choice',chk:{kind:'ineq',a,n,op},prompt:`Pour quels réels <i>x</i> a-t-on ${pw(a,X)} ${OPS[op]} ${pw(a,n)}&nbsp;?`,choices:cs,
+    async setup(){SC.reset({k:1,a,xmin:-1,xmax:n+2.5,x0:-1,lab:'none',hide:true,full:[{k:1,a,col:'g'}],line:{v,lab:fr(a)+'^{'+n+'} = '+fr(v)},limFix:Math.max(v*2.2,a>1?0:1.2)})},
+    async reveal(){const r=xr?{from:n,to:n+2.5,at:n}:{from:-1,to:n,at:n};r.incl=(op==='≥'||op==='≤');SC.set({region:r,hide:false});await SC.travel(n+2.5,{noArc:true,per:300});capt(`Solutions&nbsp;: <i>x</i> ${OPS[corr]} ${n} ${a>1?'(même sens)':'(sens contraire)'}.`)},
+    fix:a>1?`<i>a</i> = ${fr(a)} &gt; 1&nbsp;: ${pw(a,X)} ${OPS[op]} ${pw(a,n)} ⟺ <i>x</i> ${OPS[corr]} ${n} (même sens).`:`0 &lt; <i>a</i> = ${fr(a)} &lt; 1&nbsp;: ${pw(a,X)} ${OPS[op]} ${pw(a,n)} ⟺ <i>x</i> ${OPS[corr]} ${n} (sens contraire).`}}
+const L5=[
+()=>{const a=pick([2,3]),n=a===2?ri(3,6):ri(2,4),v=Math.pow(a,n);
+  return {cons:'Équation',steps:1,prompt:`Résoudre ${pw(a,X)} = ${fr(v)}. Combien de sauts «&nbsp;× ${a}&nbsp;» mènent la lanterne de 1 à ${fr(v)}&nbsp;?`,
+  form:'<i>x</i> = {0}',blanks:[[n]],chk:{kind:'eq',a,v},
+  async setup(){SC.reset({k:1,a,xmin:0,xmax:n+1.5,lab:'val',full:[{k:1,a,col:'g'}],line:{v,lab:'y = '+fr(v)}});capt(`Écris ${fr(v)} comme une puissance de ${a}.`)},
+  async reveal(){await SC.travel(n);capt(`${fr(v)} = ${pw(a,n)}&nbsp;: ${pw(a,X)} = ${pw(a,n)} ⟺ <i>x</i> = ${K(n)}`)},
+  why(x){return near(x,v/a)?`${fr(v)} ÷ ${a} n'est pas la réponse&nbsp;: on cherche l'<b>exposant</b>, le nombre de sauts.`:near(x,v/2)||near(x,v)?'On cherche l\'exposant&nbsp;: compte les multiplications par '+a+'.':`Calcule ${a}, ${a}<sup>2</sup>, ${a}<sup>3</sup>… jusqu'à ${fr(v)}.`},
+  fix:`${fr(v)} = ${pw(a,n)}, et <i>a</i><sup><i>x</i></sup> = <i>a</i><sup><i>y</i></sup> ⟺ <i>x</i> = <i>y</i>&nbsp;: <i>x</i> = ${n}.`}},
+()=>{const [a,p,q]=pick([[5,2,1],[2,4,2],[3,2,3],[10,2,1],[2,2,5],[3,4,2]]),x=q/p,B=Math.pow(a,p),rhs=q===1?fr(a):pw(a,q);
+  return {cons:'Équation',steps:2,prompt:`Résoudre ${pw(a,p+'<i>x</i>')} = ${rhs}.`,
+  form:'<i>x</i> = {0}',blanks:[[x]],chk:{kind:'eqp',a,p,q},
+  async setup(){SC.reset({k:1,a:B,xmin:-.5,xmax:Math.max(2,x+1),lab:'none',full:[{k:1,a:B,col:'g'}],line:{v:Math.pow(a,q),lab:'y = '+fr(Math.pow(a,q))},limFix:Math.pow(a,q)*1.8});capt(`${q===1?fr(a)+' = '+pw(a,1)+'&nbsp;: ':''}même base ${a} des deux côtés → on identifie les exposants.`)},
+  async reveal(){await SC.travel(x,{noHops:true,endLab:'x = '+fr(x)});capt(`${p}<i>x</i> = ${q} ⟺ <i>x</i> = ${frac(q,p)} = ${K(fr(x))}`)},
+  why(v){return near(v,q-p)?'On ne soustrait pas&nbsp;: '+p+'<i>x</i> = '+q+', on divise par '+p+'.':near(v,p/q)?`C'est l'inverse&nbsp;: ${p}<i>x</i> = ${q} donne <i>x</i> = ${frac(q,p)}.`:`Identifie les exposants&nbsp;: ${p}<i>x</i> = ${q}.`},
+  fix:`${pw(a,p+'<i>x</i>')} = ${pw(a,q)} ⟺ ${p}<i>x</i> = ${q} ⟺ <i>x</i> = ${frac(q,p)} = ${fr(x)}.`}},
+()=>{let p=ri(1,3),q=ri(3,6);if((p+q)%2)q++;const x=(p+q)/2;
+  return {cons:'Équation',steps:2,prompt:`Résoudre ${pw(2,'<i>x</i> − '+p)} = ${pw(2,q+' − <i>x</i>')}. Les deux courbes se croisent en un seul point.`,
+  form:'<i>x</i> = {0}',blanks:[[x]],chk:{kind:'eq2',p,q},
+  async setup(){const kf=Math.pow(2,-p),kg=Math.pow(2,q);SC.reset({k:kf,a:2,xmin:-1,xmax:7,x0:-1,lab:'none',hide:true,full:[{k:kf,a:2,col:'g'},{k:kg,a:.5,col:'b'}],limFix:Math.pow(2,x-p)*2.4});capt(`Même base 2&nbsp;: on identifie les exposants.`)},
+  async reveal(){SC.set({hide:false});await SC.travel(x,{noArc:true,noHops:true,endLab:'x = '+fr(x)});capt(`<i>x</i> − ${p} = ${q} − <i>x</i> ⟺ 2<i>x</i> = ${p+q} ⟺ <i>x</i> = ${K(fr(x))}`)},
+  why(v){return near(v,p+q)?`2<i>x</i> = ${p+q}&nbsp;: n'oublie pas de diviser par 2.`:near(v,q-p)?`Regroupe les <i>x</i>&nbsp;: <i>x</i> + <i>x</i> = ${q} + ${p}.`:`Résous <i>x</i> − ${p} = ${q} − <i>x</i>.`},
+  fix:`${pw(2,'<i>x</i> − '+p)} = ${pw(2,q+' − <i>x</i>')} ⟺ <i>x</i> − ${p} = ${q} − <i>x</i> ⟺ 2<i>x</i> = ${p+q} ⟺ <i>x</i> = ${fr(x)}.`}},
+()=>ineqQ(pick([2,3,1.5]),ri(2,4),pick(['>','≥','<','≤'])),
+()=>ineqQ(pick([0.5,0.8]),ri(2,3),pick(['>','≥','<','≤']))
+];
+
+/* ---------- Niveau 6 · Le taux moyen ---------- */
+const prod=ts=>ts.reduce((c,t)=>c*(1+t/100),1);
+function stairs(ts){const P=[[0,100]];ts.forEach((t,i)=>P.push([i+1,P[i][1]*(1+t/100)]));return {pts:P,labs:ts.map(t=>pct(t)),n:1}}
+const NICE=[[10,2],[20,2],[-10,2],[10,3],[-20,2],[5,2],[-10,3],[20,3],[30,2]];
+const L6=[
+()=>{const ts=pick([[10,-5],[20,-10],[30,-20],[-10,20],[50,-20],[10,10],[-20,25]]),Cg=prod(ts);
+  return {cons:'Coefficient global',steps:1,prompt:`Un loyer évolue de <b>${pct(ts[0])}</b> la première année, puis de <b>${pct(ts[1])}</b> la deuxième. Quel est le coefficient multiplicateur global&nbsp;?`,
+  form:'<i>C</i> = {0}',blanks:[[Cg]],chk:{kind:'coef',ts},
+  async setup(){SC.reset({k:100,a:1,xmin:0,xmax:3,lab:'none',hide:true,stairs:stairs(ts)});capt('Indice 100 au départ.');for(let i=0;i<2;i++){await sleep(550);SC.stairsStep()}},
+  async reveal(){capt(`<i>C</i> = ${fr(1+ts[0]/100)} × ${fr(1+ts[1]/100)} = ${K(fr(Cg))}`)},
+  why(x){return near(x,1+(ts[0]+ts[1])/100)?'Les taux ne s\'additionnent pas&nbsp;: on <b>multiplie</b> les coefficients multiplicateurs.':`Multiplie ${fr(1+ts[0]/100)} par ${fr(1+ts[1]/100)}.`},
+  fix:`<i>C</i> = (1 ${ts[0]>0?'+':'−'} ${fr(Math.abs(ts[0])/100)})(1 ${ts[1]>0?'+':'−'} ${fr(Math.abs(ts[1])/100)}) = ${fr(1+ts[0]/100)} × ${fr(1+ts[1]/100)} = ${fr(Cg)}.`}},
+()=>{const ts=pick([[20,-5,10],[10,10,-10],[-10,20,5],[30,-10,-10],[5,10,-20]]),Cg=prod(ts),g=(Cg-1)*100;
+  return {cons:'Taux global',steps:2,prompt:`Un prix subit trois évolutions successives&nbsp;: <b>${ts.map(pct).join(', ')}</b>. Quel est le taux d'évolution global, en %&nbsp;?`,
+  form:'taux global&nbsp;: {0} %',blanks:[[g]],chk:{kind:'glob',ts},
+  async setup(){SC.reset({k:100,a:1,xmin:0,xmax:4,lab:'none',hide:true,stairs:stairs(ts)});capt('Indice 100 au départ.');for(let i=0;i<3;i++){await sleep(500);SC.stairsStep()}},
+  async reveal(){capt(`<i>C</i> = ${ts.map(t=>fr(1+t/100)).join(' × ')} = ${fr(Cg)}&nbsp;: taux global ${K(pct(g))}`)},
+  why(x){return near(x,ts[0]+ts[1]+ts[2])?'Les taux ne s\'additionnent pas&nbsp;: multiplie les coefficients, puis enlève 1.':near(x,Cg)?`${fr(Cg)} est le coefficient&nbsp;: le taux est <i>C</i> − 1, en %.`:'Calcule d\'abord le coefficient global, puis <i>C</i> − 1.'},
+  fix:`<i>t</i><sub>global</sub> = ${ts.map(t=>fr(1+t/100)).join(' × ')} − 1 = ${fr(Cg-1)}, soit ${pct(g)}.`}},
+()=>{const [n,Cg,txt]=pick([[12,1.12,'Taux mensuel équivalent à +12&nbsp;% par an'],[3,1.21,'Taux annuel moyen d\'une hausse de 21&nbsp;% en 3 ans'],[4,1.3,'Taux moyen par étape d\'une hausse de 30&nbsp;% en 4 étapes'],[5,0.85,'Taux annuel moyen d\'une baisse de 15&nbsp;% en 5 ans'],[12,0.9,'Taux mensuel équivalent à −10&nbsp;% par an']]);
+  return {cons:'Exposant 1/n',steps:2,prompt:`${txt}&nbsp;: on écrit (1 + <i>t</i><sub><i>m</i></sub>)<sup>${n}</sup> = ${fr(Cg)}. Complète&nbsp;: 1 + <i>t</i><sub><i>m</i></sub> = ${pw(fr(Cg),'?')}`,
+  form:'exposant&nbsp;: {0}',blanks:[[1/n]],chk:{kind:'inv',n,C:Cg},
+  async setup(){SC.reset({k:100,a:Math.pow(Cg,1/n),xmin:0,xmax:n+1,lab:'none',hide:true,marks:[{x:0,v:100,lab:'100'},{x:n,v:100*Cg,lab:fr(100*Cg)}],limFix:100*Math.max(1,Cg)});capt(`${n} évolutions identiques doivent donner × ${fr(Cg)}.`)},
+  async reveal(){SC.set({hide:false,marks:[]});await SC.travel(n,{per:Math.min(430,2600/n),arcLab:n<=6});capt(`1 + <i>t</i><sub><i>m</i></sub> = ${pw(fr(Cg),'1/'+n)} ≈ ${fr(Math.pow(Cg,1/n),4)}&nbsp;: <i>t</i><sub><i>m</i></sub> ≈ ${K(fr((Math.pow(Cg,1/n)-1)*100,2)+'&nbsp;%')}`)},
+  why(x){return near(x,n)?`Élever à la puissance ${n} ferait l'inverse. Pour « défaire » une puissance ${n}, on élève à la puissance ${frac(1,n)}&nbsp;: c'est la racine ${n}-ième.`:near(x,-n)?`L'exposant ${fr(-n)} donnerait un inverse. Il faut ${frac(1,n)}.`:`<i>a</i><sup>1/<i>n</i></sup> est la racine <i>n</i>-ième de <i>a</i>.`},
+  fix:`(1 + <i>t</i><sub><i>m</i></sub>)<sup>${n}</sup> = ${fr(Cg)} ⟺ 1 + <i>t</i><sub><i>m</i></sub> = ${pw(fr(Cg),'1/'+n)} (on peut écrire 1/${n} sous forme de fraction).`}},
+()=>{const [t,n]=pick(NICE),Cg=Math.pow(1+t/100,n),g=(Cg-1)*100;
+  return {cons:'Taux moyen',steps:2,prompt:`Le nombre d'abonnés d'une chaîne a évolué de <b>${pct(g)}</b> en <b>${n} ans</b>. Quel est le taux d'évolution annuel moyen <i>t</i><sub><i>m</i></sub>&nbsp;? <span style="color:var(--mut)">(Indice&nbsp;: ${fr(Cg)} = ${pw(fr(1+t/100),n)}.)</span>`,
+  form:'<i>t</i><sub><i>m</i></sub> = {0} %',blanks:[[t]],chk:{kind:'tm',t,n},
+  async setup(){SC.reset({k:100,a:1+t/100,xmin:0,xmax:n+1,lab:'none',hide:true,marks:[{x:0,v:100,lab:'100'},{x:n,v:100*Cg,lab:fr(100*Cg)}]});capt(`Départ 100, arrivée ${fr(100*Cg)}&nbsp;: quel facteur constant, ${n} fois&nbsp;?`)},
+  async reveal(){SC.set({hide:false,marks:[]});await SC.travel(n);capt(`(1 + <i>t</i><sub><i>m</i></sub>)<sup>${n}</sup> = ${fr(Cg)} ⟺ 1 + <i>t</i><sub><i>m</i></sub> = ${pw(fr(Cg),'1/'+n)} = ${fr(1+t/100)}&nbsp;: ${K(pct(t)+' par an')}`)},
+  why(x){return near(x,g/n)?`C'est la moyenne arithmétique (${fr(g)} ÷ ${n}). Le taux moyen se calcule avec la racine ${n}-ième du coefficient global.`:near(x,1+t/100)?`${fr(1+t/100)} est le coefficient 1 + <i>t</i><sub><i>m</i></sub>&nbsp;: retire 1 et passe en %.`:`Écris (1 + <i>t</i><sub><i>m</i></sub>)<sup>${n}</sup> = ${fr(Cg)}.`},
+  fix:`(1 + <i>t</i><sub><i>m</i></sub>)<sup>${n}</sup> = ${fr(Cg)}, donc 1 + <i>t</i><sub><i>m</i></sub> = ${pw(fr(Cg),'1/'+n)} = ${fr(1+t/100)}&nbsp;: <i>t</i><sub><i>m</i></sub> = ${pct(t)}.`}},
+()=>{const ts=pick([[30,-10],[50,-20],[20,-10],[40,-20],[60,-25]]),Cg=prod(ts),tm=(Math.sqrt(Cg)-1)*100,mean=(ts[0]+ts[1])/2,g=(Cg-1)*100;
+  return {cons:'Le piège',steps:2,type:'choice',prompt:`Un prix évolue de <b>${pct(ts[0])}</b> puis de <b>${pct(ts[1])}</b>. Quel est le taux moyen par évolution (arrondi à 0,01&nbsp;%)&nbsp;?`,chk:{kind:'tmapprox',ts},
+  choices:[{h:'≈ '+pct(Math.round(tm*100)/100),ok:1},{h:pct(mean),why:'C\'est la moyenne arithmétique des taux. Le taux moyen n\'est <b>pas</b> la moyenne des taux&nbsp;: il vient de la racine carrée du coefficient global.'},
+    {h:pct(g),why:`C'est le taux global (coefficient ${fr(Cg)}), sur les deux évolutions réunies.`},{h:pct(ts[0]+ts[1]),why:'Les taux ne s\'additionnent pas.'}],
+  async setup(){SC.reset({k:100,a:1,xmin:0,xmax:3,lab:'none',hide:true,stairs:stairs(ts)});for(let i=0;i<2;i++){await sleep(500);SC.stairsStep()}capt(`Coefficient global&nbsp;: ${fr(1+ts[0]/100)} × ${fr(1+ts[1]/100)} = ${fr(Cg)}.`)},
+  async reveal(){SC.set({hide:false});SC.st.segs[0].a=Math.sqrt(Cg);await SC.travel(2,{a:Math.sqrt(Cg),k:100,arcLab:true,sym:'×'+fr(Math.sqrt(Cg),4)});capt(`1 + <i>t</i><sub><i>m</i></sub> = ${pw(fr(Cg),'1/2')} ≈ ${fr(Math.sqrt(Cg),4)}&nbsp;: <i>t</i><sub><i>m</i></sub> ≈ ${K(pct(Math.round(tm*100)/100))}. Même arrivée que l'escalier.`)},
+  fix:`(1 + <i>t</i><sub><i>m</i></sub>)<sup>2</sup> = ${fr(Cg)}, donc <i>t</i><sub><i>m</i></sub> = ${pw(fr(Cg),'1/2')} − 1 ≈ ${fr(Math.round(tm*100)/100)}&nbsp;%.`}}
+];
+
+/* ---------- Niveau 7 · Le seuil ---------- */
+function seuilN(k,a,s,dir){let u=k,n=0;while(dir==='ge'?u<s:dir==='gt'?u<=s:u>=s){u*=a;n++;if(n>500)break}return n}
+function pickS(k,a,dir,nmin,nmax,cands){for(let it=0;it<200;it++){const s=pick(cands),n=seuilN(k,a,s,dir);if(n>=nmin&&n<=nmax){let u=k*Math.pow(a,n);if(!near(u,s)&&!near(k*Math.pow(a,n-1),s))return s}}return null}
+function stepQ(o){const {k,a,s,dir,cons,ctx,unit,nm}=o,n=seuilN(k,a,s,dir);
+  return {cons,steps:o.steps||2,type:'step',prompt:ctx,chk:{kind:'seuil',k,a,s,dir},n,k,a,s,dir,unit,nm:nm||'n',
+    async setup(){SC.reset({k,a,xmin:0,xmax:n+2.5,lab:'val',line:{v:s,lab:'seuil '+fr(s)}});capt(`${dir==='ge'?'Tant que u &lt; '+fr(s):'Tant que u ≥ '+fr(s)}&nbsp;: on multiplie par ${fr(a)}.`)},
+    async reveal(){const c=SC.st.segs[SC.st.segs.length-1];if(Math.abs(c.xe-n)>1e-9){SC.reset({k,a,xmin:0,xmax:n+2.5,lab:'val',line:{v:s,lab:'seuil '+fr(s)}});await SC.travel(n,{per:Math.min(430,2800/n)})}
+      capt(`${nm||'n'} = ${n}&nbsp;: u ≈ ${fr(k*Math.pow(a,n),2)} ${dir==='ge'?'≥':'&lt;'} ${fr(s)}, la boucle s'arrête.`)},
+    fix:`${fr(k)} × ${pw(fr(a),n-1)} ≈ ${fr(k*Math.pow(a,n-1),2)} ${dir==='ge'?'&lt;':'≥'} ${fr(s)} et ${fr(k)} × ${pw(fr(a),n)} ≈ ${fr(k*Math.pow(a,n),2)} ${dir==='ge'?'≥':'&lt;'} ${fr(s)}&nbsp;: le seuil est franchi pour ${nm||'n'} = ${n}.`}}
+const L7=[
+()=>{const k=pick([200,100,500]),a=pick([1.5,2,3]),s=pickS(k,a,'ge',3,6,[1000,2000,5000,3000,10000,20000,4000,8000]);
+  return stepQ({k,a,s,dir:'ge',cons:'Pas à pas',unit:'semaines',ctx:`Un compte a ${fr(k)} abonnés. Chaque semaine, ce nombre est multiplié par ${fr(a)}. Fais tourner l'algorithme pas à pas et arrête-le au bon moment&nbsp;: au bout de combien de semaines dépasse-t-on <b>${fr(s)}</b> abonnés&nbsp;?`,steps:1})},
+()=>{const k=pick([16,20,50,40]),a=pick([0.8,0.5,0.7]);const s=pickS(k,a,'lt',3,6,[8,5,10,4,2,1,3,6,15]);
+  return stepQ({k,a,s,dir:'lt',cons:'Décroissance',unit:'heures',nm:'t',ctx:`La concentration d'un médicament dans le sang est ${fr(k)} mg/L, puis elle est multipliée par ${fr(a)} chaque heure. À partir de combien d'heures entières passe-t-elle <b>sous ${fr(s)}</b> mg/L&nbsp;?`})},
+()=>{const [k,t,s]=pick([[200,3.5,500],[50,8,150],[400,2,1000],[120,5,300]]),a=1+t/100,r=s/k,n=seuilN(k,a,s,'gt');
+  return {cons:'Mise en équation',steps:2,type:'choice',chk:{kind:'eqctx',k,a,s},prompt:`Une ville compte ${fr(k)} milliers d'habitants et sa population augmente de ${fr(t)}&nbsp;% par an&nbsp;: f(<i>x</i>) = ${kx(k,a)}. L'inéquation f(<i>x</i>) &gt; ${fr(s)} équivaut à…`,
+  choices:[{h:`${pw(fr(a),X)} &gt; ${fr(r)}`,ok:1},{h:`${pw(fr(a),X)} &gt; ${fr(s-k)}`,why:`On ne soustrait pas ${fr(k)}&nbsp;: on <b>divise</b> les deux membres par ${fr(k)} &gt; 0.`},{h:`<i>x</i> &gt; ${fr(r)}`,why:`${fr(r)} borne ${pw(fr(a),X)}, pas <i>x</i>.`},{h:`${fr(a)} × <i>x</i> &gt; ${fr(r)}`,why:`<i>x</i> est en exposant&nbsp;: ${pw(fr(a),X)} n'est pas ${fr(a)} × <i>x</i>.`}],
+  async setup(){SC.reset({k,a,xmin:0,xmax:n+3,lab:'none',full:[{k,a,col:'g'}],line:{v:s,lab:'y = '+fr(s)}});capt('Divise les deux membres par '+fr(k)+'.')},
+  async reveal(){await SC.travel(n,{per:Math.min(430,3000/n),arcLab:false});capt(`${pw(fr(a),X)} &gt; ${fr(r)}&nbsp;: à la calculatrice, la première année entière est <i>x</i> = ${K(n)}.`)},
+  fix:`${fr(k)} × ${pw(fr(a),X)} &gt; ${fr(s)} ⟺ ${pw(fr(a),X)} &gt; ${frac(fr(s),fr(k))} = ${fr(r)} (on divise par ${fr(k)} &gt; 0).`}},
+()=>{const [k,a,s]=pick([[100,2,1000],[5,3,200],[64,0.5,3],[10,2,300],[1,4,500],[1000,0.5,40]]),dir=a>1?'ge':'lt',n=seuilN(k,a,s,dir);
+  const code=a>1?`<span class="kw">def</span> seuil(u0, a, s):\n    u = u0\n    n = 0\n    <span class="kw">while</span> u &lt; s:\n        u = u * a\n        n = n + 1\n    <span class="kw">return</span> n`:`<span class="kw">def</span> seuil(u0, a, s):\n    u = u0\n    n = 0\n    <span class="kw">while</span> u &gt;= s:\n        u = u * a\n        n = n + 1\n    <span class="kw">return</span> n`;
+  return {cons:'Lire un programme',steps:2,prompt:`<div class="code">${code}</div>Que renvoie <b>seuil(${String(k)}, ${String(a)}, ${String(s)})</b>&nbsp;?`,
+  form:'seuil renvoie {0}',blanks:[[n]],chk:{kind:'seuil',k,a,s,dir},
+  async setup(){SC.reset({k,a,xmin:0,xmax:n+1.5,lab:'val',line:{v:s,lab:'s = '+fr(s)}});capt(`u0 = ${fr(k)}, a = ${fr(a)}, s = ${fr(s)}.`)},
+  async reveal(){await SC.travel(n,{per:Math.min(430,2800/n)});capt(`Après ${n} tours, u = ${fr(k*Math.pow(a,n),4)} ${dir==='ge'?'≥':'&lt;'} ${fr(s)}&nbsp;: la boucle s'arrête, la fonction renvoie ${K(n)}.`)},
+  why(x){return near(x,n-1)?`Après ${n-1} tours, u = ${fr(k*Math.pow(a,n-1),4)}&nbsp;: la condition de la boucle est encore vraie, on fait un tour de plus.`:near(x,n+1)?'Un tour de trop&nbsp;: la boucle s\'arrête dès que la condition devient fausse.':near(x,k*Math.pow(a,n))?'La fonction renvoie n (le nombre de tours), pas u.':'Fais tourner la boucle à la main, en notant u et n.'},
+  fix:`u prend les valeurs ${Array.from({length:n+1},(_,i)=>fr(k*Math.pow(a,i),4)).join(' ; ')}&nbsp;: la boucle s'arrête après ${n} tours.`}},
+()=>{const [a,t]=pick([[1.15,15],[1.2,20],[1.1,10],[1.25,25]]),k=pick([50000,2000,800]);
+  return stepQ({k,a,s:2*k,dir:'ge',cons:'Le doublement',unit:'heures',ctx:`Une culture de bactéries compte ${fr(k)} bactéries et augmente de ${t}&nbsp;% par heure. Au bout de combien d'heures entières le nombre de bactéries a-t-il <b>doublé</b> (au moins ${fr(2*k)})&nbsp;?`})}
+];
+
+window.EPL={
+  LV:[
+    {name:'Le facteur',chap:'Le lagon, 21 h',qs:L1,cours:'<p>Pour <i>a</i> &gt; 0, la fonction exponentielle de base <i>a</i> est <i>x</i> ↦ <i>a</i><sup><i>x</i></sup>, définie sur ℝ&nbsp;: elle prolonge la suite géométrique (<i>a</i><sup><i>n</i></sup>). Avec f(<i>x</i>) = <i>k</i> × <i>a</i><sup><i>x</i></sup>, chaque pas de 1 <b>multiplie par <i>a</i></b>.</p><p><i>a</i><sup>0</sup> = 1, donc f(0) = <i>k</i>&nbsp;; <i>a</i><sup>1</sup> = <i>a</i>&nbsp;; <i>a</i><sup><i>x</i></sup> &gt; 0 pour tout réel <i>x</i>.</p>'},
+    {name:'Les sauts s\'ajoutent',chap:'Lâcher de lanternes',qs:L2,cours:'<p><i>a</i><sup><i>x</i></sup> × <i>a</i><sup><i>y</i></sup> = <i>a</i><sup><i>x</i>+<i>y</i></sup>&nbsp;: on <b>additionne</b> les exposants (les sauts s\'enchaînent).</p><p>(<i>a</i><sup><i>x</i></sup>)<sup><i>n</i></sup> = <i>a</i><sup><i>nx</i></sup>&nbsp;: on <b>multiplie</b> les exposants (<i>n</i> paquets de <i>x</i> sauts).</p>'},
+    {name:'Marche arrière',chap:'Le temps à rebours',qs:L3,cours:'<p>Reculer d\'un pas, c\'est diviser par <i>a</i>&nbsp;: <i>a</i><sup>−<i>x</i></sup> = 1 / <i>a</i><sup><i>x</i></sup>.</p><p><i>a</i><sup><i>x</i></sup> / <i>a</i><sup><i>y</i></sup> = <i>a</i><sup><i>x</i>−<i>y</i></sup>&nbsp;: on <b>soustrait</b> les exposants.</p>'},
+    {name:'Envol ou plongée',chap:'Au-dessus et sous la surface',qs:L4,cours:'<p>Pour f(<i>x</i>) = <i>k</i> × <i>a</i><sup><i>x</i></sup> (<i>a</i> &gt; 0, <i>a</i> ≠ 1, <i>k</i> ≠ 0)&nbsp;:</p><p><i>k</i> &gt; 0&nbsp;: croissante si <i>a</i> &gt; 1, décroissante si 0 &lt; <i>a</i> &lt; 1.<br><i>k</i> &lt; 0&nbsp;: décroissante si <i>a</i> &gt; 1, croissante si 0 &lt; <i>a</i> &lt; 1.</p><p>Méthode&nbsp;: identifier <i>a</i> et <i>k</i>, comparer <i>a</i> à 1, regarder le signe de <i>k</i>. Si <i>a</i> = 1, f est constante.</p>'},
+    {name:'Même base',chap:'Le fil d\'or',qs:L5,cours:'<p>Pour <i>a</i> &gt; 0, <i>a</i> ≠ 1&nbsp;: <i>a</i><sup><i>x</i></sup> = <i>a</i><sup><i>y</i></sup> ⟺ <i>x</i> = <i>y</i>. On ramène les deux membres à la même base, puis on identifie les exposants.</p><p><i>a</i> &gt; 1&nbsp;: <i>a</i><sup><i>x</i></sup> ≤ <i>a</i><sup><i>y</i></sup> ⟺ <i>x</i> ≤ <i>y</i> (même sens).<br>0 &lt; <i>a</i> &lt; 1&nbsp;: <i>a</i><sup><i>x</i></sup> ≤ <i>a</i><sup><i>y</i></sup> ⟺ <i>x</i> ≥ <i>y</i> (sens contraire).</p>'},
+    {name:'Le taux moyen',chap:'L\'escalier et la courbe',qs:L6,cours:'<p>Évolutions successives&nbsp;: <i>C</i> = (1 + <i>t</i><sub>1</sub>)(1 + <i>t</i><sub>2</sub>)…(1 + <i>t</i><sub><i>n</i></sub>) et <i>t</i><sub>global</sub> = <i>C</i> − 1.</p><p>Taux moyen&nbsp;: (1 + <i>t</i><sub><i>m</i></sub>)<sup><i>n</i></sup> = <i>C</i>, donc 1 + <i>t</i><sub><i>m</i></sub> = <i>C</i><sup>1/<i>n</i></sup> et <i>t</i><sub><i>m</i></sub> = <i>C</i><sup>1/<i>n</i></sup> − 1. Ce n\'est <b>pas</b> la moyenne arithmétique des taux.</p>'},
+    {name:'Le seuil',chap:'La ligne d\'or',qs:L7,cours:'<p>Pour trouver le premier entier <i>n</i> tel que <i>u</i><sub>0</sub> × <i>a</i><sup><i>n</i></sup> ≥ <i>s</i>, on multiplie par <i>a</i> pas à pas tant que le seuil n\'est pas atteint&nbsp;: c\'est la boucle <code>while</code> de l\'algorithme de seuil.</p>'}
+  ],wordVar};
+})();
+</script>
+
+<script>
+/* ======================= ENVOL & PLONGÉE — moteur de jeu ======================= */
+(function(){
+'use strict';
+const U=window.EPU,{fr,near,parseNum,SC,capt,SND,sleep}=U,{LV}=window.EPL,$=id=>document.getElementById(id);
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+let lvl=0,qi=0,Q=null,tries=0,run=[],busy=false,solved=false,stepSt=null,token=0;
+function starsOf(i){try{const g=SigmaKit.passport().games['envol-plongee'];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function renderLv(){$('lv').innerHTML=LV.map((L,i)=>{const s=starsOf(i);return `<button role="tab" data-l="${i}" aria-selected="${i===lvl}">${i+1}. ${L.name}${s?`<span class="st" aria-label="${s} étoiles">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<button class="snd" id="snd" aria-pressed="${U.snd}">♪ Bruitages&nbsp;: ${U.snd?'oui':'non'}</button>`}
+function setBusy(b){busy=b;document.body.classList.toggle('busy',b)}
+function dots(){const n=LV[lvl].qs.length;return '<div class="dots">'+Array.from({length:n},(_,i)=>`<span class="dot ${i<run.length?(run[i]?'g':'r'):i===qi?'c':''}"></span>`).join('')+'</div>'}
+function goLevel(l){lvl=l;qi=0;run=[];renderLv();$('chap').textContent=LV[l].chap;startQ()}
+async function startQ(){const my=++token;const L=LV[lvl];Q=L.qs[qi]();tries=0;solved=false;stepSt=null;
+  const p=$('panel');
+  p.innerHTML=`<div class="kick">Niveau ${lvl+1} sur ${LV.length}</div><h2>${L.name}</h2>
+   <details class="cours"><summary>Le cours</summary><div class="in">${L.cours}</div></details>
+   <div class="runtop">${dots()}<span>Question ${qi+1} sur ${L.qs.length}</span></div>
+   <div class="cons">${Q.cons}</div><div class="prompt">${Q.prompt}</div><div id="zone" class="ctl"></div><div id="fb"></div>`;
+  capt('');setBusy(true);
+  try{await Q.setup()}catch(e){console.error(e)}
+  if(my!==token)return;setBusy(false);buildZone();
+}
+function buildZone(){const z=$('zone');
+  if(Q.type==='choice'){z.innerHTML='<div class="chs">'+U.shuf(Q.choices.map((c,i)=>i)).map(i=>`<button class="opt" data-j="${i}">${Q.choices[i].h}</button>`).join('')+'</div>'}
+  else if(Q.type==='step'){stepSt={u:Q.k,n:0};const cond=Q.dir==='ge'?'u &lt; '+String(Q.s):'u &gt;= '+String(Q.s);
+    z.innerHTML=`<div class="code" id="algo"><span class="ln" data-r="0">u = ${String(Q.k)}</span><span class="ln" data-r="0">${Q.nm} = 0</span><span class="ln" data-r="1"><span class="kw">while</span> ${cond}:</span><span class="ln" data-r="2">    u = u * ${String(Q.a)}</span><span class="ln" data-r="3">    ${Q.nm} = ${Q.nm} + 1</span></div>
+     <div class="vars"><span id="vu">u = ${fr(Q.k)}</span><span id="vn">${Q.nm} = 0</span></div>
+     <div class="btns"><button class="btn or" id="sstep">× ${fr(Q.a)} : un tour de boucle</button><button class="btn gh" id="sstop">Stop&nbsp;: la boucle s'arrête</button><button class="btn gh" id="sreset" hidden>Recommencer</button></div>`;
+    hl(1)}
+  else{let h=Q.form.replace(/\{(\d)\}/g,(_,i)=>`<input data-i="${i}" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="Réponse ${+i+1}">`);
+    z.innerHTML=`<form class="form" id="fform" novalidate>${h}<button class="btn or" type="submit">Valider</button></form>`;
+    const f=z.querySelector('input');if(f&&matchMedia('(pointer:fine)').matches)f.focus()}
+}
+function hl(r){const a=$('algo');if(a)a.querySelectorAll('.ln').forEach(e=>e.classList.toggle('on',+e.dataset.r===r))}
+function fb(ok,html,final){const f=$('fb');f.className='fb '+(ok?'ok':'ko');
+  f.innerHTML=MAKI(ok?'joie':'pense')+`<div><b class="v">${ok?pick(['Exact&nbsp;!','Bien vu&nbsp;!','C\'est ça&nbsp;!','Parfait&nbsp;!']):final?'Voici la réponse':'Pas tout à fait…'}</b>${html}${final||ok?`<div class="btns"><button class="btn or" id="next">${qi+1<LV[lvl].qs.length?'Question suivante →':'Terminer le niveau'}</button></div>`:''}</div>`;
+  f.scrollIntoView({block:'nearest',behavior:U.reduceM?'auto':'smooth'});const n=$('next');if(n&&matchMedia('(pointer:fine)').matches)n.focus({preventScroll:true})}
+const pick=U.pick;
+async function verdict(ok,whyHtml){
+  if(ok){solved=true;SND.ok();run.push(tries===0);setBusy(true);$('zone').classList.add('ctl');
+    try{await Q.reveal()}catch(e){console.error(e)}setBusy(false);
+    $('panel').querySelector('.runtop .dots').outerHTML=dots();fb(true,`<p>${Q.fix}</p>`)}
+  else{SND.ko();tries++;
+    if(tries>=2){solved=true;run.push(false);markAnswer();setBusy(true);try{await Q.reveal()}catch(e){console.error(e)}setBusy(false);
+      $('panel').querySelector('.runtop .dots').outerHTML=dots();fb(false,`<p>${whyHtml}</p><p><b>Correction&nbsp;:</b> ${Q.fix}</p>`,true)}
+    else fb(false,`<p>${whyHtml}</p><p style="color:var(--mut)">Réessaie&nbsp;: tu as encore un essai.</p>`)}
+}
+function markAnswer(){const z=$('zone');
+  if(Q.type==='choice')z.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(Q.choices[+b.dataset.j].ok)b.classList.add('ok')});
+  else if(Q.type!=='step')z.querySelectorAll('input').forEach(inp=>{inp.value=fr(Q.blanks[+inp.dataset.i][0]).replace(/\u202f/g,' ');inp.disabled=true;inp.classList.add('ok')});
+  z.querySelectorAll('button').forEach(b=>b.disabled=true)}
+async function doStep(){if(busy)return;const s=stepSt;setBusy(true);hl(2);await sleep(160);s.u*=Q.a;s.n++;$('vu').textContent='u = '+fr(s.u,4);hl(3);$('vn').textContent=Q.nm+' = '+s.n;
+  if(s.n>Q.n+3){setBusy(false);hl(1);return verdict(false,`Le seuil est franchi depuis longtemps&nbsp;: la boucle se serait arrêtée à ${Q.nm} = ${Q.n}.`)}
+  if(SC.st.xmax<s.n+1)SC.set({xmax:s.n+1.5});await SC.travel(s.n,{per:380});hl(1);setBusy(false)}
+function doStop(){if(busy)return;const s=stepSt,cond=Q.dir==='ge'?s.u<Q.s:s.u>=Q.s;
+  if(cond)return verdict(false,`Pas encore&nbsp;: u = ${fr(s.u,4)} ${Q.dir==='ge'?'&lt;':'≥'} ${fr(Q.s)}, la condition de la boucle est vraie, elle continue.`).then(resetStep);
+  if(s.n===Q.n)return verdict(true);
+  return verdict(false,`Trop tard&nbsp;: la condition est devenue fausse dès ${Q.nm} = ${Q.n} (u ≈ ${fr(Q.k*Math.pow(Q.a,Q.n),2)}). La boucle s'arrête au premier passage du seuil.`).then(resetStep)}
+async function resetStep(){if(solved)return;await sleep(200);stepSt={u:Q.k,n:0};$('vu').textContent='u = '+fr(Q.k);$('vn').textContent=Q.nm+' = 0';
+  SC.reset({k:Q.k,a:Q.a,xmin:0,xmax:Q.n+2.5,lab:'val',line:{v:Q.s,lab:'seuil '+fr(Q.s)}});hl(1)}
+async function nextQ(){if(qi+1<LV[lvl].qs.length){qi++;startQ();return}
+  const sc=run.filter(Boolean).length,tot=run.length,L=lvl+1;
+  if(window.SigmaKit){const v=await SigmaKit.levelComplete({level:L,score:sc,total:tot});renderLv();if(lvl+1!==L)return;
+    if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)}}
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.closest('#lv')){if(b.id==='snd'){U.snd=!U.snd;try{localStorage.setItem('sigma-fanfare',U.snd?'1':'0')}catch(_){}renderLv();SND.pop();return}
+    if(b.dataset.l!=null){goLevel(+b.dataset.l)}return}
+  if(b.id==='next'){nextQ();return}
+  if(busy||solved)return;
+  if(b.classList.contains('opt')){const c=Q.choices[+b.dataset.j];if(c.ok){b.classList.add('ok');$('zone').querySelectorAll('.opt').forEach(x=>x.disabled=true);verdict(true)}else{b.classList.add('ko');b.disabled=true;verdict(false,c.why)}}
+  else if(b.id==='sstep')doStep();else if(b.id==='sstop')doStop()});
+document.addEventListener('submit',e=>{if(e.target.id!=='fform')return;e.preventDefault();if(busy||solved)return;
+  const ins=[...e.target.querySelectorAll('input')];let ok=true,firstBad=null,empty=false;
+  ins.forEach(inp=>{const v=parseNum(inp.value);if(inp.value.trim()===''){empty=true;return}const good=Q.blanks[+inp.dataset.i].some(a=>near(a,v));inp.classList.toggle('ok',good);inp.classList.toggle('ko',!good);if(!good){ok=false;if(firstBad==null)firstBad=v}});
+  if(empty){const f=$('fb');f.className='fb ko';f.innerHTML=MAKI('pense')+'<div><b class="v">Il manque une réponse</b><p>Complète chaque case (nombre décimal avec une virgule, ou fraction comme 1/8).</p></div>';return}
+  if(ok)verdict(true);else verdict(false,Q.why?Q.why(firstBad):'Relis l\'énoncé.')});
+window.EP={LV,state:()=>({lvl,qi,busy,solved,tries,run:run.slice(),nq:LV[lvl].qs.length,type:Q&&(Q.type||'num'),blanks:Q&&Q.blanks,choices:Q&&Q.choices&&Q.choices.map(c=>({h:c.h,ok:!!c.ok})),n:Q&&Q.n,step:stepSt}),
+  renderLv,gen(l,i){const q=LV[l].qs[i]();return {level:l+1,type:q.type||'num',prompt:q.prompt,form:q.form||'',blanks:q.blanks||null,choices:q.choices?q.choices.map(c=>({h:c.h,ok:!!c.ok,why:c.why||''})):null,fix:q.fix,steps:q.steps,chk:q.chk,n:q.n}},goLevel};
+renderLv();goLevel(0);
+})();
+</script>
+
+<script>
+/* ======================= ENVOL & PLONGÉE — épreuves finales (Bronze, Argent, Or) ======================= */
+(function(){
+'use strict';
+const {fr,X,pw,kx,frac,pct,ri,pick,shuf,near}=window.EPU,{wordVar}=window.EPL;
+const gcd=(a,b)=>b?gcd(b,a%b):a,rf=(q,p)=>(q/gcd(q,p))+'/'+(p/gcd(q,p));
+const ans=(v,more)=>{const s=fr(v).replace(/\u202f/g,' ');return [s,s.replace(/ /g,'')].concat(more||[])};
+function QC(level,steps,prompt,good,bad,explain,chk){return {type:'qcm',level,prompt,choices:[good].concat(bad),answer:0,explain,steps,chk}}
+function TR(level,steps,prompt,blanks,explain,chk){return {type:'trous',level,prompt,blanks,explain,steps,chk}}
+const nb=(v)=>({answers:ans(v),size:Math.max(3,fr(v).length)});
+/* ------------------------- BRONZE ------------------------- */
+const B={
+1:{q(){const [k,a]=pick([[350,1.04],[80,3],[45,0.9],[1200,1.5],[12,0.75]]);
+    return QC(1,1,`On considère f(<i>x</i>) = ${kx(k,a)}. Que vaut f(0)&nbsp;?`,fr(k),[fr(0),fr(1),fr(k*a)],`<i>a</i><sup>0</sup> = 1, donc f(0) = ${fr(k)} × 1 = ${fr(k)}.`,{kind:'f0',k,a,ans:k})},
+   t(){const u0=pick([50,20,300,5]),q=pick([2,3]),n=2,v=u0*q*q;
+    return TR(1,1,`(<i>u</i><sub><i>n</i></sub>) est la suite géométrique de premier terme <i>u</i><sub>0</sub> = ${fr(u0)} et de raison ${q}. Alors <i>u</i><sub>2</sub> = {0}.`,[nb(v)],`<i>u</i><sub>2</sub> = ${fr(u0)} × ${pw(q,2)} = ${fr(v)}.`,{kind:'val',k:u0,a:q,x:2})}},
+2:{q(){const b=pick([2,3,5]);let m=ri(2,5),n=ri(2,5);if(m===2&&n===2)n=4;
+    return QC(2,1,`${pw(b,m)} × ${pw(b,n)} est égal à&nbsp;:`,pw(b,m+n),[pw(b,m*n),pw(b*b,m+n),pw(b*b,m*n)],`On additionne les exposants&nbsp;: ${pw(b,m)} × ${pw(b,n)} = ${pw(b,m+n)}.`,{kind:'mulc',b,m,n})},
+   t(){const b=pick([2,3,5,7]),m=ri(2,6),n=ri(2,6);
+    return TR(2,1,`${pw(b,m)} × ${pw(b,n)} = ${pw(b,'<i>N</i>')} avec <i>N</i> = {0}.`,[nb(m+n)],`On additionne les exposants&nbsp;: ${m} + ${n} = ${m+n}.`,{kind:'mul',a:b,m,n})}},
+3:{q(){const b=pick([3,4,5,10]);
+    return QC(3,1,`${pw(b,'−2')} est égal à&nbsp;:`,frac(1,b*b),[fr(-b*b),fr(-2*b),frac(1,2*b)],`<i>a</i><sup>−<i>x</i></sup> = 1 / <i>a</i><sup><i>x</i></sup>&nbsp;: ${pw(b,'−2')} = ${frac(1,pw(b,2))} = ${frac(1,b*b)}.`,{kind:'negc',b,n:2})},
+   t(){const b=pick([2,3,7]),m=ri(5,9),n=ri(2,4);
+    return TR(3,1,`${frac(pw(b,m),pw(b,n))} = ${pw(b,'<i>N</i>')} avec <i>N</i> = {0}.`,[nb(m-n)],`On soustrait les exposants&nbsp;: ${m} − ${n} = ${m-n}.`,{kind:'div',a:b,m,n})}},
+4:{q(){const a=pick([2,1.5,0.5,0.8,3,0.4]),w=wordVar(1,a);
+    return QC(4,1,`Sur ℝ, la fonction f(<i>x</i>) = ${kx(1,a)} est&nbsp;:`,w,['croissante','décroissante','constante'].filter(v=>v!==w),a>1?`<i>a</i> = ${fr(a)} &gt; 1 et <i>k</i> = 1 &gt; 0&nbsp;: f est croissante.`:`0 &lt; <i>a</i> = ${fr(a)} &lt; 1 et <i>k</i> = 1 &gt; 0&nbsp;: f est décroissante.`,{kind:'var',k:1,a})},
+   t(){const k=pick([3,2,5,7]),a=pick([2,4,1.5]);
+    return TR(4,1,`f(<i>x</i>) = ${kx(k,a)}&nbsp;: <i>a</i> = ${fr(a)} &gt; 1 et <i>k</i> = ${fr(k)} &gt; 0, donc f est {0} sur ℝ.`,[{answers:['croissante','strictement croissante'],size:10}],`<i>a</i> &gt; 1 et <i>k</i> &gt; 0&nbsp;: f est (strictement) croissante.`,{kind:'varw',k,a})}},
+5:{q(){const a=pick([2,3]),n=a===2?ri(3,6):ri(2,4),v=Math.pow(a,n),bad=[v/a,n+1,a*n].filter((x,i,A)=>x!==n&&A.indexOf(x)===i).slice(0,3);
+    return QC(5,1,`L'équation ${pw(a,X)} = ${fr(v)} a pour solution&nbsp;:`,'<i>x</i> = '+n,bad.map(x=>'<i>x</i> = '+fr(x)),`${fr(v)} = ${pw(a,n)}, donc ${pw(a,X)} = ${pw(a,n)} ⟺ <i>x</i> = ${n}.`,{kind:'eq',a,v,ans:n,bad})},
+   t(){const a=pick([3,5,1.2,0.5]),n=ri(2,9);
+    return TR(5,1,`${pw(a,X)} = ${pw(a,n)} ⟺ <i>x</i> = {0}.`,[nb(n)],`Même base&nbsp;: on identifie les exposants, <i>x</i> = ${n}.`,{kind:'eqi',a,n})}},
+6:{q(){const [t,n]=pick([[10,2],[20,2],[-10,2],[-20,2],[30,2]]),Cg=Math.pow(1+t/100,n),g=(Cg-1)*100;
+    return QC(6,2,`Un prix évolue de ${pct(g)} en ${n} ans. Son taux d'évolution annuel moyen est&nbsp;:`,pct(t),[pct(g/n),pct(g),pct(t/2)].filter(s=>s!==pct(t)),`(1 + <i>t</i><sub><i>m</i></sub>)<sup>2</sup> = ${fr(Cg)}, donc 1 + <i>t</i><sub><i>m</i></sub> = ${pw(fr(Cg),'1/2')} = ${fr(1+t/100)}&nbsp;: <i>t</i><sub><i>m</i></sub> = ${pct(t)}.`,{kind:'tm',t,n})},
+   t(){const ts=pick([[20,10],[10,-10],[50,-20],[-20,10],[5,20]]),Cg=ts.reduce((c,t)=>c*(1+t/100),1);
+    return TR(6,1,`Une hausse de ${fr(ts[0])}&nbsp;% suivie d'une ${ts[1]>0?'hausse':'baisse'} de ${fr(Math.abs(ts[1]))}&nbsp;% correspond au coefficient multiplicateur global <i>C</i> = {0}.`,[nb(Cg)],`<i>C</i> = ${fr(1+ts[0]/100)} × ${fr(1+ts[1]/100)} = ${fr(Cg)}.`,{kind:'coef',ts})}},
+7:{q(){const [k,a,s]=pick([[100,2,1000],[10,3,500],[200,2,3000],[5,4,1000]]);let n=0,u=k;while(u<s){u*=a;n++}
+    const bad=[n-1,n+1,s/k].filter((x,i,A)=>x!==n&&A.indexOf(x)===i).slice(0,3);
+    return QC(7,2,`On pose <i>u</i><sub><i>n</i></sub> = ${kx(k,a,'<i>n</i>')}. Le plus petit entier <i>n</i> tel que <i>u</i><sub><i>n</i></sub> ≥ ${fr(s)} est&nbsp;:`,fr(n),bad.map(x=>fr(x)),`<i>u</i><sub>${n-1}</sub> = ${fr(k*Math.pow(a,n-1))} &lt; ${fr(s)} et <i>u</i><sub>${n}</sub> = ${fr(k*Math.pow(a,n))} ≥ ${fr(s)}.`,{kind:'seuil',k,a,s,dir:'ge',ans:n,bad})},
+   t(){const [k,a,s]=pick([[100,3,2000],[50,2,700],[20,5,1000],[1,10,5000]]);let n=0,u=k;while(u<s){u*=a;n++}
+    return TR(7,2,`Pour la suite <i>u</i><sub><i>n</i></sub> = ${kx(k,a,'<i>n</i>')}, on a <i>u</i><sub><i>n</i></sub> ≥ ${fr(s)} pour la première fois quand <i>n</i> = {0}.`,[nb(n)],`<i>u</i><sub>${n-1}</sub> = ${fr(k*Math.pow(a,n-1))} &lt; ${fr(s)} ≤ <i>u</i><sub>${n}</sub> = ${fr(k*Math.pow(a,n))}.`,{kind:'seuil',k,a,s,dir:'ge'})}}
+};
+/* ------------------------- ARGENT ------------------------- */
+const A={
+1:{q(){const c=pick([[1200,5],[15000,-20],[250,12],[3000,-8],[80,-15],[500,3]]),k=c[0],t=c[1],a=1+t/100;
+    return QC(1,2,`Une grandeur vaut ${fr(k)} au départ et ${t>0?'augmente':'baisse'} de ${fr(Math.abs(t))}&nbsp;% par an. Elle est modélisée par&nbsp;:`,'f(<i>x</i>) = '+kx(k,a),['f(<i>x</i>) = '+kx(k,Math.abs(t)/100),'f(<i>x</i>) = '+kx(k,1-t/100),`f(<i>x</i>) = <span class="fml">${fr(k)} ${t>0?'+':'−'} ${fr(Math.abs(k*t)/100)}<i>x</i></span>`],
+     `${t>0?'Augmenter':'Baisser'} de ${fr(Math.abs(t))}&nbsp;%, c'est multiplier par ${fr(a)}&nbsp;: f(<i>x</i>) = ${kx(k,a)}.`,{kind:'model',k,t})},
+   t(){const [k,a]=pick([[50,1.2],[200,0.8],[400,0.5],[100,1.5],[250,0.6]]);
+    return TR(1,1,`Une fonction f(<i>x</i>) = <i>k</i> × <i>a</i><sup><i>x</i></sup> vérifie f(0) = ${fr(k)}, f(1) = ${fr(k*a)} et f(2) = ${fr(k*a*a)}. Alors <i>a</i> = {0}.`,[nb(a)],`<i>a</i> = f(1) ÷ f(0) = ${fr(k*a)} ÷ ${fr(k)} = ${fr(a)}.`,{kind:'ratio',k,a})}},
+2:{q(){const b=pick([2,3,5]),m=ri(2,4),n=ri(2,4);
+    return QC(2,1,`(${pw(b,'−'+m)})<sup>${n}</sup> est égal à&nbsp;:`,pw(b,fr(-m*n)),[pw(b,fr(-m+n)),pw(b,fr(m*n)),pw(b,fr(-m-n))].filter((s,i,Arr)=>Arr.indexOf(s)===i&&s!==pw(b,fr(-m*n))),`(<i>a</i><sup><i>x</i></sup>)<sup><i>n</i></sup> = <i>a</i><sup><i>nx</i></sup>&nbsp;: ${n} × (−${m}) = ${fr(-m*n)}.`,{kind:'powc',b,m:-m,n})},
+   t(){const [p,q]=pick([[2.5,-0.5],[3.5,-1.5],[1.5,2.5],[4.2,1.8],[0.5,-2.5]]),b=pick([1.5,2,3]);
+    return TR(2,1,`${pw(fr(b),fr(p))} × ${pw(fr(b),fr(q))} = ${pw(fr(b),'<i>N</i>')} avec <i>N</i> = {0}.`,[nb(p+q)],`On additionne les exposants&nbsp;: ${fr(p)} + (${fr(q)}) = ${fr(p+q)}.`,{kind:'mul',a:b,m:p,n:q})}},
+3:{q(){const b=pick([2,3,7]),m=ri(1,3),n=m+ri(2,4);
+    return QC(3,1,`${frac(pw(b,m),pw(b,n))} est égal à&nbsp;:`,pw(b,fr(m-n)),[pw(b,fr(n-m)),pw(b,fr(m+n)),pw(b,'−'+(m*n))].filter((s,i,Arr)=>Arr.indexOf(s)===i&&s!==pw(b,fr(m-n))).slice(0,3),`On soustrait les exposants&nbsp;: ${m} − ${n} = ${fr(m-n)}.`,{kind:'divc',b,m,n})},
+   t(){const b=pick([4,2,3]),m=ri(2,5),n=ri(2,5);
+    return TR(3,1,`${pw(b,'−'+m)} × ${pw(b,'−'+n)} = ${pw(b,'<i>N</i>')} avec <i>N</i> = {0}.`,[nb(-(m+n))],`(−${m}) + (−${n}) = ${fr(-(m+n))}.`,{kind:'mul',a:b,m:-m,n:-n})}},
+4:{q(){const k=pick([-3,-2,-4,5,2,3]),a=pick([5,2,0.2,0.5,7,0.3]),w=wordVar(k,a);
+    return QC(4,2,`Sur ℝ, la fonction g(<i>x</i>) = ${kx(k,a)} est&nbsp;:`,w,['croissante','décroissante','constante'].filter(v=>v!==w),`<i>a</i> = ${fr(a)} ${a>1?'&gt; 1':'&lt; 1'} et <i>k</i> = ${fr(k)} ${k>0?'&gt; 0':'&lt; 0'}&nbsp;: g est ${w}.`,{kind:'var',k,a})},
+   t(){const [k,a]=pick([[-4,0.2],[3,0.4],[-2,7],[-3,5],[9,0.8],[-6,1.5]]);
+    return TR(4,1,`On écrit f(<i>x</i>) = ${kx(k,a)} sous la forme <i>k</i> × <i>a</i><sup><i>x</i></sup>&nbsp;: <i>k</i> = {0} et <i>a</i> = {1}.`,[nb(k),nb(a)],`<i>k</i> = ${fr(k)} (le coefficient, avec son signe) et <i>a</i> = ${fr(a)} (la base).`,{kind:'ka',k,a})}},
+5:{q(){const a=pick([2,3,0.5,0.2,1.5,0.8]),n=ri(2,4),op=pick(['>','≥','<','≤']),OPS={'>':'&gt;','≥':'≥','<':'&lt;','≤':'≤'},REV={'>':'<','≥':'≤','<':'>','≤':'≥'},corr=a>1?op:REV[op];
+    return QC(5,2,`L'inéquation ${pw(fr(a),X)} ${OPS[op]} ${pw(fr(a),n)} équivaut à&nbsp;:`,`<i>x</i> ${OPS[corr]} ${n}`,[`<i>x</i> ${OPS[REV[corr]]} ${n}`,`<i>x</i> ${OPS[corr]} ${fr(Math.pow(a,n))}`],a>1?`<i>a</i> = ${fr(a)} &gt; 1&nbsp;: on garde le sens.`:`0 &lt; <i>a</i> = ${fr(a)} &lt; 1&nbsp;: on change le sens.`,{kind:'ineq',a,n,op})},
+   t(){const [a,p,q]=pick([[5,2,1],[2,4,2],[3,2,3],[10,2,1],[2,2,5],[7,4,6]]),x=q/p;
+    return TR(5,2,`${pw(a,p+'<i>x</i>')} = ${q===1?fr(a):pw(a,q)} ⟺ <i>x</i> = {0}.`,[{answers:ans(x,[q+'/'+p,rf(q,p)]),size:4}],`${p}<i>x</i> = ${q}, donc <i>x</i> = ${frac(q,p)} = ${fr(x)}.`,{kind:'eqp',a,p,q})}},
+6:{q(){const ts=pick([[30,-10],[50,-20],[20,-10],[40,-20],[60,-25]]),Cg=(1+ts[0]/100)*(1+ts[1]/100),tm=Math.round((Math.sqrt(Cg)-1)*10000)/100;
+    return QC(6,2,`Un prix évolue de ${pct(ts[0])} puis de ${pct(ts[1])}. Le taux d'évolution moyen par étape, arrondi à 0,01&nbsp;%, est&nbsp;:`,'≈ '+pct(tm),[pct((ts[0]+ts[1])/2),pct((Cg-1)*100),pct(ts[0]+ts[1])],`<i>C</i> = ${fr(Cg)} et (1 + <i>t</i><sub><i>m</i></sub>)<sup>2</sup> = ${fr(Cg)}&nbsp;: <i>t</i><sub><i>m</i></sub> = ${pw(fr(Cg),'1/2')} − 1 ≈ ${fr(tm)}&nbsp;%. Ce n'est pas la moyenne des taux.`,{kind:'tmapprox',ts})},
+   t(){const ts=pick([[20,-5,10],[10,10,-10],[-10,20,5],[30,-10,-10],[5,10,-20]]),Cg=ts.reduce((c,t)=>c*(1+t/100),1),g=(Cg-1)*100;
+    return TR(6,2,`Trois évolutions successives de ${ts.map(pct).join(', ')} donnent un taux d'évolution global de {0}&nbsp;%.`,[{answers:ans(g,[(g>0?'+':'')+fr(g)]),size:5}],`<i>C</i> = ${ts.map(t=>fr(1+t/100)).join(' × ')} = ${fr(Cg)}, donc <i>t</i><sub>global</sub> = ${fr(Cg)} − 1 = ${fr(Cg-1)}, soit ${pct(g)}.`,{kind:'glob',ts})}},
+7:{q(){const [k,a,s]=pick([[100,2,1000],[5,3,200],[64,0.5,3],[10,2,300],[1000,0.5,40],[1,4,500]]),dir=a>1?'ge':'lt';let n=0,u=k;while(dir==='ge'?u<s:u>=s){u*=a;n++}
+    const bad=[n-1,n+1,Math.round(k*Math.pow(a,n)*1000)/1000].filter((x,i,Arr)=>x!==n&&Arr.indexOf(x)===i);
+    return QC(7,2,`On considère la fonction Python ci-dessous.<div class="code" style="margin-top:8px"><span class="kw">def</span> seuil(u0, a, s):\n    u = u0\n    n = 0\n    <span class="kw">while</span> u ${dir==='ge'?'&lt;':'&gt;='} s:\n        u = u * a\n        n = n + 1\n    <span class="kw">return</span> n</div>Que renvoie seuil(${k}, ${a}, ${s})&nbsp;?`,fr(n),bad.map(x=>fr(x)),`u prend les valeurs ${Array.from({length:n+1},(_,i)=>fr(k*Math.pow(a,i),4)).join(' ; ')}&nbsp;: la boucle tourne ${n} fois.`,{kind:'seuil',k,a,s,dir,ans:n,bad})},
+   t(){const [k,a,s]=pick([[16,0.5,1],[20,0.5,2],[50,0.8,30],[1000,0.1,0.5]]);let n=0,u=k;while(u>=s){u*=a;n++}
+    return TR(7,2,`Pour <i>u</i><sub><i>n</i></sub> = ${kx(k,a,'<i>n</i>')}, le plus petit entier <i>n</i> tel que <i>u</i><sub><i>n</i></sub> &lt; ${fr(s)} est <i>n</i> = {0}.`,[nb(n)],`<i>u</i><sub>${n-1}</sub> = ${fr(k*Math.pow(a,n-1),4)} ≥ ${fr(s)} et <i>u</i><sub>${n}</sub> = ${fr(k*Math.pow(a,n),4)} &lt; ${fr(s)}.`,{kind:'seuil',k,a,s,dir:'lt'})}}
+};
+/* ------------------------- OR ------------------------- */
+const O={
+1:{q(){const k=pick([1000,2000,500]),t=pick([5,4,2]),a=1+t/100,[mo,x]=pick([[18,1.5],[30,2.5],[9,0.75],[6,0.5]]);
+    return QC(1,2,`Un capital de ${fr(k)}&nbsp;€ est placé à ${t}&nbsp;% par an (intérêts composés). On admet que, au bout de <i>x</i> années (<i>x</i> réel positif), il vaut f(<i>x</i>) = ${kx(k,a)}. Le capital au bout de ${mo} mois est&nbsp;:`,kx(k,a,fr(x)),[kx(k,a,fr(mo)),`<span class="fml">${fr(k)} × ${fr(a)} × ${fr(x)}</span>`,kx(k,fr(x),fr(a))],`${mo} mois = ${fr(x)} année${x>=2?'s':''}&nbsp;: f(${fr(x)}) = ${fr(k)} × ${pw(fr(a),fr(x))} ≈ ${fr(k*Math.pow(a,x),2)}&nbsp;€.`,{kind:'cont',k,a,x})},
+   t(){const k=pick([5,2,3,10,12]),a=pick([3,2,4,0.5,1.5]);
+    return TR(1,3,`g(<i>x</i>) = <i>k</i> × <i>a</i><sup><i>x</i></sup> avec <i>a</i> &gt; 0 vérifie g(0) = ${fr(k)} et g(2) = ${fr(k*a*a)}. Alors <i>k</i> = {0} et <i>a</i> = {1}.`,[nb(k),nb(a)],`g(0) = <i>k</i> × <i>a</i><sup>0</sup> = <i>k</i> = ${fr(k)}&nbsp;; ${fr(k)} × <i>a</i><sup>2</sup> = ${fr(k*a*a)} ⟹ <i>a</i><sup>2</sup> = ${fr(a*a)} ⟹ <i>a</i> = ${fr(a)} (car <i>a</i> &gt; 0).`,{kind:'kafrom',k,a})}},
+2:{q(){let m,p,q,e;do{m=ri(1,4);p=ri(2,3);q=ri(1,5);e=-m*p+2*q}while(e===0||e===1);
+    const good=pw(2,fr(e)),bad=[pw(2,fr(-m*p+q)),pw(2,fr(-m+p+2*q)),pw(2,fr(m*p+2*q))].filter((s,i,Arr)=>Arr.indexOf(s)===i&&s!==good);
+    return QC(2,3,`(${pw(2,'−'+m)})<sup>${p}</sup> × ${pw(4,q)} est égal à&nbsp;:`,good,bad,`4 = ${pw(2,2)}, donc ${pw(4,q)} = ${pw(2,2*q)}&nbsp;; (${pw(2,'−'+m)})<sup>${p}</sup> = ${pw(2,fr(-m*p))}&nbsp;; au total ${pw(2,fr(-m*p)+' + '+(2*q))} = ${good}.`,{kind:'or2',m,p,q})},
+   t(){const p=ri(1,4),q=pick([-5,-3,2,-1,4]),r=ri(1,3),e=2*p+q-3*r;
+    return TR(2,3,`${frac(pw(4,p)+' × '+pw(2,fr(q)),pw(8,r))} = ${pw(2,'<i>N</i>')} avec <i>N</i> = {0}.`,[nb(e)],`4 = ${pw(2,2)} et 8 = ${pw(2,3)}&nbsp;: ${2*p} + (${fr(q)}) − ${3*r} = ${fr(e)}.`,{kind:'or2t',p,q,r})}},
+3:{q(){const p=pick([3,2,4]),q=pick([2.5,1.5,0.5]),r=pick([5,3,2]),e=p-q-2*r;
+    const good=pw(3,fr(e)),bad=[pw(3,fr(p-q-r)),pw(3,fr(p-q+2*r)),pw(3,fr(p+q-2*r))].filter((s,i,Arr)=>Arr.indexOf(s)===i&&s!==good).slice(0,3);
+    return QC(3,3,`${frac(pw(3,p)+' × '+pw(3,'−'+fr(q)),pw(9,r))} est égal à&nbsp;:`,good,bad,`9 = ${pw(3,2)}, donc ${pw(9,r)} = ${pw(3,2*r)}&nbsp;; ${p} − ${fr(q)} − ${2*r} = ${fr(e)}.`,{kind:'or3',p,q,r})},
+   t(){const b=pick([2.5,1.5,4.8]),m=ri(2,4),n=ri(1,5),e=-2*m+n;
+    return TR(3,2,`${frac('('+pw(fr(b),m)+')<sup>−2</sup>',pw(fr(b),'−'+n))} = ${pw(fr(b),'<i>N</i>')} avec <i>N</i> = {0}.`,[nb(e)],`(${pw(fr(b),m)})<sup>−2</sup> = ${pw(fr(b),fr(-2*m))}, puis ${fr(-2*m)} − (−${n}) = ${fr(e)}.`,{kind:'or3t',b,m,n})}},
+4:{q(){const cands=shuf([[-4,0.3],[-2,0.5],[3,1.4],[0.5,6]]).slice(0,1).concat([[-2,7],[3,0.4],[5,0.9],[-3,2.5]].sort(()=>Math.random()-.5).slice(0,3)),good=cands[0];
+    return QC(4,2,`Laquelle de ces fonctions est croissante sur ℝ&nbsp;?`,'f(<i>x</i>) = '+kx(good[0],good[1]),cands.slice(1).map(c=>'f(<i>x</i>) = '+kx(c[0],c[1])),`${kx(good[0],good[1])}&nbsp;: ${good[1]>1?'<i>a</i> &gt; 1 et <i>k</i> &gt; 0':'0 &lt; <i>a</i> &lt; 1 et <i>k</i> &lt; 0'}, donc croissante. Les autres sont décroissantes.`,{kind:'or4',list:cands})},
+   t(){const k=pick([-5,-2,-3,-8]),a=pick([0.8,0.5,0.25]);
+    return TR(4,2,`f(<i>x</i>) = ${kx(k,a)}&nbsp;: f(0) = {0} et f est {1} sur ℝ.`,[nb(k),{answers:['croissante','strictement croissante'],size:10}],`f(0) = <i>k</i> = ${fr(k)}&nbsp;; 0 &lt; <i>a</i> &lt; 1 et <i>k</i> &lt; 0&nbsp;: f est croissante (elle remonte vers 0).`,{kind:'or4t',k,a})}},
+5:{q(){const [a,b]=pick([[0.25,0.5],[9,3],[4,2],[0.04,0.2],[8,2],[0.125,0.5]]),p0=Math.round(Math.log(a)/Math.log(b)),n=pick(p0===3?[3,6]:[2,4,6]),op=pick(['≥','<','>','≤']),OPS={'>':'&gt;','≥':'≥','<':'&lt;','≤':'≤'},REV={'>':'<','≥':'≤','<':'>','≤':'≥'};
+    const p=Math.round(Math.log(a)/Math.log(b)),corr=b>1?op:REV[op],lim=n/p;
+    return QC(5,3,`L'inéquation ${pw(fr(a),X)} ${OPS[op]} ${pw(fr(b),n)} équivaut à&nbsp;:`,`<i>x</i> ${OPS[corr]} ${fr(lim)}`,[`<i>x</i> ${OPS[REV[corr]]} ${fr(lim)}`,`<i>x</i> ${OPS[corr]} ${fr(n)}`,`<i>x</i> ${OPS[corr]} ${fr(n*p)}`].filter((s,i,Arr)=>Arr.indexOf(s)===i&&s!==`<i>x</i> ${OPS[corr]} ${fr(lim)}`),
+     `${fr(a)} = ${pw(fr(b),p)}, donc ${pw(fr(b),p+'<i>x</i>')} ${OPS[op]} ${pw(fr(b),n)}&nbsp;; ${b>1?'base &gt; 1&nbsp;: même sens':'base entre 0 et 1&nbsp;: sens contraire'}&nbsp;: ${p}<i>x</i> ${OPS[corr]} ${n}, soit <i>x</i> ${OPS[corr]} ${fr(lim)}.`,{kind:'or5',a,b,n,op})},
+   t(){let p=ri(1,3),q=ri(2,6);if((p+q+1)%2)q++;const x=(p+q+1)/2;
+    return TR(5,3,`${frac(1,2)} × ${pw(2,'<i>x</i> − '+p)} = ${pw(2,q+' − <i>x</i>')} ⟺ <i>x</i> = {0}.`,[nb(x)],`${frac(1,2)} = ${pw(2,'−1')}&nbsp;: ${pw(2,'<i>x</i> − '+(p+1))} = ${pw(2,q+' − <i>x</i>')} ⟺ <i>x</i> − ${p+1} = ${q} − <i>x</i> ⟺ <i>x</i> = ${fr(x)}.`,{kind:'or5t',p,q})}},
+6:{q(){const p=pick([15,10,8,20,25]),n=pick([5,4,3]),Cg=1-p/100,tm=Math.round((Math.pow(Cg,1/n)-1)*10000)/100;
+    return QC(6,3,`La population d'un village a baissé de ${p}&nbsp;% en ${n} ans. Le taux d'évolution annuel moyen, arrondi à 0,01&nbsp;%, est&nbsp;:`,'≈ '+pct(tm),[pct(-p/n),'≈ '+pct(-tm),pct(-p)].filter((s,i,Arr)=>Arr.indexOf(s)===i&&s!=='≈ '+pct(tm)),`<i>C</i> = 1 − ${fr(p/100)} = ${fr(Cg)}&nbsp;; 1 + <i>t</i><sub><i>m</i></sub> = ${pw(fr(Cg),'1/'+n)} ≈ ${fr(Math.pow(Cg,1/n),4)}, donc <i>t</i><sub><i>m</i></sub> ≈ ${fr(tm)}&nbsp;%.`,{kind:'or6',p,n})},
+   t(){const [v0,t,n]=pick([[250,-20,2],[100,10,2],[400,-10,2],[1000,20,2],[200,10,3],[500,-10,3]]),Cg=Math.pow(1+t/100,n),v1=v0*Cg;
+    return TR(6,3,`Un prix passe de ${fr(v0)}&nbsp;€ à ${fr(v1)}&nbsp;€ en ${n} ans. Le coefficient multiplicateur global est <i>C</i> = {0} et le taux d'évolution annuel moyen est {1}&nbsp;%.`,[nb(Cg),{answers:ans(t,[(t>0?'+':'')+fr(t)]),size:4}],`<i>C</i> = ${fr(v1)} ÷ ${fr(v0)} = ${fr(Cg)}&nbsp;; 1 + <i>t</i><sub><i>m</i></sub> = ${pw(fr(Cg),'1/'+n)} = ${fr(1+t/100)}, donc <i>t</i><sub><i>m</i></sub> = ${pct(t)}.`,{kind:'or6t',v0,t,n})}},
+7:{q(){const [k,t,s]=pick([[200,3.5,500],[50,8,150],[400,2,1000],[120,5,300],[80,4,200]]),a=1+t/100;let n=0,u=k;while(!(u>s)){u*=a;n++}
+    const lin=Math.ceil((s/k-1)/(t/100)-1e-9),bad=[n-1,n+1,lin].filter((x,i,Arr)=>x!==n&&Arr.indexOf(x)===i).slice(0,3);
+    return QC(7,3,`Une ville compte ${fr(k)} milliers d'habitants&nbsp;; sa population augmente de ${fr(t)}&nbsp;% par an. On modélise par f(<i>x</i>) = ${kx(k,a)}. À la calculatrice, la première année entière <i>x</i> où f(<i>x</i>) &gt; ${fr(s)} est&nbsp;:`,fr(n),bad.map(x=>fr(x)),`f(<i>x</i>) &gt; ${fr(s)} ⟺ ${pw(fr(a),X)} &gt; ${fr(s/k)}&nbsp;; ${pw(fr(a),n-1)} ≈ ${fr(Math.pow(a,n-1),3)} et ${pw(fr(a),n)} ≈ ${fr(Math.pow(a,n),3)}&nbsp;: <i>x</i> = ${n}. (${fr(lin)} correspondrait à une hausse de ${fr(k*t/100)} milliers par an, ce qui est faux.)`,{kind:'seuil',k,a,s,dir:'gt',ans:n,bad})},
+   t(){const [k,a,s]=pick([[16,0.8,8],[20,0.7,5],[50,0.9,30],[40,0.5,3],[16,0.8,1]]);let n=0,u=k;while(u>=s){u*=a;n++}
+    return TR(7,3,`La concentration d'un médicament est h(<i>t</i>) = ${kx(k,a,'<i>t</i>')} (mg/L, <i>t</i> en heures). Elle passe sous ${fr(s)}&nbsp;mg/L pour la première fois à l'heure entière <i>t</i> = {0}.`,[nb(n)],`h(${n-1}) ≈ ${fr(k*Math.pow(a,n-1),3)} ≥ ${fr(s)} et h(${n}) ≈ ${fr(k*Math.pow(a,n),3)} &lt; ${fr(s)}.`,{kind:'seuil',k,a,s,dir:'lt'})}}
+};
+function build(T,extraPool){
+  for(let guard=0;guard<50;guard++){
+    const extra=shuf(extraPool).slice(0,3);           // trois niveaux en double (un QCM + un trou)
+    const singles=[1,2,3,4,5,6,7].filter(l=>extra.indexOf(l)<0);
+    const trouSingle=pick(singles);
+    const out=[];extra.forEach(l=>{out.push(T[l].q());out.push(T[l].t())});
+    singles.forEach(l=>out.push(l===trouSingle?T[l].t():T[l].q()));
+    const nq=out.filter(q=>q.type==='qcm').length;if(nq===6&&out.length===10&&out.every(q=>q.type==='trous'||q.choices.length>=3))return shuf(out);
+  }
+}
+window.EPF={bronze:()=>build(B,[1,2,3,4,5]),argent:()=>build(A,[1,2,3,4,5,6,7]),or:()=>build(O,[2,3,4,5,6,7])};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'envol-plongee',title:'Envol & Plongée',levels:7,
+  levelNames:window.EPL.LV.map(l=>l.name),music:'aventure',
+  finals:{bronze:()=>(window.EP_last=EPF.bronze()),argent:()=>(window.EP_last=EPF.argent()),or:()=>(window.EP_last=EPF.or())}});
+EP.renderLv();
+</script>
+</body>
+</html>

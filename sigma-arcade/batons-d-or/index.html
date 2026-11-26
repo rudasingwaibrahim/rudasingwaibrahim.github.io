@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bâtons d’Or · Sigma Arcade</title>
+<meta name="description" content="Loi binomiale en Terminale technologique : épreuve et schéma de Bernoulli, arbre et chemins, loi B(n ; p), P(X = k), P(X ≤ k) à la calculatrice, diagramme en bâtons, espérance E(X) = np et espérance d’une loi finie. Les épreuves s’enchaînent, les succès s’accumulent, le diagramme en bâtons se construit et trouve son équilibre en np.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours.
+   IDEA : les n épreuves s'enchaînent sur la « ligne des épreuves », les succès s'accumulent dans le compteur X,
+          chaque série pose son résultat dans une colonne : le diagramme en bâtons se construit, puis se pose
+          sur un pivot ; il ne tient en équilibre que si le pivot est placé en E(X) = np.
+   PICTURE : nuit « océan profond » ; bâtons d'or, colonnes de simulation bleues, pivot doré.
+   LAYOUT : scène et bandeau à gauche (collés en haut sur téléphone), carnet de jeu à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);--blue:#7fb2ff}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:72ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:1000/620;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#050a16;user-select:none;-webkit-user-select:none}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg text{font-family:var(--sg-font)}
+.badge{position:absolute;left:10px;bottom:10px;z-index:2;font:600 13px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--mut);border:1px solid var(--soft);pointer-events:none;max-width:calc(100% - 200px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge:empty,.count:empty{display:none}
+.count{position:absolute;right:10px;bottom:10px;z-index:2;font:700 14px var(--sg-font);font-variant-numeric:tabular-nums;padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--gold2);border:1px solid rgba(200,168,75,.35);pointer-events:none;white-space:nowrap}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,23px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center}
+.capt .k{color:var(--gold2)}.capt .b{color:var(--blue)}.capt .m{color:var(--mut);font-weight:600}.capt .a{color:#a9bcff}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin:8px 0 0;font-size:14px;color:var(--mut)}
+.legend i{display:inline-block;margin-right:6px;vertical-align:-2px}
+.legend .ls i{width:12px;height:12px;border-radius:50%;background:var(--gold2);box-shadow:0 0 6px rgba(232,199,102,.7)}
+.legend .le i{width:12px;height:12px;border-radius:50%;background:#2a4170;border:1px solid #6d86bd}
+.legend .lt i{width:5px;height:15px;border-radius:2px;background:var(--gold2)}
+.legend .lc i{width:14px;height:12px;border-radius:3px;background:rgba(127,178,255,.4);border:1px solid var(--blue)}
+.legend .lf i{width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:12px solid var(--gold)}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.5;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1;box-shadow:none}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(19px,2.2vw,23px)/2.2 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.4em;height:46px;margin:0 3px;padding:0 6px;font:700 21px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.sk-q .fr,.sk-ch .fr{font-size:.92em}
+.nw{white-space:nowrap}
+.law{white-space:nowrap}
+.law i,.vx{font-style:italic}
+.calc{display:inline-block;font:600 .92em var(--sg-mono);background:#050b18;border:1px solid var(--soft);border-radius:8px;padding:1px 8px;white-space:nowrap;color:#cfe0ff}
+.screen{margin:6px 0 12px;border-radius:12px;background:#050b18;border:1px solid var(--soft);padding:10px 14px;font:600 16px/1.7 var(--sg-mono);font-variant-numeric:tabular-nums;overflow-x:auto}
+.screen div{display:flex;justify-content:space-between;gap:16px;white-space:nowrap}
+.screen b{color:var(--gold2)}
+.tb{border-collapse:collapse;font-variant-numeric:tabular-nums;margin:4px 0 10px;font-size:17px}
+.tb th,.tb td{padding:5px 10px;border:1px solid var(--soft);text-align:center}
+.tb th{font-size:14px;color:var(--mut);font-weight:600;text-align:left}
+.tbw{overflow-x:auto;max-width:100%}
+.seq{font:800 1.05em var(--sg-font);letter-spacing:.08em;color:var(--gold2)}
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+/* scène */
+.spin{transform-box:fill-box;transform-origin:center;animation:spin .32s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lampin{transform-box:fill-box;transform-origin:center;animation:lampin .3s cubic-bezier(.2,1.6,.4,1)}
+@keyframes lampin{from{transform:scale(.4)}}
+.glow{filter:url(#bo-glow)}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .stage{aspect-ratio:560/430;max-height:38svh;margin:auto}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+  .legend{display:none}
+  .badge{display:none}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .screen{font-size:14px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win,.spin,.lampin{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Bâtons d’Or</h1>
+<p>Les épreuves s’enchaînent sur la ligne, les succès s’accumulent dans le compteur <i>X</i>&nbsp;: chaque série dépose son résultat dans une colonne et le diagramme en bâtons se construit sous tes yeux. Pose-le sur le pivot&nbsp;: il ne tient en équilibre qu’en <i>E</i>(<i>X</i>) = <i>np</i>.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Ligne des épreuves, compteur de succès et diagramme en bâtons sur son pivot">
+    <svg id="scene" viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+    <span class="badge" id="badge"></span>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+  <div class="legend" id="legend"><span class="ls"><i></i>succès S</span><span class="le"><i></i>échec É</span><span class="lt"><i></i>bâton P(X = k)</span><span class="lc"><i></i>séries simulées</span><span class="lf"><i></i>pivot</span></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b>Pas tout à fait.</b><p id="fbp"></p></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+
+<script>
+/* ======================= BÂTONS D'OR — nombres exacts, écritures, loi binomiale ======================= */
+window.BO_N=(function(){
+'use strict';
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t}return a};
+const R=(n,d)=>{if(d===undefined)d=1;if(d<0){n=-n;d=-d}const g=gcd(n,d)||1;return{n:n/g,d:d/g}};
+const add=(x,y)=>R(x.n*y.d+y.n*x.d,x.d*y.d);
+const sub=(x,y)=>R(x.n*y.d-y.n*x.d,x.d*y.d);
+const mul=(x,y)=>R(x.n*y.n,x.d*y.d);
+const div=(x,y)=>R(x.n*y.d,x.d*y.n);
+const pw=(x,k)=>{let r=R(1);for(let i=0;i<k;i++)r=mul(r,x);return r};
+const cmp=(x,y)=>Math.sign(x.n*y.d-y.n*x.d);
+const eq=(x,y)=>cmp(x,y)===0;
+const val=x=>x.n/x.d;
+const one=R(1),zero=R(0);
+const isDec=r=>{let d=r.d;while(d%2===0)d/=2;while(d%5===0)d/=5;return d===1};
+const NB=' ';
+function fmtInt(n){const s=String(Math.abs(n));const g=s.length>4?s.replace(/\B(?=(\d{3})+(?!\d))/g,NB):s;return (n<0?'−':'')+g}
+function dec(r,minDig){minDig=minDig||0;let k=0;while(k<12&&((Math.abs(r.n)*Math.pow(10,k))%r.d))k++;
+  const kk=Math.max(k,minDig),p=Math.pow(10,kk),v=Math.round(Math.abs(r.n)*p/r.d);
+  const ip=Math.floor(v/p),fp=kk?String(v-ip*p).padStart(kk,'0'):'';
+  return (r.n<0?'−':'')+fmtInt(ip)+(kk?','+fp:'')}
+const frH=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+/* écriture d'un rationnel : fr=true → fraction (ou entier), sinon décimale si exacte */
+const numH=(r,fr)=>r.d===1?fmtInt(r.n):(!fr&&isDec(r))?dec(r):(r.n<0?'−':'')+frH(fmtInt(Math.abs(r.n)),fmtInt(r.d));
+const numT=(r,fr)=>r.d===1?fmtInt(r.n):(!fr&&isDec(r))?dec(r):`${r.n}/${r.d}`;
+/* écritures acceptées pour un rationnel (fraction irréductible, décimale exacte) */
+function ans(r,extra){const out=[];const push=s=>{if(s&&out.indexOf(s)<0)out.push(s)};
+  if(r.d===1)push(String(r.n));
+  if(isDec(r)&&r.d!==1){const d0=dec(r).replace(/ /g,'');push(d0);push(d0.replace(',','.'));}
+  if(r.d!==1)push(`${r.n}/${r.d}`);
+  (extra||[]).forEach(push);return out}
+function parse(s){s=String(s).replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.');
+  let m=/^(-?)(\d*)(?:\.(\d+))?$/.exec(s);
+  if(m&&(m[2]||m[3])){const ip=m[2]||'0',fp=m[3]||'';const n=parseInt(ip+fp,10)*(m[1]?-1:1);return R(n,Math.pow(10,fp.length))}
+  m=/^(-?\d+)\/(\d+)$/.exec(s);if(m&&+m[2])return R(parseInt(m[1],10),parseInt(m[2],10));
+  return null}
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+/* loi binomiale : nombre de chemins (calcul interne), probabilités exactes et flottantes */
+function nch(n,k){if(k<0||k>n)return 0;let c=1;for(let i=1;i<=k;i++)c=c*(n-k+i)/i;return Math.round(c)}
+const pmfR=(n,p,k)=>mul(R(nch(n,k)),mul(pw(p,k),pw(sub(one,p),n-k)));
+const pmf=(n,p,k)=>nch(n,k)*Math.pow(p,k)*Math.pow(1-p,n-k);
+const cdf=(n,p,k)=>{let s=0;for(let i=0;i<=k;i++)s+=pmf(n,p,i);return Math.min(1,s)};
+/* arrondi à 10^-d d'un flottant, rendu comme rationnel */
+const rnd=(v,d)=>R(Math.round(v*Math.pow(10,d)),Math.pow(10,d));
+const decN=(r,d)=>dec(r,d);
+const trial=p=>typeof p==='number'?Math.random()<p:Math.random()*p.d<p.n;
+function series(n,p){return Array.from({length:n},()=>trial(p))}
+const law=(n,pH)=>`<span class="law"><i>B</i>(${n}&nbsp;;&nbsp;${pH})</span>`;
+const PX=(op,k)=>`<span class="nw"><i>P</i>(<i>X</i>&nbsp;${op}&nbsp;${k})</span>`;
+const EX='<span class="nw"><i>E</i>(<i>X</i>)</span>';
+const ptxt=r=>r.d===1?String(r.n):isDec(r)?dec(r).replace(',','.'):`${r.n}/${r.d}`;  // écriture « calculatrice »
+return{gcd,R,add,sub,mul,div,pw,cmp,eq,val,one,zero,isDec,fmtInt,dec,frH,numH,numT,ans,parse,ri,pick,shuf,nch,pmfR,pmf,cdf,rnd,decN,trial,series,law,PX,EX,ptxt,NB};
+})();
+</script>
+
+<script>
+/* ======================= BÂTONS D'OR — la scène ======================= */
+window.BO_S=(function(){
+'use strict';
+const N=window.BO_N,NS='http://www.w3.org/2000/svg',svg=document.getElementById('scene');
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $=id=>document.getElementById(id);
+let W=1000,H=620,narrow=false;
+function el(tag,a,parent){const e=document.createElementNS(NS,tag);if(a)for(const k in a)e.setAttribute(k,a[k]);if(parent)parent.appendChild(e);return e}
+function tx(parent,x,y,s,a){const t=el('text',Object.assign({x,y,'text-anchor':'middle'},a||{}),parent);t.textContent=s;return t}
+const C={gold:'#e8c766',gold2:'#f6dc8a',goldD:'#a8862c',blue:'#7fb2ff',acc:'#8ea6ff',ink:'#f0f4ff',mut:'rgba(200,215,255,.62)',fail:'#2a4170',failS:'#6d86bd',grid:'rgba(120,160,255,.13)'};
+const fstr=v=>String(v).replace('.',',');
+
+/* ---------- bruitages (interrupteur partagé avec le kit) ---------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null,lastTick=0;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const SND={
+  pop(){if(snd){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)}},
+  hit(ok){if(!snd)return;const n=performance.now();if(n-lastTick<40)return;lastTick=n;if(ok){tone(880,.12,.04,'triangle');tone(1318.5,.1,.02,'sine',.02)}else tone(294,.09,.03,'sine')},
+  tick(){if(!snd)return;const n=performance.now();if(n-lastTick<35)return;lastTick=n;tone(740+Math.random()*200,.05,.018,'sine')},
+  drop(){if(snd){tone(523.25,.12,.04,'triangle');tone(784,.1,.02,'sine',.05)}},
+  soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))},
+  creak(){if(snd){tone(180,.3,.03,'sine');tone(150,.35,.025,'sine',.12)}},
+  level(){if(snd){tone(659.25,.25,.04,'triangle');tone(987.8,.4,.035,'triangle',.12)}}};
+const sound={get:()=>snd,set:v=>{snd=v;try{localStorage.setItem('sigma-fanfare',v?'1':'0')}catch(_){}}};
+
+/* ---------- état (tout se redessine à partir de lui) ---------- */
+const st={mode:'none',p:null,lamps:[],X:null,showX:false,stripOn:true,
+  chart:null,      // {xs:[valeurs], ps:[flottants], labs:[textes]|null, theo:bool, emp:[effectifs]|null, empN, tok:[effectifs]|null, hi:{a:[],b:[]}, f:null|nombre, mean:null|{v,lab}, xlab:'k', ylab}
+  tree:null,       // {n,p,hiK,leafLab}
+  wheel:null};     // {p,ang}
+let L={},token=0,theta=0,thetaT=0,vel=0,raf=0,fx=null;
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?Math.min(ms,30):ms));
+function stripG(){const top=narrow?12:16,h=narrow?86:96;return{top,h,bot:top+h}}
+function build(){svg.innerHTML='';svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const d=el('defs',null,svg);
+  d.innerHTML=`<linearGradient id="bo-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#030716"/><stop offset="1" stop-color="#0d1a3a"/></linearGradient>
+  <linearGradient id="bo-bar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe7a1"/><stop offset=".45" stop-color="#e8c766"/><stop offset="1" stop-color="#a8862c"/></linearGradient>
+  <linearGradient id="bo-emp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fb2ff" stop-opacity=".55"/><stop offset="1" stop-color="#7fb2ff" stop-opacity=".18"/></linearGradient>
+  <linearGradient id="bo-strip" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0e1f40"/><stop offset="1" stop-color="#091530"/></linearGradient>
+  <radialGradient id="bo-s" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#fff6d0"/><stop offset=".5" stop-color="#e8c766"/><stop offset="1" stop-color="#a8862c"/></radialGradient>
+  <filter id="bo-glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+  el('rect',{width:W,height:H,fill:'url(#bo-sky)'},svg);
+  const stars=el('g',{fill:'#fff'},svg);let seed=11;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  for(let i=0;i<46;i++)el('circle',{cx:(rnd()*W).toFixed(1),cy:(rnd()*H*.9).toFixed(1),r:(.4+rnd()*.9).toFixed(2),opacity:(.15+rnd()*.45).toFixed(2)},stars);
+  L={strip:el('g',null,svg),main:el('g',null,svg),beam:null,piv:null,over:el('g',null,svg)}}
+/* ---------- la ligne des épreuves ---------- */
+function stripGeo(n){const g=stripG(),cw=narrow?92:130,x0=narrow?16:24,x1=W-cw-(narrow?16:24),cell=Math.min(narrow?58:84,(x1-x0)/Math.max(1,n)),
+  r=Math.max(8,Math.min(narrow?22:30,cell*.36)),span=cell*n,sx=x0+((x1-x0)-span)/2;return{g,cell,r,sx,cy:g.top+g.h/2,cx0:x1+10,cw}}
+function arcPath(cx,cy,r,f){if(f>=1)return null;const a=f*2*Math.PI,x=cx+r*Math.sin(a),y=cy-r*Math.cos(a);return `M${cx} ${cy} L${cx} ${cy-r} A${r} ${r} 0 ${f>.5?1:0} 1 ${x.toFixed(2)} ${y.toFixed(2)} Z`}
+function lampEl(parent,cx,cy,r,s,i,pf){const g=el('g',null,parent);
+  if(s==='idle'){el('circle',{cx,cy,r,fill:'#0b1a33',stroke:'rgba(120,160,255,.35)','stroke-width':1.5,'stroke-dasharray':'3 3'},g);
+    if(r>=13)tx(g,cx,cy+r*.32,String(i+1),{fill:C.mut,'font-size':Math.round(r*.8),'font-weight':600})}
+  else if(s==='spin'){const sg=el('g',{class:'spin'},g);el('circle',{cx,cy,r,fill:C.fail,stroke:C.failS,'stroke-width':1.2},sg);
+    const d=arcPath(cx,cy,r,pf);if(d)el('path',{d,fill:C.gold},sg);else el('circle',{cx,cy,r,fill:C.gold},sg)}
+  else{const ok=s==='S',gg=el('g',{class:reduceM?'':'lampin'},g);
+    el('circle',{cx,cy,r,fill:ok?'url(#bo-s)':C.fail,stroke:ok?'#fff1bf':C.failS,'stroke-width':1.4,class:ok?'glow':''},gg);
+    tx(gg,cx,cy+r*.36,ok?'S':'É',{fill:ok?'#2a1d00':'#a9bde8','font-size':Math.round(r*1.02),'font-weight':800})}
+  return g}
+function drawStrip(){const P=L.strip;P.innerHTML='';if(!st.stripOn)return;const n=st.lamps.length,g=stripG();
+  el('rect',{x:narrow?8:12,y:g.top-6,width:W-(narrow?16:24),height:g.h+12,rx:16,fill:'url(#bo-strip)',stroke:'rgba(120,160,255,.18)'},P);
+  if(!n){tx(P,W/2,g.top+g.h/2+7,'la ligne des épreuves',{fill:C.mut,'font-size':narrow?17:19,'font-weight':600});return}
+  const G=stripGeo(n),pf=st.p?N.val(st.p):.5;
+  if(n>1)el('line',{x1:G.sx+G.cell/2,x2:G.sx+G.cell*(n-.5),y1:G.cy,y2:G.cy,stroke:'rgba(120,160,255,.25)','stroke-width':2},P);
+  st.lamps.forEach((s,i)=>lampEl(P,G.sx+G.cell*(i+.5),G.cy,G.r,s,i,pf));
+  if(st.showX){const cx=G.cx0+G.cw/2-6;el('rect',{x:G.cx0-4,y:g.top+4,width:G.cw-10,height:g.h-8,rx:12,fill:'rgba(200,168,75,.1)',stroke:'rgba(232,199,102,.55)'},P);
+    tx(P,cx,g.top+(narrow?30:33),'succès',{fill:C.mut,'font-size':narrow?14:15,'font-weight':600});
+    tx(P,cx,g.top+g.h-(narrow?14:16),'X = '+(st.X===null?'…':st.X),{fill:C.gold2,'font-size':narrow?26:32,'font-weight':800,'font-variant-numeric':'tabular-nums'})}}
+/* ---------- le diagramme en bâtons et son pivot ---------- */
+function chartGeo(){const ch=st.chart,xs=ch.xs,lo=ch.lo!==undefined?ch.lo:Math.min.apply(null,xs),hi=ch.hi!==undefined?ch.hi:Math.max.apply(null,xs),slots=hi-lo+1,
+  top=(st.stripOn?stripG().bot:0)+(narrow?44:52),axisY=H-100,x0=narrow?62:92,x1=W-(narrow?18:40),slot=(x1-x0)/slots;
+  return{lo,hi,slots,top,axisY,x0,x1,slot,X:v=>x0+(v-lo+.5)*slot}}
+function yMax(){const ch=st.chart;let m=0;ch.ps.forEach(v=>{m=Math.max(m,v)});if(ch.emp&&ch.empN)ch.emp.forEach(c=>{m=Math.max(m,c/ch.empN)});
+  const steps=[.1,.15,.2,.25,.3,.4,.5,.6,.7,.8,1];for(const s of steps)if(m<=s*.96)return s;return 1}
+function drawChart(){const M=L.main;M.innerHTML='';const ch=st.chart;if(!ch)return;const G=chartGeo(),ym=ch.tok?null:yMax(),h=G.axisY-G.top,Y=v=>G.axisY-v/ym*h;
+  /* grille fixe (ne bascule pas) */
+  if(ym&&!ch.noGrid){const step=ym<=.3?.05:.1,gr=el('g',null,M);for(let v=step;v<=ym+1e-9;v+=step){const y=Y(v);el('line',{x1:G.x0-8,x2:G.x1,y1:y,y2:y,stroke:C.grid},gr);
+      tx(gr,G.x0-14,y+5,fstr(+v.toFixed(2)),{fill:C.mut,'font-size':narrow?13:14,'text-anchor':'end','font-variant-numeric':'tabular-nums'})}
+    tx(gr,G.x0-14,G.top-16,ch.ylab||'P(X = k)',{fill:C.mut,'font-size':narrow?13:15,'text-anchor':'start','font-weight':600,'font-style':'italic'})}
+  /* pivot (fixe) */
+  L.piv=el('g',null,M);
+  /* fléau : axe + bâtons, tourne autour du pivot */
+  const B=L.beam=el('g',null,M);
+  el('line',{x1:G.x0-10,x2:G.x1,y1:G.axisY,y2:G.axisY,stroke:'rgba(200,215,255,.55)','stroke-width':2.5,'stroke-linecap':'round'},B);
+  const hi=ch.hi_||{a:[],b:[]},any=hi.a.length||hi.b.length,bw=Math.max(8,Math.min(narrow?16:18,G.slot*.22)),ew=Math.min(G.slot*.66,narrow?40:56);
+  for(let v=G.lo;v<=G.hi;v++){const x=G.X(v),isX=ch.xs.indexOf(v)>=0;
+    if(isX||ch.allTicks){el('line',{x1:x,x2:x,y1:G.axisY,y2:G.axisY+7,stroke:'rgba(200,215,255,.5)','stroke-width':1.5},B);
+      if(isX||v===0)tx(B,x,G.axisY+(narrow?26:28),N.fmtInt(v),{fill:isX?C.ink:C.mut,'font-size':narrow?17:19,'font-weight':700,'font-variant-numeric':'tabular-nums',stroke:'#050a16','stroke-width':4,'paint-order':'stroke'})}}
+  if(ch.xlab)tx(M,G.x1,G.top-16,ch.xlab,{fill:C.mut,'font-size':narrow?13:15,'font-style':'italic','text-anchor':'end','font-weight':600});
+  ch.xs.forEach((v,i)=>{const x=G.X(v);
+    if(ch.emp&&ch.empN){const f=ch.emp[i]/ch.empN,y=Y(f);if(f>0)el('rect',{x:x-ew/2,y,width:ew,height:G.axisY-y,rx:4,fill:'url(#bo-emp)',stroke:'rgba(127,178,255,.7)','stroke-width':1},B)}
+    if(ch.tok){const c=ch.tok[i],r=Math.min(narrow?10:12,G.slot*.3),gap=r*2+2,maxC=Math.floor((G.axisY-G.top-10)/gap);
+      for(let j=0;j<c;j++){const yy=G.axisY-r-3-j*gap;if(j>=maxC)break;el('circle',{cx:x,cy:yy,r,fill:'url(#bo-s)',stroke:'#fff1bf','stroke-width':1},B)}
+      if(c)tx(B,x,G.axisY-r*2-6-Math.min(c,maxC)*gap+gap-6,String(c),{fill:C.gold2,'font-size':narrow?15:16,'font-weight':700})}
+    if(ch.theo&&ch.ps[i]>0){const y=Y(ch.ps[i]),inA=hi.a.indexOf(v)>=0,inB=hi.b.indexOf(v)>=0;
+      const fill=inA?C.acc:'url(#bo-bar)',op=any&&!inA&&!inB?.3:1;
+      el('rect',{x:x-bw/2,y,width:bw,height:G.axisY-y,rx:3,fill,opacity:op,class:(inA||inB)?'glow':''},B);
+      if(ch.labs&&ch.labs[i])tx(B,x,y-9,ch.labs[i],{fill:inA?'#c9d6ff':C.gold2,opacity:any&&!inA&&!inB?.45:1,'font-size':narrow?(ch.xs.length>8?11:14):(ch.xs.length>9?13:16),'font-weight':700,'font-variant-numeric':'tabular-nums',stroke:'#050a16','stroke-width':3,'paint-order':'stroke'})}});
+  /* espérance */
+  if(ch.mean){const x=G.X(ch.mean.v),g=el('g',null,B);el('line',{x1:x,x2:x,y1:G.axisY,y2:G.top-4,stroke:C.gold2,'stroke-width':2,'stroke-dasharray':'6 5'},g);
+    const lab=ch.mean.lab,w=lab.length*(narrow?8.4:9.4)+22,bx=Math.max(G.x0-20,Math.min(W-w-6,x-w/2));
+    el('rect',{x:bx,y:G.top-34,width:w,height:28,rx:14,fill:'rgba(4,9,20,.9)',stroke:C.gold,'stroke-width':1.2},g);tx(g,bx+w/2,G.top-14,lab,{fill:C.gold2,'font-size':narrow?15:17,'font-weight':800})}
+  drawPivot();applyTilt()}
+function drawPivot(){const P=L.piv;if(!P)return;P.innerHTML='';const ch=st.chart;if(!ch||ch.f===null||ch.f===undefined)return;const G=chartGeo(),x=fx===null?G.X(ch.f):fx,s=narrow?15:19;
+  el('path',{d:`M${x} ${G.axisY+2} L${x-s} ${G.axisY+s*1.9} L${x+s} ${G.axisY+s*1.9} Z`,fill:'rgba(200,168,75,.5)',stroke:C.gold,'stroke-width':1.6,'stroke-linejoin':'round'},P);
+  el('line',{x1:x-s*2.2,x2:x+s*2.2,y1:G.axisY+s*1.9+1,y2:G.axisY+s*1.9+1,stroke:C.gold,'stroke-width':2,'stroke-linecap':'round'},P);
+  el('circle',{cx:x,cy:G.axisY,r:4.5,fill:C.gold2},P)}
+/* le basculement : couple = (moyenne des bâtons) − (position du pivot) */
+function torque(){const ch=st.chart;if(!ch||ch.f===null||ch.f===undefined||!ch.theo)return 0;const G=chartGeo();let m=0,s=0;ch.xs.forEach((v,i)=>{m+=v*ch.ps[i];s+=ch.ps[i]});
+  const pv=fx===null?ch.f:G.lo-.5+(fx-G.x0)/G.slot;return (m/s)-pv}
+function target(){const ch=st.chart;if(!ch||ch.f===null||ch.f===undefined)return 0;const G=chartGeo(),t=torque();if(Math.abs(t)<1e-9)return 0;
+  const k=20/Math.max(4,G.slots),a=Math.max(2,Math.abs(t)*k);return Math.sign(t)*Math.min(6,a)}
+function applyTilt(){if(!L.beam)return;const ch=st.chart;if(!ch||ch.f===null||ch.f===undefined){L.beam.removeAttribute('transform');return}
+  const G=chartGeo(),x=fx===null?G.X(ch.f):fx;L.beam.setAttribute('transform',`rotate(${theta.toFixed(3)} ${x.toFixed(1)} ${G.axisY})`)}
+function loop(){raf=0;thetaT=target();if(reduceM){theta=thetaT;vel=0;applyTilt();return}
+  const a=(thetaT-theta)*.06-vel*.18;vel+=a;theta+=vel;applyTilt();if(Math.abs(thetaT-theta)>.01||Math.abs(vel)>.005)raf=requestAnimationFrame(loop);else{theta=thetaT;vel=0;applyTilt()}}
+function kick(){if(!raf)raf=requestAnimationFrame(loop)}
+/* ---------- l'arbre ---------- */
+function drawTree(){const M=L.main;M.innerHTML='';const T=st.tree;if(!T)return;const n=T.n,top=(st.stripOn?stripG().bot:0)+(narrow?18:22),bot=H-(narrow?12:16),
+  x0=narrow?30:60,labW=narrow?140:250,x1=W-labW-(narrow?14:30),dx=(x1-x0)/n,leaves=1<<n,dy=(bot-top)/leaves,pf=T.fr;
+  const pH=N.numT(T.p,pf),qH=N.numT(N.sub(N.one,T.p),pf),fs=narrow?(n>=3?12:14):(n>=3?15:17);
+  const nodes=[];function node(d,idx,seq){const y=top+dy*(idx*(1<<(n-d))+(1<<(n-d))/2),x=x0+d*dx;return{x,y,seq}}
+  const eg=el('g',null,M),ng=el('g',null,M),lg=el('g',null,M);
+  for(let d=0;d<n;d++)for(let i=0;i<(1<<d);i++){const a=node(d,i);for(const b of [0,1]){const c=node(d+1,i*2+b),ok=b===0;
+      const leafLo=(i*2+b)*(1<<(n-d-1)),leafHi=leafLo+(1<<(n-d-1));
+      let lit=false;if(T.hiK!==null&&T.hiK!==undefined)for(let L2=leafLo;L2<leafHi;L2++)if(succOf(L2,n)===T.hiK){lit=true;break}
+      const dim=T.hiK!==null&&T.hiK!==undefined&&!lit;
+      el('line',{x1:a.x+8,y1:a.y,x2:c.x-12,y2:c.y,stroke:lit?C.gold2:(ok?'rgba(232,199,102,.6)':'rgba(127,160,230,.55)'),'stroke-width':lit?3.2:1.8,opacity:dim?.28:1,class:lit?'glow':''},eg);
+      if(T.edgeLab!==false&&(n<=2||d<n)&&(n<3||dy*(1<<(n-d-1))>=18)){const mx=(a.x+c.x)/2,my=(a.y+c.y)/2+(ok?-6:15);
+        tx(eg,mx,my,ok?pH:qH,{fill:ok?C.gold2:'#aac0ee','font-size':fs-1,'font-weight':600,opacity:dim?.35:1,stroke:'#050a16','stroke-width':3,'paint-order':'stroke'})}
+      const r=narrow?9:12;el('circle',{cx:c.x,cy:c.y,r,fill:ok?'url(#bo-s)':C.fail,stroke:ok?'#fff1bf':C.failS,opacity:dim?.3:1},ng);
+      tx(ng,c.x,c.y+r*.38,ok?'S':'É',{fill:ok?'#2a1d00':'#a9bde8','font-size':Math.round(r*1.05),'font-weight':800,opacity:dim?.3:1})}}
+  el('circle',{cx:x0,cy:(top+bot)/2,r:narrow?6:8,fill:C.ink},ng);
+  for(let L2=0;L2<leaves;L2++){const y=top+dy*(L2+.5),k=succOf(L2,n),lit=T.hiK!==null&&T.hiK!==undefined&&k===T.hiK,dim=T.hiK!==null&&T.hiK!==undefined&&!lit;
+    const seq=seqOf(L2,n),xs=x1+(narrow?18:26);
+    tx(lg,xs,y+fs*.36,seq,{fill:lit?C.gold2:C.ink,'font-size':fs+1,'font-weight':800,'text-anchor':'start',opacity:dim?.35:1,'letter-spacing':1});
+    if(T.leafLab){tx(lg,xs+(narrow?44:62),y+fs*.36,leafProb(L2,n,T),{fill:lit?C.gold2:C.mut,'font-size':fs,'font-weight':600,'text-anchor':'start',opacity:dim?.35:1})}
+    if(lit)el('rect',{x:xs-6,y:y-dy/2+2,width:W-xs-(narrow?4:12),height:dy-4,rx:8,fill:'rgba(200,168,75,.1)',stroke:'rgba(232,199,102,.45)'},lg)}}
+function succOf(leaf,n){let s=0;for(let j=0;j<n;j++)if(!((leaf>>(n-1-j))&1))s++;return s}
+function seqOf(leaf,n){let s='';for(let j=0;j<n;j++)s+=((leaf>>(n-1-j))&1)?'É':'S';return s}
+function leafProb(leaf,n,T){const k=succOf(leaf,n),pr=N.mul(N.pw(T.p,k),N.pw(N.sub(N.one,T.p),n-k));return N.numT(pr,T.fr)}
+/* ---------- la roue d'une épreuve ---------- */
+function drawWheel(){const M=L.main;M.innerHTML='';const Wh=st.wheel;if(!Wh)return;const top=(st.stripOn?stripG().bot:0),cy=top+(H-top)/2+6,r=Math.min((H-top)/2-36,narrow?140:170),cx=W/2,pf=N.val(Wh.p);
+  const g=el('g',{transform:`rotate(${Wh.ang.toFixed(2)} ${cx} ${cy})`},M);L.wheelG=g;
+  el('circle',{cx,cy,r:r+8,fill:'none',stroke:'rgba(120,160,255,.2)','stroke-width':2},M);
+  el('circle',{cx,cy,r,fill:C.fail,stroke:C.failS,'stroke-width':1.5},g);
+  const d=arcPath(cx,cy,r,pf);if(d)el('path',{d,fill:'url(#bo-bar)',stroke:'#fff1bf','stroke-width':1.2},g);
+  const am=pf*Math.PI,ae=Math.PI+pf*Math.PI;tx(g,cx+r*.6*Math.sin(am),cy-r*.6*Math.cos(am)+12,'S',{fill:'#2a1d00','font-size':narrow?30:36,'font-weight':800});
+  tx(g,cx+r*.6*Math.sin(ae),cy-r*.6*Math.cos(ae)+12,'É',{fill:'#a9bde8','font-size':narrow?30:36,'font-weight':800});
+  el('circle',{cx,cy,r:10,fill:'#0b1a33',stroke:C.ink,'stroke-width':2},M);
+  el('path',{d:`M${cx} ${cy-r+18} L${cx-13} ${cy-r-14} L${cx+13} ${cy-r-14} Z`,fill:C.ink,stroke:'#050a16','stroke-width':2},M);
+  const lx=narrow?16:70,rx=W-(narrow?16:70),fs=narrow?17:21;
+  if(Wh.labs){tx(M,lx,cy-10,'Succès S',{fill:C.gold2,'font-size':fs,'font-weight':800,'text-anchor':'start'});tx(M,lx,cy+20,Wh.labs[0],{fill:C.ink,'font-size':fs,'font-weight':700,'text-anchor':'start'});
+    tx(M,rx,cy-10,'Échec É',{fill:'#aac0ee','font-size':fs,'font-weight':800,'text-anchor':'end'});tx(M,rx,cy+20,Wh.labs[1],{fill:C.ink,'font-size':fs,'font-weight':700,'text-anchor':'end'})}}
+function render(){build();drawStrip();if(st.mode==='chart')drawChart();else if(st.mode==='tree')drawTree();else if(st.mode==='wheel')drawWheel()}
+
+const api={};
+const countEl=$('count'),badgeEl=$('badge');
+api.count=h=>{countEl.innerHTML=h||''};
+api.badge=h=>{badgeEl.textContent=h||''};
+api.reset=o=>{token++;o=o||{};st.mode=o.mode||'none';st.p=o.p||null;st.lamps=o.lamps||[];st.X=o.X===undefined?null:o.X;st.showX=!!o.showX;st.stripOn=o.strip!==false;
+  st.chart=o.chart||null;if(st.chart){st.chart.hi_=st.chart.hi_||{a:[],b:[]};if(st.chart.f===undefined)st.chart.f=null}
+  st.tree=o.tree||null;st.wheel=o.wheel||null;theta=0;vel=0;fx=null;api.count('');render();if(st.chart&&st.chart.f!==null)kick()};
+api.lamps=(arr,X,showX)=>{st.lamps=arr.slice();if(X!==undefined)st.X=X;if(showX!==undefined)st.showX=showX;drawStrip()};
+/* une série : les n épreuves s'enchaînent, le compteur X monte */
+api.series=async(res,o)=>{o=o||{};const my=token,n=res.length;st.lamps=Array(n).fill('idle');st.X=0;st.showX=o.showX!==false;drawStrip();
+  const step=o.fast?70:(n>8?260:360);
+  for(let i=0;i<n;i++){if(my!==token)return;st.lamps[i]='spin';drawStrip();await sleep(o.fast?40:step*.7);if(my!==token)return;
+    st.lamps[i]=res[i]?'S':'E';if(res[i])st.X++;drawStrip();SND.hit(res[i]);await sleep(o.fast?30:step*.4)}
+  await sleep(o.fast?60:220)};
+/* le résultat de la série tombe dans sa colonne */
+api.drop=async k=>{const my=token,ch=st.chart;if(!ch||!ch.tok)return;const G=chartGeo(),sg=stripGeo(st.lamps.length||1),x0=sg.cx0+sg.cw/2-6,y0=sg.g.bot,i=ch.xs.indexOf(k),x1=G.X(k);
+  const r=Math.min(narrow?10:12,G.slot*.3),y1=G.axisY-r-3-ch.tok[i]*(r*2+2);
+  const c=el('circle',{cx:x0,cy:y0,r,fill:'url(#bo-s)',stroke:'#fff1bf',class:'glow'},L.over);const t0=performance.now(),T=reduceM?1:560;
+  await new Promise(res=>{function f(now){if(my!==token){c.remove();return res()}const t=Math.min(1,(now-t0)/T),e=t*t*(3-2*t);c.setAttribute('cx',(x0+(x1-x0)*e).toFixed(1));c.setAttribute('cy',(y0+(y1-y0)*t*t).toFixed(1));if(t<1)requestAnimationFrame(f);else res()}requestAnimationFrame(f)});
+  c.remove();if(my!==token)return;ch.tok[i]++;drawChart();SND.drop()};
+/* simulation de nombreuses séries : les colonnes bleues se construisent */
+api.simulate=async(n,p,Nser,o)=>{o=o||{};const my=token,ch=st.chart;ch.emp=ch.xs.map(()=>0);ch.empN=0;drawChart();
+  const frames=reduceM?1:Math.min(36,Nser),per=Math.ceil(Nser/frames);let done=0,sum=0;
+  for(let f=0;f<frames&&done<Nser;f++){if(my!==token)return;let last=null;
+    for(let j=0;j<per&&done<Nser;j++){const r=N.series(n,p),x=r.filter(Boolean).length;ch.emp[ch.xs.indexOf(x)]++;ch.empN++;done++;sum+=x;last=r}
+    if(last&&st.stripOn){st.lamps=last.map(b=>b?'S':'E');st.X=last.filter(Boolean).length;st.showX=true;drawStrip()}
+    drawChart();SND.tick();api.count(`séries : ${N.fmtInt(done)} / ${N.fmtInt(Nser)}`+(o.mean?` · moyenne des X : ${fstr((sum/done).toFixed(2))}`:''));await sleep(o.dur?o.dur/frames:70)}
+  return {mean:sum/Math.max(1,done),emp:ch.emp.slice(),N:done}};
+api.theo=(on,labs)=>{st.chart.theo=on;if(labs!==undefined)st.chart.labs=labs;drawChart();kick()};
+api.hi=(a,b)=>{st.chart.hi_={a:a||[],b:b||[]};drawChart()};
+api.mean=(v,lab)=>{st.chart.mean=v===null?null:{v,lab};drawChart()};
+/* le pivot glisse jusqu'à f ; le diagramme bascule ou s'équilibre */
+api.pivot=async f=>{const my=token,ch=st.chart,G=chartGeo(),from=ch.f===null?G.X((G.lo+G.hi)/2):G.X(ch.f),fc=Math.max(G.lo-.45,Math.min(G.hi+.45,f)),to=G.X(fc);
+  ch.f=fc;const t0=performance.now(),T=reduceM?1:650;
+  await new Promise(res=>{function s(now){if(my!==token)return res();const t=Math.min(1,(now-t0)/T),e=1-Math.pow(1-t,3);fx=from+(to-from)*e;drawPivot();kick();if(t<1)requestAnimationFrame(s);else res()}requestAnimationFrame(s)});
+  fx=null;drawPivot();kick();await sleep(reduceM?0:900);if(Math.abs(torque())<1e-9)SND.level();else SND.creak()};
+api.balanced=()=>Math.abs(torque())<1e-9;
+api.tilt=()=>theta;
+/* la roue tourne et s'arrête sur S ou É */
+api.spin=async ok=>{const my=token,Wh=st.wheel,pf=N.val(Wh.p);const cur=((Wh.ang%360)+360)%360;
+  /* angle a de la roue placé sous l'index : a ∈ [0, 360 pf) → succès */
+  const a=ok?(.12+Math.random()*.76)*360*pf:360*pf+(.12+Math.random()*.76)*360*(1-pf),endMod=((360-a)%360+360)%360;
+  let delta=endMod-cur;if(delta<0)delta+=360;delta+=360*3;const a0=Wh.ang,t0=performance.now(),T=reduceM?1:1500;const top=(st.stripOn?stripG().bot:0),cy=top+(H-top)/2+6;
+  await new Promise(res=>{function f(now){if(my!==token)return res();const t=Math.min(1,(now-t0)/T),e=1-Math.pow(1-t,3);Wh.ang=a0+delta*e;
+      if(L.wheelG)L.wheelG.setAttribute('transform',`rotate(${Wh.ang.toFixed(2)} ${W/2} ${cy})`);if(Math.random()<.25&&t<.85)SND.tick();if(t<1)requestAnimationFrame(f);else res()}requestAnimationFrame(f)});
+  SND.hit(ok)};
+api.wheelLabs=labs=>{st.wheel.labs=labs;drawWheel()};
+api.treeHi=k=>{st.tree.hiK=k;drawTree()};
+api.treeLab=on=>{st.tree.leafLab=on;drawTree()};
+api.state=()=>({mode:st.mode,lamps:st.lamps.slice(),X:st.X,f:st.chart?st.chart.f:null,tilt:theta,balanced:st.chart&&st.chart.f!==null?Math.abs(torque())<1e-9:null,
+  tok:st.chart&&st.chart.tok?st.chart.tok.slice():null,empN:st.chart?st.chart.empN||0:0,hiK:st.tree?st.tree.hiK:null});
+api.SND=SND;api.sound=sound;api.sleep=sleep;api.reduceM=reduceM;
+const mq=matchMedia('(max-width:860px)');
+function fit(){const nr=mq.matches;if(nr===narrow&&svg.childNodes.length)return;narrow=nr;W=nr?560:1000;H=nr?430:620;render();kick()}
+api.fit=fit;mq.addEventListener?mq.addEventListener('change',fit):mq.addListener(fit);fit();
+return api;
+})();
+</script>
+
+<script>
+/* ======================= BÂTONS D'OR — moteur des niveaux ======================= */
+window.BO_G=(function(){
+'use strict';
+const N=window.BO_N,S=window.BO_S,SND=S.SND,$=id=>document.getElementById(id);
+const cap=h=>{$('capt').innerHTML='<span>'+(h||'&nbsp;')+'</span>'};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const knorm=s=>String(s).toLowerCase().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/[×*·]/g,'x').replace(/^\+/,'').replace(/[’']/g,"'");
+const GAME='batons-d-or';
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,busy=false;
+function starsOf(i){try{const g=SigmaKit.passport().games[GAME];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function fb(html){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fb').hidden=false}
+const api={err(why){errs++;SND.soft();fb(why)},ok(){fb('');nextPart()}};
+const W={};
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);api.ok()}};
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):N.shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{if(busy)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){box.querySelectorAll('.opt').forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else{b.classList.add('ko');b.disabled=true;api.err(c.why)}})};
+/* trou numérique : valeur exacte (r) ; tol : arrondi accepté (écart ≤ tol) ; mots : w */
+const okBlank=(b,v)=>{if(b.r){const x=N.parse(v);if(!x)return false;if(N.eq(x,b.r))return true;return b.tol?Math.abs(N.val(x)-N.val(b.r))<=b.tol+1e-12:false}return b.w.some(a=>knorm(a)===knorm(v))};
+W.fill=(p,box)=>{
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const b=p.b[+i];return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" ${b.r?'inputmode="decimal"':''} aria-label="Case ${+i+1}" style="width:${b.size||4.4}em">`});
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+(p.hint?`<p class="hint">${p.hint}</p>`:'');
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=v.map((x,i)=>okBlank(p.b[+ins[i].dataset.i],x));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();if(p.onOk){busy=true;try{await p.onOk(v)}finally{busy=false}}api.ok()}
+    else{if(p.onKo){busy=true;try{await p.onKo(v,oks)}finally{busy=false}}api.err(typeof p.why==='function'?p.why(v,oks):p.why)}};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;if(pi<Q.parts.length){const p=Q.parts[pi],box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:S.reduceM?'auto':'smooth'})}}
+const LV=[];
+function newQ(){Q=LV[lvl].qs[qi]();pi=0;errs=0;
+  S.badge(LV[lvl].badge||'');if(Q.setup)Q.setup();cap(Q.cap0||'&nbsp;');
+  $('prompt').innerHTML=Q.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  const box=partEl();W[Q.parts[0].t](Q.parts[0],box)}
+function dots(){const n=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:n},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){fb('');SND.win();run.push(errs===0);dots();
+  const n=LV[lvl].qs.length,lvlDone=run.length>=n;
+  $('winx').textContent=errs===0?N.pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):N.pick(['C’est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=Q.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(Q.onWin)Q.onWin();
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lnum=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lnum,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lnum)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:S.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];
+  $('chap').textContent=`Loi binomiale · Niveau ${l+1} sur ${LV.length}`;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('cours').open=false;renderLv();newQ()}
+function renderLv(){const snd=S.sound.get();$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){S.sound.set(!S.sound.get());renderLv();SND.pop();return}
+  if(busy)return;goLevel(+b.dataset.l)});
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+const ch=(ask,list,o)=>Object.assign({t:'choice',ask,ch:list},o||{});
+const fill=(ask,tpl,b,why,o)=>Object.assign({t:'fill',ask,tpl,b,why},o||{});
+const OK=h=>({h,ok:true}),NO=(h,why)=>({h,why});
+const BR=(r,o)=>Object.assign({r,sol:N.numT(r).replace(/ /g,'')},o||{});
+const BW=(w,size)=>({w,sol:w[0],size});
+window.BO={start(){const m=/[?&]niveau=(\d)/.exec(location.search);goLevel(m?Math.min(+m[1]-1,LV.length-1):0)},
+  state:()=>{const p=Q&&Q.parts[pi];return{lvl,qi,nq:LV[lvl]&&LV[lvl].qs.length,busy,pi,win:!$('win').hidden,
+    part:p?{t:p.t,sol:p.b?p.b.map(b=>b.sol):null,choices:p.ch?p.ch.map(c=>({ok:!!c.ok})):null}:null,scene:S.state()}},
+  LV,goLevel};
+return{LV,act,ch,fill,OK,NO,BR,BW,cap};
+})();
+</script>
+
+<script>
+/* ======================= BÂTONS D'OR — contextes, les sept niveaux ======================= */
+(function(){
+'use strict';
+const N=window.BO_N,S=window.BO_S,G=window.BO_G,{LV,act,ch,fill,OK,NO,BR,BW,cap}=G;
+const {R,add,sub,mul,pw,eq,val,one,numH,numT,dec,fmtInt,frH,ri,pick,shuf,pmfR,pmf,cdf,rnd,law,PX,EX,ptxt}=N;
+/* épreuves de Bernoulli du quotidien : fr = probabilité écrite en fraction */
+const CTX=[
+ {ep:'On lance un dé équilibré à six faces.',s:'obtenir un 6',e:'ne pas obtenir 6',p:R(1,6),fr:true,rep:n=>`On lance ${n} fois ce dé.`,X:'le nombre de 6 obtenus'},
+ {ep:'On lance un dé équilibré à six faces.',s:'obtenir 5 ou 6',e:'obtenir 1, 2, 3 ou 4',p:R(1,3),fr:true,rep:n=>`On lance ${n} fois ce dé.`,X:'le nombre de fois où l’on obtient 5 ou 6'},
+ {ep:'On lance une pièce équilibrée.',s:'obtenir pile',e:'obtenir face',p:R(1,2),fr:true,rep:n=>`On lance ${n} fois cette pièce.`,X:'le nombre de « pile » obtenus'},
+ {ep:'Sami répond au hasard à une question d’un QCM à 4 choix, dont un seul est juste.',s:'la réponse est juste',e:'la réponse est fausse',p:R(1,4),fr:true,rep:n=>`Le QCM compte ${n} questions de ce type ; Sami répond à chacune au hasard.`,X:'le nombre de bonnes réponses'},
+ {ep:'Inès répond au hasard à une question d’un QCM à 3 choix, dont un seul est juste.',s:'la réponse est juste',e:'la réponse est fausse',p:R(1,3),fr:true,rep:n=>`Le QCM compte ${n} questions de ce type ; Inès répond à chacune au hasard.`,X:'le nombre de bonnes réponses'},
+ {ep:'Naïm tente un lancer franc ; il le réussit avec la probabilité 0,7.',s:'le lancer est réussi',e:'le lancer est raté',p:R(7,10),fr:false,rep:n=>`Naïm tente ${n} lancers francs, de façon identique et indépendante.`,X:'le nombre de lancers réussis'},
+ {ep:'Un matin donné, la barge de 6 h 30 part à l’heure avec la probabilité 0,9.',s:'la barge part à l’heure',e:'la barge part en retard',p:R(9,10),fr:false,rep:n=>`On observe ${n} matins ; on admet que les départs sont indépendants les uns des autres.`,X:'le nombre de matins où la barge part à l’heure'},
+ {ep:'Un composant électronique est défectueux avec la probabilité 0,05.',s:'le composant est défectueux',e:'le composant fonctionne',p:R(1,20),fr:false,rep:n=>`On prélève ${n} composants ; on assimile ce prélèvement à des tirages avec remise.`,X:'le nombre de composants défectueux'},
+ {ep:'Une graine de tomate germe avec la probabilité 0,8.',s:'la graine germe',e:'la graine ne germe pas',p:R(4,5),fr:false,rep:n=>`On sème ${n} graines, qui germent indépendamment les unes des autres.`,X:'le nombre de graines qui germent'},
+ {ep:'Une gardienne arrête un tir au but avec la probabilité 0,25.',s:'le tir est arrêté',e:'le tir est marqué',p:R(1,4),fr:false,rep:n=>`Elle fait face à ${n} tirs au but, de façon identique et indépendante.`,X:'le nombre de tirs arrêtés'}];
+const URNS=[[3,7],[5,7],[2,3],[1,4],[2,6],[4,6],[3,5],[1,5]];
+function urn(){const [a,b]=pick(URNS);return{ep:`Une urne contient ${a} boules rouges et ${b} boules blanches, indiscernables au toucher. On tire une boule au hasard.`,s:'la boule est rouge',e:'la boule est blanche',p:R(a,a+b),fr:true,a,b,
+  rep:n=>`On effectue ${n} tirages successifs avec remise.`,X:'le nombre de boules rouges obtenues'}}
+const pH=(c,r)=>numH(r===undefined?c.p:r,c.fr);
+const pT=(c,r)=>numT(r===undefined?c.p:r,c.fr);
+const ctxPick=(f)=>pick(f?CTX.filter(f):CTX);
+const valsTxt=list=>list.map(v=>String(v).replace('.',','));
+const lab3=v=>dec(rnd(v,3),3);
+const decDig=r=>{const t=dec(r).split(',')[1];return t?t.length:0};
+const labK=(n,p,k)=>{const r=pmfR(n,p,k);return N.isDec(r)&&decDig(r)<=4?dec(r):lab3(val(r))};
+const eqK=(n,p,k)=>{const r=pmfR(n,p,k);return N.isDec(r)&&decDig(r)<=4?' = '+dec(r):' ≈ '+lab3(val(r))};
+const binChart=(n,p,o)=>Object.assign({xs:Array.from({length:n+1},(_,k)=>k),ps:Array.from({length:n+1},(_,k)=>pmf(n,val(p),k)),theo:true,labs:null},o||{});
+const resOf=(n,p,k)=>{let r;do{r=N.series(n,p)}while(k!==undefined&&r.filter(Boolean).length!==k);return r};
+/* décoys numériques distincts de la bonne valeur et entre eux */
+function decoys(good,list,k){const out=[];for(const r of list){if(!r||r.n<0)continue;if(eq(r,good))continue;if(out.some(o=>eq(o,r)))continue;out.push(r);if(out.length>=k)break}return out}
+const tbl=(xs,ps,xl,pl)=>`<div class="tbw"><table class="tb"><tr><th>${xl||'<i>k</i>'}</th>${xs.map(x=>`<td>${x}</td>`).join('')}</tr><tr><th>${pl||'<i>P</i>(<i>X</i> = <i>k</i>)'}</th>${ps.map(x=>`<td>${x}</td>`).join('')}</tr></table></div>`;
+
+/* ---------------- Niveau 1 · L'épreuve ---------------- */
+function wheelSetup(c){S.reset({mode:'wheel',p:c.p,wheel:{p:c.p,ang:0,labs:null},lamps:[]})}
+async function spinOnce(c,hist){const ok=N.trial(c.p);await S.spin(ok);hist.push(ok?'S':'E');S.lamps(hist.slice(-8));cap(ok?`<span class="k">Succès</span>&nbsp;: ${c.s}.`:`<span class="b">Échec</span>&nbsp;: ${c.e}.`)}
+function q1p(c,mode){const hist=[],q=sub(one,c.p);
+  const bad=decoys(c.p,[q,c.a?R(c.a,c.b):null,R(1,2),c.fr?R(1,c.p.d+1):R(c.p.n,c.p.d*10)],3);
+  return{prompt:`${c.ep} On appelle <b>succès</b> l’issue «&nbsp;${c.s}&nbsp;».`,setup:()=>wheelSetup(c),cap0:'Une épreuve de Bernoulli&nbsp;: deux issues, succès ou échec.',
+    parts:[act('Lancer l’épreuve',()=>spinOnce(c,hist),{doneLabel:'Épreuve lancée'}),
+      mode==='ch'?ch('Quelle est la probabilité <i>p</i> du succès&nbsp;?',[OK(pH(c))].concat(bad.map(r=>NO(pH(c,r),eq(r,q)?`${pH(c,r)}, c’est la probabilité de l’échec «&nbsp;${c.e}&nbsp;», c’est-à-dire 1 − <i>p</i>.`:c.a&&eq(r,R(c.a,c.b))?`On divise par le nombre total de boules (${c.a+c.b}), pas par le nombre de boules blanches.`:`Compte les issues favorables au succès parmi toutes les issues possibles.`))),{onOk:()=>{S.wheelLabs(['p = '+pT(c),'1 − p = '+pT(c,q)])}})
+        :fill('Complète&nbsp;:','<i>p</i> = {0}',[BR(c.p)],`Le succès est «&nbsp;${c.s}&nbsp;». ${c.a?`Il y a ${c.a} boules rouges sur ${c.a+c.b} boules.`:''}`,{onOk:()=>S.wheelLabs(['p = '+pT(c),'1 − p = ?'])}),
+      fill('La probabilité de l’échec est 1 − <i>p</i>.','1 − <i>p</i> = {0}',[BR(q)],`1 − ${pH(c)} = ${pH(c,q)}&nbsp;: les deux probabilités ont pour somme 1.`,{onOk:()=>{S.wheelLabs(['p = '+pT(c),'1 − p = '+pT(c,q)]);cap(`<span class="k">p = ${pT(c)}</span> <span class="m">et</span> <span class="b">1 − p = ${pT(c,q)}</span>`)}}),
+      act('Relancer trois fois',async()=>{for(let i=0;i<3;i++)await spinOnce(c,hist)},{doneLabel:'Trois épreuves de plus'})],
+    done:`Une <b>épreuve de Bernoulli</b> n’a que deux issues&nbsp;: le succès, de probabilité <i>p</i> = ${pH(c)}, et l’échec, de probabilité 1 − <i>p</i> = ${pH(c,q)}.`}}
+function q1which(){const good=R(1,4);const items=[
+   OK('Répondre au hasard à une question d’un QCM à 4 choix&nbsp;; succès&nbsp;: «&nbsp;la réponse est juste&nbsp;»'),
+   NO('Répondre au hasard à une question d’un QCM à 4 choix&nbsp;; succès&nbsp;: «&nbsp;la réponse est fausse&nbsp;»','Trois réponses sur quatre sont fausses&nbsp;: ce succès a la probabilité 3/4.'),
+   NO('Lancer un dé équilibré&nbsp;; succès&nbsp;: «&nbsp;obtenir 4&nbsp;»','Un dé a six faces&nbsp;: «&nbsp;obtenir 4&nbsp;» a la probabilité 1/6.'),
+   NO('Lancer une pièce équilibrée&nbsp;; succès&nbsp;: «&nbsp;obtenir pile&nbsp;»','Une pièce équilibrée donne pile avec la probabilité 1/2.')];
+  const c=CTX[3];
+  return{prompt:'Laquelle de ces épreuves est une épreuve de Bernoulli de paramètre <i>p</i> = 1/4&nbsp;?',setup:()=>wheelSetup(c),cap0:'Le paramètre <i>p</i> est la probabilité du <b>succès</b>.',
+    parts:[ch('',items,{onOk:()=>S.wheelLabs(['p = 1/4','1 − p = 3/4'])}),act('Lancer cette épreuve',()=>spinOnce(c,[]),{doneLabel:'Épreuve lancée'})],
+    done:'Le paramètre d’une épreuve de Bernoulli est la probabilité <i>p</i> du succès choisi&nbsp;; ici «&nbsp;réponse juste&nbsp;», une chance sur quatre.'}}
+function q1fail(){const c=ctxPick(x=>!x.fr),q=sub(one,c.p),hist=[];
+  return{prompt:`On considère une épreuve de Bernoulli dont le succès est «&nbsp;${c.s}&nbsp;». La probabilité de l’échec «&nbsp;${c.e}&nbsp;» est égale à <b>${pH(c,q)}</b>.`,setup:()=>wheelSetup(c),cap0:'Succès et échec&nbsp;: <i>p</i> + (1 − <i>p</i>) = 1.',
+    parts:[fill(`Probabilité du succès «&nbsp;${c.s}&nbsp;»&nbsp;:`,'<i>p</i> = {0}',[BR(c.p)],`<i>p</i> = 1 − ${pH(c,q)}&nbsp;: les probabilités du succès et de l’échec ont pour somme 1.`,{onOk:()=>S.wheelLabs(['p = '+pT(c),'1 − p = '+pT(c,q)])}),
+      act('Lancer l’épreuve',()=>spinOnce(c,hist),{doneLabel:'Épreuve lancée'}),
+      ch('Combien d’issues a cette épreuve&nbsp;?',[OK('2&nbsp;: le succès et l’échec'),NO('1','Il y a toujours deux issues&nbsp;: le succès et son contraire, l’échec.'),NO('Autant que de lancers','Une seule épreuve&nbsp;: deux issues, succès ou échec.')])],
+    done:`<i>p</i> = 1 − ${pH(c,q)} = ${pH(c)}. Une épreuve de Bernoulli a exactement deux issues.`}}
+LV.push({t:'L’épreuve',badge:'Épreuve de Bernoulli',
+  rule:'<p><b>Épreuve de Bernoulli</b>&nbsp;: expérience à deux issues, le <b>succès</b> S (probabilité <i>p</i>) et l’<b>échec</b> É (probabilité 1 − <i>p</i>).</p><p>Le nombre <i>p</i> est le paramètre de l’épreuve.</p>',
+  qs:[()=>q1p(ctxPick(c=>c.fr),'ch'),()=>q1p(ctxPick(c=>!c.fr),'fill'),()=>q1p(urn(),'fill'),q1which,q1fail]});
+
+/* ---------------- Niveau 2 · La série ---------------- */
+function lawChoices(n,c){const q=sub(one,c.p),P=pH(c),Q=pH(c,q);
+  const l=[OK(law(n,P)),NO(law(P,n),'Dans <i>B</i>(<i>n</i>&nbsp;;&nbsp;<i>p</i>), on écrit d’abord le nombre <i>n</i> de répétitions, puis la probabilité <i>p</i> du succès.')];
+  if(!eq(q,c.p))l.push(NO(law(n,Q),`${Q} est la probabilité de l’échec&nbsp;; le second paramètre est la probabilité du <b>succès</b>.`));
+  l.push(NO(law(n+1,P),`Il y a ${n} répétitions, donc <i>n</i> = ${n}.`));return l}
+function q2run(c,n){let res=null;const sub0=sub(one,c.p);
+  return{prompt:`${c.ep} Succès&nbsp;: «&nbsp;${c.s}&nbsp;». ${c.rep(n)} On note <i>X</i> ${c.X}.`,
+    setup:()=>S.reset({mode:'chart',p:c.p,lamps:Array(n).fill('idle'),showX:true,X:null,chart:{xs:Array.from({length:n+1},(_,k)=>k),ps:Array(n+1).fill(0),tok:Array(n+1).fill(0),theo:false,ylab:'séries',noGrid:true}}),
+    cap0:`Schéma de Bernoulli&nbsp;: <span class="k">${n} épreuves</span> identiques et indépendantes.`,
+    parts:[act(`Lancer la série de ${n} épreuves`,async()=>{res=N.series(n,c.p);await S.series(res);cap(`Série <span class="seq">${res.map(b=>b?'S':'É').join('')}</span>`)},{doneLabel:'Série jouée'}),
+      fill('Compte les succès de cette série&nbsp;:','<i>X</i> = {0}',[{get r(){return R(res.filter(Boolean).length)},get sol(){return String(res.filter(Boolean).length)}}],'Compte les épreuves marquées S sur la ligne.',{onOk:async()=>{await S.drop(res.filter(Boolean).length);cap(`<i>X</i> = <span class="k">${res.filter(Boolean).length}</span> succès sur ${n} épreuves`)}}),
+      ch('Quelle loi suit <i>X</i>&nbsp;?',lawChoices(n,c)),
+      act('Jouer 8 séries de plus',async()=>{for(let s=0;s<8;s++){const r=N.series(n,c.p);await S.series(r,{fast:true});await S.drop(r.filter(Boolean).length)}cap(`Chaque série dépose son <i>X</i> dans sa colonne&nbsp;: de 0 à ${n}.`)},{doneLabel:'Neuf séries jouées'})],
+    done:`On répète ${n} fois la même épreuve, de façon indépendante&nbsp;: <i>X</i>, le nombre de succès, suit la loi binomiale ${law(n,pH(c))}.`}}
+function q2vals(){const c=ctxPick(),n=pick([4,5,6]);let r=null;
+  return{prompt:`${c.ep} ${c.rep(n)} <i>X</i> est ${c.X}.`,
+    setup:()=>S.reset({mode:'chart',p:c.p,lamps:Array(n).fill('idle'),showX:true,chart:{xs:Array.from({length:n+1},(_,k)=>k),ps:Array(n+1).fill(0),tok:Array(n+1).fill(0),theo:false,noGrid:true}}),
+    cap0:'Quelles valeurs le compteur <i>X</i> peut-il afficher&nbsp;?',
+    parts:[fill('Complète&nbsp;:','<i>X</i> prend les valeurs entières de {0} à {1}.',[BR(R(0),{size:3}),BR(R(n),{size:3})],`Au pire aucun succès (0), au mieux ${n} succès sur ${n} épreuves.`),
+      act('Jouer 10 séries',async()=>{for(let s=0;s<10;s++){r=N.series(n,c.p);await S.series(r,{fast:true});await S.drop(r.filter(Boolean).length)}cap(`Toutes les séries tombent entre <span class="k">0</span> et <span class="k">${n}</span>.`)},{doneLabel:'Dix séries jouées'}),
+      ch('Quels sont les paramètres de la loi de <i>X</i>&nbsp;?',[OK(`<i>n</i> = ${n} et <i>p</i> = ${pH(c)}`),NO(`<i>n</i> = ${n+1} et <i>p</i> = ${pH(c)}`,`<i>n</i> est le nombre de répétitions&nbsp;: ${n}. Les valeurs de <i>X</i> vont de 0 à <i>n</i>, il y en a <i>n</i> + 1.`)].concat(eq(sub(one,c.p),c.p)?[]:[NO(`<i>n</i> = ${n} et <i>p</i> = ${pH(c,sub(one,c.p))}`,'<i>p</i> est la probabilité du succès, pas de l’échec.')]))],
+    done:`<i>X</i> ∼ ${law(n,pH(c))} prend les valeurs 0, 1, …, ${n}.`}}
+function q2remise(){const [a,b]=pick(URNS),n=pick([3,4,5]),p=R(a,a+b),c={p,fr:true};
+  return{prompt:`Une urne contient ${a} boules rouges et ${b} boules blanches. On tire ${n} boules successivement et on note <i>X</i> le nombre de boules rouges obtenues.`,
+    setup:()=>S.reset({mode:'chart',p,lamps:Array(n).fill('idle'),showX:true,chart:{xs:Array.from({length:n+1},(_,k)=>k),ps:Array(n+1).fill(0),tok:Array(n+1).fill(0),theo:false,noGrid:true}}),
+    cap0:'Pour un schéma de Bernoulli, les épreuves doivent être <b>identiques</b> et <b>indépendantes</b>.',
+    parts:[ch('Pour que <i>X</i> suive une loi binomiale, les tirages doivent se faire&nbsp;:',[OK('avec remise&nbsp;: la composition de l’urne ne change pas'),NO('sans remise','Sans remise, l’urne change après chaque tirage&nbsp;: les épreuves ne sont plus identiques ni indépendantes.'),NO('peu importe','Il faut des épreuves identiques et indépendantes&nbsp;: seule la remise le garantit.')]),
+      fill('Avec remise, complète les paramètres&nbsp;:','<i>n</i> = {0} et <i>p</i> = {1}',[BR(R(n),{size:3}),BR(p)],`${n} tirages, et à chaque tirage ${a} boules rouges sur ${a+b}.`),
+      act('Tirer avec remise',async()=>{const r=N.series(n,p);await S.series(r);await S.drop(r.filter(Boolean).length);cap(`<i>X</i> = <span class="k">${r.filter(Boolean).length}</span> boule${r.filter(Boolean).length>1?'s':''} rouge${r.filter(Boolean).length>1?'s':''}`)},{doneLabel:'Tirages faits'})],
+    done:`Avec remise, <i>X</i> suit la loi ${law(n,numH(p,true))}.`}}
+function q2seq(){const c=ctxPick(),n=pick([6,7,8]),k=ri(2,n-2),res=shuf(Array(n).fill(false).map((_,i)=>i<k));
+  return{prompt:`${c.ep} Succès&nbsp;: «&nbsp;${c.s}&nbsp;». ${c.rep(n)} Voici une série obtenue&nbsp;: <span class="seq">${res.map(b=>b?'S':'É').join('')}</span>.`,
+    setup:()=>S.reset({mode:'chart',p:c.p,lamps:res.map(b=>b?'S':'E'),showX:true,X:null,chart:{xs:Array.from({length:n+1},(_,k)=>k),ps:Array(n+1).fill(0),tok:Array(n+1).fill(0),theo:false,noGrid:true}}),
+    cap0:'<i>X</i> compte les succès de la série.',
+    parts:[fill('Complète&nbsp;:','<i>X</i> = {0} succès et {1} échecs.',[BR(R(k),{size:3}),BR(R(n-k),{size:3})],`Compte les S, puis les É&nbsp;: les deux nombres ont pour somme ${n}.`,{onOk:async()=>{S.lamps(res.map(b=>b?'S':'E'),k,true);await S.drop(k)}}),
+      ch(`Que représente ${PX('=',k)}&nbsp;?`,[OK(`la probabilité d’obtenir exactement ${k} succès sur les ${n} épreuves`),NO(`la probabilité d’obtenir au moins ${k} succès`,`«&nbsp;=&nbsp;» veut dire <b>exactement</b> ${k}.`),NO(`la probabilité de réussir la ${k}<sup>e</sup> épreuve`,`<i>X</i> compte les succès sur toute la série, quel que soit leur rang.`)])],
+    done:`Dans cette série, <i>X</i> = ${k}. ${PX('=',k)} est la probabilité d’obtenir exactement ${k} succès.`}}
+LV.push({t:'La série',badge:'Schéma de Bernoulli',
+  rule:'<p><b>Schéma de Bernoulli</b>&nbsp;: répétition de <i>n</i> épreuves de Bernoulli <b>identiques et indépendantes</b>.</p><p><i>X</i> = nombre de succès. <i>X</i> suit la <b>loi binomiale</b> <span class="law"><i>B</i>(<i>n</i>&nbsp;;&nbsp;<i>p</i>)</span>&nbsp;: <i>n</i> répétitions, <i>p</i> probabilité du succès. <i>X</i> prend les valeurs 0, 1, …, <i>n</i>.</p>',
+  qs:[()=>q2run(ctxPick(c=>c.fr),pick([3,4,5])),q2vals,q2remise,q2seq,()=>q2run(ctxPick(c=>!c.fr),pick([5,6]))]});
+
+/* ---------------- Niveau 3 · Les chemins (arbre) ---------------- */
+const P3=[{p:R(1,4),fr:true},{p:R(1,3),fr:true},{p:R(1,2),fr:true},{p:R(2,3),fr:true},{p:R(1,5),fr:true},{p:R(2,10),fr:false},{p:R(1,10),fr:false},{p:R(3,10),fr:false},{p:R(1,2),fr:false}];
+function treeSetup(n,c,res){S.reset({mode:'tree',p:c.p,lamps:res?res.map(b=>b?'S':'E'):Array(n).fill('idle'),showX:!!res,X:res?res.filter(Boolean).length:null,tree:{n,p:c.p,fr:c.fr,hiK:null,leafLab:false}})}
+const pathWord=k=>k>1?'chemins':'chemin';
+const fac=(x,e)=>e===0?'':e===1?x:`(${x})<sup>${e}</sup>`;
+function q3k(n,k,c){const q=sub(one,c.p),one1=mul(pw(c.p,k),pw(q,n-k)),cnt=N.nch(n,k),P=pmfR(n,c.p,k);
+  const cntBad=[...new Set([cnt+1,cnt-1,n,k,Math.pow(2,n),1].filter(x=>x>0&&x!==cnt))].slice(0,3);
+  return{prompt:`${law(n,pH(c))}&nbsp;: on cherche ${PX('=',k)}, la probabilité d’obtenir exactement ${k} succès sur ${n} épreuves.`,
+    setup:()=>treeSetup(n,c),cap0:`L’arbre&nbsp;: ${Math.pow(2,n)} chemins de ${n} épreuves.`,
+    parts:[ch(`Combien de chemins comportent exactement ${k} succès&nbsp;?`,[OK(String(cnt))].concat(cntBad.map(x=>NO(String(x),`Lis les feuilles de l’arbre et compte celles qui contiennent exactement ${k} fois la lettre S.`))),{onOk:()=>{S.treeHi(k);cap(`<span class="k">${cnt} ${pathWord(cnt)}</span> à ${k} succès`)}}),
+      fill(`Chaque chemin contient ${k} S et ${n-k} É. Probabilité d’<b>un</b> de ces chemins&nbsp;:`,`${[fac(pH(c),k),fac(pH(c,q),n-k)].filter(Boolean).join(' × ')} = {0}`,[BR(one1,{size:5})],`On multiplie les probabilités le long du chemin&nbsp;: ${k} fois ${pH(c)} et ${n-k} fois ${pH(c,q)}.`,{onOk:()=>{S.treeLab(true)},hint:'Fraction ou nombre décimal exact.'}),
+      fill(`Nombre de chemins × probabilité d’un chemin&nbsp;:`,`${PX('=',k)} = ${cnt} × ${numH(one1,c.fr)} = {0}`,[BR(P,{size:5})],`${PX('=',k)} = ${cnt} × ${numH(one1,c.fr)}&nbsp;: tous ces chemins ont la même probabilité.`,{onOk:()=>cap(`${PX('=',k)} = <span class="k">${numT(P,c.fr)}</span>`)})],
+    done:`${PX('=',k)} = ${cnt} × ${numH(one1,c.fr)} = ${numH(P,c.fr)}&nbsp;: nombre de chemins à ${k} succès × probabilité d’un chemin.`}}
+function q3ends(){const c=pick(P3),n=pick([2,3]),q=sub(one,c.p),a=pw(c.p,n),z=pw(q,n);
+  return{prompt:`${law(n,pH(c))}. Calcule la probabilité de n’obtenir que des succès, puis aucun succès.`,setup:()=>treeSetup(n,c),cap0:'Un seul chemin pour <i>X</i> = <i>n</i>, un seul pour <i>X</i> = 0.',
+    parts:[fill(`Le chemin ${'S'.repeat(n)}&nbsp;:`,`${PX('=',n)} = <i>p</i><sup>${n}</sup> = {0}`,[BR(a,{size:5})],`Un seul chemin&nbsp;: ${Array(n).fill(pH(c)).join(' × ')}.`,{onOk:()=>{S.treeHi(n);cap(`${PX('=',n)} = <span class="k">${numT(a,c.fr)}</span>`)}}),
+      fill(`Le chemin ${'É'.repeat(n)}&nbsp;:`,`${PX('=',0)} = (1 − <i>p</i>)<sup>${n}</sup> = {0}`,[BR(z,{size:5})],`Un seul chemin&nbsp;: ${Array(n).fill(pH(c,q)).join(' × ')}.`,{onOk:()=>{S.treeHi(0);cap(`${PX('=',0)} = <span class="b">${numT(z,c.fr)}</span>`)}})],
+    done:`${PX('=',n)} = <i>p</i><sup>${n}</sup> = ${numH(a,c.fr)} et ${PX('=',0)} = (1 − <i>p</i>)<sup>${n}</sup> = ${numH(z,c.fr)}.`}}
+function q3atleast(){const c=pick(P3),n=3,q=sub(one,c.p),z=pw(q,n),r=sub(one,z);
+  return{prompt:`${law(n,pH(c))}. On cherche la probabilité d’obtenir <b>au moins un</b> succès.`,setup:()=>treeSetup(n,c),cap0:'«&nbsp;Au moins un succès&nbsp;» est le contraire de «&nbsp;aucun succès&nbsp;».',
+    parts:[ch(`${PX('≥',1)} est égale à&nbsp;:`,[OK(`1 − ${PX('=',0)}`),NO(PX('=',1),`${PX('=',1)}, c’est exactement un succès&nbsp;; «&nbsp;au moins un&nbsp;» compte aussi 2 et 3 succès.`),NO(`1 − ${PX('=',1)}`,'Le contraire de «&nbsp;au moins un succès&nbsp;» est «&nbsp;aucun succès&nbsp;», donc <i>X</i> = 0.')],{onOk:()=>{S.treeHi(0)}}),
+      fill('Calcule&nbsp;:',`${PX('≥',1)} = 1 − (${pH(c,q)})<sup>3</sup> = {0}`,[BR(r,{size:5})],`(${pH(c,q)})<sup>3</sup> = ${numH(z,c.fr)}, puis on le retire de 1.`,{onOk:()=>cap(`${PX('≥',1)} = 1 − ${numT(z,c.fr)} = <span class="k">${numT(r,c.fr)}</span>`)})],
+    done:`${PX('≥',1)} = 1 − ${PX('=',0)} = 1 − ${numH(z,c.fr)} = ${numH(r,c.fr)}.`}}
+LV.push({t:'Les chemins',badge:'Arbre de probabilité',
+  rule:'<p>Sur l’arbre, <b>tous les chemins à <i>k</i> succès ont la même probabilité</b> <i>p</i><sup><i>k</i></sup>(1 − <i>p</i>)<sup><i>n</i>−<i>k</i></sup>.</p><p><i>P</i>(<i>X</i> = <i>k</i>) = nombre de chemins à <i>k</i> succès × probabilité d’un chemin.</p><p><i>P</i>(<i>X</i> = 0) = (1 − <i>p</i>)<sup><i>n</i></sup> ; <i>P</i>(<i>X</i> = <i>n</i>) = <i>p</i><sup><i>n</i></sup> ; <i>P</i>(<i>X</i> ≥ 1) = 1 − (1 − <i>p</i>)<sup><i>n</i></sup>.</p>',
+  qs:[()=>q3k(2,1,pick(P3.filter(c=>c.fr))),()=>q3k(3,2,pick(P3)),()=>q3k(3,1,pick(P3)),q3ends,q3atleast]});
+
+/* ---------------- Niveau 4 · Le diagramme ---------------- */
+const EXACT=[[2,R(3,10)],[2,R(1,10)],[2,R(2,5)],[3,R(1,10)],[3,R(1,5)],[3,R(1,2)],[4,R(1,2)],[2,R(1,2)],[3,R(3,10)],[4,R(1,10)]];
+function q4build(n,p,Nser){const ps=Array.from({length:n+1},(_,k)=>pmf(n,val(p),k)),mx=Math.max.apply(null,ps),mode=ps.indexOf(mx);
+  const bad=[...new Set([0,n,mode+1,mode-1].filter(k=>k>=0&&k<=n&&k!==mode))].slice(0,3);
+  return{prompt:`${law(n,dec(p))}. Joue ${fmtInt(Nser)} séries de ${n} épreuves&nbsp;: chaque série ajoute 1 à la colonne de son <i>X</i>.`,
+    setup:()=>S.reset({mode:'chart',p,lamps:Array(n).fill('idle'),showX:true,chart:binChart(n,p,{theo:false})}),cap0:'Colonnes bleues&nbsp;: fréquence de chaque valeur de <i>X</i> dans tes séries.',
+    parts:[act(`Lancer ${fmtInt(Nser)} séries`,async()=>{await S.simulate(n,val(p),Nser);S.theo(true,Array.from({length:n+1},(_,k)=>labK(n,p,k)));cap('Les bâtons d’or&nbsp;: les probabilités <i>P</i>(<i>X</i> = <i>k</i>).')},{doneLabel:'Séries jouées'}),
+      ch('Quelle valeur de <i>k</i> est la plus probable&nbsp;?',[OK(`<i>k</i> = ${mode}`)].concat(bad.map(k=>NO(`<i>k</i> = ${k}`,'Cherche le bâton le plus haut.'))),{onOk:()=>{S.hi([],[mode]);cap(`Le bâton le plus haut&nbsp;: <span class="k">${PX('=',mode)}${eqK(n,p,mode)}</span>`)}}),
+      ...(val(p)===.5?[ch('Comment est ce diagramme&nbsp;?',[OK('symétrique'),NO('croissant','Les bâtons montent puis redescendent.'),NO('tous les bâtons ont la même hauteur','Regarde&nbsp;: les bâtons du milieu sont plus hauts.')])]:[])],
+    done:`Les colonnes simulées se rapprochent des bâtons d’or&nbsp;: la plus probable est <i>k</i> = ${mode}.${val(p)===.5?' Pour <i>p</i> = 0,5, le diagramme est symétrique.':''}`}}
+function q4miss(){const [n,p]=pick(EXACT),ps=Array.from({length:n+1},(_,k)=>pmfR(n,p,k)),m=ri(0,n);
+  return{prompt:`Voici le diagramme de ${law(n,dec(p))}. Un bâton a perdu son étiquette.`,
+    setup:()=>S.reset({mode:'chart',p,lamps:[],strip:false,chart:binChart(n,p,{labs:ps.map((r,k)=>k===m?'?':dec(r))})}),cap0:'La somme des hauteurs des bâtons vaut 1.',
+    parts:[fill('Complète&nbsp;:',`${PX('=',m)} = {0}`,[BR(ps[m],{size:5})],`${PX('=',m)} = 1 − (${ps.filter((_,k)=>k!==m).map(r=>dec(r)).join(' + ')}).`,{onOk:()=>{S.theo(true,ps.map(r=>dec(r)));S.hi([],[m])}})],
+    done:`La somme des probabilités vaut 1&nbsp;: ${PX('=',m)} = ${dec(ps[m])}.`}}
+function q4cum(){const [n,p]=pick(EXACT),ps=Array.from({length:n+1},(_,k)=>pmfR(n,p,k)),k=ri(0,n-1);let s=R(0);for(let i=0;i<=k;i++)s=add(s,ps[i]);
+  return{prompt:`Diagramme de ${law(n,dec(p))}. On cherche ${PX('≤',k)}, la probabilité d’obtenir <b>au plus</b> ${k} succès.`,
+    setup:()=>S.reset({mode:'chart',p,lamps:[],strip:false,chart:binChart(n,p,{labs:ps.map(r=>dec(r))})}),cap0:`«&nbsp;Au plus ${k}&nbsp;» : les bâtons de 0 à ${k}.`,
+    parts:[ch('Quels bâtons faut-il additionner&nbsp;?',[OK(`ceux de 0 à ${k}`),NO(`ceux de ${k} à ${n}`,`Ceux-là donnent «&nbsp;au moins ${k}&nbsp;».`),NO(`seulement celui de ${k}`,`Celui-là seul donne ${PX('=',k)}.`)],{onOk:()=>S.hi(Array.from({length:k+1},(_,i)=>i),[])}),
+      fill('Calcule&nbsp;:',`${PX('≤',k)} = {0}`,[BR(s,{size:5})],`${ps.slice(0,k+1).map(r=>dec(r)).join(' + ')}.`,{onOk:()=>cap(`${PX('≤',k)} = <span class="a">${dec(s)}</span>`)})],
+    done:`${PX('≤',k)} = ${ps.slice(0,k+1).map(r=>dec(r)).join(' + ')} = ${dec(s)}.`}}
+LV.push({t:'Le diagramme',badge:'Diagramme en bâtons',
+  rule:'<p>Le <b>diagramme en bâtons</b> de <i>B</i>(<i>n</i>&nbsp;;&nbsp;<i>p</i>)&nbsp;: un bâton en chaque <i>k</i> = 0, 1, …, <i>n</i>, de hauteur <i>P</i>(<i>X</i> = <i>k</i>).</p><p>La somme des hauteurs vaut 1. Pour <i>p</i> = 0,5, le diagramme est symétrique.</p>',
+  qs:[()=>q4build(4,R(1,2),400),q4miss,()=>q4build(5,R(2,5),500),q4cum,()=>{const [n,p]=pick([[5,R(4,5)],[4,R(7,10)],[5,R(7,10)]]);return q4build(n,p,400)}]});
+
+/* ---------------- Niveau 5 · La calculatrice ---------------- */
+const CALC=[[10,R(3,10)],[8,R(1,4)],[12,R(2,5)],[10,R(1,2)],[9,R(3,5)],[15,R(1,5)],[10,R(7,10)],[20,R(1,4)]];
+const cmdC=(n,p,k)=>`<span class="calc">binomcdf(${n},${ptxt(p)},${k})</span>`;
+const cmdP=(n,p,k)=>`<span class="calc">binompdf(${n},${ptxt(p)},${k})</span>`;
+const v4=v=>rnd(v,4);
+function calcChart(n,p){return binChart(n,p,{labs:null})}
+function q5cmd(){const [n,p]=pick(CALC),k=ri(2,Math.min(n-2,6)),v=v4(cdf(n,val(p),k));
+  return{prompt:`${law(n,dec(p))}. On veut ${PX('≤',k)} à la calculatrice.`,setup:()=>S.reset({mode:'chart',p,strip:false,lamps:[],chart:calcChart(n,p)}),cap0:'<span class="calc">binompdf</span>&nbsp;: <i>P</i>(<i>X</i> = <i>k</i>) · <span class="calc">binomcdf</span>&nbsp;: <i>P</i>(<i>X</i> ≤ <i>k</i>)',
+    parts:[ch('Quelle commande taper&nbsp;?',[OK(cmdC(n,p,k)),NO(cmdP(n,p,k),`<span class="calc">binompdf</span> donne seulement ${PX('=',k)}.`),NO(`<span class="calc">binomcdf(${n},${k},${ptxt(p)})</span>`,'L’ordre est <i>n</i>, puis <i>p</i>, puis <i>k</i>.'),NO(`<span class="calc">binomcdf(${k},${ptxt(p)},${n})</span>`,'On commence par <i>n</i>, le nombre de répétitions.')],{onOk:()=>{S.hi(Array.from({length:k+1},(_,i)=>i),[]);cap(`${cmdC(n,p,k)} → <span class="a">${dec(v,4)}</span>`)}}),
+      ch(`L’écran affiche ${dec(v,4)}. On en déduit&nbsp;:`,[OK(`${PX('≤',k)} ≈ ${dec(v,4)}`),NO(`${PX('=',k)} ≈ ${dec(v,4)}`,`<span class="calc">binomcdf</span> cumule les bâtons de 0 à ${k}.`),NO(`${PX('≥',k)} ≈ ${dec(v,4)}`,'«&nbsp;cdf&nbsp;» donne une probabilité <b>cumulée</b> à partir de 0&nbsp;: <i>X</i> ≤ <i>k</i>.')])],
+    done:`${cmdC(n,p,k)} donne ${PX('≤',k)} ≈ ${dec(v,4)}&nbsp;: la somme des bâtons de 0 à ${k}.`}}
+function q5words(){const n=pick([8,10,12]),p=pick([R(3,10),R(1,4),R(2,5)]),k=ri(3,n-3),atmost=Math.random()<.5;
+  const good=atmost?PX('≤',k):PX('≥',k),wrong=atmost?PX('≥',k):PX('≤',k);
+  return{prompt:`${law(n,dec(p))}. Traduis par une probabilité&nbsp;: «&nbsp;obtenir <b>${atmost?'au plus':'au moins'} ${k}</b> succès&nbsp;».`,setup:()=>S.reset({mode:'chart',p,strip:false,lamps:[],chart:calcChart(n,p)}),cap0:'«&nbsp;au plus&nbsp;» : ≤ · «&nbsp;au moins&nbsp;» : ≥',
+    parts:[ch('',[OK(good),NO(wrong,atmost?`«&nbsp;Au plus ${k}&nbsp;» : ${k} ou moins.`:`«&nbsp;Au moins ${k}&nbsp;» : ${k} ou plus.`),NO(PX('=',k),'«&nbsp;=&nbsp;» voudrait dire exactement '+k+'.')],{onOk:()=>{atmost?S.hi(Array.from({length:k+1},(_,i)=>i),[]):S.hi([],Array.from({length:n-k+1},(_,i)=>k+i));cap(`${good}&nbsp;: les bâtons ${atmost?'de 0 à '+k:'de '+k+' à '+n}`)}}),
+      ...(atmost?[]:[fill('À la calculatrice, on passe par le contraire&nbsp;:',`${PX('≥',k)} = 1 − ${PX('≤','{0}')}`,[BR(R(k-1),{size:3})],`Le contraire de «&nbsp;<i>X</i> ≥ ${k}&nbsp;» est «&nbsp;<i>X</i> ≤ ${k-1}&nbsp;».`,{onOk:()=>S.hi(Array.from({length:k},(_,i)=>i),Array.from({length:n-k+1},(_,i)=>k+i))})])],
+    done:atmost?`«&nbsp;Au plus ${k}&nbsp;» se traduit par ${PX('≤',k)}.`:`«&nbsp;Au moins ${k}&nbsp;» se traduit par ${PX('≥',k)} = 1 − ${PX('≤',k-1)}.`}}
+function q5comp(){const [n,p]=pick(CALC),k=ri(3,Math.min(n-1,7)),v=v4(cdf(n,val(p),k-1)),r=sub(one,v);
+  return{prompt:`${law(n,dec(p))}. On cherche ${PX('≥',k)}.`,setup:()=>S.reset({mode:'chart',p,strip:false,lamps:[],chart:calcChart(n,p)}),cap0:`${PX('≥',k)} = 1 − ${PX('≤',k-1)}`,
+    parts:[fill('Complète&nbsp;:',`${PX('≥',k)} = 1 − ${PX('≤','{0}')}`,[BR(R(k-1),{size:3})],`On retire de 1 les bâtons de 0 à ${k-1}.`,{onOk:()=>{S.hi(Array.from({length:k},(_,i)=>i),Array.from({length:n-k+1},(_,i)=>k+i));cap(`${cmdC(n,p,k-1)} → <span class="a">${dec(v,4)}</span>`)}}),
+      fill(`La calculatrice donne ${cmdC(n,p,k-1)} ≈ ${dec(v,4)}.`,`${PX('≥',k)} ≈ {0}`,[BR(r,{size:5})],`1 − ${dec(v,4)}.`,{onOk:()=>cap(`${PX('≥',k)} ≈ 1 − ${dec(v,4)} = <span class="k">${dec(r,4)}</span>`)})],
+    done:`${PX('≥',k)} = 1 − ${PX('≤',k-1)} ≈ 1 − ${dec(v,4)} = ${dec(r,4)}.`}}
+function q5pdf(){const [n,p]=pick(CALC),k=ri(1,Math.min(n-1,6)),v=v4(pmf(n,val(p),k));
+  return{prompt:`${law(n,dec(p))}. La calculatrice affiche ${cmdP(n,p,k)} ≈ ${dec(v,4)}.`,setup:()=>S.reset({mode:'chart',p,strip:false,lamps:[],chart:calcChart(n,p)}),cap0:'pdf&nbsp;: un seul bâton · cdf&nbsp;: les bâtons de 0 à <i>k</i>',
+    parts:[ch('Ce nombre est&nbsp;:',[OK(`${PX('=',k)}`),NO(PX('≤',k),'<span class="calc">binompdf</span> ne cumule pas&nbsp;: c’est un seul bâton.'),NO(PX('≥',k),'<span class="calc">binompdf</span> donne la hauteur d’un seul bâton.')],{onOk:()=>{S.hi([k],[]);cap(`${PX('=',k)} ≈ <span class="a">${dec(v,4)}</span>`)}})],
+    done:`${cmdP(n,p,k)} donne ${PX('=',k)} ≈ ${dec(v,4)}, la hauteur du bâton en ${k}.`}}
+function q5one(){const [n,p]=pick([[4,R(1,10)],[3,R(1,5)],[2,R(3,10)],[3,R(1,2)],[4,R(1,5)]]),z=pw(sub(one,p),n),r=sub(one,z);
+  return{prompt:`${law(n,dec(p))}. Calcule ${PX('≥',1)} sans calculatrice.`,setup:()=>S.reset({mode:'chart',p,strip:false,lamps:[],chart:binChart(n,p,{labs:null})}),cap0:'Au moins un succès&nbsp;: tout sauf le bâton 0.',
+    parts:[fill('Complète&nbsp;:',`${PX('≥',1)} = 1 − ${PX('=',0)} = 1 − (${dec(sub(one,p))})<sup>${n}</sup> = {0}`,[BR(r,{size:5})],`(${dec(sub(one,p))})<sup>${n}</sup> = ${dec(z)}.`,{onOk:()=>{S.hi([0],Array.from({length:n},(_,i)=>i+1));cap(`${PX('≥',1)} = 1 − ${dec(z)} = <span class="k">${dec(r)}</span>`)}})],
+    done:`${PX('≥',1)} = 1 − (1 − <i>p</i>)<sup><i>n</i></sup> = 1 − ${dec(z)} = ${dec(r)}.`}}
+LV.push({t:'La calculatrice',badge:'P(X ≤ k) et P(X ≥ k)',
+  rule:'<p>À la calculatrice&nbsp;: <span class="calc">binompdf(n,p,k)</span> donne <i>P</i>(<i>X</i> = <i>k</i>)&nbsp;; <span class="calc">binomcdf(n,p,k)</span> donne <i>P</i>(<i>X</i> ≤ <i>k</i>). Tableur&nbsp;: <span class="calc">=LOI.BINOMIALE(k;n;p;1)</span>.</p><p>«&nbsp;Au plus <i>k</i>&nbsp;» : <i>X</i> ≤ <i>k</i>. «&nbsp;Au moins <i>k</i>&nbsp;» : <i>P</i>(<i>X</i> ≥ <i>k</i>) = 1 − <i>P</i>(<i>X</i> ≤ <i>k</i> − 1).</p>',
+  qs:[q5cmd,q5words,q5comp,q5pdf,q5one]});
+
+/* ---------------- Niveau 6 · L'équilibre (E(X) = np) ---------------- */
+function pivotFill(n,p,fr,extra){const E=mul(R(n),p),tolE=E.d===1||N.isDec(E)?0:.005;
+  return fill(`Où placer le pivot pour que le diagramme tienne en équilibre&nbsp;?`,`${EX} = <i>n</i> × <i>p</i> = {0}`,[BR(E,{size:5,tol:tolE})],
+    v=>{const x=N.parse(v[0]);return (x?`Avec le pivot en ${v[0]}, le diagramme penche. `:'')+`${EX} = <i>n</i> × <i>p</i> = ${n} × ${numH(p,fr)}.`},
+    Object.assign({hint:tolE?'Valeur exacte (fraction) ou arrondi au centième.':'',onOk:async()=>{await S.pivot(val(E));S.mean(val(E),'E(X) = '+numT(E,fr)+(tolE?' ≈ '+dec(R(Math.round(val(E)*100),100)):''));cap(`Équilibre&nbsp;! ${EX} = ${n} × ${numT(p,fr)} = <span class="k">${numT(E,fr)}</span>`)},
+      onKo:async v=>{const x=N.parse(v[0]);if(x&&isFinite(val(x))){await S.pivot(val(x));cap(`Pivot en ${v[0]}&nbsp;: le diagramme penche.`)}}},extra||{}))}
+function q6np(n,p,fr){const E=mul(R(n),p);
+  return{prompt:`${law(n,numH(p,fr))}. Le diagramme est posé sur un pivot&nbsp;: il ne tient en équilibre qu’au bon endroit.`,
+    setup:()=>S.reset({mode:'chart',p,lamps:Array(n).fill('idle'),showX:true,chart:binChart(n,p,{f:0})}),cap0:'Le pivot est en 0&nbsp;: le diagramme penche.',
+    parts:[pivotFill(n,p,fr),
+      act('Jouer 300 séries et calculer la moyenne des X',async()=>{const r=await S.simulate(n,val(p),300,{mean:true});cap(`Moyenne des <i>X</i> sur 300 séries&nbsp;: <span class="b">${String(r.mean.toFixed(2)).replace('.',',')}</span> · ${EX} = <span class="k">${numT(E,fr)}</span>`)},{doneLabel:'300 séries jouées'}),
+      ch(`Que signifie ${EX} = ${numH(E,fr)}&nbsp;?`,[OK(`Sur un grand nombre de séries, on obtient en moyenne ${numH(E,fr)} succès par série.`),NO(`À chaque série, on obtient exactement ${numH(E,fr)} succès.`,'<i>X</i> varie d’une série à l’autre&nbsp;: l’espérance est une <b>moyenne</b> sur un grand nombre de séries.'),NO(`La probabilité d’un succès est ${numH(E,fr)}.`,`La probabilité d’un succès, c’est <i>p</i> = ${numH(p,fr)}.`)])],
+    done:`${EX} = <i>np</i> = ${n} × ${numH(p,fr)} = ${numH(E,fr)}&nbsp;: c’est le point d’équilibre du diagramme, et la moyenne des succès sur un grand nombre de séries.`}}
+function q6qcm(){const nq=pick([8,10,12,20]),m=pick([3,4,5]),pts=pick([1,2]),p=R(1,m),E=mul(R(nq),p),note=mul(E,R(pts));
+  return{prompt:`Un QCM compte ${nq} questions, chacune à ${m} choix dont un seul est juste. Kenza répond entièrement au hasard. Chaque bonne réponse rapporte ${pts} point${pts>1?'s':''}, une mauvaise réponse 0 point. <i>X</i> est le nombre de bonnes réponses.`,
+    setup:()=>S.reset({mode:'chart',p,lamps:Array(nq).fill('idle'),showX:true,chart:binChart(nq,p,{f:Math.round(nq/2)})}),cap0:`<i>X</i> ∼ ${law(nq,numH(p,true))}`,
+    parts:[pivotFill(nq,p,true),
+      fill('Note qu’elle peut espérer&nbsp;:',`${numH(E,true)} × ${pts} = {0} point${note.n>1||note.d>1?'s':''}`,[BR(note,{size:5,tol:note.d===1||N.isDec(note)?0:.005})],`Chaque bonne réponse vaut ${pts} point${pts>1?'s':''}&nbsp;: on multiplie ${EX} par ${pts}.`,{onOk:()=>cap(`Note espérée&nbsp;: <span class="k">${numT(note,true)}</span> sur ${nq*pts}`)})],
+    done:`${EX} = ${nq} × ${numH(p,true)} = ${numH(E,true)} bonnes réponses en moyenne, soit une note espérée de ${numH(note,true)} sur ${nq*pts}.`}}
+function q6which(){const LAWS=[[6,R(1,2)],[4,R(3,4)],[10,R(3,10)],[8,R(1,4)],[5,R(4,5)],[12,R(1,3)],[10,R(1,2)],[6,R(1,3)],[20,R(1,4)],[9,R(2,3)]];
+  const E_=o=>mul(R(o[0]),o[1]),frq=b=>b.d===3||b.d===4;
+  const [n,p]=pick(LAWS),E=E_([n,p]),fr=frq(p),others=[];
+  for(const o of shuf(LAWS.slice())){const e=E_(o);if(eq(e,E)||others.some(x=>eq(E_(x),e)))continue;others.push(o);if(others.length>=3)break}
+  return{prompt:`Pour laquelle de ces lois le diagramme en bâtons tient-il en équilibre sur un pivot placé en <b>${numH(E,fr)}</b>&nbsp;?`,
+    setup:()=>S.reset({mode:'chart',p,lamps:[],strip:false,chart:binChart(n,p,{theo:false,f:val(E)})}),cap0:'Le pivot attend son diagramme…',
+    parts:[ch('',[OK(law(n,numH(p,fr)))].concat(others.map(([a,b])=>NO(law(a,numH(b,frq(b))),`Pour cette loi, ${EX} = ${a} × ${numH(b,frq(b))} = ${numH(E_([a,b]),frq(b))}.`))),{onOk:()=>{S.theo(true);S.mean(val(E),'E(X) = '+numT(E,fr));cap(`${n} × ${numT(p,fr)} = <span class="k">${numT(E,fr)}</span>&nbsp;: équilibre.`)}})],
+    done:`${EX} = <i>np</i> = ${n} × ${numH(p,fr)} = ${numH(E,fr)}.`}}
+LV.push({t:'L’équilibre',badge:'Espérance E(X) = np',
+  rule:'<p>Si <i>X</i> ∼ <i>B</i>(<i>n</i>&nbsp;;&nbsp;<i>p</i>), l’<b>espérance</b> est <i>E</i>(<i>X</i>) = <i>n</i> × <i>p</i>.</p><p>C’est la moyenne du nombre de succès sur un grand nombre de séries. Sur le diagramme en bâtons, la verticale <i>k</i> = <i>np</i> est le point d’équilibre.</p>',
+  qs:[()=>q6np(5,R(2,5),false),()=>q6np(pick([6,9]),R(1,3),true),q6qcm,q6which,()=>{const c=ctxPick(x=>!x.fr&&x.p.d<=10),n=pick([10,20]);const q=q6np(n,c.p,false);q.prompt=`${c.ep} ${c.rep(n)} <i>X</i> est ${c.X}&nbsp;: ${law(n,pH(c))}.`;return q}]});
+
+/* ---------------- Niveau 7 · Les gains (espérance d'une loi finie) ---------------- */
+function gainsGame(){const t=ri(0,3);
+  if(t===0){const a=pick([2,3,4]),b=pick([5,6]),c=pick([2,3,4]);return{txt:`On lance un dé équilibré. Nombre pair&nbsp;: on gagne ${a}&nbsp;€. 3 ou 5&nbsp;: on gagne ${b}&nbsp;€. 1&nbsp;: on perd ${c}&nbsp;€. <i>X</i> est le gain algébrique.`,xs:[-c,a,b],ps:[R(1,6),R(1,2),R(1,3)],fr:true}}
+  if(t===1){const a=pick([10,20]),b=pick([2,3,5]),c=1;return{txt:`À la tombola du lycée, un ticket coûte ${c}&nbsp;€. On gagne ${a}&nbsp;€ avec la probabilité 0,05 et ${b}&nbsp;€ avec la probabilité 0,15&nbsp;; sinon rien. <i>X</i> est le gain net (gain moins le prix du ticket).`,xs:[-c,b-c,a-c],ps:[R(4,5),R(3,20),R(1,20)],fr:false}}
+  if(t===2){const a=pick([3,4,6]),b=pick([1,2]);return{txt:`Une roue de kermesse a 10 secteurs égaux&nbsp;: 1 secteur «&nbsp;+${a*3}&nbsp;€&nbsp;», 3 secteurs «&nbsp;+${b}&nbsp;€&nbsp;» et 6 secteurs «&nbsp;−${a}&nbsp;€&nbsp;». <i>X</i> est le gain.`,xs:[-a,b,a*3],ps:[R(3,5),R(3,10),R(1,10)],fr:false}}
+  const a=pick([2,3]),b=pick([5,6]);return{txt:`On tire une carte au hasard dans un jeu de 32 cartes. Un cœur (sauf le roi de cœur)&nbsp;: +${a}&nbsp;€. Un roi (sauf le roi de cœur)&nbsp;: +${b}&nbsp;€. Le roi de cœur&nbsp;: +${a+b}&nbsp;€. Autre carte&nbsp;: −1&nbsp;€.`,xs:[-1,a,b,a+b],ps:[R(21,32),R(7,32),R(3,32),R(1,32)],fr:true}}
+const sortG=g=>{const idx=g.xs.map((_,i)=>i).sort((i,j)=>g.xs[i]-g.xs[j]);return{...g,xs:idx.map(i=>g.xs[i]),ps:idx.map(i=>g.ps[i])}};
+const Eg=g=>g.xs.reduce((s,x,i)=>add(s,mul(R(x),g.ps[i])),R(0));
+const gChart=(g,o)=>Object.assign({xs:g.xs,ps:g.ps.map(val),theo:true,labs:g.ps.map(r=>numT(r,g.fr)),lo:Math.min(0,g.xs[0])-1,hi:g.xs[g.xs.length-1]+1,allTicks:true,xlab:'gain x (€)',ylab:'P(X = x)'},o||{});
+const sumTxt=g=>g.xs.map((x,i)=>`${x<0?'('+fmtInt(x)+')':fmtInt(x)} × ${numH(g.ps[i],g.fr)}`).join(' + ');
+function q7E(withMiss){const g=sortG(gainsGame()),E=Eg(g),m=withMiss?ri(0,g.xs.length-1):-1,tolE=E.d===1||N.isDec(E)?0:.005;
+  const parts=[];
+  if(withMiss)parts.push(fill('Complète la probabilité manquante&nbsp;:',`<i>P</i>(<i>X</i> = ${fmtInt(g.xs[m])}) = {0}`,[BR(g.ps[m],{size:5})],'La somme des probabilités vaut 1.',{onOk:()=>{S.theo(true,g.ps.map(r=>numT(r,g.fr)))}}));
+  parts.push(fill(`Calcule l’espérance (en €)&nbsp;: place le pivot.`,`${EX} = {0}`,[BR(E,{size:5,tol:tolE})],v=>`${EX} = ${sumTxt(g)}.`,{hint:tolE?'Valeur exacte (fraction) ou arrondi au centième.':'',
+    onOk:async()=>{await S.pivot(val(E));S.mean(val(E),'E(X) = '+numT(E,g.fr)+(tolE?' ≈ '+dec(R(Math.round(val(E)*100),100)):''));cap(`Équilibre en <span class="k">${EX} = ${numT(E,g.fr)}&nbsp;€</span>`)},
+    onKo:async v=>{const x=N.parse(v[0]);if(x&&isFinite(val(x))){await S.pivot(val(x));cap(`Pivot en ${v[0]}&nbsp;: le diagramme penche.`)}}}));
+  const s=Math.sign(val(E));
+  parts.push(ch('Ce jeu est-il favorable au joueur&nbsp;?',[OK(s>0?'Oui&nbsp;: en moyenne, il gagne de l’argent à chaque partie.':s<0?'Non&nbsp;: en moyenne, il perd de l’argent à chaque partie.':'Ni l’un ni l’autre&nbsp;: en moyenne, il ne gagne ni ne perd.'),
+    NO(s>0?'Non&nbsp;: en moyenne, il perd de l’argent à chaque partie.':'Oui&nbsp;: en moyenne, il gagne de l’argent à chaque partie.',`Regarde le signe de ${EX}&nbsp;: ${numH(E,g.fr)}.`),
+    NO('On ne peut pas savoir sans jouer.',`${EX} donne le gain moyen sur un grand nombre de parties&nbsp;: regarde son signe.`)]));
+  return{prompt:g.txt+(withMiss?'':' '),setup:()=>S.reset({mode:'chart',strip:false,lamps:[],chart:gChart(g,{f:0,labs:g.ps.map((r,i)=>i===m?'?':numT(r,g.fr))})}),
+    cap0:'Chaque bâton pèse sa probabilité, à l’abscisse de son gain.',parts,
+    done:`${EX} = ${sumTxt(g)} = ${numH(E,g.fr)}&nbsp;€ : c’est le gain moyen par partie sur un grand nombre de parties.`}}
+function q7mean(){const v=pick([R(-1,4),R(-1,2),R(3,4),R(6,5),R(-3,10)]),neg=v.n<0,a=dec(N.R(Math.abs(v.n),v.d));
+  return{prompt:`Pour un jeu, le gain <i>X</i> (en €) a pour espérance ${EX} = ${dec(v)}.`,setup:()=>S.reset({mode:'chart',strip:false,lamps:[],chart:gChart({xs:[-2,1,4],ps:[R(1,2),R(1,4),R(1,4)],fr:false},{labs:null,theo:true,f:null})}),
+    cap0:'L’espérance&nbsp;: une moyenne sur un grand nombre de parties.',
+    parts:[ch('Que signifie ce nombre&nbsp;?',[OK(`Sur un grand nombre de parties, le joueur ${neg?'perd':'gagne'} en moyenne ${a}&nbsp;€ par partie.`),NO(`À chaque partie, le joueur ${neg?'perd':'gagne'} exactement ${a}&nbsp;€.`,'Le gain change d’une partie à l’autre&nbsp;: l’espérance est une moyenne.'),NO(`Le joueur a ${dec(mul(N.R(Math.abs(v.n),v.d),R(100)))}&nbsp;% de chances de ${neg?'perdre':'gagner'}.`,'L’espérance s’exprime en euros, ce n’est pas une probabilité.')])],
+    done:`${EX} = ${dec(v)}&nbsp;: en moyenne, sur un grand nombre de parties, le joueur ${neg?'perd':'gagne'} ${a}&nbsp;€ par partie.`}}
+LV.push({t:'Les gains',badge:'Espérance d’une loi finie',
+  rule:'<p>Loi de probabilité de <i>X</i>&nbsp;: les valeurs <i>x</i><sub>1</sub>, …, <i>x</i><sub><i>n</i></sub> et leurs probabilités <i>p</i><sub>1</sub>, …, <i>p</i><sub><i>n</i></sub>, avec <i>p</i><sub>1</sub> + … + <i>p</i><sub><i>n</i></sub> = 1.</p><p><i>E</i>(<i>X</i>) = <i>x</i><sub>1</sub><i>p</i><sub>1</sub> + <i>x</i><sub>2</sub><i>p</i><sub>2</sub> + … + <i>x</i><sub><i>n</i></sub><i>p</i><sub><i>n</i></sub>&nbsp;: la moyenne que l’on peut espérer sur un grand nombre de répétitions.</p>',
+  qs:[()=>q7E(false),()=>q7E(true),q7mean,()=>q7E(true),()=>q7E(false)]});
+window.BO_X={CTX,URNS,urn,CALC,EXACT,gainsGame,sortG,Eg,sumTxt};
+})();
+</script>
+
+<script>
+/* ======================= BÂTONS D'OR — trois épreuves finales ======================= */
+window.BO_FIN=(function(){
+'use strict';
+const N=window.BO_N,X=window.BO_X,{R,add,sub,mul,pw,eq,val,one,numH,numT,dec,fmtInt,ri,pick,shuf,pmfR,pmf,cdf,rnd,law,PX,EX,ptxt,ans}=N;
+const {CTX,urn,CALC,EXACT,gainsGame,sortG,Eg,sumTxt}=X;
+function qcm(level,prompt,good,bad,explain,meta){const choices=[good].concat(bad);return{type:'qcm',level,prompt,choices,answer:0,explain,meta}}
+function trous(level,prompt,blanks,explain,meta){return{type:'trous',level,prompt,blanks,explain,meta}}
+const BL=(r,size,extra)=>({answers:ans(r,extra),size:size||4});
+const pH=(c,r)=>numH(r===undefined?c.p:r,c.fr);
+const ctxF=f=>pick(CTX.filter(f));
+const tbl=(xs,ps,xl,pl)=>`<div class="tbw"><table class="tb"><tr><th>${xl||'<i>k</i>'}</th>${xs.map(x=>`<td>${x}</td>`).join('')}</tr><tr><th>${pl||'<i>P</i>(<i>X</i> = <i>k</i>)'}</th>${ps.map(x=>`<td>${x}</td>`).join('')}</tr></table></div>`;
+const cmdC=(n,p,k)=>`<span class="calc">binomcdf(${n},${ptxt(p)},${k})</span>`;
+const cmdP=(n,p,k)=>`<span class="calc">binompdf(${n},${ptxt(p)},${k})</span>`;
+const nums=list=>list.map(r=>({n:r.n,d:r.d}));
+/* ---------- niveau 1 ---------- */
+const L1={
+ qb(){const c=ctxF(x=>x.fr&&!eq(x.p,R(1,2))),q=sub(one,c.p),bad=[q,R(1,2),R(1,c.p.d+1)].filter((r,i,a)=>!eq(r,c.p)&&a.findIndex(o=>eq(o,r))===i).slice(0,3);
+   return qcm(1,`${c.ep} On appelle succès «&nbsp;${c.s}&nbsp;». Quelle est la probabilité <i>p</i> du succès&nbsp;?`,pH(c),bad.map(r=>pH(c,r)),`Le succès «&nbsp;${c.s}&nbsp;» a la probabilité ${pH(c)}&nbsp;; ${pH(c,q)} est celle de l’échec.`,{k:'p',p:nums([c.p])[0],vals:nums([c.p].concat(bad)),steps:1})},
+ tb(){const c=ctxF(x=>!x.fr),q=sub(one,c.p);return trous(1,`${c.ep} La probabilité de l’échec «&nbsp;${c.e}&nbsp;» est 1 − <i>p</i> = {0}.`,[BL(q,4)],`1 − ${pH(c)} = ${pH(c,q)}.`,{k:'q',p:nums([c.p])[0],ans:nums([q])[0],steps:1})},
+ qa(){return qcm(1,'Laquelle de ces épreuves est une épreuve de Bernoulli de paramètre <i>p</i> = 3/4&nbsp;?',
+   'Répondre au hasard à une question d’un QCM à 4 choix (une seule réponse juste)&nbsp;; succès&nbsp;: «&nbsp;la réponse est fausse&nbsp;»',
+   ['Répondre au hasard à une question d’un QCM à 4 choix (une seule réponse juste)&nbsp;; succès&nbsp;: «&nbsp;la réponse est juste&nbsp;»','Lancer un dé équilibré à six faces&nbsp;; succès&nbsp;: «&nbsp;obtenir 3 ou 4&nbsp;»','Lancer une pièce équilibrée&nbsp;; succès&nbsp;: «&nbsp;obtenir face&nbsp;»'],
+   'Trois réponses sur quatre sont fausses&nbsp;: le succès «&nbsp;réponse fausse&nbsp;» a la probabilité 3/4. Les autres succès ont pour probabilité 1/4, 1/3 et 1/2.',{k:'which',vals:nums([R(3,4),R(1,4),R(1,3),R(1,2)]),steps:1})},
+ ta(){const c=urn();return trous(1,`${c.ep} Succès&nbsp;: «&nbsp;la boule est rouge&nbsp;». Sous forme de fraction irréductible, <i>p</i> = {0}.`,[BL(c.p,4)],`${c.a} boules rouges sur ${c.a+c.b} boules&nbsp;: <i>p</i> = ${numH(R(c.a,c.a+c.b),true)}.`,{k:'urnp',a:c.a,b:c.b,ans:nums([c.p])[0],steps:1})},
+ qo(){const [a,b]=pick([[3,9],[4,8],[5,10],[6,9],[2,8],[6,10]]),p=R(a,a+b),q=sub(one,p);
+   const bad=[R(a,b),R(b,a+b),R(1,a+b)].filter((r,i,arr)=>!eq(r,q)&&arr.findIndex(o=>eq(o,r))===i).slice(0,3);
+   return qcm(1,`Un sac contient ${a} tickets gagnants et ${b} tickets perdants. On tire un ticket au hasard&nbsp;; succès&nbsp;: «&nbsp;le ticket est gagnant&nbsp;». Quelle est la probabilité de l’échec&nbsp;?`,numH(q,true),bad.map(r=>numH(r,true)),
+   `<i>p</i> = ${numH(R(a,a+b),true)} = ${numH(p,true)}, donc 1 − <i>p</i> = ${numH(q,true)}.`,{k:'urnq',a,b,vals:nums([q].concat(bad)),steps:2})},
+ to(){const c=urn(),q=sub(one,c.p);return trous(1,`${c.ep} Succès&nbsp;: «&nbsp;la boule est rouge&nbsp;». En fractions irréductibles&nbsp;: <i>p</i> = {0} et 1 − <i>p</i> = {1}.`,[BL(c.p,4),BL(q,4)],`<i>p</i> = ${numH(R(c.a,c.a+c.b),true)} = ${numH(c.p,true)} et 1 − <i>p</i> = ${numH(q,true)}.`,{k:'urnpq',a:c.a,b:c.b,ans:nums([c.p,q]),steps:2})}};
+/* ---------- niveau 2 ---------- */
+function lawBad(n,c){const q=sub(one,c.p),out=[law(pH(c),n)];if(!eq(q,c.p))out.push(law(n,pH(c,q)));out.push(law(n+1,pH(c)));if(out.length<3)out.push(law(n-1,pH(c)));return out.slice(0,3)}
+const L2={
+ qb(){const c=ctxF(()=>true),n=ri(4,12);return qcm(2,`${c.ep} Succès&nbsp;: «&nbsp;${c.s}&nbsp;». ${c.rep(n)} <i>X</i> est ${c.X}. Quelle loi suit <i>X</i>&nbsp;?`,law(n,pH(c)),lawBad(n,c),
+   `${n} répétitions identiques et indépendantes, succès de probabilité ${pH(c)}&nbsp;: <i>X</i> ∼ ${law(n,pH(c))}.`,{k:'law',n,p:nums([c.p])[0],steps:1})},
+ tb(){const n=ri(5,8),k=ri(1,n-1),res=shuf(Array(n).fill(0).map((_,i)=>i<k?'S':'É')).join('');
+   return trous(2,`On répète ${n} fois une épreuve de Bernoulli. On obtient la série <span class="seq">${res}</span>. Le nombre de succès est <i>X</i> = {0}.`,[BL(R(k),3)],`On compte les S&nbsp;: il y en a ${k}.`,{k:'count',seq:res,ans:nums([R(k)])[0],steps:1})},
+ qa(){const [a,b]=pick(X.URNS),n=ri(3,6);return qcm(2,`Une urne contient ${a} boules rouges et ${b} boules blanches. On tire ${n} boules successivement et on note <i>X</i> le nombre de boules rouges. <i>X</i> suit une loi binomiale lorsque les tirages sont faits&nbsp;:`,
+   'avec remise',['sans remise','avec ou sans remise, peu importe'],'Avec remise, la composition de l’urne ne change pas&nbsp;: les épreuves sont identiques et indépendantes.',{k:'remise',steps:1})},
+ ta(){const c=ctxF(()=>true),n=ri(5,15);return trous(2,`${c.ep} Succès&nbsp;: «&nbsp;${c.s}&nbsp;». ${c.rep(n)} <i>X</i> est ${c.X}. <i>X</i> suit la loi binomiale de paramètres <i>n</i> = {0} et <i>p</i> = {1}.`,[BL(R(n),3),BL(c.p,4)],`${n} répétitions&nbsp;; <i>p</i> = ${pH(c)}.`,{k:'params',n,p:nums([c.p])[0],ans:nums([R(n),c.p]),steps:1})},
+ qo(){const [a,b]=pick([[3,9],[4,8],[5,10],[6,9],[2,8],[6,10]]),n=ri(4,10),p=R(a,a+b),q=sub(one,p);
+   return qcm(2,`Un sac contient ${a} jetons verts et ${b} jetons noirs. On tire un jeton, on note sa couleur et on le remet&nbsp;; on recommence pour faire ${n} tirages en tout. <i>X</i> est le nombre de jetons verts. Quelle loi suit <i>X</i>&nbsp;?`,law(n,numH(p,true)),[law(n,numH(R(a,b),true)),law(n,numH(q,true)),law(a+b!==n?a+b:n+1,numH(p,true))],
+   `${n} tirages avec remise&nbsp;: <i>p</i> = ${numH(R(a,a+b),true)} = ${numH(p,true)}, donc <i>X</i> ∼ ${law(n,numH(p,true))}.`,{k:'lawU',n,a,b,steps:2})},
+ to(){const [a,b]=pick([[3,9],[4,8],[5,10],[6,9],[2,8],[6,10]]),n=ri(4,10),p=R(a,a+b),q=sub(one,p);
+   return trous(2,`Un sac contient ${a} jetons verts et ${b} jetons noirs. On fait ${n} tirages avec remise et <i>X</i> est le nombre de jetons <b>noirs</b>. <i>X</i> ∼ <i>B</i>(<i>n</i>&nbsp;;&nbsp;<i>p</i>) avec <i>n</i> = {0} et <i>p</i> = {1} (fraction irréductible).`,[BL(R(n),3),BL(q,4)],
+   `Le succès est «&nbsp;noir&nbsp;»&nbsp;: <i>p</i> = ${numH(R(b,a+b),true)} = ${numH(q,true)}.`,{k:'paramsU',n,a,b,ans:nums([R(n),q]),steps:2})}};
+/* ---------- niveau 3 ---------- */
+const PS=[R(1,2),R(1,3),R(1,4),R(2,3),R(1,5),R(3,4)];
+const PD=[R(1,10),R(1,5),R(3,10),R(1,2)];
+const L3={
+ qb(){const p=pick(PS),n=2,g=pw(p,2);const bad=[mul(R(2),p),p,sub(one,pw(sub(one,p),2))].filter((r,i,a)=>!eq(r,g)&&a.findIndex(o=>eq(o,r))===i).slice(0,3);
+   return qcm(3,`<i>X</i> ∼ ${law(2,numH(p,true))}. Que vaut ${PX('=',2)}&nbsp;?`,numH(g,true),bad.map(r=>numH(r,true)),`Un seul chemin, SS&nbsp;: ${numH(p,true)} × ${numH(p,true)} = ${numH(g,true)}.`,{k:'pmf',n,p:nums([p])[0],kk:2,vals:nums([g].concat(bad)),steps:1})},
+ tb(){const p=pick(PS),n=2,z=pw(sub(one,p),2);return trous(3,`<i>X</i> ∼ ${law(2,numH(p,true))}. ${PX('=',0)} = {0} (fraction irréductible).`,[BL(z,4)],`Un seul chemin, ÉÉ&nbsp;: (1 − <i>p</i>)<sup>2</sup> = ${numH(sub(one,p),true)} × ${numH(sub(one,p),true)} = ${numH(z,true)}.`,{k:'pmf',n,p:nums([p])[0],kk:0,ans:nums([z])[0],steps:1})},
+ qa(){const n=pick([3,4]),k=n===3?pick([1,2]):pick([1,2,3]),c=N.nch(n,k);const bad=[...new Set([k,n,c+1,c-1,Math.pow(2,n)].filter(x=>x>0&&x!==c))].slice(0,3);
+   return qcm(3,`On répète ${n} fois une épreuve de Bernoulli. Sur l’arbre, combien de chemins comportent exactement ${k} succès&nbsp;?`,String(c),bad.map(String),`On liste les chemins à ${k} succès sur ${n} épreuves&nbsp;: il y en a ${c}.`,{k:'paths',n,kk:k,vals:[c].concat(bad).map(x=>({n:x,d:1})),steps:1})},
+ ta(){const p=pick(PS.slice(0,5)),k=pick([1,2]),P=pmfR(3,p,k),q=sub(one,p);return trous(3,`<i>X</i> ∼ ${law(3,numH(p,true))}. En comptant les chemins de l’arbre, ${PX('=',k)} = {0} (fraction irréductible).`,[BL(P,5)],
+   `3 chemins à ${k} succès, chacun de probabilité ${k===1?numH(p,true)+' × ('+numH(q,true)+')<sup>2</sup>':'('+numH(p,true)+')<sup>2</sup> × '+numH(q,true)} = ${numH(mul(pw(p,k),pw(q,3-k)),true)}&nbsp;: ${PX('=',k)} = 3 × ${numH(mul(pw(p,k),pw(q,3-k)),true)} = ${numH(P,true)}.`,{k:'pmf',n:3,p:nums([p])[0],kk:k,ans:nums([P])[0],steps:2})},
+ qo(){const p=pick(PD),n=3,q=sub(one,p),g=sub(one,pw(q,3));const bad=[pw(q,3),sub(one,pw(p,3)),mul(R(3),mul(p,pw(q,2)))].filter((r,i,a)=>!eq(r,g)&&a.findIndex(o=>eq(o,r))===i).slice(0,3);
+   return qcm(3,`Un composant est défectueux avec la probabilité ${dec(p)}. On en contrôle 3, de façon indépendante. Quelle est la probabilité qu’au moins un des 3 soit défectueux&nbsp;?`,dec(g),bad.map(r=>dec(r)),
+   `${PX('≥',1)} = 1 − ${PX('=',0)} = 1 − (${dec(q)})<sup>3</sup> = 1 − ${dec(pw(q,3))} = ${dec(g)}.`,{k:'atleast1',n,p:nums([p])[0],vals:nums([g].concat(bad)),steps:3})},
+ to(){const p=pick(PD),n=pick([3,4]),k=pick([1,2].filter(x=>x<n)),P=pmfR(n,p,k),q=sub(one,p),c=N.nch(n,k);
+   return trous(3,`<i>X</i> ∼ ${law(n,dec(p))}. Valeur décimale exacte&nbsp;: ${PX('=',k)} = {0}.`,[BL(P,6)],`${c} chemins à ${k} succès, chacun de probabilité ${dec(mul(pw(p,k),pw(q,n-k)))}&nbsp;: ${c} × ${dec(mul(pw(p,k),pw(q,n-k)))} = ${dec(P)}.`,{k:'pmf',n,p:nums([p])[0],kk:k,ans:nums([P])[0],steps:3})}};
+/* ---------- niveau 4 ---------- */
+const L4={
+ qb(){const [n,p]=pick(EXACT),ps=Array.from({length:n+1},(_,k)=>pmfR(n,p,k));let mx=0;ps.forEach((r,k)=>{if(val(r)>val(ps[mx]))mx=k});
+   if(ps.filter(r=>eq(r,ps[mx])).length>1)return L4.qb();const bad=Array.from({length:n+1},(_,k)=>k).filter(k=>k!==mx).slice(0,3);
+   return qcm(4,`Voici la loi de <i>X</i> ∼ ${law(n,dec(p))}&nbsp;:${tbl(ps.map((_,k)=>k),ps.map(r=>dec(r)))}Sur le diagramme en bâtons, quel est le bâton le plus haut&nbsp;?`,`celui de <i>k</i> = ${mx}`,bad.map(k=>`celui de <i>k</i> = ${k}`),
+   `Le bâton le plus haut correspond à la plus grande probabilité&nbsp;: ${PX('=',mx)} = ${dec(ps[mx])}.`,{k:'mode',n,p:nums([p])[0],ans:mx,vals:[mx].concat(bad),steps:1})},
+ tb(){const [n,p]=pick(EXACT),ps=Array.from({length:n+1},(_,k)=>pmfR(n,p,k)),m=ri(0,n);
+   return trous(4,`Voici la loi de <i>X</i> ∼ ${law(n,dec(p))}, avec une valeur manquante&nbsp;:${tbl(ps.map((_,k)=>k),ps.map((r,k)=>k===m?'?':dec(r)))}${PX('=',m)} = {0}`,[BL(ps[m],5)],`La somme des probabilités vaut 1&nbsp;: 1 − (${ps.filter((_,k)=>k!==m).map(r=>dec(r)).join(' + ')}) = ${dec(ps[m])}.`,{k:'miss',n,p:nums([p])[0],m,ans:nums([ps[m]])[0],steps:1})},
+ qa(){const n=pick([4,6,8,10]);return qcm(4,`Le diagramme en bâtons de la loi ${law(n,'0,5')}&nbsp;:`,`est symétrique par rapport à la verticale <i>k</i> = ${n/2}`,[`est croissant de 0 à ${n}`,`a tous ses bâtons de la même hauteur`,`a son bâton le plus haut en <i>k</i> = ${n}`],
+   `Pour <i>p</i> = 0,5, le diagramme est symétrique&nbsp;; son bâton le plus haut est au milieu, en ${n/2}.`,{k:'sym',n,steps:1})},
+ ta(){const [n,p]=pick(EXACT.filter(e=>e[0]>=3)),ps=Array.from({length:n+1},(_,k)=>pmfR(n,p,k)),m=ri(0,n);
+   return trous(4,`La loi de <i>X</i> ∼ ${law(n,dec(p))} est donnée ci-dessous, sauf une valeur&nbsp;:${tbl(ps.map((_,k)=>k),ps.map((r,k)=>k===m?'?':dec(r)))}${PX('=',m)} = {0}`,[BL(ps[m],5)],`1 − (${ps.filter((_,k)=>k!==m).map(r=>dec(r)).join(' + ')}) = ${dec(ps[m])}.`,{k:'miss',n,p:nums([p])[0],m,ans:nums([ps[m]])[0],steps:2})},
+ qo(){const [n,p]=pick(EXACT.filter(e=>e[0]>=3)),ps=Array.from({length:n+1},(_,k)=>pmfR(n,p,k)),k=ri(1,n-1);let s=R(0);for(let i=0;i<=k;i++)s=add(s,ps[i]);
+   let ge=R(0);for(let i=k;i<=n;i++)ge=add(ge,ps[i]);const bad=[ps[k],ge,sub(one,ps[k])].filter((r,i,a)=>!eq(r,s)&&a.findIndex(o=>eq(o,r))===i).slice(0,3);
+   return qcm(4,`Voici la loi de <i>X</i> ∼ ${law(n,dec(p))}&nbsp;:${tbl(ps.map((_,i)=>i),ps.map(r=>dec(r)))}Quelle est la probabilité d’obtenir <b>au plus</b> ${k} succès&nbsp;?`,dec(s),bad.map(r=>dec(r)),
+   `${PX('≤',k)} = ${ps.slice(0,k+1).map(r=>dec(r)).join(' + ')} = ${dec(s)}.`,{k:'cumle',n,p:nums([p])[0],kk:k,vals:nums([s].concat(bad)),steps:2})},
+ to(){const [n,p]=pick(EXACT.filter(e=>e[0]>=3)),ps=Array.from({length:n+1},(_,k)=>pmfR(n,p,k)),k=ri(1,n-1);let s=R(0);for(let i=k;i<=n;i++)s=add(s,ps[i]);
+   return trous(4,`Voici la loi de <i>X</i> ∼ ${law(n,dec(p))}&nbsp;:${tbl(ps.map((_,i)=>i),ps.map(r=>dec(r)))}Probabilité d’obtenir au moins ${k} succès&nbsp;: ${PX('≥',k)} = {0}`,[BL(s,5)],`${PX('≥',k)} = ${ps.slice(k).map(r=>dec(r)).join(' + ')} = ${dec(s)}.`,{k:'cumge',n,p:nums([p])[0],kk:k,ans:nums([s])[0],steps:2})}};
+/* ---------- niveau 5 ---------- */
+const L5={
+ qb(){const k=ri(2,6),t=ri(0,1);const good=t?PX('≤',k):PX('≥',k);
+   return qcm(5,`<i>X</i> est le nombre de succès. «&nbsp;Obtenir <b>${t?'au plus':'au moins'} ${k}</b> succès&nbsp;» se traduit par&nbsp;:`,good,[t?PX('≥',k):PX('≤',k),PX('=',k),t?PX('≤',k-1):PX('≥',k+1)],
+   t?`«&nbsp;Au plus ${k}&nbsp;» : ${k} succès ou moins, <i>X</i> ≤ ${k}.`:`«&nbsp;Au moins ${k}&nbsp;» : ${k} succès ou plus, <i>X</i> ≥ ${k}.`,{k:'words',kk:k,t,steps:1})},
+ tb(){const k=ri(3,9);return trous(5,`Pour une variable aléatoire <i>X</i> qui suit une loi binomiale&nbsp;: ${PX('≥',k)} = 1 − ${PX('≤','{0}')}.`,[BL(R(k-1),3)],`Le contraire de «&nbsp;<i>X</i> ≥ ${k}&nbsp;» est «&nbsp;<i>X</i> ≤ ${k-1}&nbsp;».`,{k:'compk',kk:k,ans:nums([R(k-1)])[0],steps:1})},
+ qa(){const [n,p]=pick(CALC),k=ri(2,Math.min(n-2,6));return qcm(5,`<i>X</i> ∼ ${law(n,dec(p))}. Quelle commande de la calculatrice donne ${PX('≤',k)}&nbsp;?`,cmdC(n,p,k),[cmdP(n,p,k),`<span class="calc">binomcdf(${n},${k},${ptxt(p)})</span>`,cmdC(n,p,k-1)],
+   `<span class="calc">binomcdf(n,p,k)</span> donne <i>P</i>(<i>X</i> ≤ <i>k</i>), dans l’ordre <i>n</i>, <i>p</i>, <i>k</i>.`,{k:'cmd',n,p:nums([p])[0],kk:k,steps:1})},
+ ta(){const [n,p]=pick(CALC),k=ri(3,Math.min(n-1,7)),v=rnd(cdf(n,val(p),k-1),4),r=sub(one,v);
+   return trous(5,`<i>X</i> ∼ ${law(n,dec(p))}. La calculatrice donne ${PX('≤',k-1)} ≈ ${dec(v,4)}. Donc ${PX('≥',k)} ≈ {0}.`,[BL(r,5,[dec(r,4).replace(/ /g,'')])],`${PX('≥',k)} = 1 − ${PX('≤',k-1)} ≈ 1 − ${dec(v,4)} = ${dec(r,4)}.`,{k:'compv',n,p:nums([p])[0],kk:k,v:nums([v])[0],ans:nums([r])[0],steps:2})},
+ qo(){const [n,p]=pick(CALC);let k;do{k=ri(3,Math.min(n-2,7))}while(cdf(n,val(p),k)>.995);const a=rnd(cdf(n,val(p),k-1),4),b=rnd(cdf(n,val(p),k),4),g=sub(one,a);
+   const bad=[sub(one,b),a,b,rnd(pmf(n,val(p),k),4)].filter((r,i,arr)=>!eq(r,g)&&arr.findIndex(o=>eq(o,r))===i).slice(0,3);
+   return qcm(5,`<i>X</i> ∼ ${law(n,dec(p))}. La calculatrice affiche ${cmdC(n,p,k-1)} ≈ ${dec(a,4)} et ${cmdC(n,p,k)} ≈ ${dec(b,4)}. Quelle est la probabilité d’obtenir au moins ${k} succès&nbsp;?`,dec(g,4),bad.map(r=>dec(r,4)),
+   `${PX('≥',k)} = 1 − ${PX('≤',k-1)} ≈ 1 − ${dec(a,4)} = ${dec(g,4)}.`,{k:'compq',n,p:nums([p])[0],kk:k,va:nums([a])[0],vb:nums([b])[0],vals:nums([g].concat(bad)),steps:3})},
+ to(){const [n,p]=pick([[4,R(1,10)],[3,R(1,5)],[3,R(3,10)],[4,R(1,5)],[5,R(1,10)],[2,R(3,10)]]),z=pw(sub(one,p),n),r=sub(one,z);
+   return trous(5,`Un composant est défectueux avec la probabilité ${dec(p)}. On en contrôle ${n}, de façon indépendante. Valeur décimale exacte de la probabilité qu’au moins un composant soit défectueux&nbsp;: {0}.`,[BL(r,6)],
+   `${PX('≥',1)} = 1 − ${PX('=',0)} = 1 − (${dec(sub(one,p))})<sup>${n}</sup> = 1 − ${dec(z)} = ${dec(r)}.`,{k:'atleast1',n,p:nums([p])[0],ans:nums([r])[0],steps:3})}};
+/* ---------- niveau 6 ---------- */
+const L6={
+ qb(){const [n,p]=pick([[10,R(1,2)],[20,R(1,4)],[12,R(1,3)],[30,R(1,5)],[8,R(1,2)],[50,R(1,10)],[6,R(1,3)],[20,R(3,10)]]),E=mul(R(n),p),fr=p.d===3||p.d===4;
+   const bad=[R(n),p,mul(R(n),sub(one,p))].filter((r,i,a)=>!eq(r,E)&&a.findIndex(o=>eq(o,r))===i).slice(0,3);
+   return qcm(6,`<i>X</i> ∼ ${law(n,numH(p,fr))}. Que vaut ${EX}&nbsp;?`,numH(E,fr),bad.map(r=>numH(r,fr)),`${EX} = <i>n</i> × <i>p</i> = ${n} × ${numH(p,fr)} = ${numH(E,fr)}.`,{k:'np',n,p:nums([p])[0],vals:nums([E].concat(bad)),steps:1})},
+ tb(){const [n,p]=pick([[10,R(1,2)],[20,R(1,2)],[40,R(1,4)],[15,R(1,5)],[30,R(1,10)],[25,R(2,5)]]),E=mul(R(n),p);return trous(6,`<i>X</i> ∼ ${law(n,dec(p))}. ${EX} = {0}.`,[BL(E,4)],`${EX} = ${n} × ${dec(p)} = ${numT(E)}.`,{k:'np',n,p:nums([p])[0],ans:nums([E])[0],steps:1})},
+ qa(){const c=pick(CTX.filter(x=>!x.fr&&x.p.d<=10)),n=pick([10,20,30]),E=mul(R(n),c.p);
+   return qcm(6,`${c.ep} ${c.rep(n)} <i>X</i> est ${c.X}, et ${EX} = ${numH(E)}. Cela signifie que&nbsp;:`,`sur un grand nombre de séries de ${n}, on obtient en moyenne ${numH(E)} succès par série`,
+   [`à chaque série de ${n}, on obtient exactement ${numH(E)} succès`,`la probabilité du succès est ${numH(E)}`,`on est sûr d’obtenir au moins ${numH(E)} succès`],
+   `L’espérance est une moyenne sur un grand nombre de répétitions de la série&nbsp;: ${EX} = ${n} × ${pH(c)} = ${numH(E)}.`,{k:'interp',n,p:nums([c.p])[0],steps:1})},
+ ta(){const [n,p]=pick([[8,R(1,3)],[10,R(1,3)],[5,R(2,3)],[7,R(1,4)],[9,R(1,4)],[10,R(1,6)],[14,R(1,3)]]),E=mul(R(n),p);
+   return trous(6,`<i>X</i> ∼ ${law(n,numH(p,true))}. Sous forme de fraction irréductible, ${EX} = {0}.`,[BL(E,4)],`${EX} = ${n} × ${numH(p,true)} = ${numH(E,true)}.`,{k:'np',n,p:nums([p])[0],ans:nums([E])[0],steps:1})},
+ qo(){const nq=pick([8,10,12,20]),m=pick([3,4,5]),pts=pick([1,2,3]),p=R(1,m),E=mul(R(nq),p),note=mul(E,R(pts));
+   const bad=[E,mul(R(nq*pts),sub(one,p)),R(nq*pts,2)].filter((r,i,a)=>!eq(r,note)&&a.findIndex(o=>eq(o,r))===i).slice(0,3);const fmt=r=>numH(r,!N.isDec(r));
+   return qcm(6,`Un QCM compte ${nq} questions à ${m} choix, une seule réponse juste par question. On répond entièrement au hasard. Une bonne réponse rapporte ${pts} point${pts>1?'s':''}, une mauvaise 0. Quelle note peut-on espérer&nbsp;?`,fmt(note),bad.map(fmt),
+   `<i>X</i> ∼ ${law(nq,numH(p,true))}, ${EX} = ${nq} × ${numH(p,true)} = ${numH(E,true)} bonnes réponses, soit ${numH(E,true)} × ${pts} = ${fmt(note)} point${pts>1||val(note)>1?'s':''}.`,{k:'note',nq,m,pts,vals:nums([note].concat(bad)),steps:3})},
+ to(){const nq=pick([10,20,40]),m=pick([4,5]),pts=pick([2,3,4]),p=R(1,m),E=mul(R(nq),p),note=mul(E,R(pts));
+   return trous(6,`Un QCM de ${nq} questions à ${m} choix (une seule réponse juste) est rempli au hasard&nbsp;; chaque bonne réponse rapporte ${pts} points. <i>X</i> est le nombre de bonnes réponses&nbsp;: ${EX} = {0} et la note espérée est {1} points.`,[BL(E,4),BL(note,4)],
+   `<i>X</i> ∼ ${law(nq,numH(p,true))}&nbsp;: ${EX} = ${nq} × ${numH(p,true)} = ${numT(E)}, puis ${numT(E)} × ${pts} = ${numT(note)}.`,{k:'note2',nq,m,pts,ans:nums([E,note]),steps:3})}};
+/* ---------- niveau 7 ---------- */
+const gT=g=>tbl(g.xs.map(fmtInt),g.ps.map(r=>numH(r,g.fr)),'<i>x<sub>i</sub></i> (€)','<i>P</i>(<i>X</i> = <i>x<sub>i</sub></i>)');
+function simpleG(){const t=ri(0,2);if(t===0){const a=pick([2,4,6]),b=pick([1,2]);return{xs:[-b,a],ps:[R(1,2),R(1,2)],fr:false}}
+  if(t===1){const a=pick([3,5,9]);return{xs:[-1,a],ps:[R(3,4),R(1,4)],fr:false}}const a=pick([2,4]),b=pick([5,10]);return{xs:[-2,a,b],ps:[R(1,2),R(3,10),R(1,5)],fr:false}}
+const L7={
+ qb(){const g=simpleG(),E=Eg(g),plain=R(g.xs.reduce((s,x)=>s+x,0),g.xs.length);
+   const absE=g.xs.reduce((s,x,i)=>add(s,mul(R(Math.abs(x)),g.ps[i])),R(0));
+   const bad=[absE,plain,R(g.xs.reduce((s,x)=>s+x,0)),R(g.xs[g.xs.length-1]),R(g.xs[0])].filter((r,i,a)=>!eq(r,E)&&a.findIndex(o=>eq(o,r))===i).slice(0,3);
+   return qcm(7,`Le gain <i>X</i> (en €) d’un jeu a la loi suivante&nbsp;:${gT(g)}Que vaut ${EX}&nbsp;?`,numH(E),bad.map(r=>numH(r)),`${EX} = ${sumTxt(g)} = ${numH(E)}.`,{k:'Eg',xs:g.xs,ps:nums(g.ps),vals:nums([E].concat(bad)),steps:2})},
+ tb(){const g=sortG(gainsGame()),m=ri(0,g.xs.length-1);
+   return trous(7,`Le gain <i>X</i> (en €) d’un jeu a la loi suivante, une probabilité manquant&nbsp;:${tbl(g.xs.map(fmtInt),g.ps.map((r,i)=>i===m?'?':numH(r,g.fr)),'<i>x<sub>i</sub></i> (€)','<i>P</i>(<i>X</i> = <i>x<sub>i</sub></i>)')}<i>P</i>(<i>X</i> = ${fmtInt(g.xs[m])}) = {0}`,[BL(g.ps[m],5)],
+   `La somme des probabilités vaut 1&nbsp;: 1 − (${g.ps.filter((_,i)=>i!==m).map(r=>numH(r,g.fr)).join(' + ')}) = ${numH(g.ps[m],g.fr)}.`,{k:'missG',xs:g.xs,ps:nums(g.ps),m,ans:nums([g.ps[m]])[0],steps:1})},
+ qa(){const v=pick([R(-1,4),R(-1,2),R(3,4),R(6,5),R(-3,10),R(-2,5)]),neg=v.n<0,a=dec(R(Math.abs(v.n),v.d));
+   return qcm(7,`Le gain <i>X</i> (en €) d’un jeu a pour espérance ${EX} = ${dec(v)}. Cela signifie que&nbsp;:`,`sur un grand nombre de parties, le joueur ${neg?'perd':'gagne'} en moyenne ${a}&nbsp;€ par partie`,
+   [`à chaque partie, le joueur ${neg?'perd':'gagne'} exactement ${a}&nbsp;€`,`le joueur a ${dec(mul(R(Math.abs(v.n),v.d),R(100)))}&nbsp;% de chances de ${neg?'perdre':'gagner'}`,`le jeu est ${neg?'favorable':'défavorable'} au joueur`],
+   `L’espérance est le gain moyen par partie sur un grand nombre de parties&nbsp;; ${neg?'négative, le jeu est défavorable au joueur':'positive, le jeu est favorable au joueur'}.`,{k:'interpG',v:nums([v])[0],steps:1})},
+ ta(){const g=sortG(gainsGame()),E=Eg(g),ok=N.isDec(E)||E.d===1;
+   return trous(7,`${g.txt} La loi de <i>X</i> est&nbsp;:${gT(g)}${ok?'':'Sous forme de fraction irréductible, '}${EX} = {0}&nbsp;€.`,[BL(E,5)],`${EX} = ${sumTxt(g)} = ${numH(E,g.fr&&!ok)}.`,{k:'Eg',xs:g.xs,ps:nums(g.ps),ans:nums([E])[0],steps:2})},
+ qo(){const a=pick([2,3,4]),b=pick([5,6]),c=pick([4,6,8]);const g={xs:[-c,a,b],ps:[R(1,6),R(1,2),R(1,3)],fr:true},E=Eg(g);
+   const wrong1=R(a*3+b*2-c,6+0),wrong2=add(add(mul(R(a),R(1,6)),mul(R(b),R(1,6))),mul(R(-c),R(1,6))),wrong3=add(mul(R(a),R(1,2)),mul(R(b),R(1,3)));
+   const bad=[wrong3,wrong2,R(a+b-c,3)].filter((r,i,arr)=>!eq(r,E)&&arr.findIndex(o=>eq(o,r))===i).slice(0,3);
+   return qcm(7,`On lance un dé équilibré. Nombre pair&nbsp;: on gagne ${a}&nbsp;€. 3 ou 5&nbsp;: on gagne ${b}&nbsp;€. 1&nbsp;: on perd ${c}&nbsp;€. Quelle est l’espérance du gain <i>X</i>&nbsp;?`,numH(E,true)+'&nbsp;€',bad.map(r=>numH(r,true)+'&nbsp;€'),
+   `Loi&nbsp;: <i>P</i>(<i>X</i> = ${a}) = 1/2, <i>P</i>(<i>X</i> = ${b}) = 1/3, <i>P</i>(<i>X</i> = ${fmtInt(-c)}) = 1/6. ${EX} = ${a} × 1/2 + ${b} × 1/3 + (${fmtInt(-c)}) × 1/6 = ${numT(E,true)}.`,{k:'Eg',xs:g.xs,ps:nums(g.ps),vals:nums([E].concat(bad)),steps:3})},
+ to(){const a=pick([2,3]),b=pick([5,6]),g={xs:[-1,a,b,a+b],ps:[R(21,32),R(7,32),R(3,32),R(1,32)],fr:true},E=Eg(g);
+   return trous(7,`On tire une carte au hasard dans un jeu de 32 cartes (8 cœurs, 4 rois). Un cœur autre que le roi de cœur&nbsp;: +${a}&nbsp;€&nbsp;; un roi autre que le roi de cœur&nbsp;: +${b}&nbsp;€&nbsp;; le roi de cœur&nbsp;: +${a+b}&nbsp;€&nbsp;; toute autre carte&nbsp;: −1&nbsp;€. <i>P</i>(<i>X</i> = −1) = {0} et ${EX} = {1}&nbsp;€ (fractions irréductibles).`,[BL(R(21,32),5),BL(E,5)],
+   `7 cœurs, 3 rois et le roi de cœur font 11 cartes&nbsp;; il en reste 21&nbsp;: <i>P</i>(<i>X</i> = −1) = 21/32. ${EX} = (−1) × 21/32 + ${a} × 7/32 + ${b} × 3/32 + ${a+b} × 1/32 = ${numT(E,true)}.`,{k:'cards',a,b,xs:g.xs,ps:nums(g.ps),ans:nums([R(21,32),E]),steps:3})}};
+const LVF=[null,L1,L2,L3,L4,L5,L6,L7];
+/* tirage : les 7 niveaux + 3 niveaux doublés (un QCM et un texte à trous chacun) ; 6 QCM + 4 trous */
+function build(tier){const t=tier==='bronze'?'b':tier==='argent'?'a':'o';
+  const pool=tier==='bronze'?[1,2,3,4,6]:tier==='argent'?[1,2,3,4,5,6,7]:[3,4,5,6,7];
+  const extra=shuf(pool.slice()).slice(0,3),rest=shuf([1,2,3,4,5,6,7].filter(l=>extra.indexOf(l)<0)),oneT=rest[0];
+  const qs=[];extra.forEach(l=>{qs.push(LVF[l]['q'+t]());qs.push(LVF[l]['t'+t]())});
+  rest.forEach(l=>qs.push(l===oneT?LVF[l]['t'+t]():LVF[l]['q'+t]()));
+  return shuf(qs)}
+return{bronze:()=>(window.BO_lastFinal=build('bronze')),argent:()=>(window.BO_lastFinal=build('argent')),or:()=>(window.BO_lastFinal=build('or')),L:LVF};
+})();
+</script>
+
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'batons-d-or',title:'Bâtons d’Or',levels:7,
+  levelNames:['L’épreuve','La série','Les chemins','Le diagramme','La calculatrice','L’équilibre','Les gains'],
+  music:'aventure',finals:{bronze:BO_FIN.bronze,argent:BO_FIN.argent,or:BO_FIN.or}});
+BO.start();
+(function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|INPUT|TEXTAREA|svg)$/i.test(n.nodeName)&&!(n.classList&&n.classList.contains('calc')))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(fix)}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>

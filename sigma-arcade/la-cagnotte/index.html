@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La Cagnotte · Sigma Arcade</title>
+<meta name="description" content="Fonction inverse en Terminale technologique : une note fixe partagée entre x personnes, chaque part se redresse et devient une barre de hauteur k/x ; l'hyperbole, sa symétrie, ses variations, la dérivée −k/x², les asymptotes, les combinaisons polynôme + k/x et le coût minimal.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, entre jeunes adultes ; on réessaie toujours.
+   IDEA : une note fixe (bateau, sono, minibus…) se partage entre x personnes ; chaque part se détache, se redresse
+          et devient une barre de hauteur k/x : les sommets dessinent l'hyperbole.
+   PICTURE : un tableau de bord de nuit ; la note dorée en haut, le repère en dessous ; barres et courbe dorées,
+             tangentes et asymptotes violet-bleu.
+   LAYOUT : scène et bandeau à gauche (collés en haut sur téléphone), carnet de bord à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);--blue:#7fb2ff}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:72ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:1000/620;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#050a16;user-select:none;-webkit-user-select:none}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg text{font-family:var(--sg-font)}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,22px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .35em}
+.capt .k{color:var(--gold2)}.capt .b{color:var(--blue)}.capt .m{color:var(--mut);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin:8px 0 0;font-size:14px;color:var(--mut)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.legend .lg i{background:linear-gradient(#f6dc8a,#c8a84b)}.legend .lc i{height:3px;border-radius:2px;background:var(--gold2);vertical-align:3px}
+.legend .lt i{height:3px;border-radius:2px;background:var(--blue);vertical-align:3px}.legend .la i{height:0;border-top:2px dashed #aebfff;border-radius:0;vertical-align:3px}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.55;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(19px,2.2vw,22px)/2.3 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.4em;height:46px;margin:0 3px;padding:0 6px;font:700 21px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.fr .in{height:44px;margin:2px 3px}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+/* curseur */
+.sld{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;margin:4px 0 12px}
+.sld .pm{min-width:48px;padding:0;font-size:22px}
+.sld input[type=range]{width:100%;height:48px;margin:0;background:transparent;-webkit-appearance:none;appearance:none;cursor:pointer}
+.sld input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:999px;background:linear-gradient(90deg,var(--ac),rgba(108,142,255,.25))}
+.sld input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:34px;height:34px;margin-top:-13px;border-radius:50%;background:var(--gold2);border:3px solid #0c1a30;box-shadow:0 0 0 2px var(--gold2),0 4px 14px rgba(0,0,0,.5)}
+.sld input[type=range]::-moz-range-track{height:8px;border-radius:999px;background:rgba(108,142,255,.35)}
+.sld input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:var(--gold2);border:3px solid #0c1a30}
+.sldv{font:700 20px var(--sg-font);font-variant-numeric:tabular-nums;margin:0 0 8px}
+.sldv b{color:var(--gold2)}
+/* écritures */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.sk-q .fr,.sk-ch .fr,.opt .fr{font-size:.9em}
+.nw{white-space:nowrap}
+.ex{white-space:nowrap}
+.tb{border-collapse:collapse;font-variant-numeric:tabular-nums;margin:4px 0 10px;font-size:17px}
+.tb th,.tb td{padding:5px 12px;border:1px solid var(--soft);text-align:center}
+.tb th{font-weight:600;color:var(--mut)}
+.tb td.k{color:var(--gold2);font-weight:700}
+.tbw{overflow-x:auto;max-width:100%}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .stage{aspect-ratio:560/430;max-height:38svh;margin:auto}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+  .legend{display:none}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .tb{font-size:15px}.tb th,.tb td{padding:4px 8px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>La Cagnotte</h1>
+<p>Une note fixe se partage entre <i>x</i> personnes. Chaque part se détache, se redresse et devient une barre de hauteur <span class="nw"><i>k</i> / <i>x</i></span>&nbsp;: plus on est nombreux, plus elle rapetisse, sans jamais toucher zéro. Les sommets dessinent l'hyperbole.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Note partagée et repère de la fonction inverse">
+    <svg id="scene" viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+  <div class="legend"><span class="lg"><i></i>part de la note</span><span class="lc"><i></i>courbe</span><span class="lt"><i></i>tangente</span><span class="la"><i></i>asymptote</span></div>
+</div>
+<section class="panel" id="panel">
+  <div id="game">
+    <div class="chap" id="chap"></div>
+    <h2 id="lvt"></h2>
+    <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+    <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+    <div class="prompt" id="prompt"></div>
+    <div id="work"></div>
+    <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+    <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+      <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+  </div>
+</section>
+</main>
+<script>
+/* ======================= LA CAGNOTTE — nombres exacts et écritures ======================= */
+window.CG_N=(function(){
+'use strict';
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t}return a};
+const R=(n,d)=>{if(d===undefined)d=1;if(d<0){n=-n;d=-d}const g=gcd(n,d)||1;return{n:n/g,d:d/g}};
+const add=(x,y)=>R(x.n*y.d+y.n*x.d,x.d*y.d);
+const sub=(x,y)=>R(x.n*y.d-y.n*x.d,x.d*y.d);
+const mul=(x,y)=>R(x.n*y.n,x.d*y.d);
+const div=(x,y)=>R(x.n*y.d,x.d*y.n);
+const neg=x=>R(-x.n,x.d);
+const pw=(x,p)=>{let r=R(1);const b=p<0?div(R(1),x):x;for(let i=0;i<Math.abs(p);i++)r=mul(r,b);return r};
+const cmp=(x,y)=>Math.sign(x.n*y.d-y.n*x.d);
+const eq=(x,y)=>cmp(x,y)===0;
+const val=x=>x.n/x.d;
+/* décimal « exact » : 2,5 → R(5,2) */
+const D=s=>{s=String(s);const m=/^(-?)(\d+)(?:[.,](\d+))?$/.exec(s);const f=m[3]||'';return R((m[1]?-1:1)*parseInt(m[2]+f,10),Math.pow(10,f.length))};
+const isDec=r=>{let d=r.d;while(d%2===0)d/=2;while(d%5===0)d/=5;return d===1};
+const NB=' ';
+function fmtInt(n){const s=String(Math.abs(n));const g=s.length>4?s.replace(/\B(?=(\d{3})+(?!\d))/g,NB):s;return (n<0?'−':'')+g}
+function dec(r,minDig){minDig=minDig||0;let k=0;while(k<10&&((Math.abs(r.n)*Math.pow(10,k))%r.d))k++;
+  const kk=Math.max(k,minDig),v=Math.round(Math.abs(r.n)*Math.pow(10,kk)/r.d),p=Math.pow(10,kk);
+  const ip=Math.floor(v/p),fp=kk?String(v-ip*p).padStart(kk,'0'):'';
+  return (r.n<0?'−':'')+fmtInt(ip)+(kk?','+fp:'')}
+const frH=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+/* écriture HTML d'un rationnel : entier, décimal, ou fraction (signe devant) */
+const numH=r=>r.d===1?fmtInt(r.n):isDec(r)?dec(r):(r.n<0?'−':'')+frH(Math.abs(r.n),r.d);
+const numT=r=>r.d===1?fmtInt(r.n):isDec(r)?dec(r):`${r.n<0?'−':''}${Math.abs(r.n)}/${r.d}`;
+/* nombre entre parenthèses s'il est négatif */
+const parH=r=>r.n<0?`(${numH(r)})`:numH(r);
+/* toutes les écritures acceptées pour un rationnel */
+function ans(r){const out=[];const push=s=>{if(out.indexOf(s)<0)out.push(s)};
+  if(isDec(r)){const d0=dec(r).replace(/ /g,'');push(d0);if(r.d!==1){const k=(d0.split(',')[1]||'').length;for(let j=k+1;j<=4;j++)push(dec(r,j).replace(/ /g,''))}}
+  if(r.d!==1)push(`${r.n<0?'−':''}${Math.abs(r.n)}/${r.d}`);
+  return out}
+/* lecture d'une saisie : entier, décimal (virgule ou point) ou fraction a/b */
+function parse(s){s=String(s).replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/^\+/,'');
+  let m=/^(-?)(\d*)(?:\.(\d+))?$/.exec(s);
+  if(m&&(m[2]||m[3])){const ip=m[2]||'0',fp=m[3]||'';const n=parseInt(ip+fp,10)*(m[1]?-1:1);return R(n,Math.pow(10,fp.length))}
+  m=/^(-?\d+)\/(-?\d+)$/.exec(s);if(m&&+m[2])return R(parseInt(m[1],10),parseInt(m[2],10));
+  return null}
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const S_=r=>`(${r.n}/${r.d})`;   // écriture machine (sympy) d'un rationnel
+
+/* ---------- expressions : somme de termes c·x^p (p ∈ {3,2,1,0,−1,−2}) ---------- */
+const X='<i>x</i>';
+const PW={'2':'²','3':'³'};
+function termH(c,p,first){
+  const ng=c.n<0,a=R(Math.abs(c.n),c.d);let body;
+  if(p<0){body=frH(fmtInt(a.n),(a.d>1?a.d:'')+X+(p===-2?'²':''))}
+  else if(p===0)body=numH(a);
+  else body=(a.n===1&&a.d===1?'':numH(a))+X+(PW[p]||'');
+  return first?(ng?'−':'')+body:(ng?' − ':' + ')+body}
+/* T : liste [[c,p],…] ; c rationnel ou entier */
+const T=list=>list.map(([c,p])=>[typeof c==='number'?R(c):c,p]).filter(([c])=>c.n!==0);
+function exH(t){t=T(t);if(!t.length)return '0';return `<span class="ex">${t.map(([c,p],i)=>termH(c,p,i===0)).join('')}</span>`}
+function exS(t){t=T(t);if(!t.length)return '0';return t.map(([c,p])=>`${S_(c)}*x**(${p})`).join('+')}
+const dT=t=>T(t).filter(([c,p])=>p!==0).map(([c,p])=>[mul(c,R(p)),p-1]);
+function evT(t,x){return T(t).reduce((s,[c,p])=>add(s,mul(c,pw(x,p))),R(0))}
+const evF=(t,x)=>T(t).reduce((s,[c,p])=>s+val(c)*Math.pow(x,p),0);
+return{gcd,R,add,sub,mul,div,neg,pw,cmp,eq,val,D,isDec,fmtInt,dec,frH,numH,numT,parH,ans,parse,ri,pick,shuf,S_,X,T,exH,exS,dT,evT,evF,NB};
+})();
+</script>
+<script>
+/* ======================= LA CAGNOTTE — la scène (note partagée, repère, courbes, tangente, asymptotes) ======================= */
+window.CG_S=(function(){
+'use strict';
+const N=window.CG_N,NS='http://www.w3.org/2000/svg',svg=document.getElementById('scene');
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let W=1000,H=620,narrow=false;
+function el(tag,a,parent){const e=document.createElementNS(NS,tag);if(a)for(const k in a)e.setAttribute(k,a[k]);if(parent)parent.appendChild(e);return e}
+function tx(parent,x,y,s,a){const t=el('text',Object.assign({x,y,'font-size':narrow?24:21,'font-weight':600,fill:'rgba(230,238,255,.86)'},a||{}),parent);t.textContent=s;return t}
+const C={gold:'#e8c766',gold2:'#f6dc8a',blue:'#7fb2ff',acc:'#8ea6ff',ink:'#f0f4ff',mut:'rgba(200,215,255,.62)',coral:'#ff8a7a',ok:'#5fd27c'};
+const fm=x=>{if(!isFinite(x))return '';const r=Math.round(x*100)/100;let s=String(Math.abs(r)).replace('.',',');if(Math.abs(r)>=10000)s=s.replace(/\B(?=(\d{3})+(?!\d))/g,' ');return (r<0?'−':'')+s};
+
+/* ---------- bruitages (interrupteur partagé avec le kit) ---------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null,lastTick=0;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const SND={
+  pop(){if(snd){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)}},
+  tick(){if(!snd)return;const n=performance.now();if(n-lastTick<50)return;lastTick=n;tone(880,.05,.025,'sine')},
+  cut(i){if(snd)tone(520+i*40,.07,.03,'square')},
+  drop(){if(snd){tone(440,.12,.04,'triangle');tone(660,.16,.03,'sine',.08)}},
+  soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))},
+  whoosh(){if(snd){tone(220,.35,.03,'sine');tone(440,.3,.02,'sine',.08)}}};
+const sound={get:()=>snd,set:v=>{snd=v;try{localStorage.setItem('sigma-fanfare',v?'1':'0')}catch(_){}}};
+
+/* ---------- état (tout se redessine à partir de lui) ---------- */
+const st={};
+function blank(){return{mode:'plane',v:{x0:-5,x1:5,y0:-5,y1:5},xs:null,ys:null,xlab:'x',ylab:'y',
+  bill:null,curves:[],asym:[],bars:[],ghost:null,stack:null,pts:[],tan:null,fly:null,seg:[],vbad:null,note:''}}
+Object.assign(st,blank());
+let token=0;const anims=new Set();
+function cancelAll(){token++;const a=[...anims];anims.clear();a.forEach(x=>{if(x.done)x.done()})}
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?Math.min(ms,30):ms));
+function tween(ms,fn,ease){const my=token;if(reduceM)ms=Math.min(ms,60);
+  return new Promise(res=>{const t0=performance.now();const a={done:()=>{fn(1);draw();res()}};anims.add(a);
+    const e=ease||(t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2);
+    function step(now){if(my!==token){return}let t=Math.min(1,(now-t0)/ms);fn(e(t));draw();if(t<1)requestAnimationFrame(step);else{anims.delete(a);res()}}
+    requestAnimationFrame(step)})}
+
+/* ---------- géométrie ---------- */
+function geo(){const l=narrow?46:64,r=narrow?18:30,b=narrow?40:46;
+  const top=st.mode==='split'?(narrow?100:122):(narrow?18:24);
+  return{gx0:l,gx1:W-r,gy0:top,gy1:H-b}}
+function X(x){const g=geo(),v=st.v;return g.gx0+(x-v.x0)/(v.x1-v.x0)*(g.gx1-g.gx0)}
+function Y(y){const g=geo(),v=st.v;return g.gy1-(y-v.y0)/(v.y1-v.y0)*(g.gy1-g.gy0)}
+const yScale=()=>{const g=geo();return (g.gy1-g.gy0)/(st.v.y1-st.v.y0)};
+const xScale=()=>{const g=geo();return (g.gx1-g.gx0)/(st.v.x1-st.v.x0)};
+function nice(span,n){const raw=span/n,p=Math.pow(10,Math.floor(Math.log10(raw))),m=raw/p;return (m<1.5?1:m<3?2:m<7?5:10)*p}
+/* géométrie de la note : longueur = k × (échelle verticale), pour qu'une part redressée ait exactement la hauteur k/n */
+function billGeo(){const g=geo(),b=st.bill;if(!b)return null;const len=b.k*yScale();
+  return{x:g.gx0,y:narrow?40:46,w:len,h:narrow?30:36}}
+
+/* ---------- décor ---------- */
+let L={};
+function build(){
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.innerHTML='';
+  const d=el('defs',null,svg);
+  d.innerHTML=`<linearGradient id="cg-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#030816"/><stop offset=".7" stop-color="#0a1732"/><stop offset="1" stop-color="#0f1e3f"/></linearGradient>
+  <linearGradient id="cg-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe7a2"/><stop offset=".5" stop-color="#e8c766"/><stop offset="1" stop-color="#b8952f"/></linearGradient>
+  <linearGradient id="cg-goldh" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fbe7a2"/><stop offset=".5" stop-color="#e8c766"/><stop offset="1" stop-color="#b8952f"/></linearGradient>
+  <linearGradient id="cg-blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a9c3ff"/><stop offset="1" stop-color="#4a6fd8"/></linearGradient>
+  <radialGradient id="cg-halo"><stop offset="0" stop-color="#6c8eff" stop-opacity=".15"/><stop offset="1" stop-color="#6c8eff" stop-opacity="0"/></radialGradient>
+  <filter id="cg-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <clipPath id="cg-clip"><rect id="cg-cliprect"/></clipPath>`;
+  el('rect',{width:W,height:H,fill:'url(#cg-sky)'},svg);
+  el('ellipse',{cx:W*.6,cy:H*.5,rx:W*.55,ry:H*.45,fill:'url(#cg-halo)'},svg);
+  const stars=el('g',{fill:'#fff'},svg);let seed=11;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  for(let i=0;i<40;i++)el('circle',{cx:(rnd()*W).toFixed(1),cy:(rnd()*H*.85).toFixed(1),r:(.5+rnd()*.8).toFixed(2),opacity:(.12+rnd()*.3).toFixed(2)},stars);
+  L.grid=el('g',null,svg);L.axis=el('g',null,svg);L.asym=el('g',null,svg);
+  L.plot=el('g',{'clip-path':'url(#cg-clip)'},svg);L.bars=el('g',null,L.plot);L.curves=el('g',null,L.plot);L.tan=el('g',null,L.plot);L.seg=el('g',null,L.plot);
+  L.pts=el('g',null,svg);L.bill=el('g',null,svg);L.fly=el('g',null,svg);L.note=el('g',null,svg)}
+
+function drawAxes(){const g=geo(),v=st.v,A=L.axis,G=L.grid;A.innerHTML='';G.innerHTML='';
+  const cr=document.getElementById('cg-cliprect');cr.setAttribute('x',g.gx0-2);cr.setAttribute('y',g.gy0-2);cr.setAttribute('width',g.gx1-g.gx0+4);cr.setAttribute('height',g.gy1-g.gy0+4);
+  const xs=st.xs||nice(v.x1-v.x0,narrow?5:9),ys=st.ys||nice(v.y1-v.y0,narrow?4:6);
+  const ax=v.y0<=0&&v.y1>=0?Y(0):g.gy1,ay=v.x0<=0&&v.x1>=0?X(0):g.gx0;
+  const fs=narrow?22:19;
+  for(let x=Math.ceil(v.x0/xs)*xs;x<=v.x1+1e-9;x+=xs){const px=X(x);el('line',{x1:px,x2:px,y1:g.gy0,y2:g.gy1,stroke:'rgba(120,160,255,.08)'},G);
+    if(Math.abs(x)>1e-9){el('line',{x1:px,x2:px,y1:ax-4,y2:ax+4,stroke:'rgba(230,238,255,.7)','stroke-width':1.3},A);
+      tx(A,px,Math.min(ax+(narrow?24:22),g.gy1+(narrow?30:30)),fm(x),{'text-anchor':'middle','font-size':fs})}}
+  for(let y=Math.ceil(v.y0/ys)*ys;y<=v.y1+1e-9;y+=ys){const py=Y(y);el('line',{x1:g.gx0,x2:g.gx1,y1:py,y2:py,stroke:'rgba(120,160,255,.08)'},G);
+    if(Math.abs(y)>1e-9){el('line',{x1:ay-4,x2:ay+4,y1:py,y2:py,stroke:'rgba(230,238,255,.7)','stroke-width':1.3},A);
+      tx(A,ay-8,py+6,fm(y),{'text-anchor':'end','font-size':fs})}}
+  el('line',{x1:g.gx0,x2:g.gx1+8,y1:ax,y2:ax,stroke:'rgba(230,238,255,.8)','stroke-width':1.6},A);
+  el('path',{d:`M${g.gx1+12} ${ax} l-10 -5 v10z`,fill:'rgba(230,238,255,.8)'},A);
+  el('line',{x1:ay,x2:ay,y1:g.gy1,y2:g.gy0-6,stroke:'rgba(230,238,255,.8)','stroke-width':1.6},A);
+  el('path',{d:`M${ay} ${g.gy0-10} l-5 10 h10z`,fill:'rgba(230,238,255,.8)'},A);
+  tx(A,g.gx1+4,ax-10,st.xlab,{'text-anchor':'end','font-style':st.xlab.length<3?'italic':'normal','font-weight':700,fill:'rgba(230,238,255,.75)'});
+  if(st.ylab.length<3)tx(A,ay+10,g.gy0+12,st.ylab,{'font-style':'italic','font-weight':700,fill:'rgba(230,238,255,.75)'});
+  else tx(A,g.gx1-4,g.gy0+14,st.ylab,{'text-anchor':'end','font-weight':700,fill:'rgba(230,238,255,.75)'});
+  if(v.x0<0&&v.x1>0&&v.y0<0&&v.y1>0)tx(A,ay-8,ax+(narrow?22:20),'O',{'text-anchor':'end','font-size':fs,fill:'rgba(230,238,255,.6)'});
+  if(st.vbad){el('line',{x1:ay,x2:ay,y1:g.gy0,y2:g.gy1,stroke:C.coral,'stroke-width':5,opacity:.35*st.vbad},A)}}
+
+function curvePath(f,a,b){const px0=Math.max(X(a),geo().gx0-4),px1=Math.min(X(b),geo().gx1+4);if(px1<=px0)return '';
+  const xs=xScale(),v=st.v;let d='',pts=0;const n=Math.ceil((px1-px0)/2);
+  for(let i=0;i<=n;i++){const x=v.x0+(px0+(px1-px0)*i/n-geo().gx0)/xs;if(Math.abs(x)<1e-12)continue;let y=f(x);if(!isFinite(y))continue;
+    let py=Y(y);py=Math.max(-3000,Math.min(H+3000,py));d+=(pts?'L':'M')+(px0+(px1-px0)*i/n).toFixed(1)+' '+py.toFixed(1);pts++}
+  return d}
+function drawCurves(){const P=L.curves;P.innerHTML='';const v=st.v;
+  st.curves.forEach(c=>{const doms=c.dom?[c.dom]:[[v.x0,-1e-9],[1e-9,v.x1]];
+    doms.forEach(([a,b])=>{const lo=Math.max(a,v.x0),hi=Math.min(b,v.x1);if(hi<=lo)return;
+      const d=curvePath(c.f,lo,hi);if(!d)return;const r=c.rev===undefined?1:c.rev;
+      el('path',{d,fill:'none',stroke:c.col||C.gold2,'stroke-width':(c.w||3)+5,opacity:.12,'stroke-linecap':'round','stroke-linejoin':'round',pathLength:1,'stroke-dasharray':`${r} 2`},P);
+      el('path',{d,fill:'none',stroke:c.col||C.gold2,'stroke-width':c.w||3,'stroke-linecap':'round','stroke-linejoin':'round',pathLength:1,'stroke-dasharray':`${r} 2`,opacity:c.op===undefined?1:c.op},P)});
+    if(c.lab&&(c.rev===undefined||c.rev>.95)){const lx=c.labX,ly=c.f(lx);if(isFinite(ly)){const px=Math.min(X(lx),geo().gx1-10),py=Math.max(geo().gy0+20,Math.min(geo().gy1-10,Y(ly)-14));
+      tx(L.curves,px,py,c.lab,{'text-anchor':c.anchor||'middle','font-weight':700,fill:c.col||C.gold2,'font-size':narrow?24:21})}}})}
+function drawAsym(){const A=L.asym;A.innerHTML='';const g=geo();
+  st.asym.forEach(a=>{const on=a.on===undefined?1:a.on;if(on<=0)return;const col=a.col||'#aebfff';
+    if(a.t==='h'){const py=Y(a.v);if(py<g.gy0-1||py>g.gy1+1)return;const x1=g.gx0+(g.gx1-g.gx0)*on;
+      el('line',{x1:g.gx0,x2:x1,y1:py,y2:py,stroke:col,'stroke-width':8,opacity:.12*(a.glow||1)},A);
+      el('line',{x1:g.gx0,x2:x1,y1:py,y2:py,stroke:col,'stroke-width':2.2,'stroke-dasharray':'9 7'},A);
+      if(a.lab&&on>.9)tx(A,g.gx1-(st.xlab.length<3?40:110),py+(a.below?24:-10),a.lab,{'text-anchor':'end','font-weight':700,fill:col})}
+    else{const px=X(a.v);if(px<g.gx0-1||px>g.gx1+1)return;const y1=g.gy1-(g.gy1-g.gy0)*on;
+      el('line',{x1:px,x2:px,y1:g.gy1,y2:y1,stroke:col,'stroke-width':8,opacity:.12*(a.glow||1)},A);
+      el('line',{x1:px,x2:px,y1:g.gy1,y2:y1,stroke:col,'stroke-width':2.2,'stroke-dasharray':'9 7'},A);
+      if(a.lab&&on>.9)tx(A,px+10,g.gy0+(narrow?20:22),a.lab,{'font-weight':700,fill:col})}})}
+function barW(){return Math.max(10,Math.min(narrow?22:28,xScale()*.55))}
+function drawBars(){const B=L.bars;B.innerHTML='';const w=barW(),y0=Y(0);
+  st.bars.forEach(b=>{const top=Y(b.y),x=X(b.x);
+    el('rect',{x:x-w/2,y:top,width:w,height:Math.max(0,y0-top),rx:4,fill:b.col||'url(#cg-gold)',opacity:b.op||1},B);
+    if(b.lab&&!narrow||b.lab&&b.labN)tx(B,x,top-8,b.lab,{'text-anchor':'middle','font-weight':700,fill:C.gold2,'font-size':narrow?21:18})});
+  if(st.ghost){const b=st.ghost,top=Y(b.y),x=X(b.x);
+    el('rect',{x:x-w/2,y:top,width:w,height:Math.max(0,y0-top),rx:4,fill:'rgba(232,199,102,.18)',stroke:C.gold2,'stroke-width':2,'stroke-dasharray':'6 4'},B);
+    tx(B,x,top-10,b.lab,{'text-anchor':'middle','font-weight':800,fill:C.gold2,'font-size':narrow?23:20})}
+  if(st.stack){const s=st.stack,x=X(s.x),ya=Y(s.a),yb=Y(s.a+s.b),ww=w*1.15;
+    el('rect',{x:x-ww/2,y:ya,width:ww,height:Math.max(0,y0-ya),rx:3,fill:'url(#cg-blue)'},B);
+    el('rect',{x:x-ww/2,y:yb,width:ww,height:Math.max(0,ya-yb),rx:3,fill:'url(#cg-gold)'},B);
+    el('line',{x1:x-ww/2-6,x2:x+ww/2+6,y1:yb,y2:yb,stroke:'#fff','stroke-width':2},B);
+    if(!narrow){tx(B,x+ww/2+10,(ya+y0)/2+6,s.la,{fill:C.blue,'font-weight':700,'font-size':18});tx(B,x+ww/2+10,(ya+yb)/2+6,s.lb,{fill:C.gold2,'font-weight':700,'font-size':18})}}}
+function drawPts(){const P=L.pts;P.innerHTML='';const g=geo();
+  st.pts.forEach(p=>{const x=X(p.x),y=Y(p.y);if(x<g.gx0-20||x>g.gx1+20||y<g.gy0-20||y>g.gy1+20)return;const col=p.col||C.ink;
+    if(p.guide){el('path',{d:`M${x} ${y}V${Y(0)}M${x} ${y}H${X(0)}`,stroke:col,'stroke-width':1.4,'stroke-dasharray':'4 4',opacity:.6,fill:'none'},P)}
+    el('circle',{cx:x,cy:y,r:13,fill:col,opacity:.18},P);el('circle',{cx:x,cy:y,r:narrow?7:6.5,fill:col,stroke:'#071022','stroke-width':2},P);
+    if(p.lab){const right=p.side?p.side>0:x<g.gx1-170;const ty=Math.max(g.gy0+18,Math.min(g.gy1-8,y+(p.dy||-14)));
+      const t=tx(P,right?x+14:x-14,ty,p.lab,{'text-anchor':right?'start':'end','font-weight':700,fill:col,'font-size':narrow?23:20});
+      t.setAttribute('paint-order','stroke');t.setAttribute('stroke','#050a16');t.setAttribute('stroke-width','5')}})}
+function drawTan(){const T=L.tan;T.innerHTML='';const t=st.tan;if(!t)return;const y=t.f(t.x),m=t.fp(t.x);if(!isFinite(y))return;
+  const xs=xScale(),ys=yScale();let dx=xs,dy=-m*ys;const n=Math.hypot(dx,dy),half=(narrow?120:170);dx=dx/n*half;dy=dy/n*half;
+  const px=X(t.x),py=Y(y);
+  el('line',{x1:px-dx,y1:py-dy,x2:px+dx,y2:py+dy,stroke:C.blue,'stroke-width':8,opacity:.15,'stroke-linecap':'round'},T);
+  el('line',{x1:px-dx,y1:py-dy,x2:px+dx,y2:py+dy,stroke:C.blue,'stroke-width':2.8,'stroke-linecap':'round'},T);
+  el('circle',{cx:px,cy:py,r:7,fill:C.blue,stroke:'#071022','stroke-width':2},T)}
+function drawSeg(){const S=L.seg;S.innerHTML='';st.seg.forEach(s=>{el('line',{x1:X(s.a[0]),y1:Y(s.a[1]),x2:X(s.b[0]),y2:Y(s.b[1]),stroke:s.col||'#aebfff','stroke-width':2,'stroke-dasharray':'6 5',opacity:s.op||.8},S)})}
+function drawBill(){const B=L.bill;B.innerHTML='';const b=st.bill;if(!b)return;const g=billGeo();
+  const fs=narrow?23:20;
+  tx(B,g.x,g.y-12,b.title||'',{'font-weight':700,fill:C.gold2,'font-size':fs});
+  el('rect',{x:g.x-3,y:g.y-3,width:g.w+6,height:g.h+6,rx:9,fill:'rgba(232,199,102,.08)',stroke:'rgba(232,199,102,.45)'},B);
+  el('rect',{x:g.x,y:g.y,width:g.w,height:g.h,rx:5,fill:'url(#cg-goldh)'},B);
+  const n=b.n||1,sw=g.w/n,cut=b.cut===undefined?1:b.cut;
+  (b.taken||[]).forEach(i=>{el('rect',{x:g.x+i*sw+1,y:g.y,width:Math.max(1,sw-2),height:g.h,rx:4,fill:'#0b1730',stroke:'rgba(232,199,102,.6)','stroke-dasharray':'4 3'},B)});
+  for(let i=1;i<n;i++){if(i/n>cut+1e-9)break;el('rect',{x:g.x+i*sw-1.5,y:g.y-2,width:3,height:g.h+4,fill:'#071022'},B)}
+  if(cut>=1&&b.each&&sw>(narrow?66:70))for(let i=0;i<n;i++){const taken=b.taken&&b.taken.indexOf(i)>=0;
+    tx(B,g.x+(i+.5)*sw,g.y+g.h/2+6,b.each,{'text-anchor':'middle','font-weight':800,fill:taken?C.gold2:'#2b1d00','font-size':narrow?19:18})}
+  if(b.right)tx(B,Math.min(g.x+g.w+12,W-8),g.y+g.h/2+6,b.right,{'font-weight':700,fill:C.mut,'font-size':fs,'text-anchor':g.x+g.w+150>W?'end':'start'})}
+function drawFly(){const F=L.fly;F.innerHTML='';const f=st.fly;if(!f)return;
+  el('rect',{x:-f.w/2,y:-f.h/2,width:f.w,height:f.h,rx:5,fill:'url(#cg-goldh)',transform:`translate(${f.cx} ${f.cy}) rotate(${f.a})`,filter:'url(#cg-glow)'},F)}
+function drawNote(){const G=L.note;G.innerHTML='';if(!st.note)return;const g=geo();
+  const t=tx(G,g.gx1-6,g.gy0+(narrow?22:24),st.note,{'text-anchor':'end','font-weight':700,fill:C.mut});t.setAttribute('paint-order','stroke');t.setAttribute('stroke','#050a16');t.setAttribute('stroke-width','5')}
+function draw(){drawAxes();drawAsym();drawBars();drawCurves();drawTan();drawSeg();drawPts();drawBill();drawFly();drawNote()}
+
+function layout(){const nn=innerWidth<=860;if(nn!==narrow||!L.grid){narrow=nn;W=narrow?560:1000;H=narrow?430:620;build()}fitSplit();draw()}
+addEventListener('resize',()=>{layout()});
+
+/* ---------- mises en scène ---------- */
+function fitSplit(){if(st.mode!=='split'||!st.bill)return;const g0={l:narrow?46:64,r:narrow?18:30,b:narrow?40:46,t:narrow?100:122};
+  const gw=W-g0.r-g0.l,gh=H-g0.b-g0.t;st.v.y0=0;st.v.y1=st.bill.k*Math.max(.55,gh/gw*1.04)}
+function reset(o){cancelAll();Object.assign(st,blank(),o||{});layout()}
+function set(o){Object.assign(st,o);fitSplit();draw()}
+/* partager la note en n parts (les traits de coupe apparaissent un à un) */
+async function split(n,each){const b=st.bill;b.taken=[];b.each=each||'';const from=b.n||1;
+  if(from===n){draw();return}
+  b.n=n;SND.cut(0);await tween(420,t=>{b.cut=t});SND.cut(n%6)}
+/* une part se détache, se redresse et tombe à l'abscisse x */
+async function drop(i,x,y,o){o=o||{};const b=st.bill,g=billGeo(),sw=g.w/b.n,w=barW();
+  const c0={cx:g.x+(i+.5)*sw,cy:g.y+g.h/2},top=Y(y),c1={cx:X(x),cy:(top+Y(0))/2};
+  b.taken=(b.taken||[]).concat([i]);SND.whoosh();
+  await tween(o.ms||900,t=>{st.fly={cx:c0.cx+(c1.cx-c0.cx)*t,cy:c0.cy+(c1.cy-c0.cy)*t-Math.sin(Math.PI*t)*40,w:sw-3,h:g.h+(w-g.h)*t,a:90*Math.min(1,t*1.15)}});
+  st.fly=null;st.bars.push({x,y,lab:o.lab,labN:o.labN});SND.drop();draw()}
+async function reveal(i,ms){const c=st.curves[i];c.rev=0;await tween(ms||1100,t=>{c.rev=t},t=>t)}
+async function asymOn(i,ms){const a=st.asym[i];a.on=0;await tween(ms||700,t=>{a.on=t},t=>t)}
+async function pop(p){p.r0=1;st.pts.push(p);SND.pop();draw();await sleep(260)}
+/* demi-tour autour de O */
+async function mirror(i){const p=st.pts[i],x=p.x,y=p.y,q={x,y,col:C.blue,lab:''};st.pts.push(q);
+  st.seg.push({a:[0,0],b:[x,y],col:C.blue});const s=st.seg[st.seg.length-1];SND.whoosh();
+  await tween(1300,t=>{const a=Math.PI*t;q.x=x*Math.cos(a)-y*Math.sin(a);q.y=x*Math.sin(a)+y*Math.cos(a);s.b=[q.x,q.y]});
+  q.x=-x;q.y=-y;s.a=[x,y];s.b=[-x,-y];SND.drop();draw();return q}
+/* glisser un point le long de la courbe f, de a à b */
+async function slide(i,f,a,b,ms,onT){const p=st.pts[i];SND.whoosh();await tween(ms||1100,t=>{p.x=a+(b-a)*t;p.y=f(p.x);if(onT)onT(p.x)});p.x=b;p.y=f(b);draw()}
+async function tanSlide(a,b,ms,onT){const t0=st.tan;await tween(ms||1600,t=>{t0.x=a+(b-a)*t;if(onT)onT(t0.x)});t0.x=b;draw()}
+/* dézoom (ou zoom) : la fenêtre glisse géométriquement d'une vue à l'autre */
+async function zoom(to,ms,onT){const v0=Object.assign({},st.v);const lg=(a,b,t)=>a===b?a:(a>0&&b>0?Math.exp(Math.log(a)+(Math.log(b)-Math.log(a))*t):a+(b-a)*t);
+  await tween(ms||2200,t=>{st.v={x0:lg(v0.x0,to.x0,t),x1:lg(v0.x1,to.x1,t),y0:lg(v0.y0,to.y0,t),y1:lg(v0.y1,to.y1,t)};if(onT)onT(st.v)},t=>t)}
+const state=()=>({mode:st.mode,bars:st.bars.length,pts:st.pts.map(p=>[p.x,p.y]),bill:st.bill?{k:st.bill.k,n:st.bill.n}:null,curves:st.curves.length,v:st.v});
+layout();
+return{st,reset,set,draw,split,drop,reveal,asymOn,pop,mirror,slide,tanSlide,zoom,tween,sleep,cancelAll,SND,sound,reduceM,C,fm,state,X,Y,get narrow(){return narrow}};
+})();
+</script>
+<script>
+/* ======================= LA CAGNOTTE — moteur des niveaux (questions en étapes) ======================= */
+window.CG_G=(function(){
+'use strict';
+const N=window.CG_N,S=window.CG_S,SND=S.SND,$=id=>document.getElementById(id);
+const cap=h=>{$('capt').innerHTML=`<span>${h||'&nbsp;'}</span>`};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const knorm=s=>String(s).toLowerCase().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/[×*·]/g,'x').replace(/^\+/,'');
+const GAME='la-cagnotte';
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,busy=false;
+function starsOf(i){try{const g=SigmaKit.passport().games[GAME];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function fb(html){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fb').hidden=false}
+const api={err(why){errs++;SND.soft();fb(why)},ok(){fb('');nextPart()}};
+const W={};
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);api.ok()}};
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):N.shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{if(busy)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){box.querySelectorAll('.opt').forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else{b.classList.add('ko');b.disabled=true;api.err(c.why)}})};
+const okBlank=(b,v)=>b.r?(()=>{const x=N.parse(v);return !!x&&N.eq(x,b.r)})():b.w.some(a=>knorm(a)===knorm(v));
+W.fill=(p,box)=>{
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const b=p.b[+i];return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" ${b.r?'inputmode="decimal"':''} aria-label="Case ${+i+1}" style="width:${b.size||4.4}em">`});
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+(p.hint?`<p class="hint">${p.hint}</p>`:'');
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=v.map((x,i)=>okBlank(p.b[+ins[i].dataset.i],x));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else api.err(typeof p.why==='function'?p.why(v,oks):p.why)};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* curseur : l'élève fait varier x, la scène suit en direct ; il valide quand il pense avoir trouvé */
+W.slide=(p,box)=>{let v=p.start;
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="sldv" aria-live="polite"></div><div class="sld"><button type="button" class="btn gh pm" data-d="-1" aria-label="Diminuer">−</button>
+   <input type="range" min="${p.min}" max="${p.max}" step="1" value="${v}" aria-label="${p.aria||'Valeur de x'}"><button type="button" class="btn gh pm" data-d="1" aria-label="Augmenter">+</button></div>
+   <div class="btns"><button type="button" class="btn or val">${p.label||'Valider'}</button></div>`;
+  const r=box.querySelector('input'),out=box.querySelector('.sldv');
+  function upd(nv){v=Math.max(p.min,Math.min(p.max,nv));r.value=v;out.innerHTML=p.show(v);p.live(v);SND.tick()}
+  out.innerHTML=p.show(v);p.live(v);
+  r.oninput=()=>{fb('');upd(+r.value)};
+  box.querySelectorAll('.pm').forEach(b=>b.onclick=()=>{if(busy)return;fb('');upd(v+ +b.dataset.d)});
+  box.querySelector('.val').onclick=async()=>{if(busy)return;if(p.ok(v)){r.disabled=true;box.querySelectorAll('button').forEach(b=>b.disabled=true);SND.pop();fb('');
+      if(p.onOk){busy=true;try{await p.onOk(v)}finally{busy=false}}api.ok()}else api.err(p.why(v))};
+  box._set=x=>upd(x)};
+
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;if(pi<Q.parts.length){const p=Q.parts[pi],box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:S.reduceM?'auto':'smooth'})}}
+const LV=[];
+function newQ(){Q=LV[lvl].qs[qi]();pi=0;errs=0;
+  if(Q.setup)Q.setup();cap(Q.cap0||'&nbsp;');
+  $('prompt').innerHTML=Q.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  const box=partEl();W[Q.parts[0].t](Q.parts[0],box)}
+function dots(){const n=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:n},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){fb('');SND.win();run.push(errs===0);dots();
+  const n=LV[lvl].qs.length,lvlDone=run.length>=n;
+  $('winx').textContent=errs===0?N.pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):N.pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=Q.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(Q.onWin)Q.onWin();
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lnum=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lnum,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lnum)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:S.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];
+  $('chap').textContent=`Fonction inverse · Niveau ${l+1} sur ${LV.length}`;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('cours').open=false;renderLv();newQ()}
+function renderLv(){const snd=S.sound.get();$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){S.sound.set(!S.sound.get());renderLv();SND.pop();return}
+  goLevel(+b.dataset.l)});
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+const ch=(ask,list,o)=>Object.assign({t:'choice',ask,ch:list},o||{});
+const fill=(ask,tpl,b,why,o)=>Object.assign({t:'fill',ask,tpl,b,why},o||{});
+const slide=o=>Object.assign({t:'slide'},o);
+const OK=(h,m)=>({h,ok:true,m}),NO=(h,why,m)=>({h,why,m});
+const BR=r=>({r,sol:N.numT(r).replace(/ /g,'')});
+window.CG={start(){const m=/[?&]niveau=(\d)/.exec(location.search);goLevel(m?Math.min(+m[1]-1,LV.length-1):0)},
+  state:()=>{const p=Q&&Q.parts[pi];return{lvl,qi,nq:LV[lvl]&&LV[lvl].qs.length,busy,pi,win:!$('win').hidden,meta:p&&p.meta,qmeta:Q&&Q.meta,
+    part:p?{t:p.t,sol:p.b?p.b.map(b=>b.sol):p.t==='slide'?p.sol:null,choices:p.ch?p.ch.map(c=>({ok:!!c.ok,m:c.m})):null,min:p.min,max:p.max}:null,scene:S.state()}},
+  gen:(l,q)=>LV[l].qs[q](),LV,goLevel,renderLv};
+return{LV,W,act,ch,fill,slide,OK,NO,BR,cap,MAKI,knorm,api,renderLv};
+})();
+</script>
+<script>
+/* ======================= LA CAGNOTTE — les sept niveaux ======================= */
+(function(){
+'use strict';
+const N=window.CG_N,S=window.CG_S,G=window.CG_G,{LV,act,ch,fill,slide,OK,NO,BR,cap}=G;
+const {R,D,numH,numT,parH,frH,fmtInt,dec,ri,pick,shuf,X,exH,exS,dT,evT,evF,S_}=N;
+const C=S.C,fm=S.fm;
+const mt=r=>numT(r).replace(/ /g,'').replace(',','.').replace('−','-');
+const ex=(r)=>numH(r);
+const inv=(k)=>exH([[k,-1]]);                 // k/x
+const fX=(name)=>`<i>${name||'f'}</i>(${X})`;
+const fP=(name)=>`<i>${name||'f'}</i>′(${X})`;
+const x2=`${X}²`;
+const eur=r=>`${numH(r)}${N.NB}€`;
+/* contextes de partage (sans marque) */
+const CTX=[
+  {t:'la location d\'un bateau pour une journée à l\'îlot de sable blanc',k:[120,144,180,240],w:'amis'},
+  {t:'la location d\'une sono pour un anniversaire',k:[60,72,90,120],w:'amis'},
+  {t:'le minibus aller-retour pour le match à Mamoudzou',k:[84,96,120,144],w:'supporters'},
+  {t:'la location d\'un terrain de foot à cinq pour la soirée',k:[48,60,72,90],w:'joueurs'},
+  {t:'le gâteau commandé pour la fête de fin d\'année',k:[36,48,60,72],w:'élèves'},
+  {t:'le plein d\'essence du trajet Mamoudzou – Kani-Kéli',k:[48,60,72,84],w:'passagers'}];
+const divs=(k,lo,hi)=>{const o=[];for(let n=lo;n<=hi;n++)if(N.isDec(R(k,n))&&(k*100)%n===0)o.push(n);return o};
+const fmEur=v=>fm(v)+' €';
+/* scène « note partagée » */
+function billScene(k,title,o){S.reset(Object.assign({mode:'split',v:{x0:0,x1:13,y0:0,y1:k*.55},xs:1,xlab:'x',ylab:'part de chacun (€) pour x personnes',bill:{k,n:1,title,right:''}},o||{}))}
+/* scène « repère » */
+const VIEW=(a,b,c,d)=>({x0:a,x1:b,y0:c,y1:d});
+function plane(o){S.reset(Object.assign({mode:'plane',v:VIEW(-5,5,-4,4),xs:1,ys:1},o||{}))}
+const INV1=x=>1/x;
+const curveInv=(k,o)=>Object.assign({f:x=>k/x,col:C.gold2},o||{});
+
+/* ===================== Niveau 1 · Chacun sa part ===================== */
+const L1={};
+LV.push({t:'Chacun sa part',
+ rule:`<p><b>Une somme fixe <i>k</i> partagée entre <i>x</i> personnes&nbsp;: chacun paie ${frH('<i>k</i>',X)}.</b></p><p>La <b>fonction inverse</b> est la fonction <i>f</i> définie sur <b>ℝ ∖ {0}</b> par ${fX()} = ${frH(1,X)}.</p><p>On ne peut pas diviser par 0&nbsp;: <b>0 n'a pas d'image</b>.</p><p>Tableau du cours&nbsp;: <i>f</i>(−2) = −0,5&nbsp;; <i>f</i>(−1) = −1&nbsp;; <i>f</i>(0,25) = 4&nbsp;; <i>f</i>(1) = 1&nbsp;; <i>f</i>(2) = 0,5&nbsp;; <i>f</i>(3) = ${frH(1,3)}.</p>`,
+ qs:[
+ ()=>{const c=pick(CTX),k=pick(c.k),n=pick(divs(k,3,8));Object.assign(L1,{c,k,ns:[n]});
+  const part=R(k,n);
+  return{setup:()=>billScene(k,`La note : ${k} €`),cap0:`La note&nbsp;: <span class="k">${k}&nbsp;€</span> <span class="m">à partager</span>`,
+   prompt:`Pour ${c.t}, la note est de <b>${k}&nbsp;€</b>. Vous êtes <b>${n} ${c.w}</b> et vous partagez à parts égales.`,
+   parts:[act(`Partager la note en ${n}`,async()=>{await S.split(n,eur(part).replace(/<[^>]+>/g,''));cap(`${k}&nbsp;€ <span class="m">÷</span> ${n} <span class="m">parts égales</span>`)}),
+     fill('Combien paie chacun&nbsp;?','Chacun paie {0} €',[BR(part)],v=>`On partage ${k}&nbsp;€ en ${n}&nbsp;: chacun paie ${k} ÷ ${n}. Regarde une part sur la note.`,
+       {meta:{k:'val',f:`${k}/x`,at:`${n}`},onOk:async()=>{await S.drop(0,n,val(part),{lab:fmEur(val(part)),labN:true});cap(`<span class="m">Pour</span> ${n} <span class="m">personnes&nbsp;:</span> <span class="k">${k}/${n} = ${numH(part)}&nbsp;€</span>`)}})],
+   done:`${k}&nbsp;€ ÷ ${n} = ${eur(part)}. Ta part s'est redressée&nbsp;: elle devient une barre de hauteur ${numH(part)} au-dessus de <i>x</i> = ${n}.`}},
+ ()=>{const {c,k}=L1;const cand=divs(k,2,12).filter(n=>L1.ns.indexOf(n)<0&&n!==L1.ns[0]);const n=pick(cand.filter(n=>n>L1.ns[0]).length?cand.filter(n=>n>L1.ns[0]):cand);L1.ns.push(n);
+  const part=R(k,n),w1=k-n,w2=R(n,k);
+  const L=[NO(`${fmtInt(w1)}&nbsp;€`,`${k} − ${n}, c'est une soustraction&nbsp;: on ne retire pas les personnes de la note, on la <b>divise</b> entre elles.`,`${w1}`)];
+  if(!N.eq(w2,part))L.push(NO(`${numH(w2)}&nbsp;€`,`Tu as calculé ${n} ÷ ${k}&nbsp;: c'est la note qu'on divise par le nombre de personnes, ${k} ÷ ${n}.`,`${n}/${k}`));
+  const w3=R(k,n+1);if(!N.eq(w3,part)&&N.isDec(w3)&&L.length<3)L.push(NO(`${numH(w3)}&nbsp;€`,`Ça, c'est ${k} ÷ ${n+1}&nbsp;: compte bien ${n} personnes.`,`${k}/${n+1}`));
+  return{setup:()=>{S.st.bill.title=`La note : ${k} €`;S.draw()},cap0:`Même note, <span class="k">${k}&nbsp;€</span>, cette fois entre <span class="k">${n}</span>`,
+   prompt:`Finalement, vous serez <b>${n} ${c.w}</b> pour la même note de <b>${k}&nbsp;€</b>.`,
+   parts:[ch('Combien paie chacun maintenant&nbsp;?',[OK(`${numH(part)}&nbsp;€`,`${k}/${n}`)].concat(L),{meta:{k:'val',f:`${k}/x`,at:`${n}`},
+     onOk:async()=>{await S.split(n,eur(part).replace(/<[^>]+>/g,''));await S.drop(n-1,n,val(part),{lab:fmEur(val(part)),labN:true});
+       cap(`${n} <span class="m">personnes&nbsp;:</span> <span class="k">${numH(part)}&nbsp;€</span> <span class="m">· ${L1.ns[0]} personnes&nbsp;:</span> ${numH(R(k,L1.ns[0]))}&nbsp;€`)}})],
+   done:`${k} ÷ ${n} = ${numH(part)}. ${n>L1.ns[0]?'Plus on est nombreux, plus la part est petite&nbsp;: la barre est plus basse.':'Moins on est nombreux, plus la part est grande&nbsp;: la barre est plus haute.'}`}},
+ ()=>{const {c,k}=L1;const cand=divs(k,2,12).filter(n=>L1.ns.indexOf(n)<0&&R(k,n).d===1);const n=pick(cand.length?cand:divs(k,2,12).filter(n=>L1.ns.indexOf(n)<0));L1.ns.push(n);
+  const part=R(k,n),start=n<=6?11:2;
+  return{setup:()=>{S.st.bill.title=`La note : ${k} €`;S.draw()},cap0:`Objectif&nbsp;: <span class="k">${numH(part)}&nbsp;€</span> <span class="m">par personne</span>`,
+   prompt:`Pour que chacun paie exactement <b>${numH(part)}&nbsp;€</b>, combien de personnes faut-il réunir autour de la note de <b>${k}&nbsp;€</b>&nbsp;? Fais varier le nombre de personnes&nbsp;: la note se recoupe en direct.`,
+   parts:[slide({ask:'Nombre de personnes&nbsp;:',min:2,max:12,start,sol:n,aria:'Nombre de personnes',label:'C\'est ce nombre-là',
+     show:v=>`<i>x</i> = <b>${v}</b> personnes &nbsp;→&nbsp; ${k} ÷ ${v} = <b>${fm(k/v)}${Math.abs(k/v*100-Math.round(k/v*100))>1e-9?'…':''}&nbsp;€</b>`,
+     live:v=>{const b=S.st.bill;b.n=v;b.cut=1;b.taken=[];b.each=Math.abs(k/v*100-Math.round(k/v*100))<1e-9?fmEur(k/v):'';S.st.ghost={x:v,y:k/v,lab:fm(Math.round(k/v*100)/100)};S.draw()},
+     ok:v=>v===n,why:v=>`Avec ${v} personnes, chacun paie ${fm(Math.round(k/v*100)/100)}${Math.abs(k/v*100-Math.round(k/v*100))>1e-9?'…':''}&nbsp;€. ${k/v>val(part)?'C\'est trop&nbsp;: il faut <b>plus</b> de monde.':'C\'est trop peu&nbsp;: il faut <b>moins</b> de monde.'}`,
+     meta:{k:'solve',f:`${k}/x`,y:`${numT(part)}`},
+     onOk:async v=>{S.st.ghost=null;await S.drop(0,n,val(part),{lab:fmEur(val(part)),labN:true});
+       S.st.curves=[curveInv(k,{dom:[1.6,13],rev:0})];await S.reveal(0,1300);cap(`<span class="m">Les sommets des barres sont sur la courbe</span> <span class="k">y = ${k}/x</span>`)}})],
+   done:`${k} ÷ ${n} = ${numH(part)}&nbsp;: il faut <b>${n} personnes</b>. Les sommets des barres sont tous sur une même courbe, celle de <i>x</i> ↦ ${k}/<i>x</i>.`}},
+ ()=>{const pool=[['-2','-0.5'],['-1','-1'],['0.25','4'],['0.5','2'],['2','0.5'],['4','0.25'],['5','0.2'],['-4','-0.25'],['-0.5','-2'],['10','0.1'],['0.2','5'],['-5','-0.2']];
+  const sel=shuf(pool.slice()).slice(0,3).sort((a,b)=>+a[0]-+b[0]);const xs=sel.map(s=>D(s[0])),ys=xs.map(x=>N.div(R(1),x));
+  return{setup:()=>{plane({v:VIEW(-5.5,5.5,-5,5)});S.st.curves=[curveInv(1,{rev:0,op:.9})];S.draw()},cap0:`<i>f</i>(<i>x</i>) = ${frH(1,X)} <span class="m">sur ℝ ∖ {0}</span>`,
+   prompt:`On passe aux mathématiques&nbsp;: <i>f</i> est la <b>fonction inverse</b>, ${fX()} = ${frH(1,X)}. Complète le tableau de valeurs.`,
+   meta:{k:'table',xs:sel.map(s=>s[0])},
+   parts:[fill('Tableau de valeurs&nbsp;:',`<div class="tbw"><table class="tb"><tr><th><i>x</i></th>${xs.map(x=>`<td>${numH(x)}</td>`).join('')}</tr><tr><th><i>f</i>(<i>x</i>)</th>${xs.map((_,i)=>`<td>{${i}}</td>`).join('')}</tr></table></div>`,
+     ys.map(y=>Object.assign(BR(y),{size:3.6})),(v,oks)=>{const i=oks.indexOf(false);return `<i>f</i>(${numH(xs[i])}) = 1 ÷ ${parH(xs[i])}. ${N.val(xs[i])<0?'Un nombre négatif a un inverse négatif. ':''}${Math.abs(N.val(xs[i]))<1?'Diviser par un nombre plus petit que 1 donne un résultat plus grand.':''}`},
+     {meta:{k:'vals',f:'1/x',at:sel.map(s=>s[0])},onOk:async()=>{for(let i=0;i<3;i++)await S.pop({x:N.val(xs[i]),y:N.val(ys[i]),col:C.gold2,lab:`(${numH(xs[i]).replace(/<[^>]+>/g,'')} ; ${dec(ys[i])})`,guide:true});await S.reveal(0,1200);cap(`<span class="m">Les points sont sur l'</span><span class="k">hyperbole</span> <span class="m">y = 1/x</span>`)}})],
+   done:`Les trois points sont sur la courbe de la fonction inverse, une <b>hyperbole</b> à deux branches.`}},
+ ()=>{return{setup:()=>{plane({v:VIEW(-5.5,5.5,-5,5)});S.st.curves=[curveInv(1)];S.draw()},cap0:`<i>f</i>(<i>x</i>) = ${frH(1,X)}`,
+   prompt:`Et si personne ne vient&nbsp;? Pour la fonction inverse, on cherche <i>f</i>(0).`,
+   parts:[ch('Que vaut <i>f</i>(0)&nbsp;?',[OK('0 n\'a pas d\'image&nbsp;: on ne peut pas diviser par 0','fact:f0_undef'),
+     NO('<i>f</i>(0) = 0','1 ÷ 0 n\'est pas 0&nbsp;: la division par 0 n\'existe pas. D\'ailleurs, la courbe ne touche jamais l\'axe vertical.','fact:f0_0'),
+     NO('<i>f</i>(0) = 1','1 ÷ 1 = 1, mais 1 ÷ 0 n\'a pas de sens&nbsp;: on ne peut pas diviser par 0.','fact:f0_1'),
+     NO('<i>f</i>(0) = 10','Essaie&nbsp;: 10 × 0 = 0, pas 1. Aucun nombre multiplié par 0 ne donne 1&nbsp;: 1 ÷ 0 n\'existe pas.','fact:f0_10')],
+     {meta:{k:'fact'},onOk:async()=>{await S.tween(900,t=>{S.st.vbad=Math.sin(Math.PI*t*3)**2});S.st.vbad=1;S.draw();cap(`<span class="m">Valeur interdite&nbsp;:</span> <span class="k">x = 0</span> <span class="m">· domaine ℝ ∖ {0}</span>`)}})],
+   done:`Diviser par 0 est impossible&nbsp;: la fonction inverse est définie sur <b>ℝ ∖ {0}</b>, et sa courbe ne coupe jamais l'axe des ordonnées.`}}
+ ]});
+
+/* ===================== Niveau 2 · Le demi-tour ===================== */
+const NICE=['0.2','0.25','0.5','2','4','5','0.4','2.5','8','0.125','1.25','0.8'];
+const ptLab=(x,y)=>`(${numT(x)} ; ${numT(y)})`;
+const ptH=(x,y)=>`<span class="nw">(${numH(x)}&nbsp;;&nbsp;${numH(y)})</span>`;
+LV.push({t:'Le demi-tour',
+ rule:`<p><b>La courbe de la fonction inverse est symétrique par rapport à l'origine O</b>&nbsp;: <i>f</i>(−<i>x</i>) = −<i>f</i>(<i>x</i>) (fonction impaire).</p><p>Si A(<i>a</i> ; <i>b</i>) est sur la courbe, alors son symétrique par rapport à O, A′(−<i>a</i> ; −<i>b</i>), y est aussi&nbsp;: c'est un demi-tour autour de O.</p><p>Un point M(<i>x</i> ; <i>y</i>) est sur la courbe si et seulement si <i>y</i> = ${frH(1,X)}. La courbe <b>ne coupe jamais les axes</b>. Points particuliers&nbsp;: (1 ; 1) et (−1 ; −1).</p>`,
+ qs:[
+ ()=>{const a=D(pick(['2','4','0.5','0.25','2.5','0.4'])),b=N.div(R(1),a);
+  return{setup:()=>{plane({v:VIEW(-5,5,-4.5,4.5)});S.st.curves=[curveInv(1)];S.st.pts=[{x:N.val(a),y:N.val(b),col:C.gold2,lab:'A'+ptLab(a,b).replace(/\(/,' (')}];S.draw()},
+   cap0:`A${ptH(a,b)} <span class="m">est sur la courbe de</span> <i>f</i>(<i>x</i>) = ${frH(1,X)}`,
+   prompt:`Le point <b>A${ptH(a,b)}</b> est sur la courbe de la fonction inverse. On fait faire à A un <b>demi-tour autour de O</b>.`,
+   parts:[ch('Quel est le symétrique A′ de A par rapport à O&nbsp;?',[OK(`A′${ptH(N.neg(a),N.neg(b))}`,`(${mt(N.neg(a))},${mt(N.neg(b))})`),
+     NO(`A′${ptH(N.neg(a),b)}`,'Ça, c\'est le symétrique par rapport à l\'<b>axe des ordonnées</b> (miroir vertical). Un demi-tour autour de O change le signe des <b>deux</b> coordonnées.',`(${mt(N.neg(a))},${mt(b)})`),
+     NO(`A′${ptH(a,N.neg(b))}`,'Ça, c\'est le symétrique par rapport à l\'<b>axe des abscisses</b>. Par rapport à O, les deux coordonnées changent de signe.',`(${mt(a)},${mt(N.neg(b))})`)],
+     {meta:{k:'sym',x:mt(a),y:mt(b)},onOk:async()=>{const q=await S.mirror(0);q.lab='A′';q.col=C.blue;S.draw();cap(`A′${ptH(N.neg(a),N.neg(b))} <span class="m">est aussi sur la courbe&nbsp;:</span> <i>f</i>(${numH(N.neg(a))}) = ${numH(N.neg(b))}`)}})],
+   done:`Par le demi-tour autour de O, A${ptH(a,b)} devient A′${ptH(N.neg(a),N.neg(b))}, qui est aussi sur la courbe&nbsp;: <i>f</i>(${numH(N.neg(a))}) = ${numH(N.neg(b))}.`}},
+ ()=>{const x=D(pick(['4','5','0.5','-2','-0.25','2.5','-4','0.2']));const good=Math.random()<.5;const tv=N.div(R(1),x);
+  const bad=pick([N.neg(tv),x,N.add(tv,R(1,10))].filter(y=>!N.eq(y,tv)&&N.isDec(y)));const y=good?tv:bad;
+  return{setup:()=>{plane({v:VIEW(-5,5,-4.5,4.5)});S.st.curves=[curveInv(1)];S.st.pts=[{x:N.val(x),y:N.val(y),col:'#fff',lab:'M'}];S.draw()},cap0:`M${ptH(x,y)}`,
+   prompt:`Le point <b>M${ptH(x,y)}</b> est-il sur la courbe de la fonction inverse&nbsp;?`,
+   parts:[ch('Ta réponse&nbsp;:',[good?OK(`Oui, car ${frH(1,parH(x))} = ${numH(y)}`,'oui'):NO(`Oui, il est sur la courbe`,`Calcule <i>f</i>(${numH(x)}) = 1 ÷ ${parH(x)} = ${numH(tv)}, pas ${numH(y)}.`,'oui'),
+     good?NO('Non, il n\'est pas sur la courbe',`Calcule <i>f</i>(${numH(x)}) = 1 ÷ ${parH(x)}&nbsp;: tu trouves bien ${numH(y)}, l'ordonnée de M.`,'non'):OK(`Non, car ${frH(1,parH(x))} = ${numH(tv)} et non ${numH(y)}`,'non')],
+     {keep:true,meta:{k:'oncurve',x:mt(x),y:mt(y)},onOk:async()=>{S.st.pts.push({x:N.val(x),y:N.val(tv),col:C.gold2,lab:good?'':`(${numT(x)} ; ${numT(tv)})`,guide:true});S.SND.pop();S.draw();await S.sleep(400);
+       cap(`<i>f</i>(${numH(x)}) = ${numH(tv)} ${good?'<span class="m">: M est sur la courbe</span>':'<span class="m">: M n\'est pas sur la courbe</span>'}`)}})],
+   done:`M(<i>x</i> ; <i>y</i>) est sur la courbe exactement quand <i>y</i> = ${frH(1,X)}. Ici <i>f</i>(${numH(x)}) = ${numH(tv)}&nbsp;: ${good?'M est sur la courbe':'M n\'est pas sur la courbe'}.`}},
+ ()=>{const a=D(pick(['2','4','5','8','0.5','0.25','2.5','1.25'])),b=N.div(R(1),a);
+  return{setup:()=>{plane({v:VIEW(-5,5,-4.5,4.5)});S.st.curves=[curveInv(1)];S.st.pts=[{x:N.val(a),y:N.val(b),col:C.gold2,lab:`(${numT(a)} ; ${numT(b)})`}];S.draw()},cap0:`<i>f</i>(${numH(a)}) = ${numH(b)}`,
+   prompt:`On sait que <b><i>f</i>(${numH(a)}) = ${numH(b)}</b> et que la fonction inverse est <b>impaire</b>&nbsp;: <i>f</i>(−<i>x</i>) = −<i>f</i>(<i>x</i>).`,
+   parts:[fill('Sans calculatrice&nbsp;:',`<i>f</i>(${numH(N.neg(a))}) = {0}`,[BR(N.neg(b))],v=>`<i>f</i>(−${numH(a)}) = −<i>f</i>(${numH(a)}) = −${numH(b)}&nbsp;: même nombre, signe opposé.`,
+     {meta:{k:'val',f:'1/x',at:mt(N.neg(a))},onOk:async()=>{const q=await S.mirror(0);q.col=C.blue;q.lab=`(${numT(N.neg(a))} ; ${numT(N.neg(b))})`;S.draw();cap(`<i>f</i>(${numH(N.neg(a))}) = −<i>f</i>(${numH(a)}) = ${numH(N.neg(b))}`)}})],
+   done:`<i>f</i>(${numH(N.neg(a))}) = −<i>f</i>(${numH(a)}) = ${numH(N.neg(b))}&nbsp;: les deux points sont symétriques par rapport à O.`}},
+ ()=>{const ax=pick(['abs','ord']);
+  return{setup:()=>{plane({v:VIEW(-5,5,-4.5,4.5)});S.st.curves=[curveInv(1)];S.draw()},cap0:`<i>y</i> = ${frH(1,X)}`,
+   prompt:`Regarde bien les deux branches de l'hyperbole près des axes.`,
+   parts:[ch(ax==='abs'?'La courbe de la fonction inverse coupe-t-elle l\'axe des abscisses&nbsp;?':'La courbe de la fonction inverse coupe-t-elle l\'axe des ordonnées&nbsp;?',
+     ax==='abs'?[OK('Non, jamais&nbsp;: 1 ÷ <i>x</i> n\'est jamais égal à 0','fact:noxcut'),NO('Oui, au point (1 ; 0)','<i>f</i>(1) = 1, pas 0&nbsp;: le point de la courbe d\'abscisse 1 est (1 ; 1).','fact:cut10'),NO('Oui, à l\'origine O','O(0 ; 0) n\'est pas sur la courbe&nbsp;: 0 n\'a même pas d\'image.','fact:cutO')]
+     :[OK('Non, jamais&nbsp;: 0 n\'a pas d\'image','fact:noycut'),NO('Oui, au point (0 ; 1)','Il faudrait <i>f</i>(0) = 1, or 0 n\'a pas d\'image&nbsp;: on ne divise pas par 0.','fact:cut01'),NO('Oui, à l\'origine O','O(0 ; 0) n\'est pas sur la courbe&nbsp;: 0 n\'a pas d\'image.','fact:cutO')],
+     {meta:{k:'fact'},onOk:async()=>{S.st.asym=[{t:ax==='abs'?'h':'v',v:0,col:'#aebfff',on:0}];await S.asymOn(0,800);cap('<span class="m">La courbe s\'approche de l\'axe, sans jamais le toucher</span>')}})],
+   done:`Une fraction ${frH(1,X)} n'est jamais nulle, et 0 n'a pas d'image&nbsp;: la courbe <b>ne coupe jamais les axes</b>.`}},
+ ()=>{const a=pick([3,6,7,9,4,8]);const b=R(1,a);
+  return{setup:()=>{plane({v:VIEW(-10,10,-1.5,1.5),xs:2,ys:.5});S.st.curves=[curveInv(1)];S.st.pts=[{x:a,y:1/a,col:C.gold2,lab:''}];S.draw()},cap0:`<i>f</i>(−<i>x</i>) <span class="m">et</span> −<i>f</i>(<i>x</i>)`,
+   prompt:`Vérifie toi-même que la fonction inverse est impaire, avec <i>x</i> = ${a}. Écris les résultats sous forme de fractions.`,
+   parts:[fill('Calcule&nbsp;:',`<i>f</i>(−${a}) = {0} &nbsp; et &nbsp; −<i>f</i>(${a}) = {1}`,[Object.assign(BR(N.neg(b)),{size:4}),Object.assign(BR(N.neg(b)),{size:4})],
+     v=>`<i>f</i>(−${a}) = 1 ÷ (−${a}) = −${numT(b)}, et −<i>f</i>(${a}) = −${numT(b)}. Tu peux écrire −1/${a}.`,
+     {meta:{k:'vals',f:'1/x',at:[`-${a}`,`-${a}`]},onOk:async()=>{S.st.pts[0]={x:a,y:1/a,col:C.gold2,lab:''};const q=await S.mirror(0);q.col=C.blue;S.draw();cap(`<i>f</i>(−${a}) = −<i>f</i>(${a}) = ${numH(N.neg(b))}`)}})],
+   done:`<i>f</i>(−${a}) = −<i>f</i>(${a}) = ${numH(N.neg(b))}&nbsp;: c'est vrai pour tout <i>x</i> ≠ 0, la courbe est symétrique par rapport à O.`}}
+ ]});
+
+/* ===================== Niveau 3 · Toujours moins ===================== */
+const rel=(p,q)=>N.cmp(p,q)<0?'<':N.cmp(p,q)>0?'>':'=';
+LV.push({t:'Toujours moins',
+ rule:`<p><b>La fonction inverse est strictement décroissante sur ]−∞ ; 0[ et sur ]0 ; +∞[.</b></p><p>Sur un même intervalle, elle <b>inverse l'ordre</b>&nbsp;: si 0 &lt; <i>a</i> &lt; <i>b</i>, alors ${frH(1,'<i>a</i>')} &gt; ${frH(1,'<i>b</i>')}&nbsp;; si <i>a</i> &lt; <i>b</i> &lt; 0, alors ${frH(1,'<i>a</i>')} &gt; ${frH(1,'<i>b</i>')}.</p><p><b>Attention&nbsp;!</b> On ne peut pas dire que <i>f</i> est décroissante sur ℝ ∖ {0}&nbsp;: <i>f</i>(−1) = −1 &lt; 1 = <i>f</i>(1).</p>`,
+ qs:[
+ ()=>{const c=pick(CTX),k=pick(c.k);const ds=divs(k,2,12);const n1=pick(ds.filter(n=>n<=6)),n2=pick(ds.filter(n=>n>=n1+2));const p1=R(k,n1),p2=R(k,n2);
+  return{setup:()=>billScene(k,`La note : ${k} €`),cap0:`<span class="k">${k}&nbsp;€</span> <span class="m">entre</span> ${n1} <span class="m">ou entre</span> ${n2}&nbsp;?`,
+   prompt:`Pour ${c.t} (<b>${k}&nbsp;€</b>), vous hésitez&nbsp;: <b>${n1}</b> ou <b>${n2}</b> ${c.w}&nbsp;?`,
+   parts:[act('Comparer les deux partages',async()=>{await S.split(n1,fmEur(val(p1)));await S.drop(0,n1,val(p1),{lab:fmEur(val(p1)),labN:true});await S.split(n2,fmEur(val(p2)));await S.drop(0,n2,val(p2),{lab:fmEur(val(p2)),labN:true});
+       cap(`${n1} < ${n2} <span class="m">mais</span> <span class="k">${numH(p1)} € &gt; ${numH(p2)} €</span>`)}),
+     ch('Compare les parts&nbsp;:',[OK(`${frH(k,n1)} &gt; ${frH(k,n2)}`,'>'),NO(`${frH(k,n1)} &lt; ${frH(k,n2)}`,`Regarde les barres&nbsp;: avec ${n2} personnes, la part est plus <b>petite</b>. L'ordre s'inverse.`,'<'),NO(`${frH(k,n1)} = ${frH(k,n2)}`,'La note est la même, mais pas le nombre de parts&nbsp;: les parts ne sont pas égales.','=')],
+       {meta:{k:'cmp',f:`${k}/x`,a:`${n1}`,b:`${n2}`}})],
+   done:`${n1} &lt; ${n2} mais ${numH(p1)} &gt; ${numH(p2)}&nbsp;: sur ]0 ; +∞[, <i>x</i> ↦ ${k}/<i>x</i> est <b>décroissante</b>, elle inverse l'ordre.`}},
+ ()=>{const pr=pick([['0.5','2'],['1.6','2.5'],['0.4','0.8'],['1.25','4'],['2','3'],['0.2','0.5'],['2.5','4']]);const a=D(pr[0]),b=D(pr[1]);
+  return{setup:()=>{plane({v:VIEW(-1,5,-1,5.5),xs:1});S.st.curves=[curveInv(1,{dom:[0.05,6]})];S.st.pts=[{x:N.val(a),y:1/N.val(a),col:C.gold2,lab:'',guide:true}];S.draw()},cap0:`0 &lt; ${numH(a)} &lt; ${numH(b)}`,
+   prompt:`On compare ${frH(1,numH(a))} et ${frH(1,numH(b))}, <b>sans les calculer</b>.`,
+   parts:[ch('Que peut-on affirmer&nbsp;?',[OK(`${frH(1,numH(a))} &gt; ${frH(1,numH(b))}, car la fonction inverse est décroissante sur ]0 ; +∞[`,'>'),
+     NO(`${frH(1,numH(a))} &lt; ${frH(1,numH(b))}, car ${numH(a)} &lt; ${numH(b)}`,'Tu as gardé l\'ordre. La fonction inverse est <b>décroissante</b> sur ]0 ; +∞[&nbsp;: elle <b>inverse</b> l\'ordre.','<'),
+     NO('On ne peut pas comparer sans calculatrice',`Si&nbsp;: ${numH(a)} et ${numH(b)} sont tous deux dans ]0 ; +∞[, où la fonction inverse est décroissante.`,'?')],
+     {meta:{k:'cmp',f:'1/x',a:pr[0],b:pr[1]},onOk:async()=>{await S.slide(0,INV1,N.val(a),N.val(b),1300,x=>cap(`<i>x</i> = ${fm(x)} <span class="m">→</span> <span class="k">1/<i>x</i> = ${fm(1/x)}</span>`));cap(`${numH(a)} &lt; ${numH(b)} <span class="m">donc</span> <span class="k">${dec(N.div(R(1),a))} &gt; ${dec(N.div(R(1),b))}</span>`)}})],
+   done:`Quand <i>x</i> avance de ${numH(a)} à ${numH(b)}, le point <b>descend</b> le long de la courbe&nbsp;: ${frH(1,numH(a))} &gt; ${frH(1,numH(b))}.`}},
+ ()=>{const pr=pick([['-4','-2'],['-2.5','-0.5'],['-5','-1.25'],['-0.8','-0.4'],['-2','-0.5'],['-4','-1']]);const a=D(pr[0]),b=D(pr[1]);
+  return{setup:()=>{plane({v:VIEW(-5.5,1,-5.5,1)});S.st.curves=[curveInv(1,{dom:[-6,-0.05]})];S.st.pts=[{x:N.val(a),y:1/N.val(a),col:C.gold2,lab:'',guide:true}];S.draw()},cap0:`${numH(a)} &lt; ${numH(b)} &lt; 0`,
+   prompt:`Même question sur l'autre branche&nbsp;: on compare ${frH(1,`(${numH(a)})`)} et ${frH(1,`(${numH(b)})`)}.`,
+   parts:[ch('Que peut-on affirmer&nbsp;?',[OK(`${frH(1,`(${numH(a)})`)} &gt; ${frH(1,`(${numH(b)})`)}`,'>'),
+     NO(`${frH(1,`(${numH(a)})`)} &lt; ${frH(1,`(${numH(b)})`)}`,`Sur ]−∞ ; 0[ aussi, la fonction inverse est <b>décroissante</b>&nbsp;: elle inverse l'ordre. Vérifie&nbsp;: ${dec(N.div(R(1),a))} et ${dec(N.div(R(1),b))}.`,'<'),
+     NO(`${frH(1,`(${numH(a)})`)} = ${frH(1,`(${numH(b)})`)}`,'Deux nombres différents ont des inverses différents.','=')],
+     {meta:{k:'cmp',f:'1/x',a:pr[0],b:pr[1]},onOk:async()=>{await S.slide(0,INV1,N.val(a),N.val(b),1300,x=>cap(`<i>x</i> = ${fm(x)} <span class="m">→</span> <span class="k">1/<i>x</i> = ${fm(1/x)}</span>`));cap(`${numH(a)} &lt; ${numH(b)} <span class="m">donc</span> <span class="k">${dec(N.div(R(1),a))} &gt; ${dec(N.div(R(1),b))}</span>`)}})],
+   done:`${frH(1,`(${numH(a)})`)} = ${dec(N.div(R(1),a))} et ${frH(1,`(${numH(b)})`)} = ${dec(N.div(R(1),b))}&nbsp;: sur ]−∞ ; 0[ aussi, l'ordre s'inverse.`}},
+ ()=>{const pr=pick([['-2','4'],['-0.5','2'],['-4','0.5'],['-1','5'],['-0.25','4']]);const a=D(pr[0]),b=D(pr[1]);const ia=N.div(R(1),a),ib=N.div(R(1),b);
+  return{setup:()=>{plane({v:VIEW(-5,5,-4.5,4.5)});S.st.curves=[curveInv(1)];S.st.pts=[{x:N.val(a),y:N.val(ia),col:C.gold2,lab:'',guide:true}];S.draw()},cap0:`${numH(a)} &lt; 0 &lt; ${numH(b)}`,
+   prompt:`Attention, piège&nbsp;: on compare ${frH(1,`(${numH(a)})`)} et ${frH(1,numH(b))}.`,
+   parts:[ch('Que peut-on affirmer&nbsp;?',[OK(`${frH(1,`(${numH(a)})`)} &lt; ${frH(1,numH(b))}&nbsp;: un nombre négatif est plus petit qu'un positif`,'<'),
+     NO(`${frH(1,`(${numH(a)})`)} &gt; ${frH(1,numH(b))}, car la fonction inverse est décroissante`,`Elle est décroissante sur <b>chaque</b> intervalle, pas sur ℝ ∖ {0}. Ici ${numH(a)} et ${numH(b)} ne sont pas du même côté de 0&nbsp;: ${frH(1,`(${numH(a)})`)} est négatif, ${frH(1,numH(b))} est positif.`,'>')],
+     {meta:{k:'cmp',f:'1/x',a:pr[0],b:pr[1]},onOk:async()=>{S.st.pts.push({x:N.val(b),y:N.val(ib),col:C.blue,lab:'',guide:true});S.SND.pop();S.st.asym=[{t:'v',v:0,col:C.coral,on:0}];await S.asymOn(0,700);
+       cap(`${dec(ia)} <span class="m">(branche du bas)</span> &lt; <span class="k">${dec(ib)}</span> <span class="m">(branche du haut)</span>`)}})],
+   done:`${frH(1,`(${numH(a)})`)} = ${dec(ia)} &lt; 0 &lt; ${dec(ib)} = ${frH(1,numH(b))}. On ne peut pas « passer par-dessus » 0&nbsp;: la décroissance vaut sur chaque intervalle séparément.`}},
+ ()=>{return{setup:()=>{plane({v:VIEW(-5,5,-4.5,4.5)});S.st.curves=[curveInv(1)];S.draw()},cap0:`<i>f</i>(<i>x</i>) = ${frH(1,X)}`,
+   prompt:`Pour finir, choisis la phrase exacte sur le sens de variation de la fonction inverse.`,
+   parts:[ch('La fonction inverse est…',[OK('décroissante sur ]−∞ ; 0[ et décroissante sur ]0 ; +∞[','var:dec(-oo,0)&dec(0,oo)'),
+     NO('décroissante sur ℝ ∖ {0}','Contre-exemple du cours&nbsp;: −1 &lt; 1 et pourtant <i>f</i>(−1) = −1 &lt; 1 = <i>f</i>(1). Elle est décroissante sur chaque intervalle, séparément.','var:dec(R*)'),
+     NO('croissante sur ]−∞ ; 0[ et décroissante sur ]0 ; +∞[','Sur ]−∞ ; 0[, quand <i>x</i> augmente (de −4 à −1 par exemple), 1/<i>x</i> passe de −0,25 à −1&nbsp;: il diminue.','var:inc(-oo,0)&dec(0,oo)'),
+     NO('croissante sur ]−∞ ; 0[ et sur ]0 ; +∞[','Prends 1 et 2&nbsp;: 1/1 = 1 et 1/2 = 0,5. Quand <i>x</i> augmente, 1/<i>x</i> diminue.','var:inc(-oo,0)&inc(0,oo)')],
+     {meta:{k:'var',f:'1/x'},onOk:async()=>{S.st.pts=[{x:-4.5,y:1/-4.5,col:C.gold2}];await S.slide(0,INV1,-4.5,-0.24,1200);S.st.pts=[{x:0.24,y:1/0.24,col:C.gold2}];await S.slide(0,INV1,0.24,4.5,1200);cap('<span class="m">Sur chaque branche, le point ne fait que</span> <span class="k">descendre</span>')}})],
+   done:`Tableau de variations&nbsp;: ↘ sur ]−∞ ; 0[, double barre en 0, ↘ sur ]0 ; +∞[.`}}
+ ]});
+
+/* ===================== Niveau 4 · La pente ===================== */
+const kInv=(k,d)=>d&&d>1?[[R(k,d),-1]]:[[k,-1]];
+LV.push({t:'La pente',
+ rule:`<p><b>Pour tout <i>x</i> ≠ 0&nbsp;: <i>f</i>′(<i>x</i>) = ${'('}${frH(1,X)}${')'}′ = −${frH(1,x2)}.</b> Comme <i>x</i>² &gt; 0, <i>f</i>′(<i>x</i>) &lt; 0&nbsp;: la fonction inverse est décroissante sur ]−∞ ; 0[ et sur ]0 ; +∞[.</p><p><b>Généralisation</b>&nbsp;: pour ${fX()} = ${frH('<i>k</i>',X)} (<i>k</i> ≠ 0), ${fP()} = −${frH('<i>k</i>',x2)}.</p><p>Si <i>k</i> &gt; 0&nbsp;: <i>f</i>′ &lt; 0, <i>f</i> décroissante. Si <i>k</i> &lt; 0&nbsp;: <i>f</i>′ &gt; 0, <i>f</i> croissante.</p><p>Exemples&nbsp;: ${frH(5,X)} → −${frH(5,x2)}&nbsp;; ${frH('−3',X)} → ${frH(3,x2)}&nbsp;; ${frH(4,'3'+X)} → −${frH(4,'3'+x2)}.</p>`,
+ qs:[
+ ()=>{const k=pick([2,3,5,7,-2,-3,-4,-5]);const t=[[k,-1]],d=dT(t);
+  return{setup:()=>{plane({v:VIEW(-5,5,-6,6),ys:2});S.st.curves=[curveInv(k)];S.st.tan={x:1.5,f:x=>k/x,fp:x=>-k/x/x};S.draw()},cap0:`${fX()} = ${exH(t)}`,
+   prompt:`Soit <i>f</i> la fonction définie sur ℝ ∖ {0} par <b>${fX()} = ${exH(t)}</b>. La droite bleue est la tangente&nbsp;: son coefficient directeur est le nombre dérivé.`,
+   parts:[ch(`Quelle est la dérivée ${fP()}&nbsp;?`,[OK(exH(d),exS(d)),NO(exH([[-k,-2]].map(([c,p])=>[-c,p])),`Le signe&nbsp;: (<i>k</i>/<i>x</i>)′ = −<i>k</i>/<i>x</i>². Avec <i>k</i> = ${k}, on obtient ${exH(d)}.`,exS([[k,-2]])),
+     NO(exH([[-k,-1]]),'Il manque le carré&nbsp;: (1/<i>x</i>)′ = −1/<i>x</i>², au dénominateur c\'est <i>x</i>².',exS([[-k,-1]])),NO(exH([[-k*2,-2]]),'Pas de 2 ici&nbsp;: (<i>k</i>/<i>x</i>)′ = −<i>k</i>/<i>x</i>², on garde <i>k</i> = '+k+'.',exS([[-2*k,-2]]))],
+     {meta:{k:'deriv',f:exS(t)},onOk:async()=>{await S.tanSlide(0.4,4.8,1500,x=>cap(`<span class="m">pente en</span> <i>x</i> = ${fm(x)}&nbsp;: <span class="b">${fm(-k/x/x)}</span>`));cap(`${fP()} = ${exH(d)} <span class="m">: pente toujours</span> <span class="b">${k>0?'négative':'positive'}</span>`)}})],
+   done:`${fP()} = ${exH(d)}. ${k>0?'Pour tout <i>x</i> ≠ 0 elle est négative&nbsp;: la tangente descend toujours.':'Pour tout <i>x</i> ≠ 0 elle est positive&nbsp;: la tangente monte toujours.'}`}},
+ ()=>{const k=pick([1,1,2,3,-1,4]);const a=D(pick(['1','2','-2','0.5','-1','4','-0.5','3']));const t=[[k,-1]];const fa=N.neg(N.div(R(k),N.mul(a,a)));
+  return{setup:()=>{plane({v:VIEW(-5,5,-6,6),ys:2});S.st.curves=[curveInv(k)];S.st.tan={x:N.val(a),f:x=>k/x,fp:x=>-k/x/x};S.draw()},cap0:`${fX()} = ${exH(t)} <span class="m">en</span> <i>x</i> = ${numH(a)}`,
+   prompt:`${fX()} = ${exH(t)}, donc ${fP()} = ${exH(dT(t))}. Calcule le nombre dérivé en <b><i>x</i> = ${numH(a)}</b>, la pente de la tangente bleue.`,
+   parts:[fill('Nombre dérivé&nbsp;:',`<i>f</i>′(${numH(a)}) = {0}`,[BR(fa)],v=>`<i>f</i>′(${numH(a)}) = −${k===1?'1':k} ÷ ${parH(a)}² = −${k} ÷ ${numH(N.mul(a,a))}. Le carré est positif, et il y a un signe «&nbsp;−&nbsp;» devant${k<0?' (ici k est négatif)':''}.`,
+     {meta:{k:'dval',f:exS(t),at:mt(a)},onOk:async()=>{S.st.pts=[{x:N.val(a),y:k/N.val(a),col:C.blue,lab:`pente ${numT(fa)}`}];S.draw();await S.sleep(500);cap(`<span class="m">Tangente en</span> <i>x</i> = ${numH(a)}&nbsp;: <span class="b">coefficient directeur ${numH(fa)}</span>`)}})],
+   done:`<i>f</i>′(${numH(a)}) = ${numH(fa)}&nbsp;: c'est le coefficient directeur de la tangente à la courbe au point d'abscisse ${numH(a)}.`}},
+ ()=>{const k=pick([3,5,2,-1,-2,-3,-6]);const t=[[k,-1]];
+  return{setup:()=>{plane({v:VIEW(-1,6,-6,6),ys:2});S.st.curves=[curveInv(k,{dom:[0.02,7]})];S.st.tan={x:1,f:x=>k/x,fp:x=>-k/x/x};S.draw()},cap0:`${fX()} = ${exH(t)} <span class="m">sur ]0 ; +∞[</span>`,
+   prompt:`Sur ]0 ; +∞[, on étudie ${fX()} = <b>${exH(t)}</b>.`,
+   parts:[ch(`Signe de ${fP()} = ${exH(dT(t))}&nbsp;?`,[OK(k>0?`Négatif&nbsp;: −${k} &lt; 0 et <i>x</i>² &gt; 0`:`Positif&nbsp;: ${-k} &gt; 0 et <i>x</i>² &gt; 0`,k>0?'sign:-':'sign:+'),
+       NO(k>0?'Positif':'Négatif',`<i>x</i>² est toujours positif&nbsp;; le signe de ${fP()} est celui de son numérateur, ${-k}.`,k>0?'sign:+':'sign:-'),
+       NO('Il change de signe','Le dénominateur <i>x</i>² est positif et le numérateur est un nombre fixe&nbsp;: le signe ne change pas.','sign:±')],{meta:{k:'sign',f:exS(t),on:'(0,oo)'}}),
+     ch('Donc, sur ]0 ; +∞[, <i>f</i> est…',[OK(k>0?'décroissante':'croissante',k>0?'var:dec(0,oo)':'var:inc(0,oo)'),NO(k>0?'croissante':'décroissante',`${fP()} ${k>0?'&lt;':'&gt;'} 0&nbsp;: la fonction est ${k>0?'décroissante':'croissante'}. Avec <i>k</i> ${k>0?'&gt;':'&lt;'} 0, c'est la règle du cours.`,k>0?'var:inc(0,oo)':'var:dec(0,oo)')],
+       {meta:{k:'var',f:exS(t)},onOk:async()=>{await S.tanSlide(0.3,5.8,1600);cap(`<i>k</i> = ${k} ${k>0?'&gt;':'&lt;'} 0 <span class="m">→</span> <span class="k">${k>0?'décroissante':'croissante'}</span>`)}})],
+   done:`${fP()} = ${exH(dT(t))} ${k>0?'&lt;':'&gt;'} 0 sur ]0 ; +∞[&nbsp;: <i>f</i> est ${k>0?'décroissante':'croissante'}. ${k<0?'Avec <i>k</i> &lt; 0, la courbe est dans l\'autre paire de « coins » du repère.':''}`}},
+ ()=>{const pr=pick([[4,3],[1,2],[-1,2],[3,4],[-2,3],[5,2]]);const k=pr[0],d=pr[1];const t=[[R(k,d),-1]],dd=dT(t);
+  return{setup:()=>{plane({v:VIEW(-5,5,-4,4)});S.st.curves=[curveInv(k/d)];S.st.tan={x:1,f:x=>k/d/x,fp:x=>-k/d/x/x};S.draw()},cap0:`<i>g</i>(<i>x</i>) = ${exH(t)}`,
+   prompt:`Comme dans le cours avec ${frH(4,'3'+X)}&nbsp;: soit <b><i>g</i>(<i>x</i>) = ${exH(t)}</b> sur ℝ ∖ {0}. C'est ${frH('<i>k</i>',X)} avec <i>k</i> = ${numH(R(k,d))}.`,
+   parts:[ch('Quelle est la dérivée <i>g</i>′(<i>x</i>)&nbsp;?',[OK(exH(dd),exS(dd)),NO(exH([[R(k,d),-2]]),'Le signe&nbsp;: (<i>k</i>/<i>x</i>)′ = <b>−</b><i>k</i>/<i>x</i>².',exS([[R(k,d),-2]])),
+       NO(exH([[R(-k,d),-1]]),'Le dénominateur de la dérivée est <i>x</i>², pas <i>x</i>.',exS([[R(-k,d),-1]])),NO(exH([[R(-d,k),-2]]),`Tu as renversé la fraction&nbsp;: le coefficient reste ${numH(R(k,d))}.`,exS([[R(-d,k),-2]]))],
+     {meta:{k:'deriv',f:exS(t)},onOk:async()=>{await S.tanSlide(0.3,4.6,1500);cap(`<i>g</i>′(<i>x</i>) = ${exH(dd)}`)}})],
+   done:`<i>g</i>′(<i>x</i>) = ${exH(dd)}&nbsp;: ${k>0?'négative, <i>g</i> est décroissante sur chaque intervalle':'positive, <i>g</i> est croissante sur chaque intervalle'}.`}},
+ ()=>{const k=pick([2,3,4,5,6]);const t=[[k,-1]];
+  return{setup:()=>{plane({v:VIEW(-5,5,-6,6),ys:2});S.st.curves=[curveInv(k)];S.st.tan={x:-3,f:x=>k/x,fp:x=>-k/x/x};S.draw()},cap0:`${fX()} = ${exH(t)}`,
+   prompt:`Pour ${fX()} = <b>${exH(t)}</b>, on a ${fP()} = ${exH(dT(t))}. On veut justifier son signe pour <b>tout</b> <i>x</i> ≠ 0, positif ou négatif.`,
+   parts:[ch('Pour <i>x</i> ≠ 0, quel est le signe de <i>x</i>²&nbsp;?',[OK('<i>x</i>² &gt; 0, même si <i>x</i> est négatif','sq:+'),NO('<i>x</i>² &lt; 0 quand <i>x</i> &lt; 0','(−2)² = 4&nbsp;: un carré n\'est jamais négatif.','sq:-')],{meta:{k:'fact'}}),
+     ch(`Donc ${fP()} = ${exH(dT(t))} est…`,[OK('strictement négatif pour tout <i>x</i> ≠ 0','sign:-'),NO('positif quand <i>x</i> &lt; 0','Le numérateur −'+k+' est négatif et <i>x</i>² est positif&nbsp;: le quotient est négatif, quel que soit le signe de <i>x</i>.','sign:±')],
+       {meta:{k:'sign',f:exS(t),on:'R*'},onOk:async()=>{await S.tanSlide(-4.6,-0.5,1300);S.st.tan.x=0.5;await S.tanSlide(0.5,4.6,1300);cap(`${fP()} &lt; 0 <span class="m">sur ]−∞ ; 0[ et sur ]0 ; +∞[</span>`)}})],
+   done:`−${k} &lt; 0 et <i>x</i>² &gt; 0&nbsp;: ${fP()} &lt; 0 sur tout le domaine. <i>f</i> est décroissante sur ]−∞ ; 0[ et sur ]0 ; +∞[.`}}
+ ]});
+
+/* ===================== Niveau 5 · Vers l'infini ===================== */
+LV.push({t:'Vers l\'infini',
+ rule:`<p><b>En ±∞&nbsp;:</b> ${frH(1,X)} se rapproche de 0. On écrit lim<sub><i>x</i>→+∞</sub> ${frH(1,X)} = 0 et lim<sub><i>x</i>→−∞</sub> ${frH(1,X)} = 0. La droite <i>y</i> = 0 (axe des abscisses) est <b>asymptote horizontale</b>.</p><p><b>En 0&nbsp;:</b> lim<sub><i>x</i>→0, <i>x</i>&gt;0</sub> ${frH(1,X)} = +∞ et lim<sub><i>x</i>→0, <i>x</i>&lt;0</sub> ${frH(1,X)} = −∞. La droite <i>x</i> = 0 (axe des ordonnées) est <b>asymptote verticale</b>.</p><p>Pour <i>g</i>(<i>x</i>) = <i>a</i> + ${frH('<i>k</i>',X)}&nbsp;: asymptotes <i>y</i> = <i>a</i> et <i>x</i> = 0. Exemple du cours&nbsp;: 1 + ${frH(2,X)}.</p><p><b>Coût moyen</b>&nbsp;: si C(<i>x</i>) = <i>u</i><i>x</i> + <i>F</i>, alors ${frH('C(<i>x</i>)',X)} = <i>u</i> + ${frH('<i>F</i>',X)}.</p>`,
+ qs:[
+ ()=>{const show=pick(['100','1000']);const yv=R(1,+show);
+  return{setup:()=>{plane({v:VIEW(-1,10,-0.4,2),xs:2,ys:.5});S.st.curves=[curveInv(1,{dom:[0.01,1e5]})];S.st.asym=[{t:'h',v:0,col:'#aebfff',on:0,lab:'y = 0'}];S.draw()},cap0:`<i>x</i> <span class="m">de plus en plus grand</span>`,
+   prompt:`Une cagnotte de 1&nbsp;€ partagée entre <i>x</i> personnes&nbsp;: <b>10, 100, 10 000</b>… Que devient la part ${frH(1,X)}&nbsp;?`,
+   parts:[act('Dézoomer jusqu\'à x = 10 000',async()=>{await S.zoom(VIEW(-1,11000,-0.4,2),2600,v=>{S.st.xs=null;cap(`<span class="m">fenêtre jusqu'à</span> <i>x</i> = ${fmtInt(Math.round(v.x1))} <span class="m">→</span> <span class="k">1/<i>x</i> ≈ ${fm(Math.round(1e4/v.x1)/1e4)}</span>`)});S.st.asym[0].on=1;S.draw();
+       cap(`<i>x</i> = 10 → 0,1 <span class="m">·</span> 100 → 0,01 <span class="m">·</span> 10 000 → <span class="k">0,0001</span>`)}),
+     fill('Calcule&nbsp;:',`<i>f</i>(${fmtInt(+show)}) = {0}`,[BR(yv)],`1 ÷ ${fmtInt(+show)} = ${dec(yv)}.`,{meta:{k:'val',f:'1/x',at:show}}),
+     ch(`Quand <i>x</i> tend vers +∞, ${frH(1,X)} tend vers…`,[OK('0, sans jamais l\'atteindre','lim:0'),NO('+∞','Au contraire, la part devient minuscule&nbsp;: 0,1 puis 0,01 puis 0,0001.','lim:oo'),NO('1','La part est plus petite que 1 dès que <i>x</i> &gt; 1, et elle continue de diminuer vers 0.','lim:1')],
+       {meta:{k:'lim',f:'1/x',at:'oo'},onOk:async()=>{S.st.asym[0].glow=3;S.draw();await S.sleep(300);cap(`lim<sub><i>x</i>→+∞</sub> ${frH(1,X)} = 0 <span class="m">· asymptote horizontale</span> <span class="b">y = 0</span>`)}})],
+   done:`lim<sub><i>x</i>→+∞</sub> ${frH(1,X)} = 0&nbsp;: la courbe se rapproche indéfiniment de l'axe des abscisses, sans jamais le toucher. C'est l'<b>asymptote horizontale</b> <i>y</i> = 0.`}},
+ ()=>{const side=pick(['+','-']);const sg=side==='+'?1:-1;
+  return{setup:()=>{plane({v:side==='+'?VIEW(-0.4,2.4,-1,6):VIEW(-2.4,0.4,-6,1),xs:.5,ys:2});S.st.curves=[curveInv(1,{dom:side==='+'?[1e-6,3]:[-3,-1e-6]})];S.st.asym=[{t:'v',v:0,col:'#aebfff',on:0,lab:'x = 0'}];S.draw()},
+   cap0:`<i>x</i> <span class="m">se rapproche de 0</span> ${side==='+'?'<span class="m">par la droite (x &gt; 0)</span>':'<span class="m">par la gauche (x &lt; 0)</span>'}`,
+   prompt:`Cette fois, <i>x</i> se rapproche de 0 ${side==='+'?'en restant <b>positif</b>&nbsp;: 0,5&nbsp;; 0,01&nbsp;; 0,001':'en restant <b>négatif</b>&nbsp;: −0,5&nbsp;; −0,01&nbsp;; −0,001'}…`,
+   parts:[act('Zoomer vers x = 0',async()=>{await S.zoom(side==='+'?VIEW(-0.4,2.4,-40,1200):VIEW(-2.4,0.4,-1200,40),2600,v=>{S.st.ys=null;S.st.xs=.5;});S.st.asym[0].on=1;S.draw();
+       cap(side==='+'?`0,5 → 2 <span class="m">·</span> 0,01 → 100 <span class="m">·</span> 0,001 → <span class="k">1 000</span>`:`−0,5 → −2 <span class="m">·</span> −0,01 → −100 <span class="m">·</span> −0,001 → <span class="k">−1 000</span>`)}),
+     ch(`Quand <i>x</i> tend vers 0 avec <i>x</i> ${side==='+'?'&gt;':'&lt;'} 0, ${frH(1,X)} tend vers…`,[OK(side==='+'?'+∞':'−∞',side==='+'?'lim:oo':'lim:-oo'),NO('0','Diviser 1 par un nombre minuscule donne un nombre énorme (en valeur absolue)&nbsp;: 1 ÷ 0,001 = 1 000.','lim:0'),
+       NO(side==='+'?'−∞':'+∞',side==='+'?'<i>x</i> est positif, donc 1/<i>x</i> aussi&nbsp;: il part vers le haut.':'<i>x</i> est négatif, donc 1/<i>x</i> aussi&nbsp;: il part vers le bas.',side==='+'?'lim:-oo':'lim:oo')],
+       {meta:{k:'lim',f:'1/x',at:side==='+'?'0+':'0-'},onOk:async()=>{S.st.asym[0].glow=3;S.draw();await S.sleep(300);cap(`lim ${frH(1,X)} = ${side==='+'?'+∞':'−∞'} <span class="m">· asymptote verticale</span> <span class="b">x = 0</span>`)}})],
+   done:`lim<sub><i>x</i>→0, <i>x</i>${side==='+'?'&gt;':'&lt;'}0</sub> ${frH(1,X)} = ${side==='+'?'+∞':'−∞'}&nbsp;: la courbe longe l'axe des ordonnées, l'<b>asymptote verticale</b> <i>x</i> = 0.`}},
+ ()=>{const at=pick(['-oo','oo']);
+  return{setup:()=>{plane({v:VIEW(-10,10,-2,2),xs:2,ys:.5});S.st.curves=[curveInv(1)];S.st.asym=[{t:'h',v:0,col:'#aebfff',on:1,lab:'y = 0'}];S.st.pts=[{x:at==='oo'?2:-2,y:at==='oo'?.5:-.5,col:C.gold2}];S.draw()},cap0:`<i>x</i> → ${at==='oo'?'+∞':'−∞'}`,
+   prompt:`Le point de la courbe part ${at==='oo'?'vers la droite (<i>x</i> → +∞)':'vers la gauche (<i>x</i> → −∞)'}.`,
+   parts:[act('Lancer le point',async()=>{await S.slide(0,INV1,at==='oo'?2:-2,at==='oo'?9.8:-9.8,1700,x=>cap(`<i>x</i> = ${fm(x)} <span class="m">→</span> <span class="k">1/<i>x</i> = ${fm(1/x)}</span>`))}),
+     ch(`lim<sub><i>x</i>→${at==='oo'?'+∞':'−∞'}</sub> ${frH(1,X)} =`,[OK('0','lim:0'),NO(at==='oo'?'+∞':'−∞','Les valeurs de 1/<i>x</i> se rapprochent de 0&nbsp;: '+(at==='oo'?'0,5 ; 0,2 ; 0,1…':'−0,5 ; −0,2 ; −0,1…'),at==='oo'?'lim:oo':'lim:-oo'),NO(at==='oo'?'−∞':'+∞','La courbe reste collée à l\'axe des abscisses, elle ne part pas à l\'infini.',at==='oo'?'lim:-oo':'lim:oo')],
+       {meta:{k:'lim',f:'1/x',at}})],
+   done:`lim<sub><i>x</i>→${at==='oo'?'+∞':'−∞'}</sub> ${frH(1,X)} = 0&nbsp;: des deux côtés, l'axe des abscisses est asymptote horizontale.`}},
+ ()=>{let a=pick([1,2,3,-1,-2,4]),k=pick([2,3,-2,1,4]);const t=[[a,0],[k,-1]];
+  return{setup:()=>{plane({v:VIEW(-6,6,a-5,a+5)});S.st.curves=[curveInv(1,{col:'rgba(246,220,138,.35)',w:2}),{f:x=>a+k/x,col:C.gold2,rev:0,lab:'',labX:4}];S.draw()},cap0:`<i>g</i>(<i>x</i>) = ${exH(t)}`,
+   prompt:`Soit <b><i>g</i>(<i>x</i>) = ${exH(t)}</b> sur ℝ ∖ {0}. Quand <i>x</i> → ±∞, ${frH(Math.abs(k),X)} → 0&nbsp;; quand <i>x</i> → 0, il part à l'infini.`,
+   parts:[act('Tracer la courbe de g',async()=>{await S.reveal(1,1300)}),
+     fill('Équations des asymptotes&nbsp;:','horizontale&nbsp;: <i>y</i> = {0} &nbsp; verticale&nbsp;: <i>x</i> = {1}',[BR(R(a)),BR(R(0))],(v,oks)=>!oks[0]?`Quand <i>x</i> → ±∞, ${frH(Math.abs(k),X)} → 0, donc <i>g</i>(<i>x</i>) → ${a}.`:`La valeur interdite est 0&nbsp;: l'asymptote verticale est l'axe des ordonnées, <i>x</i> = 0.`,
+       {meta:{k:'asym',f:exS(t)},onOk:async()=>{S.st.asym=[{t:'h',v:a,col:'#aebfff',on:0,lab:`y = ${fm(a)}`,below:a<0},{t:'v',v:0,col:'#aebfff',on:0,lab:'x = 0'}];await S.asymOn(0,600);await S.asymOn(1,600);cap(`<span class="b">y = ${fm(a)}</span> <span class="m">et</span> <span class="b">x = 0</span>`)}})],
+   done:`lim<sub><i>x</i>→±∞</sub> <i>g</i>(<i>x</i>) = ${a}&nbsp;: asymptote horizontale <i>y</i> = ${fm(a)}. En 0, <i>g</i> part à l'infini&nbsp;: asymptote verticale <i>x</i> = 0.`}},
+ ()=>{const u=pick([2,3,4,5]),F=pick([60,80,100,120,150,200]);const x0=pick([10,20,40,50].filter(x=>(F*100)%x===0));const cm=N.add(R(u),R(F,x0));
+  const t=[[u,0],[F,-1]];
+  return{setup:()=>{plane({v:VIEW(-4,100,-2,u+12),xs:20,ys:2,xlab:'t-shirts',ylab:'€ par t-shirt'});S.st.curves=[{f:x=>u+F/x,col:C.gold2,dom:[1,2000],rev:0}];S.st.asym=[{t:'h',v:u,col:'#aebfff',on:0,lab:`y = ${u}`}];S.draw()},cap0:`C(<i>x</i>) = ${u}<i>x</i> + ${F}`,
+   prompt:`Une association imprime <i>x</i> t-shirts pour le cinquantenaire du lycée&nbsp;: <b>${F}&nbsp;€ de frais fixes</b> (écran, réglages), puis <b>${u}&nbsp;€ par t-shirt</b>. Le coût total est C(<i>x</i>) = ${u}<i>x</i> + ${F}. Le <b>coût moyen</b> d'un t-shirt est ${frH('C(<i>x</i>)',X)} = ${exH(t)}&nbsp;: les frais fixes se partagent.`,
+   parts:[fill('Calcule le coût moyen pour '+x0+' t-shirts&nbsp;:',`${frH(`C(${x0})`,x0)} = {0} €`,[BR(cm)],`${u} + ${F} ÷ ${x0} = ${u} + ${numH(R(F,x0))}.`,{meta:{k:'val',f:exS(t),at:`${x0}`},
+       onOk:async()=>{await S.reveal(0,1200);S.st.pts=[{x:x0,y:val(cm),col:C.gold2,lab:`${x0} t-shirts : ${numT(cm)} €`}];S.draw()}}),
+     ch('Quand on imprime de plus en plus de t-shirts, le coût moyen se rapproche de…',[OK(`${u}&nbsp;€, sans jamais descendre en dessous`,`lim:${u}`),NO('0&nbsp;€','Seule la part des frais fixes, '+frH(F,X)+', tend vers 0. Chaque t-shirt coûte toujours au moins '+u+'&nbsp;€.','lim:0'),NO(`${F}&nbsp;€`,`${F}&nbsp;€, ce sont les frais fixes, à partager&nbsp;: leur part par t-shirt devient minuscule.`,`lim:${F}`)],
+       {meta:{k:'lim',f:exS(t),at:'oo'},onOk:async()=>{await S.asymOn(0,700);S.st.xs=null;await S.zoom(VIEW(-40,1000,-2,u+12),1800);cap(`<span class="m">coût moyen →</span> <span class="b">${u} €</span> <span class="m">: asymptote</span> <span class="b">y = ${u}</span>`)}})],
+   done:`${frH('C(<i>x</i>)',X)} = ${u} + ${frH(F,X)} → ${u} quand <i>x</i> → +∞&nbsp;: la droite <i>y</i> = ${u} est asymptote horizontale. Les frais fixes s'effacent, le prix d'un t-shirt reste.`}}
+ ]});
+function val(r){return N.val(r)}
+
+/* ===================== Niveau 6 · Le mélange ===================== */
+LV.push({t:'Le mélange',
+ rule:`<p><b>Règle de dérivation&nbsp;:</b> (<i>a</i><i>f</i>(<i>x</i>) + <i>b</i><i>g</i>(<i>x</i>))′ = <i>a</i><i>f</i>′(<i>x</i>) + <i>b</i><i>g</i>′(<i>x</i>).</p><p>Pour <i>h</i>(<i>x</i>) = <i>P</i>(<i>x</i>) + ${frH('<i>k</i>',X)} où <i>P</i> est un polynôme (degré ≤ 3)&nbsp;: <b><i>h</i>′(<i>x</i>) = <i>P</i>′(<i>x</i>) − ${frH('<i>k</i>',x2)}</b>.</p><p>Rappels&nbsp;: (<i>x</i>³)′ = 3<i>x</i>²&nbsp;; (<i>x</i>²)′ = 2<i>x</i>&nbsp;; (<i>x</i>)′ = 1&nbsp;; une constante a pour dérivée 0.</p><p>Exemple du cours&nbsp;: <i>f</i>(<i>x</i>) = 1 − 2<i>x</i> + ${frH(2,X)}, <i>f</i>′(<i>x</i>) = −2 − ${frH(2,x2)} &lt; 0&nbsp;: <i>f</i> est décroissante.</p>`,
+ qs:[
+ ()=>{const m=pick([2,3,4,5,-2,-3]),p=pick([1,2,5,-1,-4]),k=pick([2,3,4,5,6]);const t=[[m,1],[p,0],[k,-1]],d=dT(t);
+  return{setup:()=>{plane({v:VIEW(-1,6,-12,24),xs:1,ys:4});S.st.curves=[{f:x=>evF(t,x),col:C.gold2,dom:[0.05,7]}];S.st.tan={x:1,f:x=>evF(t,x),fp:x=>evF(d,x)};S.draw()},cap0:`<i>h</i>(<i>x</i>) = ${exH(t)}`,
+   prompt:`Soit <b><i>h</i>(<i>x</i>) = ${exH(t)}</b> sur ]0 ; +∞[&nbsp;: un polynôme plus ${frH(k,X)}.`,
+   parts:[ch('Quelle est la dérivée <i>h</i>′(<i>x</i>)&nbsp;?',[OK(exH(d),exS(d)),NO(exH([[m,0],[k,-2]]),`(${frH(k,X)})′ = <b>−</b>${frH(k,x2)}&nbsp;: attention au signe.`,exS([[m,0],[k,-2]])),
+       NO(exH([[m,0],[p,0],[-k,-2]]),`La dérivée d'une constante (${p}) est 0&nbsp;: elle disparaît.`,exS([[m+p,0],[-k,-2]])),NO(exH([[m,0],[-k,-1]]),`(${frH(k,X)})′ = −${frH(k,x2)}&nbsp;: le dénominateur devient <i>x</i>².`,exS([[m,0],[-k,-1]]))],
+     {meta:{k:'deriv',f:exS(t)},onOk:async()=>{await S.tanSlide(0.25,5.5,1700,x=>cap(`<span class="m">pente en</span> <i>x</i> = ${fm(x)}&nbsp;: <span class="b">${fm(evF(d,x))}</span>`));cap(`<i>h</i>′(<i>x</i>) = ${exH(d)}`)}})],
+   done:`On dérive terme à terme&nbsp;: (${m===1?'':m}<i>x</i>)′ = ${m}, (${p})′ = 0, (${frH(k,X)})′ = −${frH(k,x2)}. Donc <i>h</i>′(<i>x</i>) = ${exH(d)}.`}},
+ ()=>{const a=pick([1,2,3]),p=pick([-3,1,2,-1,4]),k=pick([1,2,3,4,5,8]);const t=[[a,2],[p,0],[k,-1]],d=dT(t);
+  return{setup:()=>{plane({v:VIEW(-0.5,4,-2,20),xs:1,ys:4});S.st.curves=[{f:x=>evF(t,x),col:C.gold2,dom:[0.05,5]}];S.st.tan={x:2,f:x=>evF(t,x),fp:x=>evF(d,x)};S.draw()},cap0:`<i>f</i>(<i>x</i>) = ${exH(t)}`,
+   prompt:`Soit <b><i>f</i>(<i>x</i>) = ${exH(t)}</b> sur ]0 ; +∞[${a===1&&p===-3&&k===4?' (exercice du cours)':''}.`,
+   parts:[fill('Complète la dérivée&nbsp;:',`<i>f</i>′(<i>x</i>) = {0}<i>x</i> − <span class="fr"><span>{1}</span><span><i>x</i>²</span></span>`,[Object.assign(BR(R(2*a)),{size:2.6}),Object.assign(BR(R(k)),{size:2.6})],(v,oks)=>!oks[0]?`(${a===1?'':a}<i>x</i>²)′ = ${a===1?'':a+' × '}2<i>x</i>.`:`(${frH(k,X)})′ = −${frH(k,x2)}&nbsp;: le numérateur reste ${k}.`,
+     {meta:{k:'dcoef',f:exS(t),terms:['1','-2']},onOk:async()=>{await S.tanSlide(0.3,3.6,1600);cap(`<i>f</i>′(<i>x</i>) = ${exH(d)}`)}})],
+   done:`<i>f</i>′(<i>x</i>) = ${exH(d)}&nbsp;: la constante ${p} a disparu, ${frH(k,X)} est devenu −${frH(k,x2)}.`}},
+ ()=>{const p=pick([1,3,5,0]),m=pick([1,2,3]),k=pick([1,2,3,4]);const t=[[p,0],[-m,1],[k,-1]],d=dT(t);
+  return{setup:()=>{plane({v:VIEW(-0.5,5.5,-14,12),xs:1,ys:4});S.st.curves=[{f:x=>evF(t,x),col:C.gold2,dom:[0.03,6]}];S.st.tan={x:0.6,f:x=>evF(t,x),fp:x=>evF(d,x)};S.draw()},cap0:`<i>f</i>(<i>x</i>) = ${exH(t)}`,
+   prompt:`Comme dans l'exemple du cours, on étudie <b><i>f</i>(<i>x</i>) = ${exH(t)}</b> sur ]0 ; +∞[. On a <i>f</i>′(<i>x</i>) = ${exH(d)}.`,
+   parts:[ch('Signe de <i>f</i>′(<i>x</i>) sur ]0 ; +∞[&nbsp;?',[OK(`Négatif&nbsp;: −${m} &lt; 0 et −${frH(k,x2)} &lt; 0`,'sign:-'),NO('Positif','Les deux termes sont négatifs&nbsp;: −'+m+' et −'+frH(k,x2)+' (car <i>x</i>² &gt; 0). Leur somme est négative.','sign:+'),NO('Il change de signe','Aucun des deux termes ne change de signe&nbsp;: leur somme reste négative.','sign:±')],{meta:{k:'sign',f:exS(t),on:'(0,oo)'}}),
+     ch('Donc <i>f</i> est, sur ]0 ; +∞[,…',[OK('décroissante','var:dec(0,oo)'),NO('croissante','<i>f</i>′ &lt; 0&nbsp;: la fonction descend.','var:inc(0,oo)'),NO('décroissante puis croissante','Il faudrait que <i>f</i>′ change de signe&nbsp;; or elle est toujours négative.','var:decinc')],
+       {meta:{k:'var',f:exS(t)},onOk:async()=>{await S.tanSlide(0.3,5.2,1700);cap(`<i>f</i>′(<i>x</i>) &lt; 0 <span class="m">→</span> <span class="k">f décroissante sur ]0 ; +∞[</span>`)}})],
+   done:`−${m} &lt; 0 et −${frH(k,x2)} &lt; 0, donc <i>f</i>′(<i>x</i>) &lt; 0&nbsp;: <i>f</i> est décroissante sur ]0 ; +∞[.`}},
+ ()=>{const c3=pick([1,2]),c1=pick([-1,-2,1,3,0]),k=pick([2,3,4,5,6]);const t=[[c3,3],[c1,1],[k,-1]],d=dT(t);const v1=evT(d,R(1));
+  return{setup:()=>{plane({v:VIEW(-0.5,2.6,-6,20),xs:.5,ys:4});S.st.curves=[{f:x=>evF(t,x),col:C.gold2,dom:[0.05,3]}];S.st.tan={x:1,f:x=>evF(t,x),fp:x=>evF(d,x)};S.draw()},cap0:`<i>f</i>(<i>x</i>) = ${exH(t)}`,
+   prompt:`Avec un polynôme de degré 3&nbsp;: <b><i>f</i>(<i>x</i>) = ${exH(t)}</b> sur ]0 ; +∞[.`,
+   parts:[ch('Quelle est la dérivée&nbsp;?',[OK(exH(d),exS(d)),NO(exH([[3*c3,2],[c1,0],[k,-2]]),`(${frH(k,X)})′ = −${frH(k,x2)}&nbsp;: attention au signe.`,exS([[3*c3,2],[c1,0],[k,-2]])),NO(exH([[3*c3,3],[c1,0],[-k,-2]]),'(<i>x</i>³)′ = 3<i>x</i>²&nbsp;: l\'exposant baisse de 1.',exS([[3*c3,3],[c1,0],[-k,-2]]))].filter((c,i,arr)=>arr.findIndex(z=>z.m===c.m)===i),{meta:{k:'deriv',f:exS(t)}}),
+     fill('Calcule le nombre dérivé en 1&nbsp;:','<i>f</i>′(1) = {0}',[BR(v1)],`Remplace <i>x</i> par 1 dans <i>f</i>′(<i>x</i>) = ${exH(d)}&nbsp;: 1² = 1.`,{meta:{k:'dval',f:exS(t),at:'1'},onOk:async()=>{S.st.pts=[{x:1,y:evF(t,1),col:C.blue,lab:`pente ${numT(v1)}`}];S.draw();await S.sleep(400)}})],
+   done:`<i>f</i>′(<i>x</i>) = ${exH(d)}, et <i>f</i>′(1) = ${numH(v1)}&nbsp;: c'est la pente de la tangente bleue.`}},
+ ()=>{const k=pick([1,4,9,2,3,8]),a=pick([1,2,3].filter(a=>a*a!==k||Math.random()<.8));const t=[[1,1],[k,-1]],d=dT(t);const va=evT(d,R(a));
+  return{setup:()=>{plane({v:VIEW(-0.5,6,-1,12),xs:1,ys:2});S.st.curves=[{f:x=>evF(t,x),col:C.gold2,dom:[0.05,7]}];S.st.tan={x:a,f:x=>evF(t,x),fp:x=>evF(d,x)};S.draw()},cap0:`<i>f</i>(<i>x</i>) = ${exH(t)}`,
+   prompt:`Soit <b><i>f</i>(<i>x</i>) = ${exH(t)}</b> sur ]0 ; +∞[. Calcule la pente de la tangente au point d'abscisse <b>${a}</b>.`,
+   parts:[fill('Nombre dérivé&nbsp;:',`<i>f</i>′(${a}) = {0}`,[BR(va)],`<i>f</i>′(<i>x</i>) = 1 − ${frH(k,x2)}, donc <i>f</i>′(${a}) = 1 − ${k} ÷ ${a*a}.`,{meta:{k:'dval',f:exS(t),at:`${a}`},
+     onOk:async()=>{S.st.pts=[{x:a,y:evF(t,a),col:C.blue,lab:`pente ${numT(va)}`}];S.draw();await S.sleep(500);cap(`<i>f</i>′(${a}) = ${numH(va)}${N.eq(va,R(0))?' <span class="m">: tangente horizontale</span>':''}`)}})],
+   done:`<i>f</i>′(${a}) = 1 − ${frH(k,a*a)} = ${numH(va)}${N.eq(va,R(0))?'&nbsp;: la tangente est <b>horizontale</b>, la courbe a un creux à cet endroit.':N.cmp(va,R(0))<0?'&nbsp;: la tangente descend.':'&nbsp;: la tangente monte.'}`}}
+ ]});
+
+/* ===================== Niveau 7 · Le coût minimal ===================== */
+const ART=['Une couturière de Tsingoni fabrique','Un atelier de menuiserie de Combani fabrique','Un artisan potier de Sada fabrique','Une petite brasserie de jus de Kawéni produit'];
+function costQ(){const x0=pick([2,3,4,5,6]),a=pick([1,2,3,4,5].filter(a=>a*x0*x0<=150));const k=a*x0*x0;return{x0,a,k,t:[[a,1],[k,-1]],min:2*a*x0}}
+const L7={};
+function costScene(c,o){const ymax=Math.max(c.min*2.4,10);
+  plane(Object.assign({v:VIEW(-c.x0*.25,c.x0*3.2,-ymax*.06,ymax),xs:c.x0>3?2:1,ys:null,xlab:'x',ylab:'coût C(x) en €'},o||{}));S.st.curves=[{f:x=>evF(c.t,x),col:C.gold2,dom:[0.02,c.x0*4]}];S.draw()}
+LV.push({t:'Le coût minimal',
+ rule:`<p><b>Optimisation</b>&nbsp;: pour C(<i>x</i>) = <i>a</i><i>x</i> + ${frH('<i>k</i>',X)} sur ]0 ; +∞[ (<i>a</i> &gt; 0, <i>k</i> &gt; 0)&nbsp;:</p><p>1. C′(<i>x</i>) = <i>a</i> − ${frH('<i>k</i>',x2)}.</p><p>2. C′(<i>x</i>) = 0 ⇔ <i>x</i>² = ${frH('<i>k</i>','<i>a</i>')} ⇔ <i>x</i> = <i>x</i><sub>0</sub> (la solution positive).</p><p>3. C′ &lt; 0 avant <i>x</i><sub>0</sub>, C′ &gt; 0 après&nbsp;: C est décroissante puis croissante, son <b>minimum</b> est C(<i>x</i><sub>0</sub>).</p><p>Exercice du cours&nbsp;: C(<i>x</i>) = 2<i>x</i> + ${frH(50,X)}, minimum en <i>x</i> = 5, C(5) = 20&nbsp;€.</p>`,
+ qs:[
+ ()=>{const c=costQ();Object.assign(L7,c,{who:pick(ART)});const st0=c.x0>=4?1:c.x0*3;
+  return{setup:()=>costScene(c),cap0:`C(<i>x</i>) = ${exH(c.t)}`,
+   prompt:`${L7.who} <i>x</i> lots de pièces par jour. Le coût est <b>C(<i>x</i>) = ${exH(c.t)}</b> euros&nbsp;: une partie <span style="color:var(--blue)">${c.a===1?'':c.a}<i>x</i></span> qui augmente, et une partie <span style="color:var(--gold2)">${frH(c.k,X)}</span> qui se partage et diminue. Trouve le nombre de lots qui rend le coût <b>le plus petit</b>.`,
+   parts:[slide({ask:'Nombre de lots <i>x</i>&nbsp;:',min:1,max:c.x0*3,start:st0,sol:c.x0,label:'Le coût est minimal ici',
+     show:v=>`C(${v}) = ${c.a*v} + ${fm(Math.round(c.k/v*100)/100)}${(c.k*100)%v?'…':''} = <b>${fm(Math.round(evF(c.t,v)*100)/100)}${(c.k*100)%v?'…':''}&nbsp;€</b>`,
+     live:v=>{S.st.stack={x:v,a:c.a*v,b:c.k/v,la:`${c.a===1?'':c.a}x = ${c.a*v}`,lb:`${c.k}/x ≈ ${fm(Math.round(c.k/v*100)/100)}`};S.st.pts=[{x:v,y:evF(c.t,v),col:'#fff'}];S.draw()},
+     ok:v=>v===c.x0,why:v=>{const l=evF(c.t,v-1),r=evF(c.t,v+1),h=evF(c.t,v);return l<h?'Le coût est plus petit avec <b>moins</b> de lots&nbsp;: regarde la hauteur de la barre.':r<h?'Le coût est plus petit avec <b>plus</b> de lots&nbsp;: la part dorée diminue encore plus que la bleue n\'augmente.':'Compare C(x) avec ses voisins.'},
+     meta:{k:'argmin',f:exS(c.t)},onOk:async()=>{S.st.pts=[{x:c.x0,y:c.min,col:C.gold2,lab:`minimum : ${c.min} €`}];S.draw();cap(`C(${c.x0}) = ${c.a*c.x0} + ${c.k/c.x0} = <span class="k">${c.min}&nbsp;€</span> <span class="m">: le point le plus bas</span>`)}})],
+   done:`Avec ${c.x0} lots, C(${c.x0}) = ${c.min}&nbsp;€&nbsp;: c'est le point le plus bas de la courbe. On va le prouver par le calcul.`}},
+ ()=>{const c=L7;
+  return{setup:()=>{costScene(c);S.st.tan={x:1,f:x=>evF(c.t,x),fp:x=>evF(dT(c.t),x)};S.draw()},cap0:`C(<i>x</i>) = ${exH(c.t)}`,
+   prompt:`Pour le prouver, on dérive <b>C(<i>x</i>) = ${exH(c.t)}</b> sur ]0 ; +∞[.`,
+   parts:[ch('Quelle est la dérivée C′(<i>x</i>)&nbsp;?',[OK(exH(dT(c.t)),exS(dT(c.t))),NO(exH([[c.a,0],[c.k,-2]]),`(${frH(c.k,X)})′ = <b>−</b>${frH(c.k,x2)}.`,exS([[c.a,0],[c.k,-2]])),NO(exH([[c.a,0],[-c.k,-1]]),'Le dénominateur de la dérivée de <i>k</i>/<i>x</i> est <i>x</i>².',exS([[c.a,0],[-c.k,-1]])),
+       NO(exH([[c.a,1],[-c.k,-2]]),`(${c.a===1?'':c.a}<i>x</i>)′ = ${c.a}&nbsp;: le <i>x</i> disparaît.`,exS([[c.a,1],[-c.k,-2]]))],
+     {meta:{k:'deriv',f:exS(c.t)},onOk:async()=>{await S.tanSlide(0.6,c.x0*3,2000,x=>cap(`C′(${fm(x)}) = <span class="b">${fm(evF(dT(c.t),x))}</span>`));cap(`C′(<i>x</i>) = ${exH(dT(c.t))}`)}})],
+   done:`C′(<i>x</i>) = ${exH(dT(c.t))}. La tangente descend, s'aplatit, puis monte&nbsp;: elle est horizontale là où C′(<i>x</i>) = 0.`}},
+ ()=>{const c=L7;
+  return{setup:()=>{costScene(c);S.st.tan={x:c.x0*.5,f:x=>evF(c.t,x),fp:x=>evF(dT(c.t),x)};S.draw()},cap0:`C′(<i>x</i>) = ${exH(dT(c.t))}`,
+   prompt:`On résout <b>C′(<i>x</i>) = 0</b> sur ]0 ; +∞[, c'est-à-dire ${c.a} − ${frH(c.k,x2)} = 0.`,
+   parts:[fill('Résolution&nbsp;:',`<i>x</i>² = {0} &nbsp; donc &nbsp; <i>x</i> = {1} &nbsp;<span class="hint" style="font-size:15px">(car <i>x</i> &gt; 0)</span>`,[Object.assign(BR(R(c.x0*c.x0)),{size:3}),Object.assign(BR(R(c.x0)),{size:3})],
+     (v,oks)=>!oks[0]?`${c.a} = ${frH(c.k,x2)} ⇔ ${exH([[c.a,2]])} = ${c.k} ⇔ <i>x</i>² = ${c.k} ÷ ${c.a}.`:`<i>x</i>² = ${c.x0*c.x0} a deux solutions, ${c.x0} et −${c.x0}&nbsp;; on garde la positive.`,
+     {meta:{k:'crit',f:exS(c.t)},onOk:async()=>{await S.tanSlide(c.x0*.5,c.x0,900);cap(`C′(${c.x0}) = 0 <span class="m">: tangente</span> <span class="b">horizontale</span>`)}})],
+   done:`${exH([[c.a,2]])} = ${c.k}, <i>x</i>² = ${c.x0*c.x0}, <i>x</i> = ${c.x0} (car <i>x</i> &gt; 0)&nbsp;: la tangente y est horizontale.`}},
+ ()=>{const c=L7;
+  return{setup:()=>{costScene(c);S.st.tan={x:c.x0*.4,f:x=>evF(c.t,x),fp:x=>evF(dT(c.t),x)};S.draw()},cap0:`C′(${c.x0}) = 0`,
+   prompt:`C′(<i>x</i>) = ${exH(dT(c.t))} s'annule en <b>${c.x0}</b>. Par exemple C′(1) = ${numH(evT(dT(c.t),R(1)))} et C′(${2*c.x0}) = ${numH(evT(dT(c.t),R(2*c.x0)))}.`,
+   parts:[ch('Quel est le sens de variation de C&nbsp;?',[OK(`décroissante sur ]0 ; ${c.x0}], puis croissante sur [${c.x0} ; +∞[`,`var:dec(0,${c.x0})&inc(${c.x0},oo)`),
+       NO(`croissante sur ]0 ; ${c.x0}], puis décroissante sur [${c.x0} ; +∞[`,`C′(1) est négatif&nbsp;: au début, C diminue. Le signe de C′ donne le sens de variation.`,`var:inc(0,${c.x0})&dec(${c.x0},oo)`),
+       NO('croissante sur ]0 ; +∞[',`C′(1) = ${numH(evT(dT(c.t),R(1)))} &lt; 0&nbsp;: au début, la fonction diminue.`,'var:inc(0,oo)')],
+     {meta:{k:'var',f:exS(c.t)},onOk:async()=>{await S.tanSlide(c.x0*.4,c.x0*2.8,2000,x=>cap(`C′(${fm(x)}) <span class="b">${evF(dT(c.t),x)<-1e-9?'&lt; 0':evF(dT(c.t),x)>1e-9?'&gt; 0':'= 0'}</span> <span class="m">${x<c.x0-1e-9?'C descend':x>c.x0+1e-9?'C monte':'minimum'}</span>`));cap(`<span class="m">C décroît jusqu'à</span> <i>x</i> = ${c.x0} <span class="m">puis croît</span>`)}})],
+   done:`C′ &lt; 0 sur ]0 ; ${c.x0}[ et C′ &gt; 0 sur ]${c.x0} ; +∞[&nbsp;: C est décroissante puis croissante, elle atteint son minimum en ${c.x0}.`}},
+ ()=>{const c=L7;
+  return{setup:()=>{costScene(c);S.st.pts=[{x:c.x0,y:c.min,col:C.gold2,lab:'?'}];S.draw()},cap0:`<span class="m">minimum en</span> <i>x</i> = ${c.x0}`,
+   prompt:`Le coût est minimal pour <b>${c.x0} lots</b>. Calcule ce coût minimal.`,
+   parts:[fill('Coût minimal&nbsp;:',`C(${c.x0}) = {0} €`,[BR(R(c.min))],`C(${c.x0}) = ${c.a} × ${c.x0} + ${c.k} ÷ ${c.x0} = ${c.a*c.x0} + ${c.k/c.x0}.`,{meta:{k:'min',f:exS(c.t)},
+     onOk:async()=>{S.st.pts=[{x:c.x0,y:c.min,col:C.gold2,lab:`minimum : ${c.min} €`}];S.st.asym=[{t:'h',v:c.min,col:'#aebfff',on:0}];await S.asymOn(0,700);cap(`<span class="m">Coût minimal&nbsp;:</span> <span class="k">C(${c.x0}) = ${c.min}&nbsp;€</span>`)}})],
+   done:`C(${c.x0}) = ${c.a*c.x0} + ${c.k/c.x0} = ${c.min}&nbsp;€. Tableau de variations&nbsp;: C ↘ sur ]0 ; ${c.x0}], minimum ${c.min} en ${c.x0}, puis ↗.`}}
+ ]});
+})();
+</script>
+<script>
+/* ======================= LA CAGNOTTE — épreuves finales Bronze, Argent, Or ======================= */
+window.CG_FIN=(function(){
+'use strict';
+const N=window.CG_N,{R,D,numH,numT,parH,frH,fmtInt,dec,ri,pick,shuf,X,exH,exS,dT,evT,ans}=N;
+const x2=`${X}²`,fX=n=>`<i>${n||'f'}</i>(${X})`,fP=n=>`<i>${n||'f'}</i>′(${X})`;
+const Q=(o)=>o;
+const qcm=(level,prompt,good,bads,explain,meta)=>{const all=[good].concat(bads);return{type:'qcm',level,prompt,choices:all.map(c=>c[0]),answer:0,cm:all.map(c=>c[1]),explain,meta}};
+const trous=(level,prompt,blanks,explain,meta)=>({type:'trous',level,prompt,blanks,explain,meta});
+const BL=(r,size)=>({answers:ans(r),size:size||4});
+const mt=r=>numT(r).replace(/ /g,'').replace(',','.').replace('−','-');      // écriture machine d'un rationnel
+const CTXF=[['la location d\'un bateau',[120,144,180]],['la location d\'une sono',[60,72,90]],['un minibus pour un match',[84,96,120]],['un terrain de foot à cinq',[48,60,72]]];
+const divs=(k,lo,hi)=>{const o=[];for(let n=lo;n<=hi;n++)if((k*100)%n===0)o.push(n);return o};
+
+/* ---------------- BRONZE : une étape, nombres simples ---------------- */
+const B={
+1:{q:[()=>{const c=pick(CTXF),k=pick(c[1]),n=pick(divs(k,2,6).filter(n=>k%n===0));const p=R(k,n);
+     return qcm(1,`On partage ${c[0]} à ${k}&nbsp;€ entre ${n} amis, à parts égales. Chacun paie&nbsp;:`,[`${numH(p)}&nbsp;€`,`${k}/${n}`],[[`${fmtInt(k-n)}&nbsp;€`,`${k-n}`],[`${fmtInt(k*n)}&nbsp;€`,`${k*n}`]],`Chacun paie ${k} ÷ ${n} = ${numH(p)}&nbsp;€&nbsp;: on divise la note par le nombre de personnes.`,{k:'val',f:`${k}/x`,at:`${n}`,st:1})},
+   ()=>qcm(1,`La fonction inverse est définie par ${fX()} = ${frH(1,X)}. Sur quel ensemble&nbsp;?`,['ℝ ∖ {0}','fact:dom_R*'],[['ℝ','fact:dom_R'],['[0 ; +∞[','fact:dom_R+']],'On ne peut pas diviser par 0&nbsp;: la fonction inverse est définie sur ℝ ∖ {0}.',{k:'fact',st:1})],
+   t:[()=>{const x=pick(['2','4','5','10','0.5']);const y=N.div(R(1),D(x));return trous(1,`Pour ${fX()} = ${frH(1,X)}&nbsp;: <i>f</i>(${numH(D(x))}) = {0}.`,[BL(y)],`<i>f</i>(${numH(D(x))}) = 1 ÷ ${numH(D(x))} = ${numH(y)}.`,{k:'val',f:'1/x',at:x,st:1})}]},
+2:{q:[()=>{const a=D(pick(['2','4','5','0.5'])),b=N.div(R(1),a);return qcm(2,`Le point A${'('+numH(a)+'&nbsp;;&nbsp;'+numH(b)+')'} est sur la courbe de la fonction inverse. Son symétrique par rapport à l'origine O est&nbsp;:`,[`(${numH(N.neg(a))}&nbsp;;&nbsp;${numH(N.neg(b))})`,`(${mt(N.neg(a))},${mt(N.neg(b))})`],[[`(${numH(N.neg(a))}&nbsp;;&nbsp;${numH(b)})`,`(${mt(N.neg(a))},${mt(b)})`],[`(${numH(a)}&nbsp;;&nbsp;${numH(N.neg(b))})`,`(${mt(a)},${mt(N.neg(b))})`]],
+     'Par rapport à O, les deux coordonnées changent de signe&nbsp;: la courbe est symétrique par rapport à l\'origine.',{k:'sym',x:mt(a),y:mt(b),st:1})},
+   ()=>qcm(2,'La courbe de la fonction inverse s\'appelle&nbsp;:',['une hyperbole','fact:hyperbole'],[['une parabole','fact:parabole'],['une droite','fact:droite']],'La courbe de <i>y</i> = 1/<i>x</i> est une hyperbole, formée de deux branches.',{k:'fact',st:1})],
+   t:[()=>{const a=pick(['2','4','5']);const b=N.div(R(1),D(a));return trous(2,`<i>f</i>(${a}) = ${numH(b)}. La fonction inverse est impaire, donc <i>f</i>(−${a}) = {0}.`,[BL(N.neg(b))],`<i>f</i>(−${a}) = −<i>f</i>(${a}) = ${numH(N.neg(b))}.`,{k:'val',f:'1/x',at:'-'+a,st:1})}]},
+3:{q:[()=>qcm(3,'Sur ]0 ; +∞[, la fonction inverse est&nbsp;:',['décroissante','var:dec(0,oo)'],[['croissante','var:inc(0,oo)'],['constante','var:const']],'Sur ]0 ; +∞[, quand <i>x</i> augmente, 1/<i>x</i> diminue&nbsp;: la fonction inverse est décroissante.',{k:'var',f:'1/x',st:1}),
+   ()=>{const pr=pick([['2','5'],['1','4'],['3','10']]);return qcm(3,`Sans calcul, on compare ${frH(1,pr[0])} et ${frH(1,pr[1])}&nbsp;:`,[`${frH(1,pr[0])} &gt; ${frH(1,pr[1])}`,'>'],[[`${frH(1,pr[0])} &lt; ${frH(1,pr[1])}`,'<'],[`${frH(1,pr[0])} = ${frH(1,pr[1])}`,'=']],`La fonction inverse est décroissante sur ]0 ; +∞[&nbsp;: ${pr[0]} &lt; ${pr[1]} donne ${frH(1,pr[0])} &gt; ${frH(1,pr[1])}.`,{k:'cmp',f:'1/x',a:pr[0],b:pr[1],st:1})}],
+   t:[()=>{const k=pick([60,120]),n1=pick([2,3,4]),n2=pick([5,6,10]);return trous(3,`Une note de ${k}&nbsp;€ partagée entre ${n1} personnes donne {0}&nbsp;€ chacun, entre ${n2} personnes {1}&nbsp;€ chacun.`,[BL(R(k,n1)),BL(R(k,n2))],`${k} ÷ ${n1} = ${numH(R(k,n1))} et ${k} ÷ ${n2} = ${numH(R(k,n2))}&nbsp;: plus on est nombreux, plus la part est petite.`,{k:'vals',f:`${k}/x`,at:[`${n1}`,`${n2}`],st:1})}]},
+4:{q:[()=>qcm(4,`La dérivée de ${fX()} = ${frH(1,X)} est&nbsp;:`,[`${fP()} = −${frH(1,x2)}`,exS([[-1,-2]])],[[`${fP()} = ${frH(1,x2)}`,exS([[1,-2]])],[`${fP()} = −${frH(1,X)}`,exS([[-1,-1]])]],`Formule du cours&nbsp;: (1/<i>x</i>)′ = −1/<i>x</i>².`,{k:'deriv',f:'1/x',st:1}),
+   ()=>{const k=pick([2,3,5,7]);return qcm(4,`La dérivée de ${fX()} = ${frH(k,X)} est&nbsp;:`,[exH([[-k,-2]]),exS([[-k,-2]])],[[exH([[k,-2]]),exS([[k,-2]])],[exH([[-k,-1]]),exS([[-k,-1]])]],`(<i>k</i>/<i>x</i>)′ = −<i>k</i>/<i>x</i>²&nbsp;: ici −${frH(k,x2)}.`,{k:'deriv',f:`${k}/x`,st:1})}],
+   t:[()=>{const k=pick([2,3,5,6,7]);return trous(4,`${fX()} = ${frH(k,X)}&nbsp;; ${fP()} = − <span class="fr"><span>{0}</span><span>${x2}</span></span>.`,[BL(R(k),2.5)],`(<i>k</i>/<i>x</i>)′ = −<i>k</i>/<i>x</i>² avec <i>k</i> = ${k}.`,{k:'dnum',f:`${k}/x`,st:1})}]},
+5:{q:[()=>qcm(5,`Quand <i>x</i> devient très grand, ${frH(1,X)} se rapproche de&nbsp;:`,['0','lim:0'],[['+∞','lim:oo'],['1','lim:1']],'1/10 = 0,1&nbsp;; 1/100 = 0,01&nbsp;; 1/10 000 = 0,0001&nbsp;: lim<sub><i>x</i>→+∞</sub> 1/<i>x</i> = 0.',{k:'lim',f:'1/x',at:'oo',st:1}),
+   ()=>qcm(5,`L'asymptote verticale à la courbe de la fonction inverse a pour équation&nbsp;:`,['<i>x</i> = 0','av:0'],[['<i>y</i> = 0','ah:0'],['<i>x</i> = 1','av:1']],'Près de 0, 1/<i>x</i> part à l\'infini&nbsp;: la droite <i>x</i> = 0 (axe des ordonnées) est asymptote verticale.',{k:'asymv',f:'1/x',st:1})],
+   t:[()=>trous(5,`Quand <i>x</i> → +∞, ${frH(1,X)} → 0&nbsp;: la droite d'équation <i>y</i> = {0} est asymptote horizontale à la courbe de la fonction inverse.`,[BL(R(0),2.5)],'L\'axe des abscisses, <i>y</i> = 0, est asymptote horizontale.',{k:'asymh',f:'1/x',st:1})]},
+6:{q:[()=>{const m=pick([2,3,4]),k=pick([1,2,5]);const t=[[m,1],[k,-1]],d=dT(t);return qcm(6,`La dérivée de ${fX()} = ${exH(t)} est&nbsp;:`,[exH(d),exS(d)],[[exH([[m,0],[k,-2]]),exS([[m,0],[k,-2]])],[exH([[m,1],[-k,-2]]),exS([[m,1],[-k,-2]])]],`On dérive terme à terme&nbsp;: (${m}<i>x</i>)′ = ${m} et (${frH(k,X)})′ = −${frH(k,x2)}.`,{k:'deriv',f:exS(t),st:1})}],
+   t:[()=>{const k=pick([1,2,3]);const t=[[1,2],[k,-1]];return trous(6,`${fX()} = ${exH(t)}&nbsp;; ${fP()} = {0}${X} − ${frH(k,x2)}.`,[BL(R(2),2.5)],`(<i>x</i>²)′ = 2<i>x</i>.`,{k:'dcoef',f:exS(t),terms:['1'],st:1})}]},
+7:{q:[()=>{const x0=pick([2,3,5]),a=2,k=a*x0*x0;return qcm(7,`On résout C′(<i>x</i>) = ${exH([[a,0],[-k,-2]])} = 0 pour <i>x</i> &gt; 0. On trouve&nbsp;:`,[`<i>x</i> = ${x0}`,`${x0}`],[[`<i>x</i> = ${k/a}`,`${k/a}`],[`<i>x</i> = ${k}`,`${k}`]],`${a} = ${frH(k,x2)} ⇔ <i>x</i>² = ${k/a} ⇔ <i>x</i> = ${x0} (car <i>x</i> &gt; 0).`,{k:'crit',f:exS([[a,1],[k,-1]]),st:1})}],
+   t:[()=>{const x0=pick([2,5]);const k=2*x0*x0;return trous(7,`Pour C(<i>x</i>) = ${exH([[2,1],[k,-1]])}&nbsp;: C(${x0}) = {0}.`,[BL(R(4*x0))],`C(${x0}) = 2 × ${x0} + ${k} ÷ ${x0} = ${2*x0} + ${2*x0} = ${4*x0}.`,{k:'val',f:exS([[2,1],[k,-1]]),at:`${x0}`,st:1})}]}};
+
+/* ---------------- ARGENT : toute la notion, pièges classiques ---------------- */
+const A={
+1:{q:[()=>{const x=pick(['0.25','0.5','0.2','0.1']);const y=N.div(R(1),D(x));const w=[[numH(D(x)),mt(D(x))],[numH(N.neg(y)),mt(N.neg(y))]];if(!N.eq(N.mul(D(x),R(10)),y))w.push([numH(N.mul(D(x),R(10))),mt(N.mul(D(x),R(10)))]);
+     return qcm(1,`Pour la fonction inverse, <i>f</i>(${numH(D(x))}) =`,[numH(y),mt(y)],w.slice(0,3),`<i>f</i>(${numH(D(x))}) = 1 ÷ ${numH(D(x))} = ${numH(y)}&nbsp;: diviser par un nombre plus petit que 1 donne un résultat plus grand.`,{k:'val',f:'1/x',at:x,st:2})},
+   ()=>qcm(1,'Pour la fonction inverse, <i>f</i>(0)&nbsp;:',['n\'existe pas&nbsp;: 0 n\'a pas d\'image','fact:f0_undef'],[['vaut 0','fact:f0_0'],['vaut 1','fact:f0_1'],['vaut +∞','fact:f0_inf']],'On ne peut pas diviser par 0&nbsp;: 0 n\'a pas d\'image, la fonction est définie sur ℝ ∖ {0}.',{k:'fact',st:1})],
+   t:[()=>{const x=pick(['-0.5','-0.25','-4','-5','-0.2']);const y=N.div(R(1),D(x));return trous(1,`Pour ${fX()} = ${frH(1,X)}&nbsp;: <i>f</i>(${numH(D(x))}) = {0}.`,[BL(y)],`<i>f</i>(${numH(D(x))}) = 1 ÷ (${numH(D(x))}) = ${numH(y)}&nbsp;: un nombre négatif a un inverse négatif.`,{k:'val',f:'1/x',at:x,st:2})}]},
+2:{q:[()=>{const x=D(pick(['5','4','2.5','0.4'])),y=N.div(R(1),x);return qcm(2,'Lequel de ces points est sur la courbe de la fonction inverse&nbsp;?',[`(${numH(N.neg(x))}&nbsp;;&nbsp;${numH(N.neg(y))})`,'oc:yes'],[[`(${numH(N.neg(x))}&nbsp;;&nbsp;${numH(y)})`,'oc:no'],[`(${numH(x)}&nbsp;;&nbsp;${numH(N.neg(y))})`,'oc:no2'],[`(${numH(x)}&nbsp;;&nbsp;${numH(x)})`,'oc:no3']],
+     `M(<i>x</i> ; <i>y</i>) est sur la courbe si <i>y</i> = 1/<i>x</i>&nbsp;: 1 ÷ (${numH(N.neg(x))}) = ${numH(N.neg(y))}.`,{k:'oncurve4',pts:[[mt(N.neg(x)),mt(N.neg(y))],[mt(N.neg(x)),mt(y)],[mt(x),mt(N.neg(y))],[mt(x),mt(x)]],st:2})},
+   ()=>qcm(2,'Pour tout <i>x</i> ≠ 0, la fonction inverse vérifie&nbsp;:',['<i>f</i>(−<i>x</i>) = −<i>f</i>(<i>x</i>)','fact:odd'],[['<i>f</i>(−<i>x</i>) = <i>f</i>(<i>x</i>)','fact:even'],['<i>f</i>(−<i>x</i>) = <i>x</i>','fact:fmx_x']],'La fonction inverse est impaire&nbsp;: 1/(−<i>x</i>) = −1/<i>x</i>. Sa courbe est symétrique par rapport à O.',{k:'fact',st:1})],
+   t:[()=>{const a=pick([3,6,7,9]);return trous(2,`<i>f</i>(−${a}) = {0} (écrire une fraction).`,[BL(R(-1,a))],`<i>f</i>(−${a}) = −<i>f</i>(${a}) = −1/${a}.`,{k:'val',f:'1/x',at:`-${a}`,st:2})}]},
+3:{q:[()=>{const pr=pick([['-2','4'],['-0.5','2'],['-1','5']]);return qcm(3,`On compare ${frH(1,'('+numH(D(pr[0]))+')')} et ${frH(1,pr[1])}&nbsp;:`,[`${frH(1,'('+numH(D(pr[0]))+')')} &lt; ${frH(1,pr[1])}`,'<'],[[`${frH(1,'('+numH(D(pr[0]))+')')} &gt; ${frH(1,pr[1])}`,'>'],[`${frH(1,'('+numH(D(pr[0]))+')')} = ${frH(1,pr[1])}`,'=']],
+     `${numH(D(pr[0]))} et ${pr[1]} ne sont pas dans le même intervalle&nbsp;: 1/(${numH(D(pr[0]))}) est négatif, 1/${pr[1]} est positif.`,{k:'cmp',f:'1/x',a:pr[0],b:pr[1],st:2})},
+   ()=>qcm(3,'Quelle affirmation est exacte&nbsp;?',['La fonction inverse est décroissante sur ]−∞ ; 0[ et sur ]0 ; +∞[','var:dec(-oo,0)&dec(0,oo)'],[['La fonction inverse est décroissante sur ℝ ∖ {0}','var:dec(R*)'],['La fonction inverse est croissante sur ]−∞ ; 0[','var:inc(-oo,0)']],'Contre-exemple&nbsp;: −1 &lt; 1 et <i>f</i>(−1) = −1 &lt; 1 = <i>f</i>(1). La décroissance vaut sur chaque intervalle séparément.',{k:'var',f:'1/x',st:2})],
+   t:[()=>{const pr=pick([['-4','-2'],['-5','-0.5'],['-2','-1']]);const ia=N.div(R(1),D(pr[0])),ib=N.div(R(1),D(pr[1]));return trous(3,`${numH(D(pr[0]))} &lt; ${numH(D(pr[1]))}&nbsp;: <i>f</i>(${numH(D(pr[0]))}) = {0} et <i>f</i>(${numH(D(pr[1]))}) = {1}. L'ordre s'inverse.`,[BL(ia),BL(ib)],`${numH(ia)} &gt; ${numH(ib)}&nbsp;: sur ]−∞ ; 0[, la fonction inverse est décroissante.`,{k:'vals',f:'1/x',at:pr,st:2})}]},
+4:{q:[()=>{const k=pick([-2,-3,-5]);return qcm(4,`La dérivée de ${fX()} = ${exH([[k,-1]])} est&nbsp;:`,[exH([[-k,-2]]),exS([[-k,-2]])],[[exH([[k,-2]]),exS([[k,-2]])],[exH([[-k,-1]]),exS([[-k,-1]])]],`(<i>k</i>/<i>x</i>)′ = −<i>k</i>/<i>x</i>² avec <i>k</i> = ${k}&nbsp;: −(${k})/<i>x</i>² = ${frH(-k,x2)}.`,{k:'deriv',f:exS([[k,-1]]),st:2})},
+   ()=>{const k=pick([-1,-2,-4]);return qcm(4,`Sur ]0 ; +∞[, la fonction ${fX()} = ${exH([[k,-1]])} est&nbsp;:`,['croissante','var:inc(0,oo)'],[['décroissante','var:dec(0,oo)'],['décroissante puis croissante','var:decinc']],`${fP()} = ${exH([[-k,-2]])} &gt; 0&nbsp;: avec <i>k</i> &lt; 0, la fonction est croissante.`,{k:'var',f:exS([[k,-1]]),st:2})}],
+   t:[()=>{const a=pick(['2','-2','0.5','4']);const y=N.neg(N.div(R(1),N.mul(D(a),D(a))));return trous(4,`Pour ${fX()} = ${frH(1,X)}&nbsp;: <i>f</i>′(${numH(D(a))}) = {0}.`,[BL(y)],`<i>f</i>′(<i>x</i>) = −1/<i>x</i>², donc <i>f</i>′(${numH(D(a))}) = −1 ÷ ${numH(N.mul(D(a),D(a)))} = ${numH(y)}.`,{k:'dval',f:'1/x',at:a,st:2})}]},
+5:{q:[()=>qcm(5,`lim<sub><i>x</i>→0, <i>x</i>&lt;0</sub> ${frH(1,X)} =`,['−∞','lim:-oo'],[['+∞','lim:oo'],['0','lim:0']],'Si <i>x</i> est négatif et proche de 0, 1/<i>x</i> est négatif et très grand en valeur absolue&nbsp;: 1/(−0,001) = −1 000.',{k:'lim',f:'1/x',at:'0-',st:2}),
+   ()=>{const a=pick([2,3,-1]),k=pick([2,5,-3].filter(k=>k!==a));const t=[[a,0],[k,-1]];return qcm(5,`Les asymptotes à la courbe de <i>g</i>(<i>x</i>) = ${exH(t)} ont pour équations&nbsp;:`,[`<i>y</i> = ${a} et <i>x</i> = 0`,`asy:${a};0`],[[`<i>y</i> = ${k} et <i>x</i> = 0`,`asy:${k};0`],[`<i>y</i> = 0 et <i>x</i> = ${a}`,`asy:0;${a}`]],`Quand <i>x</i> → ±∞, ${frH(Math.abs(k),X)} → 0 donc <i>g</i>(<i>x</i>) → ${a}&nbsp;; la valeur interdite est 0.`,{k:'asym',f:exS(t),st:2})}],
+   t:[()=>{const a=pick([4,1,-2]),k=pick([3,-3,2]);const t=[[a,0],[k,-1]];return trous(5,`Pour <i>g</i>(<i>x</i>) = ${exH(t)}&nbsp;: asymptote horizontale <i>y</i> = {0}, asymptote verticale <i>x</i> = {1}.`,[BL(R(a),2.5),BL(R(0),2.5)],`lim<sub><i>x</i>→±∞</sub> <i>g</i>(<i>x</i>) = ${a}&nbsp;; en 0, <i>g</i> part à l'infini.`,{k:'asym2',f:exS(t),st:2})}]},
+6:{q:[()=>{const p=pick([1,3]),m=2,k=2;const t=[[p,0],[-m,1],[k,-1]],d=dT(t);return qcm(6,`Soit <i>f</i>(<i>x</i>) = ${exH(t)} sur ]0 ; +∞[. Alors ${fP()} =`,[exH(d),exS(d)],[[exH([[-m,0],[k,-2]]),exS([[-m,0],[k,-2]])],[exH([[p,0],[-m,0],[-k,-2]]),exS([[p-m,0],[-k,-2]])],[exH([[-m,0],[-k,-1]]),exS([[-m,0],[-k,-1]])]],`Terme à terme&nbsp;: (${p})′ = 0, (−${m}<i>x</i>)′ = −${m}, (${frH(k,X)})′ = −${frH(k,x2)}.`,{k:'deriv',f:exS(t),st:2})},
+   ()=>{const m=pick([1,2,3]),k=pick([1,2,4]);const t=[[5,0],[-m,1],[k,-1]];return qcm(6,`Sur ]0 ; +∞[, la fonction <i>f</i>(<i>x</i>) = ${exH(t)} est&nbsp;:`,['décroissante','var:dec(0,oo)'],[['croissante','var:inc(0,oo)'],['décroissante puis croissante','var:decinc']],`${fP()} = ${exH(dT(t))}&nbsp;: somme de deux nombres négatifs, donc ${fP()} &lt; 0.`,{k:'var',f:exS(t),st:2})}],
+   t:[()=>{const c1=pick([-1,1,2]),k=pick([2,3,4]);const t=[[1,3],[c1,1],[k,-1]];const v=evT(dT(t),R(1));return trous(6,`<i>f</i>(<i>x</i>) = ${exH(t)} sur ]0 ; +∞[&nbsp;: <i>f</i>′(1) = {0}.`,[BL(v)],`${fP()} = ${exH(dT(t))}, donc <i>f</i>′(1) = ${numH(v)}.`,{k:'dval',f:exS(t),at:'1',st:2})}]},
+7:{q:[()=>{const x0=pick([2,3]),k=x0*x0;const t=[[1,1],[k,-1]];return qcm(7,`Sur ]0 ; +∞[, la fonction <i>f</i>(<i>x</i>) = ${exH(t)} atteint son minimum en&nbsp;:`,[`<i>x</i> = ${x0}`,`${x0}`],[[`<i>x</i> = ${k}`,`${k}`],[`<i>x</i> = 1`,'1'],[`<i>x</i> = ${2*x0}`,`${2*x0}`],[`<i>x</i> = ${x0+1}`,`${x0+1}`]].filter((z,i,arr)=>z[1]!==`${x0}`&&arr.findIndex(y=>y[1]===z[1])===i).slice(0,3),`${fP()} = 1 − ${frH(k,x2)} s'annule en <i>x</i> = ${x0}, négative avant, positive après.`,{k:'argmin',f:exS(t),st:3})},
+   ()=>{const x0=5,a=2,k=50;return qcm(7,`C(<i>x</i>) = ${exH([[a,1],[k,-1]])} sur ]0 ; +∞[. Sur ]0 ; ${x0}], C est&nbsp;:`,['décroissante',`var:dec(0,${x0})`],[['croissante',`var:inc(0,${x0})`],['constante','var:const']],`C′(<i>x</i>) = 2 − ${frH(50,x2)} &lt; 0 pour 0 &lt; <i>x</i> &lt; 5 (par exemple C′(1) = −48).`,{k:'var',f:exS([[a,1],[k,-1]]),st:2})}],
+   t:[()=>{const x0=pick([2,3,4,5]),a=pick([1,2,3].filter(a=>a*x0*x0<=75));const k=a*x0*x0;return trous(7,`C(<i>x</i>) = ${exH([[a,1],[k,-1]])} sur ]0 ; +∞[. C′(<i>x</i>) = 0 pour <i>x</i> = {0}, et le coût minimal est {1}.`,[BL(R(x0),2.5),BL(R(2*a*x0),3)],`C′(<i>x</i>) = ${a} − ${frH(k,x2)} = 0 ⇔ <i>x</i>² = ${x0*x0} ⇔ <i>x</i> = ${x0}&nbsp;; C(${x0}) = ${a*x0} + ${k/x0} = ${2*a*x0}.`,{k:'critmin',f:exS([[a,1],[k,-1]]),st:3})}]}};
+
+/* ---------------- OR : plusieurs étapes, situations concrètes ---------------- */
+const O={
+1:{q:[()=>{const k=pick([60,90,100]),c=pick([7,8,12].filter(c=>k%c!==0));const n=Math.ceil(k/c);const bads=[[`${Math.floor(k/c)}`,`${Math.floor(k/c)}`],[`${fmtInt(k*c)}`,`${k*c}`]];if(N.isDec(R(k,c)))bads.push([dec(R(k,c)),mt(R(k,c))]);
+     return qcm(1,`Une note de ${k}&nbsp;€ est partagée à parts égales. Pour que chacun paie <b>au plus ${c}&nbsp;€</b>, il faut au minimum combien de personnes&nbsp;?`,[`${n}`,`${n}`],bads.slice(0,3),`${k}/<i>x</i> ≤ ${c} ⇔ <i>x</i> ≥ ${k}/${c} ≈ ${S_d(k/c)}&nbsp;: il faut un nombre entier de personnes, donc au moins ${n}. Vérification&nbsp;: ${k} ÷ ${n} ≈ ${S_d(k/n)} ≤ ${c}.`,{k:'ceil',K:k,c,st:3})},
+   ()=>{const k=pick([120,180]),n1=pick([3,4]),n2=n1*2;const d=N.sub(R(k,n1),R(k,n2));return qcm(1,`Une location à ${k}&nbsp;€ devait être partagée entre ${n1} personnes. Finalement, vous êtes ${n2}. Chacun économise&nbsp;:`,[`${numH(d)}&nbsp;€`,mt(d)],[[`${numH(R(k,n2))}&nbsp;€`,mt(R(k,n2))],[`${numH(R(k,n2-n1))}&nbsp;€`,mt(R(k,n2-n1))],[`${n2-n1}&nbsp;€`,`${n2-n1}`]].filter((z,i,arr)=>z[1]!==mt(d)&&arr.findIndex(y=>y[1]===z[1])===i).slice(0,3),`${k} ÷ ${n1} − ${k} ÷ ${n2} = ${numH(R(k,n1))} − ${numH(R(k,n2))} = ${numH(d)}&nbsp;€&nbsp;: deux fois plus de monde, une part deux fois plus petite.`,{k:'num',e:`${k}/${n1}-${k}/${n2}`,st:3})}],
+   t:[()=>{const k=pick([150,240,300]),n=pick([4,6,8].filter(n=>(k*100)%n===0&&(k*100)%(n+2)===0));const a=R(k,n),b=R(k,n+2);return trous(1,`Une sortie coûte ${k}&nbsp;€ au total. À ${n}, chacun paie {0}&nbsp;€&nbsp;; si deux amis de plus viennent, chacun paie {1}&nbsp;€.`,[BL(a),BL(b)],`${k} ÷ ${n} = ${numH(a)} et ${k} ÷ ${n+2} = ${numH(b)}.`,{k:'vals',f:`${k}/x`,at:[`${n}`,`${n+2}`],st:2})}]},
+2:{q:[()=>{const a=D(pick(['0.4','0.8','1.25','0.125'])),b=N.div(R(1),a);return qcm(2,`Le point B(−${numH(a)}&nbsp;;&nbsp;<i>y</i>) est sur la courbe de la fonction inverse. Alors <i>y</i> =`,[numH(N.neg(b)),mt(N.neg(b))],[[numH(b),mt(b)],[numH(N.neg(a)),mt(N.neg(a))],[numH(a),mt(a)]],`<i>y</i> = 1 ÷ (−${numH(a)}) = −${numH(b)}. Il est symétrique, par rapport à O, du point (${numH(a)}&nbsp;;&nbsp;${numH(b)}).`,{k:'val',f:'1/x',at:mt(N.neg(a)),st:2})}],
+   t:[()=>{const a=D(pick(['0.4','0.8','2.5','1.25'])),b=N.div(R(1),a);return trous(2,`Le point A(${numH(a)}&nbsp;;&nbsp;{0}) est sur la courbe de la fonction inverse, et son symétrique par rapport à O est A′(${numH(N.neg(a))}&nbsp;;&nbsp;{1}).`,[BL(b),BL(N.neg(b))],`1 ÷ ${numH(a)} = ${numH(b)}&nbsp;; par symétrie par rapport à O, l'ordonnée change de signe&nbsp;: ${numH(N.neg(b))}.`,{k:'vals',f:'1/x',at:[mt(a),mt(N.neg(a))],st:2})}]},
+3:{q:[()=>{const xs=shuf([D('-0.5'),D('-4'),D('2'),D('0.5')]);const iv=x=>N.div(R(1),x);const sorted=xs.slice().sort((p,q)=>N.cmp(iv(p),iv(q)));const lab=x=>frH(1,parH(x));
+     const H=o=>o.map(lab).join(' &lt; '),M=o=>'ord:'+o.map(mt).join(',');
+     const cands=[xs.slice().sort((p,q)=>N.cmp(p,q)),sorted.slice().reverse(),[sorted[1],sorted[0],sorted[3],sorted[2]],xs.slice().sort((p,q)=>N.cmp(R(Math.abs(p.n),p.d),R(Math.abs(q.n),q.d)))];
+     const bad=[];cands.forEach(o=>{if(M(o)!==M(sorted)&&!bad.some(z=>z[1]===M(o)))bad.push([H(o),M(o)])});
+     return qcm(3,'Range dans l\'ordre croissant&nbsp;:',[H(sorted),M(sorted)],bad.slice(0,3),
+       `Les valeurs sont −2&nbsp;; −0,25&nbsp;; 0,5&nbsp;; 2. Les inverses de nombres négatifs sont négatifs, et sur chaque intervalle l'ordre s'inverse.`,{k:'order',f:'1/x',xs:xs.map(mt),st:3})}],
+   t:[()=>{const a=pick(['4','5','2','10']);const y=N.div(R(1),D(a));return trous(3,`Si <i>x</i> ≥ ${a}, alors 0 &lt; ${frH(1,X)} ≤ {0}.`,[BL(y)],`La fonction inverse est décroissante sur ]0 ; +∞[&nbsp;: <i>x</i> ≥ ${a} donne 1/<i>x</i> ≤ 1/${a} = ${numH(y)}.`,{k:'bound',f:'1/x',a,st:3})}]},
+4:{q:[()=>{const pr=pick([[4,3],[3,2],[5,4]]);const t=[[R(pr[0],pr[1]),-1]],d=dT(t);return qcm(4,`La dérivée de <i>g</i>(<i>x</i>) = ${exH(t)} est&nbsp;:`,[exH(d),exS(d)],[[exH([[R(pr[0],pr[1]),-2]]),exS([[R(pr[0],pr[1]),-2]])],[exH([[R(-pr[0],pr[1]),-1]]),exS([[R(-pr[0],pr[1]),-1]])],[exH([[R(-pr[1],pr[0]),-2]]),exS([[R(-pr[1],pr[0]),-2]])]],`<i>g</i>(<i>x</i>) = ${frH('<i>k</i>',X)} avec <i>k</i> = ${numH(R(pr[0],pr[1]))}, donc <i>g</i>′(<i>x</i>) = ${exH(d)}.`,{k:'deriv',f:exS(t),st:2})},
+   ()=>{const k=pick([1,2]),d=pick([2,3]);const t=[[R(-k,d),-1]];return qcm(4,`Variations de <i>g</i>(<i>x</i>) = ${exH(t)} sur ]0 ; +∞[ (exercice du cours)&nbsp;:`,['<i>g</i> est croissante, car <i>g</i>′(<i>x</i>) = '+exH(dT(t))+' &gt; 0','var:inc(0,oo)'],[['<i>g</i> est décroissante, car <i>g</i>′(<i>x</i>) = '+exH(dT(t)).replace('class="ex">','class="ex">−')+' &lt; 0','var:dec(0,oo)'],['<i>g</i> est décroissante, car <i>g</i>(<i>x</i>) &lt; 0','var:dec2(0,oo)']],`<i>g</i>′(<i>x</i>) = −(${numH(R(-k,d))})/<i>x</i>² = ${exH(dT(t))} &gt; 0&nbsp;: <i>g</i> est croissante. Le signe de <i>g</i> ne dit rien de ses variations.`,{k:'var',f:exS(t),st:3})}],
+   t:[()=>{const k=pick([2,3,6]),a=pick([1,2,-1]);const v=N.neg(N.div(R(k),R(a*a)));return trous(4,`${fX()} = ${frH(k,X)}. Le coefficient directeur de la tangente à la courbe au point d'abscisse ${a} est {0}.`,[BL(v)],`C'est <i>f</i>′(${a}) = −${k} ÷ ${a*a} = ${numH(v)}.`,{k:'dval',f:`${k}/x`,at:`${a}`,st:2})}]},
+5:{q:[()=>{const u=pick([2,3,4]),F=pick([100,150,200]);return qcm(5,`Imprimer <i>x</i> t-shirts coûte C(<i>x</i>) = ${u}<i>x</i> + ${F} euros. Le coût moyen ${frH('C(<i>x</i>)',X)} d'un t-shirt est&nbsp;:`,[exH([[u,0],[F,-1]]),exS([[u,0],[F,-1]])],[[exH([[u,1],[F,-1]]),exS([[u,1],[F,-1]])],[exH([[u,0],[F,1]]),exS([[u,0],[F,1]])],[exH([[u+F,-1]]),exS([[u+F,-1]])]],`${frH(u+'<i>x</i> + '+F,X)} = ${frH(u+'<i>x</i>',X)} + ${frH(F,X)} = ${u} + ${frH(F,X)}.`,{k:'cm',u,F,st:2})},
+   ()=>{const u=pick([2,3,5]),F=pick([60,100,120]);const t=[[u,0],[F,-1]];return qcm(5,`Le coût moyen d'un objet est ${frH('C(<i>x</i>)',X)} = ${exH(t)} pour <i>x</i> objets. Quand <i>x</i> devient très grand&nbsp;:`,[`il se rapproche de ${u}&nbsp;€, sans descendre en dessous`,`lim:${u}`],[['il se rapproche de 0&nbsp;€',`lim:0`],[`il se rapproche de ${F}&nbsp;€`,`lim:${F}`]],`${frH(F,X)} → 0 et ${frH(F,X)} &gt; 0&nbsp;: le coût moyen tend vers ${u}, la droite <i>y</i> = ${u} est asymptote horizontale.`,{k:'lim',f:exS(t),at:'oo',st:3})}],
+   t:[()=>{const u=pick([2,4]),F=pick([80,120,200]);const x0=pick([20,40]);const v=N.add(R(u),R(F,x0));return trous(5,`C(<i>x</i>) = ${u}<i>x</i> + ${F}. Le coût moyen s'écrit ${frH('C(<i>x</i>)',X)} = {0} + <span class="fr"><span>{1}</span><span>${X}</span></span>, et pour <i>x</i> = ${x0} il vaut {2}&nbsp;€.`,[BL(R(u),2.5),BL(R(F),3),BL(v)],`${frH('C(<i>x</i>)',X)} = ${u} + ${frH(F,X)}&nbsp;; pour ${x0}&nbsp;: ${u} + ${numH(R(F,x0))} = ${numH(v)}.`,{k:'cm3',u,F,x0,st:3})}]},
+6:{q:[()=>{const t=[[1,2],[-3,0],[4,-1]];const v=evT(dT(t),R(2));return qcm(6,`<i>f</i>(<i>x</i>) = ${exH(t)} sur ]0 ; +∞[ (exercice du cours). Le nombre dérivé <i>f</i>′(2) vaut&nbsp;:`,[numH(v),mt(v)],[['5','5'],['4','4'],['0','0']].filter(z=>z[1]!==mt(v)).slice(0,3),`${fP()} = 2<i>x</i> − ${frH(4,x2)}, donc <i>f</i>′(2) = 4 − 1 = 3.`,{k:'dval',f:exS(t),at:'2',st:2})}],
+   t:[()=>{const x0=pick([2,3]),m=pick([1,2]);const k=m*x0*x0;const t=[[m,1],[k,-1]];return trous(6,`<i>f</i>(<i>x</i>) = ${exH(t)} sur ]0 ; +∞[. <i>f</i>′(<i>x</i>) = 0 ⇔ <i>x</i>² = {0} ⇔ <i>x</i> = {1}.`,[BL(R(x0*x0),2.5),BL(R(x0),2.5)],`${fP()} = ${exH(dT(t))} = 0 ⇔ ${m===1?'':m}<i>x</i>² = ${k} ⇔ <i>x</i>² = ${x0*x0}, et <i>x</i> = ${x0} car <i>x</i> &gt; 0.`,{k:'crit2',f:exS(t),st:3})},
+      ()=>{const c1=pick([-1,2]),k=pick([4,8]);const t=[[1,3],[c1,1],[k,-1]];const v=evT(dT(t),R(2));return trous(6,`<i>f</i>(<i>x</i>) = ${exH(t)} sur ]0 ; +∞[&nbsp;: <i>f</i>′(2) = {0}.`,[BL(v)],`${fP()} = ${exH(dT(t))}&nbsp;: <i>f</i>′(2) = 12 ${c1<0?'− 1':'+ '+c1} − ${numH(R(k,4))} = ${numH(v)}.`,{k:'dval',f:exS(t),at:'2',st:3})}]},
+7:{q:[()=>{const x0=pick([4,5,6]),a=pick([1,2].filter(a=>a*x0*x0<=72));const k=a*x0*x0,m=2*a*x0;return qcm(7,`${pick(['Un artisan','Une couturière','Un atelier'])} fabrique <i>x</i> lots, pour un coût C(<i>x</i>) = ${exH([[a,1],[k,-1]])} euros (<i>x</i> &gt; 0). Quelle conclusion est exacte&nbsp;?`,[`Le coût est minimal pour ${x0} lots, et vaut ${m}&nbsp;€`,`mm:${x0};${m}`],[[`Le coût est minimal pour ${m} lots, et vaut ${x0}&nbsp;€`,`mm:${m};${x0}`],[`Le coût est minimal pour ${x0} lots, et vaut ${a*x0}&nbsp;€`,`mm:${x0};${a*x0}`],[`Le coût est minimal pour ${x0*x0} lots, et vaut ${a*x0*x0+1}&nbsp;€`,`mm:${x0*x0};${a*x0*x0+1}`]],
+     `C′(<i>x</i>) = ${a} − ${frH(k,x2)}&nbsp;: nulle en ${x0}, négative avant, positive après. Minimum C(${x0}) = ${a*x0} + ${k/x0} = ${m}&nbsp;€.`,{k:'mm',f:exS([[a,1],[k,-1]]),st:3})}],
+   t:[()=>{const x0=pick([3,4,5]),a=pick([1,2,3].filter(a=>a*x0*x0<=75));const k=a*x0*x0;return trous(7,`C(<i>x</i>) = ${exH([[a,1],[k,-1]])} sur ]0 ; +∞[&nbsp;: C′(<i>x</i>) = {0} − <span class="fr"><span>{1}</span><span>${x2}</span></span>&nbsp;; C est minimal en <i>x</i> = {2} et ce minimum vaut {3}.`,[BL(R(a),2),BL(R(k),2.6),BL(R(x0),2),BL(R(2*a*x0),2.6)],`C′(<i>x</i>) = ${a} − ${frH(k,x2)} = 0 ⇔ <i>x</i>² = ${x0*x0} ⇔ <i>x</i> = ${x0}&nbsp;; C(${x0}) = ${a*x0} + ${k/x0} = ${2*a*x0}.`,{k:'full',f:exS([[a,1],[k,-1]]),st:4})}]}};
+function S_d(x){return String(Math.round(x*100)/100).replace('.',',')}
+
+/* assemblage : 10 questions, 6 QCM + 4 trous, au moins une question par niveau sur 7 */
+function build(P){
+  const lv=[1,2,3,4,5,6,7];const trousLv=shuf(lv.slice()).slice(0,4);const out=[];const used=new Set();
+  const seen=new Set();
+  const take=(l,ty)=>{const pool=P[l][ty];const free=pool.map((_,i)=>i).filter(i=>!used.has(l+ty+i));const i=pick(free.length?free:pool.map((_,i)=>i));used.add(l+ty+i);
+    let q;for(let r=0;r<30;r++){q=pool[i]();if(!seen.has(q.prompt))break}seen.add(q.prompt);return q};
+  trousLv.forEach(l=>out.push(take(l,'t')));
+  lv.filter(l=>trousLv.indexOf(l)<0).forEach(l=>out.push(take(l,'q')));
+  while(out.filter(q=>q.type==='qcm').length<6){const fr=lv.filter(l=>P[l].q.some((_,i)=>!used.has(l+'q'+i)));const l=pick(fr.length?fr:lv);out.push(take(l,'q'))}
+  return shuf(out)}
+return{bronze:()=>build(B),argent:()=>build(A),or:()=>build(O),B,A,O};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'la-cagnotte',title:'La Cagnotte',levels:7,
+  levelNames:['Chacun sa part','Le demi-tour','Toujours moins','La pente','Vers l\'infini','Le mélange','Le coût minimal'],
+  music:'aventure',finals:{bronze:()=>(window.CG_lastFinal=CG_FIN.bronze()),argent:()=>(window.CG_lastFinal=CG_FIN.argent()),or:()=>(window.CG_lastFinal=CG_FIN.or())}});
+CG.start();
+(function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|INPUT|TEXTAREA|svg)$/i.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(fix)}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>
