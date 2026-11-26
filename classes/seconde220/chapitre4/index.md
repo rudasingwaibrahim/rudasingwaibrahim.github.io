@@ -42,6 +42,11 @@ ds:
   pdf: seconde-ch4-ds-02-sujet.pdf
 - num: 3
   pdf: seconde-ch4-ds-03-sujet.pdf
+python:
+- titre: "Multiples, diviseurs et parité"
+  fichier: /assets/python/seconde/ch4-multiples-diviseurs.ipynb
+  duree: "30 min"
+  contenu: "Divisibilité avec % · Plus grand multiple de a inférieur ou égal à b · Diviseurs · Parité"
 erreurs:
 - "Confondre multiple et diviseur : 6 est un multiple de 3, et 3 est un diviseur de 6"
 - "Oublier que 0 est un multiple de tout entier : $0 = 0 \\times b$"

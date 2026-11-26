@@ -41,6 +41,11 @@ ds:
   pdf: tale-techno/tale-techno-commun-ch1-ds-02-sujet.pdf
 - num: 3
   pdf: tale-techno/tale-techno-commun-ch1-ds-03-sujet.pdf
+python:
+- titre: "Sommes de termes et symbole Σ"
+  fichier: /assets/python/tale-techno-commun/ch1-sommes-suites.ipynb
+  duree: "35 min"
+  contenu: "Sommes de carrés, de cubes et d'inverses · Versements réguliers"
 erreurs:
 - "Confondre suite arithmétique et suite géométrique : on ajoute $r$ dans un cas, on multiplie par $q$ dans l'autre"
 - "Croire que les termes d'une suite géométrique gardent toujours le même signe : si $q < 0$, ils alternent"

@@ -42,6 +42,11 @@ ds:
   pdf: premiere-spe-ch7-ds-02-sujet.pdf
 - num: 3
   pdf: premiere-spe-ch7-ds-03-sujet.pdf
+python:
+- titre: "Calculer les termes d'une suite"
+  fichier: /assets/python/premiere-spe-maths/ch7-generalites-suites.ipynb
+  duree: "40 min"
+  contenu: "Termes explicites et par récurrence · Liste et somme de termes · Seuil et limite · Fibonacci, Syracuse"
 erreurs:
 - "Confondre une suite et une fonction : une suite n'est définie que pour les entiers $n$"
 - "Mal compter les termes : si la suite commence à $u_0$, alors $u_{10}$ est le 11ᵉ terme"

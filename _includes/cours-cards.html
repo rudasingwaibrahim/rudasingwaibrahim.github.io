@@ -6,6 +6,7 @@
     cours, planches, dm, ds_blancs, ds (champs pdf, correction, num, titre, sub, themes, contenu, duree,
     dossier, fichier, label) ; dossier_pdf ; dm_published, dsblancs_published, ds_published ;
     erreurs ; liens (nom, desc, url, ico, cat) ; jeux (liste de slugs Sigma Arcade, facultatif) ;
+    python (carnets Jupyter ouverts dans Basthon : titre, fichier, duree, contenu ; facultatif) ;
     sections (facultatif, ex. [cours, planches, ds]).
   Règles :
     - un PDF absent du dépôt n'est jamais un lien : carte « En cours de construction » ;
@@ -118,6 +119,35 @@
     {%- endfor %}
     {%- endif %}
     </ul>
+  </div>
+  {%- endif %}
+  {%- if page.python and page.python.size > 0 %}
+  {%- comment -%} Carnets Python (front matter python : titre, fichier, duree, contenu) ouverts dans Basthon par ?from=<URL absolue>
+    (https://basthon.fr/documentation/liens/) ; un carnet absent du dépôt n'est jamais un lien. {%- endcomment -%}
+  <div class="block">
+    <h3 class="block-title">Python <span class="count">dans le navigateur, sans installation</span></h3>
+    <ul class="doc-grid">
+    {%- for _py in page.python %}
+      {%- assign _pyok = false -%}{%- if _sf contains _py.fichier -%}{%- assign _pyok = true -%}{%- endif -%}
+      <li class="doc doc--py{% unless _pyok %} doc--off{% endunless %}">
+        <span class="doc-ico">{% if _pyok %}{% include icon.html n="code" %}{% else %}{% include icon.html n="clock" %}{% endif %}</span>
+        <div>
+          <span class="doc-title">{{ _py.titre | default: "Carnet Python" }}</span>
+          {%- if _py.contenu %}<span class="doc-sub">{{ _py.contenu }}</span>{% endif %}
+          {%- if _py.duree %}<span class="doc-meta"><span class="chip chip--gold">{{ _py.duree }}</span></span>{% endif %}
+          {%- if _pyok %}
+          <span class="doc-actions">
+            <a class="doc-btn" href="https://notebook.basthon.fr/?kernel=python&amp;from={{ site.url }}{{ _py.fichier }}" target="_blank" rel="noopener">{% include icon.html n="open" %}Ouvrir dans Basthon<span class="sr-only"> : {{ _py.titre }} (nouvel onglet)</span></a>
+            <a class="doc-btn doc-btn--alt" href="{{ _py.fichier }}" download>{% include icon.html n="download" %}Télécharger<span class="sr-only"> le carnet {{ _py.titre }} (fichier .ipynb)</span></a>
+          </span>
+          {%- else %}
+          <span class="doc-state">En cours de construction</span>
+          {%- endif %}
+        </div>
+      </li>
+    {%- endfor %}
+    </ul>
+    <p class="py-help">Le carnet s'ouvre dans Basthon&nbsp;: tu complètes les fonctions, puis les cellules de vérification t'indiquent «&nbsp;✔ juste&nbsp;» ou un conseil. S'il ne s'ouvre pas, télécharge-le, va sur <a href="https://notebook.basthon.fr/" target="_blank" rel="noopener">notebook.basthon.fr</a> et charge-le avec le bouton «&nbsp;Ouvrir&nbsp;».</p>
   </div>
   {%- endif %}
   <button class="prog-btn" type="button" data-prog="e" aria-pressed="false"><span class="box" aria-hidden="true"></span>Je me suis entraîné</button>
