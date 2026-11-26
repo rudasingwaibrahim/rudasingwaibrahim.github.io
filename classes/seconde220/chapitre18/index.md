@@ -44,18 +44,18 @@ ds:
 erreurs:
 - "Confondre population, échantillon et individu"
 - "Oublier que la fréquence observée sur un échantillon varie d'un échantillon à l'autre (fluctuation d'échantillonnage)"
-- "Se tromper d'intervalle : pour $n$ assez grand, environ 95 % des fréquences sont dans $\\left[p - \\dfrac{1}{\\sqrt{n}}\\,;p + \\dfrac{1}{\\sqrt{n}}\\right]$"
-- "Oublier que la fluctuation diminue quand la taille $n$ de l'échantillon augmente"
-- "Croire qu'un échantillon plus grand donne toujours exactement la proportion $p$ : il réduit seulement la fluctuation"
-- "Conclure trop vite qu'un résultat est anormal sans utiliser l'intervalle de fluctuation"
+- "Croire qu'une simulation démontre une probabilité : elle donne une fréquence, qui fluctue"
+- "Oublier que, lorsque $n$ est grand, la fréquence observée est le plus souvent proche de la probabilité (loi des grands nombres)"
+- "Croire qu'un échantillon plus grand donne toujours exactement la probabilité $p$ : la fréquence en est seulement, le plus souvent, plus proche"
+- "Croire qu'après plusieurs PILE, FACE devient plus probable : les lancers sont indépendants"
 liens:
 - nom: "Lumni — L'échantillonnage"
-  desc: "Comprendre l'intervalle de fluctuation et l'estimation"
+  desc: "Comprendre la fluctuation d'échantillonnage"
   url: "https://www.lumni.fr/video/echantillonnage-et-estimation"
   ico: 🎬
   cat: cours
 - nom: Khan Academy — Statistiques inférentielles
-  desc: "Estimation d'une proportion par échantillonnage"
+  desc: "Fréquences observées et échantillonnage"
   url: "https://fr.khanacademy.org/math/statistics-probability/sampling-distributions-library"
   ico: 📚
   cat: cours
@@ -65,7 +65,7 @@ liens:
   ico: 📐
   cat: calcul
 - nom: Sesamath — Échantillonnage
-  desc: "Exercices en ligne sur l'échantillonnage et les intervalles"
+  desc: "Exercices en ligne sur l'échantillonnage et la simulation"
   url: "https://www.sesamath.net/index.php?page=outils&id=14"
   ico: ✏️
   cat: cours

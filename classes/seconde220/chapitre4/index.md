@@ -1,8 +1,8 @@
 ---
-title: "Chapitre 4 — Notion de multiple, diviseur et nombre premier"
+title: "Chapitre 4 — Nombres entiers : multiples et diviseurs"
 permalink: /classes/seconde220/chapitre4/
 hero_title: Chapitre 4
-hero_subtitle: "Notion de multiple, diviseur et nombre premier"
+hero_subtitle: "Nombres entiers : multiples et diviseurs"
 cours:
 - titre: Cours — Version élève
   pdf: seconde-ch4-cours-eleve.pdf
@@ -44,10 +44,10 @@ ds:
   pdf: seconde-ch4-ds-03-sujet.pdf
 erreurs:
 - "Confondre multiple et diviseur : 6 est un multiple de 3, et 3 est un diviseur de 6"
-- "Croire que 1 est premier : un nombre premier a exactement deux diviseurs, 1 et lui-même"
-- "Confondre nombre premier et nombre impair : 9 est impair mais pas premier"
-- Oublier que 2 est le seul nombre premier pair
-- Mal appliquer la décomposition en facteurs premiers
+- "Oublier que 0 est un multiple de tout entier : $0 = 0 \\times b$"
+- "Confondre $\\mathbb{N}$ et $\\mathbb{Z}$ : $-4$ est un entier relatif, mais pas un entier naturel"
+- "Prendre la même lettre pour deux entiers différents : on écrit $a = 2k + 1$ et $b = 2k' + 1$, pas $b = 2k + 1$"
+- "Croire qu'un exemple démontre une propriété : $3 + 6 = 9$ ne prouve rien, on écrit $3k + 3k' = 3(k + k')$"
 - "Oublier de simplifier une fraction jusqu'à sa forme irréductible"
 liens:
 - nom: Lumni — Multiples et diviseurs
@@ -55,13 +55,13 @@ liens:
   url: "https://www.lumni.fr/video/multiples-et-diviseurs-d-un-entier"
   ico: 🎬
   cat: cours
-- nom: Khan Academy — Nombres premiers
-  desc: Exercices sur la divisibilité et les nombres premiers
+- nom: Khan Academy — Multiples et diviseurs
+  desc: Exercices sur les multiples, les diviseurs et la divisibilité
   url: "https://fr.khanacademy.org/math/pre-algebra/pre-algebra-factors-multiples"
   ico: 📚
   cat: cours
 - nom: Sesamath — Arithmétique
-  desc: "Exercices en ligne sur multiples, diviseurs et PGCD"
+  desc: "Exercices en ligne sur les multiples et les diviseurs"
   url: "https://www.sesamath.net/index.php?page=outils&id=4"
   ico: ✏️
   cat: cours

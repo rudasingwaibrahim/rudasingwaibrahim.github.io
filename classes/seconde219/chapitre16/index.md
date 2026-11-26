@@ -63,7 +63,7 @@ erreurs:
 - "Mal compter les issues favorables ou le nombre total d'issues"
 - "Oublier l'événement contraire : $P(\\overline{A}) = 1 - P(A)$"
 - Confondre intersection $A \cap B$ (« A et B ») et réunion $A \cup B$ (« A ou B »)
-- "Oublier de retirer l'intersection : $P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$"
+- "Confondre $P_A(B)$ et $P_B(A)$ : la proportion de $B$ parmi les $A$ n'est pas la proportion de $A$ parmi les $B$"
 - Ne pas vérifier que la somme des probabilités vaut 1
 - Oublier une branche dans un arbre des possibles
 liens:

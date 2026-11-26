@@ -16,7 +16,7 @@ chapitres:
   titre: Les vecteurs (Partie 1)
   url: /classes/seconde219/chapitre3/
 - num: 4
-  titre: "Notion de multiple, diviseur et nombre premier"
+  titre: "Nombres entiers : multiples et diviseurs"
   url: /classes/seconde219/chapitre4/
 - num: 5
   titre: Les vecteurs (Partie 2)

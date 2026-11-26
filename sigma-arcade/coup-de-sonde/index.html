@@ -4,15 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Coup de Sonde · Sigma Arcade</title>
-<meta name="description" content="Échantillonnage en Seconde : échantillon de taille n, fréquence observée, loi des grands nombres, dans 95 % des cas |f − p| ≤ 1/√n, fonctions Python. Les simulations tombent par centaines sur la règle des fréquences et se resserrent autour de p.">
+<meta name="description" content="Échantillonnage en Seconde : échantillon de taille n, fréquence observée, fluctuation, loi des grands nombres (version vulgarisée), simulation, choix et validation d'un modèle, fonctions Python. Les simulations tombent par centaines sur la règle des fréquences et se resserrent autour de p.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
 <style>
 /* VOICE : complice, précis, jamais enfantin ; on réessaie toujours.
    IDEA : l'élève lance des sondages et des simulations ; chaque échantillon tombe comme un point sur la règle des fréquences.
-   PICTURE : un écran de nuit ; la pluie de points se resserre autour de p, la bande dorée ±1/√n rétrécit quand n grandit.
-   COLOUR and TYPE : nuit « océan profond », violet-bleu pour l'action, or pour p, la bande et les réussites ; Outfit.
+   PICTURE : un écran de nuit ; la pluie de points se resserre autour de p, la pluie se resserre quand n grandit.
+   COLOUR and TYPE : nuit « océan profond », violet-bleu pour l'action, or pour p et les réussites ; Outfit.
    LAYOUT : scène et bandeau à gauche (collés en haut sur téléphone), carnet du sondeur à droite. */
 :root{
 --ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
@@ -170,7 +170,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 <header>
 <a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
 <h1>Coup de Sonde</h1>
-<p>Tu lances des sondages et des simulations par centaines. Chaque échantillon tombe comme un point sur la règle des fréquences&nbsp;: plus n grandit, plus la pluie se resserre autour de p, et la bande dorée ±<span class="nw">1/√<span class="rad2">n</span></span> rétrécit sous tes yeux.</p>
+<p>Tu lances des sondages et des simulations par centaines. Chaque échantillon tombe comme un point sur la règle des fréquences&nbsp;: plus n grandit, plus la pluie se resserre autour de p&nbsp;: c'est la loi des grands nombres, sous tes yeux.</p>
 </header>
 <nav class="lv" id="lv" aria-label="Niveaux"></nav>
 <main class="app">
@@ -181,7 +181,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
     <span class="count" id="count"></span>
   </div>
   <div class="capt" id="capt" aria-live="polite"></div>
-  <div class="legend" id="legend"><span class="lp"><i></i>p</span><span class="lb"><i></i>bande |f − p| ≤ 1/√n</span><span class="li"><i></i>f dans la bande</span><span class="lo"><i></i>f hors de la bande</span></div>
+  <div class="legend" id="legend"><span class="lp"><i></i>probabilité p</span><span class="lo"><i></i>fréquence observée f d'un échantillon</span></div>
 </div>
 <section class="panel" id="panel">
   <div id="game">
@@ -367,7 +367,7 @@ function drawTokens(){L.tok.innerHTML='';const T=st.tokens;if(!T||st.mode!=='tok
   for(let i=0;i<T.shown;i++){const [x,y]=gr.pos(i);tokenEl(T.kind,T.res[i],x,y,gr.cell*.84,L.tok,null)}}
 
 /* ---------- points : un point par échantillon, à l'abscisse f ---------- */
-function dotColor(d){if(st.color==='band'&&st.p&&N.isqrt(d.n)!==null){const ins=N.inBand(d.s,d.n,st.p);return ins?C.gold:C.blue}return C.plain}
+function dotColor(d){return C.blue}
 function layoutDots(list,top,bot,r){const lv=[],pos=[];let maxK=0;
   list.forEach(d=>{const x=X(d.s/d.n);let k=0;while(lv[k]&&lv[k].some(x2=>Math.abs(x2-x)<2*r*.92))k++;(lv[k]=lv[k]||[]).push(x);pos.push([x,k]);if(k>maxK)maxK=k});
   const step=Math.min(2*r*.95,maxK?(bot-top-2*r)/maxK:2*r);
@@ -415,7 +415,7 @@ api.count=h=>{countEl.innerHTML=h||''};
 api.badge=h=>{badgeEl.textContent=h||''};
 /* nouvelle scène : mode 'rule' | 'tokens' | 'funnel' */
 api.reset=o=>{cancelAll();o=o||{};st.mode=o.mode||'rule';st.p=o.p||null;st.pLab=o.pLab||'';st.band=o.band||null;st.tokens=null;st.dots=[];st.rows=o.rows||null;st.rowsShown=0;st.last=null;
-  st.color=o.color||'plain';st.bandShown=o.bandShown!==false;api.count('');render()};
+  st.color=o.color||'plain';st.bandShown=o.bandShown===true;api.count('');render()};
 api.setP=(p,lab)=>{st.p=p;st.pLab=lab||'';drawP();drawBand();drawDots()};
 api.showP=api.setP;
 /* bande : passe d'une taille n à une autre, en glissant */
@@ -455,7 +455,7 @@ api.rain=async(list,o)=>{o=o||{};const my=token;if(st.mode==='tokens'){st.mode='
       SND.drop(c===C.gold);if(o.onLand)o.onLand(landed,inside,nw.length)}})});
   await sleep(dur+120);if(my!==token)return;glowAll();if(o.onLand)o.onLand(nw.length,inside,nw.length)};
 /* l'entonnoir : une rangée après l'autre, de la plus petite taille à la plus grande */
-api.funnel=async(rows,o)=>{o=o||{};const my=token;st.mode='funnel';st.rows=rows.map(r=>r.n);st.rowsShown=0;st.dots=[];st.color=o.color||'plain';st.bandShown=o.band!==false;st.tokens=null;st.last=null;render();
+api.funnel=async(rows,o)=>{o=o||{};const my=token;st.mode='funnel';st.rows=rows.map(r=>r.n);st.rowsShown=0;st.dots=[];st.color=o.color||'plain';st.bandShown=o.band===true;st.tokens=null;st.last=null;render();
   for(let k=0;k<rows.length;k++){if(my!==token)return;st.rowsShown=k+1;drawFunnel();if(o.onRow)o.onRow(k);
     rows[k].fs.forEach(s=>st.dots.push({s,n:rows[k].n,row:k}));const r=placeAll(),nw=st.dots.filter(d=>d.row===k),t0=performance.now(),dur=o.dur||1300,stg=(dur-480)/nw.length;
     const rg=rowGeo(k,rows.length);let inside=0,landed=0;
@@ -598,17 +598,15 @@ const EXP={
 const sample=(f,n)=>Array.from({length:n},f);
 const sOf=res=>res.filter(t=>t.ok).length;
 /* code Python du cours, coloré */
-const KW=/^(def|for|in|if|or|return|from|import)$/,FN=/^(randint|range|abs|sqrt|de|piece|estim)$/;
+const KW=/^(def|for|in|if|or|return|from|import)$/,FN=/^(randint|range|de|piece)$/;
 function py(src){return src.split(/(\b[A-Za-z_]+\b|\b\d+\b)/).map(t=>KW.test(t)?`<span class="kw">${t}</span>`:FN.test(t)?`<span class="fn">${t}</span>`:/^\d+$/.test(t)?`<span class="nb">${t}</span>`:t.replace(/</g,'&lt;')).join('')}
-const DE=['from random import *','from math import *','','def de(n):','    s = 0','    for k in range(n):','        r = randint(1, 6)','        if r == 1 or r == 6:','            s = s + 1','    return(s / n)'];
+const DE=['from random import *','','','def de(n):','    s = 0','    for k in range(n):','        r = randint(1, 6)','        if r == 1 or r == 6:','            s = s + 1','    return(s / n)'];
 const PIECE=['def piece(n):','    s = 0','    for k in range(n):','        r = randint(0, 1)','        if r == 0:','            s = s + 1','    return(s / n)'];
-const ESTIM=['def estim(N, n):','    c = 0','    for k in range(N):','        f = de(n)','        if abs(f - 1/3) <= 1/sqrt(n):','            c = c + 1','    return(c / N)'];
-const ESTIMP=['def estim(N, n):','    c = 0','    for k in range(N):','        f = piece(n)','        if abs(f - 1/2) <= 1/sqrt(n):','            c = c + 1','    return(c / N)'];
 const codeH=(lines,mod)=>`<div class="code">${lines.map((l,j)=>`<div${mod&&mod.indexOf(j+1)>=0?' class="mod"':''}><b>${j+1}</b><span>${py(l)}</span></div>`).join('')}</div>`;
 const tbl=rows=>`<table class="tb"><thead><tr><th>n</th><th>f observée</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtInt(r[0])}</td><td class="k">${r[1]}</td></tr>`).join('')}</tbody></table>`;
 const sims=(p,n,N0)=>Array.from({length:N0},()=>binom(p,n));
 const fWhy=(n)=>v=>{const x=N.parse(v[v.length-1]);return (x&&x.n>x.d?'Une fréquence est toujours comprise entre 0 et 1. ':'')+`f = s / n&nbsp;: divise le nombre de succès s par la taille n = ${fmtInt(n)}.`};
-window.CS_L={EXP,py,DE,PIECE,ESTIM,ESTIMP,codeH};
+window.CS_L={EXP,py,DE,PIECE,codeH};
 
 /* ===== Niveau 1 · L'échantillon ===== */
 LV.push({t:'Échantillon',badge:'Niveau 1 · L\'échantillon',
@@ -764,83 +762,91 @@ LV.push({t:'Grands nombres',badge:'Niveau 4 · Loi des grands nombres',
    done:'Quand n devient grand, la fréquence observée f est le plus souvent proche de la probabilité p.'})
  ]});
 
-/* ===== Niveau 5 · La bande ===== */
-const SQ=[25,100,400,2500,10000];
-LV.push({t:'La bande',badge:'Niveau 5 · La bande ±1/√n',
- rule:`<p>Exemple du cours&nbsp;: pour n = 10 000, ${invRadH('10 000')} = ${frH(1,100)} = 0,01.</p><p><b><span class="nw">|f − p|</span></b> est l'écart entre la fréquence observée f et p. Dire que <b><span class="nw">|f − p|</span> ≤ ${INV}</b>, c'est dire que f est à au plus ${INV} de p&nbsp;: sur la règle, f tombe dans la bande dorée, de p − ${INV} à p + ${INV}.</p><p>Plus n est grand, plus ${INV} est petit&nbsp;: la bande rétrécit.</p>`,
+/* ===== Niveau 5 · Simuler ===== */
+LV.push({t:'Simuler',badge:'Niveau 5 · Simuler pour observer',
+ rule:`<p><b>Loi des grands nombres (version vulgarisée)&nbsp;: lorsque n est grand, sauf exception, la fréquence observée est proche de la probabilité.</b></p><p>Simuler, c'est faire produire par l'ordinateur (Python ou tableur) un grand nombre de répétitions d'une expérience, pour <b>observer</b> cette loi.</p><p>«&nbsp;Sauf exception&nbsp;»&nbsp;: un échantillon peut, rarement, donner une fréquence éloignée de p. Et pour n petit, f peut être loin de p sans que rien ne soit anormal.</p>`,
  qs:[
- ()=>{const n=pick(SQ),m=isqrt(n),ss=sims(half,n,100);
-  return{setup:()=>S.reset({mode:'rule',p:half,color:'band'}),cap0:'Pièce équilibrée&nbsp;: p = 0,5',
-   prompt:`Échantillons de taille <b>n = ${fmtInt(n)}</b>. Calcule la demi-largeur de la bande.`,
-   parts:[fill('',`√<span class="rad">${fmtInt(n)}</span> = {0}, donc ${invRadH(fmtInt(n))} = {1}`,[BR(R(m)),BR(R(1,m))],v=>`${m} × ${m} = ${fmtInt(n)}, donc √${fmtInt(n)} = ${m}&nbsp;; puis 1 / ${m} = ${dec(R(1,m))}.`,{meta:{k:'rad',n},onOk:async()=>{await S.setBand(n);S.SND.whoosh();cap(`<span class="nw">|f − p|</span> ≤ <span class="k">${dec(R(1,m))}</span> <span class="m">· bande de ${dec(R(m-2,2*m))} à ${dec(R(m+2,2*m))}</span>`)}}),
-     act(`Faire tomber 100 échantillons de taille ${fmtInt(n)}`,async()=>{await S.rain(ss.map(s=>({s,n})),{color:'band',onLand:(k,i)=>S.count(`dans la bande : ${i} / ${k}`)});cap(`Les points dorés vérifient <span class="nw">|f − p|</span> ≤ ${dec(R(1,m))}`)})],
-   done:`Pour n = ${fmtInt(n)}&nbsp;: ${invRadH(fmtInt(n))} = ${frH(1,m)} = ${dec(R(1,m))}. La bande va de 0,5 − ${dec(R(1,m))} à 0,5 + ${dec(R(1,m))}.`}},
- ()=>{const p=pick([R(3,10),R(2,5),R(1,2),R(3,5),R(7,10)]),n=pick([25,100,400]),m=isqrt(n),r=R(1,m),lo=N.sub(p,r),hi=N.add(p,r),ss=sims(p,n,100);
-  const ctx=pick([`Dans une ville, ${fmtInt(p.n*100/p.d)}&nbsp;% des jeunes ont un abonnement de bus&nbsp;: p = ${dec(p)}.`,`Une appli de quiz affirme que ${fmtInt(p.n*100/p.d)}&nbsp;% des lycéens trouvent la question du jour&nbsp;: p = ${dec(p)}.`]);
-  return{setup:()=>S.reset({mode:'rule',p,color:'band'}),cap0:`p = ${dec(p)}`,
-   prompt:`${ctx} On fait des sondages de <b>n = ${n}</b> jeunes&nbsp;: ${invRadH(n)} = ${dec(r)}.`,
-   parts:[fill('<span class="nw">|f − p|</span> ≤ '+dec(r)+' signifie que f est à au plus '+dec(r)+' de p.','La bande va de {0} à {1}.',[BR(lo),BR(hi)],v=>`Pars de p = ${dec(p)}&nbsp;: retire ${dec(r)} pour le bord gauche, ajoute ${dec(r)} pour le bord droit.`,{meta:{k:'bornes',p:[p.n,p.d],n},
-       onOk:async()=>{await S.setBand(n);cap(`Bande&nbsp;: de <span class="k">${dec(lo)}</span> à <span class="k">${dec(hi)}</span>`)}}),
-     act('Faire tomber 100 sondages',async()=>{await S.rain(ss.map(s=>({s,n})),{color:'band',onLand:(k,i)=>S.count(`dans la bande : ${i} / ${k}`)});cap(`La plupart des fréquences tombent entre ${dec(lo)} et ${dec(hi)}`)})],
-   done:`p − ${INV} = ${dec(p)} − ${dec(r)} = ${dec(lo)} et p + ${INV} = ${dec(p)} + ${dec(r)} = ${dec(hi)}.`}},
- ()=>{const p=pick([R(3,10),R(2,5),R(1,2),R(3,5)]),n=pick([100,400]),m=isqrt(n),r=R(1,m);let res,s;
-  do{res=sample(EXP.sond(p),n);s=sOf(res)}while(Math.abs(s/n-p.n/p.d)>3/m);
-  const f=R(s,n),x=N.abs(N.sub(f,p)),ins=N.cmp(x,r)<=0,X=dec(x),RR=dec(r);
-  const wrongR=ins?dec(R(1,n)):String(m);
-  return{setup:()=>S.reset({mode:'tokens',p,band:n,color:'band'}),cap0:`p = ${dec(p)} <span class="m">·</span> n = ${n}`,
-   prompt:`Dans un grand lycée, la proportion d'élèves qui viennent en bus est p = ${dec(p)}. On interroge <b>${n} élèves</b> au hasard.`,
-   parts:[act(`Interroger les ${n} élèves`,async()=>{await S.tokens('sond',res,{sLab:'bus'});await S.fly(s,n);cap(`f = ${s} / ${n} = <span class="k">${dec(f)}</span>`)}),
-     ch(`Cet échantillon vérifie-t-il <span class="nw">|f − p|</span> ≤ ${INV}&nbsp;?`,[OK(ins?`Oui&nbsp;: <span class="nw">|f − p|</span> = ${X} et ${X} ≤ ${RR} = ${INV}.`:`Non&nbsp;: <span class="nw">|f − p|</span> = ${X} et ${X} > ${RR} = ${INV}.`),
-       NO(ins?`Non&nbsp;: <span class="nw">|f − p|</span> = ${X} et ${X} > ${wrongR} = ${INV}.`:`Oui&nbsp;: <span class="nw">|f − p|</span> = ${X} et ${X} ≤ ${wrongR} = ${INV}.`,`Attention&nbsp;: ${INV} = ${frH(1,'√'+n)} = ${frH(1,m)} = ${RR}, pas ${wrongR}.`),
-       NO(ins?'Non&nbsp;: f n\'est pas égale à p.':'Oui&nbsp;: f et p sont tous les deux entre 0 et 1.',ins?'On ne demande pas f = p, seulement que l\'écart <span class="nw">|f − p|</span> soit au plus '+INV+'.':`Ce n'est pas la question&nbsp;: il faut comparer l'écart <span class="nw">|f − p|</span> = ${X} à ${INV} = ${RR}.`)],{meta:{k:'verif',p:[p.n,p.d],s,n}})],
-   done:`<span class="nw">|f − p|</span> = |${dec(f)} − ${dec(p)}| = ${X}, et ${INV} = ${RR}&nbsp;: ${ins?`${X} ≤ ${RR}, le point est <b>dans</b> la bande.`:`${X} > ${RR}, le point est <b>hors</b> de la bande (cela arrive, rarement).`}`}},
- ()=>{const [n1,n2]=pick([[25,100],[100,400],[400,1600],[2500,10000]]),m1=isqrt(n1),m2=isqrt(n2),ss=sims(half,n2,100);
-  return{setup:()=>{S.reset({mode:'rule',p:half,band:n1,color:'band'})},cap0:`n = ${fmtInt(n1)}&nbsp;: bande ± ${dec(R(1,m1))}`,
-   prompt:`On passe d'échantillons de taille <b>${fmtInt(n1)}</b> à des échantillons de taille <b>${fmtInt(n2)}</b>, 4 fois plus grands.`,
-   parts:[ch('La bande <span class="nw">|f − p|</span> ≤ '+INV+' devient…',[OK(`deux fois moins large&nbsp;: ${INV} passe de ${dec(R(1,m1))} à ${dec(R(1,m2))}.`),
-       NO(`quatre fois moins large&nbsp;: ${INV} passe de ${dec(R(1,m1))} à ${dec(R(1,4*m1))}.`,`Attention à la racine&nbsp;: √${fmtInt(n2)} = ${m2} = 2 × ${m1}. ${INV} est divisé par 2, pas par 4.`),
-       NO(`quatre fois plus large&nbsp;: ${INV} passe de ${dec(R(1,m1))} à ${dec(R(4,m1))}.`,`Quand n grandit, ${INV} diminue&nbsp;: la bande rétrécit.`)],{meta:{k:'x4',n1,n2},onOk:async()=>{await S.setBand(n2);cap(`n = ${fmtInt(n2)}&nbsp;: bande ± <span class="k">${dec(R(1,m2))}</span>`)}}),
-     act(`Faire tomber 100 échantillons de taille ${fmtInt(n2)}`,async()=>{await S.rain(ss.map(s=>({s,n:n2})),{color:'band',onLand:(k,i)=>S.count(`dans la bande : ${i} / ${k}`)})})],
-   done:`√${fmtInt(n2)} = ${m2} = 2 × √${fmtInt(n1)}&nbsp;: quatre fois plus de répétitions, une bande deux fois plus étroite.`}}
+ ()=>{const n=10000,s=binom(R(1,4),n),f=R(s,n);
+  return{setup:()=>S.reset({mode:'rule'}),cap0:'Deux pièces équilibrées lancées ensemble',
+   prompt:`On lance <b>deux pièces équilibrées</b> ensemble. Succès&nbsp;: obtenir <b>deux PILE</b>. L'ordinateur simule <b>n = 10 000</b> lancers des deux pièces.`,
+   parts:[act('Lancer la simulation',async()=>{await S.rain([{s,n}],{dur:900});cap(`${fmtInt(s)} fois deux PILE sur 10 000 lancers`)}),
+     fill('Fréquence observée de «&nbsp;deux PILE&nbsp;»&nbsp;:','f = {0}',[BR(f)],fWhy(n),{meta:{k:'f',s,n}}),
+     ch('D\'après la loi des grands nombres, la probabilité p d\'obtenir deux PILE est proche de…',[OK('0,25'),
+       NO('0,5','0,5, c\'est la probabilité de PILE pour <b>une</b> pièce. Ici il faut deux PILE&nbsp;: la fréquence observée est bien plus petite.'),
+       NO('0,75','0,75, c\'est la probabilité d\'obtenir <b>au moins une</b> FACE. Regarde la fréquence observée.'),
+       NO('0,1','La fréquence observée sur 10 000 lancers est loin de 0,1&nbsp;: pour n grand, p est proche de f.')],{meta:{k:'plaus',s,n,p:[1,4]},onOk:async()=>{S.setP(R(1,4));S.SND.whoosh();cap(`p = <span class="k">0,25</span> <span class="m">·</span> f = ${dec(f)}`)}})],
+   done:`Quatre issues équiprobables (PP, PF, FP, FF), une seule favorable&nbsp;: p = ${frH(1,4)} = 0,25. La simulation donne f = ${dec(f)}, proche de p, comme l'annonce la loi des grands nombres.`}},
+ ()=>{const n=10;let s;do{s=binom(half,n)}while(Math.abs(s-5)<2);const nb=10000,sb=binom(half,nb),a=pick(NAMES);
+  return{setup:()=>S.reset({mode:'rule',p:half}),cap0:'Pièce équilibrée&nbsp;: p = 0,5',
+   prompt:`${a} simule <b>10 lancers</b> d'une pièce équilibrée et obtient une fréquence de PILE f = ${fH(s,n)}, assez loin de 0,5.`,
+   parts:[act('Placer le point',async()=>{await S.rain([{s,n}],{dur:800});cap(`n = 10&nbsp;: f = ${fH(s,n)}`)}),
+     ch('Le modèle «&nbsp;pièce équilibrée&nbsp;» est-il faux&nbsp;?',[OK('Pas forcément&nbsp;: pour n = 10, f peut être loin de p. La loi des grands nombres concerne les grands échantillons.'),
+       NO('Oui, car f n\'est pas égale à 0,5.','f n\'a aucune raison d\'être égale à p, surtout pour un petit échantillon&nbsp;: c\'est la fluctuation.'),
+       NO('Oui, car f devrait être proche de 0,5 quel que soit n.','La loi des grands nombres parle de n <b>grand</b>&nbsp;: pour 10 lancers, de grands écarts sont fréquents.')],{meta:{k:'txt',id:'petitn'}}),
+     act('Relancer avec n = 10 000',async()=>{await S.rain([{s:sb,n:nb}],{dur:900});cap(`n = 10 000&nbsp;: f = ${fH(sb,nb)} <span class="m">· bien plus proche de 0,5</span>`)})],
+   done:`Pour n = 10, f = ${fH(s,n)}&nbsp;; pour n = 10 000, f = ${fH(sb,nb)}. C'est pour n grand que la fréquence observée est, sauf exception, proche de p.`}},
+ ()=>{const n=400,ss=sims(half,n,100);
+  return{setup:()=>S.reset({mode:'rule',p:half}),cap0:'100 simulations de 400 lancers',
+   prompt:`On simule <b>100 échantillons</b> de 400 lancers d'une pièce équilibrée. La loi dit&nbsp;: «&nbsp;sauf exception, la fréquence observée est proche de la probabilité&nbsp;».`,
+   parts:[act('Lancer les 100 simulations',async()=>{await S.rain(ss.map(s=>({s,n})),{onLand:k=>S.count(`simulations : ${k} / 100`)});cap('Presque tous les points sont près de 0,5, quelques-uns un peu plus loin')}),
+     ch('Que signifie «&nbsp;sauf exception&nbsp;»&nbsp;?',[OK('Le plus souvent f est proche de p, mais il peut arriver, rarement, qu\'un échantillon s\'en éloigne.'),
+       NO('f est toujours égale à p.','Regarde la pluie&nbsp;: les points ne sont pas tous sur p. La loi parle de «&nbsp;proche&nbsp;», et pas toujours.'),
+       NO('f est proche de p dans un seul cas exceptionnel.','C\'est l\'inverse&nbsp;: f est proche de p presque toujours, et l\'exception, c\'est un échantillon éloigné.'),
+       NO('La loi ne marche que pour les pièces.','La loi vaut pour toute expérience répétée de façon indépendante&nbsp;: pièce, dé, urne, sondage…')],{meta:{k:'txt',id:'exception'}})],
+   done:'Sauf exception&nbsp;: la plupart des simulations donnent une fréquence proche de p, et il arrive, rarement, qu\'une simulation s\'en écarte davantage.'}},
+ ()=>{const rows=NS4.map(n=>({n,fs:sims(R(1,6),n,30)}));
+  return{setup:()=>S.reset({mode:'funnel',p:R(1,6),pLab:'p = ?',rows:NS4}),cap0:'Simuler un dé&nbsp;: gagner avec un 6',
+   prompt:`On modifie la fonction de(n)&nbsp;: on gagne seulement si le résultat est <b>6</b>. On la simule 30 fois pour chaque taille n = 10, 100, 1 000 et 10 000.`,
+   parts:[act('Lancer les 4 × 30 simulations',async()=>{await S.funnel(rows,{onRow:k=>cap(`n = ${fmtInt(NS4[k])} <span class="m">· 30 simulations</span>`)});cap('La pluie se resserre autour d\'une valeur')}),
+     ch('Autour de quelle probabilité la pluie se resserre-t-elle&nbsp;?',[OK(ph(R(1,6))),NO(ph(R(1,2)),'Une seule face sur 6 fait gagner&nbsp;: la pluie se resserre bien plus près de 0 que 0,5.'),
+       NO(ph(R(1,3)),`${frH(1,3)}, c'était le jeu «&nbsp;1 ou 6&nbsp;». Ici, seul le 6 fait gagner&nbsp;: une face sur six.`),NO('6','Une probabilité est entre 0 et 1&nbsp;: 6 est le résultat gagnant, pas sa probabilité.')],{meta:{k:'pde',fav:[6]}})],
+   done:`Un seul résultat gagnant sur 6&nbsp;: p = ${frH(1,6)}. La simulation le fait voir&nbsp;: pour n grand, la fréquence observée est proche de ${frH(1,6)}.`}},
+ ()=>({setup:()=>S.reset({mode:'rule',p:third}),cap0:'La loi des grands nombres, version du programme',
+   prompt:'Complète la version vulgarisée de la loi des grands nombres.',
+   parts:[fill('','Lorsque n est {0}, sauf exception, la fréquence observée est proche de la {1}.',[BW(['grand','très grand'],5),BW(['probabilité','probabilite','probabilité p'],8)],'Relis la règle du niveau&nbsp;: c\'est pour n grand que la fréquence observée se rapproche de la probabilité.',{meta:{k:'lgnS'}})],
+   done:'Lorsque n est grand, sauf exception, la fréquence observée est proche de la probabilité.'})
  ]});
 
-/* ===== Niveau 6 · Dans 95&nbsp;% des cas ===== */
-LV.push({t:'95\u00a0% des cas',badge:'Niveau 6 · Dans 95\u00a0% des cas',
- rule:`<p><b>Pour n assez grand, dans 95&nbsp;% des cas&nbsp;: <span class="nw">|f − p|</span> ≤ ${INV}.</b></p><p>Exemple&nbsp;: pour n = 10 000, ${INV} = 0,01. Sur N simulations, environ 95&nbsp;% vérifient <span class="nw">|f − p|</span> ≤ 0,01.</p><p>Sur la scène&nbsp;: point doré, dans la bande&nbsp;; point bleu, en dehors. Sur 100 points, environ 95 sont dorés.</p>`,
+/* ===== Niveau 6 · Le modèle ===== */
+LV.push({t:'Le modèle',badge:'Niveau 6 · Choisir un modèle',
+ rule:`<p>Une loi de probabilité est une <b>hypothèse du modèle</b> choisi&nbsp;: elle ne se démontre pas.</p><p>Le modèle peut venir d'une hypothèse d'équiprobabilité (pièce ou dé équilibrés, tirage au hasard dans une population), qu'il faut dire clairement. Il peut aussi être construit à partir de <b>fréquences observées</b> sur un grand nombre de répétitions d'un phénomène réel (lancer de punaise, sexe d'un enfant à la naissance).</p><p>On distingue le modèle et la situation réelle. Si, sur un grand nombre de répétitions, la fréquence observée est loin de la probabilité du modèle, on remet le modèle en question.</p>`,
  qs:[
- ()=>{const n=pick([100,400,2500]),m=isqrt(n),ss=sims(half,n,100),c=ss.filter(s=>inBand(s,n,half)).length;
-  return{setup:()=>S.reset({mode:'rule',p:half,band:n,color:'band'}),cap0:`Pièce&nbsp;: p = 0,5 <span class="m">·</span> n = ${fmtInt(n)} <span class="m">·</span> ${INV} = ${dec(R(1,m))}`,
-   prompt:`On simule <b>N = 100</b> échantillons de taille n = ${fmtInt(n)} (pièce équilibrée). On compte c, le nombre d'échantillons qui vérifient <span class="nw">|f − p|</span> ≤ ${dec(R(1,m))}.`,
-   parts:[act('Lancer les 100 simulations',async()=>{await S.rain(ss.map(s=>({s,n})),{color:'band',onLand:(k,i)=>S.count(`dans la bande : ${i} / ${k}`)});cap(`<span class="k">${c}</span> points dorés sur 100`)}),
-     fill('Lis le compteur, puis calcule la proportion&nbsp;:','c = {0}, donc c / N = {1}',[BR(R(c)),BR(R(c,100))],v=>`c est le nombre de points dorés (compteur en haut à droite)&nbsp;; c / N = ${c} / 100.`,{meta:{k:'cN',c,N:100,ss,n}})],
-   done:`c / N = ${c} / 100 = ${fH(c,100)}, soit ${c}&nbsp;%. La propriété annonce environ 95&nbsp;%&nbsp;: ${Math.abs(c-95)<=3?'ta pluie colle bien.':'l\'écart vient du hasard, et 100 simulations, c\'est encore peu.'}`}},
- ()=>{const N0=pick([200,300]),n=100,ss=sims(half,n,N0),q=R(95*N0,100);
-  return{setup:()=>S.reset({mode:'rule',p:half,band:n,color:'band'}),cap0:`n = 100 <span class="m">·</span> ${INV} = 0,1`,
-   prompt:`On va simuler <b>N = ${N0}</b> échantillons de taille 100. D'après la propriété du cours, combien vérifieront <span class="nw">|f − p|</span> ≤ 0,1&nbsp;?`,
-   parts:[fill('Prévision&nbsp;:',`environ {0} sur ${N0}`,[BR(q)],v=>`95&nbsp;% de ${N0}&nbsp;: 0,95 × ${N0}.`,{meta:{k:'n95',N:N0}}),
-     act(`Lancer les ${N0} simulations`,async()=>{let c=0;await S.rain(ss.map(s=>({s,n})),{color:'band',onLand:(k,i)=>{c=i;S.count(`dans la bande : ${i} / ${k}`)}});cap(`Prévu&nbsp;: environ ${q.n} <span class="m">·</span> obtenu&nbsp;: <span class="k">${c}</span>`)})],
-   done:`0,95 × ${N0} = ${q.n}&nbsp;: environ ${q.n} points dorés attendus. Le hasard donne un nombre proche, rarement exactement celui-là.`}},
- ()=>{const n=pick([100,400,2500,10000]),m=isqrt(n),r=R(1,m),ss=sims(half,n,100);
-  return{setup:()=>S.reset({mode:'rule',p:half,band:n,color:'band'}),cap0:`n = ${fmtInt(n)}`,
-   prompt:`Pour n = ${fmtInt(n)}&nbsp;: ${invRadH(fmtInt(n))} = ${frH(1,m)} = ${dec(r)}. Comment interpréter ce nombre&nbsp;?`,
-   parts:[ch('',[OK(`Dans 95&nbsp;% des cas, f est à au plus ${dec(r)} de p.`),NO('Dans 95&nbsp;% des cas, f = p.',`On ne parle pas d'égalité&nbsp;: dans 95&nbsp;% des cas, l'écart <span class="nw">|f − p|</span> est au plus ${dec(r)}.`),
-       NO(`Dans tous les cas, f est à au plus ${dec(r)} de p.`,'Pas tous&nbsp;: environ 5&nbsp;% des échantillons tombent hors de la bande, ce sont les points bleus.'),
-       NO(`Dans 95&nbsp;% des cas, f est à au plus ${dec(R(1,n))} de p.`,`${dec(R(1,n))}, c'est 1 / n. La bande utilise ${INV} = ${dec(r)}.`)],{meta:{k:'interp',n}}),
-     act('Le vérifier avec 100 simulations',async()=>{await S.rain(ss.map(s=>({s,n})),{color:'band',onLand:(k,i)=>S.count(`dans la bande : ${i} / ${k}`)});cap('Quelques points bleus&nbsp;: les 5&nbsp;% hors de la bande')})],
-   done:`Pour n = ${fmtInt(n)}, dans 95&nbsp;% des cas, <span class="nw">|f − p|</span> ≤ ${dec(r)}&nbsp;: la fréquence observée est à au plus ${dec(r)} de p.`}},
- ()=>{const n=pick([100,400,2500]),m=isqrt(n),ss=sims(third,n,100),c=ss.filter(s=>inBand(s,n,third)).length;
-  return{setup:()=>S.reset({mode:'rule',p:third,pLab:'p = 1/3',band:n,color:'band'}),cap0:'estim(N, n) compte les points dorés',
-   prompt:`Fonction du cours&nbsp;:${window.CS_L.codeH(window.CS_L.ESTIM)}`,
-   parts:[ch(`Que renvoie estim(1000, ${fmtInt(n)})&nbsp;? Une valeur proche de…`,[OK('0,95'),NO('950','950, ce serait c, le nombre de simulations dans la bande. La fonction renvoie c / N, une proportion.'),
-       NO(frH(1,3),`${frH(1,3)}, c'est p. estim compte les simulations qui vérifient <span class="nw">|f − p|</span> ≤ ${INV}&nbsp;: environ 95&nbsp;% d'entre elles.`),NO('0,05','0,05, c\'est la proportion de simulations <b>hors</b> de la bande. estim compte celles qui sont dedans.')],{meta:{k:'estim',N:1000,n}}),
-     act(`Exécuter estim(100, ${fmtInt(n)})`,async()=>{await S.rain(ss.map(s=>({s,n})),{color:'band',onLand:(k,i)=>S.count(`c = ${i} <span style="opacity:.6">· k = ${k}</span>`)});cap(`estim(100, ${fmtInt(n)}) renvoie c / N = <span class="k">${fH(c,100)}</span>`)})],
-   done:`estim(N, n) renvoie c / N, la proportion de simulations qui vérifient <span class="nw">|f − p|</span> ≤ ${INV}&nbsp;: environ 0,95.`}},
- ()=>{const ns=[25,100,400,2500],rows=ns.map(n=>({n,fs:sims(half,n,60)}));
-  return{setup:()=>S.reset({mode:'funnel',p:half,rows:ns}),cap0:'L\'entonnoir&nbsp;: une bande par taille n',
-   prompt:'Le grand final&nbsp;: <b>60 simulations</b> pour chaque taille n = 25, 100, 400 et 2 500, avec la bande ±'+INV+' de chaque rangée.',
-   parts:[act('Lancer l\'entonnoir',async()=>{await S.funnel(rows,{color:'band',onRow:k=>cap(`n = ${fmtInt(ns[k])} <span class="m">·</span> ${INV} = ${dec(R(1,isqrt(ns[k])))}`),onLand:(k,l,i)=>S.count(`rangée n = ${fmtInt(ns[k])} : ${i} / ${l} dans la bande`)});cap('La bande rétrécit, la pluie suit')}),
-     fill('D\'après la propriété du cours&nbsp;:','Dans chaque rangée, environ {0}&nbsp;% des points sont dans la bande.',[BR(R(95))],'Relis la propriété&nbsp;: «&nbsp;dans 95&nbsp;% des cas, <span class="nw">|f − p|</span> ≤ 1/√n&nbsp;».',{meta:{k:'pct95'}})],
-   done:`Quelle que soit la taille n, environ 95&nbsp;% des points tombent dans la bande. Mais la bande, elle, rétrécit&nbsp;: plus n est grand, plus f est près de p.`}}
+ ()=>{const n=1000,p=pick([R(3,5),R(13,20),R(7,10),R(2,5)]),s=binom(p,n),f=R(s,n);
+  return{setup:()=>S.reset({mode:'rule'}),cap0:'Une punaise&nbsp;: pointe en haut, ou sur le côté',
+   prompt:`Une punaise lancée tombe soit <b>pointe en haut</b>, soit <b>sur le côté</b>. Aucune symétrie ne permet de calculer la probabilité&nbsp;: on lance <b>1 000 punaises</b>.`,
+   parts:[act('Lancer les 1 000 punaises',async()=>{await S.rain([{s,n}],{dur:900});cap(`${fmtInt(s)} punaises pointe en haut sur 1 000`)}),
+     fill('Fréquence observée de «&nbsp;pointe en haut&nbsp;»&nbsp;:','f = {0}',[BR(f)],fWhy(n),{meta:{k:'f',s,n}}),
+     ch('Quel modèle choisir pour la probabilité de «&nbsp;pointe en haut&nbsp;»&nbsp;?',[OK(`Environ ${dec(f)}&nbsp;: la fréquence observée sur ces 1 000 lancers`),
+       NO('0,5, car la punaise a deux positions possibles','Deux issues ne veut pas dire équiprobables&nbsp;: la punaise n\'est pas symétrique, rien ne justifie 0,5.'),
+       NO('Aucune valeur&nbsp;: une probabilité ne peut pas venir d\'une expérience','Sur un grand nombre de lancers, la loi des grands nombres permet de construire un modèle à partir de f.')],{meta:{k:'txt',id:'punaise'},onOk:async()=>{S.setP(f);cap(`Modèle choisi&nbsp;: p ≈ <span class="k">${dec(f)}</span>`)}})],
+   done:`Sur 1 000 lancers, f = ${dec(f)}&nbsp;: on choisit le modèle «&nbsp;pointe en haut avec la probabilité ${dec(f)} environ&nbsp;». C'est un modèle construit à partir de fréquences observées.`}},
+ ()=>{const n=10000,s=binom(R(103,200),n),f=R(s,n);
+  return{setup:()=>S.reset({mode:'rule'}),cap0:'Les naissances d\'une maternité',
+   prompt:`Une grande maternité a enregistré <b>10 000 naissances</b>, dont <b>${fmtInt(s)} garçons</b>.`,
+   parts:[fill('Fréquence observée des garçons&nbsp;:','f = {0}',[BR(f)],fWhy(n),{meta:{k:'f',s,n},onOk:async()=>{await S.rain([{s,n}],{dur:800})}}),
+     ch(`On choisit comme modèle&nbsp;: la probabilité qu'un enfant soit un garçon est ${dec(f)}. Que peut-on dire&nbsp;?`,[OK('C\'est un modèle, construit à partir de fréquences observées&nbsp;: il ne se démontre pas.'),
+       NO('C\'est démontré&nbsp;: chaque naissance a exactement cette probabilité.','Une loi de probabilité est une hypothèse du modèle&nbsp;: les données la rendent raisonnable, elles ne la démontrent pas.'),
+       NO('Il faut prendre 0,5&nbsp;: deux issues sont toujours équiprobables.','Deux issues ne sont pas forcément équiprobables&nbsp;: les fréquences observées montrent un peu plus de garçons.')],{meta:{k:'txt',id:'reel'}})],
+   done:`f = ${fmtInt(s)} / 10 000 = ${dec(f)}. Le modèle «&nbsp;garçon avec la probabilité ${dec(f)}&nbsp;» est construit à partir de la réalité observée, mais il reste un modèle.`}},
+ ()=>{const n=600,ss=sims(R(1,6),n,30);
+  return{setup:()=>S.reset({mode:'rule',p:R(1,6),pLab:'p = 1/6'}),cap0:'Un dé à 6 faces',
+   prompt:`Pour un dé à 6 faces, on prend la probabilité ${frH(1,6)} pour chaque face.`,
+   parts:[ch(`Pourquoi prend-on ${frH(1,6)} pour chaque face&nbsp;?`,[OK('C\'est une hypothèse du modèle&nbsp;: on suppose le dé équilibré.'),
+       NO('On l\'a démontré en lançant le dé 6 fois.','6 lancers ne démontrent rien&nbsp;: les fréquences fluctuent. L\'équiprobabilité est une hypothèse, qu\'il faut dire clairement.'),
+       NO('Parce que chaque face sort exactement une fois sur six.','Lance un dé 6 fois&nbsp;: il est rare d\'obtenir chaque face une fois. On <b>suppose</b> le dé équilibré.'),
+       NO('Parce que 6 est un nombre pair.','La parité de 6 n\'a rien à voir&nbsp;: c\'est le fait de supposer le dé équilibré qui donne 6 faces équiprobables.')],{meta:{k:'txt',id:'hypo'}}),
+     act('Simuler 30 échantillons de 600 lancers',async()=>{await S.rain(ss.map(s=>({s,n})),{onLand:k=>S.count(`simulations : ${k} / 30`)});cap('Fréquences du 6&nbsp;: toutes proches de 1/6')})],
+   done:`L'équiprobabilité des faces est une <b>hypothèse</b> du modèle «&nbsp;dé équilibré&nbsp;». Une simulation montre ce que donne ce modèle&nbsp;; elle ne démontre pas qu'un vrai dé est équilibré.`}},
+ ()=>{const truque=Math.random()<.5,n=6000,s=binom(truque?R(1,4):R(1,6),n),f=R(s,n),a=pick(NAMES),p6=R(1,6);
+  const oui=`Oui&nbsp;: n est grand et f est loin de ${frH(1,6)} ≈ 0,17`,non=`Non&nbsp;: n est grand et f est proche de ${frH(1,6)} ≈ 0,17`;
+  return{setup:()=>S.reset({mode:'rule',p:p6,pLab:'modèle : 1/6'}),cap0:`Le dé de ${a}`,
+   prompt:`${a} veut savoir si son dé est équilibré. Il le lance <b>6 000 fois</b> et obtient <b>${fmtInt(s)} fois le 6</b>.`,
+   parts:[fill('Fréquence observée du 6&nbsp;:','f = {0}',[BR(f)],fWhy(n),{meta:{k:'f',s,n},onOk:async()=>{await S.rain([{s,n}],{dur:800})}}),
+     ch(`Le modèle «&nbsp;dé équilibré&nbsp;» (probabilité ${frH(1,6)} pour le 6) est-il remis en question&nbsp;?`,[truque?OK(oui):NO(oui,`f = ${dec(f,3)} est proche de ${frH(1,6)}&nbsp;: rien ne contredit le modèle.`),
+       truque?NO(non,`f = ${dec(f,3)} est loin de ${frH(1,6)}&nbsp;: avec 6 000 lancers, la loi des grands nombres rend cela très improbable pour un dé équilibré.`):OK(non),
+       NO('Non&nbsp;: un dé est toujours équilibré.','«&nbsp;Équilibré&nbsp;» est une hypothèse&nbsp;: une expérience peut la remettre en question.'),
+       NO(`Oui&nbsp;: f n'est pas exactement égale à ${frH(1,6)}.`,'f n\'est presque jamais exactement égale à p&nbsp;: ce qui compte, pour n grand, c\'est si f est proche ou loin de p.')],{meta:{k:'valid',s,n,p:[1,6]}})],
+   done:truque?`f = ${dec(f,3)}, loin de ${frH(1,6)} ≈ 0,167 pour 6 000 lancers&nbsp;: le modèle «&nbsp;dé équilibré&nbsp;» est remis en question. Ce dé semble truqué.`:`f = ${dec(f,3)}, proche de ${frH(1,6)} ≈ 0,167 pour 6 000 lancers&nbsp;: rien ne remet en question le modèle «&nbsp;dé équilibré&nbsp;».`}}
  ]});
 
 /* ===== Niveau 7 · Le code ===== */
@@ -849,7 +855,7 @@ function deSteps(n,rs){const st=[];let s=0;st.push({line:5,vars:{n,s:0}});
     const g=r===1||r===6;st.push({line:8,vars:{n,s,k,r},cap:`r = ${r}&nbsp;: ${g?'<span class="k">gagné</span>':'<span class="m">perdu</span>'}`});if(g){s++;st.push({line:9,vars:{n,s,k,r}})}});
   st.push({line:10,vars:{n,s,'renvoie':numT(R(s,n))},fx:async()=>{await S.fly(s,n)}});return st}
 LV.push({t:'Le code',badge:'Niveau 7 · Fonctions Python',
- rule:`<p>Lecture du cours&nbsp;: <b>randint(1, 6)</b>&nbsp;: entier aléatoire entre 1 et 6. <b>s</b>&nbsp;: nombre de gains. <b>s / n</b>&nbsp;: fréquence.</p><p><b>estim(N, n)</b>&nbsp;: c compte les simulations où <span class="nw">|f − p|</span> ≤ ${INV}&nbsp;; c / N est la proportion sur N simulations (≈ 95&nbsp;%).</p><p>abs(x)&nbsp;: valeur absolue. sqrt(n)&nbsp;: √n.</p>`,
+ rule:`<p>Lecture du cours&nbsp;: <b>randint(1, 6)</b>&nbsp;: entier aléatoire entre 1 et 6. <b>s</b>&nbsp;: nombre de gains. <b>s / n</b>&nbsp;: fréquence.</p><p>Pour simuler un autre jeu, on change le test de la ligne 8&nbsp;: la fonction renvoie la fréquence du nouvel évènement, proche de sa probabilité pour n grand (sauf exception).</p><p>piece(n)&nbsp;: randint(0, 1), on compte les 0.</p>`,
  qs:[
  ()=>{const n=pick([4,5]),rs=Array.from({length:n},()=>randint(1,6)),s=rs.filter(r=>r===1||r===6).length;
   return{setup:()=>S.tokStart('de',n),cap0:`de(${n})&nbsp;: ${n} lancers simulés`,
@@ -869,21 +875,15 @@ LV.push({t:'Le code',badge:'Niveau 7 · Fonctions Python',
      act('Exécuter piece(100) 50 fois',async()=>{await S.rain(ss.map(s=>({s,n})),{onLand:k=>S.count(`appels : ${k} / 50`)});cap('50 appels, 50 fréquences autour de 0,5')}),
      fill('b) Vers quelle valeur tend piece(n) pour n grand&nbsp;?','piece(n) tend vers {0}',[BR(half)],'r vaut 0 ou 1 avec la même probabilité&nbsp;: p = 1/2. Pour n grand, la fréquence est proche de p.',{meta:{k:'tend',p:[1,2]}})],
    done:'piece(n) renvoie une fréquence&nbsp;; pour n grand, elle est le plus souvent proche de p = 0,5.'}},
- ()=>({setup:()=>S.reset({mode:'rule',p:half,band:100,color:'band'}),cap0:'Adapter estim à une pièce',
-   prompt:`Fonction du cours&nbsp;:${window.CS_L.codeH(ESTIM,[4,5])}On veut l'adapter à une pièce (p = ${frH(1,2)}), avec la fonction piece(n).`,
-   parts:[fill('Complète les lignes à modifier&nbsp;:','ligne 4&nbsp;: f = {0}(n)<br>ligne 5&nbsp;: if abs(f - {1}) &lt;= 1/sqrt(n):',[BW(['piece'],5),BR(half)],'Ligne 4&nbsp;: on simule une pièce, donc piece(n). Ligne 5&nbsp;: on compare f à la nouvelle probabilité p = 1/2.',{meta:{k:'adapt'}})],
-   done:`Ligne 4&nbsp;: f = piece(n). Ligne 5&nbsp;: abs(f - 1/2) &lt;= 1/sqrt(n). Le reste ne change pas.`}),
- ()=>{const n=100,Nn=4;let ss;do{ss=sims(half,n,Nn)}while(ss.some(s=>Math.abs(s-50)>16));const c=ss.filter(s=>Math.abs(s-50)<=10).length;
-  const steps=[{line:2,vars:{N:Nn,n,c:0}}];let cc=0;
-  ss.forEach((s,k)=>{steps.push({line:3,vars:{c:cc,k}});steps.push({line:4,vars:{c:cc,k,f:numT(R(s,n))},fx:async()=>{await S.rain([{s,n}],{dur:620,color:'band'})}});
-    const ok=Math.abs(s-50)<=10;steps.push({line:5,vars:{c:cc,k,f:numT(R(s,n))},cap:`|${numT(R(s,n))} − 0,5| = ${numT(R(Math.abs(s-50),100))} ${ok?'≤ 0,1 <span class="k">· compté</span>':'> 0,1 <span class="m">· pas compté</span>'}`});
-    if(ok){cc++;steps.push({line:6,vars:{c:cc,k,f:numT(R(s,n))}})}});
-  steps.push({line:7,vars:{c:cc,'renvoie':numT(R(c,Nn))}});
-  return{setup:()=>S.reset({mode:'rule',p:half,band:100,color:'band'}),cap0:'estim adaptée à la pièce&nbsp;: N = 4, n = 100',
-   prompt:`On appelle estim(4, 100), version pièce. Ligne 4, piece(100) renvoie successivement <b>${ss.map(s=>numT(R(s,n))).join(' ; ')}</b>. Ici ${INV} = ${invRadH(100)} = 0,1.`,
-   parts:[fill('Prévois avant d\'exécuter&nbsp;:','à la fin, c = {0} et estim(4, 100) renvoie {1}',[BR(R(c)),BR(R(c,Nn))],v=>`Pour chaque f, calcule |f − 0,5| et compare à 0,1 (≤ compte). Puis c / N = c / 4.`,{meta:{k:'estimT',ss,n,N:Nn}}),
-     {t:'code',ask:'Vérifie en exécutant le programme&nbsp;:',lines:ESTIMP.map(py),mod:[4,5],steps}],
-   done:`${c} fréquence${c>1?'s':''} sur 4 vérifie${c>1?'nt':''} |f − 0,5| ≤ 0,1&nbsp;: estim(4, 100) renvoie ${c} / 4 = <b>${fH(c,4)}</b>. Avec N grand, on trouverait environ 0,95.`}}
+ ()=>({setup:()=>S.reset({mode:'rule'}),cap0:'Adapter de(n) à un autre jeu',
+   prompt:`Fonction du cours&nbsp;:${window.CS_L.codeH(DE,[8])}On veut simuler un autre jeu&nbsp;: on gagne <b>seulement avec un 6</b>.`,
+   parts:[fill('Complète la ligne 8, puis prévois le résultat pour n grand&nbsp;:','ligne 8&nbsp;: if r == {0}:<br>pour n grand, de(n) est le plus souvent proche de {1}',[BR(R(6)),BR(R(1,6))],'Ligne 8&nbsp;: on ne compte que le 6. Une face gagnante sur 6&nbsp;: la fréquence se rapproche de p = 1/6.',{meta:{k:'adapt6'},onOk:async()=>{S.setP(R(1,6));await S.rain(sims(R(1,6),1000,30).map(s=>({s,n:1000})),{dur:1400})}})],
+   done:`Ligne 8&nbsp;: if r == 6:. La fonction renvoie alors la fréquence des 6, proche de ${frH(1,6)} pour n grand.`}),
+ ()=>{const n=pick([5,6,8]),rs=Array.from({length:n},()=>randint(0,1)),s=rs.filter(r=>r===0).length;
+  return{setup:()=>S.tokStart('piece',n),cap0:`piece(${n})&nbsp;: ${n} lancers simulés`,
+   prompt:`Fonction du cours&nbsp;:${window.CS_L.codeH(PIECE)}On appelle <b>piece(${n})</b>. Ligne 4, randint(0, 1) renvoie successivement <b>${rs.join(' ; ')}</b>.`,
+   parts:[fill('Prévois le résultat&nbsp;:',`à la fin, s = {0} et piece(${n}) renvoie {1}`,[BR(R(s)),BR(R(s,n))],v=>`s compte les r égaux à 0 dans ${rs.join(' ; ')}. Puis la fonction renvoie s / n = s / ${n}.`,{meta:{k:'traceP',rs,n},onOk:async()=>{for(const r of rs){S.tokPush({v:r,ok:r===0});await S.sleep(200)}await S.fly(s,n)}})],
+   done:`${s} fois 0 sur ${n} lancers&nbsp;: piece(${n}) renvoie ${s} / ${n} = <b>${fH(s,n)}</b>.`}}
  ]});
 })();
 
@@ -892,25 +892,25 @@ LV.push({t:'Le code',badge:'Niveau 7 · Fonctions Python',
 /* ======================= COUP DE SONDE — Mon labo ======================= */
 window.CS_LAB=(function(){
 'use strict';
-const N=window.CS_N,S=window.CS_S,{R,dec,fmtInt,isqrt,inBand,binom,numT}=N,$=id=>document.getElementById(id),cap=window.CS_G.cap;
+const N=window.CS_N,S=window.CS_S,{R,dec,fmtInt,binom,numT}=N,$=id=>document.getElementById(id),cap=window.CS_G.cap;
 const EXPS=[{id:'piece',t:'Pièce (PILE)',p:R(1,2)},{id:'de',t:'Dé : 1 ou 6',p:R(1,3)},{id:'six',t:'Dé : 6',p:R(1,6)},{id:'sond',t:'Sondage p = 0,4',p:R(2,5)},{id:'sond7',t:'Sondage p = 0,7',p:R(7,10)}];
 const NS=[25,100,400,2500,10000],NN=[20,100,200];
 let ex=EXPS[0],n=400,NB=100,busy=false;
 const seg=(id,list,cur,lab)=>{$(id).innerHTML=list.map((x,i)=>`<button type="button" data-i="${i}" aria-pressed="${x===cur}">${lab(x)}</button>`).join('')};
 function draw(){seg('lexp',EXPS,ex,x=>x.t);seg('ln',NS,n,fmtInt);seg('lN',NN,NB,fmtInt)}
-function stat(c,tot){const m=isqrt(n),r=R(1,m);$('lstat').innerHTML=`<div><b>${dec(r)}</b><span>1/√n pour n = ${fmtInt(n)}</span></div>`+
-  (tot?`<div><b>${c} / ${tot}</b><span>points dans la bande</span></div><div><b>${dec(R(Math.round(c*1000/tot),1000))}</b><span>proportion c / N</span></div>`:'')}
-function reset(){S.reset({mode:'rule',p:ex.p,pLab:'p = '+numT(ex.p),band:n,color:'band'});S.badge('Mon labo · '+ex.t);S.count('');stat(0,0);
-  cap(`${ex.t} <span class="m">·</span> n = ${fmtInt(n)} <span class="m">·</span> bande ± ${dec(R(1,isqrt(n)))}`)}
+function stat(fs){if(!fs){$('lstat').innerHTML='';return}const mn=Math.min(...fs),mx=Math.max(...fs);
+  $('lstat').innerHTML=`<div><b>${dec(R(mn,n),3)}</b><span>plus petite fréquence</span></div><div><b>${dec(R(mx,n),3)}</b><span>plus grande fréquence</span></div><div><b>${dec(R(mx-mn,n),3)}</b><span>écart entre les deux</span></div>`}
+function reset(){S.reset({mode:'rule',p:ex.p,pLab:'p = '+numT(ex.p)});S.badge('Mon labo · '+ex.t);S.count('');stat(null);
+  cap(`${ex.t} <span class="m">·</span> n = ${fmtInt(n)} <span class="m">·</span> ${NB} simulations`)}
 async function rain(){if(busy)return;busy=true;$('lgo').disabled=$('lfun').disabled=true;reset();
-  const fs=Array.from({length:NB},()=>binom(ex.p,n));let c=0;
-  await S.rain(fs.map(s=>({s,n})),{color:'band',onLand:(k,i)=>{c=i;S.count(`dans la bande : ${i} / ${k}`)}});
-  c=fs.filter(s=>inBand(s,n,ex.p)).length;stat(c,NB);cap(`<span class="k">${c}</span> sur ${NB} dans la bande <span class="m">· environ 95&nbsp;% attendus</span>`);
+  const fs=Array.from({length:NB},()=>binom(ex.p,n));
+  await S.rain(fs.map(s=>({s,n})),{onLand:k=>S.count(`simulations : ${k} / ${NB}`)});
+  stat(fs);cap(`${NB} fréquences observées pour n = ${fmtInt(n)} <span class="m">· plus n est grand, plus elles sont proches de p</span>`);
   busy=false;$('lgo').disabled=$('lfun').disabled=false}
-async function funnel(){if(busy)return;busy=true;$('lgo').disabled=$('lfun').disabled=true;S.reset({mode:'funnel',p:ex.p,pLab:'p = '+numT(ex.p),rows:NS});S.badge('Mon labo · l\'entonnoir');
+async function funnel(){if(busy)return;busy=true;$('lgo').disabled=$('lfun').disabled=true;S.reset({mode:'funnel',p:ex.p,pLab:'p = '+numT(ex.p),rows:NS});S.badge('Mon labo · l\'entonnoir');stat(null);
   const rows=NS.map(m=>({n:m,fs:Array.from({length:40},()=>binom(ex.p,m))}));
-  await S.funnel(rows,{color:'band',dur:1000,onRow:k=>cap(`n = ${fmtInt(NS[k])} <span class="m">·</span> bande ± ${dec(R(1,isqrt(NS[k])))}`),onLand:(k,l,i)=>S.count(`n = ${fmtInt(NS[k])} : ${i} / ${l} dans la bande`)});
-  cap('De n = 25 à n = 10 000&nbsp;: la bande rétrécit, la pluie se resserre autour de p');busy=false;$('lgo').disabled=$('lfun').disabled=false}
+  await S.funnel(rows,{dur:1000,onRow:k=>cap(`n = ${fmtInt(NS[k])} <span class="m">· 40 simulations</span>`)});
+  cap('De n = 25 à n = 10 000&nbsp;: la pluie se resserre autour de p, c\'est la loi des grands nombres');busy=false;$('lgo').disabled=$('lfun').disabled=false}
 function pickIn(id,list,set){$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;set(list[+b.dataset.i]);draw();reset()})}
 pickIn('lexp',EXPS,x=>{ex=x});pickIn('ln',NS,x=>{n=x});pickIn('lN',NN,x=>{NB=x});
 $('lgo').onclick=rain;$('lfun').onclick=funnel;
@@ -922,7 +922,7 @@ return{open(){draw();reset()},state:()=>({busy,n,NB,ex:ex.id})};
 /* ======================= COUP DE SONDE — épreuves finales Bronze, Argent, Or ======================= */
 (function(){
 'use strict';
-const N=window.CS_N,{R,numH,numT,dec,fmtInt,frH,invRadH,INV,ri,pick,shuf,isqrt,ans,abs,sub,add,cmp}=N;
+const N=window.CS_N,{R,numH,numT,dec,fmtInt,frH,ri,pick,shuf,ans}=N;
 const L=window.CS_L;
 const ph=r=>numH(r);
 const fH=(s,n)=>numH(R(s,n));
@@ -952,35 +952,24 @@ function pdeQ(level,nbad){const E=pick(EVS),k=E.fav.length,p=R(k,6);const pool=s
     `${k} face${plural(k,'s')} favorable${plural(k,'s')} (${E.fav.join(', ')}) sur 6&nbsp;: p = ${frH(k,6)}${k===1?'':' = '+ph(p)}. Une probabilité est entre 0 et 1.`,{k:'pde',fav:E.fav,steps:1,mx:6})}
 function freqT(level,n,s,ctx){const r=R(s,n);
   return trous(level,`${ctx} La fréquence observée est f = {0}.`,[BL(r,4,[`${s}/${n}`])],`f = s / n = ${s} / ${fmtInt(n)} = ${ph(r)}.`,{k:'f',s,n,steps:1,mx:n})}
-function invQ(level){const n=pick([400,2500,625,1600,10000,100]),m=isqrt(n),r=R(1,m);
-  const bad=[[R(1,n),`1 / n = ${dec(R(1,n))} oublie la racine carrée`],[R(m),`${m}, c'est √n lui-même`],[R(10,m),'attention à la virgule']];
-  return qcm(level,`Pour n = ${fmtInt(n)}, la valeur de ${INV} est&nbsp;:`,dec(r),bad.map(b=>dec(b[0])),`√${fmtInt(n)} = ${m}, donc ${INV} = ${frH(1,m)} = ${dec(r)}.`,{k:'inv',n,steps:1,mx:n})}
-function verifQ(level,full){const p=pick([R(3,10),R(2,5),R(1,2),R(3,5),R(7,10)]),n=full?pick([400,625,2500]):pick([100,400]),m=isqrt(n),r=R(1,m);
-  let s;do{s=Math.round(n*p.n/p.d)+ri(-Math.ceil(1.6*n/m),Math.ceil(1.6*n/m))}while(Math.abs(s*p.d-p.n*n)*m===n*p.d&&!full);
-  const f=R(s,n),x=abs(sub(f,p)),ins=cmp(x,r)<=0,X=dec(x),RR=dec(r),wrongR=ins?dec(R(1,n)):String(m);
-  if(!full){
-    return qcm(level,`p = ${dec(p)}, n = ${fmtInt(n)} et la fréquence observée est f = ${dec(f)}. A-t-on <span class="nw">|f − p|</span> ≤ ${INV}&nbsp;?`,
-      ins?`Oui&nbsp;: <span class="nw">|f − p|</span> = ${X} et ${X} ≤ ${RR}`:`Non&nbsp;: <span class="nw">|f − p|</span> = ${X} et ${X} > ${RR}`,
-      [ins?`Non&nbsp;: <span class="nw">|f − p|</span> = ${X} et ${X} > ${wrongR}`:`Oui&nbsp;: <span class="nw">|f − p|</span> = ${X} et ${X} ≤ ${wrongR}`,ins?'Non&nbsp;: f n\'est pas égale à p':'Oui&nbsp;: f et p sont tous les deux entre 0 et 1'],
-      `<span class="nw">|f − p|</span> = |${dec(f)} − ${dec(p)}| = ${X} et ${INV} = ${frH(1,m)} = ${RR}&nbsp;: ${ins?`${X} ≤ ${RR}, donc oui.`:`${X} > ${RR}, donc non.`}`,{k:'verif',p:[p.n,p.d],s,n,steps:2,mx:n})}
-  const fw=R(s,n*10),xw=abs(sub(fw,p)),insw=cmp(xw,r)<=0;
-  return qcm(level,`Dans une ville, la proportion de jeunes inscrits dans un club de sport est p = ${dec(p)}. Sur ${fmtInt(n)} jeunes interrogés au hasard, ${fmtInt(s)} sont inscrits. Cet échantillon vérifie-t-il <span class="nw">|f − p|</span> ≤ ${INV}&nbsp;?`,
-    `${ins?'Oui':'Non'}&nbsp;: f = ${dec(f)}, <span class="nw">|f − p|</span> = ${X} ${ins?'≤':'>'} ${RR}`,
-    [`${ins?'Non':'Oui'}&nbsp;: f = ${dec(f)}, <span class="nw">|f − p|</span> = ${X} ${ins?'>':'≤'} ${wrongR}`,
-     `${insw?'Oui':'Non'}&nbsp;: f = ${dec(fw)}, <span class="nw">|f − p|</span> = ${dec(xw)} ${insw?'≤':'>'} ${RR}`,
-     ins?'Non&nbsp;: f n\'est pas égale à p':'Oui&nbsp;: f et p sont tous les deux entre 0 et 1'],
-    `f = ${fmtInt(s)} / ${fmtInt(n)} = ${dec(f)}, <span class="nw">|f − p|</span> = ${X} et ${INV} = ${frH(1,m)} = ${RR}&nbsp;: ${ins?`${X} ≤ ${RR}, donc oui.`:`${X} > ${RR}, donc non.`}`,{k:'verifF',p:[p.n,p.d],s,n,steps:3,mx:n})}
-function bornesT(level){const p=pick([R(3,10),R(2,5),R(1,2),R(3,5),R(7,10),R(9,20),R(11,20)]),n=pick([25,100,400,2500]),m=isqrt(n),r=R(1,m),lo=sub(p,r),hi=add(p,r);
-  return trous(level,`p = ${dec(p)} et n = ${fmtInt(n)}. L'inégalité <span class="nw">|f − p|</span> ≤ ${INV} signifie que f est comprise entre {0} et {1}.`,[BL(lo),BL(hi)],
-    `${INV} = ${dec(r)}&nbsp;: de ${dec(p)} − ${dec(r)} = ${dec(lo)} à ${dec(p)} + ${dec(r)} = ${dec(hi)}.`,{k:'bornes',p:[p.n,p.d],n,steps:2,mx:n})}
 function traceT(level,n){const rs=Array.from({length:n},()=>ri(1,6)),s=rs.filter(r=>r===1||r===6).length;
   return trous(level,`On appelle de(${n}) (fonction du cours&nbsp;: gagner si r vaut 1 ou 6). randint(1, 6) renvoie successivement ${rs.join(' ; ')}. À la fin, s = {0} et la fonction renvoie {1}.`,
     [BL(R(s),2.5),BL(R(s,n),4,[`${s}/${n}`])],`Gains (1 ou 6)&nbsp;: ${s}. La fonction renvoie s / n = ${s} / ${n} = ${fH(s,n)}.`,{k:'trace',rs,n,steps:2,mx:n})}
-function estimT(level,N0,n,edge){const m=isqrt(n),w=n/m;let ss;
-  do{ss=Array.from({length:N0},()=>n/2+ri(-Math.round(1.7*w),Math.round(1.7*w)))}while(edge&&!ss.some(s=>Math.abs(s-n/2)===w));
-  const c=ss.filter(s=>Math.abs(s-n/2)<=w).length;
-  return trous(level,`On appelle estim(${N0}, ${n}) adaptée à la pièce (ligne 4&nbsp;: f = piece(n)&nbsp;; ligne 5&nbsp;: abs(f - 1/2) &lt;= 1/sqrt(n)). piece(${n}) renvoie successivement ${ss.map(s=>numT(R(s,n))).join(' ; ')}. À la fin, c = {0} et la fonction renvoie {1}.`,
-    [BL(R(c),2.5),BL(R(c,N0),4,[`${c}/${N0}`])],`${INV} = ${dec(R(1,m))}&nbsp;: on compte les f avec |f − 0,5| ≤ ${dec(R(1,m))} (l'égalité compte). c = ${c}, et c / N = ${c} / ${N0} = ${fH(c,N0)}.`,{k:'estimT',ss,n,N:N0,steps:3,mx:n})}
+function tracePT(level,n){const rs=Array.from({length:n},()=>ri(0,1)),s=rs.filter(r=>r===0).length;
+  return trous(level,`On appelle piece(${n}) (fonction du cours&nbsp;: randint(0, 1), on compte les 0). randint(0, 1) renvoie successivement ${rs.join(' ; ')}. À la fin, s = {0} et la fonction renvoie {1}.`,
+    [BL(R(s),2.5),BL(R(s,n),4,[`${s}/${n}`])],`Nombre de 0&nbsp;: ${s}. La fonction renvoie s / n = ${s} / ${n} = ${fH(s,n)}.`,{k:'traceP',rs,n,steps:2,mx:n})}
+/* simulation de deux pièces : la probabilité plausible est la plus proche de f */
+function plausQ(level,full){const n=10000,s=N.binom(R(1,4),n),f=R(s,n);
+  const prompt=full?`On lance deux pièces équilibrées ensemble. Une simulation de ${fmtInt(n)} lancers donne ${fmtInt(s)} fois «&nbsp;deux PILE&nbsp;». D'après la loi des grands nombres, la probabilité d'obtenir deux PILE est proche de&nbsp;:`
+    :`Une simulation de ${fmtInt(n)} lancers de deux pièces donne une fréquence de «&nbsp;deux PILE&nbsp;» f = ${dec(f)}. La probabilité d'obtenir deux PILE est proche de&nbsp;:`;
+  return qcm(level,prompt,'0,25',['0,5','0,75','0,1'],`${full?`f = ${fmtInt(s)} / ${fmtInt(n)} = ${dec(f)}. `:''}Pour n grand, sauf exception, f est proche de p&nbsp;: p est proche de 0,25 (quatre issues équiprobables, une favorable).`,{k:'plaus',s,n,p:[1,4],steps:full?2:1,mx:n})}
+/* valider ou invalider le modèle « dé équilibré » */
+function validQ(level,full){const truque=Math.random()<.5,n=6000,s=N.binom(truque?R(1,4):R(1,6),n),f=R(s,n);
+  const oui=`Oui&nbsp;: n est grand et f est loin de ${frH(1,6)} ≈ 0,17`,non=`Non&nbsp;: n est grand et f est proche de ${frH(1,6)} ≈ 0,17`;
+  const prompt=full?`On lance un dé ${fmtInt(n)} fois et on obtient ${fmtInt(s)} fois le 6. Le modèle «&nbsp;dé équilibré&nbsp;» (probabilité ${frH(1,6)} pour le 6) est-il remis en question&nbsp;?`
+    :`On lance un dé ${fmtInt(n)} fois&nbsp;: la fréquence observée du 6 est f = ${dec(f,3)}. Le modèle «&nbsp;dé équilibré&nbsp;» (probabilité ${frH(1,6)} pour le 6) est-il remis en question&nbsp;?`;
+  return qcm(level,prompt,truque?oui:non,[truque?non:oui,'Non&nbsp;: un dé est toujours équilibré',`Oui&nbsp;: f n'est pas exactement égale à ${frH(1,6)}`],
+    `${full?`f = ${fmtInt(s)} / ${fmtInt(n)} ≈ ${dec(R(Math.round(s*1000/n),1000),3)}. `:''}${truque?`Pour ${fmtInt(n)} lancers, f est loin de ${frH(1,6)} ≈ 0,167&nbsp;: le modèle est remis en question.`:`Pour ${fmtInt(n)} lancers, f est proche de ${frH(1,6)} ≈ 0,167&nbsp;: rien ne contredit le modèle.`} «&nbsp;Équilibré&nbsp;» est une hypothèse, et f n'est presque jamais exactement égale à p.`,{k:'valid',s,n,p:[1,6],steps:full?3:2,mx:n})}
 
 /* ---------- textes fixes (concepts) ---------- */
 const T={
@@ -1004,24 +993,37 @@ const T={
    :qcm(l,'Une pièce équilibrée est lancée 10 000 fois. Que prédit la loi des grands nombres&nbsp;?','La fréquence de PILE sera le plus souvent proche de 0,5',
    ['La fréquence de PILE sera exactement 0,5','On obtiendra exactement 5 000 fois PILE','La fréquence de PILE sera le plus souvent proche de 0'],
    'Pour n grand, f est le plus souvent <b>proche</b> de p = 0,5&nbsp;: la loi ne promet pas de valeur exacte.',{k:'txt',id:'lgnP',steps:1,mx:10000})},
- prop:l=>qcm(l,'Propriété du cours&nbsp;: pour n assez grand, dans 95&nbsp;% des cas&nbsp;:',`<span class="nw">|f − p|</span> ≤ ${INV}`,[`<span class="nw">|f − p|</span> ≥ ${INV}`,'f = p','<span class="nw">|f − p|</span> ≤ 1/n'],
-   `Dans 95&nbsp;% des cas, l'écart entre f et p est au plus ${INV}.`,{k:'txt',id:'prop',steps:1,mx:1}),
+ exception:l=>qcm(l,'Loi des grands nombres&nbsp;: «&nbsp;lorsque n est grand, sauf exception, la fréquence observée est proche de la probabilité&nbsp;». «&nbsp;Sauf exception&nbsp;» signifie&nbsp;:',
+   'qu\'il peut arriver, rarement, qu\'un échantillon donne une fréquence éloignée de p',['que f est toujours égale à p','que f est proche de p dans un seul cas exceptionnel','que la loi ne vaut que pour les pièces'],
+   'Le plus souvent, f est proche de p&nbsp;; l\'exception, c\'est un échantillon qui s\'en éloigne, ce qui arrive rarement.',{k:'txt',id:'exception',steps:1,mx:1}),
+ petitn:l=>{const s=pick([2,3,7,8]);return qcm(l,`On simule 10 lancers d'une pièce équilibrée et on obtient une fréquence de PILE f = ${dec(R(s,10))}. Le modèle «&nbsp;pièce équilibrée&nbsp;» est-il faux&nbsp;?`,
+   'Pas forcément&nbsp;: pour n = 10, f peut être loin de p',['Oui, car f n\'est pas égale à 0,5','Oui, car f devrait être proche de 0,5 quel que soit n'],
+   'La loi des grands nombres concerne n grand&nbsp;: pour 10 lancers, de grands écarts entre f et p sont fréquents.',{k:'txt',id:'petitn',steps:1,mx:10})},
+ hypo:l=>qcm(l,`Pour un dé à 6 faces, pourquoi prend-on la probabilité ${frH(1,6)} pour chaque face&nbsp;?`,'C\'est une hypothèse du modèle&nbsp;: on suppose le dé équilibré',
+   ['On l\'a démontré en lançant le dé 6 fois','Parce que chaque face sort exactement une fois sur six','Parce que 6 est un nombre pair'],
+   'Une loi de probabilité est une hypothèse du modèle choisi&nbsp;: elle ne se démontre pas. Ici, l\'hypothèse est «&nbsp;dé équilibré&nbsp;».',{k:'txt',id:'hypo',steps:1,mx:6}),
+ reel:l=>{const s=pick([5120,5140,5160]);return qcm(l,`Sur 10 000 naissances, on compte ${fmtInt(s)} garçons. On choisit le modèle&nbsp;: un enfant est un garçon avec la probabilité ${dec(R(s,10000))}. Que peut-on dire&nbsp;?`,
+   'C\'est un modèle, construit à partir de fréquences observées&nbsp;: il ne se démontre pas',['C\'est démontré&nbsp;: chaque naissance a exactement cette probabilité','Il faut prendre 0,5&nbsp;: deux issues sont toujours équiprobables'],
+   'Le modèle est construit à partir des fréquences observées (loi des grands nombres)&nbsp;; on distingue le modèle de la situation réelle.',{k:'txt',id:'reel',steps:1,mx:10000})},
+ punaise:l=>qcm(l,'Une punaise tombe pointe en haut ou sur le côté. Pour choisir la probabilité de «&nbsp;pointe en haut&nbsp;», on peut&nbsp;:',
+   'lancer un grand nombre de punaises et prendre la fréquence observée',['prendre 0,5, car il y a deux positions','prendre 1, car la pointe est toujours en haut','dire qu\'aucune probabilité n\'est possible'],
+   'La punaise n\'est pas symétrique&nbsp;: on construit le modèle à partir de la fréquence observée sur un grand nombre de lancers.',{k:'txt',id:'punaise',steps:1,mx:1}),
  randint:l=>qcm(l,'En Python, randint(1, 6) renvoie&nbsp;:','un entier aléatoire entre 1 et 6',['un nombre décimal aléatoire entre 1 et 6','un entier aléatoire entre 1 et 5','la somme 1 + 2 + 3 + 4 + 5 + 6'],
    'randint(a, b)&nbsp;: entier aléatoire dans [a ; b], bornes comprises.',{k:'txt',id:'randint',steps:1,mx:6}),
  codeS:l=>qcm(l,`Dans la fonction de(n) du cours, que contient s à la fin de la boucle&nbsp;?${L.codeH(L.DE.slice(3))}`.replace(/<b>(\d+)<\/b>/g,(_,k)=>`<b>${+k+3}</b>`),'Le nombre de gains',['La fréquence des gains','Le dernier résultat du dé','La taille n'],
-   's augmente de 1 à chaque gain (ligne 9)&nbsp;: c\'est le nombre de gains. La fréquence, s / n, n\'est calculée qu\'à la ligne 10.',{k:'txt',id:'s',steps:1,mx:6}),
- estimQ:l=>{const n=pick([100,400,2500]);return qcm(l,`La fonction estim(N, n) du cours compte, sur N simulations, celles qui vérifient <span class="nw">|f − p|</span> ≤ ${INV}, puis renvoie c / N. estim(1000, ${fmtInt(n)}) renvoie une valeur proche de&nbsp;:`,
-   '0,95',['950',frH(1,3),'0,05'],'Dans environ 95&nbsp;% des cas, <span class="nw">|f − p|</span> ≤ '+INV+'&nbsp;: c / N ≈ 0,95 (950, ce serait c).',{k:'estim',N:1000,n,steps:1,mx:1000})}};
+   's augmente de 1 à chaque gain (ligne 9)&nbsp;: c\'est le nombre de gains. La fréquence, s / n, n\'est calculée qu\'à la ligne 10.',{k:'txt',id:'s',steps:1,mx:6})};
+const lgnST=(l,st)=>trous(l,'Loi des grands nombres&nbsp;: lorsque n est {0}, sauf exception, la fréquence observée est proche de la {1}.',[BWd(['grand','très grand']),BWd(['probabilité','probabilite','probabilité p'],7)],
+  'Version vulgarisée du cours&nbsp;: lorsque n est grand, sauf exception, la fréquence observée est proche de la probabilité.',{k:'lgnS',steps:st||1,mx:1});
 
 /* ===== Bronze · Les bases ===== */
 const BRONZE={
- qcm:[()=>tailleQ(1,[20,30,40,50,60,100]),()=>T.def(1),()=>pdeQ(2,2),()=>T.fluct(3),()=>T.lgnq(4),()=>T.prop(6),()=>T.randint(7)],
+ qcm:[()=>tailleQ(1,[20,30,40,50,60,100]),()=>T.def(1),()=>pdeQ(2,2),()=>T.fluct(3),()=>T.lgnq(4),()=>T.exception(5),()=>T.hypo(6),()=>T.randint(7)],
  trous:[
   ()=>{const n=pick([100,200,500,1000]);return trous(1,`Sonder ${fmtInt(n)} électeurs&nbsp;: c'est un échantillon de taille {0}.`,[BL(R(n),4)],`Un électeur interrogé = une répétition&nbsp;: n = ${fmtInt(n)}.`,{k:'n',n,steps:1,mx:n})},
   ()=>{const n=pick([10,20,25,50,100]),s=ri(Math.round(.3*n),Math.round(.7*n));return freqT(2,n,s,`Sur ${n} lancers d'une pièce, on obtient ${s} fois PILE.`)},
   ()=>trous(2,'On lance une pièce équilibrée. La probabilité d\'obtenir PILE est p = {0}.',[BL(R(1,2))],'Deux faces équiprobables&nbsp;: p = 1/2 = 0,5.',{k:'val',v:[1,2],steps:1,mx:2}),
   ()=>trous(4,'Quand n devient {0}, la fréquence observée f est le plus souvent proche de la probabilité p.',[BWd(['grand','très grand','grande'])],'Loi des grands nombres&nbsp;: quand n devient grand.',{k:'lgnT1',steps:1,mx:1}),
-  ()=>{const n=pick([100,10000,25]),m=isqrt(n);return trous(5,`Pour n = ${fmtInt(n)}, ${INV} = {0}.`,[BL(R(1,m))],`√${fmtInt(n)} = ${m}, donc ${INV} = 1 / ${m} = ${dec(R(1,m))}.`,{k:'inv',n,steps:1,mx:n})}]};
+  ()=>lgnST(5)]};
 
 /* ===== Argent · La maîtrise ===== */
 const ARGENT={
@@ -1029,29 +1031,19 @@ const ARGENT={
   ()=>{const base=pick([[20,200,2000,20000],[25,250,2500,25000],[50,500,5000,50000],[10,100,1000,10000]]);
     return qcm(4,`Quatre échantillons, de tailles ${base.map(fmtInt).join(', ')}. Lequel donne le plus souvent une fréquence proche de p&nbsp;?`,`Celui de taille ${fmtInt(base[3])}`,base.slice(0,3).map(n=>`Celui de taille ${fmtInt(n)}`),
       'Plus n est grand, plus f est le plus souvent proche de p&nbsp;: le plus grand échantillon.',{k:'nmax',ns:base,steps:1,mx:base[3]})},
-  ()=>invQ(5),()=>verifQ(5,false),
-  ()=>{const n=pick([100,400,2500,10000]),m=isqrt(n),r=dec(R(1,m));return qcm(6,`Pour n = ${fmtInt(n)}, ${INV} = ${r}. Quelle interprétation est correcte&nbsp;?`,
-    `Dans 95&nbsp;% des cas, f est à au plus ${r} de p`,['Dans 95&nbsp;% des cas, f = p',`Dans tous les cas, f est à au plus ${r} de p`,`Dans 95&nbsp;% des cas, f est à au plus ${dec(R(1,n))} de p`],
-    `Dans 95&nbsp;% des cas, <span class="nw">|f − p|</span> ≤ ${r}&nbsp;: pas tous les cas, et sans égalité.`,{k:'interp',n,steps:1,mx:n})},
-  ()=>T.codeS(7),()=>T.estimQ(6)],
+  ()=>plausQ(5,false),()=>T.petitn(5),()=>T.reel(6),()=>validQ(6,false),()=>T.codeS(7)],
  trous:[
   ()=>{const n=pick([200,250,400,500,1000]),s=ri(Math.round(.3*n),Math.round(.7*n));return freqT(2,n,s,`On interroge ${fmtInt(n)} jeunes au hasard&nbsp;: ${fmtInt(s)} déclarent écouter de la musique chaque jour.`)},
-  ()=>bornesT(5),
-  ()=>{const N0=pick([200,300,400,500,1000,2000]);return trous(6,`On fait N = ${fmtInt(N0)} simulations d'échantillons de taille n assez grand. D'après la propriété du cours, environ {0} d'entre elles vérifient <span class="nw">|f − p|</span> ≤ ${INV}.`,[BL(R(95*N0,100))],
-    `95&nbsp;% de ${fmtInt(N0)}&nbsp;: 0,95 × ${fmtInt(N0)} = ${fmtInt(95*N0/100)}.`,{k:'n95',N:N0,steps:1,mx:N0})},
+  ()=>{const n=1000,s=ri(580,720);return trous(6,`On lance 1 000 punaises&nbsp;: ${s} tombent pointe en haut. On choisit comme modèle la probabilité de «&nbsp;pointe en haut&nbsp;» égale à la fréquence observée, soit {0}.`,[BL(R(s,n),4,[`${s}/${n}`])],
+    `f = ${s} / 1 000 = ${dec(R(s,n))}&nbsp;: un modèle construit à partir de fréquences observées.`,{k:'f',s,n,steps:1,mx:n})},
   ()=>traceT(7,pick([4,5])),
-  ()=>{const d=Math.random()<.5;return d?trous(7,'Fonction piece(n) du cours (randint(0, 1), on compte les 0). Pour n grand, piece(n) tend vers {0}.',[BL(R(1,2))],'r vaut 0 ou 1 avec la même probabilité&nbsp;: p = 1/2 = 0,5.',{k:'tend',p:[1,2],steps:1,mx:2})
-    :trous(7,'Fonction de(n) du cours (gagner si r vaut 1 ou 6). Pour n grand, de(n) tend vers {0}.',[BL(R(1,3),4,['2/6'])],'2 faces favorables sur 6&nbsp;: p = 2/6 = 1/3.',{k:'tend',p:[1,3],steps:1,mx:6})},
-  ()=>trous(6,'La fonction estim(N, n) du cours renvoie c / N. Pour N et n grands, estim(N, n) renvoie environ {0}.',[{answers:['0,95','0.95','95%','19/20','0,950'],size:4}],'Dans 95&nbsp;% des cas, <span class="nw">|f − p|</span> ≤ '+INV+'&nbsp;: c / N ≈ 0,95.',{k:'estimT0',steps:1,mx:1})]};
+  ()=>{const d=Math.random()<.5;return d?trous(7,'Fonction piece(n) du cours (randint(0, 1), on compte les 0). Pour n grand, piece(n) est le plus souvent proche de {0}.',[BL(R(1,2))],'r vaut 0 ou 1 avec la même probabilité&nbsp;: p = 1/2 = 0,5.',{k:'tend',p:[1,2],steps:1,mx:2})
+    :trous(7,'Fonction de(n) du cours (gagner si r vaut 1 ou 6). Pour n grand, de(n) est le plus souvent proche de {0}.',[BL(R(1,3),4,['2/6'])],'2 faces favorables sur 6&nbsp;: p = 2/6 = 1/3.',{k:'tend',p:[1,3],steps:1,mx:6})},
+  ()=>lgnST(5,2)]};
 
 /* ===== Or · L'expert ===== */
 const OR={
- qcm:[()=>verifQ(6,true),
-  ()=>{const m=pick([10,20,25,50,100]),r=R(1,m),n=m*m;const bad=[[m,`${m}, c'est √n`],[2*m,'']],sq=R(1,n);
-    return qcm(5,`Quelle taille n d'échantillon donne ${INV} = ${dec(r)}&nbsp;?`,fmtInt(n),[fmtInt(m),fmtInt(2*m),dec(sq)],
-      `${INV} = ${dec(r)} = 1 / ${m}, donc √n = ${m} et n = ${m} × ${m} = ${fmtInt(n)}.`,{k:'nfromr',m,steps:2,mx:n})},
-  ()=>{const k=pick([2,3,4,5,10]),k2=k*k;return qcm(5,`On multiplie par ${k2} la taille n des échantillons. La demi-largeur ${INV} de la bande est alors&nbsp;:`,
-    `divisée par ${k}`,[`divisée par ${k2}`,`multipliée par ${k}`,'inchangée'],`√(${k2} × n) = ${k} × √n, donc ${INV} est divisée par ${k}.`,{k:'xk',fac:k,steps:2,mx:k2})},
+ qcm:[()=>validQ(6,true),()=>plausQ(5,true),
   ()=>{const n=pick([1000,10000,2500,500]),base=Math.round(n/3),s=base+ri(1,Math.max(2,Math.round(n/1000)))*(Math.random()<.5?-1:1);
     return qcm(4,`On lance ${fmtInt(n)} fois un dé et on gagne si le résultat est 1 ou 6 (p = ${frH(1,3)}). On obtient f = ${dec(R(s,n))}. Le dé est-il truqué&nbsp;?`,
       `Rien ne le montre&nbsp;: pour n grand, f est le plus souvent proche de p, et s / ${fmtInt(n)} ne peut pas valoir exactement ${frH(1,3)}`,
@@ -1061,25 +1053,19 @@ const OR={
       k=C.fav.length,p=R(k,6),bad=shuf([R(1,6),R(1,3),R(1,2),R(2,3)].filter(x=>!N.eq(x,p))).slice(0,2).map(ph).concat([String(k)]);
     return qcm(7,`Dans la fonction de(n) du cours, on remplace la ligne 8 par <code>${C.c}</code>. Pour n grand, de(n) renvoie le plus souvent une valeur proche de&nbsp;:`,ph(p),bad,
       `Valeurs de r qui comptent&nbsp;: ${C.fav.join(', ')}, soit ${k} sur 6. p = ${frH(k,6)}${k===1?'':' = '+ph(p)}, et de(n) renvoie une fréquence, proche de p pour n grand.`,{k:'decode',fav:C.fav,steps:2,mx:6})},
-  ()=>{const p=pick([R(3,10),R(2,5),R(1,2),R(3,5)]),n=pick([100,400,2500]),m=isqrt(n),np=n*p.n/p.d;
-    return qcm(6,`Dans un grand lycée, la proportion d'élèves demi-pensionnaires est p = ${dec(p)}. On interroge ${fmtInt(n)} élèves au hasard. D'après la propriété du cours, dans 95&nbsp;% des cas, le nombre de demi-pensionnaires de l'échantillon est compris entre&nbsp;:`,
-      `${fmtInt(np-m)} et ${fmtInt(np+m)}`,[`${dec(sub(p,R(1,m)))} et ${dec(add(p,R(1,m)))}`,`${fmtInt(np-1)} et ${fmtInt(np+1)}`,`${dec(R(np*m-1,m))} et ${dec(R(np*m+1,m))}`],
-      `f est entre ${dec(p)} − ${dec(R(1,m))} et ${dec(p)} + ${dec(R(1,m))}&nbsp;; en nombre d'élèves (× ${fmtInt(n)})&nbsp;: entre ${fmtInt(np-m)} et ${fmtInt(np+m)}.`,{k:'sondChain',p:[p.n,p.d],n,steps:3,mx:n})},
   ()=>{const [a,b]=pick([[25,2500],[16,1600],[100,10000],[25,10000]]);return qcm(3,`Pièce équilibrée. Un échantillon de taille ${fmtInt(a)} et un échantillon de taille ${fmtInt(b)}. Lequel a le plus de chances de donner une fréquence de PILE à plus de 0,1 de 0,5&nbsp;?`,
     `Celui de taille ${fmtInt(a)}`,[`Celui de taille ${fmtInt(b)}`,'Les deux autant'],
-    `La fluctuation est plus forte pour les petits échantillons&nbsp;: pour n = ${fmtInt(b)}, dans 95&nbsp;% des cas, f est à au plus ${dec(R(1,isqrt(b)))} de 0,5.`,{k:'fluctOr',a,b,steps:2,mx:b})}],
+    `La fluctuation est plus forte pour les petits échantillons&nbsp;: pour n = ${fmtInt(b)}, sauf exception, la fréquence observée est proche de 0,5 (loi des grands nombres).`,{k:'fluctOr',a,b,steps:2,mx:b})},
+  ()=>{const q=T.punaise(6);q.meta.steps=2;q.meta.mx=1000;return q}],
  trous:[
-  ()=>{const n=pick([400,625,2500]),m=isqrt(n),p=pick([R(2,5),R(1,2),R(3,10)]),s=Math.round(n*p.n/p.d)+ri(-n/m,n/m);
-    return trous(5,`Sondage&nbsp;: ${fmtInt(s)} jeunes sur ${fmtInt(n)} répondent oui. La fréquence observée est f = {0} et ${INV} = {1}.`,[BL(R(s,n),4,[`${s}/${n}`]),BL(R(1,m))],
-      `f = ${fmtInt(s)} / ${fmtInt(n)} = ${dec(R(s,n))}&nbsp;; √${fmtInt(n)} = ${m}, donc ${INV} = ${dec(R(1,m))}.`,{k:'chain',s,n,steps:2,mx:n})},
-  ()=>{const n=pick([100,400,2500]),m=isqrt(n),N0=pick([1000,2000,500]),p=pick([R(1,2),R(2,5),R(3,5)]);
-    return trous(6,`p = ${dec(p)} et n = ${fmtInt(n)}. On fait ${fmtInt(N0)} simulations. D'après la propriété du cours, environ {0} d'entre elles donnent une fréquence f comprise entre {1} et {2}.`,
-      [BL(R(95*N0,100)),BL(sub(p,R(1,m))),BL(add(p,R(1,m)))],`0,95 × ${fmtInt(N0)} = ${fmtInt(95*N0/100)}&nbsp;; ${INV} = ${dec(R(1,m))}, donc f entre ${dec(sub(p,R(1,m)))} et ${dec(add(p,R(1,m)))}.`,{k:'sims95',N:N0,p:[p.n,p.d],n,steps:3,mx:n})},
-  ()=>estimT(7,pick([4,5]),pick([100,400]),true),
-  ()=>trous(7,'Pour adapter la fonction estim du cours à une pièce, on écrit ligne 4&nbsp;: f = {0}(n) et ligne 5&nbsp;: if abs(f - {1}) &lt;= 1/sqrt(n):',[BWd(['piece'],5),BL(R(1,2))],
-    'Ligne 4&nbsp;: on simule une pièce avec piece(n). Ligne 5&nbsp;: p = 1/2.',{k:'adapt',steps:2,mx:2}),
   ()=>traceT(7,pick([8,10])),
-  ()=>{const m=pick([20,25,50,100]);return trous(5,`Pour que ${INV} = ${dec(R(1,m))}, il faut n = {0}.`,[BL(R(m*m),4)],`${dec(R(1,m))} = 1 / ${m}&nbsp;: √n = ${m}, donc n = ${fmtInt(m*m)}.`,{k:'nfromrT',m,steps:2,mx:m*m})}]};
+  ()=>tracePT(7,pick([8,10])),
+  ()=>trous(7,'On adapte la fonction de(n) du cours pour gagner seulement avec un 6&nbsp;: ligne 8, if r == {0}:. Pour n grand, la fonction renvoie le plus souvent une valeur proche de {1}.',[BL(R(6),2.5),BL(R(1,6),4)],
+    'Ligne 8&nbsp;: on ne compte que le 6. Une face gagnante sur 6&nbsp;: la fréquence est proche de p = 1/6 pour n grand.',{k:'adapt6',steps:2,mx:6}),
+  ()=>{const n=10000,s=ri(5100,5180);return trous(6,`Sur ${fmtInt(n)} naissances, on compte ${fmtInt(s)} garçons. La fréquence observée des garçons est {0}&nbsp;; on choisit donc comme modèle la probabilité qu'un enfant soit une fille égale à {1}.`,
+    [BL(R(s,n),4,[`${s}/${n}`]),BL(R(n-s,n),4,[`${n-s}/${n}`])],`f = ${fmtInt(s)} / ${fmtInt(n)} = ${dec(R(s,n))}&nbsp;; filles&nbsp;: 1 − ${dec(R(s,n))} = ${dec(R(n-s,n))}.`,{k:'fille',s,n,steps:2,mx:n})},
+  ()=>{const n=10000,s=ri(2440,2560);return trous(5,`On simule ${fmtInt(n)} lancers de deux pièces équilibrées&nbsp;: «&nbsp;deux PILE&nbsp;» sort ${fmtInt(s)} fois. La fréquence observée est {0}, proche de la probabilité {1}.`,
+    [BL(R(s,n),4,[`${s}/${n}`]),BL(R(1,4),4)],`f = ${fmtInt(s)} / ${fmtInt(n)} = ${dec(R(s,n))}. Quatre issues équiprobables (PP, PF, FP, FF), une favorable&nbsp;: p = 1/4 = 0,25.`,{k:'twoPile',s,n,steps:2,mx:n})}]};
 
 /* tirage : 6 QCM + 4 trous distincts, mélangés */
 function build(B){const q=shuf(B.qcm.slice()).slice(0,6).map(f=>f()),t=shuf(B.trous.slice()).slice(0,4).map(f=>f());return shuf(q.concat(t))}
@@ -1092,7 +1078,7 @@ window.CS_FIN={bronze:()=>build(BRONZE),argent:()=>build(ARGENT),or:()=>build(OR
 <script src="/sigma-arcade/sigma-kit.js"></script>
 <script>
 SigmaKit.init({game:'coup-de-sonde',title:'Coup de Sonde',levels:7,
-  levelNames:['Échantillon','Fréquence','La pluie','Grands nombres','La bande','95 % des cas','Le code'],
+  levelNames:['Échantillon','Fréquence','La pluie','Grands nombres','Simuler','Le modèle','Le code'],
   music:'aventure',finals:{bronze:()=>(window.CS_lastFinal=CS_FIN.bronze()),argent:()=>(window.CS_lastFinal=CS_FIN.argent()),or:()=>(window.CS_lastFinal=CS_FIN.or())}});
 CS.start();
 (function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)

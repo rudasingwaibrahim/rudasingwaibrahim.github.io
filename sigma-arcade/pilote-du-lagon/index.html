@@ -716,7 +716,7 @@ LV.push({t:'Balises alignées',ch:'Alignement et parallélisme',
 /* ===================== Niveau 7 · Rendez-vous ===================== */
 LV.push({t:'Rendez-vous',ch:'Milieu, distance, médiatrice',
  rule:`<p><b>Milieu</b> de [AB]&nbsp;: I${'('+fr('x<sub>A</sub> + x<sub>B</sub>','2')+'&nbsp;; '+fr('y<sub>A</sub> + y<sub>B</sub>','2')+')'}.</p><p><b>Distance</b> (repère orthonormé)&nbsp;: AB = √((x<sub>B</sub> − x<sub>A</sub>)² + (y<sub>B</sub> − y<sub>A</sub>)²) (théorème de Pythagore).</p>
-  <p><b>Projeté orthogonal</b> de A sur une droite d&nbsp;: le pied H de la perpendiculaire à d passant par A. AH est la plus courte distance de A à d.</p><p><b>Médiatrice</b> de [AB]&nbsp;: M est sur la médiatrice ⟺ MA = MB.</p>`,
+  <p><b>Comparer deux distances</b>&nbsp;: on compare leurs carrés (deux distances positives sont rangées comme leurs carrés).</p><p><b>Médiatrice</b> de [AB]&nbsp;: M est sur la médiatrice ⟺ MA = MB.</p>`,
  qs:[
  ()=>{const [A,B]=until(()=>{const A=rp(6,4),B=rp(6,4);return (A[0]+B[0])%2===0&&(A[1]+B[1])%2===0&&d2(A,B)>=16&&A[0]!==B[0]&&A[1]!==B[1]?[A,B]:null}),I=[(A[0]+B[0])/2,(A[1]+B[1])/2];
   return{d:1,prompt:`Deux vedettes, en ${P('A',A)} et ${P('B',B)}, se donnent rendez-vous au milieu I de [AB]. Place I.`,
@@ -733,15 +733,13 @@ LV.push({t:'Rendez-vous',ch:'Milieu, distance, médiatrice',
      fill('Pythagore dans le triangle rectangle&nbsp;:',`AB² = {0}² + {1}² = {2}`,[[String(dx)],[String(dy)],[String(s)]],(v,o)=>o[0]&&o[1]?`${dx}² + ${dy}² = ${dx*dx} + ${dy*dy}.`:'Les côtés de l\'angle droit mesurent |x<sub>B</sub> − x<sub>A</sub>| et |y<sub>B</sub> − y<sub>A</sub>|&nbsp;: compte les carreaux.',{k:'leg',A,B}),
      ch('Donc AB = &nbsp;?',L,{k:'dist',A,B})],
    done:`AB = √(${dx}² + ${dy}²) = ${sq(s)}${rad(s)[0]>1?' = '+radH(s):''}.`}},
- ()=>{const hz=Math.random()<.5,c=ri(-3,3),[A]=until(()=>{const A=hz?[ri(-5,5),ri(-4,4)]:[ri(-6,6),ri(-3,3)];return (hz?Math.abs(A[1]-c):Math.abs(A[0]-c))>=2?[A]:null});
-  const Hh=hz?[A[0],c]:[c,A[1]],L1=hz?[[-6,c],[6,c]]:[[c,-4],[c,4]];
-  return{d:2,prompt:`La vedette est en ${P('A',A)}, en panne d'essence. Elle doit rejoindre le quai, la droite d d'équation ${hz?'y = '+f(c):'x = '+f(c)}, par le <b>plus court chemin</b>. Place le point d'arrivée H.`,
-   scene(){SC.line({a:L1[0],b:L1[1],col:'rgba(232,199,102,.75)',dash:false,w:3,lab:'d (quai)',lp:hz?[3.6,c]:[c,-3.4]});SC.pt('A',A);SC.boat(A)},cap0:'Le plus court chemin : la perpendiculaire',
-   parts:[{t:'pt',name:'H',start:hz?[0,c]:[c,0],sol:Hh,ask:'Place H sur le quai&nbsp;:',au:{k:'proj',A,B:L1[0],C:L1[1]},why:(w,n)=>{const onL=hz?w[1]===c:w[0]===c;if(!onL)return 'H doit être <b>sur</b> le quai d.';const dd=dist0(A,w).toFixed(2).replace('.',','),dh=dist0(A,Hh);
-      return `Ce point est sur le quai, mais AH ≈ ${dd} alors qu'on peut faire ${f(dh)}&nbsp;: le plus court chemin est <b>perpendiculaire</b> au quai.`},
-      onOk:async()=>{SC.seg({a:A,b:Hh,col:C.w,w:3});S.SC.S.rt=[Hh,A,L1[0][0]===Hh[0]&&L1[0][1]===Hh[1]?L1[1]:L1[0]];await SC.sail([A,Hh])}},
-     ch('Quelle est la distance AH&nbsp;?',projCh(A,Hh,hz,c),{k:'projd',A,B:L1[0],C:L1[1]})],
-   done:`H(${f(Hh[0])}&nbsp;; ${f(Hh[1])}) est le projeté orthogonal de A sur d&nbsp;: AH = ${f(dist0(A,Hh))}, la plus courte distance de A au quai.`}},
+ ()=>{const [O,A,B]=until(()=>{const O=rp(4,3),A=rp(6,4),B=rp(6,4);if(same(A,B)||same(O,A)||same(O,B))return null;const a=d2(O,A),b=d2(O,B);return a!==b&&Math.abs(a-b)<=12&&A[0]!==O[0]&&A[1]!==O[1]&&B[0]!==O[0]&&B[1]!==O[1]?[O,A,B]:null}),a=d2(O,A),b=d2(O,B),cl=a<b?'A':'B',ot=cl==='A'?'B':'A';
+  return{d:2,prompt:`Le phare est en ${P('O',O)}. Deux vedettes sont en ${P('A',A)} et ${P('B',B)}. Laquelle est la plus proche du phare&nbsp;? Le repère est orthonormé.`,
+   scene(){SC.pt('O',O,{col:C.v});SC.pt('A',A);SC.pt('B',B);SC.seg({a:O,b:A,dash:true});SC.seg({a:O,b:B,dash:true});SC.boat(A);SC.boat(B,1,{col:'#ffe7a8'})},cap0:'On compare OA² et OB²',
+   parts:[fill('Calcule les carrés des distances&nbsp;:','OA² = {0} &nbsp; OB² = {1}',[[String(a)],[String(b)]],`OA² = (x<sub>A</sub> − x<sub>O</sub>)² + (y<sub>A</sub> − y<sub>O</sub>)²&nbsp;: un carré n'est jamais négatif.`,{k:'d2pair',M:O,A,B}),
+     ch('Conclusion&nbsp;:',uniq([OK(`La vedette ${cl}&nbsp;: O${cl}² est le plus petit.`,cl),NO(`La vedette ${ot}.`,`OA² = ${a} et OB² = ${b}&nbsp;: la plus petite distance correspond au plus petit carré.`,ot),NO('Elles sont à la même distance du phare.',`OA² = ${a} et OB² = ${b} ne sont pas égaux.`,'eq')]),{k:'closer',M:O,A,B},
+      {onOk:async()=>{SC.seg({a:O,b:cl==='A'?A:B,col:C.w,w:3});await SC.sail([cl==='A'?A:B,O],{b:cl==='A'?0:1})}})],
+   done:`OA² = ${a} et OB² = ${b}&nbsp;: O${cl} = √${Math.min(a,b)} &lt; O${ot} = √${Math.max(a,b)}, la vedette ${cl} est la plus proche du phare.`}},
  ()=>{const on=Math.random()<.5,[A,B,M]=until(()=>{const A=rp(5,3),B=rp(5,3);if(same(A,B)||d2(A,B)<8)return null;const cand=[];for(let x=-6;x<=6;x++)for(let y=-4;y<=4;y++){const m=[x,y];if(lens(A,B,m)&&(d2(m,A)===d2(m,B))===on&&(on||Math.abs(d2(m,A)-d2(m,B))<=8)&&!same(m,[(A[0]+B[0])/2,(A[1]+B[1])/2]))cand.push(m)}return cand.length?[A,B,pick(cand)]:null});
   const a=d2(M,A),b=d2(M,B);
   return{d:2,prompt:`Deux pontons, ${P('A',A)} et ${P('B',B)}. Une bouée est en ${P('M',M)}. Est-elle sur la médiatrice de [AB], à égale distance des deux pontons&nbsp;?`,
@@ -815,8 +813,8 @@ const aQ=[
    return Q(6,`${P('A',A)}, ${P('B',B)}, ${P('C',Cc)}. Les points A, B, C sont-ils alignés&nbsp;?`,[[al?'Oui':'Non',al],[al?'Non':'Oui',!al],['On ne peut pas savoir sans tracer une figure.',null]],{k:'ali',A,B,C:Cc},`${V('AB')}${pv(sub(B,A))}, ${V('AC')}${pv(sub(Cc,A))}&nbsp;: det = ${dLine(sub(B,A),sub(Cc,A))}${al?'&nbsp;: alignés.':' ≠ 0&nbsp;: non alignés.'}`,2)},
  ()=>{const [A,B]=twoPts(5,4,(A,B)=>A[0]!==B[0]&&A[1]!==B[1]&&rad(d2(A,B))[1]!==1),dx=Math.abs(B[0]-A[0]),dy=Math.abs(B[1]-A[1]),s=dx*dx+dy*dy;
    return Q(7,`Dans un repère orthonormé, ${P('A',A)} et ${P('B',B)}. La distance AB vaut&nbsp;:`,[[sq(s),{sq:s}],[f(dx+dy),{n:dx+dy}],[f(s),{n:s}],[sq(dx+dy),{sq:dx+dy}]],{k:'dist',A,B},`AB = √(${dx}² + ${dy}²) = ${sq(s)}.`,2)},
- ()=>{const hz=Math.random()<.5,c=nz(-3,3),A=until(()=>{const A=[nz(-5,5),nz(-4,4)];return (hz?A[1]:A[0])!==c&&A[0]!==A[1]?A:null}),H=hz?[A[0],c]:[c,A[1]],L=hz?[[0,c],[1,c]]:[[c,0],[c,1]];
-   return Q(7,`${P('A',A)}. Le projeté orthogonal de A sur la droite d d'équation ${hz?'y = '+f(c):'x = '+f(c)} est&nbsp;:`,[[P('H',H),H],[P('H',hz?[c,A[1]]:[A[0],c]),hz?[c,A[1]]:[A[0],c]],[P('H',hz?[A[0],0]:[0,A[1]]),hz?[A[0],0]:[0,A[1]]],[P('H',[c,c]),[c,c]]],{k:'proj',A,B:L[0],C:L[1]},`H est le pied de la perpendiculaire à d passant par A&nbsp;: H(${f(H[0])}&nbsp;; ${f(H[1])}).`,2)},
+ ()=>{const [O,A,B]=until(()=>{const O=rp(4,3),A=rp(6,4),B=rp(6,4);if(same(A,B)||same(O,A)||same(O,B))return null;const a=d2(O,A),b=d2(O,B);return a!==b&&Math.abs(a-b)<=12?[O,A,B]:null}),a=d2(O,A),b=d2(O,B),cl=a<b?'A':'B',ot=cl==='A'?'B':'A';
+   return Q(7,`Dans un repère orthonormé, ${P('O',O)}, ${P('A',A)} et ${P('B',B)}. Quel point est le plus proche de O&nbsp;?`,[[`A et B sont à la même distance de O.`,'eq'],[`${ot}`,ot],[`${cl}`,cl]].reverse(),{k:'closer',M:O,A,B},`OA² = ${a} et OB² = ${b}&nbsp;: le point ${cl} est le plus proche de O.`,2)},
  ()=>Q(3,'ABCD est un parallélogramme si et seulement si&nbsp;:',[[`${V('AC')} = ${V('AB')} + ${V('AD')}`,['AC','AB','AD']],[`${V('BD')} = ${V('AB')} + ${V('AD')}`,['BD','AB','AD']],[`${V('AC')} = ${V('AB')} + ${V('CD')}`,['AC','AB','CD']],[`${V('AC')} = ${V('BA')} + ${V('AD')}`,['AC','BA','AD']]],{k:'psum'},`Règle du parallélogramme&nbsp;: ${V('AC')} = ${V('AB')} + ${V('AD')}.`,2),
  ()=>Q(4,`Le vecteur −3${V('u')} (avec ${V('u')} non nul)&nbsp;:`,[['a la même direction que '+V('u')+', le sens opposé, et une norme 3 fois plus grande.','ok'],['a la même direction et le même sens que '+V('u')+'.','s'],['a une norme égale à −3 × ‖'+V('u')+'‖.','n'],['n\'est pas colinéaire à '+V('u')+'.','c']],{k:'txt'},`k = −3 &lt; 0&nbsp;: même direction, sens opposé, norme |−3| × ‖${V('u')}‖ = 3‖${V('u')}‖.`,2)
 ];
@@ -865,8 +863,8 @@ const oT=[
  ()=>{const [A,B]=twoPts(6,5,(A,B)=>A[0]!==B[0]&&A[1]!==B[1]&&rad(d2(A,B))[0]>1&&rad(d2(A,B))[1]>1),[k,b]=rad(d2(A,B));return T(7,`Repère orthonormé&nbsp;: ${P('A',A)} et ${P('B',B)}. AB = {0}${sq('{1}')} (b entier le plus petit possible).`,[[String(k)],[String(b)]],{k:'distk',A,B},`AB = ${sq(d2(A,B))} = ${sq(k*k+' × '+b)} = ${k}${sq(b)}.`,3)},
  ()=>{const [A,I]=until(()=>{const A=rp(6,5),I=rp(5,5);return !same(A,I)&&A[0]!==I[0]&&A[1]!==I[1]?[A,I]:null}),B=sub(mul(2,I),A);return T(7,`${P('I',I)} est le milieu de [AB] et ${P('A',A)}. Alors B( {0}&nbsp;; {1} ).`,[ans(B[0]),ans(B[1])],{k:'symB',A,I},`${V('IB')} = ${V('AI')}&nbsp;: B(${f(B[0])}&nbsp;; ${f(B[1])}).`,3)},
  ()=>{const [A,B,Cc,D]=until(()=>{const p=[rp(5,5),rp(5,5),rp(5,5),rp(5,5)];return lens(...p)?p:null});return T(6,`${P('A',A)}, ${P('B',B)}, ${P('C',Cc)}, ${P('D',D)}. det(${V('AB')}, ${V('CD')}) = {0}.`,[ans(det(sub(B,A),sub(D,Cc)))],{k:'detCD',A,B,C:Cc,D},`${V('AB')}${pv(sub(B,A))}, ${V('CD')}${pv(sub(D,Cc))}&nbsp;: det = ${dLine(sub(B,A),sub(D,Cc))}.`,3)},
- ()=>{const hz=Math.random()<.5,c=nz(-4,4),A=until(()=>{const A=[nz(-6,6),nz(-5,5)];return Math.abs((hz?A[1]:A[0])-c)>=2?A:null}),H=hz?[A[0],c]:[c,A[1]],L=hz?[[0,c],[1,c]]:[[c,0],[c,1]];
-   return T(7,`${P('A',A)} et d la droite d'équation ${hz?'y = '+f(c):'x = '+f(c)}. Le projeté orthogonal de A sur d est H( {0}&nbsp;; {1} ), et la distance de A à d vaut {2}.`,[ans(H[0]),ans(H[1]),ans(Math.abs((hz?A[1]:A[0])-c))],{k:'projfull',A,B:L[0],C:L[1]},`H(${f(H[0])}&nbsp;; ${f(H[1])}) et AH = ${f(Math.abs((hz?A[1]:A[0])-c))}, la plus courte distance de A à d.`,3)}
+ ()=>{const [M,A,B]=until(()=>{const A=rp(5,4),B=rp(5,4),M=rp(5,4);return !same(A,B)&&!same(M,A)&&!same(M,B)?[M,A,B]:null});
+   return T(7,`Repère orthonormé&nbsp;: ${P('M',M)}, ${P('A',A)} et ${P('B',B)}. MA² = {0} et MB² = {1}.`,[[String(d2(M,A))],[String(d2(M,B))]],{k:'d2pair',M,A,B},`MA² = (${f(A[0])} − ${pa(M[0])})² + (${f(A[1])} − ${pa(M[1])})² = ${d2(M,A)} et MB² = (${f(B[0])} − ${pa(M[0])})² + (${f(B[1])} − ${pa(M[1])})² = ${d2(M,B)}.`,3)},
 ];
 function build(qs,ts){for(;;){const out=[...shuf(qs.slice()).slice(0,6).map(g=>g()),...shuf(ts.slice()).slice(0,4).map(g=>g())];
   if(out.some(q=>q.type==='qcm'&&q.choices.length<3))continue;

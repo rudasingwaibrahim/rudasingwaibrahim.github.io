@@ -15,7 +15,7 @@ def E(i, q, m): err.append(f'sujet {i} {q}: {m}')
 def nb(t): return int(re.sub(r'\\,', '', t))
 def num_in(s): return [nb(x) for x in re.findall(r'\d+(?:\\,\d{3})*', s)]
 def texfact(n): return ' \\times '.join(f'{p}^{{{e}}}' if e > 1 else str(p) for p, e in sorted(factorint(n).items()))
-INTERDIT = re.compile(r'⌊|⌋|lfloor|PGCD|PPCM|pgcd|ppcm|partie entière|modulo|congru', re.I)
+INTERDIT = re.compile(r'⌊|⌋|lfloor|PGCD|PPCM|pgcd|ppcm|partie entière|modulo|congru|premier(?!s termes)|facteurs premiers|décompos', re.I)
 stats = Counter()
 for e in data['katexErr']: err.append('KaTeX ' + e)
 sigs = set()
@@ -54,32 +54,24 @@ for i, S in enumerate(data['sujets']):
     for x, y in re.findall(r'(\d+) \\times (\d+)', q['expl']):
         if int(x) * int(y) != n: E(i, 'q3', f'paire fausse {x}×{y}')
     stats['q3_' + str(len(d))] += 1
-    # Q4 premier
-    q = Q['q4']; vals = [int(c.strip('$')) for c in q['choix']]
-    pr = [v for v in vals if isprime(v)]
-    if len(pr) != 1: E(i, 'q4', f'{len(pr)} premiers parmi {vals}')
-    elif vals[q['bonne']] != pr[0]: E(i, 'q4', 'bonne réponse mal placée')
-    p = pr[0] if pr else 0
-    tests = [int(x) for x in re.findall(r'\$(\d+)\$', q['expl'].split('(ceux')[0])][1:]
-    if tests != list(primerange(2, integer_nthroot(p, 2)[0] + 1)): E(i, 'q4', f'liste des premiers à tester fausse {tests}')
-    for v in vals:
-        if v != p:
-            m = re.search(rf'\${v} = ([^$]+)\$', q['expl'])
-            if not m or m.group(1) != texfact(v): E(i, 'q4', f'factorisation de {v}')
-            if v % 2 == 0 or v % 3 == 0 or v % 5 == 0: E(i, 'q4', f'piège trop facile {v}')
-    # Q5 décomposition
-    q = Q['q5']; n = q['n']; f = factorint(n)
-    if q['aff'] != f'${n if n < 1000 else str(n)[:-3] + chr(92) + "," + str(n)[-3:]} = {texfact(n)}$': E(i, 'q5', 'affichage ' + q['aff'])
-    if len(f) < 2 or sum(f.values()) < 4 or max(f.values()) < 2 or not 120 <= n <= 1500: E(i, 'q5', f'{n} dégénéré')
-    for x, y, z in re.findall(r'\$([\d\\,]+) \\div (\d+) = ([\d\\,]+)\$', q['expl']):
-        if nb(x) != int(y) * nb(z): E(i, 'q5', f'division fausse {x}÷{y}={z}')
+    # Q4 plus grand multiple de a inférieur ou égal à b
+    q = Q['q4']; a, b, m = q['params']['a'], q['params']['b'], q['params']['m']
+    if m != a * (b // a) or q['rep'] != [str(m)] or m % a or m > b or m + a <= b: E(i, 'q4', f'plus grand multiple de {a} ≤ {b} : {m}')
+    if b % a == 0: E(i, 'q4', f'{b} multiple de {a} (cas dégénéré)')
+    if f'{b} = {a} \\times {b // a} + {b % a}' not in q['expl'].replace('\\,', ''): E(i, 'q4', 'division de b par a absente/fausse')
+    if f'{a} \\times {b // a + 1} = {m + a}' not in q['expl'].replace('\\,', ''): E(i, 'q4', 'multiple suivant faux')
+    # Q5 démonstration : carré d'un impair
+    q = Q['q5']; K, n5, k2 = q['params']['K'], q['params']['n'], q['params']['k2']
+    if n5 != 2 * K + 1 or n5 * n5 != 2 * k2 + 1 or k2 != 2 * K * K + 2 * K: E(i, 'q5', 'application fausse')
+    if q['trous'][3]['rep'] != [str(k2)] or q['trous'][0]['rep'] != ['4k'] or q['texte'].count('[[') != 4: E(i, 'q5', 'trous faux')
+    if f'{n5 * n5} = 2 \\times {k2} + 1' not in q['expl'].replace('\\,', ''): E(i, 'q5', 'vérification absente/fausse')
     # Q6 fraction
     q = Q['q6']; A, B, p_, q_ = (q['params'][k] for k in 'ABpq')
     if Rational(A, B) != Rational(p_, q_) or gcd(p_, q_) != 1 or q['rep'] != [f'{p_}/{q_}']: E(i, 'q6', 'fraction irréductible fausse')
     if p_ < 2 or q_ < 3 or p_ == q_ or A >= 1000 or B >= 1000 or gcd(A, B) < 6: E(i, 'q6', f'{A}/{B} dégénéré')
     g = gcd(A, B)
-    if f'facteurs premiers communs, ${texfact(g)} = {g}$' not in q['expl']: E(i, 'q6', 'facteurs communs faux')
-    if f'${A} = {texfact(A)}$ et ${B} = {texfact(B)}$' not in q['expl']: E(i, 'q6', 'décompositions fausses')
+    if f'${A} = {g} \\times {p_}$ et ${B} = {g} \\times {q_}$' not in q['expl']: E(i, 'q6', 'diviseur commun faux')
+    if f'On simplifie par ${g}$' not in q['expl']: E(i, 'q6', 'simplification absente')
     # Q7 parité : force brute sur n = -20..20
     q = Q['q7']; b, c = q['params']['b'], q['params']['c']
     par = {(n * n + b * n + c) % 2 for n in range(-20, 21)}

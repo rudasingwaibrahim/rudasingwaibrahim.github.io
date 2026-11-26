@@ -53,7 +53,7 @@ ds:
   label: DS bis
   pdf: seconde-ch13-ds-special.pdf
 erreurs:
-- "Confondre moyenne, médiane et mode"
+- "Confondre moyenne et médiane : la médiane partage la série ordonnée en deux groupes de même effectif"
 - Oublier de pondérer chaque valeur par son effectif dans le calcul de la moyenne
 - "Mal déterminer la médiane quand l'effectif total est pair : c'est la moyenne des deux valeurs centrales"
 - "Confondre les quartiles $Q_1$, $Q_3$ et la médiane"

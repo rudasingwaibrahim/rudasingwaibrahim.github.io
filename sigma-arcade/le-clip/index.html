@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Le Clip · Sigma Arcade</title>
-<meta name="description" content="Arithmétique en Seconde : multiples, diviseurs, parité, nombres premiers, décomposition en facteurs premiers, fractions irréductibles. Tu es chorégraphe : la notion, c'est la formation des danseurs.">
+<meta name="description" content="Arithmétique en Seconde : multiples, diviseurs, parité, plus grand multiple d'un entier inférieur ou égal à un autre, diviseurs communs, fractions irréductibles. Tu es chorégraphe : la notion, c'est la formation des danseurs.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
@@ -206,7 +206,7 @@ body.proj .badge{font-size:16px}body.proj .count{font-size:18px}
 <header>
 <a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
 <h1>Le Clip</h1>
-<p>Tu es chorégraphe. Tes danseurs doivent se ranger en rangées égales&nbsp;: quand la formation tombe pile, la troupe danse. Multiples, diviseurs, parité, nombres premiers… chaque notion se voit sur scène.</p>
+<p>Tu es chorégraphe. Tes danseurs doivent se ranger en rangées égales&nbsp;: quand la formation tombe pile, la troupe danse. Multiples, diviseurs, pair et impair, fractions irréductibles… chaque notion se voit sur scène.</p>
 </header>
 <nav class="lv" id="lv" aria-label="Niveaux"></nav>
 <main class="app">
@@ -241,7 +241,7 @@ body.proj .badge{font-size:16px}body.proj .count{font-size:18px}
   <div id="clipv" hidden>
     <div class="chap">Le final</div>
     <h2>Mon clip</h2>
-    <p class="prompt">Choisis ton nombre de danseurs, de 2 à 400. Le clip enchaîne toutes ses formations, puis la décomposition en facteurs premiers et le verdict&nbsp;: premier ou pas premier&nbsp;?</p>
+    <p class="prompt">Choisis ton nombre de danseurs, de 2 à 400. Le clip enchaîne toutes ses formations, puis les duos (pair ou impair&nbsp;?) et le bilan&nbsp;: combien de diviseurs&nbsp;?</p>
     <div class="clipf">
       <div class="step"><button type="button" data-cd="-1" aria-label="Un danseur de moins">−</button><input id="cn" inputmode="numeric" aria-label="Nombre de danseurs" value="36"><button type="button" data-cd="1" aria-label="Un danseur de plus">+</button></div>
       <button class="btn or" id="cgo" type="button">▶ Lancer mon clip</button>
@@ -251,7 +251,7 @@ body.proj .badge{font-size:16px}body.proj .count{font-size:18px}
     <p class="hint" id="cwarn" aria-live="polite"></p>
     <div class="cbox"><h3>Formations (b × k)</h3><div class="val" id="cforms">—</div></div>
     <div class="cbox"><h3>Diviseurs</h3><div class="val" id="cdivs">—</div></div>
-    <div class="cbox"><h3>Décomposition en facteurs premiers</h3><div class="val" id="cdec">—</div></div>
+    <div class="cbox"><h3>Pair ou impair&nbsp;?</h3><div class="val" id="cdec">—</div></div>
     <div id="cverd"></div>
   </div>
 </section>
@@ -510,7 +510,16 @@ const Lay={
     if(o.rowNums!==false&&k>1&&k<=30)for(let j=0;j<k;j++)labels.push([-1.05,j*DY-.62,String(j+1),'mut','r',.85]);
     if(o.top&&k)labels.push([(b-1)/2,-1.95,o.top,'gold','c']);
     return{pts,fl,labels,boxes}},
-  /* n danseurs en d rangées égales (test de primalité) + reste */
+  /* algorithme du plus grand multiple : m danseurs rangés par a, les n − m autres attendent sur le côté */
+  partial(n,a,m){const pts=[],fl=[],labels=[],boxes=[],k=m/a,r=n-m;
+    for(let i=0;i<m;i++){pts.push([i%a,Math.floor(i/a)*DY]);fl.push(0)}
+    if(r){let hc=Math.max(1,k);if(r>hc*4)hc=Math.ceil(Math.sqrt(r*1.3));const cx=k?a+1.9:0,nc=Math.ceil(r/hc);
+      for(let j=0;j<r;j++){pts.push([cx+Math.floor(j/hc),(j%hc)*DY]);fl.push(F_REST)}
+      labels.push([cx+(nc-1)/2,-1.95,'en attente : '+r,'ko','c'])}
+    if(k>1&&k<=30)for(let j=0;j<k;j++)labels.push([-1.05,j*DY-.62,String(j+1),'mut','r',.85]);
+    if(k)labels.push([(a-1)/2,-1.95,'m = '+m,'gold','c']);
+    return{pts,fl,labels,boxes}},
+  /* n danseurs en d rangées égales + reste */
   drows(n,d){const q=Math.floor(n/d),r=n-q*d,pts=[],fl=[],labels=[],boxes=[];
     for(let i=0;i<q*d;i++){pts.push([i%q,Math.floor(i/q)*DY]);fl.push(0)}
     if(r){const hc=Math.max(1,Math.min(d,Math.ceil(r/Math.max(1,Math.ceil(r/d))))),cx=q+1.9,nc=Math.ceil(r/hc);
@@ -518,7 +527,7 @@ const Lay={
       labels.push([cx+(nc-1)/2,-1.95,'reste '+r,'ko','c']);boxes.push([cx-.6,-1.75,cx+nc-.4,(Math.min(hc,r)-1)*DY+.35,'rgba(255,107,107,.55)'])}
     if(d<=30)for(let j=0;j<d;j++)labels.push([-1.05,j*DY-.62,String(j+1),'mut','r',.85]);
     return{pts,fl,labels,boxes}},
-  /* G groupes égaux (+ reste) : duos, groupes de 4, décomposition… */
+  /* G groupes égaux (+ reste) : duos, groupes de 4, équipes… */
   groups(n,m,o){o=o||{};const G=Math.floor(n/m),r=n-G*m,tg=Math.sqrt(m*DY*.9),ic=o.ic||(A.divisors(m).find(d=>d>=tg-.01)||m),ir=Math.ceil(m/ic);
     const gx=o.gap!=null?o.gap:Math.max(.9,Math.min(1.5,ic*.3)),gy=gx*1.1,cw=ic+gx,ch=ir*DY+gy;
     const AR=areaAR();let best=1,bs=0;
@@ -668,37 +677,17 @@ W.proof=(p,box)=>{let sel=null;const filled={};
     const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);
       if(gh){gh.remove();t.style.opacity='';t.dataset.drag='1';setTimeout(()=>{t.dataset.drag=''},0);if(hot){hot.classList.remove('hot');place(t.dataset.t,hot.dataset.s)}}};
     addEventListener('pointermove',mv,{passive:false});addEventListener('pointerup',up);addEventListener('pointercancel',up)})};
-/* échelle de divisions successives */
-W.ladder=(p,box)=>{const n=p.n;let m=n;const chips=p.chips||[2,3,4,5,6,7,9,11,13];const rows=[];
-  box.innerHTML=`<p class="ask">${p.ask||'Divise par un nombre premier qui divise le nombre en jaune&nbsp;:'}</p><table class="ladder" aria-label="Divisions successives"><tbody></tbody></table>
-   <div class="chips">${chips.map(c=>`<button type="button" class="chip" data-p="${c}" aria-label="Diviser par ${c}">${c}</button>`).join('')}</div><p class="wr" hidden></p>`;
-  const tb=box.querySelector('tbody');
-  const render=nw=>{tb.innerHTML=rows.map((r,i)=>`<tr${i===rows.length-1&&nw?' class="new"':''}><td>${r[0]}</td><td class="p">${r[1]}</td></tr>`).join('')+(m>1?`<tr class="cur"><td>${m}</td><td class="p">?</td></tr>`:'<tr><td>1</td><td></td></tr>')};render();
-  partState.m=m;
-  box.querySelectorAll('.chip').forEach(c=>c.onclick=async()=>{if(busy||m===1)return;const q=+c.dataset.p;
-    if(m%q){const k=Math.floor(m/q);api.err(`${m} = ${k} × ${q} + ${m-k*q}&nbsp;: il resterait ${m-k*q} danseur${m-k*q>1?'s':''} par groupe. ${q} ne divise pas ${m}.`);pulse();return}
-    if(!A.isPrime(q)){api.err(`${q} divise bien ${m}, mais ${q} n'est pas premier (${q} = ${factStr(q)})&nbsp;: on divise par des nombres premiers, en commençant par les plus petits.`);return}
-    busy=true;fb('');SND.pop();rows.push([m,q]);m/=q;partState.m=m;render(true);
-    const G=n/m;cap(`${m*q} = ${q} × ${m} <span class="m">· ${G} groupe${G>1?'s':''} de ${m}${m===1?' : indivisibles':''}</span>`);
-    await go(Lay.groups(n,m,{boxes:m>1}));busy=false;
-    if(m===1){box.querySelectorAll('.chip').forEach(x=>x.disabled=true);const w=box.querySelector('.wr');w.hidden=false;w.textContent=`${n} = ${rows.map(r=>r[1]).join(' × ')}`;dance(1800);api.ok()}})};
-/* test de primalité : d de 2 tant que d² ≤ n */
-W.test=(p,box)=>{const n=p.n;let d=2,found=0,over=false;
-  box.innerHTML=`<p class="ask">${p.ask||`Teste les diviseurs d à partir de 2, tant que d² ≤ ${n}.`}</p><div class="ttw"><table class="tt"><thead><tr><th>d</th><th>d²</th><th>${n} en d rangées</th><th>reste</th></tr></thead><tbody></tbody></table></div>
-   <div class="btns"><button type="button" class="btn or tst">Tester d = 2</button><button type="button" class="btn gh auto">Tester jusqu'au bout</button><button type="button" class="btn gh concl">Conclure</button></div><p class="hint tmsg" aria-live="polite"></p>`;
-  const tb=box.querySelector('tbody'),bt=box.querySelector('.tst'),ba=box.querySelector('.auto'),bc=box.querySelector('.concl'),msg=box.querySelector('.tmsg');
-  partState.d=d;
-  async function one(){const q=Math.floor(n/d),r=n-q*d;
-    tb.insertAdjacentHTML('beforeend',`<tr><td>${d}</td><td>${d*d}</td><td>${n} = ${q} × ${d}${r?' + '+r:''}</td><td class="${r?'':'z'}">${r?r:'0 : pile !'}</td></tr>`);
-    cap(`${d} rangées de ${q}${r?` <span class="m">+</span> <span class="r">reste ${r}</span>`:' <span class="k">· pile !</span>'}`);
-    await go(Lay.drows(n,d));
-    if(!r){found=d;dance(2000);msg.innerHTML=`${d} divise ${n}&nbsp;: ${n} = ${d} × ${q}. On a trouvé un diviseur autre que 1 et ${n}.`;bt.disabled=ba.disabled=true;return false}
-    if((d+1)*(d+1)>n){over=true;msg.innerHTML=`Prochain essai&nbsp;: ${d+1}² = ${(d+1)*(d+1)} &gt; ${n}. Inutile d'aller plus loin&nbsp;!`;bt.disabled=ba.disabled=true;return false}
-    d++;partState.d=d;bt.textContent=`Tester d = ${d}`;return true}
-  bt.onclick=async()=>{if(busy)return;busy=true;fb('');SND.pop();await one();busy=false};
-  ba.onclick=async()=>{if(busy)return;busy=true;fb('');bt.disabled=ba.disabled=true;while(await one())await S.waitBeat();if(!found&&!over){bt.disabled=ba.disabled=false}busy=false};
-  bc.onclick=()=>{if(busy)return;if(!found&&!over){api.err(`Pas encore&nbsp;: il faut tester d = ${d}, car ${d}² = ${d*d} ≤ ${n}.`);return}
-    box.querySelectorAll('button').forEach(x=>x.disabled=true);partState.done=1;api.ok()}};
+/* algorithme : m ← 0 ; tant que m + a ≤ b : m ← m + a (plus grand multiple de a inférieur ou égal à b) */
+W.algo=(p,box)=>{const a=p.a,b=p.b;let m=0;
+  box.innerHTML=`<p class="ask">${p.ask||`Algorithme&nbsp;: m ← 0&nbsp;; tant que m + ${a} ≤ ${b}, m ← m + ${a}.`}</p><div class="ttw"><table class="tt"><thead><tr><th>m</th><th>m + ${a}</th><th>m + ${a} ≤ ${b}&nbsp;?</th></tr></thead><tbody></tbody></table></div>
+   <div class="btns"><button type="button" class="btn or add">m ← m + ${a}</button><button type="button" class="btn gh stop">Arrêter</button></div><p class="hint tmsg" aria-live="polite"></p>`;
+  const tb=box.querySelector('tbody'),msg=box.querySelector('.tmsg');partState.m=m;
+  const row=()=>{tb.insertAdjacentHTML('beforeend',`<tr><td>${m}</td><td>${m+a}</td><td class="${m+a<=b?'z':''}">${m+a<=b?'oui':'non'}</td></tr>`)};row();
+  box.querySelector('.add').onclick=async()=>{if(busy)return;if(m+a>b){api.err(`m + ${a} = ${m+a}, et ${m+a} &gt; ${b}&nbsp;: la condition est fausse, la boucle s'arrête. On n'ajoute plus de rangée.`);pulse();return}
+    busy=true;fb('');SND.pop();m+=a;partState.m=m;row();cap(`m = ${m} <span class="m">· ${m/a} rangée${m>a?'s':''} de ${a}, ${b-m} en attente</span>`);
+    await go(Lay.partial(b,a,m));busy=false};
+  box.querySelector('.stop').onclick=()=>{if(busy)return;if(m+a<=b){api.err(`Pas encore&nbsp;: m + ${a} = ${m+a} ≤ ${b}, la condition est vraie. On ajoute encore une rangée.`);return}
+    box.querySelectorAll('button').forEach(x=>x.disabled=true);msg.innerHTML=`m = ${m}&nbsp;: c'est le plus grand multiple de ${a} inférieur ou égal à ${b}.`;dance(1600);api.ok()}};
 /* équipes identiques (deux troupes) */
 W.teams=(p,box)=>{const a=p.A,b=p.B,best=A.common(a,b),mx=Math.min(a,b);let t=p.t0||2;
   box.innerHTML=`<p class="ask">${p.ask||'Choisis un nombre d\'équipes, puis forme-les&nbsp;:'}</p><div class="btns"><div class="step"><button type="button" data-d="-1" aria-label="Une équipe de moins">−</button><input class="tn" inputmode="numeric" aria-label="Nombre d'équipes" value="${t}"><button type="button" data-d="1" aria-label="Une équipe de plus">+</button></div>
@@ -715,22 +704,6 @@ W.teams=(p,box)=>{const a=p.A,b=p.B,best=A.common(a,b),mx=Math.min(a,b);let t=p.
     if(t<best){const q=A.flat(A.common(ea,eb))[0];msg.innerHTML=`Ça marche&nbsp;! Mais ${ea} et ${eb} sont encore tous deux divisibles par ${q}&nbsp;: chaque équipe peut encore se couper en ${q}. Essaie plus d'équipes.`;return}
     msg.innerHTML=`${t} équipes de ${ea} danseurs et ${eb} figurants. ${ea} et ${eb} n'ont plus de diviseur commun autre que 1&nbsp;: impossible de faire plus.`;
     box.querySelectorAll('button,input').forEach(x=>x.disabled=true);dance(2200);api.ok()}};
-/* barrer les facteurs communs */
-W.barrer=(p,box)=>{const a=p.A,b=p.B,N=A.flat(a),Dn=A.flat(b),cutN=N.map(()=>0),cutD=Dn.map(()=>0);let t=1;
-  const rowH=(arr,side)=>arr.map((f,i)=>`${i?'<span class="x">×</span>':''}<button type="button" class="fct" data-s="${side}" data-i="${i}" aria-label="Facteur ${f}">${f}</button>`).join('');
-  box.innerHTML=`<p class="ask">${p.ask||''}${a} = ${factStr(a)} et ${b} = ${factStr(b)}. Touche un facteur commun pour le barrer en haut et en bas.</p>
-    <div class="barr"><div class="row">${rowH(N,'n')}</div><div class="bar"></div><div class="row">${rowH(Dn,'d')}</div></div>
-    <div class="btns" style="margin-top:12px"><button type="button" class="btn gh fin">Plus aucun facteur commun</button></div>`;
-  const left=()=>N.some((f,i)=>!cutN[i]&&Dn.some((g,j)=>g===f&&!cutD[j]));
-  box.querySelectorAll('.fct').forEach(x=>x.onclick=async()=>{if(busy||x.classList.contains('cut'))return;const s=x.dataset.s,i=+x.dataset.i,f=(s==='n'?N:Dn)[i];
-    const other=s==='n'?Dn:N,oc=s==='n'?cutD:cutN,j=other.findIndex((g,k)=>g===f&&!oc[k]);
-    if(j<0){api.err(`${f} n'apparaît pas ${s==='n'?'au dénominateur':'au numérateur'} (ou il y est déjà barré)&nbsp;: on ne barre que les facteurs communs.`);return}
-    (s==='n'?cutN:cutD)[i]=1;oc[j]=1;x.classList.add('cut','anim');box.querySelector(`.fct[data-s="${s==='n'?'d':'n'}"][data-i="${j}"]`).classList.add('cut','anim');
-    fb('');SND.pop();t*=f;busy=true;cap(`On barre ${f}&nbsp;: ${t} équipes de <span class="k">${a/t}</span> danseurs et <span class="k">${b/t}</span> figurants`);
-    await go(Lay.teams(a,b,t));busy=false;partState.t=t});
-  box.querySelector('.fin').onclick=()=>{if(busy)return;if(left()){const f=N.find((f,i)=>!cutN[i]&&Dn.some((g,j)=>g===f&&!cutD[j]));api.err(`Il reste un facteur commun&nbsp;: ${f} apparaît encore en haut et en bas.`);return}
-    box.querySelectorAll('button').forEach(x=>x.disabled=true);dance(1800);api.ok()}};
-
 /* ---------- déroulé d'une question ---------- */
 function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
 function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
@@ -975,104 +948,106 @@ LV.push({t:'Le carré',ch:1,
    done:'a = 2k&nbsp;: a² = (2k)² = 4k² = 4 × k²&nbsp;: le carré d\'un nombre pair est un multiple de 4.'}}
 ]});
 
-/* ===== Niveau 5 · Le solo ===== */
-LV.push({t:'Le solo',ch:2,
- rule:`<p><b>Définition.</b> Un entier n ≥ 2 est <b>premier</b> s'il possède exactement deux diviseurs&nbsp;: 1 et lui-même.</p><p>1 n'est pas premier (un seul diviseur). 2 est le seul nombre premier pair. Premiers nombres premiers&nbsp;: 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37…</p><p><b>Tester si n est premier&nbsp;:</b> tester les diviseurs d de 2 tant que d² ≤ n.</p>`,
+/* ===== Niveau 5 · Le dernier rang (plus grand multiple de a inférieur ou égal à b) ===== */
+const pgmQ=(a,b)=>{const q=Math.floor(b/a),r=b-q*a;return{q,r,m:a*q}};
+LV.push({t:'Le dernier rang',ch:2,
+ rule:`<p>Pour deux entiers a et b, le <b>plus grand multiple de a inférieur ou égal à b</b> s'obtient avec la division&nbsp;: b = a × q + r, avec 0 ≤ r &lt; a. C'est a × q.</p><p>Exemple&nbsp;: 50 = 7 × 7 + 1, donc 7 × 7 = 49 est le plus grand multiple de 7 inférieur ou égal à 50.</p><p><b>Algorithme.</b> m ← 0&nbsp;; tant que m + a ≤ b, m ← m + a. À la fin, m est ce plus grand multiple.</p><p><b>Est-ce un multiple&nbsp;?</b> a est un multiple de b quand le reste de la division de a par b vaut 0 (en Python&nbsp;: a % b == 0).</p>`,
  qs:[
- ()=>{const n=pick([11,13,17,19]);
-  return{n,prompt:`<b>${n} danseurs</b> sur le plateau. Trouve toutes leurs formations&nbsp;: essaie plusieurs tailles de rangée.`,
-   parts:[{t:'hunt',n},ch(`${n} est-il un nombre premier&nbsp;?`,[OK(`Oui&nbsp;: ses seuls diviseurs sont 1 et ${n}.`),
-       NO(`Non&nbsp;: ${n} = 1 × ${n}.`,`Tout nombre n s'écrit 1 × n&nbsp;: cela ne l'empêche pas d'être premier. ${n} a exactement deux diviseurs, 1 et ${n}.`),
-       NO('Non&nbsp;: il est impair.','Être impair n\'empêche pas d\'être premier&nbsp;: 3, 5, 7 sont impairs et premiers.')],{meta:{k:'ouiPrime',n}})],
-   done:`${n} n'admet qu'une formation&nbsp;: une seule rangée de ${n} (ou ${n} rangées de 1). Exactement deux diviseurs, 1 et ${n}&nbsp;: ${n} est <b>premier</b>.`}},
- ()=>({n:1,start:{pts:[[0,0]],fl:[S.F.F_SPOT],cols:[C_GOLD]},cap0:'Un seul danseur sous le projecteur',
-   prompt:'Un seul danseur sur le plateau. <b>1</b> est-il un nombre premier&nbsp;?',
-   parts:[ch('1 est-il premier&nbsp;?',[OK('Non&nbsp;: 1 n\'a qu\'un seul diviseur.'),
-     NO('Oui&nbsp;: il n\'est divisible que par 1 et par lui-même.','«&nbsp;1 et lui-même&nbsp;», ici c\'est le même nombre&nbsp;: 1 n\'a qu\'un seul diviseur. Un nombre premier en a exactement deux.'),
-     NO('Oui&nbsp;: c\'est le plus petit nombre premier.','Le plus petit nombre premier est 2. La définition demande n ≥ 2.')],{meta:{k:'fixed',id:'one'}})],
-   done:'Un entier n ≥ 2 est premier s\'il a exactement deux diviseurs. 1 n\'en a qu\'un&nbsp;: <b>1 n\'est pas premier</b>.'}),
- ()=>{const n=pick([97,113]),s=A.isqrtLe(n);
-  return{n,prompt:`<b>${n} danseurs</b>. ${n} est-il premier&nbsp;? Teste les diviseurs d à partir de 2, tant que d² ≤ ${n}&nbsp;: chaque test répartit la troupe en d rangées.`,
-   parts:[{t:'test',n},ch('Conclusion&nbsp;:',[OK(`${n} est premier&nbsp;: aucun d de 2 à ${s} ne le divise.`),
-       NO(`On ne peut pas conclure&nbsp;: il faudrait tester jusqu'à ${n-1}.`,`Inutile&nbsp;: si ${n} = d × e avec 2 ≤ d ≤ e, alors d² ≤ ${n}, donc d ≤ ${s}. Tester jusqu'à ${s} suffit.`),
-       NO(`${n} n'est pas premier&nbsp;: ${n} = ${Math.floor(n/2)} × 2 + 1.`,`Cette égalité montre un reste de 1&nbsp;: 2 ne divise pas ${n}. Aucun test n'a donné de formation pile.`)],{meta:{k:'conc',n}})],
-   done:`Aucun d avec d² ≤ ${n} ne divise ${n}&nbsp;: ${n} n'a que deux diviseurs, 1 et ${n}. <b>${n} est premier.</b>`}},
- ()=>{const n=pick([169,169,143,187]),d=A.fact(n)[0][0],s=A.isqrtLe(n);
-  return{n,prompt:`<b>${n} danseurs</b>. ${n} est-il premier&nbsp;? Teste les diviseurs d à partir de 2 tant que d² ≤ ${n}. «&nbsp;Tester jusqu'au bout&nbsp;» enchaîne les essais.`,
-   parts:[{t:'test',n},ch('Conclusion&nbsp;:',[OK(`${n} n'est pas premier&nbsp;: ${n} = ${d} × ${n/d}${d*d===n?' = '+d+'²':''}.`),
-       NO(`${n} est premier&nbsp;: il n'est divisible ni par 2, ni par 3, ni par 5, ni par 7.`,`Il faut tester tant que d² ≤ ${n}, donc jusqu'à ${s}&nbsp;: ${n} = ${d} × ${n/d}.`),
-       NO(`${n} est premier&nbsp;: il est impair.`,`Être impair ne suffit pas&nbsp;: ${n} = ${d} × ${n/d}.`)],{meta:{k:'conc',n}})],
-   done:`${n} = ${d} × ${n/d}${d*d===n?' = '+d+'²':''}&nbsp;: ${n} a un diviseur autre que 1 et lui-même, il <b>n'est pas premier</b>.`}},
- ()=>{const n=pick([24,28,30,36,40]),m=pick([22,26,34,38]);
-  return{n,start:Lay.duo(n),cap0:`${n/2} duos <span class="m">· ${n} est pair</span>`,
-   prompt:`<b>${n} danseurs</b> en duos. Un nombre pair peut-il être premier&nbsp;?`,
-   parts:[ch('Un nombre pair plus grand que 2 peut-il être premier&nbsp;?',[OK('Non&nbsp;: il se range en duos, donc 2 est un diviseur autre que 1 et lui-même.'),
-       NO('Oui, s\'il n\'est pas un multiple de 4.',`${m} n'est pas un multiple de 4, et pourtant ${m} = 2 × ${m/2}&nbsp;: il n'est pas premier.`),
-       NO('Oui&nbsp;: par exemple 2.','2 est bien premier, mais il n\'est pas plus grand que 2&nbsp;!')],{meta:{k:'fixed',id:'even'}})],
-   done:'Un nombre pair n &gt; 2 a au moins trois diviseurs&nbsp;: 1, 2 et n. <b>2 est le seul nombre premier pair.</b>'}}
+ ()=>{const a=pick([5,6,7]);let b;do{b=ri(31,55)}while(b%a===0);const {q,r,m}=pgmQ(a,b);
+  return{n:b,prompt:`<b>${b} danseurs</b> pour un défilé en rangées de ${a}. Applique l'algorithme&nbsp;: tant que m + ${a} ≤ ${b}, ajoute une rangée.`,
+   parts:[{t:'algo',a,b},fill('Conclusion&nbsp;:',`Le plus grand multiple de ${a} inférieur ou égal à ${b} est {0}.`,[fillInt(m)],`La boucle s'est arrêtée à m = ${m}&nbsp;: ${m} + ${a} = ${m+a} &gt; ${b}.`,{meta:{k:'pgm1',a,b}})],
+   done:`${b} = ${a} × ${q} + ${r}&nbsp;: ${q} rangées complètes, ${r} danseur${r>1?'s':''} en attente. Le plus grand multiple de ${a} inférieur ou égal à ${b} est ${m}.`}},
+ ()=>{const a=pick([8,9,12]);let b;do{b=ri(60,99)}while(b%a===0||b%a===a-1);const {q,r,m}=pgmQ(a,b);
+  return{n:b,start:Lay.crowd(b),prompt:`<b>${b} danseurs</b>, rangées de ${a}. Seules les rangées complètes défilent.`,
+   parts:[ch(`Le plus grand multiple de ${a} inférieur ou égal à ${b} est&nbsp;:`,[OK(String(m)),NO(String(m+a),`${m+a} = ${a} × ${q+1} est bien un multiple de ${a}, mais ${m+a} &gt; ${b}&nbsp;: il manque des danseurs.`),
+       NO(String(b),`${b} = ${a} × ${q} + ${r}&nbsp;: le reste vaut ${r}, pas 0. ${b} n'est pas un multiple de ${a}.`),NO(String(m-a),`${m-a} = ${a} × ${q-1} convient, mais ce n'est pas le plus grand&nbsp;: ${m} = ${a} × ${q} ≤ ${b} aussi.`)],
+     {meta:{k:'pgm',a,b},onOk:capThen([`Rangées de ${a}…`,`${b} = ${a} × ${q} + <span class="r">${r}</span> <span class="m">· ${m} danseurs défilent</span>`],Lay.rows(b,a,{top:`${q} rangées de ${a}`}))})],
+   done:`${b} = ${a} × ${q} + ${r} avec 0 ≤ ${r} &lt; ${a}&nbsp;: le plus grand multiple de ${a} inférieur ou égal à ${b} est ${a} × ${q} = ${m}.`}},
+ ()=>{const a=pick([6,7,9]);let b;do{b=ri(40,70)}while(b%a===0);const {q,r,m}=pgmQ(a,b);
+  return{n:b,start:Lay.rows(b,a),cap0:`${b} danseurs en rangées de ${a}`,prompt:`<b>${b} danseurs</b> en rangées de ${a}. Écris la division, puis conclus.`,
+   parts:[fill('Division avec reste&nbsp;:',`${b} = {0} × ${a} + {1}, avec un reste plus petit que ${a}.`,[fillInt(q),fillInt(r)],`Compte les rangées complètes, puis les danseurs en attente&nbsp;: ${q} × ${a} = ${m} et ${b} − ${m} = ${r}.`,{meta:{k:'qr',a:b,b:a}}),
+     fill('Conclusion&nbsp;:',`Le plus grand multiple de ${a} inférieur ou égal à ${b} est {0}.`,[fillInt(m)],`C'est ${a} × ${q} = ${m}&nbsp;: le multiple suivant, ${m+a}, dépasse ${b}.`,{meta:{k:'pgm1',a,b}})],
+   done:`${b} = ${q} × ${a} + ${r}&nbsp;: le plus grand multiple de ${a} inférieur ou égal à ${b} est ${m}.`}},
+ ()=>{const a=pick([7,8,9]),yes=Math.random()<.5;let N;do{N=ri(50,99)}while((N%a===0)!==yes);const q=Math.floor(N/a),r=N-q*a;
+  return{n:N,start:Lay.crowd(N),prompt:`<b>${N} danseurs</b>. Le régisseur tape en Python ${N} % ${a} et obtient ${r}.`,
+   parts:[ch('Que peut-on en conclure&nbsp;?',yes?[OK(`${N} est un multiple de ${a}.`),NO(`${N} n'est pas un multiple de ${a}.`,`${N} % ${a} renvoie le reste de la division de ${N} par ${a}&nbsp;: il vaut 0, donc ${N} = ${a} × ${q}.`),NO(`${a} est un multiple de ${N}.`,`C'est l'inverse&nbsp;: ${a} est un diviseur de ${N}, puisque ${N} = ${a} × ${q}.`)]
+       :[OK(`${N} n'est pas un multiple de ${a}.`),NO(`${N} est un multiple de ${a}.`,`Le reste de la division de ${N} par ${a} vaut ${r}, pas 0&nbsp;: ${N} = ${a} × ${q} + ${r}.`),NO(`${a} est un diviseur de ${N}.`,`Le reste vaut ${r}&nbsp;: ${a} ne divise pas ${N}, car ${N} = ${a} × ${q} + ${r}.`)],
+     {meta:{k:'vocab'},onOk:capThen([`Rangées de ${a}…`,yes?`${N} = ${a} × ${q} <span class="k">· pile&nbsp;!</span>`:`${N} = ${a} × ${q} + <span class="r">${r}</span>`],Lay.rows(N,a,{top:`${q} rangées de ${a}`}))})],
+   done:yes?`${N} = ${a} × ${q}&nbsp;: le reste est nul, ${N} est un multiple de ${a}.`:`${N} = ${a} × ${q} + ${r}&nbsp;: le reste n'est pas nul, ${N} n'est pas un multiple de ${a}.`}},
+ ()=>{const [a,b]=pick([[12,200],[15,250],[14,180],[16,230],[13,150]]),{q,r,m}=pgmQ(a,b);
+  return{n:b,start:Lay.crowd(b),prompt:`Le grand défilé&nbsp;: <b>${b} danseurs</b>, en rangées de ${a}. Seules les rangées complètes défilent, les autres danseurs restent sur le côté.`,
+   parts:[fill('Complète&nbsp;:',`{0} danseurs défilent et {1} restent sur le côté.`,[fillInt(m),fillInt(r)],`${b} = ${a} × ${q} + ${r}&nbsp;: ${q} rangées complètes de ${a}.`,{meta:{k:'rest',a,b},size:[3,2]})],
+   onWin:()=>go(Lay.rows(b,a,{top:`${q} rangées de ${a}`})),
+   done:`${b} = ${a} × ${q} + ${r}&nbsp;: ${m} danseurs défilent (le plus grand multiple de ${a} inférieur ou égal à ${b}) et ${r} restent sur le côté.`}}
 ]});
 
-/* ===== Niveau 6 · Indivisibles ===== */
-function factLures(n){const f=A.fact(n),ok=factStr(n),out=new Set();
-  const big=f.find(x=>x[1]>1);if(big){out.add(f.map(([p,e])=>p===big[0]?String(p**e):p+(e>1?sup(e):'')).join(' × '))}
-  if(f.length>=2&&f[0][1]!==f[1][1]){const g=f.map(x=>x.slice());[g[0][1],g[1][1]]=[g[1][1],g[0][1]];out.add(g.map(([p,e])=>p+(e>1?sup(e):'')).join(' × '))}
-  out.add(f.map(([p])=>p).join(' × '));
-  const last=f[f.length-1],head=f.slice(0,-1);if(head.length&&f.length>=2){const comp=f[f.length-2][0]*last[0];if(last[1]===1&&f[f.length-2][1]===1)out.add(f.slice(0,-2).map(([p,e])=>p+(e>1?sup(e):'')).concat([String(comp)]).join(' × '))}
-  const g=f.map(x=>x.slice());g[0][1]++;out.add(g.map(([p,e])=>p+(e>1?sup(e):'')).join(' × '));
-  out.delete(ok);return[...out]}
-function whyFact(n,s){const parts=s.split(' × ');for(const t of parts){const b=parseInt(t,10);if(!A.isPrime(b))return `${b} n'est pas premier (${b} = ${factStr(b)})&nbsp;: la décomposition ne contient que des nombres premiers. ${n} = ${factStr(n)}.`}
-  const v=parts.reduce((m,t)=>{const mt=/^(\d+)([⁰¹²³⁴⁵⁶⁷⁸⁹]*)$/.exec(t);const e=mt[2]?+mt[2].split('').map(c=>SUPI[c]).join(''):1;return m*Math.pow(+mt[1],e)},1);
-  return `${s} = ${v}, et non ${n}. ${n} = ${factStr(n)}.`}
-const SUPI={'⁰':0,'¹':1,'²':2,'³':3,'⁴':4,'⁵':5,'⁶':6,'⁷':7,'⁸':8,'⁹':9};
-const ladderQ=(n,extra,more)=>Object.assign({n,start:Lay.groups(n,n,{boxes:false,pal:[C_BLUE]}),cap0:`${n} danseurs, un seul grand groupe`,
-  prompt:`<b>${n} danseurs</b>. Scinde la troupe en groupes égaux, en divisant par des nombres premiers, jusqu'aux groupes indivisibles.`,
-  parts:[{t:'ladder',n}].concat(extra),done:`${n} = ${factStr(n)}&nbsp;: c'est la décomposition de ${n} en facteurs premiers, unique à l'ordre près.`,danceMs:3000},more||{});
-const writeCh=n=>ch(`Écriture de la décomposition de ${n}&nbsp;:`,[OK(factStr(n))].concat(shuf(factLures(n)).slice(0,3).map(s=>NO(s,whyFact(n,s)))),{meta:{k:'fact',n}});
-LV.push({t:'Indivisibles',ch:2,
- rule:`<p>Tout entier n ≥ 2 non premier peut s'écrire comme <b>produit de facteurs premiers</b>, de façon unique à l'ordre près.</p><p><b>Méthode.</b> Diviser successivement par 2, 3, 5, 7…<br>60 | 2 → 30 | 2 → 15 | 3 → 5 | 5 → 1, donc 60 = 2² × 3 × 5.</p><p>Sur scène&nbsp;: la troupe se scinde en groupes égaux, jusqu'aux groupes indivisibles.</p>`,
+/* ===== Niveau 6 · Les deux troupes (diviseurs, diviseurs communs) ===== */
+const cdl=(a,b)=>A.divisors(a).filter(d=>b%d===0);
+LV.push({t:'Les deux troupes',ch:2,
+ rule:`<p>Un entier d est un <b>diviseur commun</b> de a et de b s'il divise a et s'il divise b.</p><p>Exemple&nbsp;: diviseurs de 12&nbsp;: 1, 2, 3, 4, 6, 12&nbsp;; diviseurs de 18&nbsp;: 1, 2, 3, 6, 9, 18. Diviseurs communs de 12 et 18&nbsp;: 1, 2, 3 et 6.</p><p>Sur scène&nbsp;: deux troupes peuvent se ranger avec le même nombre de rangées exactement quand ce nombre est un diviseur commun de leurs effectifs.</p>`,
  qs:[
- ()=>ladderQ(60,[ch('Écriture de la décomposition de 60&nbsp;:',[OK('2² × 3 × 5'),NO('4 × 3 × 5','4 n\'est pas premier (4 = 2 × 2)&nbsp;: on écrit 2².'),
-   NO('2 × 3 × 5','2 × 3 × 5 = 30&nbsp;: il manque un facteur 2.'),NO('2² × 15','15 n\'est pas premier&nbsp;: 15 = 3 × 5.')],{meta:{k:'fact',n:60}})]),
- ()=>ladderQ(126,[fill('Écris la décomposition avec un exposant&nbsp;:','126 = 2 × 3<sup>{0}</sup> × 7',[['2']],'Dans l\'échelle, 3 apparaît deux fois&nbsp;: 3 × 3 = 3².',{meta:{k:'pow',n:126,p:3}})]),
- ()=>ladderQ(300,[fill('Écris la décomposition avec des exposants&nbsp;:','300 = 2<sup>{0}</sup> × 3 × 5<sup>{1}</sup>',[['2'],['2']],'Compte dans l\'échelle&nbsp;: 2 apparaît deux fois, 5 aussi. 300 = 2² × 3 × 5².',{meta:{k:'pow2',n:300,ps:[2,5]}})]),
- ()=>{const n=pick([72,84,90,120,168,180,252,360]);return ladderQ(n,[writeCh(n)])},
- ()=>({n:168,cap0:'168 danseurs',prompt:'On sait que <b>168 = 2³ × 3 × 7</b>. Le chorégraphe veut des rangées de 12.',
-   parts:[ch('168 est-il un multiple de 12&nbsp;?',[OK('Oui&nbsp;: 12 = 2² × 3, et 168 = 2² × 3 × 2 × 7 = 12 × 14.'),
-       NO('Non&nbsp;: 12 n\'apparaît pas dans la décomposition.','12 n\'est pas premier, il ne peut pas apparaître tel quel&nbsp;: 12 = 2² × 3, et 2² × 3 est «&nbsp;caché&nbsp;» dans 2³ × 3 × 7.'),
-       NO('Non&nbsp;: 168 est un multiple de 7, il ne peut pas être aussi un multiple de 12.','Un nombre peut être multiple de plusieurs nombres&nbsp;: 168 = 24 × 7 et 168 = 14 × 12.')],
-     {meta:{k:'ouiMult',n:168,b:12},onOk:capThen(['Rangées de 12…','168 = 14 × 12 <span class="k">· pile&nbsp;!</span>'],Lay.rows(168,12,{top:'14 rangées de 12'}))})],
-   done:'168 = 2³ × 3 × 7 = (2² × 3) × (2 × 7) = 12 × 14&nbsp;: 168 est un multiple de 12. Et 168 = 24 × 7&nbsp;: c\'est aussi un multiple de 7.'})
+ ()=>{const n=pick([18,20,24,28,30]),ds=A.divisors(n),L=x=>x.join(', '),mid=ds.filter(d=>d!==1&&d!==n),ex=(()=>{for(let x=4;x<n;x++)if(n%x)return[...ds,x].sort((a,b)=>a-b)})();
+  return{n,prompt:`<b>${n} danseurs</b>. Trouve toutes leurs formations&nbsp;: essaie plusieurs tailles de rangée.`,
+   parts:[{t:'hunt',n},ch(`La liste de tous les diviseurs de ${n} est&nbsp;:`,[OK(L(ds)),NO(L(mid),`Il manque 1 et ${n}&nbsp;: ${n} = 1 × ${n}.`),NO(L(ex),`${ex.find(x=>n%x)} ne divise pas ${n}&nbsp;: la division laisse un reste.`)],{meta:{k:'divList',n}})],
+   done:`Diviseurs de ${n}&nbsp;: ${L(ds)}. Ils vont par paires&nbsp;: ${ds.filter(d=>d*d<=n).map(d=>`${d} × ${n/d}`).join(', ')}.`}},
+ ()=>{const [a,b]=pick([[12,18],[16,24],[20,30],[18,24],[12,30]]),c=cdl(a,b),L=x=>x.join(', '),g=c[c.length-1];
+  const uni=[...new Set(A.divisors(a).concat(A.divisors(b)))].filter(d=>d<=Math.min(a,b)).sort((x,y)=>x-y);
+  return{n:a+b,col:tcol(a),start:Lay.teams(a,b,1),cap0:`Troupe bleue&nbsp;: ${a} <span class="m">·</span> troupe dorée&nbsp;: ${b}`,
+   prompt:`Deux troupes de <b>${a}</b> et <b>${b} danseurs</b> doivent se ranger avec le même nombre de rangées égales.`,
+   parts:[ch(`Les diviseurs communs de ${a} et ${b} sont&nbsp;:`,[OK(L(c)),NO(L(uni),`Certains de ces nombres ne divisent qu'une des deux troupes&nbsp;: un diviseur commun divise ${a} ET ${b}.`),
+       NO(L(c.filter(d=>d!==1&&d!==g)),`Il manque 1 et ${g}&nbsp;: ${a} = ${g} × ${a/g} et ${b} = ${g} × ${b/g}.`),NO(String(g),`${g} est bien un diviseur commun, mais il y en a d'autres&nbsp;: ${L(c)}.`)],
+     {meta:{k:'commonList',a,b},onOk:capThen([`${g} rangées pour chaque troupe…`,`${g} rangées de <span class="k">${a/g}</span> et ${g} rangées de <span class="k">${b/g}</span>`],Lay.teams(a,b,g))})],
+   done:`Diviseurs de ${a}&nbsp;: ${L(A.divisors(a))}. Diviseurs de ${b}&nbsp;: ${L(A.divisors(b))}. En commun&nbsp;: ${L(c)}.`}},
+ ()=>{const [a,b]=pick([[42,70],[36,60],[48,80],[45,75],[54,90]]),c=cdl(a,b).filter(d=>d>1),d=pick(c);
+  const onlyA=A.divisors(a).filter(x=>x>1&&b%x),onlyB=A.divisors(b).filter(x=>x>1&&a%x),none=[4,8,11,13,16].filter(x=>a%x&&b%x);
+  return{n:a+b,col:tcol(a),start:Lay.teams(a,b,1),cap0:`${a} danseurs <span class="m">et</span> ${b} danseurs`,prompt:`Deux troupes de <b>${a}</b> et <b>${b} danseurs</b>.`,
+   parts:[ch(`Lequel de ces nombres est un diviseur commun de ${a} et ${b}&nbsp;?`,[OK(String(d)),NO(String(pick(onlyA)),'Il divise la première troupe, mais pas la seconde&nbsp;: la division laisse un reste.'),
+       NO(String(pick(onlyB)),'Il divise la seconde troupe, mais pas la première&nbsp;: la division laisse un reste.'),NO(String(pick(none)),'Il ne divise aucun des deux nombres.')],
+     {meta:{k:'commonDiv',a,b},onOk:capThen([`${d} rangées par troupe…`,`${a} = ${d} × ${a/d} et ${b} = ${d} × ${b/d} <span class="k">· pile&nbsp;!</span>`],Lay.teams(a,b,d))})],
+   done:`${a} = ${d} × ${a/d} et ${b} = ${d} × ${b/d}&nbsp;: ${d} divise ${a} et ${b}, c'est un diviseur commun.`}},
+ ()=>{const [a,b]=pick([[12,18],[20,30],[24,36],[16,40],[30,45]]),c=cdl(a,b);
+  return{n:a+b,col:tcol(a),start:Lay.teams(a,b,1),cap0:`${a} danseurs <span class="m">et</span> ${b} danseurs`,prompt:`Deux troupes de <b>${a}</b> et <b>${b} danseurs</b>. Liste les diviseurs de chacun, puis compte ceux qui sont communs.`,
+   parts:[fill('Complète&nbsp;:',`${a} et ${b} ont exactement {0} diviseurs communs.`,[fillInt(c.length)],`Diviseurs de ${a}&nbsp;: ${A.divisors(a).join(', ')}. Diviseurs de ${b}&nbsp;: ${A.divisors(b).join(', ')}.`,{meta:{k:'ncommon',a,b}})],
+   done:`Diviseurs communs de ${a} et ${b}&nbsp;: ${c.join(', ')}, soit ${c.length} diviseurs communs.`}},
+ ()=>{const [a,b]=pick([[24,36],[18,30],[27,45]]);
+  return{n:a+b,col:tcol(a),start:Lay.teams(a,b,1),cap0:`${a} danseurs <span class="m">et</span> ${b} figurants`,prompt:`<b>${a} danseurs</b> et <b>${b} figurants</b> veulent former des équipes identiques (même nombre de danseurs et même nombre de figurants dans chaque équipe).`,
+   parts:[ch('Le nombre d\'équipes doit être&nbsp;:',[OK(`un diviseur commun de ${a} et ${b}`),NO(`un multiple commun de ${a} et ${b}`,`Avec plus d'équipes que de danseurs, certaines équipes seraient vides&nbsp;: le nombre d'équipes doit diviser ${a} et ${b}.`),
+       NO(`un diviseur de ${a} seulement`,`Il faut aussi répartir les ${b} figurants sans reste&nbsp;: le nombre d'équipes doit diviser ${b} aussi.`),NO('un nombre pair',`3 équipes, par exemple, conviennent aussi&nbsp;: ${a} = 3 × ${a/3} et ${b} = 3 × ${b/3}.`)],
+     {meta:{k:'txt',r:`un diviseur commun de ${a} et ${b}`},onOk:capThen(['3 équipes…',`3 équipes de <span class="k">${a/3}</span> danseurs et <span class="k">${b/3}</span> figurants`],Lay.teams(a,b,3))})],
+   done:`Chaque équipe reçoit autant de danseurs et autant de figurants&nbsp;: le nombre d'équipes divise ${a} et divise ${b}. Par exemple 3 équipes&nbsp;: ${a} = 3 × ${a/3} et ${b} = 3 × ${b/3}.`}}
 ]});
 
-/* ===== Niveau 7 · Le concert ===== */
+/* ===== Niveau 7 · Le concert (fractions irréductibles) ===== */
 const tcol=A_=>i=>i<A_?C_BLUE:C_GOLD;
 const frIn='<span class="fr"><span>{0}</span><span>{1}</span></span>';
 const teamsQ=(a,b,prompt)=>{const g=A.common(a,b);return{n:a+b,col:tcol(a),start:Lay.teams(a,b,1),cap0:`${a} danseurs <span class="m">et</span> ${b} figurants`,prompt,
   parts:[{t:'teams',A:a,B:b},fill('La fraction se simplifie de la même façon&nbsp;:',`${fr(a,b)} = ${frIn}`,[fillInt(a/g),fillInt(b/g)],`Chaque équipe compte ${a/g} danseurs et ${b/g} figurants&nbsp;: ${a} = ${g} × ${a/g} et ${b} = ${g} × ${b/g}.`,{meta:{k:'fr',a,b}})],
   done:`${a} = ${g} × ${a/g} et ${b} = ${g} × ${b/g}, donc ${fr(a,b)} = ${fr(a/g,b/g)}&nbsp;: ${a/g} et ${b/g} n'ont pas de diviseur commun autre que 1, la fraction est <b>irréductible</b>.`,danceMs:3200}};
-const barrerQ=(a,b)=>{const g=A.common(a,b);return{n:a+b,col:tcol(a),start:Lay.teams(a,b,1),cap0:`${a} danseurs <span class="m">et</span> ${b} figurants`,
-  prompt:`Rends ${fr(a,b)} irréductible par la méthode du cours&nbsp;: décomposer, puis barrer les facteurs communs.`,
-  parts:[{t:'barrer',A:a,B:b},fill('Résultat&nbsp;:',`${fr(a,b)} = ${frIn}`,[fillInt(a/g),fillInt(b/g)],`Multiplie les facteurs non barrés&nbsp;: en haut ${A.flat(a/g).join(' × ')||'1'}, en bas ${A.flat(b/g).join(' × ')||'1'}.`,{meta:{k:'fr',a,b}})],
-  done:`${fr(a,b)} = ${fr(factStr(a),factStr(b))} = ${fr(a/g,b/g)} (irréductible).`}};
+const stepQ=(a,b,d)=>{const g=A.common(a,b),a1=a/d,b1=b/d;return{n:a+b,col:tcol(a),start:Lay.teams(a,b,1),cap0:`${a} danseurs <span class="m">et</span> ${b} figurants`,
+  prompt:`Rends ${fr(a,b)} irréductible pas à pas&nbsp;: on simplifie par un diviseur commun, puis on recommence tant que c'est possible.`,
+  parts:[fill(`${d} est un diviseur commun de ${a} et ${b}&nbsp;:`,`${fr(a,b)} = ${frIn}`,[fillInt(a1),fillInt(b1)],`${a} = ${d} × ${a1} et ${b} = ${d} × ${b1}.`,{meta:{k:'frDiv',a,b,d}}),
+    fill(`${a1} et ${b1} ont encore un diviseur commun. Termine&nbsp;:`,`${fr(a1,b1)} = ${frIn}`,[fillInt(a/g),fillInt(b/g)],`${a1} = ${g/d} × ${a/g} et ${b1} = ${g/d} × ${b/g}&nbsp;: on simplifie par ${g/d}.`,{meta:{k:'fr',a:a1,b:b1}})],
+  onWin:()=>go(Lay.teams(a,b,g)),
+  done:`${fr(a,b)} = ${fr(a1,b1)} = ${fr(a/g,b/g)}&nbsp;: ${a/g} et ${b/g} n'ont plus de diviseur commun autre que 1, la fraction est irréductible.`}};
 LV.push({t:'Le concert',ch:3,
- rule:`<p>La fraction ${frac('p','q')} est <b>irréductible</b> si p et q n'ont pas de diviseur commun autre que 1.</p><p><b>Méthode&nbsp;:</b> décomposer en facteurs premiers, puis simplifier.<br>${frac(60,126)} = ${frac('2² × 3 × 5','2 × 3² × 7')} = ${frac('2 × 5','3 × 7')} = ${frac(10,21)}</p><p>Sur scène&nbsp;: barrer un facteur commun p, c'est couper chaque équipe en p équipes identiques.</p>`,
+ rule:`<p>La fraction ${frac('p','q')} est <b>irréductible</b> si p et q n'ont pas de diviseur commun autre que 1.</p><p><b>Méthode&nbsp;:</b> on simplifie par un diviseur commun du numérateur et du dénominateur, et on recommence tant que c'est possible.<br>${frac(60,126)} = ${frac(30,63)} = ${frac(10,21)} (on simplifie par 2, puis par 3).</p><p>Sur scène&nbsp;: simplifier par d, c'est couper chaque équipe en d équipes identiques.</p>`,
  qs:[
  ()=>teamsQ(84,120,`Pour le grand concert&nbsp;: <b>84 danseurs</b> (en bleu) et <b>120 figurants</b> (en or). Répartis-les en équipes identiques, avec <b>le plus d'équipes possible</b>.`),
- ()=>barrerQ(84,120),
- ()=>barrerQ(60,126),
+ ()=>stepQ(60,126,2),
+ ()=>stepQ(84,120,2),
  ()=>({n:120,col:tcol(45),start:Lay.teams(45,75,1),cap0:'45 danseurs <span class="m">et</span> 75 figurants',
    prompt:`45 danseurs et 75 figurants. La fraction ${fr(45,75)} est-elle irréductible&nbsp;?`,
-   parts:[ch(`${fr(45,75)} est-elle irréductible&nbsp;?`,[OK(`Non&nbsp;: 45 = 3² × 5 et 75 = 3 × 5², on barre 3 et 5&nbsp;: ${fr(45,75)} = ${fr(3,5)}.`),
+   parts:[ch(`${fr(45,75)} est-elle irréductible&nbsp;?`,[OK(`Non&nbsp;: 45 = 15 × 3 et 75 = 15 × 5, donc ${fr(45,75)} = ${fr(3,5)}.`),
        NO('Oui&nbsp;: 45 et 75 sont impairs.','Être impairs ne suffit pas&nbsp;: 45 et 75 sont tous deux multiples de 3 et de 5.'),
        NO(`Non, et sa forme irréductible est ${fr(9,15)}.`,`${fr(9,15)} n'est pas irréductible&nbsp;: 9 et 15 sont encore tous deux multiples de 3. ${fr(45,75)} = ${fr(3,5)}.`)],
      {meta:{k:'irrQ',a:45,b:75},onOk:capThen(['15 équipes…','15 équipes de <span class="k">3</span> danseurs et <span class="k">5</span> figurants'],Lay.teams(45,75,15))})],
-   done:`45 = 3 × 15 et 75 = 5 × 15&nbsp;: 15 équipes de 3 danseurs et 5 figurants. ${fr(45,75)} = ${fr(3,5)}, irréductible.`}),
+   done:`45 = 15 × 3 et 75 = 15 × 5&nbsp;: 15 équipes de 3 danseurs et 5 figurants. ${fr(45,75)} = ${fr(3,5)}, irréductible.`}),
  ()=>teamsQ(150,210,`Le final du concert&nbsp;: <b>150 danseurs</b> et <b>210 figurants</b>, 360 artistes en scène&nbsp;! Le plus d'équipes identiques possible.`)
 ]});
 
 /* ---------- exports ---------- */
 const plainPart=p=>({t:p.t,ask:p.ask||'',label:p.label||'',choices:p.ch?p.ch.map(c=>({h:c.h,ok:!!c.ok,why:c.why||''})):null,tpl:p.tpl||null,ans:p.ans||null,
-  n:p.n||null,A:p.A||null,B:p.B||null,lines:p.lines||null,tiles:p.tiles?p.tiles.map(t=>({id:t.id,h:t.h,why:t.why||null})):null,sol:p.sol||null,hint:p.hint||null,meta:p.meta||null});
+  n:p.n||null,a:p.a||null,b:p.b||null,A:p.A||null,B:p.B||null,lines:p.lines||null,tiles:p.tiles?p.tiles.map(t=>({id:t.id,h:t.h,why:t.why||null})):null,sol:p.sol||null,hint:p.hint||null,meta:p.meta||null});
 window.LC={
   LV,genQ(l,i){const q=LV[l].qs[i]();return{level:l+1,n:q.n,prompt:q.prompt,done:q.done,cap0:q.cap0||'',parts:q.parts.map(plainPart)}},
   state(){return{mode,lvl,qi,pi,solved,busy,errs,nq:LV[lvl].qs.length,part:Q&&pi<Q.parts.length?plainPart(Q.parts[pi]):null,ps:partState,run:run.slice()}},
@@ -1095,11 +1070,10 @@ function frames(n){const F=[],ds=A.divisors(n);
   F.push({L:Lay.crowd(n),cap:`${n} danseurs entrent en scène`,kind:'intro'});
   ds.filter(k=>k*k<=n).forEach(k=>{const b=n/k;F.push({L:Lay.rows(n,b,{rowNums:k<=12}),kind:'form',form:[b,k],
     cap:`${k} rangée${k>1?'s':''} de ${b} <span class="m">·</span> ${n} = ${k} × ${b}`})});
-  if(A.isPrime(n)){F.push({L:Lay.rows(n,n,{rowNums:false}),kind:'verdict',prime:true,cap:`<span class="k">${n} est premier</span> <span class="m">: une seule formation, diviseurs 1 et ${n}</span>`})}
-  else{let m=n;F.push({L:Lay.groups(n,n,{boxes:false,pal:[S.C.C_BLUE]}),kind:'dec0',cap:`Décomposition de ${n} <span class="m">: on divise par des nombres premiers</span>`});
-    A.flat(n).forEach(p=>{const prev=m;m/=p;F.push({L:Lay.groups(n,m,{boxes:m>1}),kind:'dec',step:[prev,p],cap:`${prev} = ${p} × ${m} <span class="m">· ${n/m} groupe${n/m>1?'s':''} de ${m}${m===1?' : indivisibles':''}</span>`})});
-    const AR=S.areaAR(),k=ds.filter(d=>d*d<=n).reduce((best,d)=>{const sc=x=>Math.min(AR/(n/x+1),1/(x*S.DY+1.6));return sc(d)>sc(best)?d:best},1);
-    F.push({L:Lay.rows(n,n/k,{rowNums:false}),kind:'verdict',prime:false,cap:`${n} = ${factStr(n)} <span class="m">·</span> <span class="k">pas premier</span> <span class="m">(${ds.length} diviseurs)</span>`})}
+  const h=Math.floor(n/2);
+  F.push({L:Lay.duo(n),kind:'par',par:n%2,cap:n%2?`${n} = 2 × ${h} + 1 <span class="m">· ${h} duos et un soliste&nbsp;:</span> <span class="k">${n} est impair</span>`:`${n} = 2 × ${h} <span class="m">· ${h} duos&nbsp;:</span> <span class="k">${n} est pair</span>`});
+  const AR=S.areaAR(),k=ds.filter(d=>d*d<=n).reduce((best,d)=>{const sc=x=>Math.min(AR/(n/x+1),1/(x*S.DY+1.6));return sc(d)>sc(best)?d:best},1);
+  F.push({L:Lay.rows(n,n/k,{rowNums:false}),kind:'verdict',nd:ds.length,cap:`<span class="k">${n} a ${ds.length} diviseurs</span> <span class="m">· ${ds.length===2?'une seule formation, en une rangée':Math.ceil(ds.length/2)+' formations différentes'}</span>`});
   return F}
 let token=0,fr=[],fi=0,nNow=36,playing=false,saved=null;
 function panelReset(n){$('cforms').textContent='—';$('cdivs').textContent='—';$('cdec').textContent='—';$('cverd').innerHTML=''}
@@ -1107,17 +1081,17 @@ function panelUpdate(n,upto){const F=fr.slice(0,upto+1),forms=F.filter(f=>f.kind
   $('cforms').innerHTML=forms.length?forms.map(f=>`${f.form[0]} × ${f.form[1]}`).join(' · '):'—';
   const ds=new Set();forms.forEach(f=>{ds.add(f.form[0]);ds.add(f.form[1])});
   $('cdivs').innerHTML=ds.size?[...ds].sort((a,b)=>a-b).join(', '):'—';
-  const steps=F.filter(f=>f.kind==='dec');
-  $('cdec').innerHTML=A.isPrime(n)&&F.some(f=>f.kind==='verdict')?`${n} est premier&nbsp;: sa décomposition, c'est ${n} lui-même.`:steps.length?steps.map(f=>`${f.step[0]} | ${f.step[1]}`).join(' → ')+(steps.length===A.flat(n).length?` → 1<br>${n} = ${factStr(n)}`:''):'—';
-  const v=F.find(f=>f.kind==='verdict');
-  $('cverd').innerHTML=v?(v.prime?`<div class="verdict p">${n} est premier&nbsp;: exactement deux diviseurs, 1 et ${n}.</div>`:`<div class="verdict np">${n} n'est pas premier&nbsp;: ${A.divisors(n).length} diviseurs.</div>`):''}
+  const pf=F.find(f=>f.kind==='par');
+  $('cdec').innerHTML=pf?(pf.par?`${n} = 2 × ${(n-1)/2} + 1&nbsp;: ${n} est impair.`:`${n} = 2 × ${n/2}&nbsp;: ${n} est pair.`):'—';
+  const v=F.find(f=>f.kind==='verdict'),dl=A.divisors(n);
+  $('cverd').innerHTML=v?`<div class="verdict ${dl.length===2?'p':'np'}">${n} a ${dl.length} diviseurs&nbsp;: ${dl.join(', ')}.</div>`:''}
 function readN(inp){let v=parseInt(String(inp.value).replace(/\D/g,''),10);if(isNaN(v))v=36;return v}
-async function showFrame(i,instant){const f=fr[i];cap(f.cap);await go(f.L,{instant});if(f.kind==='form'||f.kind==='verdict'){if(SND())SND().clap();dance(S.BEAT*4000)}}
+async function showFrame(i,instant){const f=fr[i];cap(f.cap);await go(f.L,{instant});if(f.kind==='form'||f.kind==='verdict'||f.kind==='par'){if(SND())SND().clap();dance(S.BEAT*4000)}}
 async function play(){const n=readN($('cn'));if(n<2||n>400){$('cwarn').textContent='Choisis un nombre entre 2 et 400.';return}
   $('cwarn').textContent='';$('cn').value=n;nNow=n;const my=++token;playing=true;$('cskip').hidden=false;$('cgo').textContent='▶ Rejouer mon clip';
   fr=frames(n);panelReset(n);S.setChapter(3);troupe(n);S.count(n);
   for(fi=0;fi<fr.length;fi++){if(my!==token)return;await showFrame(fi);panelUpdate(n,fi);if(my!==token)return;
-    const f=fr[fi];await new Promise(r=>setTimeout(r,S.reduceM?700:(f.kind==='form'||f.kind==='verdict'?S.BEAT*3000:S.BEAT*1600)))}
+    const f=fr[fi];await new Promise(r=>setTimeout(r,S.reduceM?700:(f.kind==='form'||f.kind==='verdict'||f.kind==='par'?S.BEAT*3000:S.BEAT*1600)))}
   playing=false;$('cskip').hidden=true}
 function skip(){if(!playing)return;const nextK=fr.findIndex((f,i)=>i>fi&&(fr[fi].kind==='form'||fr[fi].kind==='intro'?f.kind!=='form':f.kind==='verdict'));
   if(nextK<0)return;fi=nextK-1}
@@ -1158,7 +1132,6 @@ function QC(level,prompt,right,wrongs,explain,meta){const seen=new Set([plain(ri
 const TR=(level,prompt,blanks,explain,meta)=>({type:'trous',level,prompt,blanks,explain,meta});
 const N=v=>({answers:[String(v)],size:Math.max(2,String(v).length)});
 const notMult=(b,lo,hi,avoid)=>{let x;do{x=ri(lo,hi)}while(x%b===0||(avoid&&avoid.includes(x)));return x};
-const PRIMES=[...Array(400).keys()].filter(A.isPrime);
 
 /* ----- niveau 1 ----- */
 function q_multOf(st){const b=ri(3,9),k=ri(3,12),r=b*k,c=new Set();
@@ -1229,59 +1202,52 @@ function t_kk(){const a=pick([13,15,17,19,21]),k=(a-1)/2;return TR(4,`a = ${a} e
   `${a} = 2 × ${k} + 1, puis k′ = 2k² + 2k = ${2*k*k} + ${2*k} = ${(a*a-1)/2}.`,{k:'kk',a,steps:3,mx:a*a})}
 function q_sqEven(){return QC(4,'Le carré d\'un nombre pair est toujours un multiple de&nbsp;:','4',['8','3','6'],
   'a = 2k&nbsp;: a² = 4k² = 4 × k². Ce n\'est pas toujours un multiple de 8&nbsp;: 6² = 36.',{k:'alwaysMult',ex:'(2*n)**2',cond:'all',steps:2,mx:36})}
-/* ----- niveau 5 ----- */
-function q_prime(){const p=pick([2,3,5,7,11,13,17,19,23,29,31,37,41,43,47]);const comp=shuf([1,9,15,21,25,27,33,35,39,49,51,57]).slice(0,3);
-  return QC(5,'Lequel de ces nombres est premier&nbsp;?',String(p),comp.map(String),`${p} n'a que deux diviseurs, 1 et ${p}. ${comp.filter(c=>c>1).map(c=>`${c} = ${A.fact(c)[0][0]} × ${c/A.fact(c)[0][0]}`).join('&nbsp;; ')}${comp.includes(1)?'&nbsp;; 1 n\'est pas premier':''}.`,{k:'primePick',steps:1,mx:57})}
-function q_isPrime(big){const pool=big?[[221,1],[247,1],[323,1],[289,1],[391,1],[211,0],[223,0],[227,0],[229,0],[233,0],[239,0],[241,0],[251,0],[257,0],[263,0],[269,0],[271,0],[277,0],[281,0],[283,0],[293,0],[307,0],[311,0],[313,0],[317,0],[331,0],[337,0],[347,0],[349,0],[353,0],[359,0],[367,0],[373,0],[379,0],[383,0],[389,0],[397,0]]
-    :[[121,1],[143,1],[169,1],[187,1],[209,1],[91,1],[119,1],[97,0],[101,0],[103,0],[107,0],[109,0],[113,0],[127,0],[131,0],[137,0],[139,0],[149,0],[151,0],[157,0],[163,0],[167,0],[173,0],[179,0],[181,0],[191,0],[193,0],[197,0],[199,0]];
-  const [n]=pick(pool),s=A.isqrtLe(n),prime=A.isPrime(n);let right,w;
-  if(prime){const d=pick([3,7,11].filter(x=>n%x));right=`Oui&nbsp;: aucun entier d de 2 à ${s} ne divise ${n}.`;
-    w=[`Non&nbsp;: ${n} est divisible par ${d}.`,`On ne peut pas savoir sans tester tous les entiers jusqu'à ${n-1}.`,`Non&nbsp;: ${n} est impair et plus grand que 100.`]}
-  else{const d=A.fact(n)[0][0];right=`Non&nbsp;: ${n} = ${d} × ${n/d}.`;
-    w=[`Oui&nbsp;: il n'est divisible ni par 2, ni par 3, ni par 5, ni par 7.`,`Oui&nbsp;: il est impair.`,`On ne peut pas savoir sans tester tous les entiers jusqu'à ${n-1}.`]}
-  return QC(5,`Le nombre ${n} est-il premier&nbsp;?`,right,w,prime?`On teste les d de 2 tant que d² ≤ ${n}, c'est-à-dire jusqu'à ${s}&nbsp;: aucun ne divise ${n}, il est premier.`:`En testant les d tant que d² ≤ ${n} (jusqu'à ${s}), on trouve ${n} = ${A.fact(n)[0][0]} × ${n/A.fact(n)[0][0]}&nbsp;: ${n} n'est pas premier.`,
-    {k:'isPrimeStmt',n,steps:big?3:2,mx:n})}
-function t_test(){const n=pick([97,113,127,131,149,169,191,199,211]),s=A.isqrtLe(n);return TR(5,`Pour tester si ${n} est premier, on teste les diviseurs d à partir de 2 tant que d² ≤ ${n}, c'est-à-dire jusqu'à d = {0}.`,[N(s)],
-  `${s}² = ${s*s} ≤ ${n} mais ${s+1}² = ${(s+1)*(s+1)} &gt; ${n}&nbsp;: on teste jusqu'à ${s}.`,{k:'isqrt',n,steps:2,mx:n})}
-function q_onePrime(){const v=pick(['one','even']);
-  if(v==='one')return QC(5,'Le nombre 1 est-il premier&nbsp;?','Non&nbsp;: il n\'a qu\'un seul diviseur.',['Oui&nbsp;: il n\'est divisible que par 1 et par lui-même.','Oui&nbsp;: c\'est le plus petit nombre premier.'],
-    'Un nombre premier a exactement deux diviseurs&nbsp;; 1 n\'en a qu\'un. Le plus petit nombre premier est 2.',{k:'fixed',id:'one',steps:1,mx:1});
-  return QC(5,'Le seul nombre premier pair est&nbsp;:','2',['0','4','1'],'Un nombre pair plus grand que 2 est divisible par 2&nbsp;: il n\'est pas premier. 0 et 1 ne sont pas premiers.',{k:'evenPrime',steps:1,mx:4})}
-function t_spf(){const n=pick([221,247,323,289,143,187,209,391]),d=A.fact(n)[0][0];return TR(5,`${n} n'est pas premier. Son plus petit diviseur supérieur à 1 est d = {0}, et ${n} = d × {1}.`,[N(d),N(n/d)],
-  `On teste les d tant que d² ≤ ${n}&nbsp;: le premier qui divise ${n} est ${d}, et ${n} = ${d} × ${n/d}.`,{k:'spf',n,steps:3,mx:n})}
-/* ----- niveau 6 ----- */
-function factLures(n){const f=A.fact(n),ok=factStr(n),out=new Set(),w=g=>g.map(([p,e])=>p+(e>1?sup(e):'')).join(' × ');
-  const big=f.find(x=>x[1]>1);if(big)out.add(f.map(([p,e])=>p===big[0]?String(p**e):p+(e>1?sup(e):'')).join(' × '));
-  if(f.length>=2&&f[0][1]!==f[1][1]){const g=f.map(x=>x.slice());[g[0][1],g[1][1]]=[g[1][1],g[0][1]];out.add(w(g))}
-  out.add(f.map(([p])=>p).join(' × '));const g=f.map(x=>x.slice());g[0][1]++;out.add(w(g));out.delete(ok);return shuf([...out])}
-function q_fact(big){const n=big?pick([126,150,168,180,196,252,300,360]):pick([12,18,20,24,28,40,45,50,60,72]);
-  return QC(6,`La décomposition de ${n} en produit de facteurs premiers est&nbsp;:`,factStr(n),factLures(n),
-    `On divise successivement par 2, 3, 5, 7…&nbsp;: ${n} = ${A.flat(n).join(' × ')} = ${factStr(n)}. Tous les facteurs sont premiers.`,{k:'fact',n,steps:big?2:1,mx:n})}
-function t_cof(){const [n,d,ds]=pick([[12,4,'2²'],[20,4,'2²'],[28,4,'2²'],[44,4,'2²'],[52,4,'2²'],[18,9,'3²'],[45,9,'3²'],[63,9,'3²'],[24,8,'2³'],[40,8,'2³']]);
-  return TR(6,`Complète la décomposition en facteurs premiers&nbsp;: ${n} = ${ds} × {0}.`,[N(n/d)],`${ds} = ${d} et ${n} = ${d} × ${n/d}&nbsp;: ${n/d} est premier.`,{k:'cofac',n,d,steps:1,mx:n})}
-function t_factMiss(){const [n,given,ans]=pick([[300,'2² × 3',['5²','5^2']],[126,'2 × 7',['3²','3^2']],[180,'2² × 3²',['5']],[252,'2² × 3²',['7']],[360,'2³ × 3²',['5']],[200,'5²',['2³','2^3']],[196,'7²',['2²','2^2']]]);
-  return TR(6,`Complète la décomposition en facteurs premiers&nbsp;: ${n} = ${given} × {0}. (Pour un exposant, tu peux écrire 5^2.)`,[{answers:ans,size:3}],`En divisant successivement par 2, 3, 5, 7…, on trouve ${n} = ${factStr(n)}.`,{k:'factMissing',n,given,steps:2,mx:n})}
-function q_fromFact(){const [s,v]=pick([['2² × 3² × 7',252],['2³ × 3 × 5',120],['2 × 3² × 5',90],['2² × 3 × 5²',300],['2³ × 3² × 5',360],['2 × 3 × 7²',294]]);
-  const f=A.fact(v);const ws=[f.reduce((m,[p,e])=>m*(p*e),1),f.reduce((m,[p])=>m*p,1)*f[0][0],v/f[f.length-1][0],v*2].filter(x=>x!==v).map(String);
-  return QC(6,`Quel nombre a pour décomposition en facteurs premiers ${s}&nbsp;?`,String(v),ws,`${s} = ${A.flat(v).join(' × ')} = ${v}. Attention&nbsp;: 2³ = 2 × 2 × 2 = 8, pas 2 × 3.`,{k:'fromFact',s,steps:2,mx:v})}
-function q_divFact(){const [s,Nn]=pick([['2³ × 3² × 5',360],['2² × 3 × 5 × 7',420],['2⁴ × 3²',144],['2 × 3³ × 5',270]]);
-  const ds=A.divisors(Nn).filter(d=>d>10&&d<Nn&&!(A.fact(d).length===1));const r=pick(ds.length?ds:[A.divisors(Nn)[3]]);
-  const non=[16,27,25,14,32,49,81,22,26].filter(x=>Nn%x);shuf(non);
-  return QC(6,`N = ${s}. Lequel de ces nombres est un diviseur de N&nbsp;?`,String(r),non.slice(0,3).map(String),`${r} = ${factStr(r)}&nbsp;: tous ses facteurs premiers apparaissent dans N, avec des exposants au plus égaux. ${non.slice(0,3).map(x=>`${x} = ${factStr(x)}`).join('&nbsp;; ')}&nbsp;: ce n'est pas le cas.`,{k:'divOf',n:Nn,steps:3,mx:Nn})}
-/* ----- niveau 7 ----- */
+/* ----- niveau 5 : plus grand multiple de a inférieur ou égal à b ; tester si un nombre est un multiple ----- */
+function pgmAB(big){const a=big?ri(13,25):ri(4,9);let b;do{b=big?ri(150,400):ri(30,60)}while(b%a===0||b%a===a-1||Math.floor(b/a)<3);const q=Math.floor(b/a);return{a,b,q,r:b-a*q,m:a*q}}
+function q_pgm(big){const {a,b,q,r,m}=pgmAB(big);
+  return QC(5,`Le plus grand multiple de ${a} inférieur ou égal à ${b} est&nbsp;:`,String(m),[String(m+a),String(b),String(m-a)],
+    `${b} = ${a} × ${q} + ${r} avec 0 ≤ ${r} &lt; ${a}&nbsp;: c'est ${a} × ${q} = ${m}. ${m+a} dépasse ${b}, et ${b} n'est pas un multiple de ${a}.`,{k:'pgm',a,b,steps:big?2:1,mx:b})}
+function q_algo(){const {a,b,q,m}=pgmAB(false);
+  return QC(5,`Algorithme&nbsp;: m ← 0&nbsp;; tant que m + ${a} ≤ ${b}, m ← m + ${a}. Quelle est la valeur de m à la fin&nbsp;?`,String(m),[String(m+a),String(b),String(q)],
+    `m prend les valeurs 0, ${a}, ${2*a}… jusqu'à ${m}&nbsp;: alors m + ${a} = ${m+a} &gt; ${b} et la boucle s'arrête. m = ${m}, le plus grand multiple de ${a} inférieur ou égal à ${b}.`,{k:'pgm',a,b,steps:3,mx:b})}
+function q_isMult(big){const a=big?ri(11,19):ri(6,9),yes=Math.random()<.5;let N;do{N=big?ri(150,400):ri(40,99)}while((N%a===0)!==yes);const q=Math.floor(N/a),r=N-q*a;
+  const ch=yes?[`${N} est un multiple de ${a}.`,`${N} n'est pas un multiple de ${a}.`,`${a} est un multiple de ${N}.`]:[`${N} n'est pas un multiple de ${a}.`,`${N} est un multiple de ${a}.`,`${a} est un diviseur de ${N}.`];
+  return QC(5,`En Python, ${N} % ${a} renvoie ${r} (le reste de la division de ${N} par ${a}). Donc&nbsp;:`,ch[0],ch.slice(1),
+    yes?`Le reste est nul&nbsp;: ${N} = ${a} × ${q}, donc ${N} est un multiple de ${a} (et ${a} est un diviseur de ${N}).`:`Le reste n'est pas nul&nbsp;: ${N} = ${a} × ${q} + ${r}, donc ${N} n'est pas un multiple de ${a}.`,{k:'vocab',steps:big?2:1,mx:N})}
+function t_pgm(big){const {a,b,q,r,m}=pgmAB(big);
+  return TR(5,`${b} = ${a} × {0} + {1} avec un reste plus petit que ${a}&nbsp;: le plus grand multiple de ${a} inférieur ou égal à ${b} est {2}.`,[N(q),N(r),N(m)],
+    `${a} × ${q} = ${m} ≤ ${b} et ${a} × ${q+1} = ${m+a} &gt; ${b}.`,{k:'pgmqr',a,b,steps:big?3:2,mx:b})}
+/* ----- niveau 6 : diviseurs communs ----- */
+const cdl=(a,b)=>A.divisors(a).filter(d=>b%d===0);
+const CPAIRS=[[12,18],[16,24],[20,30],[18,24],[12,30],[24,36],[30,45],[28,42],[36,48],[40,60],[42,70],[45,75],[48,80],[54,90]];
+function q_commonDiv(big){const [a,b]=pick(big?CPAIRS.slice(6):CPAIRS.slice(0,8)),c=cdl(a,b).filter(d=>d>1),d=pick(c);
+  const onlyA=A.divisors(a).filter(x=>x>1&&b%x),onlyB=A.divisors(b).filter(x=>x>1&&a%x),none=[7,11,13,16,17].filter(x=>a%x&&b%x);
+  if(!onlyA.length||!onlyB.length)return null;
+  return QC(6,`Lequel de ces nombres est un diviseur commun de ${a} et ${b}&nbsp;?`,String(d),[String(pick(onlyA)),String(pick(onlyB)),String(pick(none))],
+    `${a} = ${d} × ${a/d} et ${b} = ${d} × ${b/d}&nbsp;: ${d} divise les deux nombres. Les autres n'en divisent qu'un, ou aucun.`,{k:'commonDiv',a,b,steps:big?3:2,mx:b})}
+function q_commonList(){const [a,b]=pick(CPAIRS.slice(0,6)),c=cdl(a,b),g=c[c.length-1],L=x=>x.join(', ');
+  const uni=[...new Set(A.divisors(a).concat(A.divisors(b)))].filter(d=>d<=Math.min(a,b)).sort((x,y)=>x-y);
+  return QC(6,`Quelle est la liste de <b>tous</b> les diviseurs communs de ${a} et ${b}&nbsp;?`,L(c),[L(uni),L(c.filter(d=>d!==1&&d!==g)),L(c.filter(d=>d!==g))],
+    `Diviseurs de ${a}&nbsp;: ${L(A.divisors(a))}&nbsp;; diviseurs de ${b}&nbsp;: ${L(A.divisors(b))}. En commun&nbsp;: ${L(c)}.`,{k:'commonList',a,b,steps:2,mx:b})}
+function t_common(){const [a,b,d]=pick([[12,18,6],[20,30,10],[16,24,8],[14,21,7],[15,25,5],[18,27,9]]);
+  return TR(6,`${a} = {0} × ${d} et ${b} = {1} × ${d}&nbsp;: ${d} est un diviseur commun de ${a} et ${b}.`,[N(a/d),N(b/d)],`${a/d} × ${d} = ${a} et ${b/d} × ${d} = ${b}.`,{k:'cofac2',a,b,d,steps:1,mx:b})}
+function t_ncommon(){const [a,b]=pick(CPAIRS),c=cdl(a,b);
+  return TR(6,`${a} et ${b} ont exactement {0} diviseurs communs (1 compris).`,[N(c.length)],`Diviseurs communs de ${a} et ${b}&nbsp;: ${c.join(', ')}.`,{k:'ncommon',a,b,steps:3,mx:b})}
+/* ----- niveau 7 : fractions irréductibles ----- */
 const FRS=[[84,120],[60,126],[45,75],[36,48],[42,56],[54,90],[70,98],[180,252],[150,210],[126,210]];
-function q_irr(big){const [a,b]=pick(big?FRS.slice(4):FRS.slice(0,7)),g=A.common(a,b),p=A.flat(g)[0];
+const spd=g=>A.divisors(g).find(d=>d>1);
+function q_irr(big){const [a,b]=pick(big?FRS.slice(4):FRS.slice(0,7)),g=A.common(a,b),p=spd(g);
   const ws=shuf(A.divisors(g).filter(d=>d>1&&d<g)).slice(0,2).map(d=>fr(a/d,b/d));ws.push(fr(b/g,a/g));
-  return QC(7,`La forme irréductible de ${fr(a,b)} est&nbsp;:`,fr(a/g,b/g),ws,`${a} = ${factStr(a)} et ${b} = ${factStr(b)}&nbsp;: on barre les facteurs communs, ${fr(a,b)} = ${fr(a/g,b/g)}. ${fr(a/p,b/p)} se simplifie encore.`,{k:'irr',a,b,steps:big?3:2,mx:b})}
+  return QC(7,`La forme irréductible de ${fr(a,b)} est&nbsp;:`,fr(a/g,b/g),ws,`${a} = ${g} × ${a/g} et ${b} = ${g} × ${b/g}&nbsp;: on simplifie par ${g}, ${fr(a,b)} = ${fr(a/g,b/g)}. Simplifier seulement par ${p} ne suffit pas&nbsp;: ${fr(a/p,b/p)} se simplifie encore.`,{k:'irr',a,b,steps:big?3:2,mx:b})}
 function t_fr(big){const [a,b]=pick(big?FRS.slice(4):FRS.slice(0,4)),g=A.common(a,b);
-  return TR(7,`${big?`${a} = ${factStr(a)} et ${b} = ${factStr(b)}, donc `:'Écris sous forme irréductible&nbsp;: '}${fr(a,b)} = ${frIn}`,[N(a/g),N(b/g)],`${fr(a,b)} = ${fr(factStr(a),factStr(b))} = ${fr(a/g,b/g)}.`,{k:'fr',a,b,steps:big?2:2,mx:b})}
+  return TR(7,`${big?`${a} = ${g} × ${a/g} et ${b} = ${g} × ${b/g}, donc `:'Écris sous forme irréductible&nbsp;: '}${fr(a,b)} = ${frIn}`,[N(a/g),N(b/g)],`On simplifie par ${g}, diviseur commun de ${a} et ${b}&nbsp;: ${fr(a,b)} = ${fr(a/g,b/g)}, et ${a/g} et ${b/g} n'ont plus de diviseur commun autre que 1.`,{k:'fr',a,b,steps:2,mx:b})}
 function q_teams(){const [a,b]=pick([[84,120],[150,210],[60,126],[45,75],[36,60],[48,72],[90,126]]),g=A.common(a,b);
   const cds=A.divisors(g).filter(d=>d>1&&d<g),ws=shuf(cds).slice(0,2).map(String);ws.push(String(a/g),String(a/g+b/g));
   return QC(7,`Un chorégraphe a ${a} danseurs et ${b} figurants. Il veut former des équipes identiques (même nombre de danseurs et même nombre de figurants dans chaque équipe), avec le plus d'équipes possible. Combien d'équipes&nbsp;?`,
-    String(g),ws,`${a} = ${factStr(a)} et ${b} = ${factStr(b)}&nbsp;: ${g} équipes de ${a/g} danseurs et ${b/g} figurants&nbsp;; ${a/g} et ${b/g} n'ont plus de diviseur commun autre que 1.`,{k:'teamsMax',A:a,B:b,steps:3,mx:b})}
+    String(g),ws,`${a} = ${g} × ${a/g} et ${b} = ${g} × ${b/g}&nbsp;: ${g} équipes de ${a/g} danseurs et ${b/g} figurants&nbsp;; ${a/g} et ${b/g} n'ont plus de diviseur commun autre que 1.`,{k:'teamsMax',A:a,B:b,steps:3,mx:b})}
 function t_teams(){const [a,b]=pick([[84,120],[150,210],[60,126],[45,75],[36,60],[48,72]]),g=A.common(a,b);
   return TR(7,`${a} danseurs et ${b} figurants forment le plus grand nombre possible d'équipes identiques&nbsp;: {0} équipes, chacune de {1} danseurs et {2} figurants.`,[N(g),N(a/g),N(b/g)],
-    `${a} = ${factStr(a)} et ${b} = ${factStr(b)}&nbsp;: ${g} équipes de ${a/g} danseurs et ${b/g} figurants.`,{k:'teams',A:a,B:b,steps:3,mx:b})}
+    `${a} = ${g} × ${a/g} et ${b} = ${g} × ${b/g}&nbsp;: ${g} équipes de ${a/g} danseurs et ${b/g} figurants.`,{k:'teams',A:a,B:b,steps:3,mx:b})}
 
 function build(qs,ts){for(;;){const out=[];let bad=false;
     for(const f of qs){const q=f();if(!q){bad=true;break}out.push(q)}
@@ -1289,9 +1255,9 @@ function build(qs,ts){for(;;){const out=[];let bad=false;
     const pr=new Set(out.map(q=>plain(q.prompt)));if(pr.size<out.length)continue;return shuf(out)}}
 const pickN=(arr,k)=>shuf(arr.slice()).slice(0,k);
 const FIN={
-  bronze:()=>build([q_multOf,q_divOf,q_sum,q_parity,q_op,q_prime],[t_k,t_odd,t_sqnum,t_cof]),
-  argent:()=>build(pickN([q_divList,q_721,q_parBig,q_exp,()=>q_isPrime(false),()=>q_fact(true),()=>q_irr(false),q_oddsq,q_onePrime],6),pickN([t_qr,t_proof,t_odd2,t_test,t_factMiss,()=>t_fr(false)],4)),
-  or:()=>build(pickN([q_teams,q_divFact,q_parExpr,q_cons,()=>q_isPrime(true),q_kp,q_fromFact,()=>q_irr(true),q_sqEven],6),pickN([t_lin,t_kk,()=>t_fr(true),t_teams,t_ndiv,t_spf],4))
+  bronze:()=>build([q_multOf,q_divOf,q_sum,q_parity,q_op,()=>q_pgm(false)],[t_k,t_odd,t_sqnum,t_common]),
+  argent:()=>build(pickN([q_divList,q_721,q_parBig,q_exp,()=>q_pgm(true),q_commonList,()=>q_irr(false),q_oddsq,()=>q_isMult(false)],6),pickN([t_qr,t_proof,t_odd2,()=>t_pgm(true),t_ncommon,()=>t_fr(false)],4)),
+  or:()=>build(pickN([q_teams,()=>q_commonDiv(true),q_parExpr,q_cons,q_algo,q_kp,()=>q_isMult(true),()=>q_irr(true),q_sqEven],6),pickN([t_lin,t_kk,()=>t_fr(true),t_teams,t_ndiv,()=>t_pgm(true)],4))
 };
 window.LC_FIN=FIN;
 })();
@@ -1301,7 +1267,7 @@ window.LC_FIN=FIN;
 <script src="/sigma-arcade/sigma-kit.js"></script>
 <script>
 SigmaKit.init({game:'le-clip',title:'Le Clip',levels:7,
-  levelNames:['Rangées pile','La fusion','En duo','Le carré','Le solo','Indivisibles','Le concert'],
+  levelNames:['Rangées pile','La fusion','En duo','Le carré','Le dernier rang','Les deux troupes','Le concert'],
   music:'aventure',finals:{bronze:()=>(window.LC_lastFinal=LC_FIN.bronze()),argent:()=>(window.LC_lastFinal=LC_FIN.argent()),or:()=>(window.LC_lastFinal=LC_FIN.or())}});
 LC.start();
 (function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)

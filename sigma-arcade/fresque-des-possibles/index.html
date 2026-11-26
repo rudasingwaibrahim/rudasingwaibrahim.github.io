@@ -761,14 +761,14 @@ function L5roue(){const c=rndCounts(20,4),id='roue:'+c.join(','),e=E(id),miss=ri
 function pairAB(e,o={}){const pool=evPool(e,{max:o.max||Math.ceil(e.n*.6)});for(let t=0;t<400;t++){const a=pick(pool),b=pick(pool);if(a===b)continue;const A=setOf(e,a),B=setOf(e,b),I=A.filter(k=>B.includes(k));
   if(o.disj?I.length===0:(I.length>=1&&I.length<A.length&&I.length<B.length))return [a,b]}return null}
 function unionFill(e,a,b,after){const A=setOf(e,a),B=setOf(e,b),I=A.filter(k=>B.includes(k)),n=e.n,u=A.length+B.length-I.length;
-  return {t:'fill',ask:'Applique la formule&nbsp;:',tpl:`P(A ∪ B) = ${fr(A.length,n)} + ${fr(B.length,n)} − {0} = {1}`,bl:[{t:'f',v:[I.length,n],mode:'val',m:{k:'p',exp:e.id,ev:{t:'and',a,b}}},{t:'f',v:[u,n],mode:'val',m:{k:'pu',exp:e.id,a,b}}],
-    why:'On retire P(A ∩ B)&nbsp;: les cases vertes, comptées deux fois.',after}}
+  return {t:'fill',ask:'Compte les issues de A ∪ B (chaque case peinte une seule fois, même verte)&nbsp;:',tpl:`P(A ∪ B) = {0}`,bl:[{t:'f',v:[u,n],mode:'val',m:{k:'pu',exp:e.id,a,b}}],
+    why:`A ∪ B&nbsp;: toutes les cases peintes, bleues, jaunes ou vertes. Une case verte est dans A et dans B, mais c'est une seule issue&nbsp;: on la compte une fois.`,after}}
 function L6de(){const e=E('de6'),[a,b]=pairAB(e),A=setOf(e,a),B=setOf(e,b),I=A.filter(k=>B.includes(k));
   return {exp:'de6',evA:a,evB:b,prompt:`${e.txt}<br><span class="pa">A</span> = ${q(ph(a))} et <span class="pb">B</span> = ${q(ph(b))}.`,cap0:'Deux bombes&nbsp;: bleu pour A, jaune pour B',
     parts:[{t:'act',do:'mix',label:'▶ Peindre A en bleu, puis B en jaune'},
       {t:'pad',role:'I',ask:'Entoure les cases de A ∩ B (dans A <b>et</b> dans B)&nbsp;:',sol:I,m:{k:'set',exp:'de6',ev:{t:'and',a,b}},whyX:'A ∩ B&nbsp;: les cases peintes deux fois, en vert.',whyM:'Cherche toutes les cases vertes.'},
-      {t:'act',do:'count2',label:'▶ Additionner P(A) + P(B) au compteur'},unionFill(e,a,b,'fix')],
-    done:`P(A ∪ B) = P(A) + P(B) − P(A ∩ B)&nbsp;: on retire les cases vertes, sinon elles seraient comptées deux fois.`}}
+      unionFill(e,a,b,'fix')],
+    done:`A ∪ B compte ${A.length+B.length-I.length} issues sur ${e.n}&nbsp;: P(A ∪ B) = ${fr(A.length+B.length-I.length,e.n)}. Les cases vertes sont dans A et dans B, mais chacune ne compte qu'une fois.`}}
 function L6sets(){const e=E('de6');let a,b,A,B;for(;;){A=shuf([1,2,3,4,5,6]).slice(0,ri(2,4)).sort((x,y)=>x-y).map(String);B=shuf([1,2,3,4,5,6]).slice(0,ri(2,4)).sort((x,y)=>x-y).map(String);
     const I=A.filter(k=>B.includes(k));if(I.length>=1&&I.length<A.length&&I.length<B.length&&A.length+B.length-I.length<6)break}
   a={t:'set',s:A};b={t:'set',s:B};const I=A.filter(k=>B.includes(k)),U=e.iss.map(i=>i.k).filter(k=>A.includes(k)||B.includes(k)),D2=A.filter(k=>!B.includes(k)).concat(B.filter(k=>!A.includes(k))).sort();
@@ -779,20 +779,20 @@ function L6sets(){const e=E('de6');let a,b,A,B;for(;;){A=shuf([1,2,3,4,5,6]).sli
     done:`A ∩ B = ${setL(I)} (les vertes) et A ∪ B = ${setL(U)} (toutes les peintes).`}}
 function L6cartes(){const e=E('cartes');const a=pick([{t:'suit',s:pick(['P','C','K','T'])},{t:'red'}]),b=pick([{t:'rank',r:pick(['A','R','D','V'])},{t:'fig'}]);const [x,y]=Math.random()<.5?[a,b]:[b,a];
   return {exp:'cartes',evA:x,evB:y,prompt:`${e.txt}<br><span class="pa">A</span> = ${q(ph(x))} et <span class="pb">B</span> = ${q(ph(y))}.`,cap0:'Deux bombes&nbsp;: bleu pour A, jaune pour B',
-    parts:[{t:'act',do:'mix',label:'▶ Peindre A en bleu, puis B en jaune'},{t:'act',do:'count2',label:'▶ Additionner P(A) + P(B) au compteur'},unionFill(e,x,y,'fix')],
-    done:`P(A ∪ B) = ${fr(setOf(e,x).length,32)} + ${fr(setOf(e,y).length,32)} − ${fr(setOf(e,{t:'and',a:x,b:y}).length,32)} = ${fr(setOf(e,{t:'or',a:x,b:y}).length,32)}.`}}
+    parts:[{t:'act',do:'mix',label:'▶ Peindre A en bleu, puis B en jaune'},unionFill(e,x,y,'fix')],
+    done:`A ∪ B contient ${setOf(e,{t:'or',a:x,b:y}).length} cartes&nbsp;: P(A ∪ B) = ${fr(setOf(e,{t:'or',a:x,b:y}).length,32)}. Les ${setOf(e,{t:'and',a:x,b:y}).length} cartes communes ne se comptent qu'une fois.`}}
 function L6incomp(){const id=pick(['jet10','jet12']),e=E(id),[a,b]=pairAB(e,{disj:true,max:5}),A=setOf(e,a),B=setOf(e,b);
   return {exp:id,evA:a,evB:b,prompt:`${e.txt}<br><span class="pa">A</span> = ${q(ph(a))} et <span class="pb">B</span> = ${q(ph(b))}.`,cap0:'Deux bombes&nbsp;: bleu pour A, jaune pour B',
     parts:[{t:'act',do:'mix',label:'▶ Peindre A en bleu, puis B en jaune'},
-      {t:'choice',ask:'A et B sont-ils incompatibles&nbsp;?',ch:[{h:'Oui&nbsp;: aucune case verte, A ∩ B ne contient aucune issue.',ok:true},{h:'Non&nbsp;: A et B ont des issues communes.',why:'Regarde le mur&nbsp;: aucune case n’est verte.'},{h:'Non&nbsp;: il faudrait que P(A) + P(B) = 1.',why:'Ça, c’est la propriété du contraire. Incompatibles veut dire&nbsp;: aucune issue commune.'}],m:{k:'incq',exp:id,a,b,kind:'yn'}},
-      {t:'act',do:'count2',label:'▶ Additionner P(A) + P(B) au compteur'},
-      {t:'fill',ask:'Ici P(A ∩ B) = 0, donc&nbsp;:',tpl:`P(A ∪ B) = ${fr(A.length,e.n)} + ${fr(B.length,e.n)} = {0}`,bl:[{t:'f',v:[A.length+B.length,e.n],mode:'val',m:{k:'pu',exp:id,a,b}}],why:'Rien à retirer&nbsp;: on additionne.'}],
-    done:'A et B incompatibles&nbsp;: P(A ∩ B) = 0, donc P(A ∪ B) = P(A) + P(B).'}}
-function L6dec(){const e=E('jet20'),[a,b]=pairAB(e,{max:12}),A=setOf(e,a).length,B=setOf(e,b).length,I=setOf(e,{t:'and',a,b}).length;
-  return {exp:'jet20',evA:a,evB:b,prompt:`${e.txt}<br><span class="pa">A</span> = ${q(ph(a))} et <span class="pb">B</span> = ${q(ph(b))}.<br>On sait que P(A) = ${D(A,20)}, P(B) = ${D(B,20)} et P(A ∩ B) = ${D(I,20)}.`,cap0:'Deux bombes&nbsp;: bleu pour A, jaune pour B',
-    parts:[{t:'act',do:'mix',label:'▶ Peindre A en bleu, puis B en jaune'},{t:'act',do:'count2',label:'▶ Additionner P(A) + P(B) au compteur'},
-      {t:'fill',ask:'Calcule&nbsp;:',tpl:`P(A ∪ B) = ${D(A,20)} + ${D(B,20)} − ${D(I,20)} = {0}`,bl:[{t:'d',v:[A+B-I,20],m:{k:'pu',exp:'jet20',a,b}}],why:'P(A) + P(B) − P(A ∩ B).',after:'fix'}],
-    done:`P(A ∪ B) = ${D(A,20)} + ${D(B,20)} − ${D(I,20)} = ${D(A+B-I,20)}.`}}
+      {t:'choice',ask:'A ∩ B est-il vide (aucune issue commune)&nbsp;?',ch:[{h:'Oui&nbsp;: aucune case verte, A ∩ B ne contient aucune issue.',ok:true},{h:'Non&nbsp;: A et B ont des issues communes.',why:'Regarde le mur&nbsp;: aucune case n’est verte.'},{h:'Non&nbsp;: il faudrait que P(A) + P(B) = 1.',why:'Ça, c’est le cas d’un événement et de son contraire. Ici, il suffit de chercher les cases vertes&nbsp;: il n’y en a pas.'}],m:{k:'incq',exp:id,a,b,kind:'yn'}},
+      {t:'fill',ask:'A ∩ B ne contient aucune issue&nbsp;: les issues de A ∪ B sont celles de A et celles de B, sans répétition. Donc&nbsp;:',tpl:`P(A ∪ B) = ${fr(A.length,e.n)} + ${fr(B.length,e.n)} = {0}`,bl:[{t:'f',v:[A.length+B.length,e.n],mode:'val',m:{k:'pu',exp:id,a,b}}],why:'On additionne les probabilités des issues de A ∪ B&nbsp;: aucune n’est comptée deux fois.'}],
+    done:'A ∩ B ne contient aucune issue&nbsp;: aucune n’est comptée deux fois, donc P(A ∪ B) = P(A) + P(B).'}}
+function L6dec(){const e=E('jet20'),[a,b]=pairAB(e,{max:12}),A=setOf(e,a),B=setOf(e,b),U=e.iss.map(i=>i.k).filter(k=>A.includes(k)||B.includes(k));
+  return {exp:'jet20',evA:a,evB:b,prompt:`${e.txt}<br><span class="pa">A</span> = ${q(ph(a))} et <span class="pb">B</span> = ${q(ph(b))}.`,cap0:'Deux bombes&nbsp;: bleu pour A, jaune pour B',
+    parts:[{t:'act',do:'mix',label:'▶ Peindre A en bleu, puis B en jaune'},
+      {t:'pad',role:'U',ask:'Entoure les cases de A ∪ B (dans A <b>ou</b> dans B)&nbsp;:',sol:U,m:{k:'set',exp:'jet20',ev:{t:'or',a,b}},whyX:'Cette case n’est ni bleue, ni jaune, ni verte.',whyM:'A ∪ B&nbsp;: toutes les cases peintes, quelle que soit la couleur.'},
+      {t:'fill',ask:'En écriture décimale&nbsp;:',tpl:`P(A ∪ B) = {0}`,bl:[{t:'d',v:[U.length,20],m:{k:'pu',exp:'jet20',a,b}}],why:`${U.length} cases sur 20.`,after:'fix'}],
+    done:`A ∪ B contient ${U.length} issues sur 20&nbsp;: P(A ∪ B) = ${D(U.length,20)}.`}}
 /* niveau 7 */
 function treeQ(id,ev,extra,txt){const e=E(id),s=setOf(e,ev);return {exp:id,mode:'tree',ev,prompt:`${e.txt}<br>E = ${q(txt||ph(ev,e))}.`,cap0:'Le mur devient un arbre',
   parts:[{t:'act',do:'grow',label:'▶ Peindre l’arbre des possibles'},...(extra.pre||[]),
@@ -824,7 +824,7 @@ const LV=[
   gens:[L4de,L4mot,L4cartes,L4dec,L4astuce]},
  {t:'Le bandeau',rule:'<p>Une <b>loi de probabilité</b> donne la probabilité de chaque issue. La somme de toutes les probabilités vaut 1.</p><p>Exemple&nbsp;: urne de 6 vertes, 3 jaunes, 11 noires (20 boules)&nbsp;: P(V) = 0,3, P(J) = 0,15, P(N) = 0,55 et 0,3 + 0,15 + 0,55 = 1.</p><p>Pour un événement, on additionne les probabilités de ses issues.</p>',
   gens:[L5urne,L5miss,L5ev,L5tables,L5roue]},
- {t:'Le mélange',rule:'<p>A ∩ B&nbsp;: issues communes à A et B. A ∪ B&nbsp;: issues appartenant à A ou à B.</p><p><span class="f">P(A ∪ B) = P(A) + P(B) − P(A ∩ B)</span></p><p>On soustrait P(A ∩ B) car les issues communes seraient comptées deux fois. <b>Incompatibles</b>&nbsp;: P(A ∩ B) = 0, donc P(A ∪ B) = P(A) + P(B).</p><p>Sur le mur&nbsp;: bleu (A) + jaune (B) = <b style="color:var(--pG)">vert</b> (A ∩ B).</p>',
+ {t:'Le mélange',rule:'<p>A ∩ B&nbsp;: issues communes à A et B. A ∪ B&nbsp;: issues appartenant à A ou à B.</p><p>Pour calculer P(A ∪ B), on compte les issues de A ∪ B&nbsp;: une issue commune à A et à B (case verte) ne se compte qu’<b>une seule fois</b>.</p><p>Si A ∩ B ne contient aucune issue (aucune case verte), P(A ∪ B) = P(A) + P(B).</p><p>Sur le mur&nbsp;: bleu (A) + jaune (B) = <b style="color:var(--pG)">vert</b> (A ∩ B).</p>',
   gens:[L6de,L6sets,L6cartes,L6incomp,L6dec]},
  {t:'L’arbre',rule:'<p>Un <b>arbre des possibles</b> représente toutes les issues d’une expérience à plusieurs étapes. Chaque branche correspond à une possibilité.</p><p>Méthode&nbsp;: lister toutes les branches, repérer les issues favorables, compter. Exemple&nbsp;: deux lancers d’une pièce, 4 issues PP, PF, FP, FF équiprobables&nbsp;; P(«&nbsp;au moins une fois PILE&nbsp;») = 3/4.</p>',
   gens:[L7pp,L7pp2,L7pr3,L7pd,L7rr]}];
@@ -911,18 +911,13 @@ function a_loi(){const N=pick([12,15,20]);let c;for(;;){c=Array.from({length:4},
   const miss=ri(0,3),sum=N-c[miss];
   return QC(5,`Une loi de probabilité sur les issues 1, 2, 3, 4&nbsp;: ${c.map((x,g)=>g===miss?`p<sub>${g+1}</sub> = ?`:`p<sub>${g+1}</sub> = ${fr(x,N)}`).join('&nbsp;; ')}. La valeur manquante est&nbsp;:`,
     fr(c[miss],N),lures([c[miss],N],[[sum,N],[c[miss]+1,N],[1,N],[c[miss],N-1]]).map(x=>fr(x[0],x[1])),`La somme vaut 1&nbsp;: 1 − ${fr(sum,N)} = ${fr(c[miss],N)}.`,{k:'num',op:'1-sum',xs:c.filter((_,g)=>g!==miss).map(x=>[x,N]),kind:'val',st:2})}
-function a_unionNum(){let a,b,c;for(;;){a=ri(3,7)*10;b=ri(2,6)*10;c=ri(1,3)*10;if(c<Math.min(a,b)&&a+b-c<=100&&a+b-c>0)break}
-  return QC(6,`A et B sont deux événements tels que P(A) = ${Dh(a)}, P(B) = ${Dh(b)} et P(A ∩ B) = ${Dh(c)}. Alors P(A ∪ B) =`,Dh(a+b-c),[Dh(a+b),Dh(a+b-2*c),Dh(c)],
-    `P(A ∪ B) = P(A) + P(B) − P(A ∩ B) = ${Dh(a)} + ${Dh(b)} − ${Dh(c)} = ${Dh(a+b-c)}.`,{k:'num',op:'a+b-c',xs:[[a,100],[b,100],[c,100]],kind:'val',st:2})}
 function a_unionDe(){const e=E('de6');const evs=[[{t:'pair'},'nombre pair'],[{t:'impair'},'nombre impair'],[{t:'mult',k:3},'multiple de 3'],[{t:'ge',k:4},'nombre ≥ 4'],[{t:'le',k:3},'nombre ≤ 3'],[{t:'ge',k:5},'nombre ≥ 5'],[{t:'le',k:2},'nombre ≤ 2']];
   for(;;){const [x,y]=shuf(evs.slice()).slice(0,2),A=setOf(e,x[0]),B=setOf(e,y[0]),I=A.filter(k=>B.includes(k));if(!I.length||I.length===A.length||I.length===B.length)continue;const u=A.length+B.length-I.length;
     return QC(6,`${DE} A = ${q(x[1])} et B = ${q(y[1])}. P(A ∪ B) est égale à&nbsp;:`,V(u,6),lures([u,6],[[A.length+B.length,6],[I.length,6],[u-1,6],[u+1,6]]).map(vh),
-      `A ∩ B = ${setL(I)}&nbsp;: P(A ∪ B) = ${fr(A.length,6)} + ${fr(B.length,6)} − ${fr(I.length,6)} = ${V(u,6)}.`,{k:'pu',exp:'de6',a:x[0],b:y[0],kind:'val',st:3})}}
+      `A ∩ B = ${setL(I)}&nbsp;: A ∪ B compte ${u} issues (les issues communes une seule fois), donc P(A ∪ B) = ${fr(u,6)}${u%2===0||u%3===0?' = '+V(u,6):''}.`,{k:'pu',exp:'de6',a:x[0],b:y[0],kind:'val',st:3})}}
 function a_tree(){const v=pick([[{t:'atl',v:'P'},'obtenir au moins une fois PILE',[[1,2],[2,3],[1,4]]],[{t:'exa',v:'F',n:1},'obtenir exactement une fois FACE',[[1,4],[1,3],[3,4]]],[{t:'exa',v:'P',n:2},'obtenir deux fois PILE',[[1,2],[1,3],[2,4].map(x=>x)]]]);
   const r=P('pp',v[0]);return QC(7,`On lance deux fois de suite une pièce équilibrée. La probabilité ${de(v[1])} est&nbsp;:`,V(r[0],4),lures(r,v[2]).map(vh),
     `Arbre&nbsp;: PP, PF, FP, FF (4 issues équiprobables)&nbsp;; ${r[0]} favorable${r[0]>1?'s':''}&nbsp;: ${fr(r[0],4)}${r[0]===2?' = '+fr(1,2):''}.`,{k:'p',exp:'pp',ev:v[0],kind:'val',st:2})}
-function a_incomp(){return QC(6,'Deux événements A et B sont incompatibles lorsque&nbsp;:','A ∩ B ne contient aucune issue',['P(A) + P(B) = 1','A et B ont au moins une issue commune','A ∪ B contient toutes les issues'],
-  'Incompatibles&nbsp;: aucune issue commune, donc P(A ∩ B) = 0 et P(A ∪ B) = P(A) + P(B).',{k:'def',id:'incomp',kind:'def',st:1})}
 function a_urne(){const c=pick([[6,3,11],[4,5,11],[8,2,10],[5,7,8],[9,4,7],[2,6,12]]),g=ri(0,2),nm=['verte','jaune','noire'][g],id='urne:'+c.join(',');
   return QC(3,`${E(id).txt} La probabilité de tirer une boule ${nm} est&nbsp;:`,D(c[g],20),lures([c[g],20],[[1,3],[c[g],1],[c[g],20-c[g]]]).map(x=>x[1]===3?fr(1,3):x[1]===1?String(x[0]):(D(x[0],x[1])||fr(x[0],x[1]))),
     `${c[g]} boules ${nm}s sur 20, toutes équiprobables&nbsp;: ${fr(c[g],20)} = ${D(c[g],20)}. (Les 3 couleurs n’ont pas la même chance&nbsp;!)`,{k:'p',exp:id,ev:{t:'col',c:nm},kind:'val',st:2})}
@@ -930,8 +925,6 @@ function ta_p(){const v=pick([[{t:'mult',k:3},'multiple de 3'],[{t:'pair'},'nomb
   return TR(3,`${DE} La probabilité de l’événement ${q(v[1])}, sous forme irréductible, est {0}.`,[{answers:ans(c,6,`${c}/6`),size:5,m:{k:'p',exp:'de6',ev:v[0]}}],`${c} issues favorables sur 6&nbsp;: ${fr(c,6)} = ${V(c,6)}.`,{st:2})}
 function ta_compCard(){const v=pick([[{t:'rank',r:'A'},'tirer un as'],[{t:'rank',r:'R'},'tirer un roi'],[{t:'suit',s:'C'},'tirer un cœur'],[{t:'suit',s:'T'},'tirer un trèfle'],[{t:'fig'},'tirer une figure (valet, dame ou roi)']]),[c]=P('cartes',v[0]);
   return TR(4,`${C32} A = ${q(v[1])}. Alors P(${NA}) = {0}.`,[{answers:ans(32-c,32,`${32-c}/32`),size:5,m:{k:'pc',exp:'cartes',ev:v[0]}}],`P(${NA}) = 1 − ${fr(c,32)} = ${fr(32-c,32)} = ${V(32-c,32)}.`,{st:3})}
-function ta_unionNum(){let a,b,c;for(;;){a=ri(2,7)*10;b=ri(2,6)*10;c=ri(1,4)*10;if(c<Math.min(a,b)&&a+b-c<=100)break}
-  return TR(6,`P(A) = ${Dh(a)}&nbsp;; P(B) = ${Dh(b)}&nbsp;; P(A ∩ B) = ${Dh(c)}. Donc P(A ∪ B) = {0}.`,[{answers:ansD(a+b-c,100),size:5,m:{k:'num',op:'a+b-c',xs:[[a,100],[b,100],[c,100]]}}],`${Dh(a)} + ${Dh(b)} − ${Dh(c)} = ${Dh(a+b-c)}.`,{st:2})}
 function ta_tree(){const k=ri(1,6),f=pick(['P','F']);return TR(7,`On lance une pièce équilibrée, puis un dé équilibré à 6 faces. L’arbre des possibles a {0} issues, et la probabilité d’obtenir ${q(`${f==='P'?'PILE':'FACE'} puis ${k}`)} est {1}.`,
   [{answers:['12'],size:3,m:{k:'count',exp:'pd'}},{answers:ans(1,12),size:5,m:{k:'p',exp:'pd',ev:{t:'seq',x:{t:'is',v:f},y:{t:'eq',k}}}}],'2 × 6 = 12 issues équiprobables, dont une seule favorable&nbsp;: 1/12.',{st:2})}
 function ta_loi(){const c=pick([[6,3,11],[4,5,11],[8,2,10],[5,7,8],[9,4,7]]);return TR(5,`Urne&nbsp;: P(V) = ${D(c[0],20)} et P(J) = ${D(c[1],20)}. Les autres boules sont noires&nbsp;: P(N) = {0}.`,[{answers:ansD(c[2],20),size:5,m:{k:'num',op:'1-sum',xs:[[c[0],20],[c[1],20]]}}],
@@ -957,22 +950,16 @@ function to_jet(){const k=pick([3,4,6,7]),c=Math.floor(20/k);return TR(3,`${E('j
 function o_cardUnion(){const v=pick([[{t:'suit',s:'C'},'un cœur',{t:'rank',r:'R'},'un roi'],[{t:'red'},'une carte rouge',{t:'rank',r:'A'},'un as'],[{t:'suit',s:'T'},'un trèfle',{t:'fig'},'une figure'],[{t:'suit',s:'P'},'un pique',{t:'rank',r:'D'},'une dame'],[{t:'red'},'une carte rouge',{t:'fig'},'une figure']]);
   const A=P('cartes',v[0])[0],B=P('cartes',v[2])[0],I=P('cartes',{t:'and',a:v[0],b:v[2]})[0],u=A+B-I;
   return QC(6,`${C32} Quelle est la probabilité de tirer ${v[1]} ou ${v[3]}${v[3]==='une figure'?' (valet, dame ou roi)':''}&nbsp;?`,V(u,32),lures([u,32],[[A+B,32],[I,32],[A+B-2*I,32],[A,32]]).map(vh),
-    `P(A ∪ B) = ${fr(A,32)} + ${fr(B,32)} − ${fr(I,32)} = ${fr(u,32)}${gcd(u,32)>1?' = '+V(u,32):''}&nbsp;: les ${I} cartes communes ne se comptent qu’une fois.`,{k:'pu',exp:'cartes',a:v[0],b:v[2],kind:'val',st:3})}
+    `A ∪ B contient ${A} + ${B} − ${I} = ${u} cartes (les ${I} cartes communes ne se comptent qu’une fois)&nbsp;: P(A ∪ B) = ${fr(u,32)}${gcd(u,32)>1?' = '+V(u,32):''}.`,{k:'pu',exp:'cartes',a:v[0],b:v[2],kind:'val',st:3})}
 function o_pd(){const v=pick([[{t:'seq',x:{t:'is',v:'F'},y:{t:'ge',k:5}},'FACE puis un nombre ≥ 5',[2,6]],[{t:'seq',x:{t:'is',v:'P'},y:{t:'pair'}},'PILE puis un nombre pair',[3,6]],[{t:'seq',x:{t:'is',v:'F'},y:{t:'le',k:4}},'FACE puis un nombre ≤ 4',[4,6]],[{t:'seq',x:{t:'is',v:'P'},y:{t:'mult',k:3}},'PILE puis un multiple de 3',[2,6]]]);
   const r=P('pd',v[0]);return QC(7,`On lance une pièce équilibrée, puis un dé équilibré à 6 faces. La probabilité d’obtenir ${q(v[1])} est&nbsp;:`,V(r[0],12),lures(r,[v[2],[r[0],8],[r[0]+6,12],[1,12]]).map(vh),
     `L’arbre a 2 × 6 = 12 issues équiprobables, dont ${r[0]} favorables&nbsp;: ${fr(r[0],12)} = ${V(r[0],12)}.`,{k:'p',exp:'pd',ev:v[0],kind:'val',st:3})}
-function o_inter(){let a,b,u;for(;;){a=ri(3,7)*10;b=ri(3,6)*10;u=ri(5,9)*10;if(u>=Math.max(a,b)&&a+b-u>0&&a+b-u<Math.min(a,b)&&u<=100&&a+b>100)break}
-  return QC(6,`P(A) = ${Dh(a)}, P(B) = ${Dh(b)} et P(A ∪ B) = ${Dh(u)}. Alors P(A ∩ B) =`,Dh(a+b-u),[Dh(a+b),Dh(u-a),Dh(u-b),Dh(a+b+u-100)].filter(x=>x!==Dh(a+b-u)),
-    `P(A ∪ B) = P(A) + P(B) − P(A ∩ B), donc P(A ∩ B) = ${Dh(a)} + ${Dh(b)} − ${Dh(u)} = ${Dh(a+b-u)}.`,{k:'num',op:'a+b-u',xs:[[a,100],[b,100],[u,100]],kind:'val',st:3})}
 function o_rr(){const v=pick([[{t:'atl',v:'R'},'obtenir au moins une fois rouge',[[2,3],[4,9],[1,3]]],[{t:'same'},'obtenir deux fois la même couleur',[[1,9],[2,3],[1,2]]],[{t:'not',e:{t:'atl',v:'B'}},'ne jamais obtenir bleu',[[5,9],[2,3],[1,3]]]]);
   const r=P('rr',v[0]);return QC(7,'On fait tourner deux fois de suite une roue à 3 secteurs égaux (rouge, vert, bleu). La probabilité '+de(v[1])+' est&nbsp;:',V(r[0],9),lures(r,v[2]).map(vh),
     `L’arbre a 3 × 3 = 9 issues équiprobables, dont ${r[0]} favorables&nbsp;: ${fr(r[0],9)}${gcd(r[0],9)>1?' = '+V(r[0],9):''}.`,{k:'p',exp:'rr',ev:v[0],kind:'val',st:3})}
 function o_loiEv(){let p;for(;;){p=[ri(1,4)*5,ri(2,6)*5,0,ri(2,8)*5];p[2]=100-p[0]-p[1]-p[3];if(p[2]>=5&&new Set(p).size===4)break}
   const r=p[2]+p[3];return QC(5,`Une loi de probabilité sur les issues 1, 2, 3, 4&nbsp;: p<sub>1</sub> = ${Dh(p[0])}&nbsp;; p<sub>2</sub> = ${Dh(p[1])}&nbsp;; p<sub>3</sub> = ?&nbsp;; p<sub>4</sub> = ${Dh(p[3])}. La probabilité d’obtenir 3 ou 4 est&nbsp;:`,Dh(r),
     [Dh(p[3]),Dh(p[0]+p[1]),Dh(p[2]),Dh(100-p[3])].filter(x=>x!==Dh(r)),`p<sub>3</sub> = 1 − ${Dh(p[0])} − ${Dh(p[1])} − ${Dh(p[3])} = ${Dh(p[2])}, puis p<sub>3</sub> + p<sub>4</sub> = ${Dh(r)}.`,{k:'num',op:'loi-ev',xs:[[p[0],100],[p[1],100],[p[3],100]],sel:[2,3],miss:2,kind:'val',st:3})}
-function o_incomp(){let x,y;for(;;){x=ri(2,6)*5;y=ri(4,12)*5;if(x+y<100&&x!==y)break}
-  return QC(6,`A et B sont incompatibles, avec P(A) = ${Dh(x)} et P(B) = ${Dh(y)}. Alors P(A ∪ B) =`,Dh(x+y),['On ne peut pas conclure sans connaître P(A ∩ B).',Dh(Math.abs(y-x)),Dh(100-x-y)].filter(z=>z!==Dh(x+y)),
-    `Incompatibles&nbsp;: P(A ∩ B) = 0, donc P(A ∪ B) = ${Dh(x)} + ${Dh(y)} = ${Dh(x+y)}.`,{k:'num',op:'a+b',xs:[[x,100],[y,100]],kind:'val',st:2})}
 function o_compJet(){const k=pick([3,4,5]),n=20,c=Math.floor(n/k);return QC(4,`${E('jet20').txt} Quelle est la probabilité de ne pas tirer un multiple de ${k}&nbsp;?`,V(n-c,n),lures([n-c,n],[[c,n],[n-c,n+c],[k-1,k],[1,k]]).map(vh),
   `Les multiples de ${k} sont ${c}&nbsp;: P = 1 − ${fr(c,20)} = ${fr(20-c,20)} = ${V(20-c,20)}.`,{k:'pc',exp:'jet20',ev:{t:'mult',k},kind:'val',st:3})}
 function o_setUnion(){const e=E('de6'),evs=[[{t:'pair'},'nombre pair'],[{t:'impair'},'nombre impair'],[{t:'ge',k:4},'nombre ≥ 4'],[{t:'le',k:3},'nombre ≤ 3'],[{t:'mult',k:3},'multiple de 3'],[{t:'ge',k:5},'nombre ≥ 5']];
@@ -981,7 +968,7 @@ function o_setUnion(){const e=E('de6'),evs=[[{t:'pair'},'nombre pair'],[{t:'impa
       `A = ${setL(A)}, B = ${setL(B)}&nbsp;: A ∪ B réunit les issues de A ou de B, ${setL(U)}.`,{k:'set',exp:'de6',ev:{t:'or',a:x[0],b:y[0]},kind:'set',st:2})}}
 function to_cardUnion(){const v=pick([[{t:'red'},'une carte rouge',{t:'rank',r:'R'},'un roi'],[{t:'suit',s:'C'},'un cœur',{t:'rank',r:'A'},'un as'],[{t:'suit',s:'K'},'un carreau',{t:'fig'},'une figure (valet, dame ou roi)']]);
   const A=P('cartes',v[0])[0],B=P('cartes',v[2])[0],I=P('cartes',{t:'and',a:v[0],b:v[2]})[0],u=A+B-I;
-  return TR(6,`${C32} La probabilité de tirer ${v[1]} ou ${v[3]} est {0}.`,[{answers:ans(u,32,`${u}/32`),size:5,m:{k:'pu',exp:'cartes',a:v[0],b:v[2]}}],`${fr(A,32)} + ${fr(B,32)} − ${fr(I,32)} = ${fr(u,32)} = ${V(u,32)}.`,{st:3})}
+  return TR(6,`${C32} La probabilité de tirer ${v[1]} ou ${v[3]} est {0}.`,[{answers:ans(u,32,`${u}/32`),size:5,m:{k:'pu',exp:'cartes',a:v[0],b:v[2]}}],`On compte les cartes de A ∪ B&nbsp;: ${A} + ${B} − ${I} = ${u} (les cartes communes une seule fois), donc ${fr(u,32)} = ${V(u,32)}.`,{st:3})}
 function to_pp(){const v=pick([[{t:'same'},'deux fois la même face'],[{t:'exa',v:'P',n:1},'exactement une fois PILE'],[{t:'exa',v:'F',n:2},'deux fois FACE'],[{t:'atl',v:'F'},'au moins une fois FACE']]),[c]=P('pp',v[0]);
   return TR(7,`On lance deux fois de suite une pièce équilibrée. La probabilité d’obtenir ${q(v[1])} est {0}.`,[{answers:ans(c,4,`${c}/4`),size:5,m:{k:'p',exp:'pp',ev:v[0]}}],`Issues PP, PF, FP, FF&nbsp;: ${c} favorable${c>1?'s':''} sur 4.`,{st:2})}
 function to_loi2(){let p;for(;;){p=[ri(1,5)*5,ri(2,8)*5,ri(1,6)*5,0];p[3]=100-p[0]-p[1]-p[2];if(p[3]>=5&&new Set(p).size===4)break}
@@ -990,8 +977,6 @@ function to_loi2(){let p;for(;;){p=[ri(1,5)*5,ri(2,8)*5,ri(1,6)*5,0];p[3]=100-p[
     `p<sub>4</sub> = 1 − ${Dh(p[0])} − ${Dh(p[1])} − ${Dh(p[2])} = ${Dh(p[3])}, puis p<sub>2</sub> + p<sub>4</sub> = ${Dh(p[1]+p[3])}.`,{st:3})}
 function to_jetContr(){const k=pick([3,4,5]),c=k-1;return TR(4,`${E('jet12').txt} A = ${q(`nombre ≥ ${k}`)}. Alors P(${NA}) = {0} et P(A) = {1}.`,
   [{answers:ans(c,12,`${c}/12`),size:5,m:{k:'pc',exp:'jet12',ev:{t:'ge',k}}},{answers:ans(12-c,12,`${12-c}/12`),size:5,m:{k:'p',exp:'jet12',ev:{t:'ge',k}}}],`${NA} = ${setL(Array.from({length:c},(_,i)=>String(i+1)))}&nbsp;: P(${NA}) = ${fr(c,12)}, P(A) = 1 − ${fr(c,12)} = ${V(12-c,12)}.`,{st:3})}
-function to_inter(){let a,b,u;for(;;){a=ri(3,7)*5;b=ri(4,12)*5;u=ri(8,18)*5;if(u>=Math.max(a,b)&&a+b-u>0&&a+b-u<Math.min(a,b)&&u<=100)break}
-  return TR(6,`P(A) = ${Dh(a)}&nbsp;; P(B) = ${Dh(b)}&nbsp;; P(A ∪ B) = ${Dh(u)}. Donc P(A ∩ B) = {0}.`,[{answers:ansD(a+b-u,100),size:5,m:{k:'num',op:'a+b-u',xs:[[a,100],[b,100],[u,100]]}}],`P(A ∩ B) = P(A) + P(B) − P(A ∪ B) = ${Dh(a+b-u)}.`,{st:3})}
 function to_pr3(){const v=pick([['P','PILE'],['F','FACE']]),w=pick([['R','rouge'],['V','vert'],['B','bleu']]);return TR(7,`On lance une pièce équilibrée, puis on fait tourner une roue à 3 secteurs égaux (rouge, vert, bleu). L’arbre a {0} issues et la probabilité d’obtenir ${q(`${v[1]} puis ${w[1]}`)} est {1}.`,
   [{answers:['6'],size:3,m:{k:'count',exp:'pr3'}},{answers:ans(1,6),size:5,m:{k:'p',exp:'pr3',ev:{t:'seq',x:{t:'is',v:v[0]},y:{t:'is',v:w[0]}}}}],'2 × 3 = 6 issues équiprobables, une seule favorable&nbsp;: 1/6.',{st:2})}
 
@@ -999,8 +984,8 @@ function build(qs,ts){for(;;){const out=qs.map(f=>f()).concat(ts.map(f=>f()));co
 const pickN=(a,k)=>shuf(a.slice()).slice(0,k);
 const FIN={
   bronze:()=>build(pickN([b_omega,b_type,b_p1,b_p2,b_contr,b_compl,b_def,b_tree,b_inter],6),pickN([tb_count,tb_p,tb_comp,tb_loi,tb_set],4)),
-  argent:()=>build(pickN([a_card,a_contr,a_loi,a_unionNum,a_unionDe,a_tree,a_incomp,a_urne,a_event],6),pickN([ta_p,ta_compCard,ta_unionNum,ta_tree,ta_loi,ta_inter,ta_cards],4)),
-  or:()=>build(pickN([o_cardUnion,o_pd,o_inter,o_rr,o_loiEv,o_incomp,o_compJet,o_setUnion,o_omega,o_type],6),pickN([to_cardUnion,to_pp,to_loi2,to_jetContr,to_inter,to_pr3,to_jet],4))};
+  argent:()=>build(pickN([a_card,a_contr,a_loi,a_unionDe,a_tree,a_urne,a_event],6),pickN([ta_p,ta_compCard,ta_tree,ta_loi,ta_inter,ta_cards],4)),
+  or:()=>build(pickN([o_cardUnion,o_pd,o_rr,o_loiEv,o_compJet,o_setUnion,o_omega,o_type],6),pickN([to_cardUnion,to_pp,to_loi2,to_jetContr,to_pr3,to_jet],4))};
 window.FP_FIN=FIN;
 })();
 </script>

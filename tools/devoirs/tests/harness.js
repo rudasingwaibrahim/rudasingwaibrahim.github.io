@@ -62,7 +62,7 @@ test('sujet : 9 questions, 20 points, aucun élément du corrigé envoyé', () =
   assert.strictEqual(r.sujet.questions.length, 9); assert.strictEqual(r.sujet.total, 20);
   const s = JSON.stringify(r);
   ['"bonne"', '"rep"', '"expl"', '"aff"', '"params"', '"mode"', '"n":'].forEach(k => assert.ok(!s.includes(k), 'fuite : ' + k));
-  assert.deepStrictEqual(r.sujet.questions.map(q => q.type), ['qcm', 'saisie', 'saisie', 'qcm', 'saisie', 'saisie', 'qcm', 'saisie', 'trous']);
+  assert.deepStrictEqual(r.sujet.questions.map(q => q.type), ['qcm', 'saisie', 'saisie', 'saisie', 'trous', 'saisie', 'qcm', 'saisie', 'trous']);
 });
 test('sujet déterministe : même élève (casse, accents, espaces) → même sujet', () => {
   const G = installe(), a = sujet(G, E1), b = sujet(G, { nom: '  ABDALLAH ', prenom: 'zainaba', classe: 'Seconde 219' });
@@ -108,29 +108,29 @@ test('correction partielle de la démonstration à trous (1 point par trou) et n
   assert.strictEqual(q9.points, 2); assert.strictEqual(q9.statut, 'partiel'); assert.deepStrictEqual(q9.trous.map(t => t.ok), [true, false, true, false]);
   assert.strictEqual(r.note, 16);
 });
-test('saisie tolérante côté serveur : espaces, ×, ², ordre des facteurs, \\frac, parenthèses autour de k+m', () => {
+test('saisie tolérante côté serveur : espaces, ², \\frac, parenthèses autour de k+m, majuscules', () => {
   const G = installe(), M = G.ctx.SigmaMoteur, rep = parfaites(G, E1, 1);
   const qs = M.genererComplet(DEV, M.graine(DEV, E1.nom, E1.prenom, E1.classe, 1, G.props.SIGMA_SEL));
   const q5 = qs[4], q6 = qs[5], q9 = qs[8];
-  const f = M.facteurs(q5.n);
-  rep.q5 = f.map(x => Array(x[1]).fill(x[0]).join(' x ')).join(' × ');
+  rep.q5 = [' 4 k ', '2k² + 2 k', ' Impair ', ' ' + q5.params.k2 + ' '];
+  rep.q4 = ' ' + qs[3].params.m + ' ';
   rep.q6 = '\\frac{' + q6.params.p + '}{' + q6.params.q + '}';
   rep.q9 = ['m × ' + q9.params.a, '(m + k)', ' Multiple ', ' ' + (q9.params.p + q9.params.q) + ' '];
   rep.q2 = ' ' + qs[1].params.k + ' ';
   const r = rendre(G, E1, 1, rep); assert.strictEqual(r.note, 20, JSON.stringify(r.detail.filter(d => d.statut !== 'juste')));
 });
-test('saisie refusée : fraction non simplifiée, décomposition avec un facteur non premier, calcul recopié', () => {
+test('saisie refusée : fraction non simplifiée, multiple qui n\'est pas le plus grand, calcul recopié', () => {
   const G = installe(), M = G.ctx.SigmaMoteur, rep = parfaites(G, E1, 1);
   const qs = M.genererComplet(DEV, M.graine(DEV, E1.nom, E1.prenom, E1.classe, 1, G.props.SIGMA_SEL));
   rep.q6 = qs[5].params.A + '/' + qs[5].params.B;
-  rep.q5 = '4×' + (qs[4].n / 4); if (qs[4].n % 4) rep.q5 = '1×' + qs[4].n;
+  rep.q4 = String(qs[3].params.m - qs[3].params.a);
   rep.q2 = '(' + qs[1].params.n + '-1)/2';
   const r = rendre(G, E1, 1, rep), st = id => r.detail.find(d => d.id === id).statut;
-  assert.strictEqual(st('q6'), 'faux'); assert.strictEqual(st('q5'), 'faux'); assert.strictEqual(st('q2'), 'faux'); assert.strictEqual(r.note, 14);
+  assert.strictEqual(st('q6'), 'faux'); assert.strictEqual(st('q4'), 'faux'); assert.strictEqual(st('q2'), 'faux'); assert.strictEqual(r.note, 14);
 });
 test('anti-injection : aucune cellule écrite ne commence par = + - @ sans apostrophe', () => {
   const G = installe();
-  rendre(G, E1, 1, { q2: '=IMPORTXML("http://x")', q3: '+1', q5: '-2', q6: '@x', q9: ['=A1', '', '', ''] });
+  rendre(G, E1, 1, { q2: '=IMPORTXML("http://x")', q3: '+1', q4: '-2', q6: '@x', q9: ['=A1', '', '', ''] });
   assert.strictEqual(G.ss.sheets['Rendus']._s.formulaInjection || 0, 0);
   ['=a', '+a', '-a', '@a', '\ta'].forEach(x => assert.strictEqual(G.ctx.cellule(x)[0], "'"));
   assert.strictEqual(G.ctx.cellule('Abdou'), 'Abdou'); assert.strictEqual(G.ctx.cellule(12), 12);

@@ -36,18 +36,18 @@ ds:
 erreurs:
 - "Confondre population, échantillon et individu"
 - "Oublier que la fréquence observée sur un échantillon varie d'un échantillon à l'autre (fluctuation d'échantillonnage)"
-- "Se tromper d'intervalle : pour $n$ assez grand, environ 95 % des fréquences sont dans $\\left[p - \\dfrac{1}{\\sqrt{n}}\\,;p + \\dfrac{1}{\\sqrt{n}}\\right]$"
-- "Oublier que la fluctuation diminue quand la taille $n$ de l'échantillon augmente"
-- "Croire qu'un échantillon plus grand donne toujours exactement la proportion $p$ : il réduit seulement la fluctuation"
-- "Conclure trop vite qu'un résultat est anormal sans utiliser l'intervalle de fluctuation"
+- "Croire qu'une simulation démontre une probabilité : elle donne une fréquence, qui fluctue"
+- "Oublier que, lorsque $n$ est grand, la fréquence observée est le plus souvent proche de la probabilité (loi des grands nombres)"
+- "Croire qu'un échantillon plus grand donne toujours exactement la probabilité $p$ : la fréquence en est seulement, le plus souvent, plus proche"
+- "Croire qu'après plusieurs PILE, FACE devient plus probable : les lancers sont indépendants"
 liens:
 - nom: Mathrix — Échantillonnage Seconde
-  desc: "Cours vidéo sur l'intervalle de fluctuation"
+  desc: "Cours vidéo sur l'échantillonnage et la fluctuation"
   url: "https://www.mathrix.fr/echantillonnage-seconde/"
   ico: 🎬
   cat: cours
 - nom: Khan Academy — Statistiques inférentielles
-  desc: "Exercices sur l'échantillonnage et les intervalles"
+  desc: "Exercices sur l'échantillonnage"
   url: "https://fr.khanacademy.org/math/statistics-probability/sampling-distributions-library"
   ico: 📚
   cat: cours

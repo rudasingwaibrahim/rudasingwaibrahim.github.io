@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pile au milieu · Sigma Arcade</title>
-<meta name="description" content="Statistiques descriptives en Seconde : moyenne, moyenne pondérée, fréquences, médiane, quartiles, écart interquartile, diagramme en boîte, variance et écart type. Deux façons d'être au milieu : le pivot qui tient le plateau en équilibre (la moyenne) et la coupe qui partage la file en deux (la médiane).">
+<meta name="description" content="Statistiques descriptives en Seconde : moyenne, moyenne pondérée, fréquences, médiane, quartiles, écart interquartile, diagramme en boîte et écart type. Deux façons d'être au milieu : le pivot qui tient le plateau en équilibre (la moyenne) et la coupe qui partage la file en deux (la médiane).">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
@@ -979,7 +979,7 @@ const DEV={};function devSets(n){if(DEV[n])return DEV[n];const out=[];const rec=
   for(let d=lo;d<=6;d++){arr.push(d);rec(arr,d);arr.pop()}};rec([],-6);return DEV[n]=out}
 function genSq(n,sig){return until(()=>{const ds=pick(devSets(n).filter(a=>!sig||Math.round(Math.sqrt(sum(a.map(d=>d*d))/n))===sig));const m=ri(8,12);const xs=shuf(ds.map(d=>m+d));return xs.every(x=>x>=2&&x<=19)&&new Set(xs).size>=2?xs:null})}
 const sqItems=xs=>xs.map(v=>({v}));
-LV.push({t:'Les carrés',ch:2,rule:`<p><b>Variance.</b> V = ${fr(1,'N')} ∑ (x<sub>i</sub> − ${XB})²&nbsp;: la moyenne des carrés des écarts à la moyenne (on divise par N).</p><p><b>Écart type.</b> σ = √V. Un écart type grand signifie une série <b>dispersée</b>&nbsp;; petit, une série <b>homogène</b> (resserrée autour de la moyenne).</p><p>Sur la scène&nbsp;: chaque jeton dessine un carré de côté |x<sub>i</sub> − ${XB}|. Leur aire moyenne est V&nbsp;; le côté du carré moyen est σ.</p>`,qs:[
+LV.push({t:'Les carrés',ch:2,rule:`<p><b>Moyenne des carrés des écarts.</b> V = ${fr(1,'N')} ∑ (x<sub>i</sub> − ${XB})²&nbsp;: la moyenne des carrés des écarts à la moyenne (on divise par N).</p><p><b>Écart type.</b> σ = √V. Un écart type grand signifie une série <b>dispersée</b>&nbsp;; petit, une série <b>homogène</b> (resserrée autour de la moyenne).</p><p>Sur la scène&nbsp;: chaque jeton dessine un carré de côté |x<sub>i</sub> − ${XB}|. Leur aire moyenne est V&nbsp;; le côté du carré moyen est σ.</p>`,qs:[
  ()=>{const xs=genSq(4);const m=meanQ(xs),V=varQ(xs),sg=sqrtQ(V),SS=sum(xs.map(x=>(x-qv(m))**2));const ctx={lo:qv(m)-8,hi:qv(m)+8,gran:1,lab:2};
   return{meta:{sets:{A:xs}},setup(){scene({xs,ctx,p:qv(m)-3})},cap0:'Pivot à '+fmtN(qv(m)-3),
    prompt:`Série de 4 valeurs&nbsp;: ${ser(xs)}.`,
@@ -993,7 +993,7 @@ LV.push({t:'Les carrés',ch:2,rule:`<p><b>Variance.</b> V = ${fr(1,'N')} ∑ (x<
  ()=>{const n=pick([5,6]);const xs=genSq(n);const m=meanQ(xs),V=varQ(xs),sg=sqrtQ(V),SS=sum(xs.map(x=>(x-qv(m))**2));const ctx={lo:qv(m)-8,hi:qv(m)+8,gran:1,lab:2};
   return{meta:{sets:{A:xs}},setup(){scene({xs,ctx,p:qv(m)});SC.squares({mean:qv(m),items:sqItems(xs),V:qv(V),sigma:qv(sg),dur:900})},cap0:`<span class="k">${XB}&nbsp;= ${qfmt(m)}</span> <span class="m">· les carrés des écarts sont dressés</span>`,
    prompt:`Série de ${n} valeurs&nbsp;: ${ser(xs)}, de moyenne ${XB}&nbsp;= ${qfmt(m)}.`,
-   parts:[fill('Variance puis écart type&nbsp;:',`V = {0} <br>σ = {1}`,[B(V,`Somme des carrés (${SS}) divisée par N = ${n}.`,[[q(SS),'Divise par N = '+n+'.'],[q(SS,n-1),'Dans le cours, on divise par N = '+n+'.']]),B(sg,'σ = √V.',[[V,'Ça, c\'est V.']])],{ck:['V:A','sigma:A']}),
+   parts:[fill('Moyenne des carrés des écarts, puis écart type&nbsp;:',`V = {0} <br>σ = {1}`,[B(V,`Somme des carrés (${SS}) divisée par N = ${n}.`,[[q(SS),'Divise par N = '+n+'.'],[q(SS,n-1),'Dans le cours, on divise par N = '+n+'.']]),B(sg,'σ = √V.',[[V,'Ça, c\'est V.']])],{ck:['V:A','sigma:A']}),
      act('Fusionner en un carré moyen',async()=>{SND.laser();await SC.fuse();cap(`<span class="k">V = ${qfmt(V)} · σ = ${qfmt(sg)}</span>`)})],
    done:`V = ${SS} ÷ ${n} = ${qfmt(V)}, σ = ${qfmt(sg)}.`}},
  ()=>{const r=until(()=>{const a=genSq(4,1),b=genSq(4,pick([2,3]));const ma=meanQ(a),mb=meanQ(b);if(!qeq(ma,mb))return null;return{a,b}});
@@ -1009,7 +1009,7 @@ LV.push({t:'Les carrés',ch:2,rule:`<p><b>Variance.</b> V = ${fr(1,'N')} ∑ (x<
   const {tab,m,xs,V}=r;const N=xs.length,SS=sum(xs.map(x=>(x-m)**2));const sg=sqrtQ(V);
   return{meta:{sets:{A:xs}},setup(){scene({xs,ctx:{lo:m-7,hi:m+7,gran:1,lab:1},p:m})},cap0:`<span class="k">${XB}&nbsp;= ${m}</span>`,
    prompt:`Une série donnée par un tableau (moyenne ${XB}&nbsp;= ${m})&nbsp;:${tabHTML(tab)}`,
-   parts:[fill('Variance (chaque carré compte autant de fois que l\'effectif)&nbsp;:',`∑ n<sub>i</sub>(x<sub>i</sub> − ${XB})² = {0} <br>V = {1}`,[B(SS,'Pour chaque valeur&nbsp;: effectif × (écart)², puis additionne.',[[sum(tab.map(([v])=>(v-m)**2)),'N\'oublie pas les effectifs&nbsp;: chaque carré compte n<sub>i</sub> fois.']]),B(V,'Divise par N = '+N+'.',[[q(SS),'Divise par N = '+N+'.']])],
+   parts:[fill('Moyenne des carrés des écarts (chaque carré compte autant de fois que l\'effectif)&nbsp;:',`∑ n<sub>i</sub>(x<sub>i</sub> − ${XB})² = {0} <br>V = {1}`,[B(SS,'Pour chaque valeur&nbsp;: effectif × (écart)², puis additionne.',[[sum(tab.map(([v])=>(v-m)**2)),'N\'oublie pas les effectifs&nbsp;: chaque carré compte n<sub>i</sub> fois.']]),B(V,'Divise par N = '+N+'.',[[q(SS),'Divise par N = '+N+'.']])],
        {ck:['SS:A','V:A'],then:async()=>{SND.whoosh();await SC.squares({mean:m,items:sqItems(xs),V:qv(V),sigma:sg?qv(sg):Math.sqrt(qv(V))});if(sg)await SC.fuse();cap(`<span class="k">V = ${qfmt(V)} · σ = ${sg?qfmt(sg):'√'+qfmt(V)}</span>`)}}),
      choice('Un écart type grand signifie que la série est&nbsp;:',[OK('dispersée','disp'),NO('homogène','C\'est l\'inverse&nbsp;: homogène = valeurs proches de la moyenne = petits carrés = petit σ.','homo'),NO('de grande moyenne','σ mesure la dispersion autour de la moyenne, pas la position.','pos')],{ck:'fixed:disp'})],
    done:`V = ${SS} ÷ ${N} = ${qfmt(V)}${sg?`, σ = ${qfmt(sg)}`:`, σ = √${qfmt(V)}`}. Plus les carrés sont grands, plus la série est dispersée.`}}
@@ -1116,7 +1116,7 @@ const aq={
    return QC(6,`Un diagramme en boîte a pour cinq nombres (min, ${Q1}, Med, ${Q3}, max) = (${f.join(' ; ')}). L'écart interquartile vaut&nbsp;:`,[String(f[3]-f[1]),V(f[3]-f[1])],numLures(q(f[3]-f[1]),[[f[4]-f[0]],[f[3]-f[2]],[f[2]-f[1]],[f[3]+f[1]]]),
    `I = ${Q3} − ${Q1} = ${f[3]} − ${f[1]} = ${f[3]-f[1]}&nbsp;: c'est la longueur de la boîte.`,{ck:'I:five',five:f,steps:1,mx:20})},
  variance(){const x=sSq(4);const m=meanQ(x),Vv=varQ(x),SS=Vv.n/Vv.d*4,s=sqrtQ(Vv);
-   return QC(7,`Calculer la variance de la série&nbsp;: ${ser(x)}.`,[Fq(Vv),V(Vv)],numLures(Vv,[[s],[SS],[q(SS,3)],[q(sum(x.map(v=>Math.abs(v-qv(m)))),4)]]),
+   return QC(7,`Calculer la moyenne des carrés des écarts à la moyenne de la série&nbsp;: ${ser(x)}.`,[Fq(Vv),V(Vv)],numLures(Vv,[[s],[SS],[q(SS,3)],[q(sum(x.map(v=>Math.abs(v-qv(m)))),4)]]),
    `${XB}&nbsp;= ${Fq(m)}&nbsp;; V = ${fr('(x<sub>1</sub> − '+XB+')² + … + (x<sub>4</sub> − '+XB+')²',4)} = ${fr(SS,4)} = ${Fq(Vv)}.`,{ck:'V:A',sets:{A:x},steps:3,mx:SS})},
  intrus(){const r=until(()=>{const x=sorted(Array.from({length:7},()=>ri(6,15)));const v=pick([0,1,20]);const B=sorted(x.concat([v]));const m=medQ(B);return new Set(x).size>=5&&!qeq(m,medQ(x))?{x,v,B}:null});const {x,v,B}=r;const m=medQ(B);
    return QC(4,`Série rangée de 7 notes&nbsp;: ${ser(x)}. On ajoute la note ${v}. La nouvelle médiane est&nbsp;:`,[Fq(m),V(m)],numLures(m,[[medQ(x)],[meanQ(B)],[x[4]],[x[2]]]),
@@ -1250,7 +1250,7 @@ function render(){
   const cell=(k,lab,v,c)=>`<div class="${c||''}"><small>${lab}</small><b>${v}</b></div>`;
   $('labind').innerHTML=cell('n','Effectif N',n)+cell('s','Somme S',disp(st.S))+cell('m','Moyenne '+T.XB,disp(st.m),'g')+cell('d','Médiane',disp(st.med),'c')+
     cell('q1','Q<sub>1</sub>',n%4?'—':fmtN(st.q1),'q')+cell('q3','Q<sub>3</sub>',n%4?'—':fmtN(st.q3),'q')+cell('i','I = Q<sub>3</sub> − Q<sub>1</sub>',n%4?'—':fmtN(st.I),'q')+
-    cell('v','Variance V',disp(st.V))+cell('e','Écart type σ',st.sg?qfmt(st.sg):'≈ '+fmtN(Math.round(st.sgApprox*100)/100));
+    cell('v','Moyenne des carrés V',disp(st.V))+cell('e','Écart type σ',st.sg?qfmt(st.sg):'≈ '+fmtN(Math.round(st.sgApprox*100)/100));
   const eq=v=>v.startsWith('≈')?' '+v:' = '+v;$('capt').innerHTML=`<span class="k">${T.XB}${eq(disp(st.m))}</span> <span class="m">·</span> <span class="c">Med${eq(disp(st.med))}</span>`;
   $('labin').value=xs.map(fmtN).join(' ; ')}
 function renderCtl(){$('labt').innerHTML=TOG.map(([k,l])=>`<button type="button" data-t="${k}" aria-pressed="${show[k]}">${l}</button>`).join('');

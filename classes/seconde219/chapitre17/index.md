@@ -34,20 +34,20 @@ ds:
 - num: 3
   pdf: seconde-ch17-ds-03-sujet.pdf
 erreurs:
-- Oublier de vérifier la solution dans les deux équations du système
-- "Substituer dans l'équation d'où l'on a tiré l'inconnue : on remplace dans l'autre équation"
-- "Croire qu'un système a toujours une unique solution : aucune si les droites sont parallèles distinctes, une infinité si elles sont confondues"
-- Oublier que deux droites parallèles distinctes forment un système sans solution
-- "Se tromper de signe en combinant les équations : multiplier chaque membre entier, termes de droite compris"
+- "Oublier de vérifier que le point trouvé appartient aux deux droites"
+- "Résoudre $m_1x + p_1 = m_2x + p_2$, puis oublier de calculer l'ordonnée du point d'intersection"
+- "Croire que deux droites ont toujours un unique point commun : aucun si elles sont strictement parallèles, une infinité si elles sont confondues"
+- "Chercher un point d'intersection de deux droites de même pente et d'ordonnées à l'origine différentes : il n'y en a pas"
+- "Se tromper de signe en isolant $y$ : $2x - y = 3$ donne $y = 2x - 3$"
 - "Confondre l'abscisse et l'ordonnée du point d'intersection"
 liens:
 - nom: "Mathrix — Systèmes d'équations"
-  desc: Cours vidéo sur la résolution de systèmes
+  desc: "Cours vidéo : droites sécantes et point d'intersection"
   url: "https://www.mathrix.fr/systemes-equations-seconde/"
   ico: 🎬
   cat: cours
 - nom: "Khan Academy — Systèmes d'équations"
-  desc: Exercices interactifs sur les systèmes linéaires
+  desc: Exercices sur l'intersection de deux droites
   url: "https://fr.khanacademy.org/math/algebra/x2f8bb11595b61c86:systems-of-equations"
   ico: 📚
   cat: cours

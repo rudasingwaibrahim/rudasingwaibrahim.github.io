@@ -174,7 +174,7 @@ var SigmaMoteur = (function () {
   var NIV = { f: 'Pour démarrer', m: 'Je m\'entraîne', e: 'Je vais plus loin' };
 
   DEVOIRS['seconde-ch4-dm1'] = {
-    titre: 'DM 1 — Multiples, diviseurs et nombres premiers',
+    titre: 'DM 1 — Multiples, diviseurs, pair et impair',
     chapitre: 'Seconde · Chapitre 4 — Nombres entiers',
     questions: [
       /* Q1 — facile : reconnaître un multiple */
@@ -219,40 +219,41 @@ var SigmaMoteur = (function () {
           params: { n: n, nd: d.length }
         };
       },
-      /* Q4 — moyenne : reconnaître un nombre premier */
+      /* Q4 — moyenne : plus grand multiple de a inférieur ou égal à b (algorithme du programme) */
       function (R) {
-        var premiers = [], p;
-        for (p = 53; p <= 199; p++) if (estPremier(p)) premiers.push(p);
-        var pieges = [49, 77, 91, 119, 121, 133, 143, 161, 169, 187, 203, 209, 217, 221];
-        p = R.choisir(premiers);
-        var faux = R.melanger(pieges).slice(0, 3), ordre = R.melanger([p].concat(faux));
-        var tests = []; for (var q = 2; q * q <= p; q++) if (estPremier(q)) tests.push(q);
+        var a, b, q, r;
+        do { a = R.choisir([7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 23, 24, 25]); b = R.entier(150, 999); q = Math.floor(b / a); r = b % a; } while (r === 0 || r === a - 1);
+        var m = a * q;
         return {
-          niveau: 'm', titre: 'Nombres premiers', type: 'qcm', points: 2,
-          enonce: 'Un seul de ces nombres est premier. Lequel ?',
-          choix: ordre.map(function (v) { return '$' + v + '$'; }), bonne: ordre.indexOf(p),
-          expl: '$' + p + '$ n\'est divisible par aucun des nombres premiers ' + liste(tests) + ' (ceux dont le carré ne dépasse pas $' + p + '$) : il est premier. Les autres ne le sont pas : ' +
-            faux.map(function (v) { return '$' + v + ' = ' + texFact(v) + '$'; }).join(' ; ') + '.',
-          params: { p: p, faux: faux }
+          niveau: 'm', titre: 'Plus grand multiple inférieur ou égal à un nombre', type: 'saisie', clavier: 'nombre', points: 2,
+          enonce: 'Quel est le plus grand multiple de $' + a + '$ inférieur ou égal à $' + nb(b) + '$ ?',
+          mode: 'num', rep: [String(m)], aff: '$' + nb(m) + '$',
+          expl: 'On divise $' + nb(b) + '$ par $' + a + '$ : $' + nb(b) + ' = ' + a + ' \\times ' + q + ' + ' + r + '$ avec $0 < ' + r + ' < ' + a + '$. ' +
+            'Donc $' + a + ' \\times ' + q + ' = ' + nb(m) + ' \\leqslant ' + nb(b) + '$, alors que le multiple suivant, $' + a + ' \\times ' + (q + 1) + ' = ' + nb(m + a) + '$, dépasse $' + nb(b) + '$. ' +
+            'C\'est ce que fait l\'algorithme du cours : partir de $0$ et ajouter $' + a + '$ tant que le résultat reste inférieur ou égal à $' + nb(b) + '$.',
+          params: { a: a, b: b, q: q, r: r, m: m }
         };
       },
-      /* Q5 — moyenne : décomposition en facteurs premiers */
+      /* Q5 — moyenne : démonstration guidée à trous (le carré d'un nombre impair est impair) */
       function (R) {
-        var n, f, omega;
-        do {
-          var e2 = R.entier(0, 4), e3 = R.entier(0, 3), e5 = R.entier(0, 2), e7 = R.entier(0, 1);
-          n = Math.pow(2, e2) * Math.pow(3, e3) * Math.pow(5, e5) * Math.pow(7, e7);
-          f = facteurs(n); omega = e2 + e3 + e5 + e7;
-        } while (n < 120 || n > 1500 || f.length < 2 || omega < 4 || Math.max(e2, e3, e5, e7) < 2);
-        var etapes = [], m = n;
-        f.forEach(function (fe) { for (var i = 0; i < fe[1]; i++) { etapes.push('$' + nb(m) + ' \\div ' + fe[0] + ' = ' + nb(m / fe[0]) + '$'); m /= fe[0]; } });
+        var K = R.entier(11, 60), n = 2 * K + 1, k2 = 2 * K * K + 2 * K;
         return {
-          niveau: 'm', titre: 'Décomposition en facteurs premiers', type: 'saisie', clavier: 'produit', points: 2,
-          enonce: 'Décompose $' + nb(n) + '$ en produit de facteurs premiers.',
-          aide: 'Écris par exemple 2^3×7 pour $2^3\\times 7$ (ou 2×2×2×7).',
-          mode: 'decomp', n: n, aff: '$' + nb(n) + ' = ' + texFact(n) + '$',
-          expl: 'On divise successivement par les nombres premiers $2$, $3$, $5$, $7$, tant que la division tombe juste : ' + etapes.join(', ') + '. Donc $' + nb(n) + ' = ' + texFact(n) + '$.',
-          params: { n: n }
+          niveau: 'm', titre: 'Démonstration : carré d\'un nombre impair', type: 'trous', points: 2,
+          enonce: 'Complète la démonstration de la propriété du cours : « le carré d\'un nombre impair est impair », puis applique-la au nombre impair $' + n + '$.',
+          texte: 'Soit $a$ un entier impair : il existe un entier $k$ tel que $a = 2k + 1$.\n' +
+            'Alors $a^2 = (2k + 1)^2 = 4k^2 +$ [[0]] $+ 1 = 2 \\times$ ( [[1]] ) $+ 1$.\n' +
+            'Comme $2k^2 + 2k$ est un entier, $a^2$ est [[2]].\n' +
+            'Application : $' + n + ' = 2 \\times ' + K + ' + 1$, donc $' + n + '^2 = 2 \\times$ [[3]] $+ 1$.',
+          trous: [
+            { rep: ['4k'], mode: 'dev', aff: '$4k$', clavier: 'texte' },
+            { rep: ['2k^2+2k'], mode: 'dev', aff: '$2k^2 + 2k$', clavier: 'texte' },
+            { rep: ['impair', 'unimpair', 'unnombreimpair'], mode: 'txt', aff: 'impair', clavier: 'texte' },
+            { rep: [String(k2)], mode: 'num', aff: '$' + nb(k2) + '$', clavier: 'nombre' }
+          ],
+          aff: '$4k$ ; $2k^2 + 2k$ ; impair ; $' + n + '^2 = 2 \\times ' + nb(k2) + ' + 1$',
+          expl: 'On développe avec $(a + b)^2 = a^2 + 2ab + b^2$ : $(2k + 1)^2 = 4k^2 + 4k + 1$, puis on factorise par $2$ les deux premiers termes : $4k^2 + 4k = 2(2k^2 + 2k)$. ' +
+            'Pour l\'application, avec $k = ' + K + '$ : $2k^2 + 2k = 2 \\times ' + (K * K) + ' + 2 \\times ' + K + ' = ' + nb(k2) + '$, et l\'on vérifie que $' + n + '^2 = ' + nb(n * n) + ' = 2 \\times ' + nb(k2) + ' + 1$.',
+          params: { K: K, n: n, k2: k2 }
         };
       },
       /* Q6 — moyenne : fraction irréductible */
@@ -266,7 +267,7 @@ var SigmaMoteur = (function () {
           enonce: 'Écris la fraction $\\dfrac{' + A + '}{' + B + '}$ sous forme irréductible.',
           aide: 'Écris ta fraction avec la barre /, par exemple 3/4.',
           mode: 'txt', rep: [p + '/' + q], aff: '$\\dfrac{' + p + '}{' + q + '}$',
-          expl: '$' + A + ' = ' + texFact(A) + '$ et $' + B + ' = ' + texFact(B) + '$. On simplifie par leurs facteurs premiers communs, $' + texFact(g) + ' = ' + g + '$ : $\\dfrac{' + A + '}{' + B + '} = \\dfrac{' + p + ' \\times ' + g + '}{' + q + ' \\times ' + g + '} = \\dfrac{' + p + '}{' + q + '}$. ' +
+          expl: '$' + A + ' = ' + g + ' \\times ' + p + '$ et $' + B + ' = ' + g + ' \\times ' + q + '$ : $' + g + '$ est un diviseur commun de $' + A + '$ et de $' + B + '$. On simplifie par $' + g + '$ : $\\dfrac{' + A + '}{' + B + '} = \\dfrac{' + p + ' \\times ' + g + '}{' + q + ' \\times ' + g + '} = \\dfrac{' + p + '}{' + q + '}$. ' +
             'Les nombres $' + p + '$ et $' + q + '$ n\'ont plus de diviseur commun autre que $1$ : la fraction est irréductible.',
           params: { A: A, B: B, p: p, q: q }
         };

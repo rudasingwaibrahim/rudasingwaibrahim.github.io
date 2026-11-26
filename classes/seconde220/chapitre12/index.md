@@ -59,7 +59,7 @@ erreurs:
 - "Confondre les courbes des fonctions carré, cube, inverse et racine carrée"
 - "Oublier les ensembles de définition : $\\sqrt{x}$ est définie sur $[0\\,;+\\infty[$, $\\dfrac{1}{x}$ sur $]-\\infty\\,;0[\\,\\cup\\,]0\\,;+\\infty[$"
 - "Oublier que $x \\mapsto x^2$ est décroissante sur $]-\\infty\\,;0]$ et croissante sur $[0\\,;+\\infty[$"
-- "Confondre les parités : $x \\mapsto x^2$ est paire, $x \\mapsto x^3$ est impaire"
+- "Oublier que la fonction valeur absolue est décroissante sur $]-\\infty\\,;0]$ et croissante sur $[0\\,;+\\infty[$ : $|x| = -x$ si $x < 0$"
 - "Mal lire les variations d'une fonction sur un graphique"
 - "Écrire que $x \\mapsto \\dfrac{1}{x}$ est décroissante sur $\\mathbb{R}^*$ : elle l'est sur $]-\\infty\\,;0[$ et sur $]0\\,;+\\infty[$, séparément"
 liens:
