@@ -45,7 +45,7 @@ ds:
 erreurs:
 - "Confondre radians et degrés : $\\pi$ rad correspond à $180^\\circ$, mais $\\pi \\neq 180$"
 - "Se tromper de signe : $\\sin x < 0$ quand le point associé est sous l'axe des abscisses"
-- "Placer la mesure principale dans $[0\\,;2\\pi[$ : elle appartient à $]-\\pi\\,;\\pi]$"
+- "Croire que deux réels associés au même point du cercle sont égaux : ils diffèrent d'un multiple de $2\\pi$, par exemple $\\dfrac{\\pi}{3}$ et $\\dfrac{7\\pi}{3}$"
 - "Confondre $\\cos(\\pi - x) = -\\cos x$ et $\\sin(\\pi - x) = \\sin x$ : s'aider du cercle trigonométrique"
 - "Croire que $\\cos^2 x$ signifie $\\cos(\\cos x)$ : c'est $(\\cos x)^2$"
 - "Oublier l'orientation : le sens direct (trigonométrique) est le sens contraire des aiguilles d'une montre"

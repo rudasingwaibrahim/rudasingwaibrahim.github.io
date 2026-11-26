@@ -43,11 +43,11 @@ ds:
 - num: 3
   pdf: premiere-spe-ch11-ds-03-sujet.pdf
 erreurs:
-- Oublier les solutions « modulo $2\pi$ » quand on cherche les réels associés à un point du cercle
-- "Croire que $\\cos x = \\cos a$ n'a qu'une solution sur $]-\\pi\\,;\\pi]$ : il y en a deux, $a$ et $-a$ (si $a \\neq 0$ et $a \\neq \\pi$)"
-- Oublier que $\cos$ et $\sin$ sont périodiques de période $2\pi$
-- "Lire une courbe de $\\cos$ ou de $\\sin$ sans repérer la période sur l'axe des abscisses"
-- "Croire que $\\sin$ est paire : $\\sin(-x) = -\\sin x$, seule la fonction $\\cos$ est paire"
+- "Oublier qu'un point du cercle est associé à une infinité de réels, qui diffèrent d'un multiple de $2\\pi$"
+- "Se tromper de signe : $\\cos x < 0$ quand le point associé à $x$ est à gauche de l'axe des ordonnées"
+- "Oublier qu'un tour complet ne change rien : $\\cos(x + 2\\pi) = \\cos x$ et $\\sin(x + 2\\pi) = \\sin x$"
+- "Mélanger les valeurs remarquables : $\\cos\\dfrac{\\pi}{6} = \\dfrac{\\sqrt{3}}{2}$ mais $\\sin\\dfrac{\\pi}{6} = \\dfrac{1}{2}$"
+- "Croire que $\\sin(-x) = \\sin x$ : les points associés à $x$ et $-x$ sont symétriques par rapport à l'axe des abscisses, donc $\\sin(-x) = -\\sin x$ (alors que $\\cos(-x) = \\cos x$)"
 - "Oublier de se limiter à l'intervalle demandé par l'énoncé"
 liens:
 - nom: Jaicompris — Équations trigonométriques

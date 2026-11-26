@@ -39,14 +39,17 @@
 </section>
 {%- endif %}
 
-{%- if _is_seconde %}
+{%- comment -%} Flash révisions : classes de la table _data/quiz.yml dont au moins un chN.json existe. {%- endcomment -%}
+{%- assign _qdir = nil -%}
+{%- for _qc in site.data.quiz.classes -%}{%- if _qc.url == page.url -%}{%- assign _qdir = _qc.dossier -%}{%- endif -%}{%- endfor -%}
+{%- if _qdir %}
 {%- assign _qlist = "" | split: "" -%}
-{%- for _n in (1..18) -%}
-  {%- capture _qp -%}/assets/quiz/seconde/ch{{ _n }}.json{%- endcapture -%}
+{%- for _n in (1..30) -%}
+  {%- capture _qp -%}/assets/quiz/{{ _qdir }}/ch{{ _n }}.json{%- endcapture -%}
   {%- if _sf contains _qp -%}{%- assign _qlist = _qlist | push: _qp -%}{%- endif -%}
 {%- endfor -%}
 {%- if _qlist.size > 0 %}
-<section class="qz-revisions" data-quiz="liste" data-quiz-list="{{ _qlist | join: ',' }}" data-qz-block aria-labelledby="t-qzrev">
+<section class="qz-revisions" data-quiz="liste" data-quiz-dir="{{ _qdir }}" data-quiz-list="{{ _qlist | join: ',' }}" data-qz-block aria-labelledby="t-qzrev">
   <span class="qz-ico qz-ico--flash" aria-hidden="true">⚡</span>
   <div>
     <h2 id="t-qzrev">Flash révisions</h2>
@@ -54,7 +57,7 @@
   </div>
   <button class="btn btn--gold" type="button" data-qz-open="flash">Lancer les questions flash</button>
 </section>
-<script src="/assets/js/quiz.js?v=1" defer></script>
+<script src="/assets/js/quiz.js?v=4" defer></script>
 {%- endif %}
 {%- endif %}
 
@@ -79,7 +82,8 @@
     {%- assign _doc_count = 0 -%}
     {%- if _p -%}{%- include doc-count.html p=_p -%}{%- endif -%}
     {%- assign _ng = 0 -%}
-    {%- if _is_seconde -%}{%- for j in site.data.arcade.jeux -%}{%- if j.chapitres contains ch.num -%}{%- assign _ng = _ng | plus: 1 -%}{%- endif -%}{%- endfor -%}{%- endif %}
+    {%- if _is_seconde -%}{%- for j in site.data.arcade.jeux -%}{%- if j.chapitres contains ch.num -%}{%- assign _ng = _ng | plus: 1 -%}{%- endif -%}{%- endfor -%}
+    {%- else -%}{%- assign _ck = page.url | remove: "/classes/" | remove: "/" -%}{%- for j in site.data.arcade.jeux -%}{%- if j.chapitres_classes -%}{%- assign _jc = j.chapitres_classes[_ck] -%}{%- if _jc contains ch.num -%}{%- assign _ng = _ng | plus: 1 -%}{%- endif -%}{%- endif -%}{%- endfor -%}{%- endif %}
     <li>
       <a class="ch-card{% if _doc_count == 0 %} is-empty{% endif %}" href="{{ ch.url }}">
         <span class="ch-num"><span><small>Ch.</small>{{ ch.num }}</span></span>

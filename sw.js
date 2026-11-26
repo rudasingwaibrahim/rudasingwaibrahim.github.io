@@ -14,7 +14,7 @@ const PAGES = 'sigma-pages-' + VERSION;
 const PDFS = 'sigma-pdf-v1';
 const PDF_MAX_FILES = 40;
 const PDF_MAX_BYTES = 15 * 1024 * 1024;   // un PDF plus lourd n'est pas gardé
-const PRECACHE = ['/', '/offline/', '/assets/css/style.css?v=4', '/assets/js/sigma.js?v=3',
+const PRECACHE = ['/', '/offline/', '/assets/css/style.css?v=5', '/assets/js/sigma.js?v=3',
   '/assets/images/favicon.svg', '/assets/images/icon-192.png', '/manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {

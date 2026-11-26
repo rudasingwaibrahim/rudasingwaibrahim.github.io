@@ -45,7 +45,7 @@ ds:
 erreurs:
 - "Écrire $e^{x+y} = e^x + e^y$ : c'est faux, $e^{x+y} = e^x \\times e^y$"
 - "Croire que $(e^x)' = x\\,e^x$ : la fonction exponentielle est sa propre dérivée"
-- "Oublier le facteur $a$ en dérivant : $\\left(e^{ax+b}\\right)' = a\\,e^{ax+b}$"
+- "Oublier le facteur $a$ en dérivant : $\\left(e^{at}\\right)' = a\\,e^{at}$"
 - "Croire que $e^{-x}$ est négatif : $e^{-x} = \\dfrac{1}{e^x} > 0$"
 - "Croire que $e^x$ peut être négatif ou nul : $e^x > 0$ pour tout réel $x$"
 - Oublier que $e^a = e^b \iff a = b$ et $e^a < e^b \iff a < b$ (fonction strictement croissante)

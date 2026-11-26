@@ -24,6 +24,10 @@
   {%- for j in site.data.arcade.jeux -%}{%- if page.jeux contains j.slug -%}{%- assign _games = _games | push: j -%}{%- endif -%}{%- endfor -%}
 {%- elsif _is_chap and _base == "/classes/seconde220/" or _is_chap and _base == "/classes/seconde219/" -%}
   {%- for j in site.data.arcade.jeux -%}{%- if j.chapitres contains _chnum -%}{%- assign _games = _games | push: j -%}{%- endif -%}{%- endfor -%}
+{%- elsif _is_chap -%}
+  {%- comment -%} Autres classes : champ chapitres_classes.<id de la classe> de _data/arcade.yml. {%- endcomment -%}
+  {%- assign _ck = _base | remove: "/classes/" | remove: "/" -%}
+  {%- for j in site.data.arcade.jeux -%}{%- if j.chapitres_classes -%}{%- assign _jc = j.chapitres_classes[_ck] -%}{%- if _jc contains _chnum -%}{%- assign _games = _games | push: j -%}{%- endif -%}{%- endif -%}{%- endfor -%}
 {%- endif -%}
 
 {%- comment -%} Nombres de documents par étape (pour la barre de parcours). {%- endcomment -%}
@@ -35,14 +39,18 @@
 {%- assign _n_ex = page.planches | size -%}{%- if page.dm_published != false -%}{%- assign _n_dm = page.dm | size -%}{%- assign _n_ex = _n_ex | plus: _n_dm -%}{%- endif -%}
 {%- assign _n_games = _games | size -%}
 
-{%- comment -%} Entraînement interactif (Seconde) : affiché seulement si /assets/quiz/seconde/chN.json existe. {%- endcomment -%}
-{%- assign _quiz = nil -%}
-{%- if _is_chap and _base == "/classes/seconde220/" or _is_chap and _base == "/classes/seconde219/" -%}
-  {%- capture _qp -%}/assets/quiz/seconde/ch{{ _chnum }}.json{%- endcapture -%}
-  {%- if _sf contains _qp -%}{%- assign _quiz = _qp -%}{%- endif -%}
+{%- comment -%} Entraînement interactif : dossier de données de la classe (table _data/quiz.yml) ;
+  affiché seulement si /assets/quiz/<dossier>/chN.json existe. {%- endcomment -%}
+{%- assign _quiz = nil -%}{%- assign _qdir = nil -%}
+{%- if _is_chap -%}
+  {%- for _qc in site.data.quiz.classes -%}{%- if _qc.url == _base -%}{%- assign _qdir = _qc.dossier -%}{%- endif -%}{%- endfor -%}
+  {%- if _qdir -%}
+    {%- capture _qp -%}/assets/quiz/{{ _qdir }}/ch{{ _chnum }}.json{%- endcapture -%}
+    {%- if _sf contains _qp -%}{%- assign _quiz = _qp -%}{%- endif -%}
+  {%- endif -%}
 {%- endif -%}
 
-<div class="chap"{% if _quiz %} data-quiz="{{ _quiz }}" data-quiz-ch="{{ _chnum }}"{% endif %} data-chap-url="{{ page.url }}" data-chap-title="{{ page.hero_title | escape }} — {{ page.hero_subtitle | escape }}" data-chap-classe="{% if _cls %}{{ _cls.nom | escape }}{% endif %}">
+<div class="chap"{% if _quiz %} data-quiz="{{ _quiz }}" data-quiz-dir="{{ _qdir }}" data-quiz-ch="{{ _chnum }}"{% endif %} data-chap-url="{{ page.url }}" data-chap-title="{{ page.hero_title | escape }} — {{ page.hero_subtitle | escape }}" data-chap-classe="{% if _cls %}{{ _cls.nom | escape }}{% endif %}">
 {%- if page.canonical_url and page.canonical_url != page.url %}
 <p class="callout note-legacy">Cette page reprend le chapitre publié dans <a href="{{ page.canonical_url }}">{% if _cls %}{{ _cls.nom }} — {% endif %}{{ page.title | replace: " - ", " — " }}</a>.</p>
 {%- endif %}
@@ -142,9 +150,10 @@
       <li data-qz-item><button class="qz-card qz-card--inter" type="button" data-qz-open="qcm_inter"><span class="qz-ico" aria-hidden="true">?</span><span class="qz-card-t"><b>QCM intermédiaire</b><small>8 questions · correction immédiate</small><span class="qz-best" data-qz-best="qcm_inter"></span></span></button></li>
       <li data-qz-item><button class="qz-card qz-card--trous" type="button" data-qz-open="trous"><span class="qz-ico" aria-hidden="true">…</span><span class="qz-card-t"><b>Texte à trous</b><small>Définitions et méthodes du cours</small><span class="qz-best" data-qz-best="trous"></span></span></button></li>
       <li data-qz-item><button class="qz-card qz-card--final" type="button" data-qz-open="qcm_final"><span class="qz-ico" aria-hidden="true">✓</span><span class="qz-card-t"><b>QCM final</b><small>12 questions · réussi à partir de 9/12</small><span class="qz-best" data-qz-best="qcm_final"></span></span></button></li>
+      <li data-qz-item hidden><button class="qz-card qz-card--plus" type="button" data-qz-open="approfondissement"><span class="qz-ico" aria-hidden="true">+</span><span class="qz-card-t"><b>Pour aller plus loin</b><small>{% if _qdir contains "tale" or _qdir contains "terminale" %}Approfondissement{% else %}Approfondissement · prépare la Terminale{% endif %}</small><span class="qz-best" data-qz-best="approfondissement"></span></span></button></li>
     </ul>
   </div>
-  <script src="/assets/js/quiz.js?v=1" defer></script>
+  <script src="/assets/js/quiz.js?v=4" defer></script>
   {%- endif %}
   {%- if _sections contains "ds_blancs" %}
   <div class="block">

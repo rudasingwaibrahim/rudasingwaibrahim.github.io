@@ -1,7 +1,11 @@
 /* ═══════════════════════════════════════════════════════════════════
-   Σ Sigma — Entraînement interactif des chapitres (Seconde)
+   Σ Sigma — Entraînement interactif des chapitres (toutes classes)
    Questions flash (5 min) · QCM intermédiaire · Texte à trous · QCM final
-   Données : /assets/quiz/seconde/chN.json (attribut data-quiz du bloc).
+   + « Pour aller plus loin » (clé facultative approfondissement : comme le QCM intermédiaire, 6 questions par défaut)
+   Données : /assets/quiz/<dossier>/chN.json (attribut data-quiz du bloc ; dossier de la classe
+   dans data-quiz-dir, table _data/quiz.yml : seconde, tale-techno-commun…).
+   Identifiants des scores et des statistiques : <dossier>/chN et <dossier>/revisions
+   (inchangés pour la Seconde : seconde/chN, seconde/revisions).
    Vanilla, sans dépendance ; KaTeX utilisé s'il est présent (chargé sinon).
    Scores gardés sur l'appareil (localStorage « sigma-quiz-v1 »), sans compte.
    ═══════════════════════════════════════════════════════════════════ */
@@ -28,14 +32,18 @@
   var LIST = (root.getAttribute('data-quiz-list') || '').split(',').filter(Boolean);
   var CH = root.getAttribute('data-quiz-ch') || '';
   var SKEY = 'sigma-quiz-v1';
-  var SID = LIST.length ? 'seconde/revisions' : 'seconde/ch' + CH;
+  /* Dossier de données de la classe : attribut data-quiz-dir, sinon déduit du chemin du premier fichier. */
+  var DIR = root.getAttribute('data-quiz-dir') || ((LIST[0] || SRC || '').match(/\/assets\/quiz\/([^\/]+)\//) || [])[1] || 'seconde';
+  var SID = LIST.length ? DIR + '/revisions' : DIR + '/ch' + CH;
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var NB = ' ';
   var ACT = {
     flash: { nom: 'Questions flash', court: 'flash' },
     qcm_inter: { nom: 'QCM intermédiaire', court: 'QCM' },
     trous: { nom: 'Texte à trous', court: 'trous' },
-    qcm_final: { nom: 'QCM final', court: 'QCM final' }
+    qcm_final: { nom: 'QCM final', court: 'QCM final' },
+    /* facultative : présente seulement si la clé existe dans chN.json ; correction immédiate, sans seuil */
+    approfondissement: { nom: 'Pour aller plus loin', court: 'approfondissement' }
   };
 
   /* ── Outils ─────────────────────────────────────────────────────── */
@@ -190,7 +198,7 @@
   function gcount(act) {
     var gc = window.goatcounter;
     if (!gc || typeof gc.count !== 'function') return;
-    try { gc.count({ path: 'quiz/' + SID + '/' + act, title: ACT[act].nom + (LIST.length ? ' — révisions' : ' — chapitre ' + CH), event: true }); } catch (e) {}
+    try { gc.count({ path: 'quiz/' + SID + '/' + act, title: ACT[act].nom + (DIR === 'seconde' ? '' : ' — ' + DIR) + (LIST.length ? ' — révisions' : ' — chapitre ' + CH), event: true }); } catch (e) {}
   }
   function markVerified() {
     if (LIST.length) return false;
@@ -340,7 +348,7 @@
   }
 
   function startQuiz(act, d) {
-    var qs = draw(act, d.questions, d.servir || 10), i = 0, answers = [], t0 = Date.now(), dureeMax = d.duree || 0,
+    var qs = draw(act, d.questions, d.servir || (act === 'approfondissement' ? 6 : 10)), i = 0, answers = [], t0 = Date.now(), dureeMax = d.duree || 0,
         doneInTime = null, chosen = null, isFinal = act === 'qcm_final', isFlash = act === 'flash';
     run = { act: act };
     if (isFlash && dureeMax) {
