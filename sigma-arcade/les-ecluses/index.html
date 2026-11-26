@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Les Écluses · Sigma Arcade</title>
+<meta name="description" content="Variables aléatoires en Première spécialité : chaque valeur de X est un bassin, sa largeur est sa probabilité. On ouvre les vannes, l'eau s'égalise : le niveau commun, c'est l'espérance. Jeu équitable, linéarité, variance, écart type et simulation d'échantillons.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* IDÉE : une écluse vue en coupe. Chaque valeur xᵢ de X est un bassin de largeur P(X = xᵢ) (la largeur totale vaut 1),
+   rempli jusqu'à la hauteur xᵢ (au-dessus ou au-dessous du niveau 0). Tous les bassins ont le même fond.
+   On lève les vannes : l'eau s'égalise, le volume se conserve, et le niveau commun vaut x₁p₁ + … + xₙpₙ = E(X).
+   Mise : la marée baisse de m. Linéarité : on étire les hauteurs (× a) puis la marée monte (+ b).
+   Variance : chaque bassin prend la hauteur (xᵢ − E)² et l'on rouvre les vannes. Échantillons : des gouttes tombent au hasard. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);
+--pos:var(--sg-pos);--neg:var(--sg-neg);--water:#4ea3ff}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:74ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(340px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:1000/600;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#050a16;user-select:none;-webkit-user-select:none}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg text{font-family:var(--sg-font)}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,22px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .35em}
+.capt .k{color:var(--gold2)}.capt .m{color:var(--mut);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin:8px 0 0;font-size:14px;color:var(--mut)}
+.legend i{display:inline-block;width:18px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.5;margin:0 0 12px}
+.prompt p{margin:0 0 8px}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1;box-shadow:none}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(19px,2.2vw,22px)/2.3 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.6em;height:46px;margin:0 3px;padding:0 6px;font:700 20px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}.in.rv{border-color:var(--gold);color:var(--gold2)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+.sl{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 12px;margin:4px 0 10px}
+.sl label{font-weight:600}
+.sl output{font:700 20px var(--sg-font);color:var(--gold2);font-variant-numeric:tabular-nums;min-width:3.2em;text-align:right}
+.sl input[type=range]{grid-column:1/-1;width:100%;height:44px;margin:0;accent-color:var(--ac);cursor:pointer}
+.nw{white-space:nowrap}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+.ctw{overflow-x:auto;margin:10px 0 6px}
+.lt{border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums;font-size:17px;line-height:1.3}
+.lt th,.lt td{padding:7px 11px;text-align:center;border-bottom:1px solid var(--soft);white-space:nowrap}
+.lt th{text-align:left;font-size:15px;color:var(--mut);font-weight:600;padding-left:4px}
+.lt td{font-weight:700}
+.lt tr:first-child td{color:var(--gold2)}
+.lt td.q{color:var(--ko)}
+.lt .fr{font-size:.92em}
+.code{margin:8px 0 10px;padding:12px 14px;border-radius:12px;background:#050b18;border:1px solid var(--soft);font:500 15px/1.55 var(--sg-mono);white-space:pre;overflow-x:auto;color:#dfe7ff}
+.code .kw{color:#b79cff}.code .fn{color:#7fb2ff}.code .cm{color:var(--mut)}.code .hole{color:var(--gold2);font-weight:700}
+.sk-q .code{font-size:14px}
+.sk-q .lt{font-size:16px}.sk-q .lt th,.sk-q .lt td{padding:5px 9px}
+.sk-q .fr,.sk-ch .fr{font-size:.92em}
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb.rv{background:rgba(200,168,75,.08);border-left-color:var(--gold)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.fb .sol{display:block;margin-top:6px;color:var(--gold2)}
+.fb .btns{margin-top:10px}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex;flex:none}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:#060d1a;border-bottom:1px solid var(--soft)}
+  .stage{max-height:36svh;margin:auto}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+  .legend{display:none}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .lt{font-size:16px}.lt th,.lt td{padding:6px 7px}
+  .sk-q .lt th,.sk-q .lt td{padding:4px 5px}.sk-q .lt{font-size:15px}
+  .code{font-size:13.5px}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Les Écluses</h1>
+<p>Chaque valeur de X est un bassin&nbsp;: sa hauteur d'eau est la valeur, sa largeur est sa probabilité. Lève les vannes&nbsp;: l'eau s'égalise, et le niveau commun, c'est l'espérance. Baisse la marée de la mise, étire les hauteurs, mesure la houle… puis laisse tomber des gouttes au hasard pour voir la moyenne d'un échantillon s'approcher du niveau.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="L'écluse vue en coupe : chaque bassin a pour largeur une probabilité et pour hauteur d'eau une valeur de X">
+    <svg id="scene" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+  <div class="legend" id="legend"><span><i style="background:#3d8ae0"></i>bassin&nbsp;: hauteur xᵢ, largeur P(X = xᵢ)</span><span><i style="background:#e8c766"></i>niveau commun E(X)</span><span>largeur totale = 1</span></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p><div id="fbx"></div></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+
+<script>
+/* ======================= nombres exacts, lois, écritures ======================= */
+window.EC_N=(function(){
+'use strict';
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t}return a};
+const R=(n,d)=>{if(d===undefined)d=1;if(d<0){n=-n;d=-d}const g=gcd(n,d)||1;return{n:n/g,d:d/g}};
+const add=(x,y)=>R(x.n*y.d+y.n*x.d,x.d*y.d),sub=(x,y)=>R(x.n*y.d-y.n*x.d,x.d*y.d);
+const mul=(x,y)=>R(x.n*y.n,x.d*y.d),div=(x,y)=>R(x.n*y.d,x.d*y.n),neg=x=>R(-x.n,x.d);
+const cmp=(x,y)=>Math.sign(x.n*y.d-y.n*x.d),eq=(x,y)=>cmp(x,y)===0,val=x=>x.n/x.d;
+const one=R(1),zero=R(0),comp=x=>sub(one,x),abs=x=>R(Math.abs(x.n),x.d);
+const sum=a=>a.reduce((s,x)=>add(s,x),zero);
+const isDec=r=>{let d=r.d;while(d%2===0)d/=2;while(d%5===0)d/=5;return d===1};
+const ndec=r=>{let k=0;while(k<12&&((Math.abs(r.n)*Math.pow(10,k))%r.d))k++;return k};
+const NB=' ';
+function fmtInt(n){const s=String(Math.abs(n));const g=s.length>4?s.replace(/\B(?=(\d{3})+(?!\d))/g,' '):s;return (n<0?'−':'')+g}
+function dec(r,minDig){minDig=minDig||0;const k=ndec(r),kk=Math.max(k,minDig),p=Math.pow(10,kk),v=Math.round(Math.abs(r.n)*p/r.d);
+  const ip=Math.floor(v/p),fp=kk?String(v-ip*p).padStart(kk,'0'):'';return (r.n<0?'−':'')+fmtInt(ip)+(kk?','+fp:'')}
+const frH=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const short=r=>r.d===1||(isDec(r)&&ndec(r)<=4);
+/* écriture « naturelle » : décimale exacte et courte, sinon fraction (signe devant) */
+const numH=r=>r.d===1?fmtInt(r.n):short(r)?dec(r):(r.n<0?'−':'')+frH(fmtInt(Math.abs(r.n)),fmtInt(r.d));
+const numT=r=>r.d===1?String(r.n):short(r)?dec(r):`${r.n}/${r.d}`;
+const numS=r=>r.d===1?fmtInt(r.n):short(r)?dec(r):(r.n<0?'−':'')+Math.abs(r.n)+'/'+r.d;     /* texte SVG */
+/* valeur signée colorée (+ bleu, − corail) */
+const sgH=(r,u)=>`<span class="${r.n<0?'neg':r.n>0?'pos':''} nw">${numH(r)}${u?NB+u:''}</span>`;
+/* parenthèses pour un nombre négatif dans un produit */
+const par=r=>r.n<0?`(${numH(r)})`:numH(r);
+/* arrondi au 10^-k (demi vers le haut, exact) */
+function roundR(r,k){const p=Math.pow(10,k),x=mul(r,R(p)),f=Math.floor(x.n/x.d),fr=sub(x,R(f));return R(cmp(fr,R(1,2))>=0?f+1:f,p)}
+/* racine carrée arrondie au 10^-k (exacte, sans flottant au bord) */
+function sqrtRound(r,k){const p=Math.pow(10,2*k),x=mul(r,R(p));let m=Math.floor(Math.sqrt(val(x)));
+  while(cmp(R(m*m),x)>0)m--;while(cmp(R((m+1)*(m+1)),x)<=0)m++;
+  return R(cmp(x,add(R(m*m+m),R(1,4)))>=0?m+1:m,Math.pow(10,k))}
+function isSq(r){const a=Math.round(Math.sqrt(r.n)),b=Math.round(Math.sqrt(r.d));return r.n>=0&&a*a===r.n&&b*b===r.d?R(a,b):null}
+/* toutes les écritures acceptées d'un rationnel (épreuves du kit) */
+function ans(r,extra){const out=[];const push=s=>{if(s&&out.indexOf(s)<0)out.push(s)};
+  if(isDec(r)&&ndec(r)<=6){push(dec(r).replace(/[  ]/g,''));if(r.d!==1){const k=ndec(r);for(let j=k+1;j<=Math.max(3,k+1);j++)push(dec(r,j))}}
+  if(r.d!==1){push(`${r.n}/${r.d}`);if(r.n<0)push(`-${Math.abs(r.n)}/${r.d}`)}
+  (extra||[]).forEach(push);
+  return out}
+function parse(s){s=String(s).replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/€|min$/g,'');
+  if(!s)return null;
+  const P=t=>{const m=/^([-+]?)(\d*)(?:\.(\d+))?$/.exec(t);if(!m||!(m[2]||m[3]))return null;const ip=m[2]||'0',fp=m[3]||'';if(fp.length>9)return null;return R(parseInt(ip+fp,10)*(m[1]==='-'?-1:1),Math.pow(10,fp.length))};
+  let m=/^(.*)%$/.exec(s);if(m){const x=P(m[1]);return x?div(x,R(100)):null}
+  m=/^([^/]+)\/([^/]+)$/.exec(s);if(m){const a=P(m[1]),b=P(m[2]);return a&&b&&b.n?div(a,b):null}
+  return P(s)}
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const dist=vs=>vs.every((v,i)=>vs.every((w,j)=>i===j||!eq(v,w)));
+
+/* ---------- lois ---------- */
+/* loi : {x:[R…], p:[R…]} (valeurs rangées dans l'ordre croissant) */
+const E=L=>sum(L.x.map((x,i)=>mul(x,L.p[i])));
+const EX2=L=>sum(L.x.map((x,i)=>mul(mul(x,x),L.p[i])));
+const Var=L=>{const e=E(L);return sum(L.x.map((x,i)=>mul(mul(sub(x,e),sub(x,e)),L.p[i])))};
+const Pw=(L,f)=>sum(L.x.map((x,i)=>f(x)?L.p[i]:zero));
+const meanU=L=>div(sum(L.x),R(L.x.length));
+const aff=(L,a,b)=>{const xs=L.x.map(x=>add(mul(a,x),b)),idx=xs.map((_,i)=>i).sort((i,j)=>cmp(xs[i],xs[j]));return{x:idx.map(i=>xs[i]),p:idx.map(i=>L.p[i])}};
+const ser=L=>({x:L.x.map(r=>[r.n,r.d]),p:L.p.map(r=>[r.n,r.d])});
+/* probabilités multiples de 1/den, chacune ≥ lo/den, de somme 1 */
+function probs(k,den,lo){lo=lo||1;for(let t=0;t<500;t++){const c=[];let rest=den;for(let i=0;i<k-1;i++){const mx=rest-lo*(k-1-i);const v=ri(lo,Math.min(mx,Math.floor(den*.6)));c.push(v);rest-=v}
+    if(rest<lo||rest>den*.6)continue;c.push(rest);return shuf(c).map(v=>R(v,den))}
+  throw new Error('probs')}
+/* valeurs entières distinctes rangées */
+function vals(k,lo,hi,o){o=o||{};for(let t=0;t<500;t++){const s=new Set();while(s.size<k)s.add(ri(lo,hi));const a=[...s].sort((x,y)=>x-y);
+    if(o.neg&&!(a[0]<0&&a[k-1]>0))continue;if(o.test&&!o.test(a))continue;return a.map(v=>R(v))}
+  throw new Error('vals')}
+function law(k,o){o=o||{};for(let t=0;t<4000;t++){const L={x:vals(k,o.lo,o.hi,{neg:o.neg,test:o.vtest}),p:probs(k,o.den||20,o.plo||1)};
+    if(o.test&&!o.test(L))continue;return L}
+  throw new Error('law')}
+/* tableau de loi : deux lignes */
+function tabH(L,o){o=o||{};const hide=o.hide||{},hx=hide.x||[],hp=hide.p||[];
+  return `<div class="ctw"><table class="lt"><tbody><tr><th>${o.xl||'x<sub>i</sub>'}</th>${L.x.map((x,i)=>`<td${hx.indexOf(i)>=0?' class="q"':''}>${hx.indexOf(i)>=0?(o.qx||'?'):numH(x)}</td>`).join('')}</tr>`+
+  `<tr><th>${o.pl||'P(X = x<sub>i</sub>)'}</th>${L.p.map((p,i)=>`<td${hp.indexOf(i)>=0?' class="q"':''}>${hp.indexOf(i)>=0?(o.qp||'?'):numH(p)}</td>`).join('')}</tr></tbody></table></div>`}
+/* somme écrite x₁p₁ + … */
+const sumH=(L,f)=>L.x.map((x,i)=>f?f(x,L.p[i],i):`${par(x)} × ${numH(L.p[i])}`).join(' + ');
+return{gcd,R,add,sub,mul,div,neg,cmp,eq,val,one,zero,comp,abs,sum,isDec,ndec,fmtInt,dec,frH,short,numH,numT,numS,sgH,par,roundR,sqrtRound,isSq,ans,parse,ri,pick,shuf,dist,NB,
+  E,EX2,Var,Pw,meanU,aff,ser,probs,vals,law,tabH,sumH};
+})();
+</script>
+
+<script>
+/* ======================= la scène : l'écluse vue en coupe ======================= */
+window.EC_S=(function(){
+'use strict';
+const N=window.EC_N,NS='http://www.w3.org/2000/svg',svg=document.getElementById('scene');
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const C={gold:'#e8c766',gold2:'#f6dc8a',ink:'#f0f4ff',mut:'rgba(200,215,255,.66)',ac:'#6c8eff',pos:'#7fb2ff',neg:'#ff9b7a',coral:'#ff6b6b',ok:'#5fd27c',
+  stone:'#26355a',stone2:'#3a4c78',surf:'#bfe0ff'};
+function el(tag,a,parent){const e=document.createElementNS(NS,tag);if(a)for(const k in a)e.setAttribute(k,a[k]);if(parent)parent.appendChild(e);return e}
+/* ---------- bruitages (interrupteur partagé avec le kit) ---------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){if(!snd)return;const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+function noise(d,v,f0,f1){if(!snd)return;const a=ac();if(!a)return;const n=Math.floor(a.sampleRate*d),b=a.createBuffer(1,n,a.sampleRate),c=b.getChannelData(0);for(let i=0;i<n;i++)c[i]=(Math.random()*2-1)*(1-i/n);
+  const s=a.createBufferSource(),fl=a.createBiquadFilter(),g=a.createGain();s.buffer=b;fl.type='bandpass';fl.frequency.setValueAtTime(f0,a.currentTime);fl.frequency.linearRampToValueAtTime(f1,a.currentTime+d);fl.Q.value=1.2;g.gain.value=v;
+  s.connect(fl);fl.connect(g);g.connect(a.destination);s.start()}
+const SND={pop(){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)},soft(){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)},
+  win(){[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))},
+  gate(){tone(196,.18,.04,'square');tone(147,.3,.035,'triangle',.08)},
+  flow(){noise(1.1,.06,500,1400)},
+  drip(){tone(1400+Math.random()*500,.06,.02,'sine')},
+  tide(){[294,330,392].forEach((f,i)=>tone(f,.35,.03,'sine',i*.09))},
+  level(){tone(880,.5,.035,'sine');tone(1320,.6,.02,'sine',.1)}};
+const sound={get:()=>snd,set:v=>{snd=v;try{localStorage.setItem('sigma-fanfare',v?'1':'0')}catch(_){}}};
+
+/* ---------- décor de nuit ---------- */
+const defs=el('defs',{},svg);
+defs.innerHTML=`<linearGradient id="ec-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#030816"/><stop offset="1" stop-color="#0c1a38"/></linearGradient>
+<linearGradient id="ec-water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4ea3ff" stop-opacity=".95"/><stop offset=".25" stop-color="#2f78d0" stop-opacity=".9"/><stop offset="1" stop-color="#123a78" stop-opacity=".95"/></linearGradient>
+<linearGradient id="ec-water2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b79cff" stop-opacity=".95"/><stop offset=".25" stop-color="#7a62d6" stop-opacity=".9"/><stop offset="1" stop-color="#2f2470" stop-opacity=".95"/></linearGradient>
+<linearGradient id="ec-wall" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2c3d66"/><stop offset=".5" stop-color="#43588c"/><stop offset="1" stop-color="#25355a"/></linearGradient>
+<linearGradient id="ec-band" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8c766" stop-opacity=".22"/><stop offset=".5" stop-color="#e8c766" stop-opacity=".1"/><stop offset="1" stop-color="#e8c766" stop-opacity=".22"/></linearGradient>
+<radialGradient id="ec-moon" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#fffbe8"/><stop offset="1" stop-color="#d9d2b8"/></radialGradient>
+<filter id="ec-glow" filterUnits="userSpaceOnUse" x="-50" y="-50" width="1100" height="700"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+el('rect',{x:-400,y:0,width:1800,height:600,fill:'url(#ec-sky)'},svg);
+const stars=el('g',{opacity:.55},svg);
+for(let i=0;i<60;i++)el('circle',{cx:Math.round(Math.random()*1000),cy:Math.round(Math.random()*120),r:(Math.random()*1.1+.3).toFixed(2),fill:'#cdd8ff',opacity:(Math.random()*.6+.2).toFixed(2)},stars);
+el('circle',{cx:952,cy:42,r:16,fill:'url(#ec-moon)',opacity:.9},svg);
+/* silhouette lointaine des collines */
+el('path',{d:'M0 128 C80 110 140 118 210 100 C260 88 300 70 340 84 C390 100 430 92 480 104 C560 122 640 96 720 108 C800 120 880 100 1000 112 L1000 140 L0 140Z',fill:'#0a1530',opacity:.9},svg);
+const gBack=el('g',{},svg),gMain=el('g',{},svg),gTop=el('g',{},svg);
+
+/* ---------- géométrie ---------- */
+const G={x0:150,x1:860,yT:150,yB:520,lo:-1,hi:1};
+/* sur téléphone, la scène est réduite : on grossit les textes */
+const K=()=>innerWidth<=860?1.45:1;
+const X=u=>G.x0+u*(G.x1-G.x0),Y=v=>G.yB-(v-G.lo)/(G.hi-G.lo)*(G.yB-G.yT);
+function niceStep(span){const c=[.01,.02,.025,.05,.1,.2,.25,.5,1,2,2.5,5,10,20,25,50,100,200,250,500,1000];for(const s of c)if(span/s<=8)return s;return 2000}
+/* échelle automatique contenant toutes les hauteurs (et 0) */
+function autoScale(vs,o){o=o||{};if(o.floor0){let hi=Math.max(...vs,.5);const st=niceStep(hi);hi=Math.ceil(hi/st)*st;return{lo:0,hi:hi*1.06,st}}
+  let lo=Math.min(0,...vs),hi=Math.max(0,...vs);if(hi-lo<1){hi+=.5;lo-=.5}
+  const st=niceStep(hi-lo);lo=Math.floor(lo/st)*st;hi=Math.ceil(hi/st)*st;const m=(hi-lo)*.1;
+  /* le fond est un peu sous la plus petite valeur, pour qu'il reste de l'eau dans chaque bassin */
+  return{lo:lo-m*1.6,hi:hi+m*.4,st}}
+
+/* ---------- objets animés (coordonnées en pixels) ---------- */
+const items=new Map();
+function mk(sp){const it={sp,cur:null},par=sp.top?gTop:sp.back?gBack:gMain;
+  if(sp.t==='r')it.g=el('rect',{},par);
+  else if(sp.t==='t')it.g=el('text',{'paint-order':'stroke','stroke-linejoin':'round'},par);
+  else if(sp.t==='l')it.g=el('line',{'stroke-linecap':'round'},par);
+  else if(sp.t==='c')it.g=el('circle',{},par);
+  return it}
+function style(it){const s=it.sp,g=it.g;
+  if(s.t==='r'){g.setAttribute('fill',s.fill||'#1a2a4a');g.setAttribute('rx',s.rx===undefined?3:s.rx);if(s.stroke){g.setAttribute('stroke',s.stroke);g.setAttribute('stroke-width',s.sw||2)}else g.removeAttribute('stroke')}
+  else if(s.t==='t'){g.setAttribute('fill',s.fill||C.ink);g.setAttribute('font-size',(s.size||18)*(s.fixed?1:K()));g.setAttribute('font-weight',s.w||700);g.setAttribute('text-anchor',s.anchor||'middle');
+    g.setAttribute('stroke',s.halo===false?'none':'#060d1a');g.setAttribute('stroke-width',s.halo===false?0:4);g.textContent=s.txt||''}
+  else if(s.t==='l'){g.setAttribute('stroke',s.stroke||C.gold2);g.setAttribute('stroke-width',s.sw||3);if(s.dash)g.setAttribute('stroke-dasharray',s.dash);else g.removeAttribute('stroke-dasharray')}
+  else if(s.t==='c'){g.setAttribute('fill',s.fill||C.gold);if(s.stroke){g.setAttribute('stroke',s.stroke);g.setAttribute('stroke-width',s.sw||1.5)}else g.removeAttribute('stroke')}
+  if(s.glow)g.setAttribute('filter','url(#ec-glow)');else g.removeAttribute('filter')}
+const KEYS={r:['x','y','w','h','o'],t:['x','y','o'],l:['x1','y1','x2','y2','o'],c:['cx','cy','r','o']};
+function geo(sp){const g={};KEYS[sp.t].forEach(k=>g[k]=k==='o'?(sp.o===undefined?1:sp.o):sp[k]);return g}
+function put(it,g){const e=it.g,o=Math.max(0,Math.min(1,g.o));e.setAttribute('opacity',o);
+  if(it.sp.t==='r'){e.setAttribute('x',g.x);e.setAttribute('y',g.y);e.setAttribute('width',Math.max(0,g.w));e.setAttribute('height',Math.max(0,g.h))}
+  else if(it.sp.t==='t'){e.setAttribute('x',g.x);e.setAttribute('y',g.y)}
+  else if(it.sp.t==='l'){e.setAttribute('x1',g.x1);e.setAttribute('y1',g.y1);e.setAttribute('x2',g.x2);e.setAttribute('y2',g.y2)}
+  else{e.setAttribute('cx',g.cx);e.setAttribute('cy',g.cy);e.setAttribute('r',Math.max(0,g.r))}}
+let anim=null,busy=0;
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function show(list,dur){if(dur===undefined)dur=750;if(reduceM)dur=0;
+  if(anim){cancelAnimationFrame(anim.raf);anim.finish()}
+  const seen=new Set(),tw=[];
+  list.forEach(sp=>{seen.add(sp.id);let it=items.get(sp.id);
+    if(!it){it=mk(sp);items.set(sp.id,it);it.cur=sp.from?Object.assign(geo(sp),sp.from):Object.assign(geo(sp),{o:0})}
+    else if(it.sp.t!==sp.t){it.g.remove();it=mk(sp);items.set(sp.id,it);it.cur=Object.assign(geo(sp),{o:0})}
+    it.sp=sp;it.dead=false;style(it);tw.push([it,Object.assign({},it.cur),geo(sp)])});
+  items.forEach((it,id)=>{if(!seen.has(id)){it.dead=true;tw.push([it,Object.assign({},it.cur),Object.assign({},it.cur,{o:0})])}});
+  return new Promise(res=>{const t0=performance.now();busy++;
+    const finish=()=>{tw.forEach(([it,,b])=>{it.cur=b;put(it,b)});items.forEach((it,id)=>{if(it.dead){it.g.remove();items.delete(id)}});anim=null;busy--;res()};
+    const step=now=>{const k=dur?Math.min(1,(now-t0)/dur):1,e=ease(k);
+      tw.forEach(([it,a,b])=>{const g={};for(const key in b)g[key]=a[key]+(b[key]-a[key])*e;it.cur=g;put(it,g)});
+      if(k<1)anim.raf=requestAnimationFrame(step);else finish()};
+    anim={finish,raf:requestAnimationFrame(step)};if(!dur){cancelAnimationFrame(anim.raf);finish()}})}
+const wait=ms=>new Promise(r=>setTimeout(r,reduceM?0:ms));
+
+/* ---------- construction d'une vue ----------
+   o.cells : [{p, h, lab, plab, tone, hl, fill2}] ; o.gates : vannes fermées (true) ou levées (false)
+   o.level : {v, name, val} niveau commun (or) ; o.marks : [{v, lab, col}] ; o.band : {lo, hi}
+   o.scale : {lo, hi} (valeurs) ; o.tokens : issues (niveau 1) ; o.x1 : bord droit du canal ; o.right : échelle des moyennes */
+let last=null;
+function build(o){const L=[];G.x0=o.x0||150;G.x1=o.x1||860;G.yT=o.yT||150;G.yB=o.yB||520;
+  const sc=o.scale||autoScale(o.cells.map(c=>N.val(c.h)));G.lo=sc.lo;G.hi=sc.hi;const st=sc.st||niceStep(sc.hi-sc.lo);
+  /* graduations de l'échelle de gauche */
+  const t0=Math.ceil((G.lo-1e-9)/st)*st;
+  for(let v=t0,k=0;v<=G.hi+1e-9&&k<40;v+=st,k++){const vv=Math.round(v*1000)/1000,y=Y(vv),id='tk'+vv,lab=N.numS(N.parse(String(vv)));
+    L.push({id:id+'g',t:'l',x1:G.x0-8,y1:y,x2:G.x1+4,y2:y,stroke:'rgba(140,170,255,.10)',sw:1,back:true});
+    L.push({id:id+'m',t:'l',x1:G.x0-24,y1:y,x2:G.x0-12,y2:y,stroke:'rgba(200,215,255,.55)',sw:2,back:true});
+    L.push({id:id+'t',t:'t',x:G.x0-30,y:y+6*K(),txt:lab,size:16,w:600,anchor:'end',fill:vv===0?C.ink:'rgba(200,215,255,.7)',back:true})}
+  L.push({id:'staff',t:'r',x:G.x0-16,y:G.yT-14,w:4,h:G.yB-G.yT+14,fill:'rgba(200,215,255,.35)',rx:2,back:true});
+  if(o.unit)L.push({id:'unit',t:'t',x:G.x0-18,y:G.yT-24,txt:o.unit,size:15,w:600,fill:C.mut,back:true});
+  /* le canal : fond et murs */
+  L.push({id:'floor',t:'r',x:G.x0-10,y:G.yB,w:G.x1-G.x0+20,h:12,fill:'url(#ec-wall)',rx:2});
+  L.push({id:'wl',t:'r',x:G.x0-10,y:G.yT-18,w:10,h:G.yB-G.yT+18,fill:'url(#ec-wall)',rx:2});
+  L.push({id:'wr',t:'r',x:G.x1,y:G.yT-18,w:10,h:G.yB-G.yT+18,fill:'url(#ec-wall)',rx:2});
+  /* bassins */
+  let cum=N.zero;const cells=o.cells||[],n=cells.length;
+  cells.forEach((c,i)=>{const xa=X(N.val(cum)),xb=X(N.val(N.add(cum,c.p))),w=xb-xa,yh=Y(N.val(c.h));
+    const fill=c.fill2?'url(#ec-water2)':'url(#ec-water)';
+    L.push({id:'wa'+i,t:'r',x:xa,y:yh,w:w,h:G.yB-yh,fill,rx:0,o:c.dim?.35:1});
+    L.push({id:'su'+i,t:'l',x1:xa+1,y1:yh,x2:xb-1,y2:yh,stroke:c.hl?C.gold2:C.surf,sw:c.hl?4:2.5,glow:!!c.hl,o:c.dim?.35:1});
+    if(c.lab!==undefined&&c.lab!==''&&w>=18){const fs=w<34?13:w<56?15:w<80?18:21,above=yh-10>G.yT-6;
+      L.push({id:'lb'+i,t:'t',x:(xa+xb)/2,y:above?yh-10:yh+24,txt:c.lab,size:fs,fill:c.tone==='neg'?C.neg:c.tone==='gold'?C.gold2:c.tone==='n'?C.ink:C.pos,o:c.dim?.4:1,top:true})}
+    if(c.plab&&w>=30)L.push({id:'pl'+i,t:'t',x:(xa+xb)/2,y:G.yB+36,txt:c.plab,size:w<44?12:w<56?13:15,w:600,fill:c.hl?C.gold2:C.mut});
+    if(i>0){const gx=xa-4,up=o.gates===false;
+      L.push({id:'gt'+i,t:'r',x:gx,y:up?G.yT-260:G.yT-10,w:8,h:G.yB-G.yT+10,fill:'#5b6f9e',stroke:'#2a3962',sw:1.5,rx:2,o:up?0:1,top:true});
+      L.push({id:'gh'+i,t:'r',x:gx-5,y:up?G.yT-272:G.yT-22,w:18,h:12,fill:'#8ea0cc',rx:3,o:up?0:1,top:true})}
+    cum=N.add(cum,c.p)});
+  /* niveau 0 */
+  if(G.lo<0&&G.hi>0)L.push({id:'zero',t:'l',x1:G.x0-26,y1:Y(0),x2:G.x1+12,y2:Y(0),stroke:o.zeroGlow?C.ok:'rgba(240,244,255,.75)',sw:o.zeroGlow?4:2,dash:o.zeroGlow?'':'8 6',glow:!!o.zeroGlow,top:true});
+  /* bande, repères, niveau commun */
+  if(o.band){const ya=Y(N.val(o.band.hi)),yb=Y(N.val(o.band.lo));L.push({id:'band',t:'r',x:G.x0,y:ya,w:G.x1-G.x0,h:yb-ya,fill:'rgba(232,199,102,.07)',rx:0,top:true});
+    L.push({id:'bandt',t:'l',x1:G.x0,y1:ya,x2:G.x1,y2:ya,stroke:'rgba(246,220,138,.8)',sw:2,dash:'4 5',top:true});
+    L.push({id:'bandb',t:'l',x1:G.x0,y1:yb,x2:G.x1,y2:yb,stroke:'rgba(246,220,138,.8)',sw:2,dash:'4 5',top:true})}
+  (o.marks||[]).forEach((m,k)=>{const y=Y(N.val(m.v));L.push({id:'mk'+(m.id||k),t:'l',x1:G.x0,y1:y,x2:G.x1+8,y2:y,stroke:m.col||C.coral,sw:3,dash:'10 7',top:true});
+    if(m.lab)L.push({id:'ml'+(m.id||k),t:'t',x:G.x1+16,y:y+(m.dy||6),txt:m.lab,size:16,anchor:'start',fill:m.col||C.coral,top:true})});
+  if(o.level){const y=Y(N.val(o.level.v));L.push({id:'lvl',t:'l',x1:G.x0,y1:y,x2:G.x1+8,y2:y,stroke:C.gold2,sw:4,dash:'14 8',glow:true,top:true});
+    if(o.level.name)L.push({id:'lvn',t:'t',x:G.x1+16,y:y-6,txt:o.level.name,size:16,w:600,anchor:'start',fill:C.gold,top:true});
+    if(o.level.val!==undefined)L.push({id:'lvv',t:'t',x:G.x1+16,y:y+18*K(),txt:o.level.val,size:21,anchor:'start',fill:C.gold2,top:true})}
+  /* issues (niveau 1) */
+  (typeof o.tokens==='function'?o.tokens():o.tokens||[]).forEach(tk=>{L.push(tk)});
+  (typeof o.extra==='function'?o.extra():o.extra||[]).forEach(x=>L.push(x));
+  return L}
+function view(o,dur){last=o;return show(build(o),dur)}
+
+/* ---------- issues : jetons au-dessus de l'écluse, puis rangés dans leur bassin ---------- */
+function tokens(iss,cells,o){o=o||{};const tot=iss.length,W=G.x1-G.x0,slot=W/tot,small=slot<44,L=[];
+  const cum=[];let c=N.zero;cells.forEach(ce=>{cum.push(N.val(c));c=N.add(c,ce.p)});
+  const cnt=cells.map(()=>0);
+  iss.forEach((s,k)=>{let x,y;
+    if(o.placed){const i=s.cell,j=cnt[i]++;x=G.x0+(cum[i]*W)+(j+.5)*slot;y=G.yB-(small?14:24)}
+    else{x=G.x0+(k+.5)*slot;y=small?118:104}
+    const hl=o.hl&&o.hl(s,k),dim=o.dim&&o.dim(s,k);
+    if(small){L.push({id:'tk_c'+k,t:'c',cx:x,cy:y,r:Math.min(7,slot*.36),fill:hl?C.gold2:'#dfe8ff',stroke:hl?'#a8862c':'#7f93c8',o:dim?.3:1,top:true})}
+    else{const w=Math.min(slot-8,82),h=K()>1?44:34;
+      L.push({id:'tk_r'+k,t:'r',x:x-w/2,y:y-h/2,w,h,rx:9,fill:hl?'#3b3216':'#16244a',stroke:hl?C.gold2:'#7f93c8',sw:hl?2.5:1.5,o:dim?.3:1,top:true});
+      L.push({id:'tk_t'+k,t:'t',x:x,y:y+(K()>1?9:7),txt:s.lab,size:(s.lab.length>5?15:18)*(K()>1?.9:1),w:700,fill:hl?C.gold2:C.ink,o:dim?.3:1,top:true,halo:false})}});
+  return L}
+
+/* ---------- gouttes (échantillons) ---------- */
+function drop(i,cells,col){const W=G.x1-G.x0;let c=0;for(let k=0;k<i;k++)c+=N.val(cells[k].p);const w=N.val(cells[i].p)*W,
+    x=G.x0+(c+.15+Math.random()*.7*N.val(cells[i].p))*W,y1=Y(N.val(cells[i].h));
+  if(reduceM)return Promise.resolve();
+  const e=el('circle',{cx:x,cy:G.yT-40,r:6,fill:col||'#bfe0ff'},gTop);
+  return new Promise(res=>{const t0=performance.now(),d=260;const step=now=>{const k=Math.min(1,(now-t0)/d);e.setAttribute('cy',G.yT-40+(y1-G.yT+40)*k*k);
+    if(k<1)requestAnimationFrame(step);else{e.remove();const r=el('circle',{cx:x,cy:y1,r:3,fill:'none',stroke:'#bfe0ff','stroke-width':2},gTop);
+      const t1=performance.now();const st2=now=>{const q=Math.min(1,(now-t1)/300);r.setAttribute('r',3+q*Math.min(18,w/2));r.setAttribute('opacity',1-q);if(q<1)requestAnimationFrame(st2);else r.remove()};requestAnimationFrame(st2);res()}};
+    requestAnimationFrame(step)})}
+
+/* ---------- échelle des moyennes (niveau 7) : à droite de l'écluse ---------- */
+function ruler(o){/* o : {mu, half (demi-largeur de bande, R), span (valeur), dots:[valeurs], cur} */
+  const L=[],xa=700,xb=985,ya=150,yb=520,mu=N.val(o.mu),sp=o.span,Yr=v=>ya+(yb-ya)*(1-(v-(mu-sp))/(2*sp));
+  L.push({id:'rf',t:'r',x:xa,y:ya-40,w:xb-xa,h:yb-ya+64,rx:14,fill:'rgba(10,22,40,.85)',stroke:'rgba(120,160,255,.25)',sw:1.5,back:true});
+  L.push({id:'rtt',t:'t',x:(xa+xb)/2,y:ya-14,txt:o.title||'moyennes des échantillons',size:15,w:600,fill:C.mut,back:true});
+  const st=niceStep(2*sp)/2||.5;
+  for(let v=Math.ceil((mu-sp)/st)*st,k=0;v<=mu+sp+1e-9&&k<14;v+=st,k++){const vv=Math.round(v*1000)/1000,y=Yr(vv);
+    L.push({id:'rk'+vv,t:'l',x1:xa+44,y1:y,x2:xa+54,y2:y,stroke:'rgba(200,215,255,.5)',sw:2,back:true});
+    L.push({id:'rl'+vv,t:'t',x:xa+38,y:y+5,txt:N.numS(N.parse(String(vv))),size:13,w:600,anchor:'end',fill:'rgba(200,215,255,.7)',back:true})}
+  L.push({id:'rax',t:'l',x1:xa+54,y1:ya,x2:xa+54,y2:yb,stroke:'rgba(200,215,255,.45)',sw:2,back:true});
+  if(o.half){const h=N.val(o.half);L.push({id:'rb',t:'r',x:xa+56,y:Yr(mu+h),w:xb-xa-68,h:Yr(mu-h)-Yr(mu+h),rx:4,fill:'url(#ec-band)',stroke:'rgba(232,199,102,.55)',sw:1})}
+  L.push({id:'rmu',t:'l',x1:xa+50,y1:Yr(mu),x2:xb-10,y2:Yr(mu),stroke:C.gold2,sw:3,dash:'10 6',glow:true});
+  L.push({id:'rmut',t:'t',x:xb-14,y:Yr(mu)-8,txt:'μ = '+N.numS(o.mu),size:15,anchor:'end',fill:C.gold2});
+  (o.dots||[]).forEach((v,k)=>{const y=Math.max(ya,Math.min(yb,Yr(v))),out=o.half&&Math.abs(v-mu)>N.val(o.half)+1e-12;
+    L.push({id:'rd'+k,t:'c',cx:xa+70+((k*37)%200),cy:y,r:o.dots.length>60?3.5:5,fill:out?C.coral:C.surf,o:.9,from:{cy:ya-30,o:0}})});
+  if(o.cur!==undefined)L.push({id:'rcur',t:'c',cx:xa+54,cy:Math.max(ya,Math.min(yb,Yr(o.cur))),r:9,fill:C.coral,stroke:'#fff',sw:2,glow:true});
+  return L}
+function state(){return{busy:busy>0,level:last&&last.level?N.val(last.level.v):null,gates:last?last.gates!==false:null,n:last&&last.cells?last.cells.length:0}}
+return{show,view,build,tokens,drop,ruler,wait,autoScale,G,X,Y,SND,sound,reduceM,state,get busy(){return busy>0}};
+})();
+</script>
+
+<script>
+/* ======================= moteur : questions en étapes, deuxième essai = réponse donnée ======================= */
+window.EC_G=(function(){
+'use strict';
+const N=window.EC_N,S=window.EC_S,SND=S.SND,$=id=>document.getElementById(id);
+const cap=h=>{$('capt').innerHTML=`<span>${h||'&nbsp;'}</span>`};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const knorm=s=>String(s).toLowerCase().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.');
+const GAME='les-ecluses';
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,busy=false;
+function starsOf(i){try{const g=SigmaKit.passport().games[GAME];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function fb(html,kind,extra){if(!html){$('fb').hidden=true;return}
+  $('fb').classList.toggle('rv',kind==='rv');$('fbt').textContent=kind==='rv'?'Voici la réponse.':'Pas tout à fait.';
+  $('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fbx').innerHTML='';if(extra)$('fbx').appendChild(extra);$('fb').hidden=false}
+/* une erreur : 1re fois, on explique ; 2e fois, on explique et on donne la réponse */
+function miss(p,why,reveal){p._e=(p._e||0)+1;errs++;SND.soft();
+  if(p._e<2){fb(why);return}
+  reveal();const b=document.createElement('div');b.className='btns';b.innerHTML='<button type="button" class="btn or" id="cont">Continuer →</button>';
+  fb(why+(p.solH?`<span class="sol">Réponse&nbsp;: ${p.solH}</span>`:''),'rv',b);
+  b.querySelector('button').onclick=async()=>{if(busy)return;fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()};
+  setTimeout(()=>{const c=$('cont');if(c&&matchMedia('(pointer:fine)').matches)c.focus({preventScroll:true});scrollPart($('fb'))},40)}
+const W={};
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);fb('');nextPart()};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)b.focus({preventScroll:true})},50)};
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):N.shuf(p.ch.map((_,j)=>j));
+  if(!p.solH)p.solH=p.ch.find(c=>c.ok).h;
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  const all=[...box.querySelectorAll('.opt')];
+  const lock=()=>all.forEach(x=>x.disabled=true);
+  all.forEach(b=>b.onclick=async()=>{if(busy||b.disabled)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){lock();b.classList.add('ok');SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+    else{b.classList.add('ko');b.disabled=true;if(p.onKo)p.onKo(c);miss(p,c.why,()=>{lock();all.forEach(x=>{if(p.ch[+x.dataset.j].ok)x.classList.add('ok')})})}})};
+function okBlank(b,v){if(b.w)return b.w.some(a=>knorm(a)===knorm(v));const x=N.parse(v);return !!x&&N.eq(x,b.r)}
+W.fill=(p,box)=>{
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const b=p.b[+i];return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" ${b.w?'':'inputmode="text"'} aria-label="Case ${+i+1}" style="width:${b.size||4.6}em">`});
+  if(!p.solH)p.solH=p.b.map(b=>b.w?b.w[0]:N.numH(b.r)).join('&nbsp;; ');
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+
+    `<p class="hint">${p.hint||'Écriture décimale ou fraction (par exemple −1,5 ou 7/6)&nbsp;: les deux sont acceptées.'}</p>`;
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy||f.dataset.done)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=v.map((x,i)=>okBlank(p.b[+ins[i].dataset.i],x));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){f.dataset.done=1;ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+    else miss(p,typeof p.why==='function'?p.why(v,oks):p.why,()=>{f.dataset.done=1;ins.forEach((x,i)=>{if(!oks[i]){const b=p.b[+x.dataset.i];x.value=b.w?b.w[0]:N.numT(b.r);x.classList.remove('ko');x.classList.add('rv')}x.disabled=true});f.querySelector('button').remove()})};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* curseur : prévoir un niveau (valeurs entières de pas p.step entre p.min et p.max) */
+W.slide=(p,box)=>{const st=p.step,k0=p.min,toV=x=>N.add(k0,N.mul(N.R(x),st)),nK=Math.round(N.val(N.div(N.sub(p.max,k0),st))),tg=Math.round(N.val(N.div(N.sub(p.target,k0),st)));
+  let init=p.init!==undefined?p.init:Math.round(nK/2);if(init===tg)init=tg>nK/2?Math.max(0,tg-Math.max(2,Math.round(nK/4))):Math.min(nK,tg+Math.max(2,Math.round(nK/4)));
+  p._k={tg,nK};
+  if(!p.solH)p.solH=`${p.lab} = ${N.numH(p.target)}`;
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="sl"><label for="sld"><span>${p.lab}</span></label><output id="sldo">${N.numH(toV(init))}</output>`+
+    `<input type="range" id="sld" min="0" max="${nK}" step="1" value="${init}" aria-label="${p.aria||'Hauteur prévue'}"></div><div class="btns"><button class="btn or" type="button" id="sldv">${p.btn||'Valider'}</button></div>`;
+  const r=box.querySelector('#sld'),o=box.querySelector('#sldo'),b=box.querySelector('#sldv');
+  const upd=()=>{const v=toV(+r.value);o.innerHTML=N.numH(v);if(p.onInput)p.onInput(v)};
+  r.addEventListener('input',()=>{upd()});upd();
+  b.onclick=async()=>{if(busy)return;const v=toV(+r.value);
+    if(N.eq(v,p.target)){r.disabled=true;b.remove();SND.level();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+    else miss(p,typeof p.why==='function'?p.why(v):p.why,()=>{r.value=tg;upd();r.disabled=true;b.remove()})}};
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;if(pi<Q.parts.length){const p=Q.parts[pi];if(p.pre)p.pre();const box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860&&box){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-140)scrollTo({top:scrollY+r.top-top-12,behavior:S.reduceM?'auto':'smooth'})}}
+const LV=[],LEG=$('legend').innerHTML;
+async function newQ(){busy=true;Q=LV[lvl].qs[qi]();pi=0;errs=0;
+  cap(Q.cap0||'&nbsp;');
+  $('prompt').innerHTML=Q.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  try{if(Q.setup)await Q.setup()}finally{busy=false}
+  const p=Q.parts[0];if(p.pre)p.pre();const box=partEl();W[p.t](p,box)}
+function dots(){const n=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:n},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){fb('');SND.win();run.push(errs===0);dots();
+  const n=LV[lvl].qs.length,lvlDone=run.length>=n;
+  $('winx').textContent=errs===0?N.pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):N.pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=Q.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(Q.onWin)Q.onWin();
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lnum=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lnum,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lnum)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if(busy)return;if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:S.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];
+  $('chap').textContent=`Niveau ${l+1} sur ${LV.length} · ${LV[l].badge}`;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('legend').innerHTML=LV[l].legend||LEG;$('cours').open=false;renderLv();newQ()}
+function renderLv(){const snd=S.sound.get();$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;
+  if(b.id==='snd'){S.sound.set(!S.sound.get());renderLv();SND.pop();return}
+  goLevel(+b.dataset.l)});
+/* fabriques */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+const ch=(ask,list,o)=>Object.assign({t:'choice',ask,ch:list},o||{});
+const fill=(ask,tpl,b,why,o)=>Object.assign({t:'fill',ask,tpl,b,why},o||{});
+const slide=(ask,lab,o)=>Object.assign({t:'slide',ask,lab},o||{});
+const OK=(h,x)=>Object.assign({h,ok:true},x||{}),NO=(h,why,x)=>Object.assign({h,why},x||{});
+const B=(r,key,o)=>Object.assign({r,key},o||{});
+window.EC={start(){const m=/[?&]niveau=(\d)/.exec(location.search);goLevel(m?Math.min(+m[1]-1,LV.length-1):0)},
+  state:()=>{const p=Q&&Q.parts[pi];return{lvl,qi,nq:LV[lvl]&&LV[lvl].qs.length,busy:busy||S.busy,pi,win:!$('win').hidden,cont:!!$('cont')&&!$('fb').hidden,
+    part:p?{t:p.t,sol:p.b?p.b.map(b=>b.w?b.w[0]:N.numT(b.r)):null,choices:p.ch?p.ch.map(c=>({ok:!!c.ok})):null,target:p._k?p._k.tg:null,nK:p._k?p._k.nK:null}:null,scene:S.state()}},
+  LV,goLevel,get Q(){return Q}};
+return{LV,W,act,ch,fill,slide,OK,NO,B,cap,MAKI,renderLv};
+})();
+</script>
+
+<script>
+/* ======================= situations, lois et vues communes ======================= */
+window.EC_X=(function(){
+'use strict';
+const N=window.EC_N,S=window.EC_S;
+const {R,add,sub,mul,div,neg,cmp,eq,val,numH,numS,numT,ri,pick,shuf,E,Var,EX2,law,probs,vals,isSq,isDec,ndec}=N;
+/* ---------- lois données par un tableau, en situation ---------- */
+const CTX={
+ roue:{t:'À la kermesse du lycée, on fait tourner une roue partagée en secteurs colorés. On note X le gain algébrique du joueur, en euros (mise déduite).',
+   unit:'€',xl:'Gain x<sub>i</sub> (€)',g:(k,o)=>law(k,Object.assign({lo:-5,hi:12,neg:true,den:20},o)),gain:true},
+ barge:{t:'On note X le temps d\'attente, en minutes, d\'un passager de la barge entre Petite-Terre et Grande-Terre.',
+   unit:'min',xl:'Attente x<sub>i</sub> (min)',g:(k,o)=>{const L=law(k,Object.assign({lo:0,hi:6,den:20},o));L.x=L.x.map(x=>mul(x,R(5)));return L}},
+ peche:{t:'On note X le nombre de poissons pêchés par Anli lors d\'une sortie en pirogue sur le lagon.',
+   unit:'',xl:'Poissons x<sub>i</sub>',g:(k,o)=>law(k,Object.assign({lo:0,hi:6,den:20},o))},
+ colis:{t:'On note X le nombre de colis livrés en une heure par Nassim, livreur à scooter.',
+   unit:'',xl:'Colis x<sub>i</sub>',g:(k,o)=>law(k,Object.assign({lo:3,hi:9,den:20},o))},
+ buts:{t:'On note X le nombre de buts marqués par l\'équipe de football du quartier lors d\'un match.',
+   unit:'',xl:'Buts x<sub>i</sub>',g:(k,o)=>law(k,Object.assign({lo:0,hi:4,den:20},o))},
+ jeu:{t:'Dans un jeu sur téléphone, on note X le nombre de pièces d\'or trouvées en ouvrant un coffre.',
+   unit:'',xl:'Pièces x<sub>i</sub>',g:(k,o)=>{const L=law(k,Object.assign({lo:0,hi:5,den:20},o));L.x=L.x.map(x=>mul(x,R(10)));return L}},
+ grat:{t:'Un ticket de tombola de l\'association sportive coûte une certaine somme. On note X le gain algébrique d\'un acheteur, en euros (prix du ticket déduit).',
+   unit:'€',xl:'Gain x<sub>i</sub> (€)',g:(k,o)=>law(k,Object.assign({lo:-3,hi:15,neg:true,den:20},o)),gain:true}};
+function ctx(names,k,o){o=o||{};for(let t=0;t<3000;t++){const nm=pick(names),c=CTX[nm],L=c.g(k,{den:o.den||20,plo:o.plo});
+    if(o.test&&!o.test(L))continue;return Object.assign({L,nm},c)}
+  throw new Error('ctx '+names)}
+/* ---------- situations à issues équiprobables (niveau 1 et lois « à déterminer ») ---------- */
+const coins=n=>{const out=[];const rec=s=>{if(s.length===n){out.push(s);return}rec(s+'P');rec(s+'F')};rec('');return out};
+function issues(kind,o){o=o||{};
+  if(kind==='coins'){const n=o.n||2,iss=coins(n);return{n,iss:iss.map(s=>({lab:s,o:s})),txt:`On lance ${n===2?'deux':'trois'} fois de suite une pièce équilibrée (P&nbsp;: pile, F&nbsp;: face). Les ${iss.length} issues, comme ${iss[1]}, sont équiprobables.`}}
+  if(kind==='die')return{iss:[1,2,3,4,5,6].map(k=>({lab:String(k),o:k})),txt:'On lance un dé équilibré à six faces.'};
+  if(kind==='dice'){const a=[];for(let i=1;i<=6;i++)for(let j=1;j<=6;j++)a.push({lab:`(${i};${j})`,o:[i,j]});return{iss:a,txt:'On lance deux dés équilibrés à six faces, un rouge et un bleu&nbsp;: les 36 couples (rouge&nbsp;;&nbsp;bleu) sont équiprobables.'}}
+  if(kind==='bag'){return o.bag}
+  throw new Error(kind)}
+/* loi d'une variable définie sur des issues équiprobables */
+function lawOf(iss,f){const m=new Map();iss.forEach(s=>{const v=f(s);const k=numT(v);if(!m.has(k))m.set(k,{x:v,c:0});m.get(k).c++});
+  const a=[...m.values()].sort((u,v)=>cmp(u.x,v.x)),t=iss.length;return{x:a.map(z=>z.x),p:a.map(z=>R(z.c,t)),c:a.map(z=>z.c)}}
+/* ---------- vues ---------- */
+const sign=x=>x.n<0?'neg':x.n>0?'pos':'n';
+function cells(L,o){o=o||{};const u=o.unit?(o.unit==='€'?' €':''):'';
+  return L.x.map((x,i)=>({p:L.p[i],h:o.h?o.h(x,i):x,lab:o.lab?o.lab(x,i):numS(x)+u,plab:o.plab===false?'':o.plab?o.plab(L.p[i],i):numS(L.p[i]),tone:o.tone?o.tone(x,i):sign(o.h?o.h(x,i):x),hl:o.hl?o.hl(x,i):false,dim:o.dim?o.dim(x,i):false,fill2:!!o.fill2}))}
+const sc=(vs,o)=>S.autoScale(vs.map(v=>typeof v==='number'?v:val(v)),o);
+function closed(L,o){o=o||{};return S.view({cells:cells(L,o),gates:true,scale:o.scale||sc(L.x),unit:o.unitLab!==undefined?o.unitLab:o.unit,marks:o.marks,band:o.band,level:o.level,zeroGlow:o.zeroGlow,x1:o.x1,extra:o.extra},o.dur)}
+function opened(L,o){o=o||{};const e=o.e||E(L);return S.view({cells:cells(L,Object.assign({},o,{h:()=>e,lab:()=>'',tone:()=>'n'})),gates:false,scale:o.scale||sc(L.x),unit:o.unitLab!==undefined?o.unitLab:o.unit,
+  level:{v:e,name:o.name||'E(X)',val:numS(e)+(o.unit==='€'?' €':'')},marks:o.marks,band:o.band,zeroGlow:o.zeroGlow,x1:o.x1,extra:o.extra},o.dur===undefined?1300:o.dur)}
+async function openGates(L,o){S.SND.gate();await S.wait(120);S.SND.flow();await opened(L,o);S.SND.level()}
+async function closeGates(L,o){S.SND.gate();await closed(L,Object.assign({dur:900},o))}
+/* tableau de loi en HTML */
+const tab=(L,c,o)=>N.tabH(L,Object.assign({xl:c&&c.xl},o||{}));
+/* lois à variance « carrée » (écart type décimal exact) */
+function sqLaw(o){o=o||{};for(let t=0;t<20000;t++){const k=o.k||pick([2,3]),L=law(k,{lo:o.lo===undefined?-4:o.lo,hi:o.hi||8,den:o.den||10,neg:o.neg});
+    const v=Var(L),s=isSq(v);if(!s||!isDec(s)||ndec(s)>2||!isDec(E(L))||ndec(E(L))>2||v.n===0)continue;if(o.test&&!o.test(L,s))continue;return L}
+  throw new Error('sqLaw')}
+return{CTX,ctx,issues,lawOf,cells,sc,closed,opened,openGates,closeGates,tab,sqLaw,coins,sign};
+})();
+</script>
+
+<script>
+/* ======================= les sept niveaux (1 à 3) ======================= */
+(function(){
+'use strict';
+const N=window.EC_N,S=window.EC_S,G=window.EC_G,X=window.EC_X;
+const {R,add,sub,mul,div,neg,cmp,eq,val,abs,sum,numH,numT,numS,sgH,par,frH,fmtInt,dec,ri,pick,shuf,dist,E,Var,EX2,Pw,meanU,ser,law,probs,vals,isSq,isDec,ndec,NB}=N;
+const {act,ch,fill,slide,OK,NO,B,cap}=G;
+const {ctx,issues,lawOf,cells,sc,closed,opened,openGates,closeGates,tab}=X;
+const F=n=>fmtInt(n);
+const SET=a=>'{'+a.map(numH).join('&nbsp;; ')+'}';
+const LST=a=>a.map(numH).join('&nbsp;; ');
+const eu=(c,x)=>c&&c.unit==='€'?`${numH(x)}${NB}€`:c&&c.unit==='min'?`${numH(x)}${NB}min`:numH(x);
+
+/* ---------- vues à issues ---------- */
+function issV(I,f,o){o=o||{};const Lw=lawOf(I.iss,f),iss=I.iss.map(s=>Object.assign({},s,{cell:Lw.x.findIndex(x=>eq(x,f(s)))}));
+  const scale=sc(Lw.x.concat(o.extraV||[]));
+  const tot=I.iss.length,go=(placed,hl,more)=>S.view(Object.assign({cells:cells(Lw,{unit:o.unit,hl:hl?((x,i)=>hl(x)):null,plab:(p,i)=>Lw.c[i]+'/'+tot}),gates:true,scale,unit:o.unitLab||'',
+    tokens:()=>S.tokens(iss,cells(Lw),{placed,hl:hl?(s=>hl(f(s))):null})},more||{}),placed?1100:700);
+  return{Lw,go}}
+const nF=s=>R(s.o.split('').filter(c=>c==='F').length);
+
+/* ======================= Niveau 1 · Les issues ======================= */
+const L1={t:'Les issues',badge:'Variable aléatoire',
+ rule:`<p>Une <b>variable aléatoire</b> X associe un nombre réel à chaque issue de l'univers Ω&nbsp;: X&nbsp;: Ω → ℝ. Ses valeurs sont notées x<sub>1</sub>, …, x<sub>n</sub>.</p>
+ <p>{X = a} est l'événement «&nbsp;X prend la valeur a&nbsp;»&nbsp;; {X ⩽ a}&nbsp;: «&nbsp;X prend une valeur inférieure ou égale à a&nbsp;». Leurs probabilités se notent P(X = a) et P(X ⩽ a).</p>
+ <p>Dans l'écluse, chaque issue tombe dans le bassin de sa valeur&nbsp;: un bassin par valeur de X. Avec des issues équiprobables, la largeur d'un bassin est le nombre d'issues qu'il reçoit divisé par le nombre total d'issues.</p>`,
+ legend:'<span><i style="background:#dfe8ff"></i>une issue de Ω</span><span><i style="background:#3d8ae0"></i>un bassin par valeur de X</span><span>largeur = probabilité</span>',
+ qs:[
+ ()=>{const n=pick([2,3]),I=issues('coins',{n}),{Lw,go}=issV(I,nF);
+  const pairs=n===2?[['FF','PF'],['PF','FF'],['FP','PP']]:[['FPF','PPP'],['PFF','FPP'],['FFF','PFP']],[a,b]=pick(pairs),k=ri(1,n-1);
+  const vs=Lw.x;
+  return{setup:()=>go(false),cap0:`Ω compte ${I.iss.length} issues&nbsp;: à chacune, X associe le nombre de faces`,meta:{iss:I.iss.map(s=>s.lab),f:'nF'},
+   prompt:`<p>${I.txt} On note X le nombre de faces obtenues.</p>`,
+   parts:[fill(null,`X(${a}) = {0} et X(${b}) = {1}`,[B(nF({o:a}),'X:'+a),B(nF({o:b}),'X:'+b)],`X compte les F dans l'issue&nbsp;: ${a} contient ${numH(nF({o:a}))} F, ${b} en contient ${numH(nF({o:b}))}.`,{hint:'Un nombre entier dans chaque case.'}),
+    act('Faire couler les issues dans leurs bassins',async()=>{S.SND.flow();await go(true);cap(`Chaque issue tombe dans le bassin de sa valeur&nbsp;: X va de Ω dans ℝ`)}),
+    ch('Les valeurs prises par X sont&nbsp;:',[OK(LST(vs),{tag:'vals'}),NO(LST(vs.slice(1)),`Une issue n'a aucune face&nbsp;: ${'P'.repeat(n)}. La valeur 0 est donc prise.`,{tag:'no0'}),
+      NO(I.iss.slice(0,4).map(s=>s.lab).join('&nbsp;; ')+(n===3?'&nbsp;; …':''),`Ce sont des issues (des éléments de Ω). Les valeurs de X sont des nombres&nbsp;: les hauteurs des bassins.`,{tag:'iss'}),
+      NO(LST(vs.concat([R(n+1)])),`Avec ${n} lancers, on obtient au plus ${n} faces.`,{tag:'plus'})],{audit:{type:'tag',want:'vals'}}),
+    fill(null,`P(X = ${k}) = {0}`,[B(Lw.p[k],'P='+k)],`Le bassin X = ${k} reçoit ${Lw.c[k]} issues sur ${I.iss.length}&nbsp;: ${frH(Lw.c[k],I.iss.length)}.`,
+     {pre:()=>{go(true,x=>eq(x,R(k)))},onOk:async()=>{cap(`P(X = ${k}) = ${frH(Lw.c[k],I.iss.length)}&nbsp;: la largeur du bassin`)}})],
+   done:`X associe un nombre à chaque issue&nbsp;: les issues se rangent dans ${vs.length} bassins, de largeurs ${Lw.p.map(numH).join(', ')}.`}},
+ ()=>{const m=ri(1,3),A=ri(6,10),Bv=ri(2,4)+(m>=3?1:0),f=s=>sub(R(s.o===6?A:s.o>=4?Bv:0),R(m)),I=issues('die'),{Lw,go}=issV(I,f,{unit:'€',unitLab:'€'});
+  const fc=pick([1,2,3].filter(x=>x!==m)),vB=sub(R(Bv),R(m)),vA=sub(R(A),R(m));
+  return{setup:()=>go(false),cap0:'Six faces, six issues équiprobables',meta:{iss:I.iss.map(s=>s.lab),f:`die:${A}:${Bv}:${m}`},
+   prompt:`<p>${I.txt} La partie coûte ${m}${NB}€. On reçoit ${A}${NB}€ si l'on obtient 6, ${Bv}${NB}€ si l'on obtient 4 ou 5, et rien sinon. On note X le gain algébrique du joueur (somme reçue moins la mise).</p>`,
+   parts:[ch(`Le dé tombe sur ${fc}. Alors X prend la valeur&nbsp;:`,[OK(numH(R(-m)),{v:R(-m)}),NO('0',`On ne reçoit rien… mais on a payé ${m}${NB}€&nbsp;: le gain algébrique est 0 − ${m} = −${m}.`,{v:R(0)}),
+      NO(String(m),`Un gain algébrique est négatif quand on perd de l'argent&nbsp;: 0 − ${m} = −${m}.`,{v:R(m)}),NO(String(fc),`X n'est pas le numéro de la face, c'est le gain&nbsp;: 0 − ${m}.`,{v:R(fc)})],{audit:{type:'num',key:'X:'+fc}}),
+    act('Faire couler les six faces dans leurs bassins',async()=>{S.SND.flow();await go(true);cap(`Trois valeurs pour X&nbsp;: ${LST(Lw.x)}`)}),
+    ch(`L'événement {X = ${numH(vB)}} est réalisé quand le dé tombe sur&nbsp;:`,[OK('4 ou 5',{tag:'45'}),NO('6',`Le 6 rapporte ${A}${NB}€, soit X = ${numH(vA)}.`,{tag:'6'}),NO('1, 2 ou 3',`Ces faces ne rapportent rien&nbsp;: X = −${m}.`,{tag:'123'})],
+     {audit:{type:'tag',want:'45'},onOk:async()=>{await go(true,x=>eq(x,vB));cap(`{X = ${numH(vB)}} = {4&nbsp;; 5}`)}}),
+    fill(null,`P(X = ${numH(vA)}) = {0}`,[B(R(1,6),'P='+numT(vA))],`Une seule face sur six donne ${numH(vA)}&nbsp;: ${frH(1,6)}.`,{pre:()=>{go(true,x=>eq(x,vA))}})],
+   done:`X&nbsp;: Ω → ℝ associe à chaque face un gain&nbsp;: ${LST(Lw.x)} (en euros, mise déduite).`}},
+ ()=>{const nums=pick([[2,5,10,20],[1,3,5,8],[5,10,15,20],[10,20,30,40],[2,4,6,8]]),cnt=probs(4,10).map(p=>p.n*10/p.d),bag=[];nums.forEach((v,i)=>{for(let j=0;j<cnt[i];j++)bag.push({lab:String(v),o:v})});
+  const I={iss:bag},f=s=>R(s.o),{Lw,go}=issV(I,f),j=ri(1,2),a=nums[j],pLe=Pw(Lw,x=>cmp(x,R(a))<=0);
+  return{setup:()=>go(true),cap0:'Dix jetons, rangés dans le bassin de leur numéro',meta:{iss:bag.map(s=>s.lab),f:'num'},
+   prompt:`<p>Pour la tombola du club de handball, un sac contient 10 jetons indiscernables au toucher&nbsp;: ${nums.map((v,i)=>`${cnt[i]} jeton${cnt[i]>1?'s':''} n°${v}`).join(', ')}. On tire un jeton au hasard et l'on note X son numéro.</p>`,
+   parts:[ch(`L'événement «&nbsp;le numéro tiré est au plus ${a}&nbsp;» se note&nbsp;:`,[OK(`{X ⩽ ${a}}`,{tag:'le'}),NO(`{X &lt; ${a}}`,`«&nbsp;Au plus ${a}&nbsp;» autorise ${a}&nbsp;: c'est ⩽, pas &lt;.`,{tag:'lt'}),
+      NO(`{X ⩾ ${a}}`,`«&nbsp;Au plus&nbsp;» signifie «&nbsp;inférieur ou égal&nbsp;». {X ⩾ ${a}} serait «&nbsp;au moins ${a}&nbsp;».`,{tag:'ge'}),NO(`P(X ⩽ ${a})`,`P(X ⩽ ${a}) est un nombre, la probabilité de l'événement. L'événement lui-même s'écrit entre accolades.`,{tag:'P'})],
+     {audit:{type:'tag',want:'le'},onOk:async()=>{await go(true,x=>cmp(x,R(a))<=0);cap(`{X ⩽ ${a}}&nbsp;: les bassins ${nums.filter(v=>v<=a).join(' et ')}`)}}),
+    fill(null,`P(X ⩽ ${a}) = {0}`,[B(pLe,'P<='+a)],`On compte les jetons de numéro ${nums.filter(v=>v<=a).join(' ou ')}&nbsp;: ${cnt.slice(0,j+1).join(' + ')} = ${cnt.slice(0,j+1).reduce((s,x)=>s+x,0)} sur 10.`),
+    ch(`L'événement {X &gt; ${a}} se traduit par&nbsp;:`,[OK(`«&nbsp;le numéro tiré est strictement supérieur à ${a}&nbsp;»`,{tag:'gt'}),NO(`«&nbsp;le numéro tiré est au moins ${a}&nbsp;»`,`«&nbsp;Au moins ${a}&nbsp;» inclut ${a}&nbsp;: c'est {X ⩾ ${a}}.`,{tag:'ge'}),
+      NO(`«&nbsp;le numéro tiré est au plus ${a}&nbsp;»`,`C'est le contraire&nbsp;: {X ⩽ ${a}}.`,{tag:'le'})],{audit:{type:'tag',want:'gt'},onOk:async()=>{await go(true,x=>cmp(x,R(a))>0);cap(`{X &gt; ${a}} est le contraire de {X ⩽ ${a}}`)}})],
+   done:`Langue naturelle ↔ symboles&nbsp;: «&nbsp;au plus&nbsp;» ⩽, «&nbsp;au moins&nbsp;» ⩾, «&nbsp;strictement&nbsp;» &lt; ou &gt;.`}},
+ ()=>{const kind=pick(['sum','max']),f=kind==='sum'?(s=>R(s.o[0]+s.o[1])):(s=>R(Math.max(s.o[0],s.o[1]))),I=issues('dice'),{Lw,go}=issV(I,f),nm=kind==='sum'?'S':'M';
+  const s0=kind==='sum'?pick([5,6,7,8,9]):pick([3,4,5]),i0=Lw.x.findIndex(x=>eq(x,R(s0))),c0=Lw.c[i0],nv=Lw.x.length;
+  const t=kind==='sum'?pick([9,10,11]):pick([2,3,4]),pt=kind==='sum'?Pw(Lw,x=>cmp(x,R(t))>=0):Pw(Lw,x=>cmp(x,R(t))<=0),rel=kind==='sum'?'⩾':'⩽';
+  const cnt=Math.round(val(pt)*36);
+  return{setup:()=>go(false),cap0:'36 couples équiprobables au-dessus de l\'écluse',meta:{iss:I.iss.map(s=>s.lab),f:kind},
+   prompt:`<p>${I.txt} On note ${nm} ${kind==='sum'?'la somme des deux numéros obtenus':'le plus grand des deux numéros obtenus (les deux s\'ils sont égaux)'}.</p>`,
+   parts:[act('Faire couler les 36 couples',async()=>{S.SND.flow();await go(true);cap(`${nv} valeurs, ${nv} bassins… de largeurs très différentes`)}),
+    ch(`P(${nm} = ${s0}) =`,[OK(frH(c0,36),{v:R(c0,36)}),NO(frH(1,nv),`${nm} prend ${nv} valeurs, mais elles ne sont pas équiprobables&nbsp;: les bassins n'ont pas la même largeur. On compte les couples.`,{v:R(1,nv)}),
+      NO(frH(1,36),`${frH(1,36)} est la probabilité d'un seul couple. Or ${c0} couples donnent ${nm} = ${s0}.`,{v:R(1,36)})],{audit:{type:'num',key:'P='+s0},
+      onOk:async()=>{await go(true,x=>eq(x,R(s0)));cap(`${c0} couples dans le bassin ${nm} = ${s0}&nbsp;: ${frH(c0,36)}`)}}),
+    fill(null,`P(${nm} ${rel} ${t}) = {0}`,[B(pt,(kind==='sum'?'P>=':'P<=')+t)],`On compte les couples des bassins ${nm} ${rel} ${t}&nbsp;: ${cnt} sur 36, soit ${frH(cnt,36)}.`,
+     {pre:()=>{go(true,x=>kind==='sum'?cmp(x,R(t))>=0:cmp(x,R(t))<=0)}})],
+   done:`Des issues équiprobables ne donnent pas des valeurs équiprobables&nbsp;: la largeur de chaque bassin compte les couples qu'il reçoit.`}},
+ ()=>{const [g,m]=pick([[2,3],[2,5],[3,4],[3,5]]),I=issues('coins',{n:3}),f=s=>sub(mul(R(g),nF(s)),R(m)),{Lw,go}=issV(I,f,{unit:'€',unitLab:'€'});
+  const raw=[0,1,2,3].map(k=>R(g*k)),pn=Pw(Lw,x=>x.n<0),c=Math.round(val(pn)*8);
+  return{setup:()=>go(false),cap0:'Huit issues équiprobables',meta:{iss:I.iss.map(s=>s.lab),f:`coin:${g}:${m}`},
+   prompt:`<p>${I.txt} Pour jouer, on mise ${m}${NB}€&nbsp;; on reçoit ensuite ${g}${NB}€ par face obtenue. On note X le gain algébrique du joueur (somme reçue moins la mise).</p>`,
+   parts:[ch('Les valeurs prises par X sont&nbsp;:',[OK(LST(Lw.x),{tag:'ok'}),NO(LST(raw),`Ce sont les sommes reçues. Le gain algébrique retire la mise&nbsp;: ${g} × (nombre de faces) − ${m}.`,{tag:'raw'}),
+      NO('0&nbsp;; 1&nbsp;; 2&nbsp;; 3',`C'est le nombre de faces. X est un gain en euros&nbsp;: ${g} € par face, moins la mise de ${m}${NB}€.`,{tag:'nF'})],{audit:{type:'tag',want:'ok'}}),
+    act('Faire couler les huit issues',async()=>{S.SND.flow();await go(true);cap(`Sous le niveau 0&nbsp;: les parties où l'on perd de l'argent`)}),
+    fill(null,`La probabilité de perdre de l'argent est P(X &lt; 0) = {0}`,[B(pn,'P<0')],`Les bassins sous le niveau 0 reçoivent ${c} issues sur 8&nbsp;: ${frH(c,8)}.`,{pre:()=>{go(true,x=>x.n<0)}})],
+   done:`Modéliser, c'est choisir le nombre qui compte&nbsp;: ici le gain, mise déduite. Les valeurs négatives sont sous le niveau 0.`}}]};
+
+/* ======================= Niveau 2 · Les bassins (loi) ======================= */
+const L2={t:'Les bassins',badge:'Loi de probabilité',
+ rule:`<p>La <b>loi de probabilité</b> de X est le tableau qui associe à chaque valeur x<sub>i</sub> sa probabilité P(X = x<sub>i</sub>).</p>
+ <p>Chaque probabilité est comprise entre 0 et 1, et leur somme vaut 1&nbsp;: P(X = x<sub>1</sub>) + … + P(X = x<sub>n</sub>) = 1. Dans l'écluse, les largeurs des bassins remplissent tout le canal, de largeur 1.</p>
+ <p>P(X ⩽ a) est la somme des P(X = x<sub>i</sub>) pour x<sub>i</sub> ⩽ a, et P(X &gt; a) = 1 − P(X ⩽ a).</p>`,
+ qs:[
+ ()=>{const c=ctx(['barge','peche','colis','jeu','buts'],4,{test:L=>{const mx=L.p.reduce((a,p)=>cmp(p,a)>0?p:a,R(0));return L.p.filter(p=>eq(p,mx)).length===1&&cmp(L.p[3],mx)!==0}}),L=c.L,j=ri(0,3);
+  const mxi=L.p.reduce((b,p,i)=>cmp(p,L.p[b])>0?i:b,0);
+  const v=cells(L,{unit:c.unit,plab:(p,i)=>i===j?'?':numS(p),hl:(x,i)=>i===j});
+  return{setup:()=>S.view({cells:v,gates:true,scale:sc(L.x),unit:c.unit}),cap0:'Un bassin dont on ne connaît pas la largeur',meta:{law:ser(L)},
+   prompt:`<p>${c.t} Sa loi est donnée ci-dessous.</p>${tab(L,c,{hide:{p:[j]}})}`,
+   parts:[fill(null,`P(X = ${numH(L.x[j])}) = {0}`,[B(L.p[j],'p:'+j)],`Les largeurs remplissent tout le canal&nbsp;: la somme des probabilités vaut 1. 1 − (${L.p.filter((_,i)=>i!==j).map(numH).join(' + ')}) = ${numH(L.p[j])}.`,
+     {onOk:async()=>{await closed(L,{unit:c.unit});cap(`${L.p.map(numH).join(' + ')} = 1`)}}),
+    ch('Quelle est la valeur la plus probable de X&nbsp;?',[OK(eu(c,L.x[mxi]),{v:L.x[mxi]}),NO(eu(c,L.x[3]),`C'est la valeur la plus grande (le bassin le plus haut). La plus probable est celle du bassin le plus <b>large</b>.`,{v:L.x[3]}),
+      ...L.x.map((x,i)=>i).filter(i=>i!==mxi&&i!==3).slice(0,1).map(i=>NO(eu(c,L.x[i]),`Compare les probabilités&nbsp;: la plus grande est ${numH(L.p[mxi])}.`,{v:L.x[i]}))],
+     {audit:{type:'num',key:'mode'},onOk:async()=>{await closed(L,{unit:c.unit,hl:(x,i)=>i===mxi})}})],
+   done:`Hauteur = valeur, largeur = probabilité&nbsp;: la valeur la plus probable est celle du bassin le plus large, pas du plus haut.`}},
+ ()=>{const c=ctx(['barge','peche','colis','jeu','roue'],5),L=c.L,j=ri(1,3),a=L.x[j],pl=Pw(L,x=>cmp(x,a)<=0),pg=N.comp(pl);
+  return{setup:()=>closed(L,{unit:c.unit}),cap0:'Cinq bassins, une largeur totale de 1',meta:{law:ser(L)},
+   prompt:`<p>${c.t} Sa loi est donnée ci-dessous.</p>${tab(L,c)}`,
+   parts:[act(`Allumer les bassins de l'événement {X ⩽ ${numH(a)}}`,async()=>{await closed(L,{unit:c.unit,hl:x=>cmp(x,a)<=0,dim:x=>cmp(x,a)>0});cap(`{X ⩽ ${numH(a)}}&nbsp;: ${j+1} bassins allumés, ${numH(a)} compris`)}),
+    fill(null,`P(X ⩽ ${numH(a)}) = {0}`,[B(pl,'P<='+numT(a))],`On additionne les largeurs des bassins allumés, ${numH(a)} compris&nbsp;: ${L.p.slice(0,j+1).map(numH).join(' + ')} = ${numH(pl)}.`),
+    fill('Les autres bassins forment l\'événement contraire&nbsp;:',`P(X &gt; ${numH(a)}) = {0}`,[B(pg,'P>'+numT(a))],`{X &gt; ${numH(a)}} est le contraire de {X ⩽ ${numH(a)}}&nbsp;: 1 − ${numH(pl)} = ${numH(pg)}.`,
+     {pre:()=>{closed(L,{unit:c.unit,hl:x=>cmp(x,a)>0,dim:x=>cmp(x,a)<=0})}})],
+   done:`P(X ⩽ ${numH(a)}) + P(X &gt; ${numH(a)}) = 1&nbsp;: les deux groupes de bassins remplissent le canal.`}},
+ ()=>{const sizes=shuf([1,2,3]),m=ri(1,3),gs=[ri(5,9),ri(2,4),0],Vv=gs.map(g=>R(g-m));/* valeurs distinctes */
+  const faces=[];let k=1;sizes.forEach((s,i)=>{const a=[];for(let t=0;t<s;t++)a.push(k++);faces.push(a)});
+  const f=s=>{for(let i=0;i<3;i++)if(faces[i].indexOf(s.o)>=0)return Vv[i]},I=issues('die'),{Lw,go}=issV(I,f,{unit:'€',unitLab:'€'});
+  const desc=faces.map((a,i)=>`${a.length>1?'les faces '+a.slice(0,-1).join(', ')+' et '+a[a.length-1]:'la face '+a[0]} ${gs[i]?`rapporte${a.length>1?'nt':''} ${gs[i]}${NB}€`:`ne rapporte${a.length>1?'nt':''} rien`}`);
+  const ord=[0,1,2].sort((a,b)=>cmp(Vv[a],Vv[b]));
+  return{setup:()=>go(false),cap0:'Déterminer la loi&nbsp;: compter les faces de chaque bassin',meta:{iss:I.iss.map(s=>s.lab),f:'faces:'+faces.map(a=>a.join('')).join('|')+':'+Vv.map(numT).join('|')},
+   prompt:`<p>${I.txt} La partie coûte ${m}${NB}€&nbsp;; ${desc.join('&nbsp;; ')}. On note X le gain algébrique (mise déduite).</p>`,
+   parts:[fill('Complète la loi de X (valeurs exactes)&nbsp;:',ord.map((i,t)=>`P(X = ${numH(Vv[i])}) = {${t}}`).join('<br>'),ord.map(i=>B(R(sizes[i],6),'P='+numT(Vv[i]))),
+     `Une face sur six vaut ${frH(1,6)}&nbsp;: ${ord.map(i=>`${sizes[i]} face${sizes[i]>1?'s':''} pour X = ${numH(Vv[i])}`).join(', ')}.`,{hint:'Fractions acceptées, par exemple 1/3.'}),
+    act('Vérifier dans l\'écluse',async()=>{S.SND.flow();await go(true);cap(`${ord.map(i=>frH(sizes[i],6)).join(' + ')} = 1`)})],
+   done:`Déterminer la loi, c'est donner chaque valeur avec sa probabilité&nbsp;; la somme vaut toujours 1.`}},
+ ()=>{const c=ctx(['barge','peche','colis','buts'],3,{den:10}),L=c.L,ps=L.p;
+  const bad1=[ps[0],ps[1],add(ps[2],R(1,10))],sum1=sum(bad1);
+  const q=ri(1,3),bad2=[add(ps[0],R(q,10)),R(-q,10)];/* somme 1 mais une probabilité négative */
+  const fix2=[bad2[0],bad2[1],sub(R(1),add(bad2[0],bad2[1]))];
+  const T=(p)=>`<table class="lt"><tbody><tr><th>x<sub>i</sub></th>${L.x.map(x=>`<td>${numH(x)}</td>`).join('')}</tr><tr><th>p<sub>i</sub></th>${p.map(x=>`<td style="color:var(--ink)">${numH(x)}</td>`).join('')}</tr></tbody></table>`;
+  return{setup:()=>S.view({cells:cells({x:L.x,p:[R(1,3),R(1,3),R(1,3)]},{unit:c.unit,plab:()=>'?',lab:x=>numS(x)}),gates:true,scale:sc(L.x),unit:c.unit}),cap0:'Trois tableaux proposés pour la même écluse',meta:{law:ser(L),tables:{ok:ps.map(numT),sum:bad1.map(numT),neg:[bad2[0],bad2[1],sub(R(1),add(bad2[0],bad2[1]))].map(numT)}},
+   prompt:`<p>${c.t} Trois élèves proposent une loi pour X.</p>`,
+   parts:[ch('Lequel de ces tableaux peut être la loi de X&nbsp;?',shuf([OK(T(ps),{tag:'ok'}),NO(T(bad1),`Somme des probabilités&nbsp;: ${numH(sum1)} ≠ 1. Les largeurs ne rempliraient pas exactement le canal.`,{tag:'sum'}),
+      NO(T(fix2),`Une probabilité ne peut pas être négative&nbsp;: un bassin n'a pas de largeur −${dec(R(q,10))}, même si la somme vaut bien 1.`,{tag:'neg'})]),{keep:true,audit:{type:'tag',want:'ok'},
+      onOk:async()=>{await closed(L,{unit:c.unit});cap(`Toutes les largeurs sont positives et leur somme vaut 1`)}})],
+   done:`Une loi de probabilité&nbsp;: des nombres entre 0 et 1, de somme 1.`}},
+ ()=>{const c=ctx(['peche','colis','jeu','barge'],4,{test:L=>{const r=add(L.p[1],L.p[2]);return R(r.n*20,r.d).d===1&&((r.n*20/r.d)%3===0)}}),L0=c.L;
+  const r=add(L0.p[1],L0.p[2]),p1=div(r,R(3)),L={x:L0.x,p:[L0.p[0],p1,mul(R(2),p1),L0.p[3]]};
+  return{setup:()=>S.view({cells:cells(L,{unit:c.unit,plab:(p,i)=>i===1?'p':i===2?'2p':numS(p),hl:(x,i)=>i===1||i===2}),gates:true,scale:sc(L.x),unit:c.unit}),cap0:'Deux largeurs inconnues, liées l\'une à l\'autre',meta:{law:ser(L)},
+   prompt:`<p>${c.t} On sait que P(X = ${numH(L.x[0])}) = ${numH(L.p[0])}, P(X = ${numH(L.x[3])}) = ${numH(L.p[3])}, et que la valeur ${numH(L.x[2])} est deux fois plus probable que la valeur ${numH(L.x[1])}.</p>${tab(L,c,{hide:{p:[1,2]},qp:'?'})}`,
+   parts:[ch(`On pose p = P(X = ${numH(L.x[1])}). Quelle équation vérifie p&nbsp;?`,[OK(`${numH(L.p[0])} + p + 2p + ${numH(L.p[3])} = 1`,{tag:'ok'}),NO(`${numH(L.p[0])} + p + ${numH(L.p[3])} = 1`,`On a oublié le bassin ${numH(L.x[2])}, de largeur 2p.`,{tag:'f1'}),
+      NO(`p + 2p = 1`,`Les quatre bassins se partagent le canal&nbsp;: il faut aussi compter ${numH(L.p[0])} et ${numH(L.p[3])}.`,{tag:'f2'})],{audit:{type:'tag',want:'ok'}}),
+    fill(null,`p = {0} et P(X = ${numH(L.x[2])}) = {1}`,[B(L.p[1],'p:1'),B(L.p[2],'p:2')],`3p = 1 − ${numH(L.p[0])} − ${numH(L.p[3])} = ${numH(r)}, donc p = ${numH(p1)} et 2p = ${numH(L.p[2])}.`,
+     {onOk:async()=>{await closed(L,{unit:c.unit,hl:(x,i)=>i===1||i===2});cap(`p = ${numH(p1)}&nbsp;: les quatre largeurs remplissent le canal`)}})],
+   done:`Une condition sur les probabilités se traduit par une équation, avec toujours la somme égale à 1.`}}]};
+
+/* ======================= Niveau 3 · Les vannes (espérance) ======================= */
+const L3={t:'Les vannes',badge:'Espérance',
+ rule:`<p>L'<b>espérance</b> de X est E(X) = x<sub>1</sub>p<sub>1</sub> + x<sub>2</sub>p<sub>2</sub> + … + x<sub>n</sub>p<sub>n</sub>, où p<sub>i</sub> = P(X = x<sub>i</sub>)&nbsp;: c'est la moyenne des valeurs pondérée par leurs probabilités.</p>
+ <p>Dans l'écluse, tous les bassins ont le même fond. Quand on lève les vannes, l'eau s'égalise sans se perdre&nbsp;: le niveau commun est exactement x<sub>1</sub>p<sub>1</sub> + … + x<sub>n</sub>p<sub>n</sub> = E(X). Un bassin large pèse plus qu'un bassin étroit.</p>
+ <p>Interprétation&nbsp;: sur un grand nombre de répétitions, la moyenne des valeurs obtenues est proche de E(X).</p>`,
+ legend:'<span><i style="background:#3d8ae0"></i>bassin&nbsp;: hauteur x<sub>i</sub>, largeur p<sub>i</sub></span><span><i style="background:#e8c766"></i>niveau commun E(X)</span><span><i style="background:#ff6b6b"></i>moyenne non pondérée</span>',
+ qs:[
+ ()=>{const c=ctx(['barge','peche','colis','buts','jeu'],pick([3,4]),{den:20,test:L=>{const e=E(L);return R(e.n*2,e.d).d===1&&cmp(e,L.x[0])>0}}),L=c.L,e=E(L),step=R(1,2);
+  const lo=L.x[0],hi=L.x[L.x.length-1];
+  const S0=sc(L.x);let prev=null;
+  return{setup:()=>closed(L,{unit:c.unit,scale:S0}),cap0:'Vannes fermées&nbsp;: où l\'eau va-t-elle se stabiliser&nbsp;?',meta:{law:ser(L)},
+   prompt:`<p>${c.t} Sa loi est donnée ci-dessous.</p>${tab(L,c)}`,
+   parts:[slide('Prévois le niveau commun de l\'eau quand on lèvera les vannes&nbsp;:','Niveau prévu',{min:lo,max:hi,step,target:e,btn:'Lever les vannes',
+      onInput:v=>{if(prev&&eq(prev,v))return;prev=v;closed(L,{unit:c.unit,scale:S0,marks:[{id:'pv',v,lab:'prévu : '+numS(v),col:'#6c8eff'}],dur:0})},
+      why:v=>`L'eau se conserve&nbsp;: le niveau commun est la somme des hauteurs × largeurs, ${N.sumH(L)}. Ton niveau ${numH(v)} est ${cmp(v,e)>0?'trop haut':'trop bas'}.`,
+      audit:{type:'num',key:'E'},onOk:async()=>{await openGates(L,{unit:c.unit,scale:S0});cap(`E(X) = ${N.sumH(L)} = <span class="k">${numH(e)}</span>`)}}),
+    ch('Le niveau commun se calcule par&nbsp;:',[OK('x<sub>1</sub>p<sub>1</sub> + x<sub>2</sub>p<sub>2</sub> + … + x<sub>n</sub>p<sub>n</sub>',{tag:'E'}),NO('(x<sub>1</sub> + x<sub>2</sub> + … + x<sub>n</sub>) ÷ n',`Ce serait vrai si tous les bassins avaient la même largeur. Ici, chaque hauteur compte selon sa largeur p<sub>i</sub>.`,{tag:'mean'}),
+      NO('p<sub>1</sub> + p<sub>2</sub> + … + p<sub>n</sub>',`Cette somme vaut toujours 1&nbsp;: c'est la largeur totale du canal, pas le niveau.`,{tag:'sum'})],{audit:{type:'tag',want:'E'}})],
+   done:`E(X) = ${numH(e)}${c.unit==='€'?NB+'€':c.unit==='min'?NB+'min':''}&nbsp;: le niveau où l'eau se stabilise quand toutes les vannes sont levées.`}},
+ ()=>{const c=ctx(['roue','peche','colis','jeu','barge'],3,{test:L=>{const d=abs(sub(meanU(L),E(L)));return cmp(d,R(1,2))>=0&&(L.x[2].n-L.x[0].n)*1>=4}}),L=c.L,e=E(L),mu=meanU(L);
+  const mk=[{id:'mu',v:mu,lab:'moyenne : '+(N.short(mu)?numS(mu):'≈ '+dec(N.roundR(mu,2))),col:'#ff6b6b'}];
+  return{setup:()=>closed(L,{unit:c.unit,marks:mk}),cap0:`Ligne corail&nbsp;: la moyenne des trois hauteurs, (${L.x.map(numH).join(' + ')}) ÷ 3`,meta:{law:ser(L)},
+   prompt:`<p>${c.t} Sa loi est donnée ci-dessous.</p>${tab(L,c)}`,
+   parts:[ch('Quand on lèvera les vannes, l\'eau se stabilisera-t-elle sur la ligne corail&nbsp;?',[OK('Non&nbsp;: un bassin large pèse plus qu\'un bassin étroit',{tag:'non'}),
+      NO('Oui&nbsp;: c\'est la moyenne des valeurs de X',`La moyenne simple donne le même poids aux trois bassins. Or leurs largeurs ${L.p.map(numH).join(', ')} sont différentes.`,{tag:'oui'}),
+      NO('Oui&nbsp;: la somme des largeurs vaut 1',`La largeur totale vaut bien 1, mais les bassins ne sont pas de même largeur&nbsp;: il faut pondérer.`,{tag:'oui1'})],{audit:{type:'tag',want:'non'},
+      onOk:async()=>{await openGates(L,{unit:c.unit,marks:mk});cap(`L'eau se stabilise ${cmp(e,mu)>0?'au-dessus':'au-dessous'} de la ligne corail`)}}),
+    fill(null,`E(X) = {0}`,[B(e,'E')],`E(X) = ${N.sumH(L)} = ${numH(e)}.`)],
+   done:`E(X) = ${numH(e)} et non ${numH(mu)}&nbsp;: l'espérance est une moyenne <b>pondérée</b> par les probabilités.`}},
+ ()=>{const c=ctx(['roue','grat'],pick([3,4]),{test:L=>{const e=E(L);return e.n!==0&&ndec(e)<=2&&cmp(abs(e),R(5))<0}}),L=c.L,e=E(L),lose=e.n<0,ae=abs(e);
+  return{setup:()=>closed(L,{unit:'€'}),cap0:'Des bassins au-dessus et au-dessous du niveau 0',meta:{law:ser(L)},
+   prompt:`<p>${c.t} Sa loi est donnée ci-dessous.</p>${tab(L,c)}`,
+   parts:[fill(null,`E(X) = {0} €`,[B(e,'E')],`E(X) = ${N.sumH(L)} = ${numH(e)}. Attention aux valeurs négatives&nbsp;: elles abaissent le niveau.`,{onOk:async()=>{await openGates(L,{unit:'€'});cap(`Le niveau commun est ${lose?'sous':'au-dessus du'} niveau 0&nbsp;: E(X) = ${numH(e)}${NB}€`)}}),
+    ch('Comment interpréter ce résultat&nbsp;?',[OK(`Sur un grand nombre de parties, le joueur ${lose?'perd':'gagne'} en moyenne environ ${numH(ae)}${NB}€ par partie`,{tag:'ok'}),
+      NO(`Le joueur ${lose?'perd':'gagne'} exactement ${numH(ae)}${NB}€ à chaque partie`,`Une partie donne ${L.x.map(numH).join(' ou ')} euros, jamais ${numH(e)}&nbsp;: E(X) est une moyenne sur un grand nombre de parties.`,{tag:'each'}),
+      NO(`Le joueur ${lose?'ne peut jamais gagner':'ne peut jamais perdre'}`,`Certains bassins sont ${lose?'au-dessus':'au-dessous'} du niveau 0&nbsp;: on peut ${lose?'gagner':'perdre'} une partie. E(X) décrit la moyenne.`,{tag:'never'})],{audit:{type:'tag',want:'ok'}})],
+   done:`E(X) = ${numH(e)}${NB}€&nbsp;: le jeu est ${lose?'défavorable':'favorable'} au joueur en moyenne, même si une partie isolée peut ${lose?'rapporter':'coûter'}.`}},
+ ()=>{const kind=pick(['die','coins']);let I,f,txt,tag;
+  if(kind==='die'){const m=ri(1,3),A=ri(5,10),Bv=ri(1,4);I=issues('die');f=s=>sub(R(s.o===6?A:s.o===1?Bv:0),R(m));tag=`die1:${A}:${Bv}:${m}`;txt=`La partie coûte ${m}${NB}€. On reçoit ${A}${NB}€ si l'on obtient 6, ${Bv}${NB}€ si l'on obtient 1, et rien sinon.`}
+  else{const g=ri(1,3),m=ri(1,4);I=issues('coins',{n:3});f=s=>sub(mul(R(g),nF(s)),R(m));tag=`coin:${g}:${m}`;txt=`On mise ${m}${NB}€, puis on reçoit ${g}${NB}€ par face obtenue.`}
+  const {Lw,go}=issV(I,f,{unit:'€',unitLab:'€'}),e=E(Lw);
+  return{setup:()=>go(true),cap0:'Les issues sont déjà rangées&nbsp;: lis les largeurs',meta:{iss:I.iss.map(s=>s.lab),f:tag,law:ser(Lw)},
+   prompt:`<p>${I.txt} ${txt} On note X le gain algébrique du joueur, en euros.</p>`,
+   parts:[fill('Loi de X&nbsp;:',Lw.x.map((x,i)=>`P(X = ${numH(x)}) = {${i}}`).join('<br>'),Lw.x.map((x,i)=>B(Lw.p[i],'P='+numT(x))),`On compte les issues de chaque bassin et l'on divise par ${I.iss.length}&nbsp;: ${Lw.p.map(numH).join('&nbsp;; ')}.`,{hint:'Fractions acceptées, par exemple 3/8.'}),
+    fill(null,`E(X) = {0}`,[B(e,'E')],`E(X) = ${N.sumH(Lw)} = ${numH(e)}.`,{hint:'Valeur exacte&nbsp;: une fraction est acceptée.',onOk:async()=>{await S.view({cells:cells(Lw,{h:()=>e,lab:()=>'',plab:p=>numS(p)}),gates:false,scale:sc(Lw.x),unit:'€',level:{v:e,name:'E(X)',val:numS(e)+' €'}},1300);S.SND.level();cap(`E(X) = ${numH(e)}${NB}€`)}})],
+   done:`Loi d'abord, espérance ensuite&nbsp;: E(X) = ${numH(e)}${NB}€.`}},
+ ()=>{const c=ctx(['peche','colis','buts','jeu','barge'],3,{den:20,test:L=>L.x[2].n-L.x[1].n>=2}),L0=c.L,j=2,e=E(L0),mult=c.nm==='barge'||c.nm==='jeu'?R(c.nm==='barge'?5:10):R(1);
+  const lo=add(L0.x[1],mult),hi=add(L0.x[2],mul(R(4),mult));
+  const S0=sc([L0.x[0],hi,e]);let prev=null;
+  const vw=(xj,more)=>{const L={x:[L0.x[0],L0.x[1],xj],p:L0.p};return S.view(Object.assign({cells:cells(L,{unit:c.unit,hl:(x,i)=>i===j,lab:(x,i)=>numS(x)}),gates:true,scale:S0,unit:c.unit,
+    marks:[{id:'tg',v:e,lab:'visé : '+numS(e),col:'#5fd27c'}],level:{v:E(L),name:'niveau',val:numS(E(L))}},more||{}),0)};
+  return{setup:()=>vw(lo),cap0:`Le dernier bassin est réglable&nbsp;: le niveau doit atteindre E(X) = ${numH(e)}`,meta:{law:ser(L0)},
+   prompt:`<p>${c.t} On sait que E(X) = ${numH(e)}, mais la plus grande valeur x de X est inconnue.</p>${tab(L0,c,{hide:{x:[j]},qx:'x'})}`,
+   parts:[slide('Règle la hauteur du dernier bassin pour que le niveau commun soit E(X)&nbsp;:','x',{min:lo,max:hi,step:mult,target:L0.x[j],aria:'Hauteur du dernier bassin',
+      onInput:v=>{if(prev&&eq(prev,v))return;prev=v;vw(v)},
+      why:v=>`Avec x = ${numH(v)}, le niveau serait ${numH(E({x:[L0.x[0],L0.x[1],v],p:L0.p}))} et non ${numH(e)}. Il faut ${N.sumH({x:L0.x.slice(0,2),p:L0.p.slice(0,2)})} + ${numH(L0.p[j])} × x = ${numH(e)}.`,
+      audit:{type:'num',key:'x:'+j},onOk:async()=>{await openGates(L0,{unit:c.unit,scale:S0});cap(`x = ${numH(L0.x[j])}&nbsp;: les vannes levées, le niveau est bien ${numH(e)}`)}}),
+    ch('Quelle équation permettait de trouver x directement&nbsp;?',[OK(`${N.sumH({x:L0.x.slice(0,2),p:L0.p.slice(0,2)})} + ${numH(L0.p[j])} × x = ${numH(e)}`,{tag:'ok'}),
+      NO(`(${numH(L0.x[0])} + ${numH(L0.x[1])} + x) ÷ 3 = ${numH(e)}`,`C'est une moyenne non pondérée&nbsp;: les probabilités n'y figurent pas.`,{tag:'mean'}),
+      NO(`${numH(L0.p[j])} × x = ${numH(e)}`,`Les deux autres bassins contribuent aussi au niveau&nbsp;: il faut garder ${N.sumH({x:L0.x.slice(0,2),p:L0.p.slice(0,2)})}.`,{tag:'one'})],{audit:{type:'tag',want:'ok'}})],
+   done:`Connaissant E(X), on retrouve une valeur manquante en résolvant une équation du premier degré.`}}]};
+
+window.EC_L=[L1,L2,L3];
+G.LV.push(L1,L2,L3);
+window.EC_HELP={issV,nF,SET,LST,eu};
+})();
+</script>
+
+<script>
+/* ======================= les sept niveaux (4 à 7) ======================= */
+(function(){
+'use strict';
+const N=window.EC_N,S=window.EC_S,G=window.EC_G,X=window.EC_X,H=window.EC_HELP;
+const {R,add,sub,mul,div,neg,cmp,eq,val,abs,sum,numH,numT,numS,sgH,par,frH,fmtInt,dec,ri,pick,shuf,dist,E,Var,EX2,Pw,meanU,aff,ser,law,probs,vals,isSq,isDec,ndec,roundR,sqrtRound,NB}=N;
+const {act,ch,fill,slide,OK,NO,B,cap}=G;
+const {ctx,issues,lawOf,cells,sc,closed,opened,openGates,closeGates,tab,sqLaw}=X;
+const eu=H.eu,EUR=x=>`${numH(x)}${NB}€`;
+
+/* ======================= Niveau 4 · La mise juste (jeu équitable) ======================= */
+const L4={t:'La mise juste',badge:'Jeu équitable',
+ rule:`<p>Si X est le gain algébrique d'un joueur, le jeu est <b>équitable</b> lorsque E(X) = 0, <b>favorable</b> au joueur lorsque E(X) &gt; 0, <b>défavorable</b> lorsque E(X) &lt; 0.</p>
+ <p>Si G est la somme reçue et m la mise, alors X = G − m et E(X) = E(G) − m&nbsp;: la mise équitable est m = E(G). Dans l'écluse, payer la mise fait baisser la marée de m dans tous les bassins&nbsp;; le jeu est équitable quand le niveau commun tombe pile sur le niveau 0.</p>
+ <p>Sur un grand nombre N de parties, le joueur gagne en moyenne environ N × E(X)&nbsp;: c'est ce que perd l'organisateur (ou gagne, si E(X) &lt; 0).</p>`,
+ qs:[
+ ()=>{const L=law(3,{lo:0,hi:12,den:20,test:L=>{const e=E(L);return L.x[0].n===0&&R(e.n*2,e.d).d===1&&e.n>0}}),e=E(L),mx=L.x[2];
+  const S0=sc(L.x.concat(L.x.map(x=>sub(x,mx)))),gs=L.x;let prev=null;
+  const vw=(m,o)=>S.view(Object.assign({cells:cells(L,{h:x=>sub(x,m),lab:x=>numS(sub(x,m))+' €',unit:'€'}),gates:true,scale:S0,unit:'€',level:{v:sub(e,m),name:'E(G − m)',val:numS(sub(e,m))+' €'},zeroGlow:eq(m,e)},o||{}),0);
+  return{setup:()=>closed(L,{unit:'€',scale:S0}),cap0:'Les bassins montrent la somme G reçue, avant de payer la mise',meta:{law:ser(L)},
+   prompt:`<p>À un stand de la fête du quartier, on lance des anneaux sur des bouteilles. On note G la somme reçue, en euros. Sa loi est donnée ci-dessous.</p>${tab(L,null,{xl:'Somme reçue g<sub>i</sub> (€)',pl:'P(G = g<sub>i</sub>)'})}`,
+   parts:[act('Lever les vannes&nbsp;: que rapporte le jeu en moyenne&nbsp;?',async()=>{await openGates(L,{unit:'€',scale:S0,name:'E(G)'});cap(`E(G) = ${N.sumH(L)} = <span class="k">${EUR(e)}</span>`);await S.wait(700);await closed(L,{unit:'€',scale:S0,level:{v:e,name:'E(G)',val:numS(e)+' €'},dur:700})}),
+    slide('Choisis la mise m&nbsp;: la marée baisse de m dans tous les bassins. Le jeu est équitable quand le niveau atteint 0.','Mise m (€)',{min:R(0),max:mx,step:R(1,2),target:e,btn:'Fixer la mise',aria:'Mise en euros',
+      onInput:m=>{if(prev&&eq(prev,m))return;prev=m;vw(m)},
+      why:m=>`Avec m = ${EUR(m)}, le niveau commun est E(G) − m = ${numH(e)} − ${numH(m)} = ${numH(sub(e,m))}, pas 0. Il faut m = E(G).`,
+      audit:{type:'num',key:'E'},onOk:async()=>{S.SND.tide();await vw(e);cap(`m = E(G) = ${EUR(e)}&nbsp;: le niveau commun est sur 0, le jeu est équitable`)}}),
+    ch('Avec cette mise, le gain algébrique X = G − m vérifie&nbsp;:',[OK('E(X) = 0&nbsp;: en moyenne, le joueur ne gagne ni ne perd',{tag:'ok'}),NO('X = 0 à chaque partie',`Une partie donne ${L.x.map(x=>numH(sub(x,e))).join(' ou ')} euros&nbsp;: c'est la <b>moyenne</b> qui est nulle, pas chaque gain.`,{tag:'each'}),
+      eq(Pw(L,x=>cmp(x,e)>0),R(1,2))?NO('X ⩾ 0 à chaque partie',`Quand on ne reçoit rien, X = −${numH(e)}&nbsp;: on peut perdre une partie. C'est la moyenne qui est nulle.`,{tag:'pos'}):NO('P(X &gt; 0) = 0,5',`Équitable ne veut pas dire «&nbsp;une chance sur deux&nbsp;»&nbsp;: ici P(X &gt; 0) = ${numH(Pw(L,x=>cmp(x,e)>0))}. C'est l'espérance qui est nulle.`,{tag:'half'})],{audit:{type:'tag',want:'ok'}})],
+   done:`La mise équitable est l'espérance de la somme reçue&nbsp;: m = E(G) = ${EUR(e)}.`}},
+ ()=>{const want=pick(['neg','neg','pos','zero']);const c=ctx(['roue','grat'],pick([3,4]),{test:L=>{const e=E(L);return want==='zero'?e.n===0:want==='neg'?e.n<0:e.n>0}}),L=c.L,e=E(L);
+  const tag=e.n===0?'eq':e.n>0?'fav':'def';
+  return{setup:()=>closed(L,{unit:'€'}),cap0:'Où l\'eau va-t-elle se stabiliser par rapport au niveau 0&nbsp;?',meta:{law:ser(L)},
+   prompt:`<p>${c.t} Sa loi est donnée ci-dessous.</p>${tab(L,c)}`,
+   parts:[fill(null,`E(X) = {0} €`,[B(e,'E')],`E(X) = ${N.sumH(L)} = ${numH(e)}.`,{onOk:async()=>{await openGates(L,{unit:'€',zeroGlow:e.n===0});cap(`E(X) = ${EUR(e)}`)}}),
+    ch('Ce jeu est&nbsp;:',[OK(tag==='eq'?'équitable':tag==='fav'?'favorable au joueur':'défavorable au joueur',{tag}),
+      ...['eq','fav','def'].filter(t=>t!==tag).map(t=>NO(t==='eq'?'équitable':t==='fav'?'favorable au joueur':'défavorable au joueur',
+        `C'est le signe de E(X) qui décide&nbsp;: E(X) = ${numH(e)}, ${e.n===0?'nul':e.n>0?'positif':'négatif'}. Le niveau commun est ${e.n===0?'sur le':e.n>0?'au-dessus du':'sous le'} niveau 0.`,{tag:t}))],{audit:{type:'tag',want:tag}})],
+   done:`E(X) ${e.n===0?'= 0&nbsp;: équitable':e.n>0?'&gt; 0&nbsp;: favorable au joueur':'&lt; 0&nbsp;: défavorable au joueur'}.`}},
+ ()=>{let P;for(let t=0;t<5000;t++){const pa=pick([R(1,10),R(1,5),R(1,4)]),a=ri(8,30),pb=pick([R(1,10),R(1,5),R(3,10)]),b=ri(2,5),m=add(mul(pa,R(a)),mul(pb,R(b)));
+    if(!isDec(m)||ndec(m)>1||cmp(m,R(b))<=0||cmp(m,R(8))>0)continue;P={pa,a,pb,b,m};break}
+  const {pa,a,pb,b,m}=P,p0=sub(R(1),add(pa,pb)),Lg=x=>({x:[R(0),R(b),x],p:[p0,pb,pa]}),LX=x=>aff(Lg(x),R(1),neg(m));
+  const S0=sc([neg(m),sub(R(a+10),m)]);let prev=null;
+  const vw=x=>{const L=LX(x),e=E(L);return S.view({cells:cells(L,{unit:'€',hl:(v,i)=>i===2,lab:v=>numS(v)+' €'}),gates:true,scale:S0,unit:'€',level:{v:e,name:'E(X)',val:numS(e)+' €'},zeroGlow:e.n===0},0)};
+  return{setup:()=>vw(R(b+1)),cap0:'Le gros lot est réglable&nbsp;: amène le niveau commun sur 0',meta:{P:{pa:numT(pa),a,pb:numT(pb),b,m:numT(m)}},
+   prompt:`<p>Pour financer un voyage, la classe organise un jeu. La mise est de ${EUR(m)}. On gagne un lot de a euros avec la probabilité ${numH(pa)}, un lot de ${b}${NB}€ avec la probabilité ${numH(pb)}, et rien sinon. X est le gain algébrique du joueur (mise déduite).</p>`,
+   parts:[slide('Règle le montant a du gros lot pour que le jeu soit équitable&nbsp;:','a (€)',{min:R(b+1),max:R(a+10),step:R(1),target:R(a),aria:'Montant du gros lot',
+      onInput:x=>{if(prev&&eq(prev,x))return;prev=x;vw(x)},
+      why:x=>`Avec a = ${x.n}, E(X) = ${numH(E(LX(x)))}. On veut E(X) = 0&nbsp;: ${numH(pa)} × (a − ${numH(m)}) + ${numH(pb)} × (${b} − ${numH(m)}) + ${numH(p0)} × (−${numH(m)}) = 0.`,
+      audit:{type:'num',key:'a'},onOk:async()=>{S.SND.tide();cap(`a = ${a}${NB}€&nbsp;: E(X) = 0, le jeu est équitable`)}}),
+    ch('Quelle équation permettait de trouver a directement&nbsp;?',[OK(`${numH(pa)} × a + ${numH(pb)} × ${b} = ${numH(m)}`,{tag:'ok'}),NO(`${numH(pa)} × a + ${numH(pb)} × ${b} = 0`,`On oublie la mise&nbsp;: la somme reçue en moyenne doit égaler la mise, E(G) = m.`,{tag:'nom'}),
+      NO(`a + ${b} = ${numH(m)}`,`Les lots ne comptent pas autant&nbsp;: chacun est pondéré par sa probabilité.`,{tag:'nop'})],{audit:{type:'tag',want:'ok'}})],
+   done:`Jeu équitable ⇔ E(X) = 0 ⇔ E(G) = m&nbsp;: ${numH(pa)} × ${a} + ${numH(pb)} × ${b} = ${numH(m)}.`}},
+ ()=>{const c=ctx(['roue','grat'],pick([3,4]),{test:L=>{const e=E(L);return e.n<0&&cmp(e,R(-3))>0&&!eq(e,R(-1))}}),L=c.L,e=E(L),Nn=pick([200,500,1000]),org=mul(R(-Nn),e);
+  return{setup:()=>closed(L,{unit:'€'}),cap0:'Le point de vue de l\'organisateur',meta:{law:ser(L),N:Nn},
+   prompt:`<p>${c.t} Sa loi est donnée ci-dessous. L'organisateur prévoit environ ${fmtInt(Nn)} parties.</p>${tab(L,c)}`,
+   parts:[fill(null,`E(X) = {0} €`,[B(e,'E')],`E(X) = ${N.sumH(L)} = ${numH(e)}.`,{onOk:async()=>{await openGates(L,{unit:'€'});cap(`En moyenne, le joueur perd ${EUR(abs(e))} par partie`)}}),
+    fill('Ce que perd un joueur en moyenne, l\'organisateur le gagne&nbsp;:',`Sur ${fmtInt(Nn)} parties, l'organisateur peut espérer gagner environ {0} €`,[B(org,'org:'+Nn)],`${fmtInt(Nn)} × ${numH(abs(e))} = ${numH(org)}.`,{hint:'Un nombre d\'euros.'})],
+   done:`Gain moyen de l'organisateur&nbsp;: ${fmtInt(Nn)} × ${numH(abs(e))} ≈ ${EUR(org)}. C'est une prévision moyenne, pas une certitude.`}},
+ ()=>{const a=pick([50,100,150,200]),b=pick([400,500,600,800]),k1=ri(3,9),k2=ri(1,3),L={x:[R(0),R(a),R(b)],p:[R(100-k1-k2,100),R(k1,100),R(k2,100)]},e=E(L);
+  return{setup:()=>closed(L,{unit:'€'}),cap0:'Deux bassins très étroits… mais très hauts',meta:{law:ser(L)},
+   prompt:`<p>Une assurance pour téléphone rembourse une réparation ou un remplacement. Pour un assuré pris au hasard, on note Y la somme versée par l'assureur dans l'année, en euros.</p>${tab(L,null,{xl:'Somme versée y<sub>i</sub> (€)',pl:'P(Y = y<sub>i</sub>)'})}`,
+   parts:[fill(null,`E(Y) = {0} €`,[B(e,'E')],`E(Y) = 0 × ${numH(L.p[0])} + ${a} × ${numH(L.p[1])} + ${b} × ${numH(L.p[2])} = ${numH(e)}.`,{onOk:async()=>{await openGates(L,{unit:'€',name:'E(Y)'});cap(`En moyenne, l'assureur verse ${EUR(e)} par assuré et par an`)}}),
+    ch('Quelle cotisation annuelle minimale l\'assureur doit-il demander pour ne pas perdre d\'argent en moyenne&nbsp;?',[OK(EUR(e),{v:e}),NO(EUR(R(b)),`${b}${NB}€ est le plus gros remboursement, mais il est rare (${numH(L.p[2])}). En moyenne, l'assureur verse E(Y).`,{v:R(b)}),
+      NO(EUR(div(R(a+b),R(2))),`C'est la moyenne de ${a} et ${b}, sans tenir compte des probabilités ni des assurés qui ne coûtent rien.`,{v:div(R(a+b),R(2))})],{audit:{type:'num',key:'E'}})],
+   done:`L'assurance, c'est le jeu vu de l'autre côté&nbsp;: une cotisation au moins égale à E(Y) = ${EUR(e)}.`}}]};
+
+/* ======================= Niveau 5 · La marée (linéarité) ======================= */
+function linView(L,a,b,stage,o){o=o||{};const e=E(L),S0=o.scale,h=stage===0?(x=>x):stage===1?(x=>mul(a,x)):(x=>add(mul(a,x),b)),ee=stage===0?e:stage===1?mul(a,e):add(mul(a,e),b);
+  return S.view({cells:cells(L,{h,lab:x=>numS(h(x))+(o.unit==='€'?' €':''),plab:p=>numS(p),fill2:stage>0}),gates:true,scale:S0,unit:o.unit||'',level:{v:ee,name:stage===0?'E(X)':stage===1?`E(${numS(a)}X)`:o.yName||'E(Y)',val:numS(ee)}},o.dur===undefined?1100:o.dur)}
+const linScale=(L,a,b)=>sc(L.x.concat(L.x.map(x=>mul(a,x)),L.x.map(x=>add(mul(a,x),b))));
+const affH=(a,b,v)=>`${eq(a,R(1))?'':eq(a,R(-1))?'−':numH(a)}${v||'X'}${b.n===0?'':b.n>0?' + '+numH(b):' − '+numH(abs(b))}`;
+const L5={t:'La marée',badge:'Linéarité de l\'espérance',
+ rule:`<p>Pour tous réels a et b&nbsp;: <b>E(aX + b) = aE(X) + b</b>.</p>
+ <p>Dans l'écluse&nbsp;: multiplier X par a étire (ou retourne, si a &lt; 0) toutes les hauteurs par rapport au niveau 0, et le niveau commun suit, multiplié par a. Ajouter b, c'est une marée qui monte de b dans tous les bassins&nbsp;: le niveau commun monte de b.</p>
+ <p>Les largeurs (les probabilités) ne changent pas.</p>`,
+ legend:'<span><i style="background:#3d8ae0"></i>bassins de X</span><span><i style="background:#8a72e6"></i>bassins transformés</span><span><i style="background:#e8c766"></i>niveau commun</span>',
+ qs:[
+ ()=>{const c=ctx(['colis'],3,{den:20}),L=c.L,e=E(L),a=R(pick([2,3,4,5])),b=R(pick([8,10,12,15,20])),y=add(mul(a,e),b),S0=linScale(L,a,b);
+  return{setup:()=>linView(L,a,b,0,{scale:S0,dur:700}),cap0:`Le niveau commun de X&nbsp;: E(X) = ${numH(e)}`,meta:{law:ser(L),a:numT(a),b:numT(b)},
+   prompt:`<p>${c.t} On a calculé E(X) = ${numH(e)}. Nassim est payé ${numH(b)}${NB}€ de l'heure, plus ${numH(a)}${NB}€ par colis livré&nbsp;: sa paie horaire est Y = ${affH(a,b)}, en euros.</p>`,
+   parts:[act(`× ${numH(a)}&nbsp;: chaque colis rapporte ${numH(a)}${NB}€`,async()=>{S.SND.tide();await linView(L,a,b,1,{scale:S0,unit:'€'});cap(`Toutes les hauteurs sont multipliées par ${numH(a)}&nbsp;: le niveau aussi, ${numH(a)} × ${numH(e)} = ${numH(mul(a,e))}`)}),
+    act(`+ ${numH(b)}&nbsp;: la marée monte de ${numH(b)}${NB}€`,async()=>{S.SND.tide();await linView(L,a,b,2,{scale:S0,unit:'€'});cap(`Tous les bassins montent de ${numH(b)}&nbsp;: le niveau aussi`)}),
+    fill(null,`E(Y) = {0} €`,[B(y,`lin:${numT(a)}:${numT(b)}`)],`E(${affH(a,b)}) = ${numH(a)} × E(X) + ${numH(b)} = ${numH(a)} × ${numH(e)} + ${numH(b)} = ${numH(y)}.`)],
+   done:`E(${affH(a,b)}) = ${numH(a)}E(X) + ${numH(b)} = ${EUR(y)}&nbsp;: inutile de recalculer la loi de Y.`}},
+ ()=>{const c=ctx(['peche','buts','colis','barge'],3),L=c.L,e=E(L),a=R(pick([2,3,4,5,10])),b=R(pick([-6,-5,-3,-2,1,2,3,4,5,6])),y=add(mul(a,e),b),S0=linScale(L,a,b);
+  const vs=[y,mul(a,add(e,b)),add(e,b),mul(a,e)];if(!dist(vs)||eq(e,R(1)))return L5.qs[1]();
+  return{setup:()=>linView(L,a,b,0,{scale:S0,dur:700}),cap0:`E(X) = ${numH(e)}`,meta:{law:ser(L),a:numT(a),b:numT(b)},
+   prompt:`<p>${c.t} On a calculé E(X) = ${numH(e)}. On pose Y = ${affH(a,b)}.</p>`,
+   parts:[ch(`E(Y) =`,[OK(numH(vs[0]),{v:vs[0]}),NO(numH(vs[1]),`${numH(a)} × (${numH(e)} ${b.n>0?'+':'−'} ${numH(abs(b))}) multiplie aussi ${numH(abs(b))} par ${numH(a)}. La marée ${numH(b)} s'ajoute après l'étirement&nbsp;: ${numH(a)} × ${numH(e)} ${b.n>0?'+':'−'} ${numH(abs(b))}.`,{v:vs[1]}),
+      NO(numH(vs[2]),`On a oublié de multiplier par ${numH(a)}&nbsp;: toutes les hauteurs sont étirées, le niveau aussi.`,{v:vs[2]}),NO(numH(vs[3]),`On a oublié d'ajouter ${numH(b)}&nbsp;: la marée déplace tous les bassins, et le niveau avec eux.`,{v:vs[3]})],{audit:{type:'num',key:`lin:${numT(a)}:${numT(b)}`}}),
+    act(`Vérifier&nbsp;: étirer × ${numH(a)}, puis marée ${b.n>0?'+':'−'} ${numH(abs(b))}`,async()=>{S.SND.tide();await linView(L,a,b,1,{scale:S0});cap(`Niveau × ${numH(a)}&nbsp;: ${numH(mul(a,e))}`);await S.wait(700);S.SND.tide();await linView(L,a,b,2,{scale:S0});cap(`Puis ${b.n>0?'+':'−'} ${numH(abs(b))}&nbsp;: E(Y) = <span class="k">${numH(y)}</span>`)})],
+   done:`E(${affH(a,b)}) = ${numH(a)} × ${numH(e)} ${b.n>0?'+':'−'} ${numH(abs(b))} = ${numH(y)}&nbsp;: d'abord × a, puis + b.`}},
+ ()=>{const c=ctx(['jeu','peche','colis'],3),L=c.L,e=E(L),a=R(pick([2,3,4,5])),b=R(pick([-10,-8,-5,5,8,10,15])),y=add(mul(a,e),b),S0=linScale(L,a,b);
+  return{setup:()=>linView(L,a,b,2,{scale:S0,dur:700,yName:'E(Y)'}),cap0:`Le niveau de Y est connu&nbsp;: E(Y) = ${numH(y)}`,meta:{law:ser(L),a:numT(a),b:numT(b)},
+   prompt:`<p>${c.t} On pose Y = ${affH(a,b)} et l'on sait que E(Y) = ${numH(y)}.</p>`,
+   parts:[fill(null,`E(X) = {0}`,[B(e,'E')],`E(Y) = ${numH(a)}E(X) ${b.n>0?'+':'−'} ${numH(abs(b))}, donc ${numH(a)}E(X) = ${numH(y)} ${b.n>0?'−':'+'} ${numH(abs(b))} = ${numH(mul(a,e))} et E(X) = ${numH(e)}.`,
+     {onOk:async()=>{S.SND.tide();await linView(L,a,b,1,{scale:S0});cap(`On redescend la marée de ${numH(b)}…`);await S.wait(700);S.SND.tide();await linView(L,a,b,0,{scale:S0});cap(`… puis on divise par ${numH(a)}&nbsp;: E(X) = ${numH(e)}`)}})],
+   done:`On remonte la transformation à l'envers&nbsp;: retirer b, puis diviser par a.`}},
+ ()=>{const L=law(pick([3,4]),{lo:1,hi:4,den:20}),e=E(L),a=R(-1),b=R(4),y=add(mul(a,e),b),S0=linScale(L,a,b);
+  return{setup:()=>linView(L,a,b,0,{scale:S0,dur:700}),cap0:`E(X) = ${numH(e)} passagers`,meta:{law:ser(L),a:'-1',b:'4'},
+   prompt:`<p>On note X le nombre de passagers d'un taxi collectif qui quitte la place du marché de Mamoudzou&nbsp;; le taxi a 4 places passagers. On a calculé E(X) = ${numH(e)}. On note Y le nombre de places restées libres&nbsp;: Y = 4 − X.</p>`,
+   parts:[act('× (−1)&nbsp;: retourner les hauteurs',async()=>{S.SND.tide();await linView(L,a,b,1,{scale:S0});cap(`Multiplier par −1 retourne tout sous le niveau 0&nbsp;: E(−X) = −${numH(e)}`)}),
+    act('+ 4&nbsp;: la marée monte de 4',async()=>{S.SND.tide();await linView(L,a,b,2,{scale:S0});cap(`E(4 − X) = 4 − ${numH(e)} = ${numH(y)}`)}),
+    fill(null,`E(Y) = {0}`,[B(y,'lin:-1:4')],`E(4 − X) = −E(X) + 4 = 4 − ${numH(e)} = ${numH(y)}.`)],
+   done:`E(4 − X) = 4 − E(X) = ${numH(y)} place${cmp(y,R(2))>=0?'s':''} libre${cmp(y,R(2))>=0?'s':''} en moyenne. Avec a = −1, les hauteurs se retournent.`}},
+ ()=>{const g=R(pick([2,3,4,5])),m=R(pick([10,20,30,40,50,60])),Lc=law(3,{lo:1,hi:6,den:20}),ec=E(Lc),ge=sub(mul(g,ec),m);
+  if(ge.n===0)return L5.qs[4]();const S0=linScale(Lc,g,neg(m));
+  return{setup:()=>linView(Lc,g,neg(m),0,{scale:S0,dur:700}),cap0:`E(X) = ${numH(ec)} coffre${cmp(ec,R(2))>=0?'s':''}`,meta:{law:ser(Lc),a:numT(g),b:numT(neg(m))},
+   prompt:`<p>Dans un jeu sur téléphone, une partie coûte ${numH(m)} diamants. Le joueur ouvre ensuite X coffres, et chaque coffre rapporte ${numH(g)} diamants. On a calculé E(X) = ${numH(ec)}. On note D le gain algébrique en diamants à la fin d'une partie.</p>`,
+   parts:[ch('D s\'exprime en fonction de X par&nbsp;:',[OK(`D = ${affH(g,neg(m))}`,{tag:'ok'}),NO(`D = ${numH(g)}(X − ${numH(m)})`,`Le coût ${numH(m)} se paie une seule fois, il n'est pas multiplié par ${numH(g)}.`,{tag:'par'}),
+      NO(`D = ${numH(g)}X + ${numH(m)}`,`La partie coûte ${numH(m)} diamants&nbsp;: on les retire.`,{tag:'plus'}),NO(`D = X − ${numH(m)}`,`Chaque coffre rapporte ${numH(g)} diamants, pas 1.`,{tag:'one'})],{audit:{type:'tag',want:'ok'}}),
+    fill(null,`E(D) = {0}`,[B(ge,`lin:${numT(g)}:${numT(neg(m))}`)],`E(D) = ${numH(g)} × ${numH(ec)} − ${numH(m)} = ${numH(ge)}.`,
+     {onOk:async()=>{S.SND.tide();await linView(Lc,g,neg(m),1,{scale:S0});await S.wait(500);S.SND.tide();await linView(Lc,g,neg(m),2,{scale:S0,yName:'E(D)'});cap(`E(D) = ${numH(ge)}&nbsp;: en moyenne, le joueur ${ge.n>0?'gagne':'perd'} des diamants`)}})],
+   done:`Modéliser D = ${affH(g,neg(m))}, puis E(D) = ${numH(g)}E(X) − ${numH(m)} = ${numH(ge)}.`}}]};
+
+/* ======================= Niveau 6 · La houle (variance, écart type) ======================= */
+const L6={t:'La houle',badge:'Variance et écart type',
+ rule:`<p><b>Variance</b>&nbsp;: V(X) = p<sub>1</sub>(x<sub>1</sub> − E(X))² + … + p<sub>n</sub>(x<sub>n</sub> − E(X))². <b>Écart type</b>&nbsp;: σ(X) = √V(X), dans la même unité que X.</p>
+ <p><b>Formule de König-Huygens</b>&nbsp;: V(X) = E(X²) − E(X)², où E(X²) = p<sub>1</sub>x<sub>1</sub>² + … + p<sub>n</sub>x<sub>n</sub>².</p>
+ <p>Dans l'écluse&nbsp;: chaque bassin prend la hauteur (x<sub>i</sub> − E)², le carré de son écart au niveau commun. On lève les vannes&nbsp;: le nouveau niveau est V(X). Plus les hauteurs de départ s'éloignent du niveau, plus la houle est forte&nbsp;: σ mesure la dispersion (le risque).</p>`,
+ legend:'<span><i style="background:#3d8ae0"></i>bassins de X</span><span><i style="background:#8a72e6"></i>houle&nbsp;: (x<sub>i</sub> − E)²</span><span><i style="background:#e8c766"></i>niveau commun</span>',
+ qs:[
+ ()=>{const L=sqLaw({k:pick([2,3]),lo:-3,hi:7,den:10,test:(L,s)=>cmp(s,R(1))>=0}),e=E(L),v=Var(L),s=isSq(v),dev=L.x.map(x=>mul(sub(x,e),sub(x,e))),S1=sc(dev,{floor0:true});
+  const hv=(o)=>S.view(Object.assign({cells:cells(L,{h:x=>mul(sub(x,e),sub(x,e)),lab:x=>numS(mul(sub(x,e),sub(x,e))),fill2:true,tone:()=>'gold'}),gates:true,scale:S1,unit:''},o||{}),1200);
+  return{setup:()=>closed(L,{level:{v:e,name:'E(X)',val:numS(e)},dur:700}),cap0:`E(X) = ${numH(e)}&nbsp;: à quelle distance du niveau est chaque bassin&nbsp;?`,meta:{law:ser(L)},
+   prompt:`<p>Une variable aléatoire X a la loi ci-dessous&nbsp;; son espérance est E(X) = ${numH(e)}.</p>${tab(L)}`,
+   parts:[act('Mesurer la houle&nbsp;: hauteurs (x<sub>i</sub> − E)²',async()=>{S.SND.tide();await hv();cap(`Hauteurs&nbsp;: ${L.x.map(x=>`(${numH(x)} − ${par(e)})² = ${numH(mul(sub(x,e),sub(x,e)))}`).join('&nbsp;; ')}`)}),
+    fill('Quand on lèvera les vannes, l\'eau se stabilisera au niveau V(X)&nbsp;:',`V(X) = {0}`,[B(v,'V')],`V(X) = ${L.x.map((x,i)=>`${numH(L.p[i])} × ${numH(dev[i])}`).join(' + ')} = ${numH(v)}. Les largeurs restent les probabilités.`,
+     {onOk:async()=>{S.SND.gate();S.SND.flow();await S.view({cells:cells(L,{h:()=>v,lab:()=>'',fill2:true}),gates:false,scale:S1,level:{v,name:'V(X)',val:numS(v)}},1300);S.SND.level();cap(`V(X) = ${numH(v)}`)}}),
+    fill(null,`σ(X) = {0}`,[B(s,'sig')],`σ(X) = √V(X) = √${numH(v)} = ${numH(s)}.`,{onOk:async()=>{await closed(L,{level:{v:e,name:'E(X)',val:numS(e)},band:{lo:sub(e,s),hi:add(e,s),lab:'E ± σ'}});cap(`σ(X) = ${numH(s)}&nbsp;: la bande E(X) ± σ(X) autour du niveau`)}})],
+   done:`V(X) est le niveau commun de la houle (x<sub>i</sub> − E)²&nbsp;; σ(X) = √V(X) = ${numH(s)} se lit dans l'unité de X.`}},
+ ()=>{const L=sqLaw({k:3,lo:-2,hi:6,den:10,test:(L,s)=>cmp(EX2(L),R(0))>0}),e=E(L),e2=EX2(L),v=Var(L),sq=L.x.map(x=>mul(x,x)),S2=sc(sq,{floor0:true});
+  const vs=[v,sub(e2,e),sub(mul(e,e),e2)];if(!dist(vs))return L6.qs[1]();
+  return{setup:()=>closed(L,{dur:700}),cap0:'König-Huygens&nbsp;: passer par les carrés',meta:{law:ser(L)},
+   prompt:`<p>Une variable aléatoire X a la loi ci-dessous.</p>${tab(L)}`,
+   parts:[fill(null,`E(X) = {0}`,[B(e,'E')],`E(X) = ${N.sumH(L)} = ${numH(e)}.`,{onOk:async()=>{await openGates(L,{});cap(`E(X) = ${numH(e)}`)}}),
+    act('Élever les hauteurs au carré&nbsp;: x<sub>i</sub>²',async()=>{S.SND.tide();await S.view({cells:cells(L,{h:x=>mul(x,x),lab:x=>numS(mul(x,x)),fill2:true,tone:()=>'gold'}),gates:true,scale:S2},1200);cap(`Hauteurs&nbsp;: ${L.x.map(x=>`${par(x)}² = ${numH(mul(x,x))}`).join('&nbsp;; ')}`)}),
+    fill(null,`E(X²) = {0}`,[B(e2,'EX2')],`E(X²) = ${L.x.map((x,i)=>`${numH(mul(x,x))} × ${numH(L.p[i])}`).join(' + ')} = ${numH(e2)}.`,{onOk:async()=>{S.SND.gate();S.SND.flow();await S.view({cells:cells(L,{h:()=>e2,lab:()=>'',fill2:true}),gates:false,scale:S2,level:{v:e2,name:'E(X²)',val:numS(e2)}},1300);S.SND.level()}}),
+    ch('Donc V(X) =',[OK(`${numH(e2)} − ${par(e)}² = ${numH(v)}`,{v:vs[0]}),NO(`${numH(e2)} − ${par(e)} = ${numH(vs[1])}`,`Dans König-Huygens, on retranche le <b>carré</b> de l'espérance&nbsp;: E(X)².`,{v:vs[1]}),
+      NO(`${par(e)}² − ${numH(e2)} = ${numH(vs[2])}`,`C'est l'inverse&nbsp;: V(X) = E(X²) − E(X)², qui est toujours positif ou nul.`,{v:vs[2]})],{audit:{type:'num',key:'V'},onOk:async()=>{cap(`V(X) = E(X²) − E(X)² = ${numH(v)}`)}})],
+   done:`König-Huygens&nbsp;: V(X) = E(X²) − E(X)² = ${numH(e2)} − ${numH(mul(e,e))} = ${numH(v)}.`}},
+ ()=>{const e=R(ri(1,5)),d1=ri(1,3),d2=ri(d1+2,7),q=pick([R(1,10),R(1,5),R(1,4)]),A={x:[sub(e,R(d1)),add(e,R(d1))],p:[R(1,2),R(1,2)]},Bl={x:[sub(e,R(d2)),e,add(e,R(d2))],p:[q,sub(R(1),mul(R(2),q)),q]};
+  const vA=Var(A),vB=Var(Bl);if(eq(vA,vB))return L6.qs[2]();const big=cmp(vB,vA)>0?'B':'A';const S3=sc(A.x.concat(Bl.x));
+  const hv=(L)=>{const v=Var(L),dv=L.x.map(x=>mul(sub(x,e),sub(x,e)));return S.view({cells:cells(L,{h:x=>mul(sub(x,e),sub(x,e)),lab:x=>numS(mul(sub(x,e),sub(x,e))),fill2:true,tone:()=>'gold'}),gates:true,scale:sc(dv.concat([R(d2*d2)]),{floor0:true})},1100)};
+  return{setup:()=>closed(A,{scale:S3,level:{v:e,name:'E',val:numS(e)},dur:700}),cap0:`Jeu A&nbsp;: même espérance que le jeu B, E = ${numH(e)}`,meta:{A:ser(A),B:ser(Bl)},
+   prompt:`<p>Deux jeux ont des gains (en euros) de lois suivantes.</p><p><b>Jeu A</b></p>${tab(A,null,{pl:'P(X<sub>A</sub> = x<sub>i</sub>)'})}<p><b>Jeu B</b></p>${tab(Bl,null,{pl:'P(X<sub>B</sub> = x<sub>i</sub>)'})}`,
+   parts:[act('Comparer les deux houles',async()=>{S.SND.tide();await hv(A);cap(`Jeu A&nbsp;: houle (x<sub>i</sub> − ${numH(e)})²`);await S.wait(1000);S.SND.tide();await hv(Bl);cap(`Jeu B&nbsp;: houle (x<sub>i</sub> − ${numH(e)})²`)},{doneLabel:'Houles comparées'}),
+    fill(null,`V(X<sub>A</sub>) = {0} et V(X<sub>B</sub>) = {1}`,[B(vA,'V:A'),B(vB,'V:B')],`Les deux jeux ont pour espérance ${numH(e)}. V(X<sub>A</sub>) = ${A.x.map((x,i)=>`${numH(A.p[i])} × ${numH(mul(sub(x,e),sub(x,e)))}`).join(' + ')}&nbsp;; V(X<sub>B</sub>) = ${Bl.x.map((x,i)=>`${numH(Bl.p[i])} × ${numH(mul(sub(x,e),sub(x,e)))}`).join(' + ')}.`),
+    ch('Le jeu le plus risqué (aux gains les plus dispersés) est&nbsp;:',[OK(`le jeu ${big}`,{tag:big}),NO(`le jeu ${big==='A'?'B':'A'}`,`Compare les variances&nbsp;: ${numH(vA)} pour A, ${numH(vB)} pour B. La plus grande indique la plus forte dispersion.`,{tag:big==='A'?'B':'A'}),
+      NO('aucun&nbsp;: ils ont la même espérance',`Même espérance ne veut pas dire même risque&nbsp;: la variance mesure l'écart au niveau commun.`,{tag:'none'})],{audit:{type:'tag',want:big}})],
+   done:`Même niveau commun, houles différentes&nbsp;: le jeu ${big} est plus dispersé, donc plus risqué.`}},
+ ()=>{const c=ctx(['barge','peche','colis','buts'],3,{den:10,test:L=>!isSq(Var(L))&&cmp(Var(L),R(0))>0}),L=c.L,v=Var(L),s2=sqrtRound(v,2),un=c.unit||'';
+  const unitN=c.unit==='min'?'minutes':c.nm==='peche'?'poissons':c.nm==='colis'?'colis':c.nm==='buts'?'buts':'unités de X';
+  return{setup:()=>closed(L,{unit:c.unit,level:{v:E(L),name:'E(X)',val:numS(E(L))},dur:700}),cap0:'Variance, puis écart type',meta:{law:ser(L)},
+   prompt:`<p>${c.t} Sa loi est donnée ci-dessous.</p>${tab(L,c)}`,
+   parts:[fill(null,`V(X) = {0}`,[B(v,'V')],`E(X) = ${numH(E(L))}, E(X²) = ${numH(EX2(L))}, donc V(X) = ${numH(EX2(L))} − ${par(E(L))}² = ${numH(v)}.`),
+    fill(null,`σ(X) ≈ {0} (arrondi au centième)`,[B(s2,'sig2')],`σ(X) = √${numH(v)} ≈ ${numH(s2)}.`,{hint:'Arrondi au centième, par exemple 1,27.',onOk:async()=>{const e=E(L),s=s2;await closed(L,{unit:c.unit,level:{v:e,name:'E(X)',val:numS(e)},band:{lo:sub(e,s),hi:add(e,s),lab:'E ± σ'}});cap(`σ(X) ≈ ${numH(s2)} ${unitN}`)}}),
+    ch('Dans quelle unité s\'exprime σ(X)&nbsp;?',[OK(`en ${unitN}, comme X`,{tag:'u'}),NO(`en ${unitN} au carré`,`C'est l'unité de la variance (des écarts élevés au carré). La racine carrée ramène à l'unité de X.`,{tag:'u2'}),
+      NO('sans unité, c\'est une probabilité',`σ(X) n'est pas une probabilité&nbsp;: c'est une distance typique au niveau commun, ici ${numH(s2)} ${unitN}.`,{tag:'p'})],{audit:{type:'tag',want:'u'}})],
+   done:`σ(X) ≈ ${numH(s2)} ${unitN}&nbsp;: l'écart type se lit dans l'unité de X, la variance dans son carré.`}},
+ ()=>{const L=sqLaw({k:4,lo:-3,hi:6,den:10,neg:true}),e=E(L),e2=EX2(L),v=Var(L),s=isSq(v);
+  return{setup:()=>closed(L,{dur:700}),cap0:'La méthode complète',meta:{law:ser(L)},
+   prompt:`<p>Une variable aléatoire X a la loi ci-dessous. Calcule son espérance, sa variance et son écart type.</p>${tab(L)}`,
+   parts:[fill(null,`E(X) = {0}`,[B(e,'E')],`E(X) = ${N.sumH(L)} = ${numH(e)}.`,{onOk:async()=>{await openGates(L,{});cap(`E(X) = ${numH(e)}`)}}),
+    fill(null,`E(X²) = {0} et V(X) = {1}`,[B(e2,'EX2'),B(v,'V')],`E(X²) = ${L.x.map((x,i)=>`${numH(mul(x,x))} × ${numH(L.p[i])}`).join(' + ')} = ${numH(e2)}&nbsp;; V(X) = ${numH(e2)} − ${par(e)}² = ${numH(v)}.`),
+    fill(null,`σ(X) = {0}`,[B(s,'sig')],`σ(X) = √${numH(v)} = ${numH(s)}.`,{onOk:async()=>{await closed(L,{level:{v:e,name:'E(X)',val:numS(e)},band:{lo:sub(e,s),hi:add(e,s),lab:'E ± σ'}});cap(`E(X) = ${numH(e)}, V(X) = ${numH(v)}, σ(X) = ${numH(s)}`)}})],
+   done:`E(X) = ${numH(e)}, V(X) = ${numH(v)}, σ(X) = ${numH(s)}&nbsp;: niveau, houle, et bande de dispersion.`}}]};
+
+/* ======================= Niveau 7 · L'échelle de marée (échantillons) ======================= */
+const TWO=[
+ {t:(x1,x2,p)=>`Lors d'un tir au panier, Kaïs marque ${numH(x2)} points s'il réussit (probabilité ${numH(p)}) et ${numH(x1)} sinon. On note X le nombre de points d'un tir.`,lo:0,hi:0,u:'',a:[2,3],z:true},
+ {t:(x1,x2,p)=>`À un jeu de hasard, on gagne ${numH(x2)}${NB}€ avec la probabilité ${numH(p)}, et sinon on perd ${numH(abs(x1))}${NB}€. On note X le gain algébrique, en euros.`,u:'€',neg:true},
+ {t:(x1,x2,p)=>`À un quiz, une bonne réponse rapporte ${numH(x2)} points (probabilité ${numH(p)}), une mauvaise en retire ${numH(abs(x1))}. On note X le nombre de points gagnés sur une question.`,u:'',neg:true}];
+function twoLaw(){const T=pick(TWO),p=pick([R(1,10),R(1,5),R(1,2),R(4,5),R(9,10)]);let x1,x2;
+  if(T.z){x1=R(0);x2=R(pick(T.a))}else{x1=R(-ri(1,4));x2=R(ri(1,6))}
+  const L={x:[x1,x2],p:[sub(R(1),p),p]},mu=E(L),s=isSq(Var(L));return{L,T,p,mu,s,txt:T.t(x1,x2,p),u:T.u}}
+const drawOne=L=>{let r=Math.random(),c=0;for(let i=0;i<L.p.length;i++){c+=val(L.p[i]);if(r<c)return i}return L.p.length-1};
+const sample=(L,n)=>{const cnt=L.x.map(()=>0);for(let k=0;k<n;k++)cnt[drawOne(L)]++;return cnt};
+const meanOf=(L,cnt)=>div(sum(L.x.map((x,i)=>mul(x,R(cnt[i])))),R(cnt.reduce((a,b)=>a+b,0)));
+/* échantillon « parlant » : chaque valeur sort au moins une fois et m ≠ μ */
+const sampleNZ=(L,n)=>{for(let t=0;t<500;t++){const c=sample(L,n);if(c.every(v=>v>0)&&!eq(meanOf(L,c),E(L)))return c}return sample(L,n)};
+const X1=620;
+function simView(W,o){o=o||{};const L=W.L;return S.view({cells:cells(L,{unit:W.u,lab:(x,i)=>o.cnt?`${numS(x)} ×${o.cnt[i]}`:numS(x)+(W.u==='€'?' €':''),plab:p=>numS(p)}),gates:true,scale:sc(L.x),unit:W.u,x1:X1,level:o.level?{v:W.mu}:null,
+  extra:()=>S.ruler({mu:W.mu,half:o.half,span:o.span,dots:o.dots,cur:o.cur,title:o.title})},o.dur===undefined?600:o.dur)}
+async function rain(W,cnt,o){o=o||{};const seq=[];cnt.forEach((c,i)=>{for(let k=0;k<c;k++)seq.push(i)});shuf(seq);const L=W.L,cl=cells(L);const run=[0,0];
+  const lim=Math.min(seq.length,o.max||seq.length);
+  for(let k=0;k<lim;k++){const i=seq[k];S.SND.drip();S.drop(i,cl);run[i]=(run[i]||0)+1;if(!S.reduceM)await S.wait(o.gap||70)}
+  await S.wait(300)}
+const L7={t:'L\'échelle de marée',badge:'Échantillons et espérance',
+ rule:`<p>On simule n répétitions indépendantes de X (un <b>échantillon de taille n</b>) et l'on calcule leur moyenne m. La moyenne m varie d'un échantillon à l'autre, mais pour n grand, elle est le plus souvent proche de μ = E(X)&nbsp;: elle permet d'<b>estimer</b> l'espérance.</p>
+ <p>On simule N échantillons de taille n. On constate que dans la plupart des cas (environ 95&nbsp;%), l'écart entre m et μ est inférieur ou égal à <b>2σ/√n</b>, où σ = σ(X).</p>
+ <p>Quand n est multiplié par 4, la largeur 2σ/√n est divisée par 2&nbsp;: la bande se resserre autour de μ.</p>`,
+ legend:'<span><i style="background:#bfe0ff"></i>une goutte = une simulation de X</span><span><i style="background:#e8c766"></i>μ = E(X) et bande μ ± 2σ/√n</span><span><i style="background:#ff6b6b"></i>moyenne hors de la bande</span>',
+ qs:[
+ ()=>{const W=twoLaw(),n=20,cnt=sampleNZ(W.L,n),m=meanOf(W.L,cnt),d=abs(sub(m,W.mu)),span=Math.max(val(W.s),.5)*1.2;
+  return{setup:()=>simView(W,{span,level:true,dur:700}),cap0:`μ = E(X) = ${numH(W.mu)}&nbsp;: que donne un échantillon&nbsp;?`,meta:{law:ser(W.L),cnt,n},
+   prompt:`<p>${W.txt} On a E(X) = ${numH(W.mu)}.</p>`,
+   parts:[act(`Laisser tomber ${n} gouttes&nbsp;: ${n} simulations de X`,async()=>{await rain(W,cnt);await simView(W,{cnt,span,level:true});cap(`Échantillon&nbsp;: ${W.L.x.map((x,i)=>`${cnt[i]} fois ${numH(x)}`).join(', ')}`)}),
+    fill(`Résultats&nbsp;: ${W.L.x.map((x,i)=>`${cnt[i]} fois ${numH(x)}`).join(', ')}.`,`Moyenne de l'échantillon&nbsp;: m = {0}`,[B(m,'mean')],`m = (${W.L.x.map((x,i)=>`${cnt[i]} × ${par(x)}`).join(' + ')}) ÷ ${n} = ${numH(m)}.`,
+     {onOk:async()=>{await simView(W,{cnt,span,level:true,cur:val(m)});cap(`m = ${numH(m)} sur l'échelle, μ = ${numH(W.mu)}`)}}),
+    fill(null,`Écart entre m et μ&nbsp;: |m − μ| = {0}`,[B(d,'dist')],`|${numH(m)} − ${par(W.mu)}| = ${numH(d)}.`)],
+   done:`Un échantillon donne une moyenne m proche de μ, mais pas égale&nbsp;: elle fluctue d'un échantillon à l'autre.`}},
+ ()=>{const W=twoLaw(),[x1,x2]=W.L.x,p=W.p,span=Math.max(val(W.s),.5)*.6;
+  const code=`<pre class="code"><span class="kw">from</span> random <span class="kw">import</span> random
+
+<span class="kw">def</span> <span class="fn">X</span>():
+    <span class="kw">if</span> random() &lt; ${dec(p).replace(',','.')}:
+        <span class="kw">return</span> ${numT(x2)}
+    <span class="kw">else</span>:
+        <span class="kw">return</span> ${numT(x1)}
+
+<span class="kw">def</span> <span class="fn">moyenne</span>(n):
+    s = 0
+    <span class="kw">for</span> k <span class="kw">in</span> range(n):
+        <span class="hole">▢</span>
+    <span class="kw">return</span> s / n</pre>`;
+  let big=null;
+  return{setup:()=>simView(W,{span,level:true,dur:700}),cap0:'Simuler X avec Python',meta:{law:ser(W.L)},
+   prompt:`<p>${W.txt} La fonction X ci-dessous simule X&nbsp;; la fonction moyenne doit renvoyer la moyenne d'un échantillon de taille n.</p>${code}`,
+   parts:[ch('Que faut-il écrire à la place de ▢&nbsp;?',[OK('<code>s = s + X()</code>',{tag:'ok'}),NO('<code>s = X()</code>',`À chaque tour, s serait écrasé&nbsp;: il ne resterait que la dernière simulation. Il faut <b>ajouter</b> chaque simulation à s.`,{tag:'ecrase'}),
+      NO('<code>s = s + 1</code>',`On compterait les tours (s vaudrait n), pas la somme des valeurs simulées.`,{tag:'compte'}),NO('<code>s = s + X</code>',`X désigne la fonction&nbsp;: il faut l'appeler, X(), pour obtenir une simulation.`,{tag:'appel'})],{audit:{type:'tag',want:'ok'}}),
+    act('Exécuter moyenne(1000)',async()=>{const cnt=sample(W.L,1000);big=meanOf(W.L,cnt);await rain(W,cnt,{max:40,gap:35});await simView(W,{cnt,span,level:true,cur:val(big),title:'moyenne(1000)'});cap(`moyenne(1000) a renvoyé ${numH(big)}&nbsp;; μ = ${numH(W.mu)}`)}),
+    ch('Pour n grand, moyenne(n) renvoie le plus souvent une valeur proche de&nbsp;:',[OK(`E(X) = ${numH(W.mu)}`,{v:W.mu}),NO(`${numH(div(add(x1,x2),R(2)))}, la moyenne de ${numH(x1)} et ${numH(x2)}`,`Les deux valeurs ne sont pas équiprobables&nbsp;: la moyenne d'un grand échantillon se rapproche de l'espérance, moyenne <b>pondérée</b>.`,{v:div(add(x1,x2),R(2))}),
+      NO(`${numH(p)}, la probabilité de la valeur ${numH(x2)}`,`moyenne(n) fait la moyenne des valeurs de X, pas la fréquence d'une valeur.`,{v:p})].filter((c,i,a)=>a.findIndex(z=>eq(z.v,c.v))===i),{audit:{type:'num',key:'E'}})],
+   done:`moyenne(n) estime E(X) = ${numH(W.mu)}&nbsp;: c'est le principe de l'estimation d'une espérance par simulation.`}},
+ ()=>{const W=twoLaw(),n=pick([25,100,400]),h=div(mul(R(2),W.s),R(Math.round(Math.sqrt(n)))),span=val(h)*2.2;let cnt,m;
+  for(let t=0;t<50;t++){cnt=sample(W.L,n);m=meanOf(W.L,cnt);if(Math.abs(val(m)-val(W.mu))>1e-12)break}
+  const inside=cmp(abs(sub(m,W.mu)),h)<=0;
+  return{setup:()=>simView(W,{span,level:true,dur:700}),cap0:`σ(X) = ${numH(W.s)}&nbsp;: quelle bande autour de μ&nbsp;?`,meta:{law:ser(W.L),cnt,n},
+   prompt:`<p>${W.txt} On a E(X) = μ = ${numH(W.mu)} et σ(X) = σ = ${numH(W.s)}. On simule un échantillon de taille n = ${n}.</p>`,
+   parts:[fill(null,`2σ/√n = {0}`,[B(h,'half:'+n)],`2 × ${numH(W.s)} ÷ √${n} = ${numH(mul(R(2),W.s))} ÷ ${Math.round(Math.sqrt(n))} = ${numH(h)}.`,{onOk:async()=>{await simView(W,{span,half:h,level:true});cap(`La bande [μ − 2σ/√n&nbsp;; μ + 2σ/√n] = [${numH(sub(W.mu,h))}&nbsp;; ${numH(add(W.mu,h))}]`)}}),
+    act(`Simuler l'échantillon de taille ${n}`,async()=>{await rain(W,cnt,{max:30,gap:40});await simView(W,{span,half:h,level:true,cur:val(m)});cap(`Moyenne obtenue&nbsp;: m = ${numH(m)}`)}),
+    ch(`On obtient m = ${numH(m)}. L'écart entre m et μ est-il inférieur ou égal à 2σ/√n&nbsp;?`,[OK(inside?'Oui':'Non',{tag:inside?'oui':'non'}),NO(inside?'Non':'Oui',`|m − μ| = |${numH(m)} − ${par(W.mu)}| = ${numH(abs(sub(m,W.mu)))}, à comparer à ${numH(h)}.`,{tag:inside?'non':'oui'})],{audit:{type:'tag',want:inside?'oui':'non'}})],
+   done:`|m − μ| = ${numH(abs(sub(m,W.mu)))} ${inside?'⩽':'&gt;'} ${numH(h)}&nbsp;: ${inside?'cet échantillon est dans la bande, comme la plupart':'cet échantillon fait partie des rares qui sortent de la bande'}.`}},
+ ()=>{const W=twoLaw(),n=25,Nn=200,h=div(mul(R(2),W.s),R(5)),span=val(h)*2.2;let dots,k;
+  for(let t=0;t<200;t++){dots=[];for(let j=0;j<Nn;j++)dots.push(val(meanOf(W.L,sample(W.L,n))));k=dots.filter(v=>Math.abs(v-val(W.mu))<=val(h)+1e-12).length;if(k>=180&&k<=198)break}
+  const pr=R(k,Nn);
+  return{setup:()=>simView(W,{span,half:h,level:true,dur:700}),cap0:`Bande μ ± 2σ/√n avec n = ${n}&nbsp;: [${numH(sub(W.mu,h))}&nbsp;; ${numH(add(W.mu,h))}]`,meta:{law:ser(W.L),k,N:Nn,n},
+   prompt:`<p>${W.txt} On a μ = E(X) = ${numH(W.mu)} et σ(X) = ${numH(W.s)}. On simule N = ${Nn} échantillons de taille n = ${n}, et l'on place leurs moyennes sur l'échelle de droite.</p>`,
+   parts:[act(`Simuler ${Nn} échantillons de taille ${n}`,async()=>{S.SND.flow();await simView(W,{span,half:h,level:true,dots,dur:1400});cap(`${k} moyennes sur ${Nn} tombent dans la bande`)}),
+    fill(`${k} moyennes sur ${Nn} vérifient |m − μ| ⩽ 2σ/√n.`,`Proportion de ces cas&nbsp;: {0}`,[B(pr,'prop')],`${k} ÷ ${Nn} = ${numH(pr)}, soit ${dec(mul(pr,R(100)))}${NB}%.`,{hint:'Décimal, fraction ou pourcentage (par exemple 0,9 ou 90 %).'}),
+    ch('Que constate-t-on&nbsp;?',[OK('Dans la plupart des cas (environ 95&nbsp;%), m est à moins de 2σ/√n de μ',{tag:'ok'}),NO('Toutes les moyennes sont égales à μ',`Les points sont dispersés autour de μ&nbsp;: chaque échantillon donne sa propre moyenne.`,{tag:'all'}),
+      NO('Environ une moyenne sur deux tombe dans la bande',`${k} sur ${Nn}, c'est bien plus qu'une sur deux&nbsp;: ${dec(mul(pr,R(100)))}${NB}%.`,{tag:'half'})],{audit:{type:'tag',want:'ok'}})],
+   done:`${dec(mul(pr,R(100)))}${NB}% des échantillons ont une moyenne à moins de 2σ/√n de μ&nbsp;: c'est la proportion observée dans la plupart des simulations, autour de 95&nbsp;%.`}},
+ ()=>{const W=twoLaw(),n1=25,n2=400,h1=div(mul(R(2),W.s),R(5)),h2=div(mul(R(2),W.s),R(20)),span=val(h1)*2.2;
+  const d1=[],d2=[];for(let j=0;j<60;j++){d1.push(val(meanOf(W.L,sample(W.L,n1))));d2.push(val(meanOf(W.L,sample(W.L,n2))))}
+  return{setup:()=>simView(W,{span,level:true,dur:700}),cap0:'Que se passe-t-il quand la taille des échantillons grandit&nbsp;?',meta:{law:ser(W.L)},
+   prompt:`<p>${W.txt} On a μ = ${numH(W.mu)} et σ(X) = ${numH(W.s)}.</p>`,
+   parts:[act(`60 échantillons de taille ${n1}`,async()=>{S.SND.flow();await simView(W,{span,half:h1,level:true,dots:d1,dur:1200,title:'n = 25'});cap(`n = ${n1}&nbsp;: bande μ ± ${numH(h1)}`)}),
+    act(`60 échantillons de taille ${n2}`,async()=>{S.SND.flow();await simView(W,{span,half:h2,level:true,dots:d2,dur:1200,title:'n = 400'});cap(`n = ${n2}&nbsp;: les moyennes se resserrent autour de μ`)}),
+    fill(null,`Pour n = ${n2}&nbsp;: 2σ/√n = {0}`,[B(h2,'half:'+n2)],`2 × ${numH(W.s)} ÷ √${n2} = ${numH(mul(R(2),W.s))} ÷ 20 = ${numH(h2)}.`),
+    ch(`La taille passe de ${n1} à ${n2}, elle est multipliée par 16. La largeur 2σ/√n est&nbsp;:`,[OK('divisée par 4',{tag:'4'}),NO('divisée par 16',`√16 = 4&nbsp;: la largeur est divisée par √16, pas par 16. ${numH(h1)} ÷ 4 = ${numH(h2)}.`,{tag:'16'}),
+      NO('multipliée par 4',`Plus l'échantillon est grand, plus la bande se resserre&nbsp;: ${numH(h1)} devient ${numH(h2)}.`,{tag:'x4'})],{audit:{type:'tag',want:'4'}})],
+   done:`n × 16 ⇒ 2σ/√n ÷ 4&nbsp;: les grands échantillons estiment mieux l'espérance.`}}]};
+
+G.LV.push(L4,L5,L6,L7);
+window.EC_L=(window.EC_L||[]).concat([L4,L5,L6,L7]);
+window.EC_TWO={twoLaw,sample,meanOf,sampleNZ};
+})();
+</script>
+
+<script>
+/* ======================= épreuves finales : Bronze, Argent, Or ======================= */
+(function(){
+'use strict';
+const N=window.EC_N,X=window.EC_X,T2=window.EC_TWO;
+const {R,add,sub,mul,div,neg,cmp,eq,val,abs,sum,numH,numT,par,frH,fmtInt,dec,ri,pick,shuf,dist,E,Var,EX2,Pw,meanU,aff,ser,law,probs,isSq,isDec,ndec,roundR,sqrtRound,ans,NB,tabH}=N;
+const {ctx,lawOf,issues,sqLaw}=X;
+const qcm=(level,prompt,good,bad,explain,meta)=>({type:'qcm',level,prompt,choices:[good].concat(bad),answer:0,explain,meta});
+const trous=(level,prompt,blanks,explain,meta)=>({type:'trous',level,prompt,blanks,explain,meta});
+const BL=(r,o)=>{o=o||{};return{answers:ans(r,o.extra),size:o.size||4}};
+const tb=(L,c,o)=>tabH(L,Object.assign({xl:c&&c.xl},o||{}));
+const EUR=x=>`${numH(x)}${NB}€`;
+const nF=s=>R(s.split('').filter(c=>c==='F').length);
+const affH=(a,b,v)=>`${eq(a,R(1))?'':eq(a,R(-1))?'−':numH(a)}${v||'X'}${b.n===0?'':b.n>0?' + '+numH(b):' − '+numH(abs(b))}`;
+const M=(o)=>o;
+/* garde : régénère tant que les valeurs proposées ne sont pas distinctes */
+const D=(f)=>{for(let t=0;t<400;t++){const q=f();if(q&&(q.type!=='qcm'||dist(q.meta.vals||[])||!q.meta.vals))return q}throw new Error('final')};
+
+/* ===================== Bronze · Les bases ===================== */
+const BRONZE={qcm:[
+ {lv:1,f:()=>D(()=>{const n=pick([2,3]);const vs=[0,1,2,3].slice(0,n+1).map(k=>R(k));
+   return qcm(1,`On lance ${n===2?'deux':'trois'} fois une pièce équilibrée et l'on note X le nombre de faces obtenues. Les valeurs prises par X sont&nbsp;:`,vs.map(numH).join('&nbsp;; '),[vs.slice(1).map(numH).join('&nbsp;; '),vs.concat([R(n+1)]).map(numH).join('&nbsp;; ')],
+    `On peut n'obtenir aucune face, et au plus ${n}&nbsp;: X prend les valeurs ${vs.map(numH).join(', ')}.`,M({key:'tag',tags:['ok','no0','plus'],want:'ok',steps:1}))})},
+ {lv:2,f:()=>D(()=>{const c=ctx(['peche','colis','buts'],3,{den:10}),L=c.L,v=[L.p[2],sub(R(1),L.p[0]),add(L.p[0],L.p[1])];
+   return qcm(2,`${c.t} On donne P(X = ${numH(L.x[0])}) = ${numH(L.p[0])} et P(X = ${numH(L.x[1])}) = ${numH(L.p[1])}&nbsp;; X ne prend pas d'autre valeur que ${numH(L.x[2])}. Alors P(X = ${numH(L.x[2])}) =`,numH(v[0]),v.slice(1).map(numH),
+    `La somme des probabilités vaut 1&nbsp;: 1 − ${numH(L.p[0])} − ${numH(L.p[1])} = ${numH(v[0])}.`,M({law:ser(L),key:'p:2',vals:v,steps:1}))})},
+ {lv:3,f:()=>D(()=>{const x1=ri(1,3),x2=ri(x1+2,10),p=pick([R(1,10),R(1,5),R(3,10),R(1,4),R(2,5)]),L={x:[R(x1),R(x2)],p:[sub(R(1),p),p]},e=E(L),v=[e,div(R(x1+x2),R(2)),mul(R(x2),p)];
+   return qcm(3,`Une variable aléatoire X prend la valeur ${x1} avec la probabilité ${numH(L.p[0])} et la valeur ${x2} avec la probabilité ${numH(p)}. Alors E(X) =`,numH(e),[numH(v[1]),numH(v[2])],
+    `E(X) = ${x1} × ${numH(L.p[0])} + ${x2} × ${numH(p)} = ${numH(e)}&nbsp;: une moyenne pondérée par les probabilités.`,M({law:ser(L),key:'E',vals:v,steps:1}))})},
+ {lv:4,f:()=>qcm(4,'X désigne le gain algébrique d\'un joueur. Le jeu est équitable lorsque&nbsp;:','E(X) = 0',['P(X &gt; 0) = 0,5','E(X) = 1','X = 0 à chaque partie'],
+    'Équitable signifie qu\'en moyenne, sur un grand nombre de parties, le joueur ne gagne ni ne perd&nbsp;: E(X) = 0.',M({key:'tag',tags:['E0','half','E1','each'],want:'E0',steps:1}))},
+ {lv:5,f:()=>D(()=>{const e=R(pick([-4,-3,-2,-1,2,3,4,5,6,7,8,9])),a=R(ri(2,5)),b=R(ri(1,9)),v=[add(mul(a,e),b),mul(a,add(e,b)),add(e,b)];
+   return qcm(5,`E(X) = ${numH(e)}. Alors E(${affH(a,b)}) =`,numH(v[0]),v.slice(1).map(numH),`E(${affH(a,b)}) = ${numH(a)} × E(X) + ${numH(b)} = ${numH(a)} × ${par(e)} + ${numH(b)} = ${numH(v[0])}.`,M({EX:numT(e),key:`linE:${numT(a)}:${numT(b)}`,vals:v,steps:1}))})},
+ {lv:6,f:()=>D(()=>{const s=R(ri(2,9)),v=mul(s,s),vs=[s,mul(v,v),div(v,R(2))];
+   return qcm(6,`Une variable aléatoire X a pour variance V(X) = ${numH(v)}. Son écart type est σ(X) =`,numH(vs[0]),vs.slice(1).map(numH),`σ(X) = √V(X) = √${numH(v)} = ${numH(s)}.`,M({V:numT(v),key:'sqrtV',vals:vs,steps:1}))})},
+ {lv:7,f:()=>qcm(7,'Pour estimer l\'espérance d\'une variable aléatoire X par simulation, on calcule&nbsp;:','la moyenne d\'un échantillon de grande taille de valeurs simulées de X',['la valeur de X la plus fréquente dans l\'échantillon','la moyenne des valeurs possibles de X, sans tenir compte des probabilités'],
+    'Pour n grand, la moyenne d\'un échantillon de taille n est le plus souvent proche de E(X).',M({key:'tag',tags:['ok','mode','meanU'],want:'ok',steps:1}))}],
+trous:[
+ {lv:1,f:()=>{const n=pick([2,3]),k=1,c=n===2?2:3,t=n===2?4:8;
+   return trous(1,`On lance ${n===2?'deux':'trois'} fois une pièce équilibrée et l'on note X le nombre de faces obtenues. P(X = ${k}) = {0}`,[BL(R(c,t),{extra:[`${c}/${t}`]})],`${c} issues sur ${t} comptent exactement une face&nbsp;: ${frH(c,t)}.`,M({iss:n,key:'nF=1',steps:1}))}},
+ {lv:2,f:()=>{const c=ctx(['peche','colis','buts','barge'],3,{den:10}),L=c.L,r=add(L.p[0],L.p[1]);
+   return trous(2,`${c.t}${tb(L,c)}P(X ⩽ ${numH(L.x[1])}) = {0}`,[BL(r)],`On additionne les deux premières probabilités&nbsp;: ${numH(L.p[0])} + ${numH(L.p[1])} = ${numH(r)}.`,M({law:ser(L),key:'P<='+numT(L.x[1]),steps:1}))}},
+ {lv:3,f:()=>{const x1=ri(0,3),x2=ri(x1+2,10),p=pick([R(1,10),R(1,5),R(1,2),R(1,4)]),L={x:[R(x1),R(x2)],p:[sub(R(1),p),p]},e=E(L);
+   return trous(3,`X prend la valeur ${x1} avec la probabilité ${numH(L.p[0])} et la valeur ${x2} avec la probabilité ${numH(p)}. E(X) = {0}`,[BL(e)],`${x1} × ${numH(L.p[0])} + ${x2} × ${numH(p)} = ${numH(e)}.`,M({law:ser(L),key:'E',steps:1}))}},
+ {lv:4,f:()=>{const g=R(ri(3,19),2);
+   return trous(4,`Dans un jeu, la somme reçue G a pour espérance E(G) = ${EUR(g)}. La mise qui rend le jeu équitable est {0} €.`,[BL(g)],`Jeu équitable&nbsp;: E(G) − m = 0, donc m = E(G) = ${numH(g)}.`,M({EG:numT(g),key:'mise',steps:1}))}},
+ {lv:5,f:()=>{const e=R(ri(-5,12)),b=R(ri(2,9));
+   return trous(5,`E(X) = ${numH(e)}. Alors E(X + ${numH(b)}) = {0}`,[BL(add(e,b))],`E(X + ${numH(b)}) = E(X) + ${numH(b)} = ${numH(add(e,b))}.`,M({EX:numT(e),key:`linE:1:${numT(b)}`,steps:1}))}},
+ {lv:6,f:()=>{const s=R(ri(2,12)),v=mul(s,s);
+   return trous(6,`V(X) = ${numH(v)}, donc σ(X) = {0}`,[BL(s)],`σ(X) = √${numH(v)} = ${numH(s)}.`,M({V:numT(v),key:'sqrtV',steps:1}))}},
+ {lv:7,f:()=>{const s=R(pick([1,2,3,4,5])),n=pick([25,100,400]),h=div(mul(R(2),s),R(Math.round(Math.sqrt(n))));
+   return trous(7,`Pour une variable aléatoire d'écart type σ = ${numH(s)} et des échantillons de taille n = ${n}, 2σ/√n = {0}`,[BL(h)],`2 × ${numH(s)} ÷ √${n} = ${numH(mul(R(2),s))} ÷ ${Math.round(Math.sqrt(n))} = ${numH(h)}.`,M({s:numT(s),n,key:'half',steps:1}))}}]};
+
+/* ===================== Argent · La maîtrise ===================== */
+const ARGENT={qcm:[
+ {lv:1,f:()=>D(()=>{const s=pick([5,6,7,8,9]),c=6-Math.abs(7-s),v=[R(c,36),R(1,11),R(1,36)];
+   return qcm(1,`On lance deux dés équilibrés à six faces et l'on note S la somme des numéros. P(S = ${s}) =`,frH(c,36),[frH(1,11),frH(1,36)],
+    `${c} couples sur 36 donnent ${s}. Les 11 valeurs de S ne sont pas équiprobables&nbsp;: ${frH(1,11)} est faux.`,M({key:'sum='+s,vals:v,steps:2}))})},
+ {lv:2,f:()=>D(()=>{const c=ctx(['peche','colis','barge','jeu'],4),L=c.L,a=L.x[1],v=[Pw(L,x=>cmp(x,a)>0),Pw(L,x=>cmp(x,a)>=0),Pw(L,x=>cmp(x,a)<=0)];
+   return qcm(2,`${c.t}${tb(L,c)}P(X &gt; ${numH(a)}) =`,numH(v[0]),v.slice(1).map(numH),`{X &gt; ${numH(a)}} exclut ${numH(a)}&nbsp;: ${numH(L.p[2])} + ${numH(L.p[3])} = ${numH(v[0])}.`,M({law:ser(L),key:'P>'+numT(a),vals:v,steps:2}))})},
+ {lv:3,f:()=>D(()=>{const c=ctx(['roue','grat'],pick([3,4]),{test:L=>E(L).n!==0}),L=c.L,e=E(L),v=[e,meanU(L),sum(L.x.map((x,i)=>mul(abs(x),L.p[i])))];
+   return qcm(3,`${c.t}${tb(L,c)}E(X) =`,numH(e),v.slice(1).map(numH),`E(X) = ${N.sumH(L)} = ${numH(e)}. Les valeurs négatives comptent avec leur signe.`,M({law:ser(L),key:'E',vals:v,steps:2}))})},
+ {lv:4,f:()=>{const want=pick(['neg','pos','zero']),c=ctx(['roue','grat'],3,{test:L=>{const e=E(L);return want==='zero'?e.n===0:want==='neg'?e.n<0:e.n>0}}),L=c.L,e=E(L),tag=e.n===0?'eq':e.n>0?'fav':'def';
+   const lab={eq:'équitable',fav:'favorable au joueur',def:'défavorable au joueur'};
+   return qcm(4,`${c.t}${tb(L,c)}Ce jeu est&nbsp;:`,lab[tag],['eq','fav','def'].filter(t=>t!==tag).map(t=>lab[t]),`E(X) = ${N.sumH(L)} = ${numH(e)}&nbsp;: ${e.n===0?'nulle, le jeu est équitable':e.n>0?'positive, le jeu est favorable au joueur':'négative, le jeu est défavorable au joueur'}.`,
+    M({law:ser(L),key:'verdict',tags:[tag].concat(['eq','fav','def'].filter(t=>t!==tag)),want:tag,steps:2}))}},
+ {lv:5,f:()=>D(()=>{const e=R(pick([-30,-25,-12,-8,-5,5,12,15,22,25,32,45,48,56]),10),a=R(pick([-2,2,3,4,5])),b=R(pick([-7,-4,-3,3,5,8])),v=[add(mul(a,e),b),mul(a,add(e,b)),add(e,b),mul(a,e)];
+   return qcm(5,`Une variable aléatoire X vérifie E(X) = ${numH(e)}. Alors E(${affH(a,b)}) =`,numH(v[0]),v.slice(1).map(numH),`Linéarité&nbsp;: E(${affH(a,b)}) = ${numH(a)} × ${par(e)} ${b.n>0?'+':'−'} ${numH(abs(b))} = ${numH(v[0])}.`,M({EX:numT(e),key:`linE:${numT(a)}:${numT(b)}`,vals:v,steps:2}))})},
+ {lv:6,f:()=>D(()=>{const L=sqLaw({k:3,lo:-2,hi:6,den:10}),e=E(L),e2=EX2(L),v=[Var(L),sub(e2,e),e2];
+   return qcm(6,`On sait que E(X) = ${numH(e)} et E(X²) = ${numH(e2)}. Alors V(X) =`,numH(v[0]),v.slice(1).map(numH),`König-Huygens&nbsp;: V(X) = E(X²) − E(X)² = ${numH(e2)} − ${par(e)}² = ${numH(v[0])}.`,M({law:ser(L),key:'V',vals:v,steps:2}))})},
+ {lv:7,f:()=>{const k=pick([[4,'divisée par 2',['divisée par 4','multipliée par 2']],[9,'divisée par 3',['divisée par 9','multipliée par 3']],[100,'divisée par 10',['divisée par 100','multipliée par 10']]]);
+   return qcm(7,`On multiplie par ${k[0]} la taille n des échantillons simulés. La largeur 2σ/√n est&nbsp;:`,k[1],k[2],`√${k[0]} = ${Math.round(Math.sqrt(k[0]))}&nbsp;: la largeur est ${k[1]}.`,M({key:'tag',k:k[0],tags:['ok','sq','inv'],want:'ok',steps:2}))}}],
+trous:[
+ {lv:1,f:()=>{const k=pick([1,2]);
+   return trous(1,`On lance trois fois une pièce équilibrée et l'on note X le nombre de faces obtenues. P(X = ${k}) = {0}`,[BL(R(3,8),{extra:['3/8']})],`Trois issues sur huit comptent exactement ${k} face${k>1?'s':''}&nbsp;: ${frH(3,8)}.`,M({iss:3,key:'nF='+k,steps:2}))}},
+ {lv:2,f:()=>{const c=ctx(['peche','colis','buts','barge','jeu'],4),L=c.L,j=ri(0,3);
+   return trous(2,`${c.t}${tb(L,c,{hide:{p:[j]}})}P(X = ${numH(L.x[j])}) = {0}`,[BL(L.p[j])],`La somme des probabilités vaut 1&nbsp;: 1 − (${L.p.filter((_,i)=>i!==j).map(numH).join(' + ')}) = ${numH(L.p[j])}.`,M({law:ser(L),key:'p:'+j,steps:2}))}},
+ {lv:3,f:()=>{const c=ctx(['roue','barge','peche','colis'],3),L=c.L,e=E(L);
+   return trous(3,`${c.t}${tb(L,c)}E(X) = {0}`,[BL(e)],`E(X) = ${N.sumH(L)} = ${numH(e)}.`,M({law:ser(L),key:'E',steps:2}))}},
+ {lv:4,f:()=>{const e=R(-ri(1,9),10),Nn=pick([200,500,1000]);
+   return trous(4,`Dans un jeu, le gain algébrique X d'un joueur vérifie E(X) = ${EUR(e)}. Sur ${fmtInt(Nn)} parties, l'organisateur peut espérer gagner environ {0} €.`,[BL(mul(R(-Nn),e))],`Ce que le joueur perd en moyenne, l'organisateur le gagne&nbsp;: ${fmtInt(Nn)} × ${numH(abs(e))} = ${numH(mul(R(-Nn),e))}.`,M({EX:numT(e),N:Nn,key:'org',steps:2}))}},
+ {lv:5,f:()=>{const e=R(ri(-20,40),10),a=R(pick([2,3,4,5])),b=R(pick([-6,-3,2,5,7])),y=add(mul(a,e),b);
+   return trous(5,`On pose Y = ${affH(a,b)} et l'on sait que E(Y) = ${numH(y)}. Alors E(X) = {0}`,[BL(e)],`${numH(a)}E(X) ${b.n>0?'+':'−'} ${numH(abs(b))} = ${numH(y)}, donc E(X) = (${numH(y)} ${b.n>0?'−':'+'} ${numH(abs(b))}) ÷ ${numH(a)} = ${numH(e)}.`,M({EY:numT(y),a:numT(a),b:numT(b),key:'invLin',steps:2}))}},
+ {lv:6,f:()=>{const L=sqLaw({k:3,lo:-2,hi:6,den:10}),e=E(L),v=Var(L);
+   return trous(6,`Une variable aléatoire X a la loi suivante.${tb(L)}E(X) = {0} et V(X) = {1}`,[BL(e),BL(v)],`E(X) = ${numH(e)}&nbsp;; E(X²) = ${numH(EX2(L))}, donc V(X) = ${numH(EX2(L))} − ${par(e)}² = ${numH(v)}.`,M({law:ser(L),keys:['E','V'],steps:3}))}},
+ {lv:7,f:()=>{const W=T2.twoLaw(),cnt=T2.sampleNZ(W.L,20),m=T2.meanOf(W.L,cnt);
+   return trous(7,`${W.txt} Un échantillon simulé de taille 20 donne ${W.L.x.map((x,i)=>`${cnt[i]} fois ${numH(x)}`).join(' et ')}. Sa moyenne est m = {0}`,[BL(m)],`m = (${W.L.x.map((x,i)=>`${cnt[i]} × ${par(x)}`).join(' + ')}) ÷ 20 = ${numH(m)}.`,M({law:ser(W.L),cnt,key:'mean',steps:2}))}}]};
+
+/* ===================== Or · L'expert ===================== */
+const OR={qcm:[
+ {lv:1,f:()=>D(()=>{const m=ri(2,4),A=ri(6,12),Bv=ri(1,m-1),I=[1,2,3,4,5,6],f=k=>R((k===6?A:k%2===0?Bv:0)-m),Lw=lawOf(I.map(k=>({o:k})),s=>f(s.o)),pp=Pw(Lw,x=>x.n>0);
+   const v=[pp,R(1,2),R(1,3)];
+   return qcm(1,`On lance un dé équilibré. La partie coûte ${m}${NB}€&nbsp;; on reçoit ${A}${NB}€ si l'on obtient 6, ${Bv}${NB}€ si l'on obtient 2 ou 4, et rien sinon. X est le gain algébrique du joueur. P(X &gt; 0) =`,numH(pp),[frH(1,2),frH(1,3)],
+    `Seul le 6 donne un gain positif (${A} − ${m} = ${A-m})&nbsp;: les faces 2 et 4 donnent ${Bv} − ${m} = ${numH(R(Bv-m))} &lt; 0. P(X &gt; 0) = ${frH(1,6)}.`,M({die:[A,Bv,m],key:'dieP>0',vals:v,steps:3}))})},
+ {lv:2,f:()=>D(()=>{for(let t=0;t<500;t++){const c=ctx(['peche','colis','jeu'],3,{den:20}),L0=c.L,r=sub(R(1),L0.p[0]);if(R(r.n*20,r.d).d!==1||((r.n*20/r.d)%3))continue;
+     const p=div(r,R(3)),L={x:L0.x,p:[L0.p[0],p,mul(R(2),p)]},v=[p,div(r,R(2)),mul(R(2),p)];
+     return qcm(2,`${c.t} On sait que P(X = ${numH(L.x[0])}) = ${numH(L.p[0])}, que X ne prend que les valeurs ${L.x.map(numH).join(', ')}, et que la valeur ${numH(L.x[2])} est deux fois plus probable que la valeur ${numH(L.x[1])}. Alors P(X = ${numH(L.x[1])}) =`,numH(p),v.slice(1).map(numH),
+      `p + 2p = 1 − ${numH(L.p[0])} = ${numH(r)}, donc p = ${numH(p)}.`,M({law:ser(L),key:'p:1',vals:v,steps:3}))}return null})},
+ {lv:3,f:()=>D(()=>{const c=ctx(['peche','colis','buts'],3,{den:20,test:L=>L.x[2].n-L.x[1].n>=2}),L=c.L,e=E(L),x=L.x[2],p=L.p[2],part=add(mul(L.x[0],L.p[0]),mul(L.x[1],L.p[1]));
+   const v=[x,div(e,p),sub(mul(R(3),e),add(L.x[0],L.x[1]))];
+   return qcm(3,`${c.t} X prend les valeurs ${numH(L.x[0])}, ${numH(L.x[1])} et x avec les probabilités respectives ${L.p.map(numH).join(', ')}, et E(X) = ${numH(e)}. Alors x =`,numH(x),v.slice(1).map(numH),
+    `${numH(part)} + ${numH(p)}x = ${numH(e)}, donc x = (${numH(e)} − ${numH(part)}) ÷ ${numH(p)} = ${numH(x)}.`,M({law:ser(L),key:'x:2',vals:v,steps:3}))})},
+ {lv:4,f:()=>D(()=>{for(let t=0;t<3000;t++){const pa=pick([R(1,10),R(1,5),R(1,4)]),a=ri(8,30),pb=pick([R(1,10),R(1,5),R(3,10)]),b=ri(2,5),m=add(mul(pa,R(a)),mul(pb,R(b)));
+     if(!isDec(m)||ndec(m)>1||cmp(m,R(b))<=0)continue;
+     const v2=[R(a),div(m,pa),sub(m,mul(pb,R(b)))];if(!dist(v2))continue;
+     return qcm(4,`La mise d'un jeu est de ${EUR(m)}. On gagne un lot de a euros avec la probabilité ${numH(pa)}, un lot de ${b}${NB}€ avec la probabilité ${numH(pb)}, et rien sinon. Pour que le jeu soit équitable, il faut a =`,numH(v2[0]),v2.slice(1).map(numH),
+      `Équitable&nbsp;: la somme reçue en moyenne égale la mise, ${numH(pa)}a + ${numH(pb)} × ${b} = ${numH(m)}, donc a = (${numH(m)} − ${numH(mul(pb,R(b)))}) ÷ ${numH(pa)} = ${a}.`,M({P:{pa:numT(pa),pb:numT(pb),b,m:numT(m)},key:'aEq',vals:v2,steps:3}))}return null})},
+ {lv:5,f:()=>D(()=>{const L=law(3,{lo:1,hi:6,den:20}),e=E(L),g=R(pick([2,3,4,5])),m=R(pick([10,12,15,20])),d=sub(mul(g,e),m),v=[d,mul(g,sub(e,m)),add(mul(g,e),m),sub(e,m)];
+   return qcm(5,`Dans un jeu vidéo, une partie coûte ${numH(m)} diamants&nbsp;; le joueur ouvre ensuite X coffres et chaque coffre rapporte ${numH(g)} diamants. La loi de X est donnée ci-dessous.${tb(L,null,{xl:'Coffres x<sub>i</sub>'})}L'espérance du gain algébrique D, en diamants, est&nbsp;:`,numH(d),v.slice(1).map(numH),
+    `D = ${numH(g)}X − ${numH(m)}&nbsp;; E(X) = ${numH(e)}, donc E(D) = ${numH(g)} × ${numH(e)} − ${numH(m)} = ${numH(d)}.`,M({law:ser(L),key:`lin:${numT(g)}:${numT(neg(m))}`,vals:v,steps:3}))})},
+ {lv:6,f:()=>{const e=R(ri(1,5)),d1=ri(1,3),d2=ri(d1+2,6),q=pick([R(1,10),R(1,5),R(1,4)]),A={x:[sub(e,R(d1)),add(e,R(d1))],p:[R(1,2),R(1,2)]},Bl={x:[sub(e,R(d2)),e,add(e,R(d2))],p:[q,sub(R(1),mul(R(2),q)),q]},vA=Var(A),vB=Var(Bl);
+   if(eq(vA,vB))return OR.qcm[5].f();const big=cmp(vB,vA)>0?'B':'A';
+   return qcm(6,`Deux jeux ont des gains (en euros) de lois suivantes.<br><b>Jeu A</b>${tb(A)}<b>Jeu B</b>${tb(Bl)}Quelle affirmation est vraie&nbsp;?`,`Même espérance, mais le jeu ${big} est plus risqué&nbsp;: sa variance vaut ${numH(big==='A'?vA:vB)} contre ${numH(big==='A'?vB:vA)}`,
+    [`Même espérance, mais le jeu ${big==='A'?'B':'A'} est plus risqué&nbsp;: sa variance vaut ${numH(big==='A'?vB:vA)} contre ${numH(big==='A'?vA:vB)}`,`Les deux jeux sont aussi risqués, car ils ont la même espérance ${numH(e)}`,`Le jeu B est plus risqué parce qu'il a plus de valeurs`],
+    `E = ${numH(e)} pour les deux jeux&nbsp;; V(A) = ${numH(vA)}, V(B) = ${numH(vB)}&nbsp;: la plus grande variance indique la plus forte dispersion.`,M({A:ser(A),B:ser(Bl),key:'riskier',tags:[big,big==='A'?'B':'A','same','nb'],want:big,steps:4}))}},
+ {lv:7,f:()=>{for(let t=0;t<200;t++){const W=T2.twoLaw(),n=pick([25,100,400]),h=div(mul(R(2),W.s),R(Math.round(Math.sqrt(n)))),cnt=T2.sample(W.L,n),m=T2.meanOf(W.L,cnt),dd=abs(sub(m,W.mu)),inside=cmp(dd,h)<=0;
+     if(eq(dd,h))continue;
+     return qcm(7,`${W.txt} On a μ = E(X) = ${numH(W.mu)} et σ(X) = ${numH(W.s)}. Un échantillon simulé de taille ${n} a pour moyenne m = ${numH(m)}. L'écart |m − μ| est-il inférieur ou égal à 2σ/√n&nbsp;?`,inside?'Oui':'Non',
+      [inside?'Non':'Oui','On ne peut pas le savoir sans simuler d\'autres échantillons'],
+      `2σ/√n = 2 × ${numH(W.s)} ÷ ${Math.round(Math.sqrt(n))} = ${numH(h)} et |m − μ| = ${numH(dd)}&nbsp;: ${inside?'l\'écart est dans la bande':'l\'écart dépasse la bande (cela arrive rarement)'}.`,M({law:ser(W.L),cnt,n,key:'inside',tags:[inside?'in':'out',inside?'out2':'in2','none'],want:inside?'in':'out',steps:3}))}
+   throw new Error('or7')}}],
+trous:[
+ {lv:1,f:()=>{const t=pick([2,3,4,5]);
+   return trous(1,`On lance deux dés équilibrés à six faces et l'on note M le plus grand des deux numéros obtenus (le numéro commun s'ils sont égaux). P(M ⩽ ${t}) = {0}`,[BL(R(t*t,36),{extra:[`${t*t}/36`]})],`M ⩽ ${t} signifie que les deux dés donnent au plus ${t}&nbsp;: ${t} × ${t} = ${t*t} couples sur 36, soit ${frH(t*t,36)}.`,M({key:'max<='+t,steps:3}))}},
+ {lv:2,f:()=>{const m=ri(1,3),A=ri(5,9),Bv=ri(m+1,4),f=k=>R((k===6?A:k>=4?Bv:0)-m),Lw=lawOf([1,2,3,4,5,6].map(k=>({o:k})),s=>f(s.o));
+   return trous(2,`On lance un dé équilibré. La partie coûte ${m}${NB}€&nbsp;; on reçoit ${A}${NB}€ si l'on obtient 6, ${Bv}${NB}€ si l'on obtient 4 ou 5, et rien sinon. X est le gain algébrique. P(X = ${numH(R(Bv-m))}) = {0} et P(X &lt; 0) = {1}`,
+    [BL(R(1,3),{extra:['2/6']}),BL(R(1,2),{extra:['3/6']})],`X = ${Bv-m} pour les faces 4 et 5&nbsp;: ${frH(2,6)}&nbsp;; X &lt; 0 seulement pour 1, 2, 3 (X = −${m})&nbsp;: ${frH(3,6)}.`,M({die45:[A,Bv,m],keys:['P='+(Bv-m),'P<0'],steps:3}))}},
+ {lv:3,f:()=>{const m=ri(1,3),A=ri(5,10),Bv=ri(1,4),f=k=>R((k===6?A:k===1?Bv:0)-m),Lw=lawOf([1,2,3,4,5,6].map(k=>({o:k})),s=>f(s.o)),e=E(Lw);
+   return trous(3,`On lance un dé équilibré. La partie coûte ${m}${NB}€&nbsp;; on reçoit ${A}${NB}€ si l'on obtient 6, ${Bv}${NB}€ si l'on obtient 1, et rien sinon. X est le gain algébrique du joueur. E(X) = {0} (valeur exacte)`,[BL(e,{extra:[`${A+Bv-6*m}/6`]})],
+    `E(X) = ${frH(1,6)} × ${A-m} + ${frH(1,6)} × ${par(R(Bv-m))} + ${frH(4,6)} × (−${m}) = ${numH(e)}.`,M({die1:[A,Bv,m],key:'E',law:ser(Lw),steps:3}))}},
+ {lv:4,f:()=>{const a=pick([50,100,150,200]),b=pick([400,500,600,800]),k1=ri(3,9),k2=ri(1,3),L={x:[R(0),R(a),R(b)],p:[R(100-k1-k2,100),R(k1,100),R(k2,100)]},e=E(L);
+   return trous(4,`Une assurance pour téléphone verse, dans l'année, une somme Y (en euros) à un assuré pris au hasard&nbsp;: ${a}${NB}€ avec la probabilité ${numH(L.p[1])}, ${b}${NB}€ avec la probabilité ${numH(L.p[2])}, et rien sinon. Pour ne pas perdre d'argent en moyenne, la cotisation annuelle doit être d'au moins {0} €.`,[BL(e)],
+    `Il faut au moins E(Y) = ${a} × ${numH(L.p[1])} + ${b} × ${numH(L.p[2])} = ${numH(e)}.`,M({law:ser(L),key:'E',steps:3}))}},
+ {lv:5,f:()=>{const c=ctx(['colis','peche'],3),L=c.L,e=E(L),a=R(pick([2,3,4,5])),b=R(pick([-8,-5,-2,3,6,10])),y=add(mul(a,e),b);
+   return trous(5,`${c.t}${tb(L,c)}On pose Y = ${affH(a,b)}. E(X) = {0} et E(Y) = {1}`,[BL(e),BL(y)],`E(X) = ${N.sumH(L)} = ${numH(e)}, puis E(Y) = ${numH(a)} × ${numH(e)} ${b.n>0?'+':'−'} ${numH(abs(b))} = ${numH(y)}.`,M({law:ser(L),keys:['E',`lin:${numT(a)}:${numT(b)}`],steps:3}))}},
+ {lv:6,f:()=>{const c=ctx(['barge','peche','colis','buts'],3,{den:10,test:L=>!isSq(Var(L))&&Var(L).n>0}),L=c.L,v=Var(L),s2=sqrtRound(v,2);
+   return trous(6,`${c.t}${tb(L,c)}V(X) = {0} et σ(X) ≈ {1} (arrondi au centième)`,[BL(v),{answers:ans(s2).filter(a=>!/\//.test(a)),size:4}],`E(X) = ${numH(E(L))}, E(X²) = ${numH(EX2(L))}, V(X) = ${numH(EX2(L))} − ${par(E(L))}² = ${numH(v)}, σ(X) = √${numH(v)} ≈ ${numH(s2)}.`,M({law:ser(L),keys:['V','sig2'],steps:4}))}},
+ {lv:7,f:()=>{const s=R(pick([1,2,3,5,10])),n=pick([25,100,400]),h=div(mul(R(2),s),R(Math.round(Math.sqrt(n)))),Nn=pick([200,250,400,500]),k=Math.round(Nn*(.93+Math.random()*.05)),pr=R(k,Nn);
+   return trous(7,`On simule N = ${Nn} échantillons de taille n = ${n} d'une variable aléatoire d'écart type σ = ${numH(s)}. Alors 2σ/√n = {0}, et si ${k} échantillons vérifient |m − μ| ⩽ 2σ/√n, la proportion de ces cas est {1}`,[BL(h),{answers:ans(pr,[dec(mul(pr,R(100))).replace(/[  ]/g,'')+'%']),size:4}],
+    `2 × ${numH(s)} ÷ ${Math.round(Math.sqrt(n))} = ${numH(h)}&nbsp;; ${k} ÷ ${Nn} = ${numH(pr)}, soit ${dec(mul(pr,R(100)))}${NB}%&nbsp;: proche de 95&nbsp;%, comme on l'observe le plus souvent.`,M({s:numT(s),n,k,N:Nn,keys:['half','prop'],steps:3}))}}]};
+
+/* tirage : 6 QCM + 4 trous, mélangés, les sept niveaux représentés */
+function build(Bk){for(let n=0;n<600;n++){const q=shuf(Bk.qcm.slice()).slice(0,6),t=shuf(Bk.trous.slice()).slice(0,4);
+    if(new Set(q.concat(t).map(x=>x.lv)).size<7)continue;
+    return shuf(q.map(x=>x.f()).concat(t.map(x=>x.f())))}
+  throw new Error('build')}
+window.EC_FIN={bronze:()=>build(BRONZE),argent:()=>build(ARGENT),or:()=>build(OR),banks:{BRONZE,ARGENT,OR}};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'les-ecluses',title:'Les Écluses',levels:7,
+  levelNames:['Les issues','Les bassins','Les vannes','La mise juste','La marée','La houle','L\'échelle de marée'],
+  music:'aventure',finals:{bronze:()=>(window.EC_lastFinal=EC_FIN.bronze()),argent:()=>(window.EC_lastFinal=EC_FIN.argent()),or:()=>(window.EC_lastFinal=EC_FIN.or())}});
+EC.start();
+(function(){ /* espace insécable avant « : ; ! ? » et après « dans tout le texte affiché */
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|TEXTAREA|INPUT|PRE)$/.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>ms.forEach(m=>{m.addedNodes.forEach(fix);if(m.type==='characterData')fix(m.target)})).observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>
