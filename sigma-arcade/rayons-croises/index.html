@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rayons Croisés · Sigma Arcade</title>
+<meta name="description" content="Droites du plan et systèmes d'équations en Seconde : équation réduite, pente, vecteur directeur, équation cartésienne, parallélisme, intersection, substitution et combinaisons. Un escape game laser : chaque droite est un rayon, la solution du système est le point où les rayons se croisent.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours.
+   IDEA : un escape game laser. Le mur de la salle est un repère ; chaque droite est un rayon laser.
+          Une porte s'ouvre quand le rayon touche les capteurs ; la solution d'un système est le point où deux rayons se croisent.
+   PICTURE : salle blindée nocturne, brume légère, graduations nettes, rayons cyan et rose, croisement doré.
+   COLOUR and TYPE : océan profond du site ; violet-bleu pour l'action, or pour les réussites, corail pour les erreurs ; Outfit.
+   LAYOUT : mur laser et bandeau à gauche (collés en haut sur téléphone), carnet de mission à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);
+--l1:#3fd8ff;--l2:#ff62b8;--l3:#e8c766}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:72ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .labb{border-color:rgba(200,168,75,.6)}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#040914;user-select:none;-webkit-user-select:none;transition:box-shadow .5s,border-color .5s}
+.stage.open{border-color:rgba(232,199,102,.75);box-shadow:0 0 0 2px rgba(232,199,102,.35),0 0 46px -6px rgba(232,199,102,.5)}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.badge{position:absolute;left:10px;top:10px;z-index:2;font:600 13px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.78);color:var(--mut);border:1px solid var(--soft);pointer-events:none;max-width:calc(100% - 170px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.door{position:absolute;right:10px;top:10px;z-index:2;display:inline-flex;align-items:center;gap:6px;font:700 13px var(--sg-font);padding:3px 11px 3px 8px;border-radius:999px;background:rgba(4,9,20,.78);color:var(--mut);border:1px solid var(--soft);pointer-events:none;transition:color .4s,border-color .4s,background .4s}
+.door svg{position:static;width:16px;height:16px}
+.door.open{color:var(--gold2);border-color:rgba(200,168,75,.6);background:rgba(40,30,6,.82)}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(17px,1.8vw,22px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:2px .9em}
+.capt .c1{color:var(--l1)}.capt .c2{color:var(--l2)}.capt .c3,.capt .k{color:var(--gold2)}.capt .r{color:var(--ko)}.capt .m{color:var(--mut);font-weight:600}
+.capt .eqx{white-space:nowrap}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.6;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.e1{color:var(--l1);font-weight:700;white-space:nowrap}.e2{color:var(--l2);font-weight:700;white-space:nowrap}.e3{color:var(--gold2);font-weight:700;white-space:nowrap}
+.nw{white-space:nowrap}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px;line-height:1.6}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.5 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(19px,2.1vw,23px)/2.2 var(--sg-font);font-variant-numeric:tabular-nums}
+.fill .row{display:block}
+.in{width:3.6em;height:46px;margin:0 3px;padding:0 6px;font:700 21px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+/* réglages (émetteur, combinaison) */
+.dials{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;margin:0 0 12px}
+.dial{display:flex;flex-direction:column;gap:4px}
+.dial>span{font-size:14px;font-weight:600;color:var(--mut)}
+.step{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:var(--solid)}
+.step button{width:48px;height:48px;font:600 24px var(--sg-font);border:0;background:transparent;color:var(--ink);cursor:pointer}
+.step button:hover{background:var(--sg-hover)}
+.step button:disabled{opacity:.3;cursor:default}
+.step output{display:inline-flex;align-items:center;justify-content:center;min-width:3.2em;height:48px;padding:0 6px;border-left:1px solid var(--soft);border-right:1px solid var(--soft);font:700 22px var(--sg-font);font-variant-numeric:tabular-nums}
+.live{font:700 clamp(19px,2vw,22px)/1.5 var(--sg-font);margin:0 0 12px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px dashed var(--soft);font-variant-numeric:tabular-nums}
+.live .m{color:var(--mut);font-weight:600;font-size:.8em}
+/* maths */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .1em;line-height:1.12;font-variant-numeric:tabular-nums;font-size:.92em}
+.fr>span{padding:0 .2em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.vec{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .15em;padding:0 .35em;line-height:1.15;border-left:2px solid currentColor;border-right:2px solid currentColor;border-radius:10px;font-variant-numeric:tabular-nums}
+.vn{font-style:italic}
+.va{display:inline-block;position:relative;font-style:italic;line-height:1;padding-top:.12em}
+.va::after{content:"";position:absolute;left:-.02em;right:-.12em;top:-.16em;height:.42em;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 8' preserveAspectRatio='none'%3E%3Cpath d='M0 3.1h14.5V0L20 4l-5.5 4V4.9H0z'/%3E%3C/svg%3E") center/100% 100% no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 8' preserveAspectRatio='none'%3E%3Cpath d='M0 3.1h14.5V0L20 4l-5.5 4V4.9H0z'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+.sys{display:inline-flex;flex-direction:column;vertical-align:middle;margin:2px .2em;padding:2px 0 2px .55em;border-left:2.5px solid currentColor;border-radius:12px 0 0 12px;line-height:1.5;text-align:left}
+.sys>span{white-space:nowrap}
+.sk-q .fr,.sk-ch .fr{font-size:.92em}
+.sk-q .sys,.sk-ch .sys{line-height:1.45}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+/* labo libre */
+.labeq{margin:0 0 14px;padding:12px 14px;border-radius:12px;border:1px solid var(--soft);background:rgba(255,255,255,.025)}
+.labeq h3{margin:0 0 8px;font-size:16px;letter-spacing:.02em}
+.labeq .dials{gap:10px 12px}.labeq .step button{width:44px}.labeq .step output{min-width:2.6em}
+.labeq.d1 h3{color:var(--l1)}.labeq.d2 h3{color:var(--l2)}
+.labeq .dials{margin:0}
+.verdict{margin-top:12px;padding:12px 14px;border-radius:12px;font-weight:600;font-size:18px;line-height:1.6;background:rgba(200,168,75,.1);border:1.5px solid rgba(200,168,75,.5)}
+.verdict b{color:var(--gold2)}
+/* scène */
+.haze{animation:haze 18s ease-in-out infinite alternate}
+@keyframes haze{to{transform:translate(-40px,20px)}}
+.pulse{animation:pls 1.4s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes pls{from{opacity:.9;transform:scale(1)}to{opacity:0;transform:scale(2.6)}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .stage{aspect-ratio:auto;height:clamp(210px,36svh,310px);border-radius:14px}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .fill{font-size:19px}
+  .dials{gap:10px 12px}
+  .step button{width:46px}
+  .step output{min-width:2.8em}
+  .badge{font-size:12px;max-width:calc(100% - 150px)}
+  .door{font-size:12px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win,.haze,.pulse{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Rayons Croisés</h1>
+<p>Escape game laser&nbsp;: le mur de chaque salle est un repère et chaque droite est un rayon. Règle tes émetteurs avec les équations, touche les capteurs… et trouve le point où deux rayons se croisent&nbsp;: c'est la solution du système qui ouvre la porte.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Mur laser : repère, rayons et capteurs">
+    <svg id="wall" aria-hidden="true"></svg>
+    <span class="badge" id="badge"></span>
+    <span class="door" id="door"></span>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+</div>
+<section class="panel" id="panel">
+  <div id="game">
+    <div class="chap" id="chap"></div>
+    <h2 id="lvt"></h2>
+    <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+    <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+    <div class="prompt" id="prompt"></div>
+    <div id="work"></div>
+    <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+    <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+      <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+  </div>
+  <div id="labv" hidden>
+    <div class="chap">Salle d'entraînement</div>
+    <h2>Labo libre</h2>
+    <p class="prompt">Règle deux rayons par leurs équations cartésiennes <span class="nw">ax + by + c = 0</span>. Le labo affiche leur position relative et, s'ils se croisent, la solution exacte du système.</p>
+    <div class="labeq d1"><h3>Rayon d₁</h3><div class="dials" id="lab1"></div></div>
+    <div class="labeq d2"><h3>Rayon d₂</h3><div class="dials" id="lab2"></div></div>
+    <div class="btns"><button class="btn gh" id="labrnd" type="button">Deux rayons au hasard</button></div>
+    <div class="verdict" id="labout" aria-live="polite"></div>
+  </div>
+</section>
+</main>
+<script>
+/* ======================= RAYONS CROISÉS — maths exactes et écriture ======================= */
+(function(){
+'use strict';
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+function F(n,d){if(d===undefined)d=1;if(d===0)throw new Error('dénominateur nul');if(d<0){n=-n;d=-d}const g=gcd(n,d)||1;return{n:n/g,d:d/g}}
+const I=n=>F(n,1);
+const Fx={add:(a,b)=>F(a.n*b.d+b.n*a.d,a.d*b.d),sub:(a,b)=>F(a.n*b.d-b.n*a.d,a.d*b.d),mul:(a,b)=>F(a.n*b.n,a.d*b.d),div:(a,b)=>F(a.n*b.d,a.d*b.n),
+  eq:(a,b)=>a.n===b.n&&a.d===b.d,v:a=>a.n/a.d,neg:a=>F(-a.n,a.d),abs:a=>F(Math.abs(a.n),a.d),isInt:a=>a.d===1,z:a=>a.n===0};
+const toF=x=>typeof x==='number'?I(x):x;
+const M='−';
+const sgn=n=>n<0?M+Math.abs(n):String(n);
+/* écriture HTML d'un rationnel */
+function fH(f){f=toF(f);if(f.d===1)return sgn(f.n);return (f.n<0?M:'')+`<span class="fr"><span>${Math.abs(f.n)}</span><span>${f.d}</span></span>`}
+/* écriture texte (réponses attendues) */
+function fT(f){f=toF(f);return f.d===1?sgn(f.n):(f.n<0?M:'')+Math.abs(f.n)+'/'+f.d}
+/* toutes les écritures acceptables d'un rationnel (fraction, décimal exact) */
+function fAns(f){f=toF(f);const out=[];const a=Math.abs(f.n),neg=f.n<0;
+  const push=s=>{[s,s.replace(/−/g,'-')].forEach(x=>{if(!out.includes(x))out.push(x)})};
+  if(f.d===1){push(sgn(f.n));return out}
+  push((neg?M:'')+a+'/'+f.d);
+  let d=f.d;while(d%2===0)d/=2;while(d%5===0)d/=5;
+  if(d===1){const s=(a/f.d).toFixed(6).replace(/0+$/,'').replace(/\.$/,'');push((neg?M:'')+s.replace('.',','));push((neg?'-':'')+s)}
+  return out}
+/* nombre dans un produit : parenthèses si négatif */
+const pH=f=>{f=toF(f);return f.n<0?'('+fH(f)+')':fH(f)};
+/* expression linéaire : [[coef, 'x'], [coef, 'y'], [coef, '']] */
+function linH(terms){let s='';terms.forEach(([c,v])=>{c=toF(c);if(c.n===0)return;const neg=c.n<0,ab=Fx.abs(c);
+  const body=v?(Fx.eq(ab,I(1))?v:fH(ab)+v):fH(ab);
+  if(!s)s=(neg?M:'')+body;else s+=(neg?' − ':' + ')+body});return s||'0'}
+const redH=(m,p)=>'y = '+linH([[m,'x'],[p,'']]);
+const vertH=k=>'x = '+fH(k);
+const cartH=(a,b,c)=>linH([[a,'x'],[b,'y'],[c,'']])+' = 0';
+const eqH=(a,b,c)=>linH([[a,'x'],[b,'y']])+' = '+fH(c);
+const ptH=(nm,x,y)=>`<span class="nw">${nm}(${fH(x)}&nbsp;; ${fH(y)})</span>`;
+const vecH=(nm,x,y)=>`<span class="nw"><span class="vn">${nm}</span><span class="vec"><span>${fH(x)}</span><span>${fH(y)}</span></span></span>`;
+const sysH=(e1,e2)=>`<span class="sys"><span>${e1}</span><span>${e2}</span></span>`;
+const combH=(k1,k2)=>{const t1=k1===1?'(L₁)':k1===-1?M+'(L₁)':sgn(k1)+'(L₁)';if(k2===0)return t1;
+  return t1+(k2<0?' − ':' + ')+(Math.abs(k2)===1?'':Math.abs(k2))+'(L₂)'};
+/* droites : représentation exacte a x + b y + c = 0 (a, b, c rationnels) */
+const Lred=(m,p)=>({a:toF(m),b:I(-1),c:toF(p)});
+const Lvert=k=>({a:I(1),b:I(0),c:Fx.neg(toF(k))});
+const Lcart=(a,b,c)=>({a:toF(a),b:toF(b),c:toF(c)});
+const Leq=(a,b,k)=>({a:toF(a),b:toF(b),c:Fx.neg(toF(k))});   // a x + b y = k
+const Lnum=L=>({a:Fx.v(L.a),b:Fx.v(L.b),c:Fx.v(L.c)});
+const onL=(L,x,y)=>Fx.z(Fx.add(Fx.add(Fx.mul(L.a,toF(x)),Fx.mul(L.b,toF(y))),L.c));
+function cross(L1,L2){const det=Fx.sub(Fx.mul(L1.a,L2.b),Fx.mul(L2.a,L1.b));if(Fx.z(det))return null;
+  return{x:Fx.div(Fx.sub(Fx.mul(L1.b,L2.c),Fx.mul(L2.b,L1.c)),det),y:Fx.div(Fx.sub(Fx.mul(L2.a,L1.c),Fx.mul(L1.a,L2.c)),det)}}
+/* lecture d'une saisie : entier, décimal, fraction a/b ; renvoie un rationnel ou null */
+function parseQ(s){s=String(s).trim().replace(/[−–—]/g,'-').replace(/\s+/g,'').replace(/,/g,'.').replace(/^\+/,'');
+  let m;if((m=/^(-?)(\d+)(?:\.(\d+))?$/.exec(s))){const dec=m[3]||'';const n=parseInt(m[2]+dec,10)*(m[1]?-1:1);return F(n,Math.pow(10,dec.length))}
+  if((m=/^(-?\d+)\/(-?\d+)$/.exec(s))){const d=parseInt(m[2],10);if(!d)return null;return F(parseInt(m[1],10),d)}
+  if((m=/^-?\((-?\d+)\/(\d+)\)$/.exec(s))){const d=parseInt(m[2],10);if(!d)return null;return F(parseInt(m[1],10)*(s[0]==='-'?-1:1),d)}
+  return null}
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+window.RCM={gcd,F,I,Fx,toF,M,sgn,fH,fT,fAns,pH,linH,redH,vertH,cartH,eqH,ptH,vecH,sysH,combH,Lred,Lvert,Lcart,Leq,Lnum,onL,cross,parseQ,ri,pick,shuf,nz};
+})();
+</script>
+<script>
+/* ======================= RAYONS CROISÉS — le mur laser (SVG) ======================= */
+(function(){
+'use strict';
+const {Fx}=window.RCM;
+const $=id=>document.getElementById(id);
+const svg=$('wall'),reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const NS='http://www.w3.org/2000/svg';
+const C={l1:'#3fd8ff',l2:'#ff62b8',l3:'#e8c766',ac:'#6c8eff',ko:'#ff6b6b',ok:'#5fd27c',pos:'#7fb2ff',neg:'#ff9b7a',mut:'rgba(200,215,255,.72)'};
+/* état de la scène : tout ce qui est dessiné */
+const S={W:800,H:500,U:50,zoom:1,beams:[],sensors:[],steps:[],vecs:[],guides:[],cross:null,aim:null,open:false};
+let raf=0,gridKey='';
+const font='Outfit,system-ui,sans-serif';
+svg.innerHTML=`<defs>
+ <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#060d1f"/><stop offset="1" stop-color="#0a1630"/></linearGradient>
+ <radialGradient id="hz1"><stop offset="0" stop-color="#6c8eff" stop-opacity=".13"/><stop offset="1" stop-color="#6c8eff" stop-opacity="0"/></radialGradient>
+ <radialGradient id="hz2"><stop offset="0" stop-color="#3fd8ff" stop-opacity=".07"/><stop offset="1" stop-color="#3fd8ff" stop-opacity="0"/></radialGradient>
+ <radialGradient id="vg" cx=".5" cy=".5" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></radialGradient>
+ <radialGradient id="sg"><stop offset="0" stop-color="#ffe9a8" stop-opacity=".95"/><stop offset=".35" stop-color="#e8c766" stop-opacity=".55"/><stop offset="1" stop-color="#e8c766" stop-opacity="0"/></radialGradient>
+ <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="rgba(200,215,255,.8)"/></marker>
+ <marker id="ahg" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#e8c766"/></marker>
+</defs><rect id="bg" fill="url(#wg)"/><g class="haze"><ellipse id="hza" fill="url(#hz1)"/><ellipse id="hzb" fill="url(#hz2)"/></g>
+<g id="grid"></g><g id="dyn"></g><rect id="vig" fill="url(#vg)" pointer-events="none"/>`;
+const gGrid=svg.querySelector('#grid'),gDyn=svg.querySelector('#dyn');
+
+function measure(){const r=$('stage').getBoundingClientRect();S.W=Math.max(200,Math.round(r.width));S.H=Math.max(150,Math.round(r.height));
+  /* fenêtre minimale garantie : x de −5,6 à 5,6 et y de −4,7 à 4,7 */
+  S.U=Math.min(S.W/11.6,S.H/9.8);svg.setAttribute('viewBox',`0 0 ${S.W} ${S.H}`);
+  ['bg','vig'].forEach(id=>{const e=svg.querySelector('#'+id);e.setAttribute('width',S.W);e.setAttribute('height',S.H)});
+  const a=svg.querySelector('#hza'),b=svg.querySelector('#hzb');
+  a.setAttribute('cx',S.W*.3);a.setAttribute('cy',S.H*.35);a.setAttribute('rx',S.W*.45);a.setAttribute('ry',S.H*.5);
+  b.setAttribute('cx',S.W*.75);b.setAttribute('cy',S.H*.7);b.setAttribute('rx',S.W*.4);b.setAttribute('ry',S.H*.45);
+  gridKey='';draw()}
+const u=()=>S.U*S.zoom;
+const X=x=>S.W/2+x*u(),Y=y=>S.H/2-y*u();
+const box=()=>({x0:-S.W/2/u(),x1:S.W/2/u(),y0:-S.H/2/u(),y1:S.H/2/u()});
+const r1=v=>Math.round(v*10)/10;
+const lab=v=>(v<0?'−':'')+Math.abs(v);
+
+function drawGrid(){const k=[S.W,S.H,u().toFixed(3)].join();if(k===gridKey)return;gridKey=k;const U=u(),B=box();
+  let g=U>=26?1:U>=12?2:U>=5?5:10;let L=g;if(U*g<26)L=g*2;if(U*L<26)L*=2.5;
+  const ff=Math.round(Math.max(11,Math.min(14,U*.34)));let h='';
+  for(let x=Math.ceil(B.x0/g)*g;x<=B.x1;x+=g){if(Math.abs(x)<1e-9)continue;h+=`<line x1="${r1(X(x))}" y1="0" x2="${r1(X(x))}" y2="${S.H}" stroke="rgba(120,160,255,${x%(5*g)===0?.16:.09})" stroke-width="1"/>`}
+  for(let y=Math.ceil(B.y0/g)*g;y<=B.y1;y+=g){if(Math.abs(y)<1e-9)continue;h+=`<line x1="0" y1="${r1(Y(y))}" x2="${S.W}" y2="${r1(Y(y))}" stroke="rgba(120,160,255,${y%(5*g)===0?.16:.09})" stroke-width="1"/>`}
+  h+=`<line x1="6" y1="${r1(Y(0))}" x2="${S.W-8}" y2="${r1(Y(0))}" stroke="rgba(200,215,255,.62)" stroke-width="1.6" marker-end="url(#ah)"/>`;
+  h+=`<line x1="${r1(X(0))}" y1="${S.H-6}" x2="${r1(X(0))}" y2="10" stroke="rgba(200,215,255,.62)" stroke-width="1.6" marker-end="url(#ah)"/>`;
+  h+=`<g font-family="${font}" font-weight="600" font-size="${ff}" fill="rgba(200,215,255,.66)" style="font-variant-numeric:tabular-nums">`;
+  for(let x=Math.ceil(B.x0/L)*L;x<=B.x1-.4;x+=L){const xx=Math.round(x*100)/100;if(!xx)continue;h+=`<line x1="${r1(X(xx))}" y1="${r1(Y(0)-4)}" x2="${r1(X(xx))}" y2="${r1(Y(0)+4)}" stroke="rgba(200,215,255,.6)"/><text x="${r1(X(xx))}" y="${r1(Y(0)+ff+5)}" text-anchor="middle">${lab(xx)}</text>`}
+  for(let y=Math.ceil(B.y0/L)*L;y<=B.y1-.3;y+=L){const yy=Math.round(y*100)/100;if(!yy)continue;h+=`<line x1="${r1(X(0)-4)}" y1="${r1(Y(yy))}" x2="${r1(X(0)+4)}" y2="${r1(Y(yy))}" stroke="rgba(200,215,255,.6)"/><text x="${r1(X(0)-7)}" y="${r1(Y(yy)+ff*.36)}" text-anchor="end">${lab(yy)}</text>`}
+  h+=`<text x="${r1(X(0)-7)}" y="${r1(Y(0)+ff+5)}" text-anchor="end">0</text><text x="${S.W-14}" y="${r1(Y(0)-8)}" text-anchor="end" font-style="italic" font-size="${ff+2}">x</text><text x="${r1(X(0)+9)}" y="20" font-style="italic" font-size="${ff+2}">y</text></g>`;
+  gGrid.innerHTML=h}
+
+/* segment visible d'une droite a x + b y + c = 0 (flottants) */
+function seg(L){const B=box(),m=0;const x0=B.x0-m,x1=B.x1+m,y0=B.y0-m,y1=B.y1+m;const pts=[];
+  if(Math.abs(L.b)<1e-12){if(Math.abs(L.a)<1e-12)return null;const x=-L.c/L.a;if(x<x0||x>x1)return null;return[[x,y0],[x,y1]]}
+  const yAt=x=>-(L.a*x+L.c)/L.b;
+  [x0,x1].forEach(x=>{const y=yAt(x);if(y>=y0-1e-9&&y<=y1+1e-9)pts.push([x,y])});
+  if(Math.abs(L.a)>1e-12)[y0,y1].forEach(y=>{const x=-(L.b*y+L.c)/L.a;if(x>x0+1e-9&&x<x1-1e-9)pts.push([x,y])});
+  if(pts.length<2)return null;pts.sort((p,q)=>p[0]-q[0]);return[pts[0],pts[pts.length-1]]}
+/* rayon : L {a,b,c} flottants, col, f = avancée du tir (0 à 1), w (épaisseur), dash, alpha */
+function beamSVG(B){const sg=seg(B.L);if(!sg)return'';let [P,Q]=sg;
+  if(Math.abs(B.L.b)<1e-12){if(P[1]>Q[1])[P,Q]=[Q,P]}   // vertical : émetteur en bas
+  else if(P[1]-Q[1]>.05)[P,Q]=[Q,P];   // émetteur sur le bord le plus bas (jamais sous les étiquettes du haut)
+  const f=B.f===undefined?1:B.f,al=B.alpha===undefined?1:B.alpha;
+  const Ex=X(P[0]),Ey=Y(P[1]),Qx=X(P[0]+(Q[0]-P[0])*f),Qy=Y(P[1]+(Q[1]-P[1])*f);
+  const ang=Math.atan2(Y(Q[1])-Ey,X(Q[0])-Ex)*180/Math.PI;
+  let h=`<g opacity="${al}">`;
+  if(B.ghost){h+=`<line x1="${r1(Ex)}" y1="${r1(Ey)}" x2="${r1(X(Q[0]))}" y2="${r1(Y(Q[1]))}" stroke="${B.col}" stroke-width="2" stroke-dasharray="7 7" opacity=".7"/>`}
+  else if(f>0){const w=B.w||1;
+    h+=`<line x1="${r1(Ex)}" y1="${r1(Ey)}" x2="${r1(Qx)}" y2="${r1(Qy)}" stroke="${B.col}" stroke-width="${16*w}" stroke-linecap="round" opacity=".12"/>`+
+      `<line x1="${r1(Ex)}" y1="${r1(Ey)}" x2="${r1(Qx)}" y2="${r1(Qy)}" stroke="${B.col}" stroke-width="${6*w}" stroke-linecap="round" opacity=".45"${B.dash?` stroke-dasharray="${B.dash}"`:''}/>`+
+      `<line x1="${r1(Ex)}" y1="${r1(Ey)}" x2="${r1(Qx)}" y2="${r1(Qy)}" stroke="#f4fbff" stroke-width="${1.8*w}" stroke-linecap="round" opacity=".9"${B.dash?` stroke-dasharray="${B.dash}"`:''}/>`;
+    if(f<1)h+=`<circle cx="${r1(Qx)}" cy="${r1(Qy)}" r="7" fill="#fff" opacity=".9"/><circle cx="${r1(Qx)}" cy="${r1(Qy)}" r="16" fill="${B.col}" opacity=".3"/>`}
+  if(!B.noEmitter){const dl=Math.hypot(X(Q[0])-Ex,Y(Q[1])-Ey)||1,cx=Ex+(X(Q[0])-Ex)/dl*14,cy=Ey+(Y(Q[1])-Ey)/dl*14;
+    h+=`<g transform="translate(${r1(cx)} ${r1(cy)}) rotate(${r1(ang)})"><rect x="-22" y="-10" width="30" height="20" rx="5" fill="#13213d" stroke="${B.col}" stroke-width="1.6"/><rect x="4" y="-5" width="8" height="10" rx="2" fill="${B.col}"/><circle cx="-12" cy="0" r="3" fill="${B.col}" opacity=".8"/></g>`}
+  if(B.tag&&f>=1){const ex=X(Q[0]),ey=Y(Q[1]),dl=Math.hypot(ex-Ex,ey-Ey)||1,t=B.tagAt||.84,nx=-(ey-Ey)/dl,ny=(ex-Ex)/dl,sd=ny>0?-1:1;
+    const tw=B.tag.length*8.5;let tx=Ex+(ex-Ex)*t+nx*sd*16,ty=Ey+(ey-Ey)*t+ny*sd*16+5;tx=Math.max(tw/2+8,Math.min(S.W-tw/2-8,tx));ty=Math.max(44,Math.min(S.H-10,ty));
+    h+=`<text x="${r1(tx)}" y="${r1(ty)}" text-anchor="middle" font-family="${font}" font-weight="800" font-size="15" fill="${B.col}" paint-order="stroke" stroke="#050b18" stroke-width="4">${B.tag}</text>`}
+  return h+'</g>'}
+function sensorSVG(s){const fv=q=>typeof q==='object'?q.n/q.d:q;const x=X(fv(s.x)),y=Y(fv(s.y)),st=s.st||'idle';
+  if(x<-4||x>S.W+4||y<-4||y>S.H+4){/* hors du mur : flèche au bord */
+    const cx=Math.max(26,Math.min(S.W-26,x)),cy=Math.max(26,Math.min(S.H-26,y)),ang=Math.atan2(y-cy,x-cx)*180/Math.PI;
+    return `<g transform="translate(${r1(cx)} ${r1(cy)})"><g transform="rotate(${r1(ang)})"><path d="M-2 -9 L14 0 L-2 9 Z" fill="${st==='hit'?C.l3:C.ac}"/></g></g>`+
+      `<text x="${r1(cx+(cx>S.W/2?-18:18))}" y="${r1(cy+(cy<S.H/2?22:-14))}" text-anchor="${cx>S.W/2?'end':'start'}" font-family="${font}" font-weight="700" font-size="14" fill="${C.mut}" paint-order="stroke" stroke="#050b18" stroke-width="4">${s.lab||''} hors du mur</text>`}
+  const ring=st==='hit'?C.l3:st==='miss'?C.ko:'#9fb4ff';
+  let h='';
+  if(st==='hit')h+=`<circle cx="${r1(x)}" cy="${r1(y)}" r="30" fill="url(#sg)"/><circle cx="${r1(x)}" cy="${r1(y)}" r="11" fill="none" stroke="${C.l3}" stroke-width="2" class="pulse"/>`;
+  h+=`<circle cx="${r1(x)}" cy="${r1(y)}" r="11" fill="#0b1426" stroke="${ring}" stroke-width="2.6"/><circle cx="${r1(x)}" cy="${r1(y)}" r="4.5" fill="${st==='hit'?'#fff4cf':st==='miss'?C.ko:'#6c8eff'}"/>`;
+  [0,90,180,270].forEach(a=>{h+=`<line x1="${r1(x+Math.cos(a*Math.PI/180)*13)}" y1="${r1(y+Math.sin(a*Math.PI/180)*13)}" x2="${r1(x+Math.cos(a*Math.PI/180)*17)}" y2="${r1(y+Math.sin(a*Math.PI/180)*17)}" stroke="${ring}" stroke-width="2"/>`});
+  if(s.lab){const right=x<S.W-90,up=y>40;h+=`<text x="${r1(x+(right?15:-15))}" y="${r1(y+(up?-14:26))}" text-anchor="${right?'start':'end'}" font-family="${font}" font-weight="800" font-size="15" fill="${st==='hit'?C.l3:'#dbe4ff'}" paint-order="stroke" stroke="#050b18" stroke-width="4">${s.lab}</text>`}
+  if(s.gap!=null&&st==='miss'){const yb=Y(s.gap);h+=`<line x1="${r1(x)}" y1="${r1(y)}" x2="${r1(x)}" y2="${r1(yb)}" stroke="${C.ko}" stroke-width="2.4" stroke-dasharray="4 4"/>`}
+  return h}
+function stepSVG(t){/* pas : de (x0;y0), avancer de dx puis monter de dy */
+  const x0=X(t.x0),y0=Y(t.y0),x1=X(t.x0+t.dx*(t.f1===undefined?1:t.f1)),y1=Y(t.y0+t.dy*(t.f2===undefined?1:t.f2));
+  const cv=t.dy>=0?C.pos:C.neg;let h=`<line x1="${r1(x0)}" y1="${r1(y0)}" x2="${r1(x1)}" y2="${r1(y0)}" stroke="${C.ac}" stroke-width="3.2" stroke-linecap="round"/>`;
+  if((t.f2===undefined?1:t.f2)>0)h+=`<line x1="${r1(x1)}" y1="${r1(y0)}" x2="${r1(x1)}" y2="${r1(y1)}" stroke="${cv}" stroke-width="3.2" stroke-linecap="round"/>`;
+  const fs=15,st=`font-family="${font}" font-weight="800" font-size="${fs}" paint-order="stroke" stroke="#050b18" stroke-width="4"`;
+  const pill=(cx,cy,txt,col)=>{const w=txt.length*8.6+12;return `<rect x="${r1(cx-w/2)}" y="${r1(cy-11)}" width="${r1(w)}" height="22" rx="11" fill="#071022" stroke="${col}" stroke-opacity=".55"/><text x="${r1(cx)}" y="${r1(cy+5)}" text-anchor="middle" fill="${col}" ${st}>${txt}</text>`};
+  if(t.lx)h+=pill((x0+x1)/2,y0+(t.dy>=0?17:-17),t.lx,'#aebfff');
+  if(t.ly&&(t.f2===undefined||t.f2>=1)){const w=t.ly.length*8.6+12;h+=pill(x1+(t.dx>=0?1:-1)*(w/2+8),(y0+y1)/2,t.ly,cv)}
+  return h}
+function vecSVG(v){const x0=X(v.x0),y0=Y(v.y0),x1=X(v.x0+v.ux*(v.f===undefined?1:v.f)),y1=Y(v.y0+v.uy*(v.f===undefined?1:v.f));
+  return `<line x1="${r1(x0)}" y1="${r1(y0)}" x2="${r1(x1)}" y2="${r1(y1)}" stroke="${C.l3}" stroke-width="3.4" marker-end="url(#ahg)"/>`+
+   (v.lab&&(v.f===undefined||v.f>=1)?(()=>{const tx=Math.max(14,Math.min(S.W-30,x1+8)),ty=Math.max(48,Math.min(S.H-8,y1-8)),nm=v.lab.replace('\u20d7','');
+     return `<text x="${r1(tx)}" y="${r1(ty)}" font-family="${font}" font-weight="800" font-style="italic" font-size="18" fill="${C.l3}" paint-order="stroke" stroke="#050b18" stroke-width="4">${nm}</text>`+
+       `<path d="M${r1(tx+1)} ${r1(ty-17)}h9.5v-2.6l4 3.6l-4 3.6v-2.6h-9.5z" fill="${C.l3}" stroke="#050b18" stroke-width=".6"/>`})():'')}
+function guideSVG(g){const col=g.col||C.l3;const st=`font-family="${font}" font-weight="800" font-size="14" fill="${col}" paint-order="stroke" stroke="#050b18" stroke-width="4"`;
+  if(g.t==='v'){const x=X(g.x);return `<line x1="${r1(x)}" y1="0" x2="${r1(x)}" y2="${S.H}" stroke="${col}" stroke-width="2" stroke-dasharray="6 6" opacity=".85"/>`+(g.lab?`<text x="${r1(x+(x<S.W-70?7:-7))}" y="${S.H-12}" text-anchor="${x<S.W-70?'start':'end'}" ${st}>${g.lab}</text>`:'')}
+  if(g.t==='h'){const y=Y(g.y);return `<line x1="0" y1="${r1(y)}" x2="${S.W}" y2="${r1(y)}" stroke="${col}" stroke-width="2" stroke-dasharray="6 6" opacity=".85"/>`+(g.lab?`<text x="12" y="${r1(y+(y>30?-7:17))}" ${st}>${g.lab}</text>`:'')}
+  if(g.t==='probe'){const x=X(g.x);return `<line x1="${r1(x)}" y1="${r1(Y(0))}" x2="${r1(x)}" y2="${r1(Y(g.y))}" stroke="${C.ac}" stroke-width="2.4" stroke-dasharray="3 5"/><circle cx="${r1(x)}" cy="${r1(Y(g.y))}" r="5" fill="${C.ac}"/>`}
+  return ''}
+function crossSVG(c){const x=X(c.x),y=Y(c.y);if(x<-10||x>S.W+10||y<-10||y>S.H+10)return'';let h='';
+  if(c.st==='ok')h+=`<circle cx="${r1(x)}" cy="${r1(y)}" r="40" fill="url(#sg)"/><circle cx="${r1(x)}" cy="${r1(y)}" r="12" fill="none" stroke="${C.l3}" stroke-width="2" class="pulse"/>`;
+  h+=`<circle cx="${r1(x)}" cy="${r1(y)}" r="${c.st==='ok'?7:9}" fill="${c.st==='ok'?'#fff4cf':'#0b1426'}" stroke="${C.l3}" stroke-width="2.4"/>`;
+  if(c.lab){const right=x<S.W-150;h+=`<text x="${r1(x+(right?16:-16))}" y="${r1(y+(y>44?-14:28))}" text-anchor="${right?'start':'end'}" font-family="${font}" font-weight="800" font-size="16" fill="${C.l3}" paint-order="stroke" stroke="#050b18" stroke-width="4">${c.lab}</text>`}
+  return h}
+function draw(){cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{drawGrid();let h='';
+  S.guides.forEach(g=>h+=guideSVG(g));S.steps.forEach(t=>h+=stepSVG(t));
+  if(S.aim)h+=beamSVG(Object.assign({ghost:true,noEmitter:true},S.aim));
+  S.beams.forEach(b=>h+=beamSVG(b));S.vecs.forEach(v=>h+=vecSVG(v));
+  if(S.cross)h+=crossSVG(S.cross);S.sensors.forEach(s=>h+=sensorSVG(s));
+  gDyn.innerHTML=h})}
+/* animation générique */
+function tween(ms,fn){return new Promise(res=>{if(reduceM||ms<=0){fn(1);draw();res();return}const t0=performance.now();
+  const st=t=>{const k=Math.min(1,(t-t0)/ms),e=k<.5?2*k*k:1-((2-2*k)**2)/2;fn(e);draw();k<1?requestAnimationFrame(st):res()};requestAnimationFrame(st)})}
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?Math.min(ms,40):ms));
+function reset(){Object.assign(S,{zoom:1,beams:[],sensors:[],steps:[],vecs:[],guides:[],cross:null,aim:null});gridKey='';door(false);draw()}
+function door(open){S.open=open;$('stage').classList.toggle('open',open);const d=$('door');d.classList.toggle('open',open);
+  d.innerHTML=(open?'<svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5 7 V5 a3 3 0 0 1 6 0" stroke="currentColor" stroke-width="1.8" fill="none" transform="rotate(-24 11 7)"/></svg>Porte ouverte'
+    :'<svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5 7 V5 a3 3 0 0 1 6 0 V7" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>Porte verrouillée')}
+/* tir d'un rayon (déjà présent dans S.beams) */
+async function fire(b,ms){b.f=0;if(window.RC_SND)RC_SND.laser();await tween(ms||650,e=>{b.f=e})}
+new ResizeObserver(()=>measure()).observe($('stage'));
+window.RCS={S,C,draw,tween,sleep,reset,door,fire,measure,reduceM};
+door(false);measure();
+})();
+</script>
+<script>
+/* ======================= RAYONS CROISÉS — moteur de jeu ======================= */
+(function(){
+'use strict';
+const R=window.RCM,SC=window.RCS,S=SC.S,{F,I,Fx,fH,fT,toF,parseQ,linH,redH,shuf,pick}=R;
+const $=id=>document.getElementById(id);
+const cap=h=>{$('capt').innerHTML=h||'&nbsp;'};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+
+/* ---------- bruitages (interrupteur partagé avec les fanfares du kit) ---------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w,f2){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.setValueAtTime(f,t);
+  if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const SND={pop(){if(snd){tone(660,.09,.035);tone(990,.06,.018,'sine',.03)}},
+  laser(){if(snd){tone(1500,.32,.028,'sawtooth',0,240);tone(2200,.22,.012,'square',.02,500)}},
+  hit(){if(snd){tone(880,.25,.045,'sine');tone(1320,.3,.03,'sine',.07)}},
+  soft(){if(snd){tone(392,.2,.04,'sine');tone(330,.26,.04,'sine',.1)}},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.42,.045,'triangle',i*.09))},
+  click(){if(snd)tone(1200,.04,.02,'square')}};
+window.RC_SND=SND;
+
+/* ---------- état ---------- */
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,perr=0,mode='game',busy=false;
+let partState={};
+const LV=[];
+function starsOf(i){try{const g=SigmaKit.passport().games['rayons-croises'];return g&&g.levels[i+1]||0}catch(e){return 0}}
+
+/* ---------- retours ---------- */
+function fb(html){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fb').hidden=false}
+const api={err(why,sol){errs++;perr++;SND.soft();fb(why+(perr>=2&&sol?`<br><span style="color:var(--gold2)">Coup de pouce&nbsp;: ${sol}</span>`:''))},ok(){fb('');nextPart()}};
+const W={};
+/* bouton d'action (animation sur le mur) */
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);api.ok()}};
+/* choix (une seule bonne réponse) */
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{if(busy)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){box.querySelectorAll('.opt').forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else{b.classList.add('ko');b.disabled=true;api.err(c.why);if(p.onKo){busy=true;try{await p.onKo(c)}finally{busy=false}}}})};
+/* cases à remplir : valeurs exactes (entiers, décimaux, fractions) */
+W.fill=(p,box)=>{const tpl=typeof p.tpl==='function'?p.tpl():p.tpl,ans=typeof p.ans==='function'?p.ans():p.ans,ask=typeof p.ask==='function'?p.ask():p.ask;p._ans=ans;
+  const t=tpl.replace(/\{(\d)\}/g,(_,i)=>`<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text" aria-label="Case ${+i+1}" style="width:${p.w||3.6}em">`);
+  box.innerHTML=(ask?`<p class="ask">${ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+
+    (p.note?`<p class="hint">${p.note}</p>`:'<p class="hint">Fraction&nbsp;: écris 3/2 ou −3/2.</p>');
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const q=v.map(parseQ);
+    if(q.some(x=>!x)){fb('Écris un nombre&nbsp;: un entier (−3), un décimal (2,5) ou une fraction (7/3).');return}
+    const oks=q.map((x,i)=>Fx.eq(x,toF(ans[+ins[i].dataset.i])));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk(q)}finally{busy=false}}api.ok()}
+    else{const sol=tpl.replace(/\{(\d)\}/g,(_,i)=>'<b>'+fH(ans[+i])+'</b>');api.err(typeof p.why==='function'?p.why(q,oks):p.why,sol);if(p.onKo){busy=true;try{await p.onKo(q,oks)}finally{busy=false}}}};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* réglage d'un cadran ± */
+function dial(label,id,v,min,max,aria){return `<div class="dial"><span>${label}</span><div class="step"><button type="button" data-d="${id}" data-s="-1" aria-label="${aria} : moins 1">−</button><output data-o="${id}">${R.sgn(v)}</output><button type="button" data-d="${id}" data-s="1" aria-label="${aria} : plus 1">+</button></div></div>`}
+/* émetteur : régler p puis m, le rayon pivote et glisse en direct, puis on tire */
+W.aim=(p,box)=>{const st={m:p.start.m,p:p.start.p,shots:0};partState=st;const tg=p.target;let shot=null;
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="dials">${dial('Ordonnée à l\'origine p','p',st.p,-5,5,'Ordonnée à l\'origine')}${dial('Pente m','m',st.m,-5,5,'Pente')}</div>
+    <div class="live" aria-live="polite"></div><div class="btns"><button type="button" class="btn or fire">Tirer le laser</button></div>`;
+  const live=box.querySelector('.live');
+  const aimL=()=>({a:st.am,b:-1,c:st.ap});st.am=st.m;st.ap=st.p;
+  const show=()=>{live.innerHTML=`<span class="m">Réglage&nbsp;:</span> ${redH(st.m,st.p)}`;box.querySelectorAll('output').forEach(o=>o.textContent=R.sgn(st[o.dataset.o]));
+    box.querySelectorAll('[data-d]').forEach(b=>{const v=st[b.dataset.d]+ +b.dataset.s;b.disabled=v<-5||v>5})};
+  S.aim={L:aimL(),col:SC.C.ac};S.steps=[{x0:0,y0:st.p,dx:1,dy:st.m,lx:'+1',ly:(st.m>=0?'+':'')+R.sgn(st.m)}];SC.draw();show();
+  let tw=null;
+  const glide=async()=>{const m0=st.am,p0=st.ap,m1=st.m,p1=st.p;tw={};const me=tw;
+    await SC.tween(260,e=>{if(tw!==me)return;st.am=m0+(m1-m0)*e;st.ap=p0+(p1-p0)*e;S.aim.L=aimL();S.steps[0]={x0:0,y0:st.ap,dx:1,dy:st.am,lx:'+1',ly:e>=1?(st.m>=0?'+':'')+R.sgn(st.m):''}})};
+  box.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(busy)return;const k=b.dataset.d,v=st[k]+ +b.dataset.s;if(v<-5||v>5)return;st[k]=v;SND.click();
+    if(shot){S.beams=S.beams.filter(x=>x!==shot);shot=null;S.sensors.forEach(s=>{s.st='idle';s.gap=null})}show();glide()});
+  box.querySelector('.fire').onclick=async()=>{if(busy)return;busy=true;fb('');st.shots++;
+    if(shot)S.beams=S.beams.filter(x=>x!==shot);S.sensors.forEach(s=>{s.st='idle';s.gap=null});
+    shot={L:{a:st.m,b:-1,c:st.p},col:SC.C.l1,f:0,tag:'d'};S.beams.push(shot);await SC.fire(shot,600);
+    let all=true;S.sensors.forEach(s=>{const y=st.m*Fx.v(toF(s.x))+st.p,hit=Math.abs(y-Fx.v(toF(s.y)))<1e-9;s.st=hit?'hit':'miss';s.gap=hit?null:y;if(!hit)all=false});SC.draw();
+    busy=false;
+    if(all){SND.hit();S.aim=null;S.steps=[];SC.draw();box.querySelectorAll('button').forEach(x=>x.disabled=true);st.done=1;api.ok()}
+    else api.err(p.why(st),`règle p = ${R.sgn(tg.p)} et m = ${R.sgn(tg.m)}.`)}};
+/* combinaison : k₁ (L₁) + k₂ (L₂) ; le rayon doré pivote autour du croisement */
+W.combo=(p,box)=>{const [a1,b1,c1]=p.L1,[a2,b2,c2]=p.L2,st={k1:1,k2:0,ak1:1,ak2:0};partState=st;
+  const coef=(k1,k2)=>({A:k1*a1+k2*a2,B:k1*b1+k2*b2,C:k1*c1+k2*c2});
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="dials">${dial('k₁ (multiplie L₁)','k1',1,-9,9,'k1')}${dial('k₂ (multiplie L₂)','k2',0,-9,9,'k2')}</div>
+    <div class="live" aria-live="polite"></div><div class="btns"><button type="button" class="btn or val">Valider la combinaison</button></div>`;
+  const live=box.querySelector('.live');
+  const gold={L:{a:a1,b:b1,c:-c1},col:SC.C.l3,f:1,w:1.15,tag:''};S.beams.push(gold);
+  const show=()=>{const k=coef(st.k1,st.k2);box.querySelectorAll('output').forEach(o=>o.textContent=R.sgn(st[o.dataset.o]));
+    box.querySelectorAll('[data-d]').forEach(b=>{const v=st[b.dataset.d]+ +b.dataset.s;b.disabled=v<-9||v>9});
+    live.innerHTML=(st.k1===0&&st.k2===0)?'<span class="m">Choisis au moins un multiplicateur non nul.</span>':
+      `<span class="m">${R.combH(st.k1,st.k2)}&nbsp;:</span> <span class="nw">${R.eqH(k.A,k.B,k.C)}</span>`;
+    cap(`<span class="c3 eqx">${R.combH(st.k1,st.k2)}&nbsp;: ${(st.k1||st.k2)?R.eqH(k.A,k.B,k.C):'0 = 0'}</span>`)};
+  show();SC.draw();let tw=null;
+  const glide=async()=>{const s1=st.ak1,s2=st.ak2,e1=st.k1,e2=st.k2;tw={};const me=tw;
+    await SC.tween(300,e=>{if(tw!==me)return;st.ak1=s1+(e1-s1)*e;st.ak2=s2+(e2-s2)*e;const A=st.ak1*a1+st.ak2*a2,B=st.ak1*b1+st.ak2*b2,Cc=st.ak1*c1+st.ak2*c2;
+      gold.L={a:A,b:B,c:-Cc};gold.alpha=(Math.abs(A)+Math.abs(B))<1e-6?0:1})};
+  box.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(busy)return;const k=b.dataset.d,v=st[k]+ +b.dataset.s;if(v<-9||v>9)return;st[k]=v;SND.click();show();glide()});
+  box.querySelector('.val').onclick=async()=>{if(busy)return;const k=coef(st.k1,st.k2);
+    if(st.k1===0||st.k2===0){api.err('Une combinaison utilise les <b>deux</b> équations&nbsp;: k₁ et k₂ doivent être non nuls.');return}
+    const other=p.elim==='y'?k.A:k.B,bad=p.elim==='y'?k.B:k.A;
+    if(bad!==0){api.err(`Le coefficient de ${p.elim} vaut ${R.sgn(bad)} (${R.sgn(st.k1)} × ${R.pH(p.elim==='y'?b1:a1)} + ${R.sgn(st.k2)} × ${R.pH(p.elim==='y'?b2:a2)}). Il faut qu'il soit nul&nbsp;: le rayon doré sera alors ${p.elim==='y'?'vertical':'horizontal'}.`,
+      p.elim==='y'?`k₁ = ${R.sgn(b2)} et k₂ = ${R.sgn(-b1)}.`:`k₁ = ${R.sgn(a2)} et k₂ = ${R.sgn(-a1)}.`);return}
+    if(other===0){api.err('Les deux inconnues ont disparu&nbsp;: choisis d\'autres multiplicateurs.');return}
+    busy=true;fb('');SND.hit();st.done=1;p.ctx.A=k.A;p.ctx.B=k.B;p.ctx.C=k.C;p.ctx.k1=st.k1;p.ctx.k2=st.k2;
+    gold.tag=p.elim==='y'?'x = '+fH(F(k.C,k.A)):'y = '+fH(F(k.C,k.B));SC.draw();
+    box.querySelectorAll('button').forEach(x=>x.disabled=true);busy=false;api.ok()}};
+
+/* ---------- déroulé d'une question ---------- */
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;partState={};perr=0;if(pi<Q.parts.length){const p=Q.parts[pi],box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){const r=box.getBoundingClientRect();if(innerWidth<=860){const top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:SC.reduceM?'auto':'smooth'})}
+  else if(r.bottom>innerHeight-8)scrollTo({top:scrollY+Math.min(r.bottom-innerHeight+24,r.top-90),behavior:SC.reduceM?'auto':'smooth'})}
+function newQ(){Q=LV[lvl].qs[qi]();pi=0;errs=0;perr=0;partState={};
+  SC.reset();if(Q.setup)Q.setup();SC.draw();cap(Q.cap0||'');
+  $('badge').textContent=`Salle ${lvl+1} · ${LV[lvl].t}`;
+  $('prompt').innerHTML=Q.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  const box=partEl();W[Q.parts[0].t](Q.parts[0],box)}
+function dots(){const N=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:N},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+async function win(){fb('');run.push(errs===0);dots();SC.door(true);SND.win();
+  const N=LV[lvl].qs.length,lvlDone=run.length>=N;
+  $('winx').textContent=errs===0?pick(['Porte ouverte !','Dans le mille !','Exactement !','Bien visé !']):pick(['C\'est ça !','Porte ouverte !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=Q.done;
+  $('next').textContent=lvlDone?'Voir le bilan de la salle':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(Q.onWin)Q.onWin();
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const L=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:L,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==L||mode!=='game')return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:SC.reduceM?'auto':'smooth'})};
+function goLevel(l){mode='game';lvl=l;qi=0;run=[];$('game').hidden=false;$('labv').hidden=true;
+  $('chap').textContent=LV[l].chap;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;renderLv();newQ()}
+function renderLv(){$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${mode==='game'&&i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<button type="button" class="labb" data-l="lab" aria-pressed="${mode==='lab'}">✦ Labo libre</button><span class="sp"></span>`+
+  `<button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;
+  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('sigma-fanfare',snd?'1':'0')}catch(_){}renderLv();SND.pop();return}
+  if(b.dataset.l==='lab'){mode='lab';$('game').hidden=true;$('labv').hidden=false;renderLv();window.RC_LAB.open();return}
+  goLevel(+b.dataset.l)});
+
+/* ---------- accès pour les tests ---------- */
+function partInfo(){if(!Q||pi>=Q.parts.length)return null;const p=Q.parts[pi],o={t:p.t};
+  if(p.t==='choice')o.choices=p.ch.map(c=>({ok:!!c.ok,v:c.v||null}));
+  if(p.t==='fill')o.ans=(p._ans||[]).map(a=>fT(toF(a)));
+  if(p.t==='aim')o.target=p.target;
+  if(p.t==='combo')o.sol=p.elim==='y'?[p.L2[1],-p.L1[1]]:[p.L2[0],-p.L1[0]];
+  return o}
+window.RC={LV,state:()=>({lvl,qi,nq:LV[lvl]?LV[lvl].qs.length:0,busy,mode,part:partInfo(),ps:JSON.parse(JSON.stringify(partState)),won:!$('win').hidden,meta:Q&&Q.meta}),
+  start(){renderLv();goLevel(0)},goLevel,cap,SND,
+  /* tirage hors jeu (audit) : renvoie les données vérifiables d'une question */
+  sample(l,k){const q=LV[l].qs[k]();return{prompt:q.prompt,done:q.done,meta:q.meta,shown:q.shown||[],parts:q.parts.map(p=>{const o={t:p.t,ask:typeof p.ask==='function'?'':(p.ask||'')};
+    if(p.t==='choice')o.ch=p.ch.map(c=>({h:c.h,ok:!!c.ok,v:c.v||null,why:c.why||''}));
+    if(p.t==='fill'){o.tpl=typeof p.tpl==='function'?null:p.tpl;o.ans=typeof p.ans==='function'?null:p.ans.map(a=>fT(toF(a)))}
+    if(p.t==='aim'){o.target=p.target;o.start=p.start}
+    if(p.t==='combo'){o.L1=p.L1;o.L2=p.L2;o.elim=p.elim}
+    return o}),sensors:(q.sensors||[]).map(s=>({x:fT(toF(s.x)),y:fT(toF(s.y))}))}}};
+})();
+</script>
+<script>
+/* ======================= RAYONS CROISÉS — les sept salles ======================= */
+(function(){
+'use strict';
+const R=window.RCM,SC=window.RCS,S=SC.S,C=SC.C,G=window.RC;
+const {F,I,Fx,toF,fH,sgn,pH,linH,redH,vertH,cartH,eqH,ptH,vecH,sysH,ri,pick,shuf,nz,gcd}=R;
+const LV=G.LV,cap=G.cap;
+const v=x=>Fx.v(toF(x));
+/* rayons et capteurs */
+const bRed=(m,p,col,tag,f)=>({L:{a:v(m),b:-1,c:v(p)},col,tag:tag||'',f:f===undefined?1:f});
+const bCart=(a,b,c,col,tag,f)=>({L:{a:v(a),b:v(b),c:v(c)},col,tag:tag||'',f:f===undefined?1:f});
+const sens=(x,y,lab)=>({x:toF(x),y:toF(y),lab,st:'idle'});
+const e1=h=>`<span class="e1">${h}</span>`,e2=h=>`<span class="e2">${h}</span>`,e3=h=>`<span class="e3">${h}</span>`;
+const capEq=(...l)=>l.map((h,i)=>`<span class="c${i+1} eqx">${h}</span>`).join('');
+const OK=(h,v)=>({h,ok:true,v}),NO=(h,why,v)=>({h,why,v});
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+const ch=(ask,list,o)=>Object.assign({t:'choice',ask,ch:list},o||{});
+const fill=(ask,tpl,ans,why,o)=>Object.assign({t:'fill',ask,tpl,ans,why},o||{});
+const inWin=(x,y)=>Math.abs(v(x))<=5&&Math.abs(v(y))<=4;
+/* fraction écrite « a − b » sur « c − d » (formule de la pente) */
+const slopeH=(yB,yA,xB,xA)=>`<span class="fr"><span>${sgn(yB)} − ${pH(yA)}</span><span>${sgn(xB)} − ${pH(xA)}</span></span>`;
+/* « k × x » écrit comme dans le cours, signe du terme suivant géré */
+const prodH=(k,x)=>`${sgn(k)} × ${pH(x)}`;
+const plusH=k=>k<0?` − ${Math.abs(k)}`:` + ${k}`;
+const termH=(k,x)=>(k<0?' − ':' + ')+Math.abs(k)+' × '+pH(x);
+const vin=(nm,i,j)=>`<span class="nw"><span class="vn">${nm}</span><span class="vec"><span>{${i}}</span><span>{${j}}</span></span></span>`;
+/* animations communes */
+async function fireAll(list,ms){for(const b of list){if(!S.beams.includes(b))S.beams.push(b);await SC.fire(b,ms||520)}}
+async function sweep(kind,to,lab){const g={t:kind,x:0,y:0,lab:''};S.guides.push(g);await SC.tween(650,e=>{g[kind==='v'?'x':'y']=v(to)*e});g.lab=lab;SC.draw()}
+async function zoomOut(){await SC.tween(900,e=>{S.zoom=1-.76*e});await SC.sleep(1200);await SC.tween(700,e=>{S.zoom=.24+.76*e})}
+async function stepAnim(t){t.f1=0;t.f2=0;S.steps.push(t);await SC.tween(420,e=>{t.f1=e});await SC.tween(420,e=>{t.f2=e})}
+function hitAll(){S.sensors.forEach(s=>s.st='hit');G.SND.hit();SC.draw()}
+
+/* ============ Salle 1 · Premier rayon ============ */
+const CH15='Chapitre 15 · Droites du plan',CH17='Chapitre 17 · Systèmes d\'équations et droites';
+function aimQ(m,p,kind){const xs=[1,2,3,-1,-2,-3].filter(x=>Math.abs(m*x+p)<=4);const x2=pick(xs);
+  const sensors=[sens(0,p,'A'),sens(x2,m*x2+p,'B')];const eq=redH(m,p);
+  const why=st=>{if(st.p!==p)return `Ton rayon coupe l'axe des ordonnées au point (0&nbsp;; ${sgn(st.p)}). Dans ${eq}, l'<b>ordonnée à l'origine</b> est le nombre seul&nbsp;: p = ${sgn(p)}. Le rayon doit passer par A(0&nbsp;; ${sgn(p)}).`;
+    const now=st.m>0?`monte de ${st.m}`:st.m<0?`descend de ${-st.m}`:'garde la même hauteur',want=m>0?`monter de ${m}`:m<0?`descendre de ${-m}`:'garder la même hauteur';
+    return `Ton rayon passe bien par A. Mais quand x augmente de 1, il ${now}&nbsp;; d'après l'équation, il doit ${want}. La <b>pente</b> est le coefficient de x&nbsp;: m = ${sgn(m)}.`};
+  return{sensors,meta:{k:'aim',m,p,kind},shown:[eq],
+    prompt:`Mission&nbsp;: le rayon d doit suivre la droite d'équation ${e1(eq)}. Règle l'émetteur (p puis m), puis tire&nbsp;: il doit toucher les capteurs A et B.`,
+    setup(){S.sensors=sensors},cap0:capEq('d : '+eq),
+    parts:[{t:'aim',target:{m,p},start:{m:1,p:0},why,ask:'Règle p, puis m. Le pas bleu montre « avancer de 1 », le pas vertical « monter de m ».'}],
+    done:`${eq}&nbsp;: le rayon coupe l'axe des ordonnées en (0&nbsp;; ${sgn(p)}), c'est l'<b>ordonnée à l'origine</b> p&nbsp;; quand x augmente de 1, y ${m>0?'augmente':'diminue'} de ${Math.abs(m)}, c'est la <b>pente</b> (coefficient directeur) m = ${sgn(m)}.`}}
+LV.push({t:'Premier rayon',chap:CH15,
+ rule:`<p>Une droite non verticale a une <b>équation réduite</b> y = mx + p.</p><p><b>m</b> est la <b>pente</b> (ou coefficient directeur)&nbsp;: quand x augmente de 1, y augmente de m (diminue si m est négatif).</p><p><b>p</b> est l'<b>ordonnée à l'origine</b>&nbsp;: la droite coupe l'axe des ordonnées au point (0&nbsp;; p).</p><p>Une droite d'équation y = k est horizontale&nbsp;: sa pente est 0.</p>`,
+ qs:[
+ ()=>aimQ(pick([1,2,3]),pick([-3,-2,-1,1,2,3]),'pos'),
+ ()=>aimQ(pick([-1,-2,-3]),pick([-3,-2,-1,1,2,3]),'neg'),
+ ()=>{let m,p;do{m=pick([-3,-2,-1,1,2,3]);p=pick([-3,-2,-1,1,2,3])}while(m===p);const eq=redH(m,p),beam=bRed(m,p,C.l1,'d');
+  return{meta:{k:'read',m,p},shown:[eq],prompt:`Un rayon d est déjà allumé sur le mur. Trouve son équation réduite y = mx + p.`,
+   setup(){S.beams=[beam]},cap0:capEq('d : y = ? x + ?'),
+   parts:[act('Mesurer un pas du rayon',async()=>{S.sensors=[sens(0,p,'(0 ; ?)')];await stepAnim({x0:0,y0:p,dx:1,dy:m,lx:'+1',ly:(m>0?'+':'')+sgn(m)})},{ask:'Pars du point où le rayon coupe l\'axe des ordonnées et avance de 1.'}),
+     fill('Lis la pente et l\'ordonnée à l\'origine&nbsp;:',`<span class="row">pente m = {0}</span><span class="row">ordonnée à l'origine p = {1}</span>`,[m,p],
+       q=>Fx.eq(q[0],I(p))&&Fx.eq(q[1],I(m))?'Tu as échangé les deux nombres&nbsp;: la pente se lit sur le pas (avancer de 1, monter de m), l\'ordonnée à l\'origine est la hauteur où le rayon coupe l\'axe des ordonnées.'
+        :Fx.eq(q[0],I(-m))?`Attention au sens&nbsp;: en avançant de 1, le rayon ${m>0?'monte':'descend'}. La pente est donc ${m>0?'positive':'négative'}.`
+        :'La pente se lit sur le pas&nbsp;: avancer de 1, puis monter (ou descendre) de m. L\'ordonnée à l\'origine est la hauteur du point où le rayon coupe l\'axe des ordonnées.',
+       {onOk:async()=>{S.sensors[0].lab=`(0 ; ${sgn(p)})`;S.sensors[0].st='hit';beam.tag='d : '+eq;cap(capEq('d : '+eq));SC.draw()},note:' '})],
+   done:`d&nbsp;: ${eq}. Pente ${sgn(m)}, ordonnée à l'origine ${sgn(p)}.`}},
+ ()=>{const k=pick([-3,-2,-1,2,3]);const eq='y = '+sgn(k);const sensors=[sens(0,k,'A'),sens(pick([2,3,-2,-3]),k,'B')];
+  return{sensors,meta:{k:'horiz',p:k},shown:[eq],prompt:`Mission&nbsp;: le rayon doit suivre la droite d'équation ${e1(eq)}. Règle l'émetteur, tire, puis réponds.`,
+   setup(){S.sensors=sensors},cap0:capEq('d : '+eq),
+   parts:[{t:'aim',target:{m:0,p:k},start:{m:1,p:0},ask:'Règle p, puis m.',why:st=>st.p!==k?`Le rayon doit couper l'axe des ordonnées en (0&nbsp;; ${sgn(k)})&nbsp;: p = ${sgn(k)}.`:`Ce rayon ${st.m>0?'monte':'descend'}. Or tous les points de la droite ${eq} ont la même ordonnée ${sgn(k)}&nbsp;: le rayon ne monte pas, m = 0.`},
+     ch(`La pente de la droite d'équation ${eq} est&nbsp;:`,[OK('0','num:0'),NO(sgn(k),`${sgn(k)} est l'ordonnée à l'origine. On peut écrire ${eq} sous la forme y = 0 × x ${k<0?'−':'+'} ${Math.abs(k)}&nbsp;: la pente est 0.`,'num:'+k),
+       NO('1','Quand x augmente de 1, y ne change pas&nbsp;: la pente est 0, pas 1.','num:1'),NO('Elle n\'a pas de pente.','Une droite horizontale a une pente nulle. C\'est une droite <b>verticale</b> (x = n) qui n\'a pas d\'équation réduite y = mx + p.','none')])],
+   done:`${eq} s'écrit y = 0 × x ${k<0?'−':'+'} ${Math.abs(k)}&nbsp;: droite <b>horizontale</b>, de pente 0 et d'ordonnée à l'origine ${sgn(k)}.`}},
+ ()=>{let m,p;do{m=pick([-3,-2,-1,1,2,3]);p=pick([-4,-3,-2,-1,1,2,3,4])}while(m===p||m===-p);const eq=redH(m,p),beam=bRed(m,p,C.l1,'d');
+  return{meta:{k:'which',m,p},shown:[eq],prompt:`Quelle est l'équation du rayon d allumé sur le mur&nbsp;?`,setup(){S.beams=[beam]},cap0:capEq('d : ?'),
+   parts:[ch('Choisis l\'équation réduite de d&nbsp;:',[OK(eq,`red:${m},${p}`),
+     NO(redH(p,m),`Tu as échangé m et p. Le rayon coupe l'axe des ordonnées en (0&nbsp;; ${sgn(p)})&nbsp;: c'est p, le nombre seul. La pente m multiplie x.`,`red:${p},${m}`),
+     NO(redH(-m,p),`Regarde le sens&nbsp;: en avançant de 1, le rayon ${m>0?'monte':'descend'} de ${Math.abs(m)}, donc la pente est ${sgn(m)}.`,`red:${-m},${p}`),
+     NO(redH(m,-p),`Le rayon coupe l'axe des ordonnées ${p>0?'au-dessus':'au-dessous'} de l'origine, en (0&nbsp;; ${sgn(p)})&nbsp;: p = ${sgn(p)}.`,`red:${m},${-p}`)],
+     {onOk:async()=>{await stepAnim({x0:0,y0:p,dx:1,dy:m,lx:'+1',ly:(m>0?'+':'')+sgn(m)});beam.tag='d : '+eq;cap(capEq('d : '+eq));SC.draw()}})],
+   done:`Le rayon coupe l'axe des ordonnées en (0&nbsp;; ${sgn(p)}) et ${m>0?'monte':'descend'} de ${Math.abs(m)} à chaque pas de 1&nbsp;: ${eq}.`}}
+ ]});
+
+/* ============ Salle 2 · Capteurs (appartenance) ============ */
+function belongQ(on){let m,p,x,y;do{m=pick([-3,-2,-1,1,2,3]);p=pick([-3,-2,-1,1,2,3]);x=pick([-4,-3,-2,-1,1,2,3,4]);y=m*x+p}while(Math.abs(y)>3);
+  const ya=on?y:y+pick([-1,1]),eq=redH(m,p),A=sens(x,ya,'A'),beam=bRed(m,p,C.l1,'d');
+  return{sensors:[A],meta:{k:'belong',m,p,x,y:ya,on},shown:[eq],
+   prompt:`Le rayon ${e1('d : '+eq)} est allumé. Le capteur ${ptH('A',x,ya)} est-il sur sa trajectoire&nbsp;? Calcule avant de regarder.`,
+   setup(){S.beams=[beam];S.sensors=[A]},cap0:capEq('d : '+eq),
+   parts:[fill(`Pour x = ${sgn(x)}, le rayon passe à la hauteur&nbsp;:`,`${prodH(m,x)}${plusH(p)} = {0}`,[y],`On remplace x par ${sgn(x)} dans ${eq}&nbsp;: on calcule ${sgn(m)} × ${pH(x)} d'abord, puis on ajoute ${pH(p)}.`,
+      {onOk:async()=>{const g={t:'probe',x,y:0};S.guides.push(g);await SC.tween(600,e=>{g.y=y*e})},note:' '}),
+     ch('Le capteur A est-il touché&nbsp;?',[on?OK(`Oui&nbsp;: A appartient à d.`,'yes'):NO(`Oui&nbsp;: A appartient à d.`,`Le rayon passe à la hauteur ${sgn(y)}, mais A est à la hauteur ${sgn(ya)}&nbsp;: ${sgn(y)} ≠ ${sgn(ya)}.`,'yes'),
+       on?NO(`Non&nbsp;: A n'appartient pas à d.`,`La hauteur calculée vaut ${sgn(y)}, exactement l'ordonnée de A&nbsp;: les coordonnées de A vérifient l'équation.`,'no'):OK(`Non&nbsp;: A n'appartient pas à d.`,'no')],
+      {keep:true,onOk:async()=>{A.st=on?'hit':'miss';A.gap=on?null:y;if(on)G.SND.hit();SC.draw()}})],
+   done:on?`${sgn(m)} × ${pH(x)}${plusH(p)} = ${sgn(y)}&nbsp;: les coordonnées de A vérifient l'équation, donc A <b>appartient</b> à d.`
+     :`${sgn(m)} × ${pH(x)}${plusH(p)} = ${sgn(y)} et ${sgn(y)} ≠ ${sgn(ya)}&nbsp;: A <b>n'appartient pas</b> à d. Le rayon passe à côté.`}}
+LV.push({t:'Capteurs',chap:CH15,
+ rule:`<p>Un point M(x<sub>M</sub>&nbsp;; y<sub>M</sub>) appartient à une droite si et seulement si ses coordonnées <b>vérifient l'équation</b> de cette droite.</p><p>Pour d&nbsp;: y = 7x − 3 et A(6&nbsp;; 39)&nbsp;: 7 × 6 − 3 = 39, donc A ∈ d. Pour B(346&nbsp;; 2420)&nbsp;: 7 × 346 − 3 = 2419 ≠ 2420, donc B ∉ d.</p>`,
+ qs:[
+ ()=>belongQ(true),
+ ()=>belongQ(false),
+ ()=>{const m=ri(3,9),p=nz(-9,9),x=ri(40,400),on=Math.random()<.5,y=m*x+p,yb=on?y:y+pick([-2,-1,1,2]),eq=redH(m,p),B=sens(x,yb,'B');
+  return{sensors:[B],meta:{k:'belong',m,p,x,y:yb,on},shown:[eq],prompt:`Le rayon ${e1('d : '+eq)} file vers un capteur lointain ${ptH('B',x,yb)}. Il est bien trop loin pour le voir sur le mur&nbsp;: seul le calcul peut trancher.`,
+   setup(){S.beams=[bRed(m,p,C.l1,'d')];S.sensors=[B]},cap0:capEq('d : '+eq),
+   parts:[fill(`Pour x = ${x}, le rayon passe à la hauteur&nbsp;:`,`${m} × ${x}${plusH(p)} = {0}`,[y],`${m} × ${x} = ${m*x}, puis ${m*x}${plusH(p)}.`,{w:4.6,note:' '}),
+     ch('B appartient-il à d&nbsp;?',[on?OK('Oui','yes'):NO('Oui',`${sgn(y)} ≠ ${sgn(yb)}&nbsp;: il manque ${Math.abs(yb-y)} pour toucher B.`,'yes'),on?NO('Non',`La hauteur calculée est ${y}, exactement l'ordonnée de B.`,'no'):OK('Non','no'),
+       NO('Impossible de savoir sans le voir','Pas besoin de dessin&nbsp;: il suffit de vérifier si les coordonnées de B vérifient l\'équation.','?')],{keep:true,onOk:async()=>{B.st=on?'hit':'idle';if(on)G.SND.hit();SC.draw()}})],
+   done:on?`${m} × ${x}${plusH(p)} = ${y}&nbsp;: B ∈ d, même si on ne le voit pas sur le mur.`:`${m} × ${x}${plusH(p)} = ${y} ≠ ${yb}&nbsp;: B ∉ d. Le calcul tranche là où le dessin ne suffit plus.`}},
+ ()=>{let m,p,x,y;do{m=pick([-3,-2,-1,1,2,3,F(1,2),F(-1,2)]);p=pick([-3,-2,-1,1,2,3]);x=pick([-4,-3,-2,-1,1,2,3,4]);y=Fx.add(Fx.mul(toF(m),I(x)),I(p))}while(!Fx.isInt(y)||Math.abs(v(y))>4);
+  const eq=redH(m,p),C0=sens(x,y,'C'),beam=bRed(m,p,C.l1,'d');
+  return{sensors:[C0],meta:{k:'ord',m:R.fT(toF(m)),p,x,y:y.n},shown:[eq],prompt:`Le capteur C doit être placé sur le rayon ${e1('d : '+eq)}, à l'abscisse ${sgn(x)}. Quelle est son ordonnée&nbsp;?`,
+   setup(){S.beams=[beam];S.guides=[{t:'v',x,lab:'x = '+sgn(x),col:'#9fb4ff'}]},cap0:capEq('d : '+eq),
+   parts:[fill(`C(${sgn(x)}&nbsp;; ?) appartient à d, donc&nbsp;:`,`y<sub>C</sub> = ${Fx.isInt(toF(m))?prodH(v(m),x):fH(m)+' × '+pH(x)}${plusH(p)} = {0}`,[y],`On remplace x par ${sgn(x)} dans l'équation de d.`,
+     {onOk:async()=>{S.sensors=[C0];C0.lab=`C(${sgn(x)} ; ${sgn(y.n)})`;C0.st='hit';G.SND.hit();SC.draw()},note:' '})],
+   done:`C(${sgn(x)}&nbsp;; ${sgn(y.n)})&nbsp;: ses coordonnées vérifient l'équation, le capteur est sur le rayon.`}},
+ ()=>{let m,p,x,y;do{m=pick([-3,-2,-1,1,2,3]);p=pick([-3,-2,-1,1,2,3]);x=pick([-4,-3,-2,-1,1,2,3,4]);y=m*x+p}while(Math.abs(y)>4||y===0);
+  const eq=redH(m,p),D=sens(x,y,'D'),beam=bRed(m,p,C.l1,'d');
+  return{sensors:[D],meta:{k:'abs',m,p,x,y},shown:[eq],prompt:`Le capteur D est sur le rayon ${e1('d : '+eq)}, à la hauteur ${sgn(y)}. Quelle est son abscisse&nbsp;?`,
+   setup(){S.beams=[beam];S.guides=[{t:'h',y,lab:'y = '+sgn(y),col:'#9fb4ff'}]},cap0:capEq('d : '+eq),
+   parts:[fill(`D(?&nbsp;; ${sgn(y)}) appartient à d, donc ${linH([[m,'x'],[p,'']])} = ${sgn(y)}. On résout&nbsp;:`,`x<sub>D</sub> = {0}`,[x],
+     q=>Fx.eq(q[0],I(m*y+p))?'Tu as remplacé x par '+sgn(y)+'&nbsp;: mais ici, c\'est y qui vaut '+sgn(y)+'. Il faut résoudre l\'équation.':`Résous ${linH([[m,'x'],[p,'']])} = ${sgn(y)}&nbsp;: on ${p>0?'soustrait '+p:'ajoute '+(-p)}, puis on divise par ${pH(m)}.`,
+     {onOk:async()=>{S.sensors=[D];D.lab=`D(${sgn(x)} ; ${sgn(y)})`;D.st='hit';G.SND.hit();SC.draw()},note:' '})],
+   done:`${linH([[m,'x'],[p,'']])} = ${sgn(y)} donne ${linH([[m,'x']])} = ${sgn(y-p)}, puis x = ${sgn(x)}&nbsp;: D(${sgn(x)}&nbsp;; ${sgn(y)}).`}}
+ ]});
+
+/* ============ Salle 3 · Deux capteurs (pente par deux points) ============ */
+function twoPts(fr){for(let t=0;t<500;t++){let m,xA,xB;
+  if(!fr){m=I(pick([-3,-2,-1,1,2,3]));xA=ri(-4,3);xB=xA+pick([1,2,3])}
+  else{const [n,d]=pick([[1,2],[-1,2],[3,2],[-3,2],[2,3],[-2,3],[1,3],[-1,3]]);m=F(n,d);xA=d*ri(-2,1);xB=xA+d*pick([1,2])}
+  const p=I(ri(-3,3)),yA=Fx.add(Fx.mul(m,I(xA)),p),yB=Fx.add(Fx.mul(m,I(xB)),p);
+  if(Math.abs(xB)>5||Math.abs(xA)>5||!Fx.isInt(yA)||!Fx.isInt(yB)||Math.abs(yA.n)>4||Math.abs(yB.n)>4)continue;
+  return{m,p,xA,yA:yA.n,xB,yB:yB.n}}}
+function slopeQ(fr){const T=twoPts(fr),{m,p,xA,yA,xB,yB}=T,dx=xB-xA,dy=yB-yA,A=sens(xA,yA,'A'),B=sens(xB,yB,'B'),eq=redH(m,p),inv=Fx.z(I(dy))?null:F(dx,dy);
+  return{sensors:[A,B],meta:{k:'two',xA,yA,xB,yB},shown:[],prompt:`Deux capteurs ${ptH('A',xA,yA)} et ${ptH('B',xB,yB)} sont fixés au mur. Trouve l'équation réduite du rayon d qui les touche tous les deux.`,
+   setup(){S.sensors=[A,B]},cap0:capEq('d : y = ? x + ?'),
+   parts:[act('Mesurer le pas de A à B',async()=>{await stepAnim({x0:xA,y0:yA,dx,dy,lx:'+'+dx,ly:(dy>=0?'+':'')+sgn(dy)})},{ask:'De A à B, on avance de x<sub>B</sub> − x<sub>A</sub> et on monte de y<sub>B</sub> − y<sub>A</sub>.'}),
+    fill('Pente de la droite (AB)&nbsp;:',`m = ${slopeH(yB,yA,xB,xA)} = {0}`,[m],q=>inv&&Fx.eq(q[0],inv)?'Tu as inversé&nbsp;: la pente, c\'est la montée divisée par l\'avancée, (y<sub>B</sub> − y<sub>A</sub>) ÷ (x<sub>B</sub> − x<sub>A</sub>).'
+      :Fx.eq(q[0],Fx.neg(m))?`Attention aux signes&nbsp;: y<sub>B</sub> − y<sub>A</sub> = ${sgn(dy)} et x<sub>B</sub> − x<sub>A</sub> = ${sgn(dx)}.`:`Calcule y<sub>B</sub> − y<sub>A</sub> = ${sgn(dy)} et x<sub>B</sub> − x<sub>A</sub> = ${sgn(dx)}, puis divise. Simplifie si possible.`),
+    fill(`A est sur d, donc y<sub>A</sub> = m × x<sub>A</sub> + p&nbsp;:`,`${sgn(yA)} = ${fH(m)} × ${pH(xA)} + p, &nbsp;donc&nbsp; p = {0}`,[p],`Calcule ${fH(m)} × ${pH(xA)} = ${fH(Fx.mul(m,I(xA)))}, puis p = ${sgn(yA)} − ${pH(Fx.mul(m,I(xA)))}.`,
+      {onOk:async()=>{const b=bRed(m,p,C.l1,'d : '+eq,0);S.steps=[];await fireAll([b]);hitAll();cap(capEq('d : '+eq))}})],
+   done:`m = ${fH(F(dy,dx))} et p = ${fH(p)}&nbsp;: d a pour équation ${eq}. Les coordonnées de A et de B la vérifient.`}}
+LV.push({t:'Deux capteurs',chap:CH15,
+ rule:`<p>Si A(x<sub>A</sub>&nbsp;; y<sub>A</sub>) et B(x<sub>B</sub>&nbsp;; y<sub>B</sub>) sont deux points distincts d'une droite avec x<sub>A</sub> ≠ x<sub>B</sub>, sa pente est <span class="nw">m = <span class="fr"><span>y<sub>B</sub> − y<sub>A</sub></span><span>x<sub>B</sub> − x<sub>A</sub></span></span>.</span></p><p>On trouve ensuite p en écrivant que A appartient à la droite&nbsp;: y<sub>A</sub> = m x<sub>A</sub> + p.</p><p>Si x<sub>A</sub> = x<sub>B</sub>, la droite est <b>verticale</b>&nbsp;: elle a une équation de la forme x = n (pas d'équation réduite y = mx + p).</p>`,
+ qs:[
+ ()=>slopeQ(false),
+ ()=>slopeQ(true),
+ ()=>{let m,xA,yA;do{m=pick([-3,-2,2,3]);xA=ri(-2,4);yA=ri(-4,4)}while(Math.abs(yA-2*m)>4||xA-2<-5);const xB=xA-2,yB=yA-2*m,p=yA-m*xA,eq=redH(m,p),A=sens(xA,yA,'A'),B=sens(xB,yB,'B');
+  return{sensors:[A,B],meta:{k:'slopeq',xA,yA,xB,yB},shown:[],prompt:`Capteurs ${ptH('A',xA,yA)} et ${ptH('B',xB,yB)}. Cette fois, B est à gauche de A&nbsp;: attention aux signes.`,
+   setup(){S.sensors=[A,B]},cap0:capEq('d : y = ? x + ?'),
+   parts:[ch('La pente de la droite (AB) est&nbsp;:',[OK(`m = ${sgn(m)}`,'num:'+m),NO(`m = ${fH(F(1,m))}`,'Tu as inversé&nbsp;: la pente, c\'est (y<sub>B</sub> − y<sub>A</sub>) ÷ (x<sub>B</sub> − x<sub>A</sub>), la montée divisée par l\'avancée.','num:'+R.fT(F(1,m))),
+      NO(`m = ${sgn(-m)}`,`B est à gauche de A&nbsp;: x<sub>B</sub> − x<sub>A</sub> = −2. Le dénominateur est négatif, n'oublie pas son signe.`,'num:'+(-m)),
+      NO(`m = ${sgn(yB-yA)}`,`${sgn(yB-yA)} est seulement la différence des ordonnées&nbsp;: il faut encore la diviser par x<sub>B</sub> − x<sub>A</sub> = −2.`,'num:'+(yB-yA))],
+     {onOk:async()=>{await stepAnim({x0:xA,y0:yA,dx:-2,dy:yB-yA,lx:'−2',ly:(yB-yA>=0?'+':'')+sgn(yB-yA)})}}),
+    fill(`A est sur d, donc y<sub>A</sub> = m × x<sub>A</sub> + p&nbsp;:`,`${sgn(yA)} = ${sgn(m)} × ${pH(xA)} + p, &nbsp;donc&nbsp; p = {0}`,[p],`${sgn(m)} × ${pH(xA)} = ${sgn(m*xA)}, donc p = ${sgn(yA)} − ${pH(m*xA)}.`,
+     {onOk:async()=>{const b=bRed(m,p,C.l1,'d : '+eq,0);S.steps=[];await fireAll([b]);hitAll();cap(capEq('d : '+eq))},note:' '})],
+   done:`m = <span class="fr"><span>${sgn(yB)} − ${pH(yA)}</span><span>${sgn(xB)} − ${pH(xA)}</span></span> = <span class="fr"><span>${sgn(yB-yA)}</span><span>−2</span></span> = ${sgn(m)}, puis p = ${sgn(p)}&nbsp;: ${eq}.`}},
+ ()=>{let n,y1,y2;do{n=pick([-4,-3,-2,-1,1,2,3,4]);y1=ri(-4,4);y2=ri(-4,4)}while(y1===y2||y1===n||y1===0);const A=sens(n,y1,'A'),B=sens(n,y2,'B');
+  return{sensors:[A,B],meta:{k:'vert',n,y1,y2},shown:[],prompt:`Capteurs ${ptH('A',n,y1)} et ${ptH('B',n,y2)}&nbsp;: ils ont la même abscisse.`,
+   setup(){S.sensors=[A,B]},cap0:capEq('d : ?'),
+   parts:[ch('Une équation de la droite (AB) est&nbsp;:',[OK(vertH(n),'vert:'+n),NO('y = '+sgn(n),'Une droite y = k est horizontale. Ici A et B sont l\'un au-dessus de l\'autre&nbsp;: tous les points ont la même <b>abscisse</b>.','red:0,'+n),
+      NO(redH(n,0),`x<sub>A</sub> = x<sub>B</sub>, donc la formule de la pente divise par 0&nbsp;: la droite n'a pas d'équation réduite. Elle est verticale.`,'red:'+n+',0'),
+      NO(vertH(y1),`${sgn(y1)} est l'ordonnée de A&nbsp;; une droite verticale x = n regroupe les points d'<b>abscisse</b> n.`,'vert:'+y1)],
+     {onOk:async()=>{const b=bCart(1,0,-n,C.l1,'d : '+vertH(n),0);await fireAll([b]);hitAll();cap(capEq('d : '+vertH(n)))}})],
+   done:`x<sub>A</sub> = x<sub>B</sub> = ${sgn(n)}&nbsp;: la droite est <b>verticale</b>, d'équation ${vertH(n)}. Elle n'a pas d'équation réduite y = mx + p.`}},
+ ()=>{let xA,yA,xB,yB;do{xA=ri(-4,4);yA=ri(-4,4);xB=ri(-4,4);yB=ri(-4,4)}while(xA===xB||yA===yB||Math.abs(xB-xA)<2||Fx.isInt(F(yB-yA,xB-xA))&&Math.random()<.6||Math.abs(F(yB-yA,xB-xA).d)>4);
+  const m=F(yB-yA,xB-xA),p=Fx.sub(I(yA),Fx.mul(m,I(xA))),eq=redH(m,p),A=sens(xA,yA,'A'),B=sens(xB,yB,'B');
+  return{sensors:[A,B],meta:{k:'two',xA,yA,xB,yB},shown:[],prompt:`Dernière porte de la salle&nbsp;: capteurs ${ptH('A',xA,yA)} et ${ptH('B',xB,yB)}. Donne l'équation réduite du rayon (AB).`,
+   setup(){S.sensors=[A,B]},cap0:capEq('d : y = ? x + ?'),
+   parts:[fill('Équation réduite y = mx + p de (AB)&nbsp;:',`<span class="row">m = {0}</span><span class="row">p = {1}</span>`,[m,p],
+     q=>!Fx.eq(q[0],m)?`Commence par la pente&nbsp;: m = (y<sub>B</sub> − y<sub>A</sub>) ÷ (x<sub>B</sub> − x<sub>A</sub>) = ${sgn(yB-yA)} ÷ ${pH(xB-xA)}.`:`La pente est juste. Pour p, écris que A est sur la droite&nbsp;: ${sgn(yA)} = ${fH(m)} × ${pH(xA)} + p.`,
+     {onOk:async()=>{await stepAnim({x0:xA,y0:yA,dx:xB-xA,dy:yB-yA,lx:(xB-xA>0?'+':'')+sgn(xB-xA),ly:(yB-yA>=0?'+':'')+sgn(yB-yA)});const b=bRed(m,p,C.l1,'d : '+eq,0);await fireAll([b]);hitAll();cap(capEq('d : '+eq))}})],
+   done:`m = <span class="fr"><span>${sgn(yB-yA)}</span><span>${sgn(xB-xA)}</span></span> = ${fH(m)} et p = ${fH(p)}&nbsp;: (AB)&nbsp;: ${eq}.`}}
+ ]});
+
+/* ============ Salle 4 · Le code cartésien ============ */
+function cartCoefs(){let a,b,c;do{a=nz(-5,5);b=nz(-5,5);c=ri(-6,6)}while(Math.abs(a)===Math.abs(b)||gcd(gcd(a,b),c)!==1);return{a,b,c}}
+function ptOn(a,b,c,ux,uy){/* point de la droite d'équation ax + by + c = 0, si possible à coordonnées entières et dans le mur avec la flèche */
+  const cands=[];for(let x=-4;x<=4;x++){if(b===0)break;const y=F(-(a*x+c),b);cands.push({x:I(x),y})}
+  if(b===0)for(let y=-3;y<=3;y++)cands.push({x:F(-c,a),y:I(y)});
+  const good=cands.filter(P=>inWin(P.x,P.y)&&(ux===undefined||Math.abs(v(P.x)+ux)<=5.4&&Math.abs(v(P.y)+uy)<=4.5));
+  const ints=good.filter(P=>Fx.isInt(P.x)&&Fx.isInt(P.y));return (ints.length?pick(ints):good.length?good[0]:cands[0])}
+async function drawVec(P,ux,uy,eq){const A=sens(P.x,P.y,'A');S.sensors=[A];SC.draw();await SC.sleep(250);const V={x0:v(P.x),y0:v(P.y),ux,uy,f:0,lab:'u⃗'};S.vecs.push(V);
+  await SC.tween(600,e=>{V.f=e});const b={L:{a:uy,b:-ux,c:-(uy*v(P.x)-ux*v(P.y))},col:C.l1,tag:'d : '+eq,f:0,tagAt:.16};await fireAll([b]);hitAll();cap(capEq('d : '+eq))}
+LV.push({t:'Le code cartésien',chap:CH15,
+ rule:`<p>Toute droite a une <b>équation cartésienne</b> ax + by + c = 0, avec (a&nbsp;; b) ≠ (0&nbsp;; 0).</p><p>Un <b>vecteur directeur</b> est un vecteur non nul ayant la même direction que la droite. Si la droite a pour équation ax + by + c = 0, alors <span class="nw"><span class="vn">u⃗</span><span class="vec"><span>−b</span><span>a</span></span></span> est un vecteur directeur.</p><p>Équation cartésienne → réduite&nbsp;: on isole y. Réduite → cartésienne&nbsp;: on ramène tous les termes dans le membre de gauche.</p><p>Si b = 0, l'équation devient ax + c = 0&nbsp;: la droite est verticale, x = −c/a.</p>`,
+ qs:[
+ ()=>{const {a,b,c}=cartCoefs(),eq=cartH(a,b,c);
+  return{meta:{k:'dir',a,b,c},shown:[eq],prompt:`Le code de la porte est l'équation cartésienne ${e1(eq)}. L'émetteur demande un <b>vecteur directeur</b>.`,
+   setup(){},cap0:capEq('d : '+eq),
+   parts:[fill(`Pour ax + by + c = 0, le cours donne <span class="nw"><span class="vn">u⃗</span><span class="vec"><span>−b</span><span>a</span></span></span>. Ici <span class="nw">a = ${sgn(a)}</span> et <span class="nw">b = ${sgn(b)}</span>&nbsp;:`,vin('u⃗',0,1),[-b,a],
+     q=>Fx.eq(q[0],I(a))&&Fx.eq(q[1],I(b))?'Tu as recopié (a&nbsp;; b). Le cours donne (−b&nbsp;; a)&nbsp;: en haut l\'opposé de b, en bas a.'
+      :Fx.eq(q[0],I(b))&&Fx.eq(q[1],I(-a))?`(${sgn(b)}&nbsp;; ${sgn(-a)}) est l'opposé de (${sgn(-b)}&nbsp;; ${sgn(a)})&nbsp;: c'est aussi un vecteur directeur&nbsp;! Mais ici, on attend celui du cours, (−b&nbsp;; a).`
+      :`En haut&nbsp;: −b = −(${sgn(b)}) = ${sgn(-b)}. En bas&nbsp;: a = ${sgn(a)}.`,{note:' ',w:3.2,onOk:async()=>{const P=ptOn(a,b,c,-b,a);await drawVec(P,-b,a,eq)}})],
+   done:`${vecH('u⃗',-b,a)} dirige d&nbsp;: le rayon part de A et suit la flèche.`}},
+ ()=>{let a,b,c;do{a=ri(1,5);b=nz(-5,5);c=nz(-8,8)}while(Math.abs(c/b)>4||Math.abs(a)===Math.abs(b)||gcd(gcd(a,b),c)!==1);const eq=cartH(a,b,c),y0=F(-c,b);
+  return{meta:{k:'trace',a,b,c},shown:[eq],prompt:`Pour tracer ${e1(eq)}, il faut un point et un vecteur directeur.`,setup(){},cap0:capEq('d : '+eq),
+   parts:[fill(`Un point&nbsp;: si x = 0, alors ${linH([[b,'y'],[c,'']])} = 0, donc&nbsp;:`,'y = {0}',[y0],q=>Fx.eq(q[0],Fx.neg(y0))?`Attention au signe&nbsp;: ${linH([[b,'y']])} = ${sgn(-c)}.`:`${linH([[b,'y']])} = ${sgn(-c)}, puis on divise par ${pH(b)}.`),
+    fill('Un vecteur directeur (−b&nbsp;; a)&nbsp;:',vin('u⃗',0,1),[-b,a],q=>Fx.eq(q[0],I(a))&&Fx.eq(q[1],I(b))?'C\'est (−b&nbsp;; a), pas (a&nbsp;; b).':`−b = ${sgn(-b)} et a = ${sgn(a)}.`,{note:' ',w:3.2,onOk:async()=>{await drawVec({x:I(0),y:y0},-b,a,eq)}})],
+   done:`Le point A(0&nbsp;; ${fH(y0)}) et le vecteur ${vecH('u⃗',-b,a)} suffisent pour tracer d.`}},
+ ()=>{let xA,yA,al,be;do{xA=ri(-3,3);yA=ri(-3,3);al=nz(-3,3);be=nz(-4,4)}while(Math.abs(al)===Math.abs(be)||!inWin(xA+al,yA+be));
+  const a=be,b=-al,c=-(a*xA+b*yA),eq=cartH(a,b,c);
+  return{meta:{k:'eqpv',xA,yA,al,be},shown:[],prompt:`Le rayon d doit passer par ${ptH('A',xA,yA)} avec le vecteur directeur ${vecH('u⃗',al,be)}. Trouve son équation cartésienne ax + by + c = 0.`,
+   setup(){S.sensors=[sens(xA,yA,'A')];S.vecs=[{x0:xA,y0:yA,ux:al,uy:be,lab:'u⃗'}]},cap0:capEq('d : ? = 0'),
+   parts:[fill(`On veut (−b&nbsp;; a) = (${sgn(al)}&nbsp;; ${sgn(be)}). On prend donc&nbsp;:`,'<span class="row">a = {0}</span><span class="row">b = {1}</span>',[a,b],
+      q=>Fx.eq(q[0],I(al))?'a est la composante du <b>bas</b>&nbsp;: a = '+sgn(be)+'.':`−b = ${sgn(al)}, donc b = ${sgn(-al)}.`),
+    fill(`L'équation est ${linH([[a,'x'],[b,'y']])} + c = 0 et A est sur d&nbsp;:`,`${sgn(a)} × ${pH(xA)}${termH(b,yA)} + c = 0, &nbsp;donc&nbsp; c = {0}`,[c],
+      `${sgn(a)} × ${pH(xA)}${termH(b,yA)} = ${sgn(a*xA+b*yA)}&nbsp;; il faut ${sgn(a*xA+b*yA)} + c = 0.`,
+      {note:' ',onOk:async()=>{const bm={L:{a,b,c},col:C.l1,tag:'d : '+eq,f:0};await fireAll([bm]);hitAll();cap(capEq('d : '+eq))}})],
+   done:`d&nbsp;: ${eq}. Les coordonnées de A la vérifient et ${vecH('u⃗',al,be)} = ${vecH('',-b,a)} la dirige.`}},
+ ()=>{let a,b,c,m,p;do{a=nz(-6,6);b=pick([-4,-3,-2,-1,1,2,3,4]);c=ri(-9,9);m=F(-a,b);p=F(-c,b)}while(gcd(gcd(a,b),c)!==1||Math.abs(v(p))>4||b===1&&Math.random()<.7);
+  const eq=cartH(a,b,c),req=redH(m,p);
+  return{meta:{k:'tored',a,b,c},shown:[eq],prompt:`Le rayon ${e1('d : '+eq)} est allumé. Le tableau de bord ne lit que les équations réduites&nbsp;: convertis.`,
+   setup(){S.beams=[bCart(a,b,c,C.l1,'d')]},cap0:capEq('d : '+eq),
+   parts:[fill(`On isole y&nbsp;: ${linH([[b,'y']])} = ${linH([[-a,'x'],[-c,'']])}, puis on divise par ${pH(b)}. Donc y = mx + p avec&nbsp;:`,'<span class="row">m = {0}</span><span class="row">p = {1}</span>',[m,p],
+     q=>Fx.eq(q[0],F(a,b))?`Attention&nbsp;: en passant ${linH([[a,'x']])} de l'autre côté, son signe change. ${linH([[b,'y']])} = ${linH([[-a,'x'],[-c,'']])}.`
+       :b<0?`On divise <b>chaque terme</b> par ${pH(b)}, un nombre négatif&nbsp;: les signes changent.`:`On divise chaque terme par ${b}&nbsp;: m = ${fH(I(-a))} ÷ ${b} et p = ${fH(I(-c))} ÷ ${b}.`,
+     {onOk:async()=>{S.beams[0].tag='d';cap(capEq('d : '+eq+' ⟺ '+req));const b2={L:{a:v(m),b:-1,c:v(p)},col:C.l3,f:0,w:.6};await fireAll([b2]);await SC.sleep(500);S.beams.pop();SC.draw()}})],
+   done:`${eq} ⟺ ${req}. C'est la même droite&nbsp;: le rayon n'a pas bougé d'un millimètre.`}},
+ ()=>{const a=pick([-5,-4,-3,-2,2,3,4,5]),k=pick([-4,-3,-2,-1,1,2,3,4]),c=-a*k,eq=cartH(a,0,c);
+  return{meta:{k:'vcart',a,c},shown:[eq],prompt:`Code de la porte&nbsp;: ${e1(eq)}. Il n'y a pas de y dans cette équation.`,setup(){},cap0:capEq('d : '+eq),
+   parts:[ch('Cette droite&nbsp;:',[OK(`est verticale, d'équation ${vertH(k)}`,'vert:'+k),NO(`est verticale, d'équation ${vertH(-k)}`,`${linH([[a,'x']])} = ${sgn(-c)}, donc x = ${sgn(-c)} ÷ ${pH(a)} = ${sgn(k)}.`,'vert:'+(-k)),
+     NO(`est horizontale, d'équation y = ${sgn(k)}`,'Ici b = 0&nbsp;: c\'est y qui a disparu. Tous les points ont la même <b>abscisse</b>&nbsp;: la droite est verticale.','red:0,'+k),
+     NO(`a pour équation réduite ${redH(a,c)}`,'Il n\'y a pas de y&nbsp;: on ne peut pas isoler y. Une droite verticale n\'a pas d\'équation réduite.','red:'+a+','+c)],
+    {onOk:async()=>{const b=bCart(1,0,-k,C.l1,'d : '+vertH(k),0);await fireAll([b]);cap(capEq('d : '+eq+' ⟺ '+vertH(k)))}})],
+   done:`b = 0&nbsp;: ${linH([[a,'x']])} = ${sgn(-c)}, donc ${vertH(k)}. La droite est parallèle à l'axe des ordonnées.`}}
+ ]});
+
+/* ============ Salle 5 · Parallèles ou sécantes ============ */
+const POS=[['par','Parallèles (aucun point commun)'],['sec','Sécantes (un seul point commun)'],['conf','Confondues (la même droite)']];
+function posCh(truth,why){return POS.map(([k,h])=>k===truth?OK(h,'pos:'+k):NO(h,why[k],'pos:'+k))}
+async function showPos(b1,b2,kind,I0){await fireAll([b1,b2]);
+  if(kind==='sec'&&I0){S.cross={x:v(I0.x),y:v(I0.y),st:'ok',lab:'I'};G.SND.hit();SC.draw()}
+  if(kind==='par'){cap('<span class="m">Vue de loin… les rayons ne se croisent jamais.</span>');await zoomOut()}
+  if(kind==='conf'){b2.dash='10 12';SC.draw()}}
+function genSys(kind,sol){/* deux équations a x + b y = k (entiers) selon le cas */
+  for(let t=0;t<800;t++){const a1=nz(-5,5),b1=nz(-5,5);if(gcd(a1,b1)!==1)continue;
+    const x0=sol?sol.x:ri(-3,3),y0=sol?sol.y:ri(-3,3),k1=a1*x0+b1*y0;
+    if(kind==='sec'){const a2=nz(-5,5),b2=nz(-5,5);if(a1*b2-a2*b1===0)continue;return{a1,b1,k1,a2,b2,k2:a2*x0+b2*y0}}
+    const s=pick([-3,-2,2,3]);if(kind==='conf')return{a1,b1,k1,a2:s*a1,b2:s*b1,k2:s*k1};
+    const k2=s*k1+pick([-3,-2,-1,1,2,3]);return{a1,b1,k1,a2:s*a1,b2:s*b1,k2}}}
+LV.push({t:'Parallèles ?',chap:'Chapitres 15 et 17 · Droites et systèmes',
+ rule:`<p>Deux droites d'équations réduites y = mx + p et y = m′x + p′ sont <b>parallèles</b> si et seulement si m = m′. Si les pentes sont différentes, elles sont <b>sécantes</b>.</p><p>Avec des équations cartésiennes&nbsp;: les droites sont parallèles si et seulement si leurs vecteurs directeurs sont <b>colinéaires</b>, c'est-à-dire si leur déterminant est nul&nbsp;: <span class="nw">det(u⃗, v⃗) = x<sub>u</sub> y<sub>v</sub> − y<sub>u</sub> x<sub>v</sub></span>.</p><p>Un système de deux équations a une seule solution (droites sécantes), aucune solution (strictement parallèles) ou une infinité de solutions (confondues).</p>`,
+ qs:[
+ ()=>{const m=pick([-3,-2,-1,1,2,3]);let p1,p2;do{p1=ri(-4,4);p2=ri(-4,4)}while(p1===p2);const q1=redH(m,p1),q2=redH(m,p2),b1=bRed(m,p1,C.l1,'d₁',0),b2=bRed(m,p2,C.l2,'d₂',0);
+  return{meta:{k:'pos',L1:[m,-1,p1],L2:[m,-1,p2]},shown:[q1,q2],prompt:`Deux émetteurs&nbsp;: ${e1('d₁ : '+q1)} et ${e2('d₂ : '+q2)}. Vont-ils se croiser&nbsp;?`,setup(){},cap0:capEq('d₁ : '+q1,'d₂ : '+q2),
+   parts:[ch('Les droites d₁ et d₂ sont&nbsp;:',posCh('par',{sec:`Elles ont la même pente m = ${sgn(m)}&nbsp;: elles ont la même direction et ne se coupent pas.`,conf:`Les ordonnées à l'origine sont différentes (${sgn(p1)} ≠ ${sgn(p2)})&nbsp;: ce sont deux droites distinctes.`}),
+     {keep:true,onOk:()=>showPos(b1,b2,'par')})],
+   done:`Même pente (${sgn(m)}) et ordonnées à l'origine différentes&nbsp;: d₁ et d₂ sont <b>strictement parallèles</b>.`}},
+ ()=>{let m1,m2,p1,p2,X0;do{m1=pick([-3,-2,-1,0,1,2,3]);m2=pick([-3,-2,-1,1,2,3]);p1=ri(-3,3);p2=ri(-3,3);X0=m1!==m2?F(p2-p1,m1-m2):null}while(m1===m2||!inWin(X0,Fx.add(Fx.mul(I(m1),X0),I(p1))));
+  const q1=redH(m1,p1),q2=redH(m2,p2),b1=bRed(m1,p1,C.l1,'d₁',0),b2=bRed(m2,p2,C.l2,'d₂',0),I0={x:X0,y:Fx.add(Fx.mul(I(m1),X0),I(p1))};
+  return{meta:{k:'pos',L1:[m1,-1,p1],L2:[m2,-1,p2]},shown:[q1,q2],prompt:`Deux émetteurs&nbsp;: ${e1('d₁ : '+q1)} et ${e2('d₂ : '+q2)}. Vont-ils se croiser&nbsp;?`,setup(){},cap0:capEq('d₁ : '+q1,'d₂ : '+q2),
+   parts:[ch('Les droites d₁ et d₂ sont&nbsp;:',posCh('sec',{par:`Les pentes sont différentes (${sgn(m1)} ≠ ${sgn(m2)})&nbsp;: les droites ne sont pas parallèles.`,conf:`Les pentes sont différentes&nbsp;: ce ne peut pas être la même droite.`}),
+     {keep:true,onOk:()=>showPos(b1,b2,'sec',I0)})],
+   done:`Pentes différentes (${sgn(m1)} ≠ ${sgn(m2)})&nbsp;: d₁ et d₂ sont <b>sécantes</b>&nbsp;; elles se coupent en un seul point.`}},
+ ()=>{const kind=pick(['par','sec']);let a1,b1,c1,a2,b2,c2;
+  for(;;){const a0=nz(-4,4),b0=nz(-4,4);if(gcd(a0,b0)!==1)continue;const s1=pick([-3,-2,-1,1,2,3]);a1=s1*a0;b1=s1*b0;c1=ri(-6,6);
+    if(kind==='par'){let s2;do{s2=pick([-3,-2,-1,1,2,3])}while(s2===s1);a2=s2*a0;b2=s2*b0;c2=ri(-6,6);if(c2*s1===c1*s2)continue}
+    else{a2=nz(-5,5);b2=nz(-5,5);c2=ri(-6,6);if(a1*b2-a2*b1===0)continue}
+    if(Math.abs(a1)>9||Math.abs(b1)>9)continue;break}
+  const q1=cartH(a1,b1,c1),q2=cartH(a2,b2,c2),det=(-b1)*a2-a1*(-b2),L1=R.Lcart(a1,b1,c1),L2=R.Lcart(a2,b2,c2),I0=R.cross(L1,L2);
+  const B1=bCart(a1,b1,c1,C.l1,'d₁',0),B2=bCart(a2,b2,c2,C.l2,'d₂',0);
+  return{meta:{k:'det',L1:[a1,b1,c1],L2:[a2,b2,c2]},shown:[q1,q2],prompt:`Équations cartésiennes&nbsp;: ${e1('d₁ : '+q1)} et ${e2('d₂ : '+q2)}. Le testeur de colinéarité est prêt.`,setup(){},cap0:capEq('d₁ : '+q1,'d₂ : '+q2),
+   parts:[fill('Vecteurs directeurs (−b&nbsp;; a) de d₁ et d₂&nbsp;:',vin('u⃗₁',0,1)+' &nbsp; '+vin('u⃗₂',2,3),[-b1,a1,-b2,a2],'Pour chaque droite, en haut −b, en bas a. Attention aux signes.',{w:3,note:' '}),
+    fill('Déterminant de ces deux vecteurs&nbsp;:',`det = ${pH(-b1)} × ${pH(a2)} − ${pH(a1)} × ${pH(-b2)} = {0}`,[det],`Calcule ${pH(-b1)} × ${pH(a2)} = ${sgn(-b1*a2)} puis ${pH(a1)} × ${pH(-b2)} = ${sgn(-a1*b2)}, et soustrais.`,{w:3.4,note:' '}),
+    ch(`Le déterminant vaut ${sgn(det)}. Les droites sont donc&nbsp;:`,[kind==='par'?OK('parallèles','pos:par'):NO('parallèles','Le déterminant n\'est pas nul&nbsp;: les vecteurs ne sont pas colinéaires.','pos:par'),
+      kind==='sec'?OK('sécantes','pos:sec'):NO('sécantes','Déterminant nul&nbsp;: les vecteurs directeurs sont colinéaires, les droites sont parallèles.','pos:sec'),
+      NO('on ne peut pas savoir sans tracer','Le déterminant suffit&nbsp;: nul ⟺ vecteurs colinéaires ⟺ droites parallèles.','?')],{keep:true,onOk:()=>showPos(B1,B2,kind,I0)})],
+   done:kind==='par'?`det = 0&nbsp;: ${vecH('u⃗₁',-b1,a1)} et ${vecH('u⃗₂',-b2,a2)} sont colinéaires, d₁ et d₂ sont <b>parallèles</b>.`:`det = ${sgn(det)} ≠ 0&nbsp;: les vecteurs directeurs ne sont pas colinéaires, d₁ et d₂ sont <b>sécantes</b>.`}},
+ ()=>{const kind=pick(['par','sec','conf']),s=genSys(kind),q1=eqH(s.a1,s.b1,s.k1),q2=eqH(s.a2,s.b2,s.k2),L1=R.Leq(s.a1,s.b1,s.k1),L2=R.Leq(s.a2,s.b2,s.k2),I0=R.cross(L1,L2);
+  const B1=bCart(s.a1,s.b1,-s.k1,C.l1,'d₁',0),B2=bCart(s.a2,s.b2,-s.k2,C.l2,'d₂',0),truth={par:'0',sec:'1',conf:'inf'}[kind];
+  const L=[['0','Aucune solution'],['1','Une unique solution'],['inf','Une infinité de solutions']];
+  const why={'0':'Il y a au moins un point commun&nbsp;: compare les équations réduites des deux droites.','1':kind==='par'?'Les deux droites ont la même pente&nbsp;: elles ne se coupent pas en un seul point.':'Les deux équations décrivent la même droite&nbsp;: elle a une infinité de points.','inf':kind==='par'?'Même pente mais ordonnées à l\'origine différentes&nbsp;: les droites sont distinctes.':'Les pentes sont différentes&nbsp;: un seul point commun.'};
+  return{meta:{k:'nsol',L1:[s.a1,s.b1,-s.k1],L2:[s.a2,s.b2,-s.k2]},shown:[q1,q2],prompt:`Chaque équation du système est un rayon&nbsp;: ${sysH(e1(q1),e2(q2))} Combien de solutions&nbsp;?`,setup(){},cap0:capEq('d₁ : '+q1,'d₂ : '+q2),
+   parts:[ch('Ce système a&nbsp;:',L.map(([k,h])=>k===truth?OK(h,'n:'+k):NO(h,why[k],'n:'+k)),{keep:true,ask:'Astuce&nbsp;: écris chaque équation sous forme réduite y = mx + p.',onOk:()=>showPos(B1,B2,kind,I0)})],
+   done:kind==='sec'?'Pentes différentes&nbsp;: les rayons se croisent en un point, le système a <b>une unique solution</b>.':kind==='par'?'Même pente, ordonnées à l\'origine différentes&nbsp;: rayons parallèles, <b>aucune solution</b> (𝒮 = ∅).':`La seconde équation est la première multipliée par ${sgn(s.a2/s.a1)}&nbsp;: c'est le même rayon, <b>une infinité de solutions</b>.`}},
+ ()=>{const kind=pick(['par','sec','conf']);let m1,p1,a,b,c;
+  for(;;){m1=pick([-3,-2,-1,1,2,3,F(1,2),F(-1,2),F(3,2)]);p1=ri(-3,3);b=pick([-3,-2,2,3,4]);const mm=toF(m1);
+    let m2=kind==='sec'?pick([-3,-2,-1,1,2,3,F(1,2),F(-3,2)]):mm,p2=kind==='conf'?I(p1):kind==='par'?I(p1+pick([-2,-1,1,2])):I(ri(-3,3));m2=toF(m2);
+    if(kind==='sec'&&Fx.eq(m2,mm))continue;const A=Fx.mul(m2,I(-b)),Cc=Fx.mul(p2,I(-b));if(!Fx.isInt(A)||!Fx.isInt(Cc)||A.n===0)continue;a=A.n;c=Cc.n;
+    if(kind==='sec'){const X0=R.cross(R.Lred(mm,I(p1)),R.Lcart(a,b,c));if(!X0||!inWin(X0.x,X0.y))continue}break}
+  const q1=redH(m1,p1),q2=cartH(a,b,c),m2=F(-a,b),L1=R.Lred(toF(m1),I(p1)),L2=R.Lcart(a,b,c),I0=R.cross(L1,L2);
+  const B1=bRed(m1,p1,C.l1,'d₁',0),B2=bCart(a,b,c,C.l2,'d₂',0);
+  return{meta:{k:'pos',L1:[R.fT(toF(m1)),-1,p1],L2:[a,b,c]},shown:[q1,q2],prompt:`Un rayon réduit, un rayon cartésien&nbsp;: ${e1('d₁ : '+q1)} et ${e2('d₂ : '+q2)}.`,setup(){},cap0:capEq('d₁ : '+q1,'d₂ : '+q2),
+   parts:[fill('Isole y dans l\'équation de d₂ pour lire sa pente&nbsp;:','m₂ = {0}',[m2],`${linH([[b,'y']])} = ${linH([[-a,'x'],[-c,'']])}, puis divise par ${pH(b)}.`),
+    ch('Les droites d₁ et d₂ sont&nbsp;:',posCh(kind,{par:kind==='sec'?'Les pentes sont différentes.':'Les ordonnées à l\'origine sont égales aussi&nbsp;: c\'est la même droite.',sec:'Les pentes sont égales&nbsp;: pas de point d\'intersection unique.',conf:kind==='sec'?'Les pentes sont différentes.':'Même pente, mais les ordonnées à l\'origine diffèrent.'}),{keep:true,onOk:()=>showPos(B1,B2,kind,I0)})],
+   done:`d₂&nbsp;: y = ${linH([[m2,'x'],[F(-c,b),'']])}. ${kind==='sec'?'Pentes différentes&nbsp;: sécantes.':kind==='par'?'Même pente, ordonnées à l\'origine différentes&nbsp;: parallèles.':'Même pente et même ordonnée à l\'origine&nbsp;: confondues.'}`}}
+ ]});
+
+/* ============ Salle 6 · Le croisement (substitution) ============ */
+function solPt(){return{x:ri(-4,4),y:ri(-3,3)}}
+async function lightSys(q){const b1=bCart(q.L1[0],q.L1[1],q.L1[2],C.l1,'d₁',0),b2=bCart(q.L2[0],q.L2[1],q.L2[2],C.l2,'d₂',0);await fireAll([b1,b2]);
+  S.cross={x:q.x0,y:q.y0,st:'q',lab:'?'};SC.draw()}
+function sysWin(x0,y0){S.guides=S.guides.filter(g=>g.t!=='h'&&g.t!=='v');S.cross={x:x0,y:y0,st:'ok',lab:`I(${sgn(x0)} ; ${sgn(y0)})`};G.SND.hit();SC.draw()}
+LV.push({t:'Le croisement',chap:CH17,
+ rule:`<p>Un couple (x&nbsp;; y) est <b>solution</b> du système s'il vérifie <b>les deux</b> équations à la fois&nbsp;: c'est un point commun aux deux droites.</p><p><b>Substitution</b>&nbsp;: 1. isoler une inconnue dans une équation&nbsp;; 2. la remplacer dans l'autre&nbsp;; 3. résoudre l'équation à une inconnue&nbsp;; 4. calculer la deuxième valeur.</p><p>Efficace quand une inconnue s'isole sans fraction (coefficient 1 ou −1).</p>`,
+ qs:[
+ ()=>{const P=solPt();let a1,b1,a2,b2;do{a1=nz(-4,4);b1=nz(-4,4);a2=nz(-4,4);b2=nz(-4,4)}while(a1*b2-a2*b1===0);const k1=a1*P.x+b1*P.y,k2=a2*P.x+b2*P.y;
+  const sol=Math.random()<.5;let cx=P.x,cy=P.y,only=0;
+  if(!sol){for(const t of shuf([1,-1,2,-2])){const w=Math.random()<.5?1:2,[aa,bb]=w===1?[a1,b1]:[a2,b2];const x=P.x+bb*t,y=P.y-aa*t;if(inWin(x,y)&&Math.abs(y)<=4){cx=x;cy=y;only=w;break}}if(!only){cx=P.x;cy=P.y}}
+  const isSol=!only,q1=eqH(a1,b1,k1),q2=eqH(a2,b2,k2),v1=a1*cx+b1*cy,v2=a2*cx+b2*cy,Q0={L1:[a1,b1,-k1],L2:[a2,b2,-k2],x0:P.x,y0:P.y};
+  return{meta:{k:'verif',L1:[a1,b1,k1],L2:[a2,b2,k2],cx,cy},shown:[q1,q2],prompt:`Système ${sysH(e1(q1+' (L₁)'),e2(q2+' (L₂)'))} Le capteur ${ptH('K',cx,cy)} ouvre la porte s'il est solution du système.`,
+   setup(){},cap0:capEq('d₁ : '+q1,'d₂ : '+q2),
+   parts:[fill('On remplace x et y par les coordonnées de K&nbsp;:',`<span class="row">(L₁)&nbsp;: ${prodH(a1,cx)}${termH(b1,cy)} = {0}</span><span class="row">(L₂)&nbsp;: ${prodH(a2,cx)}${termH(b2,cy)} = {1}</span>`,[v1,v2],'Calcule chaque produit, puis la somme. Attention aux nombres négatifs.',{note:' '}),
+    ch(`On compare avec les seconds membres ${sgn(k1)} et ${sgn(k2)}. K est-il solution&nbsp;?`,[isSol?OK('Oui&nbsp;: il vérifie les deux équations.','yes'):NO('Oui&nbsp;: il vérifie les deux équations.',`Regarde (L${only===1?2:1})&nbsp;: ${only===1?sgn(v2)+' ≠ '+sgn(k2):sgn(v1)+' ≠ '+sgn(k1)}.`,'yes'),
+      NO('Oui&nbsp;: il suffit qu\'il vérifie une des équations.','Une solution du système doit vérifier <b>les deux</b> équations à la fois.','one'),
+      isSol?NO('Non&nbsp;: il ne vérifie pas les deux équations.',`(L₁)&nbsp;: ${sgn(v1)} = ${sgn(k1)} et (L₂)&nbsp;: ${sgn(v2)} = ${sgn(k2)}&nbsp;: les deux sont vérifiées.`,'no'):OK('Non&nbsp;: il ne vérifie pas les deux équations.','no')],
+     {keep:true,onOk:async()=>{await lightSys(Q0);S.cross=null;const K=sens(cx,cy,'K');S.sensors=[K];K.st=isSol?'hit':'miss';if(isSol){S.cross={x:P.x,y:P.y,st:'ok',lab:''};G.SND.hit()}SC.draw()}})],
+   done:isSol?`K vérifie (L₁) et (L₂)&nbsp;: c'est la solution, le point où les deux rayons se croisent.`:`K est sur le rayon d${only===1?'₁':'₂'} seulement&nbsp;: ce n'est pas le croisement. Une solution doit vérifier les <b>deux</b> équations.`}},
+ ()=>{let m1,m2,P,p1,p2;do{m1=pick([-3,-2,-1,1,2,3,0]);m2=pick([-3,-2,-1,1,2,3]);P=solPt();p1=P.y-m1*P.x;p2=P.y-m2*P.x}while(m1===m2||Math.abs(p1)>8||Math.abs(p2)>8);
+  const q1=redH(m1,p1),q2=redH(m2,p2),Q0={L1:[m1,-1,p1],L2:[m2,-1,p2],x0:P.x,y0:P.y};
+  return{meta:{k:'sys',L1:[m1,-1,-p1],L2:[m2,-1,-p2]},shown:[q1,q2],prompt:`Trouve le croisement des rayons&nbsp;: ${sysH(e1(q1),e2(q2))}`,setup(){},cap0:capEq('d₁ : '+q1,'d₂ : '+q2),
+   parts:[act('Allumer les deux rayons',()=>lightSys(Q0)),
+    fill(`Au croisement, les deux rayons ont la même hauteur&nbsp;: ${linH([[m1,'x'],[p1,'']])} = ${linH([[m2,'x'],[p2,'']])}. On résout&nbsp;:`,'x = {0}',[P.x],`Regroupe les x d'un côté&nbsp;: ${linH([[m1-m2,'x']])} = ${sgn(p2-p1)}.`,{onOk:()=>sweep('v',P.x,'x = '+sgn(P.x)),note:' '}),
+    fill(`On remplace x par ${sgn(P.x)} dans ${q1}&nbsp;:`,'y = {0}',[P.y],`y = ${prodH(m1,P.x)}${plusH(p1)}.`,{onOk:async()=>{await sweep('h',P.y,'y = '+sgn(P.y));sysWin(P.x,P.y)},note:' '})],
+   done:`𝒮 = {(${sgn(P.x)}&nbsp;; ${sgn(P.y)})}&nbsp;: c'est le point I où les rayons se croisent.`}},
+ ()=>{let P,a1,b1,b2;do{P=solPt();a1=pick([2,3,4,-2,-3]);b1=nz(-4,4);b2=nz(-4,4)}while(a1*b2-b1===0||P.x+b2*P.y===0);
+  const k1=a1*P.x+b1*P.y,k2=P.x+b2*P.y,q1=eqH(a1,b1,k1),q2=eqH(1,b2,k2),iso=linH([[k2,''],[-b2,'y']]),Q0={L1:[a1,b1,-k1],L2:[1,b2,-k2],x0:P.x,y0:P.y};
+  const subst=`${a1===-1?'−':sgn(a1)}(${iso})${b1<0?' − ':' + '}${Math.abs(b1)===1?'':Math.abs(b1)}y = ${sgn(k1)}`;
+  return{meta:{k:'sys',L1:[a1,b1,k1],L2:[1,b2,k2],iso:[k2,-b2]},shown:[q1,q2],prompt:`Résous par substitution&nbsp;: ${sysH(e1(q1+' (L₁)'),e2(q2+' (L₂)'))}`,setup(){},cap0:capEq('d₁ : '+q1,'d₂ : '+q2),
+   parts:[act('Allumer les deux rayons',()=>lightSys(Q0)),
+    ch('Étape 1&nbsp;: dans (L₂), on isole x&nbsp;:',[OK('x = '+iso,`iso:${k2},${-b2}`),NO('x = '+linH([[k2,''],[b2,'y']]),`En passant ${linH([[b2,'y']])} de l'autre côté, son signe change.`,`iso:${k2},${b2}`),
+      NO('x = '+linH([[-k2,''],[-b2,'y']]),`Le second membre ${sgn(k2)} ne change pas de signe&nbsp;: seul ${linH([[b2,'y']])} change de côté.`,`iso:${-k2},${-b2}`),NO('x = '+linH([[-k2,''],[b2,'y']]),`On garde ${sgn(k2)} et on soustrait ${linH([[b2,'y']])}&nbsp;: x = ${iso}.`,`iso:${-k2},${b2}`)]),
+    fill(`Étape 2 et 3&nbsp;: on remplace x dans (L₁)&nbsp;: ${subst}. On résout&nbsp;:`,'y = {0}',[P.y],`Développe&nbsp;: ${linH([[a1*k2,''],[-a1*b2,'y']])}${b1<0?' − ':' + '}${Math.abs(b1)===1?'':Math.abs(b1)}y = ${sgn(k1)}, donc ${linH([[b1-a1*b2,'y']])} = ${sgn(k1-a1*k2)}.`,{onOk:()=>sweep('h',P.y,'y = '+sgn(P.y)),note:' '}),
+    fill(`Étape 4&nbsp;: x = ${iso} avec y = ${sgn(P.y)}&nbsp;:`,'x = {0}',[P.x],`x = ${sgn(k2)}${termH(-b2,P.y)}.`,{onOk:async()=>{await sweep('v',P.x,'x = '+sgn(P.x));sysWin(P.x,P.y)},note:' '})],
+   done:`𝒮 = {(${sgn(P.x)}&nbsp;; ${sgn(P.y)})}. Vérification&nbsp;: ${prodH(a1,P.x)}${termH(b1,P.y)} = ${sgn(k1)} ✓.`}},
+ ()=>{let P,a1,a2,b2;do{P=solPt();a1=nz(-4,4);a2=nz(-4,4);b2=pick([2,3,4,-2,-3])}while(a1*b2-a2===0||a1*P.x+P.y===0);
+  const k1=a1*P.x+P.y,k2=a2*P.x+b2*P.y,q1=eqH(a1,1,k1),q2=eqH(a2,b2,k2),iso=linH([[k1,''],[-a1,'x']]),Q0={L1:[a1,1,-k1],L2:[a2,b2,-k2],x0:P.x,y0:P.y};
+  const subst=`${linH([[a2,'x']])}${b2<0?' − ':' + '}${Math.abs(b2)===1?'':Math.abs(b2)}(${iso}) = ${sgn(k2)}`;
+  return{meta:{k:'sys',L1:[a1,1,k1],L2:[a2,b2,k2]},shown:[q1,q2],prompt:`Résous par substitution&nbsp;: ${sysH(e1(q1+' (L₁)'),e2(q2+' (L₂)'))}`,setup(){},cap0:capEq('d₁ : '+q1,'d₂ : '+q2),
+   parts:[act('Allumer les deux rayons',()=>lightSys(Q0)),
+    ch('Étape 1&nbsp;: dans (L₁), on isole y&nbsp;:',[OK('y = '+iso,`isoy:${k1},${-a1}`),NO('y = '+linH([[k1,''],[a1,'x']]),`En passant ${linH([[a1,'x']])} de l'autre côté, son signe change.`,`isoy:${k1},${a1}`),
+      NO('y = '+linH([[-k1,''],[-a1,'x']]),`Le second membre ${sgn(k1)} reste tel quel.`,`isoy:${-k1},${-a1}`),NO('y = '+linH([[-k1,''],[a1,'x']]),`y = ${iso}&nbsp;: seul ${linH([[a1,'x']])} change de côté.`,`isoy:${-k1},${a1}`)]),
+    fill(`On remplace y dans (L₂)&nbsp;: ${subst}. On résout&nbsp;:`,'x = {0}',[P.x],`Développe puis regroupe les x&nbsp;: ${linH([[a2-b2*a1,'x']])} = ${sgn(k2-b2*k1)}.`,{onOk:()=>sweep('v',P.x,'x = '+sgn(P.x)),note:' '}),
+    fill(`y = ${iso} avec x = ${sgn(P.x)}&nbsp;:`,'y = {0}',[P.y],`y = ${sgn(k1)}${termH(-a1,P.x)}.`,{onOk:async()=>{await sweep('h',P.y,'y = '+sgn(P.y));sysWin(P.x,P.y)},note:' '})],
+   done:`𝒮 = {(${sgn(P.x)}&nbsp;; ${sgn(P.y)})}&nbsp;: le croisement des deux rayons.`}},
+ ()=>LV[5].qs[pick([1,2,3])]()
+ ]});
+
+/* ============ Salle 7 · La combinaison ============ */
+function comboQ(kind){let a1,b1,a2,b2,P,elim;
+  for(;;){P=solPt();if(Math.abs(P.y)>3)continue;
+    if(kind==='sum'){a1=1;b1=1;a2=1;b2=-1;elim='y'}
+    else if(kind==='a'){a1=pick([1,2,3,-2]);b1=nz(-3,3);const s=pick([2,3,-2]);a2=s*a1;b2=nz(-4,4);elim='x';if(Math.abs(b2)===Math.abs(s*b1))continue}
+    else{a1=pick([2,3,4,5,-2,-3]);a2=pick([2,3,4,5,-3,-4]);b1=pick([2,3,-2,-3,4,-5]);b2=pick([2,3,4,5,-2,-3]);elim=kind==='bx'?'x':'y';
+      if(Math.abs(a1)===Math.abs(a2)||Math.abs(b1)===Math.abs(b2)||a1%a2===0||a2%a1===0||b1%b2===0||b2%b1===0)continue}
+    if(a1*b2-a2*b1===0)continue;break}
+  const k1=a1*P.x+b1*P.y,k2=a2*P.x+b2*P.y,q1=eqH(a1,b1,k1),q2=eqH(a2,b2,k2),ctx={},Q0={L1:[a1,b1,-k1],L2:[a2,b2,-k2],x0:P.x,y0:P.y};
+  const first=elim==='y'?'x':'y',fv=elim==='y'?P.x:P.y,sv=elim==='y'?P.y:P.x,second=elim==='y'?'y':'x';
+  const parts=[act('Allumer les deux rayons',()=>lightSys(Q0))];
+  if(kind==='a'){const s=a2/a1;parts.push(act(`Multiplier (L₁) par ${s}`,async()=>{cap(`<span class="c1 eqx">(L₁) × ${s}&nbsp;: ${eqH(s*a1,s*b1,s*k1)}</span><span class="m">le rayon n'a pas bougé&nbsp;: même droite&nbsp;!</span>`);
+    const b=S.beams[0];for(let i=0;i<2;i++){b.alpha=.25;SC.draw();await SC.sleep(220);b.alpha=1;SC.draw();await SC.sleep(220)}},{ask:'Multiplier une équation par un nombre non nul ne change pas la droite.'}))}
+  parts.push({t:'combo',L1:[a1,b1,k1],L2:[a2,b2,k2],elim,ctx,ask:`Règle k₁ et k₂ pour <b>éliminer ${elim}</b>&nbsp;: le rayon doré k₁(L₁) + k₂(L₂) pivote autour du croisement. Quand ${elim} disparaît, il devient ${elim==='y'?'vertical':'horizontal'}.`});
+  parts.push(fill(()=>`La combinaison donne ${elim==='y'?eqH(ctx.A,0,ctx.C):eqH(0,ctx.B,ctx.C)}. Donc&nbsp;:`,()=>`${first} = {0}`,()=>[fv],()=>`On divise les deux membres par ${pH(elim==='y'?ctx.A:ctx.B)}.`,{note:' ',onOk:()=>sweep(first==='x'?'v':'h',fv,first+' = '+sgn(fv))}));
+  const back=first==='x'?`${prodH(a1,P.x)}${b1<0?' − ':' + '}${Math.abs(b1)===1?'':Math.abs(b1)}y = ${sgn(k1)}`:`${linH([[a1,'x']])}${termH(b1,P.y)} = ${sgn(k1)}`;
+  parts.push(fill(`On remplace ${first} = ${sgn(fv)} dans (L₁)&nbsp;: ${back}. Donc&nbsp;:`,`${second} = {0}`,[sv],`Résous l'équation à une inconnue ${back}.`,{note:' ',onOk:async()=>{await sweep(second==='x'?'v':'h',sv,second+' = '+sgn(sv));sysWin(P.x,P.y);S.beams=S.beams.filter(b=>b.col!==C.l3);SC.draw()}}));
+  return{meta:{k:'sys',L1:[a1,b1,k1],L2:[a2,b2,k2],elim},shown:[q1,q2],prompt:`Résous par combinaison linéaire&nbsp;: ${sysH(e1(q1+' (L₁)'),e2(q2+' (L₂)'))}`,setup(){},cap0:capEq('d₁ : '+q1,'d₂ : '+q2),parts,
+   done:`𝒮 = {(${sgn(P.x)}&nbsp;; ${sgn(P.y)})}. Toutes les combinaisons k₁(L₁) + k₂(L₂) passent par le croisement&nbsp;: en éliminant ${elim}, on obtient la droite ${elim==='y'?'verticale x = '+sgn(P.x):'horizontale y = '+sgn(P.y)} qui passe par I.`}}
+LV.push({t:'La combinaison',chap:CH17,
+ rule:`<p><b>Combinaisons linéaires</b>&nbsp;: 1. multiplier les équations pour rendre les coefficients d'une inconnue opposés (ou égaux)&nbsp;; 2. additionner ou soustraire pour l'éliminer&nbsp;; 3. résoudre, puis calculer l'autre inconnue.</p><p>k₁(L₁) + k₂(L₂) ⟶ équation à une inconnue. Quand aucun coefficient ne coïncide&nbsp;: multiplier chaque équation par le coefficient de l'autre, puis soustraire.</p><p>Sur le mur&nbsp;: multiplier une équation par un nombre non nul ne change pas la droite, et toute combinaison des deux équations passe par le point de croisement.</p>`,
+ qs:[()=>comboQ('sum'),()=>comboQ('a'),()=>comboQ('by'),()=>comboQ('bx'),()=>comboQ(pick(['by','bx']))]});
+})();
+</script>
+<script>
+/* ======================= RAYONS CROISÉS — épreuves finales ======================= */
+(function(){
+'use strict';
+const R=window.RCM,{F,I,Fx,toF,fH,fT,fAns,sgn,pH,linH,redH,vertH,cartH,eqH,ptH,vecH,sysH,combH,ri,pick,shuf,nz,gcd}=R;
+const v=x=>Fx.v(toF(x));
+/* QCM : items = [[html, v, juste?], …] ; le kit mélange l'ordre d'affichage */
+function qcm(level,steps,prompt,items,explain,meta){const it=shuf(items.slice());return{type:'qcm',level,steps,prompt,choices:it.map(x=>x[0]),cv:it.map(x=>x[1]),answer:it.findIndex(x=>x[2]),explain,meta}}
+function trous(level,steps,prompt,vals,explain,meta){return{type:'trous',level,steps,prompt,blanks:vals.map(x=>({answers:fAns(x),size:Math.max(3,fT(x).length+1)})),explain,meta}}
+const qF=f=>{f=toF(f);return f.n+'/'+f.d};
+const lineV=(a,b,c)=>`line:${qF(a)},${qF(b)},${qF(c)}`;      // a x + b y + c = 0
+const redV=(m,p)=>lineV(m,-1,p);
+const S2=(e1,e2)=>sysH(e1,e2);
+/* ---------- Bronze : une étape, nombres simples ---------- */
+const BQ={
+ B1(){let m,p;do{m=pick([-5,-4,-3,-2,2,3,4,5]);p=nz(-6,6)}while(Math.abs(m)===Math.abs(p));
+  return qcm(1,1,`Pour la droite d'équation ${redH(m,p)}&nbsp;:`,[[`pente ${sgn(m)}, ordonnée à l'origine ${sgn(p)}`,`mp:${m},${p}`,1],[`pente ${sgn(p)}, ordonnée à l'origine ${sgn(m)}`,`mp:${p},${m}`],
+   [`pente ${sgn(m)}, ordonnée à l'origine ${sgn(-p)}`,`mp:${m},${-p}`],[`pente ${sgn(-m)}, ordonnée à l'origine ${sgn(p)}`,`mp:${-m},${p}`]],
+   `Dans y = mx + p, la pente m est le coefficient de x (${sgn(m)}) et l'ordonnée à l'origine p est le nombre seul (${sgn(p)}).`,{k:'mp',m,p})},
+ B2(){const m=nz(-4,4),p=nz(-5,5),x=nz(-4,4),y=m*x+p;
+  return qcm(2,1,`Quel point appartient à la droite d&nbsp;: ${redH(m,p)}&nbsp;?`,[[ptH('A',x,y),`pt:${x},${y}`,1],[ptH('B',x,m*x-p),`pt:${x},${m*x-p}`],[ptH('C',x,y+1),`pt:${x},${y+1}`],[ptH('D',-x,y),`pt:${-x},${y}`]],
+   `On remplace x par l'abscisse du point&nbsp;: ${sgn(m)} × ${pH(x)}${p<0?' − '+(-p):' + '+p} = ${sgn(y)}, c'est l'ordonnée de A.`,{k:'onpt',m,p})},
+ B3(){const k=pick([-6,-5,-4,-3,-2,2,3,4,5,6]);
+  return qcm(1,1,`La droite d'équation y = ${sgn(k)} a pour pente&nbsp;:`,[['0','num:0/1',1],[sgn(k),'num:'+k+'/1'],['1','num:1/1'],['Elle n\'a pas de pente.','none']],
+   `y = ${sgn(k)} s'écrit y = 0 × x ${k<0?'−':'+'} ${Math.abs(k)}&nbsp;: c'est une droite horizontale, de pente 0.`,{k:'horiz',p:k})},
+ B4(){const par=Math.random()<.5,m1=nz(-4,4);let m2=par?m1:nz(-4,4);while(!par&&m2===m1)m2=nz(-4,4);let p1=ri(-5,5),p2=ri(-5,5);while(p2===p1)p2=ri(-5,5);
+  return qcm(5,1,`Les droites d₁&nbsp;: ${redH(m1,p1)} et d₂&nbsp;: ${redH(m2,p2)} sont&nbsp;:`,[['parallèles','pos:par',par],['sécantes','pos:sec',!par],['confondues','pos:conf']],
+   par?`Même pente (${sgn(m1)}) et ordonnées à l'origine différentes&nbsp;: les droites sont parallèles.`:`Pentes différentes (${sgn(m1)} ≠ ${sgn(m2)})&nbsp;: les droites sont sécantes.`,{k:'pos',L1:[m1,-1,p1],L2:[m2,-1,p2]})},
+ B5(){let x0,y0,a1,b1,a2,b2;do{x0=ri(-4,4);y0=ri(-4,4);a1=nz(-3,3);b1=nz(-3,3);a2=nz(-3,3);b2=nz(-3,3)}while(a1*b2-a2*b1===0||x0===y0);
+  const k1=a1*x0+b1*y0,k2=a2*x0+b2*y0,c1=[x0+b1,y0-a1],c2=[x0+b2,y0-a2];
+  const items=[[`(${sgn(x0)}&nbsp;; ${sgn(y0)})`,`pt:${x0},${y0}`,1],[`(${sgn(c1[0])}&nbsp;; ${sgn(c1[1])})`,`pt:${c1[0]},${c1[1]}`],[`(${sgn(c2[0])}&nbsp;; ${sgn(c2[1])})`,`pt:${c2[0]},${c2[1]}`]];
+  if(!(a1*y0+b1*x0===k1&&a2*y0+b2*x0===k2))items.push([`(${sgn(y0)}&nbsp;; ${sgn(x0)})`,`pt:${y0},${x0}`]);
+  const uniq=[];items.forEach(it=>{if(!uniq.some(u=>u[1]===it[1]))uniq.push(it)});
+  return qcm(6,1,`Quel couple est solution du système ${S2(eqH(a1,b1,k1),eqH(a2,b2,k2))}&nbsp;?`,uniq,
+   `(${sgn(x0)}&nbsp;; ${sgn(y0)}) vérifie les deux équations&nbsp;; les autres couples n'en vérifient qu'une au plus.`,{k:'sys',L1:[a1,b1,-k1],L2:[a2,b2,-k2]})},
+ B6(){let n,y1,y2;do{n=nz(-5,5);y1=ri(-5,5);y2=ri(-5,5)}while(y1===y2||y1===n);
+  return qcm(3,1,`Une équation de la droite passant par ${ptH('A',n,y1)} et ${ptH('B',n,y2)} est&nbsp;:`,[[vertH(n),lineV(1,0,-n),1],['y = '+sgn(n),redV(0,n)],[vertH(y1),lineV(1,0,-y1)],['y = '+sgn(y1),redV(0,y1)]],
+   `A et B ont la même abscisse ${sgn(n)}&nbsp;: la droite est verticale, d'équation ${vertH(n)}.`,{k:'twopts',A:[n,y1],B:[n,y2]})},
+ B7(){const x0=ri(-4,4),y0=ri(-4,4),s=x0+y0,d=x0-y0;
+  return qcm(7,1,`Dans le système ${S2('x + y = '+sgn(s)+' (L₁)','x − y = '+sgn(d)+' (L₂)')} pour éliminer y, on peut&nbsp;:`,[['additionner les deux équations&nbsp;: (L₁) + (L₂)','k:1,1',1],['soustraire&nbsp;: (L₁) − (L₂)','k:1,-1'],['multiplier (L₁) par 2','k:2,0']],
+   'y et −y sont opposés&nbsp;: en additionnant, y disparaît et il reste 2x = '+sgn(s+d)+'.',{k:'elim',L1:[1,1,s],L2:[1,-1,d],elim:'y'})},
+ B8(){let a,b,c;do{a=nz(-7,7);b=nz(-7,7);c=nz(-9,9)}while(Math.abs(a)===Math.abs(b));
+  return qcm(4,1,`Un vecteur directeur de la droite d'équation ${cartH(a,b,c)} est&nbsp;:`,[[vecH('u⃗',-b,a),`vec:${-b},${a}`,1],[vecH('u⃗',a,b),`vec:${a},${b}`],[vecH('u⃗',b,a),`vec:${b},${a}`],[vecH('u⃗',-a,b),`vec:${-a},${b}`]],
+   `Pour ax + by + c = 0, un vecteur directeur est (−b&nbsp;; a), ici (${sgn(-b)}&nbsp;; ${sgn(a)}).`,{k:'dir',a,b,c})}
+};
+const BT={
+ T1(){let m,p;do{m=nz(-6,6);p=nz(-7,7)}while(m===p);return trous(1,1,`La droite d'équation ${redH(m,p)} a pour pente {0} et pour ordonnée à l'origine {1}.`,[m,p],`m = ${sgn(m)} est le coefficient de x, p = ${sgn(p)} le nombre seul.`,{k:'mp',m,p})},
+ T2(){const m=nz(-4,4),p=nz(-6,6),x=nz(-4,4);return trous(2,1,`Le point A(${sgn(x)}&nbsp;; …) appartient à la droite ${redH(m,p)}. Son ordonnée est {0}.`,[m*x+p],`y = ${sgn(m)} × ${pH(x)}${p<0?' − '+(-p):' + '+p} = ${sgn(m*x+p)}.`,{k:'ord',m,p,x})},
+ T3(){let xA,yA,xB,m;do{xA=ri(-4,4);xB=ri(-4,4);m=nz(-3,3);yA=ri(-5,5)}while(xA===xB||Math.abs(yA+m*(xB-xA))>9);const yB=yA+m*(xB-xA);
+  return trous(3,1,`La pente de la droite (AB), avec ${ptH('A',xA,yA)} et ${ptH('B',xB,yB)}, est m = {0}.`,[m],`m = (${sgn(yB)} − ${pH(yA)}) ÷ (${sgn(xB)} − ${pH(xA)}) = ${sgn(yB-yA)} ÷ ${pH(xB-xA)} = ${sgn(m)}.`,{k:'slope',A:[xA,yA],B:[xB,yB]})},
+ T4(){let a,b,c;do{a=nz(-7,7);b=nz(-7,7);c=nz(-9,9)}while(Math.abs(a)===Math.abs(b));
+  return trous(4,1,`D'après le cours, la droite ax + by + c = 0 a pour vecteur directeur u⃗(−b&nbsp;; a). Pour ${cartH(a,b,c)}, on obtient u⃗({0}&nbsp;; {1}).`,[-b,a],`−b = ${sgn(-b)} et a = ${sgn(a)}.`,{k:'dir',a,b,c})},
+ T5(){let m1,m2,x0,y0;do{m1=nz(-3,3);m2=nz(-3,3);x0=ri(-4,4);y0=ri(-5,5)}while(m1===m2||Math.abs(y0-m1*x0)>9||Math.abs(y0-m2*x0)>9);const p1=y0-m1*x0,p2=y0-m2*x0;
+  return trous(6,1,`Le système ${S2(redH(m1,p1),redH(m2,p2))} a pour solution le couple ({0}&nbsp;; {1}).`,[x0,y0],`${linH([[m1,'x'],[p1,'']])} = ${linH([[m2,'x'],[p2,'']])} donne x = ${sgn(x0)}, puis y = ${sgn(y0)}.`,{k:'sys',L1:[m1,-1,p1],L2:[m2,-1,p2]})}
+};
+/* ---------- Argent : toute la notion, pièges classiques ---------- */
+function genSysA(kind){for(;;){const a1=nz(-5,5),b1=nz(-5,5);if(gcd(a1,b1)!==1)continue;const x0=ri(-4,4),y0=ri(-4,4),k1=a1*x0+b1*y0;
+  if(kind==='sec'){const a2=nz(-5,5),b2=nz(-5,5);if(a1*b2-a2*b1===0)continue;return[a1,b1,k1,a2,b2,a2*x0+b2*y0]}
+  const s=pick([-3,-2,2,3]);if(kind==='conf')return[a1,b1,k1,s*a1,s*b1,s*k1];return[a1,b1,k1,s*a1,s*b1,s*k1+pick([-3,-2,-1,1,2,3])]}}
+const AQ={
+ A1(){for(;;){const xA=ri(-5,5),yA=ri(-5,5),xB=ri(-5,5),yB=ri(-5,5),dx=xB-xA,dy=yB-yA;if(!dx||!dy||Math.abs(dx)===1||Math.abs(dx)===Math.abs(dy))continue;
+  const m=F(dy,dx),L=[[m,1],[F(dx,dy)],[Fx.neg(m)],[I(dy)]];if(new Set(L.map(x=>qF(x[0]))).size<4)continue;
+  return qcm(3,2,`La pente de la droite (AB), avec ${ptH('A',xA,yA)} et ${ptH('B',xB,yB)}, est&nbsp;:`,L.map(x=>['m = '+fH(x[0]),'num:'+qF(x[0]),!!x[1]]),
+   `m = <span class="fr"><span>y<sub>B</sub> − y<sub>A</sub></span><span>x<sub>B</sub> − x<sub>A</sub></span></span> = <span class="fr"><span>${sgn(dy)}</span><span>${sgn(dx)}</span></span> = ${fH(m)}.`,{k:'slope',A:[xA,yA],B:[xB,yB]})}},
+ A2(){for(;;){const a=nz(-8,8),b=pick([-5,-4,-3,-2,2,3,4,5]),c=nz(-9,9);if(gcd(gcd(a,b),c)!==1||a%b===0&&c%b===0)continue;
+  const m=F(-a,b),p=F(-c,b),L=[[redH(m,p),redV(m,p),1],[redH(Fx.neg(m),Fx.neg(p)),redV(Fx.neg(m),Fx.neg(p))],[redH(m,Fx.neg(p)),redV(m,Fx.neg(p))],[redH(-a,-c),redV(-a,-c)]];
+  if(new Set(L.map(x=>x[1])).size<4)continue;
+  return qcm(4,2,`L'équation réduite de la droite d'équation ${cartH(a,b,c)} est&nbsp;:`,L,`On isole y&nbsp;: ${linH([[b,'y']])} = ${linH([[-a,'x'],[-c,'']])}, puis on divise chaque terme par ${pH(b)}.`,{k:'line',L:[a,b,c]})}},
+ A3(){const m=nz(-6,6),p=nz(-9,9);
+  return qcm(4,2,`Une équation cartésienne de la droite d'équation réduite ${redH(m,p)} est&nbsp;:`,[[cartH(-m,1,-p),lineV(-m,1,-p),1],[cartH(-m,1,p),lineV(-m,1,p)],[cartH(m,1,-p),lineV(m,1,-p)],[cartH(-m,-1,-p),lineV(-m,-1,-p)]],
+   `On ramène tous les termes à gauche&nbsp;: ${redH(m,p)} ⟺ ${cartH(-m,1,-p)}.`,{k:'line',L:[m,-1,p]})},
+ A4(){const kind=pick(['par','sec','conf']),[a1,b1,k1,a2,b2,k2]=genSysA(kind);
+  return qcm(5,2,`Le système ${S2(eqH(a1,b1,k1),eqH(a2,b2,k2))} admet&nbsp;:`,[['aucune solution','n:0',kind==='par'],['une unique solution','n:1',kind==='sec'],['une infinité de solutions','n:inf',kind==='conf']],
+   kind==='sec'?'Les pentes des deux droites sont différentes&nbsp;: elles sont sécantes, une unique solution.':kind==='par'?'Même pente, ordonnées à l\'origine différentes&nbsp;: droites parallèles, aucune solution.':'La seconde équation est un multiple de la première&nbsp;: droites confondues, une infinité de solutions.',{k:'nsol',L1:[a1,b1,-k1],L2:[a2,b2,-k2]})},
+ A5(){const kind=pick(['par','sec']);let a1,b1,c1,a2,b2,c2;for(;;){const a0=nz(-4,4),b0=nz(-4,4);if(gcd(a0,b0)!==1)continue;const s1=pick([-3,-2,-1,1,2,3]);a1=s1*a0;b1=s1*b0;c1=ri(-7,7);
+   if(kind==='par'){let s2;do{s2=pick([-3,-2,-1,1,2,3])}while(s2===s1);a2=s2*a0;b2=s2*b0;c2=ri(-7,7);if(c2*s1===c1*s2)continue}else{a2=nz(-6,6);b2=nz(-6,6);c2=ri(-7,7);if(a1*b2-a2*b1===0)continue}break}
+  const det=(-b1)*a2-a1*(-b2);
+  return qcm(5,2,`Les droites d₁&nbsp;: ${cartH(a1,b1,c1)} et d₂&nbsp;: ${cartH(a2,b2,c2)} sont&nbsp;:`,[['parallèles','pos:par',kind==='par'],['sécantes','pos:sec',kind==='sec'],['confondues','pos:conf']],
+   `Vecteurs directeurs ${vecH('',-b1,a1)} et ${vecH('',-b2,a2)}&nbsp;: déterminant ${sgn(det)}${det?' ≠ 0, droites sécantes':'&nbsp;: colinéaires, et les équations ne sont pas proportionnelles, droites parallèles'}.`,{k:'pos',L1:[a1,b1,c1],L2:[a2,b2,c2]})},
+ A6(){let m1,m2,x0,y0;do{m1=nz(-4,4);m2=nz(-4,4);x0=ri(-5,5);y0=ri(-5,5)}while(m1===m2||Math.abs(y0-m1*x0)>12||Math.abs(y0-m2*x0)>12);const p1=y0-m1*x0,p2=y0-m2*x0;
+  const pool=[[x0,y0,1],[y0,x0],[x0+1,y0+m1],[x0+1,y0+m2],[x0,-y0],[-x0,y0]];const items=[];
+  pool.forEach(([x,y,ok])=>{if(items.length>=4||items.some(t=>t[1]===`pt:${x},${y}`))return;const on=(y===m1*x+p1)&&(y===m2*x+p2);if(!ok&&on)return;items.push([`(${sgn(x)}&nbsp;; ${sgn(y)})`,`pt:${x},${y}`,!!ok])});
+  return qcm(6,2,`Le point d'intersection des droites d₁&nbsp;: ${redH(m1,p1)} et d₂&nbsp;: ${redH(m2,p2)} a pour coordonnées&nbsp;:`,items,
+   `${linH([[m1,'x'],[p1,'']])} = ${linH([[m2,'x'],[p2,'']])} donne x = ${sgn(x0)}, puis y = ${sgn(y0)}.`,{k:'sys',L1:[m1,-1,p1],L2:[m2,-1,p2]})},
+ A7(){let a1,b1,a2,b2;do{a1=pick([2,3,4,5,-2,-3]);a2=pick([2,3,4,5,-3,-4]);b1=pick([2,3,-2,-3,4,-5]);b2=pick([2,3,4,5,-2,-3])}while(Math.abs(a1)===Math.abs(a2)||Math.abs(b1)===Math.abs(b2)||a1*b2-a2*b1===0||a2===b1&&a1===b2);
+  const x0=ri(-4,4),y0=ri(-4,4),k1=a1*x0+b1*y0,k2=a2*x0+b2*y0;
+  return qcm(7,2,`Dans le système ${S2(eqH(a1,b1,k1)+' (L₁)',eqH(a2,b2,k2)+' (L₂)')} quel calcul élimine y&nbsp;?`,[[combH(b2,-b1),`k:${b2},${-b1}`,1],[combH(a2,-a1),`k:${a2},${-a1}`],[combH(b1,-b2),`k:${b1},${-b2}`],[combH(1,1),'k:1,1']],
+   `Le coefficient de y devient ${sgn(b2)} × ${pH(b1)} ${-b1<0?'−':'+'} ${Math.abs(b1)} × ${pH(b2)} = 0.`,{k:'elim',L1:[a1,b1,k1],L2:[a2,b2,k2],elim:'y'})},
+ A9(){const m=pick([-5,-4,-3,-2,2,3,4,5]),p=nz(-9,9),h=pick([2,3]),d=m*h;
+  const vb=(dd)=>dd>0?`augmente de ${dd}`:`diminue de ${-dd}`;
+  if(new Set([d,-d,m,d+p]).size<4||d+p===0)return AQ.A9();
+  return qcm(1,2,`Sur la droite d'équation ${redH(m,p)}, quand x augmente de ${h}, y&nbsp;:`,[[vb(d),'num:'+d+'/1',1],[vb(-d),'num:'+(-d)+'/1'],[vb(m),'num:'+m+'/1'],[vb(d+p),'num:'+(d+p)+'/1']],
+   `Quand x augmente de 1, y ${m>0?'augmente':'diminue'} de ${Math.abs(m)} (la pente)&nbsp;; quand x augmente de ${h}, y varie de ${h} × ${pH(m)} = ${sgn(d)}.`,{k:'var',m,p,h})},
+ A8(){const m=ri(3,9),p=nz(-9,9),x=ri(60,450),on=Math.random()<.5,y=m*x+p,yb=on?y:y+pick([-2,-1,1,2]);
+  return qcm(2,2,`Le point ${ptH('B',x,yb)} appartient-il à la droite d&nbsp;: ${redH(m,p)}&nbsp;?`,[['Oui','yes',on],['Non','no',!on],['On ne peut pas savoir sans tracer la droite','?']],
+   `${m} × ${x}${p<0?' − '+(-p):' + '+p} = ${y}${on?'&nbsp;: les coordonnées vérifient l\'équation.':' ≠ '+yb+'&nbsp;: B n\'appartient pas à d.'}`,{k:'belong',m,p,x,y:yb})}
+};
+const AT={
+ T1(){for(;;){const xA=ri(-5,5),yA=ri(-5,5),xB=ri(-5,5),yB=ri(-5,5);if(xA===xB||yA===yB)continue;const m=F(yB-yA,xB-xA);if(m.d>4)continue;const p=Fx.sub(I(yA),Fx.mul(m,I(xA)));
+  return trous(3,2,`La droite passant par ${ptH('A',xA,yA)} et ${ptH('B',xB,yB)} a pour équation réduite y = mx + p avec m = {0} et p = {1}.`,[m,p],`m = ${sgn(yB-yA)} ÷ ${pH(xB-xA)} = ${fH(m)}, puis p = y<sub>A</sub> − m x<sub>A</sub> = ${fH(p)}.`,{k:'twopts',A:[xA,yA],B:[xB,yB]})}},
+ T2(){let xA,yA,al,be;do{xA=nz(-5,5);yA=nz(-5,5);al=nz(-5,5);be=nz(-5,5)}while(Math.abs(al)===Math.abs(be));const a=be,b=-al,c=-(a*xA+b*yA);
+  return trous(4,2,`La droite d passe par ${ptH('A',xA,yA)} et a pour vecteur directeur ${vecH('u⃗',al,be)}. Avec (−b&nbsp;; a) = (${sgn(al)}&nbsp;; ${sgn(be)}), une équation est ${linH([[a,'x'],[b,'y']])} + c = 0 avec c = {0}.`,[c],
+   `A est sur d&nbsp;: ${sgn(a)} × ${pH(xA)} ${b<0?'−':'+'} ${Math.abs(b)} × ${pH(yA)} + c = 0, donc c = ${sgn(c)}.`,{k:'cpv',a,b,xA,yA})},
+ T3(){let a1,b1,a2,b2;do{a1=pick([2,3,4,5]);a2=pick([2,3,4,5,-2,-3]);b1=pick([2,3,-2,-3,4,-5]);b2=pick([2,3,4,5,-2,-3])}while(Math.abs(a1)===Math.abs(a2)||Math.abs(b1)===Math.abs(b2)||a1*b2-a2*b1===0);
+  const x0=ri(-4,4),y0=ri(-4,4),k1=a1*x0+b1*y0,k2=a2*x0+b2*y0;
+  return trous(7,2,`On résout par combinaisons le système ${S2(eqH(a1,b1,k1),eqH(a2,b2,k2))} On trouve x = {0} et y = {1}.`,[x0,y0],`${combH(b2,-b1)} élimine y et donne x = ${sgn(x0)}&nbsp;; on remplace ensuite pour trouver y = ${sgn(y0)}.`,{k:'sys',L1:[a1,b1,-k1],L2:[a2,b2,-k2]})},
+ T4(){const a=nz(-6,6),b=nz(-6,6),c=nz(-6,6),d=nz(-6,6);
+  return trous(5,2,`Les droites d₁ et d₂ ont pour vecteurs directeurs ${vecH('u⃗',a,b)} et ${vecH('v⃗',c,d)}. Le déterminant det(u⃗, v⃗) vaut {0}.`,[a*d-b*c],`det = ${pH(a)} × ${pH(d)} − ${pH(b)} × ${pH(c)} = ${sgn(a*d-b*c)}.`,{k:'det',u:[a,b],w:[c,d]})},
+ T5(){const m=nz(-7,7),p=nz(-9,9);return trous(4,2,`L'équation ${redH(m,p)} s'écrit aussi ${linH([[-m,'x'],[1,'y']])} + c = 0 avec c = {0}.`,[-p],`On ramène tout à gauche&nbsp;: ${linH([[-m,'x'],[1,'y'],[-p,'']])} = 0.`,{k:'red2cart',m,p})},
+ T6(){let a1,b1,b2,x0,y0;do{a1=pick([2,3,4,-2,-3]);b1=nz(-4,4);b2=nz(-4,4);x0=ri(-5,5);y0=ri(-5,5)}while(a1*b2-b1===0);const k1=a1*x0+b1*y0,k2=x0+b2*y0;
+  return trous(6,2,`Par substitution (on isole x dans la deuxième équation), le système ${S2(eqH(a1,b1,k1),eqH(1,b2,k2))} a pour solution x = {0} et y = {1}.`,[x0,y0],`x = ${linH([[k2,''],[-b2,'y']])}&nbsp;; on remplace dans la première équation, on trouve y = ${sgn(y0)}, puis x = ${sgn(x0)}.`,{k:'sys',L1:[a1,b1,-k1],L2:[1,b2,-k2]})}
+};
+/* ---------- Or : plusieurs étapes, notions mélangées, situations ---------- */
+const OQ={
+ O2(){const b=pick([-4,-3,-2,2,3,4]),m=nz(-3,3),q=nz(-6,6),c=nz(-5,5),a=-m*b;
+  return qcm(5,3,`Pour quelle valeur de a la droite d'équation ax ${b<0?'−':'+'} ${Math.abs(b)}y ${c<0?'−':'+'} ${Math.abs(c)} = 0 est-elle parallèle à la droite ${redH(m,q)}&nbsp;?`,[['a = '+sgn(a),'num:'+a+'/1',1],['a = '+sgn(-a),'num:'+(-a)+'/1'],['a = '+sgn(m),'num:'+m+'/1'],['a = '+sgn(-m),'num:'+(-m)+'/1']],
+   `La pente de la première droite est −a ÷ ${pH(b)}&nbsp;; elle doit valoir ${sgn(m)}, donc a = ${sgn(a)}.`,{k:'param',b,m,c,q})},
+ O5(){for(;;){const a1=nz(-5,5),b1=nz(-5,5),a2=nz(-5,5),b2=nz(-5,5),k1=nz(-9,9),k2=ri(-9,9),det=a1*b2-a2*b1;if(Math.abs(det)<3)continue;
+  const L1=R.Leq(a1,b1,k1),L2=R.Leq(a2,b2,k2),P=R.cross(L1,L2);if(Fx.isInt(P.x)&&Fx.isInt(P.y)||P.x.d>9||P.y.d>9)continue;
+  const pts=[[P.x,P.y,1],[P.y,P.x],[Fx.neg(P.x),P.y],[P.x,Fx.neg(P.y)]];const items=[];
+  pts.forEach(([x,y,ok])=>{const vv=`pt:${qF(x)},${qF(y)}`;if(items.some(t=>t[1]===vv))return;if(!ok&&R.onL(L1,x,y)&&R.onL(L2,x,y))return;items.push([`(${fH(x)}&nbsp;; ${fH(y)})`,vv,!!ok])});
+  if(items.length<3)continue;
+  return qcm(7,3,`La solution du système ${S2(eqH(a1,b1,k1),eqH(a2,b2,k2))} est le couple&nbsp;:`,items,`Par combinaisons&nbsp;: ${combH(b2,-b1)} donne ${sgn(det)}x = ${sgn(k1*b2-k2*b1)}, donc x = ${fH(P.x)}&nbsp;; puis y = ${fH(P.y)}.`,{k:'sys',L1:[a1,b1,-k1],L2:[a2,b2,-k2]})}},
+ O6(){for(;;){const a=nz(-5,5),b=nz(-5,5),c=nz(-6,6),xA=ri(-4,4),yA=ri(-4,4);if(Math.abs(a)===Math.abs(b)||gcd(gcd(a,b),c)!==1)continue;const c1=-(a*xA+b*yA);if(c1===c||c1===0||c1===-c)continue;const c3=-(b*xA+a*yA);
+  return qcm(4,3,`La droite parallèle à d&nbsp;: ${cartH(a,b,c)} passant par ${ptH('A',xA,yA)} a pour équation&nbsp;:`,[[cartH(a,b,c1),lineV(a,b,c1),1],[cartH(a,b,-c1),lineV(a,b,-c1)],[cartH(a,b,c),lineV(a,b,c)],[cartH(b,a,c3),lineV(b,a,c3)]],
+   `Parallèle à d&nbsp;: même vecteur directeur, donc une équation ${linH([[a,'x'],[b,'y']])} + c′ = 0&nbsp;; A est dessus, d'où c′ = ${sgn(c1)}.`,{k:'parA',a,b,c,xA,yA})}},
+ O7(){const a=nz(-5,5),b=nz(-5,5),c=nz(-9,9),s=pick([-3,-2,2,3,4]);const k=s*c,L=[[k,1],[c],[-k],[k+s]];if(new Set(L.map(x=>x[0])).size<4)return OQ.O7();
+  return qcm(5,3,`Pour quelle valeur de k le système ${S2(eqH(a,b,c),linH([[s*a,'x'],[s*b,'y']])+' = k')} a-t-il une infinité de solutions&nbsp;?`,L.map(x=>['k = '+sgn(x[0]),'num:'+x[0]+'/1',!!x[1]]),
+   `La seconde équation doit être la première multipliée par ${sgn(s)}&nbsp;: k = ${sgn(s)} × ${pH(c)} = ${sgn(k)}. Les droites sont alors confondues.`,{k:'kinf',a,b,c,s})},
+ O9(){const xA=ri(-6,6),yA=ri(-6,6);let dx,dy;do{dx=nz(-4,4);dy=nz(-4,4)}while(gcd(dx,dy)!==1);const t=pick([3,4,5,6]),on=Math.random()<.5;const xC=xA+t*dx,yC=yA+t*dy+(on?0:pick([-1,1]));
+  return qcm(3,3,`Les points ${ptH('A',xA,yA)}, ${ptH('B',xA+dx,yA+dy)} et ${ptH('C',xC,yC)} sont-ils alignés&nbsp;?`,[['Oui, C appartient à la droite (AB).','yes',on],['Non, C n\'appartient pas à la droite (AB).','no',!on],['On ne peut pas savoir sans figure.','?']],
+   `Vecteurs ${vecH('AB⃗',dx,dy)} et ${vecH('AC⃗',xC-xA,yC-yA)}&nbsp;: déterminant ${sgn(dx*(yC-yA)-dy*(xC-xA))}${on?'&nbsp;: colinéaires, A, B, C sont alignés.':' ≠ 0&nbsp;: ils ne sont pas alignés.'}`,{k:'align',A:[xA,yA],B:[xA+dx,yA+dy],C:[xC,yC]})},
+ O11(){for(;;){const m=nz(-4,4),p=nz(-6,6),xA=nz(-4,4),yA=ri(-6,6),p1=yA-m*xA,p2=yA+m*xA;if(p1===p||p2===p1||p2===p)continue;
+  return qcm(1,3,`La droite parallèle à d&nbsp;: ${redH(m,p)} passant par ${ptH('A',xA,yA)} a pour équation&nbsp;:`,[[redH(m,p1),redV(m,p1),1],[redH(m,p2),redV(m,p2)],[redH(m,p),redV(m,p)],[redH(-m,p2),redV(-m,p2)]],
+   `Même pente ${sgn(m)}&nbsp;; A est dessus&nbsp;: ${sgn(yA)} = ${sgn(m)} × ${pH(xA)} + p, donc p = ${sgn(p1)}.`,{k:'parAred',m,p,xA,yA})}}
+};
+const OT={
+ T1(){for(;;){const P=()=>[ri(-5,5),ri(-5,5)],A=P(),B=P(),Cc=P(),D=P();if(A[0]===B[0]||Cc[0]===D[0])continue;
+  const L1=R.Lcart(B[1]-A[1],A[0]-B[0],(B[0]-A[0])*A[1]-(B[1]-A[1])*A[0]),L2=R.Lcart(D[1]-Cc[1],Cc[0]-D[0],(D[0]-Cc[0])*Cc[1]-(D[1]-Cc[1])*Cc[0]),X=R.cross(L1,L2);
+  if(!X||X.x.d>6||X.y.d>6||Fx.isInt(X.x)&&Fx.isInt(X.y)&&Math.random()<.5||Math.abs(v(X.x))>12||Math.abs(v(X.y))>12)continue;
+  if(A[0]===B[0]&&A[1]===B[1]||Cc[0]===D[0]&&Cc[1]===D[1])continue;
+  return trous(6,3,`Les droites (AB) et (CD), avec ${ptH('A',A[0],A[1])}, ${ptH('B',B[0],B[1])}, ${ptH('C',Cc[0],Cc[1])} et ${ptH('D',D[0],D[1])}, se coupent au point I({0}&nbsp;; {1}).`,[X.x,X.y],
+   `Équations réduites de (AB) et (CD) par les pentes, puis résolution du système&nbsp;: I(${fH(X.x)}&nbsp;; ${fH(X.y)}).`,{k:'inter4',A,B,C:Cc,D})}},
+ T3(){for(;;){const x=ri(3,12),r2=pick([.5,1,1.5,2]),r1=r2+pick([.5,1,1.5,2]),f2=ri(8,20);const f1=f2+r2*x-r1*x;if(f1<2||!Number.isInteger(f1))continue;const P=F(Math.round((f1+r1*x)*2),2);
+  const d=n=>String(n).replace('.',','),cx=r=>r===1?'x':d(r)+'x';
+  return trous(6,3,`Forfait mobile&nbsp;: l'offre A coûte ${f1} € par mois plus ${d(r1)} € par Go consommé, l'offre B coûte ${f2} € plus ${d(r2)} € par Go. Les deux offres coûtent le même prix pour {0} Go, et ce prix est {1} €.`,[x,P],
+   `On résout ${f1} + ${cx(r1)} = ${f2} + ${cx(r2)}&nbsp;: ${cx(r1-r2)} = ${f2-f1}, donc x = ${x}&nbsp;; prix&nbsp;: ${f1} + ${d(r1)} × ${x} = ${d(v(P))} €.`,{k:'forfait',f1,r1,f2,r2})}},
+ T4(){for(;;){const a=ri(7,13),e=ri(4,a-1),n1=ri(2,4),s1=ri(1,4),n2=ri(1,4),s2=ri(2,5);if(n1*s2-n2*s1===0)continue;
+  return trous(7,3,`Au cinéma, ${n1} places plein tarif et ${s1} places étudiant coûtent ${n1*a+s1*e} €&nbsp;; ${n2} places plein tarif et ${s2} places étudiant coûtent ${n2*a+s2*e} €. Une place plein tarif coûte {0} € et une place étudiant {1} €.`,[a,e],
+   `Avec x le prix plein tarif et y le prix étudiant&nbsp;: ${S2(eqH(n1,s1,n1*a+s1*e),eqH(n2,s2,n2*a+s2*e))} donne x = ${a} et y = ${e}.`,{k:'cine',n1,s1,n2,s2,t1:n1*a+s1*e,t2:n2*a+s2*e})}},
+ T8(){for(;;){const m=pick([-5,-4,-3,-2,2,3,4,5]),p=nz(-9,9);if(p%m===0)continue;
+  return trous(2,3,`La droite d&nbsp;: ${redH(m,p)} coupe l'axe des ordonnées au point (0&nbsp;; {0}) et l'axe des abscisses au point ({1}&nbsp;; 0).`,[p,F(-p,m)],`Pour x = 0, y = ${sgn(p)}. Pour y = 0, on résout ${linH([[m,'x'],[p,'']])} = 0&nbsp;: x = ${fH(F(-p,m))}.`,{k:'axes',m,p})}},
+ T10(){for(;;){const xA=ri(-5,5),yA=ri(-5,5),xB=ri(-5,5),yB=ri(-5,5);if(xA===xB||yA===yB)continue;const m=F(yB-yA,xB-xA),p=Fx.sub(I(yA),Fx.mul(m,I(xA)));if(Fx.isInt(m)||Fx.isInt(p)||m.d>5)continue;
+  return trous(3,3,`Une équation réduite de la droite (DE), avec ${ptH('D',xA,yA)} et ${ptH('E',xB,yB)}, est y = mx + p avec m = {0} et p = {1}.`,[m,p],`m = ${sgn(yB-yA)} ÷ ${pH(xB-xA)} = ${fH(m)}&nbsp;; D est sur la droite&nbsp;: p = ${sgn(yA)} − ${pH(m)} × ${pH(xA)} = ${fH(p)}.`,{k:'twopts',A:[xA,yA],B:[xB,yB]})}}
+};
+function build(Q,T,nq){const qs=shuf(Object.keys(Q)).slice(0,6).map(k=>Object.assign(Q[k](),{gen:k})),ts=shuf(Object.keys(T)).slice(0,4).map(k=>Object.assign(T[k](),{gen:k}));
+  void nq;return shuf(qs.concat(ts))}
+window.RC_FIN={bronze:()=>build(BQ,BT),argent:()=>build(AQ,AT),or:()=>build(OQ,OT)};
+})();
+</script>
+<script>
+/* ======================= RAYONS CROISÉS — labo libre ======================= */
+(function(){
+'use strict';
+const R=window.RCM,SC=window.RCS,S=SC.S,{F,I,Fx,fH,sgn,cartH,redH,vertH}=R;
+const $=id=>document.getElementById(id);
+const st={a1:2,b1:-1,c1:1,a2:1,b2:1,c2:-4};
+function dial(k,lab){return `<div class="dial"><span>${lab}</span><div class="step"><button type="button" data-k="${k}" data-s="-1" aria-label="${lab} moins 1">−</button><output data-o="${k}">${sgn(st[k])}</output><button type="button" data-k="${k}" data-s="1" aria-label="${lab} plus 1">+</button></div></div>`}
+$('lab1').innerHTML=dial('a1','a')+dial('b1','b')+dial('c1','c');$('lab2').innerHTML=dial('a2','a')+dial('b2','b')+dial('c2','c');
+function eqTxt(a,b,c){if(!a&&!b)return null;return cartH(a,b,c)+(b?' ⟺ '+redH(F(-a,b),F(-c,b)):' ⟺ '+vertH(F(-c,a)))}
+function render(){document.querySelectorAll('#labv output').forEach(o=>o.textContent=sgn(st[o.dataset.o]));
+  const {a1,b1,c1,a2,b2,c2}=st,ok1=a1||b1,ok2=a2||b2;
+  S.beams=[];S.cross=null;S.guides=[];if(ok1)S.beams.push({L:{a:a1,b:b1,c:c1},col:SC.C.l1,tag:'d₁',f:1});if(ok2)S.beams.push({L:{a:a2,b:b2,c:c2},col:SC.C.l2,tag:'d₂',f:1,dash:null});
+  const e1=eqTxt(a1,b1,c1),e2=eqTxt(a2,b2,c2);
+  window.RC.cap(`<span class="c1 eqx">d₁ : ${e1?cartH(a1,b1,c1):'—'}</span><span class="c2 eqx">d₂ : ${e2?cartH(a2,b2,c2):'—'}</span>`);
+  let h='';
+  if(!ok1||!ok2)h='Une équation ax + by + c = 0 exige (a&nbsp;; b) ≠ (0&nbsp;; 0)&nbsp;: règle a ou b.';
+  else{const L1=R.Lcart(a1,b1,c1),L2=R.Lcart(a2,b2,c2),X=R.cross(L1,L2),det=(-b1)*a2-a1*(-b2);
+    h=`d₁&nbsp;: ${e1}<br>d₂&nbsp;: ${e2}<br>Déterminant des vecteurs directeurs&nbsp;: ${sgn(det)}.<br>`;
+    if(X){S.cross={x:Fx.v(X.x),y:Fx.v(X.y),st:'ok',lab:'I'};h+=`Droites <b>sécantes</b>&nbsp;: le système a une unique solution, <b>𝒮 = {(${fH(X.x)}&nbsp;; ${fH(X.y)})}</b>.`}
+    else{const same=a1*c2===a2*c1&&b1*c2===b2*c1;if(same&&S.beams[1])S.beams[1].dash='10 12';
+      h+=same?'Droites <b>confondues</b>&nbsp;: une infinité de solutions.':'Droites <b>parallèles</b>&nbsp;: aucune solution, 𝒮 = ∅.'}}
+  $('labout').innerHTML=h;SC.draw()}
+$('labv').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;const k=b.dataset.k,v=st[k]+ +b.dataset.s;if(v<-9||v>9)return;st[k]=v;window.RC_SND.click();render()});
+$('labrnd').onclick=()=>{const r=()=>R.ri(-6,6);do{st.a1=r();st.b1=r();st.c1=r();st.a2=r();st.b2=r();st.c2=r()}while(!(st.a1||st.b1)||!(st.a2||st.b2));window.RC_SND.pop();render()};
+window.RC_LAB={open(){SC.reset();SC.door(false);$('badge').textContent='Labo libre';render()},st};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='epique'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'rayons-croises',title:'Rayons Croisés',levels:7,
+  levelNames:['Premier rayon','Capteurs','Deux capteurs','Le code cartésien','Parallèles ?','Le croisement','La combinaison'],
+  music:'epique',finals:{bronze:()=>(window.RC_lastFinal=RC_FIN.bronze()),argent:()=>(window.RC_lastFinal=RC_FIN.argent()),or:()=>(window.RC_lastFinal=RC_FIN.or())}});
+RC.start();
+(function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  const AR=/([A-Za-z]+)\u20d7/g;
+  function arrows(n){const v=n.nodeValue,p=n.parentNode;if(!p||v.indexOf('\u20d7')<0||(p.closest&&p.closest('svg')))return;
+    const fr=document.createDocumentFragment();let last=0;v.replace(AR,(m,l,i)=>{fr.appendChild(document.createTextNode(v.slice(last,i)));const s=document.createElement('span');s.className='va';s.textContent=l;fr.appendChild(s);last=i+m.length;return m});
+    fr.appendChild(document.createTextNode(v.slice(last).replace(/\u20d7/g,'')));p.replaceChild(fr,n)}
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,'\u00a0$1').replace(re2,'«\u00a0');if(w!==v)n.nodeValue=w;arrows(n);return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|INPUT|TEXTAREA)$/.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(fix)}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>
