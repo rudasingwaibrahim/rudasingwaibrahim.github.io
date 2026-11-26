@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le Carré de lumière · Sigma Arcade</title>
+<meta name="description" content="Probabilités conditionnelles et indépendance en Première spécialité : l'univers est un carré de lumière d'aire 1, chaque probabilité est une aire. Sachant A, la bande A s'étire jusqu'à remplir le carré ; les morceaux de B se rassemblent ; une coupe droite, c'est l'indépendance.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* IDÉE : l'univers Ω est un carré de lumière d'aire 1 ; une probabilité est une aire.
+   Une coupe verticale sépare A de Ā, une coupe horizontale découpe B dans chaque bande.
+   Sachant A : la bande A s'étire jusqu'à devenir le carré entier. Probabilités totales : les morceaux de B
+   se fondent en bandes et s'empilent. Indépendance : la coupe de B traverse tout le carré, droite.
+   Épreuves répétées : on recoupe chaque case, encore et encore (n ⩽ 4). */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);
+--ca:#7fb2ff;--cna:#b79cff;--c3:#6fd3c1}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:74ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(340px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:1000/600;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#050a16;user-select:none;-webkit-user-select:none}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg text{font-family:var(--sg-font)}
+.crow{display:flex;gap:8px;align-items:stretch;margin-top:10px}
+.crow .capt{flex:1;margin-top:0}
+.swap{flex:none;min-height:44px;padding:0 14px;border-radius:14px;border:1.5px solid var(--line);background:rgba(6,13,26,.88);color:var(--ink);font:600 14px/1.2 var(--sg-font);cursor:pointer;display:none;max-width:7.5em}
+.swap:hover{border-color:var(--ac)}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,22px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .35em}
+.capt .k{color:var(--gold2)}.capt .m{color:var(--mut);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin:8px 0 0;font-size:14px;color:var(--mut)}
+.legend i{display:inline-block;width:18px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.5;margin:0 0 12px}
+.prompt p{margin:0 0 8px}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1;box-shadow:none}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(19px,2.2vw,22px)/2.3 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.6em;height:46px;margin:0 3px;padding:0 6px;font:700 20px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}.in.rv{border-color:var(--gold);color:var(--gold2)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+.sl{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 12px;margin:4px 0 10px}
+.sl label{font-weight:600}
+.sl output{font:700 20px var(--sg-font);color:var(--gold2);font-variant-numeric:tabular-nums;min-width:3.2em;text-align:right}
+.sl input[type=range]{grid-column:1/-1;width:100%;height:44px;margin:0;accent-color:var(--ac);cursor:pointer}
+.ov{text-decoration:overline;text-decoration-thickness:.07em}
+.pr{white-space:nowrap}
+.pr sub{font-size:.68em;vertical-align:-.32em;line-height:0;margin:0 .04em}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.nw{white-space:nowrap}
+.ctw{overflow-x:auto;margin:10px 0 6px}
+.ct{border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums;font-size:17px;line-height:1.3;min-width:min(100%,300px)}
+.ct th,.ct td{padding:7px 12px;text-align:right;border-bottom:1px solid var(--soft)}
+.ct thead th{font-size:15px;color:var(--mut);font-weight:600}
+.ct tbody th{text-align:left;font-weight:600;color:var(--ink);font-size:15px}
+.ct .tot{color:var(--mut)}
+.ct td{font-weight:700}
+.ct .a{color:var(--ca)}.ct .na{color:var(--cna)}
+.ct .q{color:var(--gold2)}
+.sk-q .ct{font-size:16px}.sk-q .ct th,.sk-q .ct td{padding:5px 10px}
+.sk-q .pr sub,.sk-ch .pr sub{font-size:.66em}
+.sk-q .fr,.sk-ch .fr{font-size:.92em}
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb.rv{background:rgba(200,168,75,.08);border-left-color:var(--gold)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.fb .sol{display:block;margin-top:6px;color:var(--gold2)}
+.fb .btns{margin-top:10px}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex;flex:none}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+.tfade{animation:tfade .45s ease-out both}
+@keyframes tfade{from{opacity:0}}
+.glow{animation:glow 1.6s ease-in-out infinite}
+@keyframes glow{50%{opacity:.45}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:#060d1a;border-bottom:1px solid var(--soft)}
+  .stage{aspect-ratio:600/600;max-height:40svh;margin:auto}
+  .scol.tw .swap{display:block}
+  .crow{margin-top:6px}.swap{border-radius:10px}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+  .legend{display:none}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .ct{font-size:16px}.ct th,.ct td{padding:6px 8px}
+  .sk-q .ct th,.sk-q .ct td{padding:4px 6px}.sk-q .ct{font-size:15px}
+}
+@media (prefers-reduced-motion:reduce){.win,.tfade,.glow{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Le Carré de lumière</h1>
+<p>L'univers est un carré de lumière d'aire 1&nbsp;: chaque probabilité est une aire. Une coupe sépare A de son contraire, une autre découpe B. «&nbsp;Sachant A&nbsp;», la bande A s'étire jusqu'à remplir tout le carré. Les morceaux de B se rassemblent, et quand la coupe de B traverse le carré bien droite… A et B sont indépendants.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Le carré de lumière : l'univers est un carré d'aire 1, découpé en rectangles dont les aires sont des probabilités">
+    <svg id="scene" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+  </div>
+  <div class="crow"><div class="capt" id="capt" aria-live="polite"></div><button type="button" class="swap" id="swap">Voir l'arbre</button></div>
+  <div class="legend" id="legend"><span><i style="background:rgba(127,178,255,.45)"></i>bande A</span><span><i style="background:rgba(183,156,255,.45)"></i>bande <span class="ov">A</span></span><span><i style="background:#e8c766"></i>partie B (la lumière)</span><span>aire du carré = 1</span></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p><div id="fbx"></div></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+
+<script>
+/* ======================= nombres exacts, écritures, notations ======================= */
+window.CL_N=(function(){
+'use strict';
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t}return a};
+const R=(n,d)=>{if(d===undefined)d=1;if(d<0){n=-n;d=-d}const g=gcd(n,d)||1;return{n:n/g,d:d/g}};
+const add=(x,y)=>R(x.n*y.d+y.n*x.d,x.d*y.d),sub=(x,y)=>R(x.n*y.d-y.n*x.d,x.d*y.d);
+const mul=(x,y)=>R(x.n*y.n,x.d*y.d),div=(x,y)=>R(x.n*y.d,x.d*y.n);
+const cmp=(x,y)=>Math.sign(x.n*y.d-y.n*x.d),eq=(x,y)=>cmp(x,y)===0,val=x=>x.n/x.d;
+const one=R(1),zero=R(0),comp=x=>sub(one,x);
+const pw=(x,k)=>{let r=one;for(let i=0;i<k;i++)r=mul(r,x);return r};
+const sum=a=>a.reduce((s,x)=>add(s,x),zero);
+const isDec=r=>{let d=r.d;while(d%2===0)d/=2;while(d%5===0)d/=5;return d===1};
+const ndec=r=>{let k=0;while(k<12&&((Math.abs(r.n)*Math.pow(10,k))%r.d))k++;return k};
+const NB=' ';
+function fmtInt(n){const s=String(Math.abs(n));const g=s.length>4?s.replace(/\B(?=(\d{3})+(?!\d))/g,' '):s;return (n<0?'−':'')+g}
+function dec(r,minDig){minDig=minDig||0;const k=ndec(r),kk=Math.max(k,minDig),p=Math.pow(10,kk),v=Math.round(Math.abs(r.n)*p/r.d);
+  const ip=Math.floor(v/p),fp=kk?String(v-ip*p).padStart(kk,'0'):'';return (r.n<0?'−':'')+fmtInt(ip)+(kk?','+fp:'')}
+const pct=r=>dec(mul(r,R(100)))+NB+'%';
+const frH=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+/* écriture « naturelle » : décimale si elle est exacte et courte, sinon fraction */
+const short=r=>r.d===1||(isDec(r)&&ndec(r)<=4);
+const numH=r=>r.d===1?fmtInt(r.n):short(r)?dec(r):frH(fmtInt(r.n),fmtInt(r.d));
+const numT=r=>r.d===1?String(r.n):short(r)?dec(r):`${r.n}/${r.d}`;
+/* toutes les écritures acceptées d'un rationnel (épreuves du kit) */
+function ans(r,extra){const out=[];const push=s=>{if(s&&out.indexOf(s)<0)out.push(s)};
+  if(isDec(r)&&ndec(r)<=6){push(dec(r).replace(/ /g,''));if(r.d!==1){const k=ndec(r);for(let j=k+1;j<=Math.max(4,k+1);j++)push(dec(r,j))}}
+  if(r.d!==1)push(`${r.n}/${r.d}`);
+  (extra||[]).forEach(push);
+  if(r.d!==1&&r.n<=r.d){const h=mul(r,R(100));if(isDec(h)&&ndec(h)<=3)push(dec(h)+'%')}
+  return out}
+function parse(s){s=String(s).replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.');
+  if(!s)return null;
+  const P=t=>{const m=/^(-?)(\d*)(?:\.(\d+))?$/.exec(t);if(!m||!(m[2]||m[3]))return null;const ip=m[2]||'0',fp=m[3]||'';if(fp.length>9)return null;return R(parseInt(ip+fp,10)*(m[1]?-1:1),Math.pow(10,fp.length))};
+  let m=/^(.*)%$/.exec(s);if(m){const x=P(m[1]);return x?div(x,R(100)):null}
+  m=/^([^/]+)\/([^/]+)$/.exec(s);if(m){const a=P(m[1]),b=P(m[2]);return a&&b&&b.n?div(a,b):null}
+  return P(s)}
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const dist=vs=>vs.every((v,i)=>vs.every((w,j)=>i===j||!eq(v,w)));
+/* notations : '~A' = A barre ; P('B','A') = P_A(B) */
+const ev=s=>String(s).replace(/~([A-ZΩ][₁₂₃]?)/g,'<span class="ov">$1</span>');
+const P=(x,c)=>`<span class="pr">P${c?`<sub>${ev(c)}</sub>`:''}(${ev(x)})</span>`;
+return{gcd,R,add,sub,mul,div,cmp,eq,val,one,zero,comp,pw,sum,isDec,ndec,fmtInt,dec,pct,frH,short,numH,numT,ans,parse,ri,pick,shuf,dist,ev,P,NB};
+})();
+</script>
+
+<script>
+/* ======================= données : lois conjointes et événements ======================= */
+window.CL_D=(function(){
+'use strict';
+const N=window.CL_N,{R,add,sub,mul,div,comp,eq,pw,sum}=N;
+/* D.type : 'tab' (effectifs c[i][j], i = colonne A/Ā, j = B/B̄), 'tree' (p[i], q[i] = P_{Ai}(B)),
+   'pab' (P(A), P(B), P(A ∩ B)), 'dbl' (deux épreuves indépendantes o1, o2), 'bern' (n, p) */
+function joint(D){
+  if(D.type==='tab'){const t=D.c.flat().reduce((a,b)=>a+b,0);return D.c.map(r=>r.map(x=>R(x,t)))}
+  if(D.type==='tree')return D.p.map((p,i)=>[mul(p,D.q[i]),mul(p,comp(D.q[i]))]);
+  if(D.type==='pab')return [[D.pI,sub(D.pA,D.pI)],[sub(D.pB,D.pI),add(sub(comp(D.pA),D.pB),D.pI)]];
+  throw new Error('joint '+D.type)}
+function lit(D,s){s=s.trim();
+  if(s===D.b)return(i,j)=>j===0;if(s==='~'+D.b)return(i,j)=>j===1;
+  const k=D.f.indexOf(s);if(k>=0)return(i,j)=>i===k;
+  if(s[0]==='~'){const k2=D.f.indexOf(s.slice(1));if(k2>=0)return(i,j)=>i!==k2}
+  throw new Error('événement '+s)}
+function pE(D,e){const J=joint(D),ls=e.split('∩').map(s=>lit(D,s));let r=R(0);
+  J.forEach((row,i)=>row.forEach((x,j)=>{if(ls.every(f=>f(i,j)))r=add(r,x)}));return r}
+function nE(D,e){const ls=e.split('∩').map(s=>lit(D,s));let r=0;D.c.forEach((row,i)=>row.forEach((x,j)=>{if(ls.every(f=>f(i,j)))r+=x}));return r}
+/* valeur d'une clé : 'P(B|A)', 'P(A ∩ ~B)', 'n(A)', 'prod(A;B)', 'x100(B)', 'set:0-0,1-1', 'k=2', 'k>=1', 'paths=2', 'path:SSE' */
+function V(key,D){let m;
+  if(D.type==='dbl'){
+    if((m=/^set:(.*)$/.exec(key)))return sum(m[1].split(',').map(c=>{const [i,j]=c.split('-').map(Number);return mul(D.o1[i].p,D.o2[j].p)}));
+    if((m=/^p1:(\d)$/.exec(key)))return D.o1[+m[1]].p;
+    if((m=/^p2:(\d)$/.exec(key)))return D.o2[+m[1]].p;}
+  if(D.type==='bern'){const n=D.n,p=D.p;
+    const paths=k=>{let c=0;for(let s=0;s<(1<<n);s++){let b=0;for(let t=0;t<n;t++)if(s>>t&1)b++;if(b===k)c++}return c};
+    const pk=k=>mul(R(paths(k)),mul(pw(p,k),pw(comp(p),n-k)));
+    if((m=/^k=(\d)$/.exec(key)))return pk(+m[1]);
+    if((m=/^k>=(\d)$/.exec(key))){let r=R(0);for(let k=+m[1];k<=n;k++)r=add(r,pk(k));return r}
+    if((m=/^paths=(\d)$/.exec(key)))return R(paths(+m[1]));
+    if((m=/^path:([SE]+)$/.exec(key)))return m[1].split('').reduce((a,c)=>mul(a,c==='S'?p:comp(p)),R(1));}
+  if((m=/^n\((.*)\)$/.exec(key)))return R(m[1]==='Ω'?D.c.flat().reduce((a,b)=>a+b,0):nE(D,m[1]));
+  if((m=/^prod\((.*);(.*)\)$/.exec(key)))return mul(pE(D,m[1]),pE(D,m[2]));
+  if((m=/^x100\((.*)\)$/.exec(key)))return mul(R(100),pE(D,m[1]));
+  if((m=/^P\(([^|]*)\|(.*)\)$/.exec(key)))return div(pE(D,m[1]+' ∩ '+m[2]),pE(D,m[2]));
+  if((m=/^P\((.*)\)$/.exec(key)))return pE(D,m[1]);
+  throw new Error('clé '+key)}
+/* notation HTML d'une clé de probabilité */
+function NT(key){let m;if((m=/^P\(([^|]*)\|(.*)\)$/.exec(key)))return N.P(m[1].trim(),m[2].trim());if((m=/^P\((.*)\)$/.exec(key)))return N.P(m[1].trim());return key}
+const ser=D=>JSON.parse(JSON.stringify(D));
+return{joint,pE,V,NT,ser};
+})();
+</script>
+
+<script>
+/* ======================= la scène : le carré de lumière et l'arbre ======================= */
+window.CL_S=(function(){
+'use strict';
+const N=window.CL_N,NS='http://www.w3.org/2000/svg',svg=document.getElementById('scene');
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SQ={x:52,y:34,s:516};
+const X=u=>SQ.x+u*SQ.s,Y=v=>SQ.y+(1-v)*SQ.s;
+const C={gold:'#e8c766',gold2:'#f6dc8a',ink:'#f0f4ff',mut:'rgba(200,215,255,.66)',ac:'#6c8eff',
+  hue:['#7fb2ff','#b79cff','#6fd3c1','#ff9b7a'],kc:['#3a4a6e','#7fb2ff','#b79cff','#6fd3c1','#e8c766']};
+function el(tag,a,parent){const e=document.createElementNS(NS,tag);if(a)for(const k in a)e.setAttribute(k,a[k]);if(parent)parent.appendChild(e);return e}
+/* ---------- bruitages (interrupteur partagé avec le kit) ---------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){if(!snd)return;const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const SND={pop(){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)},soft(){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)},
+  win(){[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))},
+  cut(){tone(1200,.08,.02,'sawtooth');tone(800,.12,.02,'sine',.04)},
+  stretch(){[330,392,494,659].forEach((f,i)=>tone(f,.28,.03,'sine',i*.08))},
+  merge(){tone(523.25,.3,.04,'triangle');tone(659.25,.3,.04,'triangle',.1);tone(784,.45,.045,'triangle',.22)},
+  line(){tone(880,.5,.035,'sine');tone(1320,.6,.02,'sine',.1)}};
+const sound={get:()=>snd,set:v=>{snd=v;try{localStorage.setItem('sigma-fanfare',v?'1':'0')}catch(_){}}};
+
+/* ---------- décor ---------- */
+const defs=el('defs',{},svg);
+defs.innerHTML=`<radialGradient id="cl-halo" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="#6c8eff" stop-opacity=".22"/><stop offset="1" stop-color="#6c8eff" stop-opacity="0"/></radialGradient>
+<linearGradient id="cl-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#040915"/><stop offset="1" stop-color="#0b1834"/></linearGradient>
+<linearGradient id="cl-lit" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#f6dc8a"/><stop offset="1" stop-color="#d9b44e"/></linearGradient>
+<filter id="cl-glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+el('rect',{x:-400,y:0,width:1800,height:600,fill:'url(#cl-sky)'},svg);
+const stars=el('g',{opacity:.55},svg);
+for(let i=0;i<70;i++)el('circle',{cx:Math.round(Math.random()*1600-300),cy:Math.round(Math.random()*600),r:(Math.random()*1.1+.3).toFixed(2),fill:'#cdd8ff',opacity:(Math.random()*.6+.2).toFixed(2)},stars);
+const halo=el('ellipse',{cx:X(.5),cy:Y(.5),rx:380,ry:330,fill:'url(#cl-halo)'},svg);
+const frame=el('rect',{x:SQ.x-6,y:SQ.y-6,width:SQ.s+12,height:SQ.s+12,rx:8,fill:'#060c1c',stroke:'rgba(160,190,255,.35)','stroke-width':1.5},svg);
+const stage=document.getElementById('stage');
+const gSq=el('g',{},svg),gOver=el('g',{},svg),gTree=el('g',{},svg);
+const omega=el('text',{x:SQ.x+8,y:SQ.y+22,'font-size':16,'font-weight':700,fill:'rgba(200,215,255,.5)'},svg);omega.textContent='Ω';
+
+/* ---------- objets animés : rectangles, textes, traits (coordonnées du carré unité, v vers le haut) ---------- */
+const items=new Map();
+function rich(t,str){t.textContent='';String(str).split(/(~[A-ZΩ][₁₂₃]?|_[^ ]+)/).forEach(part=>{if(!part)return;const s=el('tspan',{},t);
+  if(part[0]==='~'){s.textContent=part.slice(1);s.setAttribute('text-decoration','overline');s.style.textDecoration='overline'}
+  else if(part[0]==='_'){s.textContent=part.slice(1);s.setAttribute('font-size','.7em');s.setAttribute('dy','.3em')}
+  else s.textContent=part})}
+function mk(sp){const it={sp,cur:null};
+  if(sp.t==='r'){it.g=el('g',{},gSq);it.r=el('rect',{rx:3},it.g);it.l=el('text',{'text-anchor':'middle','font-weight':700},it.g);it.l2=el('text',{'text-anchor':'middle','font-weight':600},it.g)}
+  else if(sp.t==='t'){it.g=el('text',{'font-weight':700},gOver)}
+  else if(sp.t==='l'){it.g=el('line',{'stroke-linecap':'round'},gOver)}
+  return it}
+function style(it){const s=it.sp;
+  if(s.t==='r'){it.r.setAttribute('fill',s.fill||'#1a2a4a');it.r.setAttribute('stroke',s.hl?C.gold2:(s.stroke||'rgba(4,9,20,.9)'));it.r.setAttribute('stroke-width',s.hl?4:2);
+    if(s.hl)it.r.setAttribute('filter','url(#cl-glow)');else it.r.removeAttribute('filter');
+    const ink=s.ink||C.ink;it.l.setAttribute('fill',ink);it.l2.setAttribute('fill',ink);it.l.setAttribute('font-size',s.size||20);it.l2.setAttribute('font-size',Math.round((s.size||20)*.72));
+    rich(it.l,s.lab||'');rich(it.l2,s.sub||'')}
+  else if(s.t==='t'){it.g.setAttribute('fill',s.fill||C.mut);it.g.setAttribute('font-size',s.size||18);it.g.setAttribute('text-anchor',s.anchor||'middle');rich(it.g,s.txt||'')}
+  else if(s.t==='l'){it.g.setAttribute('stroke',s.stroke||C.gold2);it.g.setAttribute('stroke-width',s.sw||4);if(s.glow)it.g.setAttribute('filter','url(#cl-glow)');else it.g.removeAttribute('filter');
+    if(s.dash)it.g.setAttribute('stroke-dasharray',s.dash);else it.g.removeAttribute('stroke-dasharray')}}
+const KEYS={r:['x','y','w','h','o'],t:['x','y','o'],l:['x1','y1','x2','y2','o']};
+function geo(sp){const g={};KEYS[sp.t].forEach(k=>g[k]=k==='o'?(sp.o===undefined?1:sp.o):sp[k]);return g}
+function put(it,g){const s=it.sp;
+  if(s.t==='r'){const x=X(g.x),y=Y(g.y+g.h),w=g.w*SQ.s,h=g.h*SQ.s,gap=w>6&&h>6?1.5:0;
+    it.r.setAttribute('x',x+gap);it.r.setAttribute('y',y+gap);it.r.setAttribute('width',Math.max(0,w-2*gap));it.r.setAttribute('height',Math.max(0,h-2*gap));
+    it.g.setAttribute('opacity',Math.max(0,Math.min(1,g.o)));
+    const fs=s.size||20,wide=w>(s.minW||58),big=wide&&h>(s.sub?fs*2.3:fs*1.35),one=wide&&!big&&h>fs*1.2;
+    /* bande trop basse pour deux lignes : on garde la valeur seule */
+    it.l.setAttribute('x',x+w/2);it.l2.setAttribute('x',x+w/2);
+    it.l.setAttribute('y',y+h/2+(s.sub&&big?-.1*fs:.36*fs));it.l2.setAttribute('y',y+h/2+1.05*fs);
+    it.l.setAttribute('opacity',big||one?1:0);it.l2.setAttribute('opacity',big?1:0)}
+  else if(s.t==='t'){it.g.setAttribute('x',X(g.x));it.g.setAttribute('y',Y(g.y));it.g.setAttribute('opacity',Math.max(0,Math.min(1,g.o)))}
+  else{it.g.setAttribute('x1',X(g.x1));it.g.setAttribute('y1',Y(g.y1));it.g.setAttribute('x2',X(g.x2));it.g.setAttribute('y2',Y(g.y2));it.g.setAttribute('opacity',Math.max(0,Math.min(1,g.o)))}}
+let anim=null,busy=0;
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function show(list,dur){if(dur===undefined)dur=750;if(reduceM)dur=0;
+  if(anim){cancelAnimationFrame(anim.raf);anim.finish()}
+  const seen=new Set(),tw=[];
+  list.forEach(sp=>{seen.add(sp.id);let it=items.get(sp.id);
+    if(!it){it=mk(sp);items.set(sp.id,it);it.cur=sp.from?Object.assign(geo(sp),sp.from):Object.assign(geo(sp),{o:0})}
+    else if(it.sp.t!==sp.t){it.g.remove();it=mk(sp);items.set(sp.id,it);it.cur=Object.assign(geo(sp),{o:0})}
+    it.sp=sp;style(it);tw.push([it,Object.assign({},it.cur),geo(sp)])});
+  items.forEach((it,id)=>{if(!seen.has(id)){it.dead=true;tw.push([it,Object.assign({},it.cur),Object.assign({},it.cur,{o:0})])}});
+  return new Promise(res=>{const t0=performance.now();busy++;
+    const finish=()=>{tw.forEach(([it,,b])=>{it.cur=b;put(it,b)});items.forEach((it,id)=>{if(it.dead){it.g.remove();items.delete(id)}});anim=null;busy--;res()};
+    const step=now=>{const k=dur?Math.min(1,(now-t0)/dur):1,e=ease(k);
+      tw.forEach(([it,a,b])=>{const g={};for(const key in b)g[key]=a[key]+(b[key]-a[key])*e;it.cur=g;put(it,g)});
+      if(k<1)anim.raf=requestAnimationFrame(step);else finish()};
+    anim={finish,raf:requestAnimationFrame(step)};if(!dur){cancelAnimationFrame(anim.raf);finish()}})}
+const wait=ms=>new Promise(r=>setTimeout(r,reduceM?0:ms));
+
+/* ---------- le carré découpé (mosaïque) ----------
+   M = {cols:[{w, name, hue, segs:[{h, lab, sub, kind:'B'|'nB'|k}]}], grid:false}
+   V = {focus:i, gather:true, gatherB:true, hl:['c0s0'], straight:true, colLab:true, rowLab:[…] , ghost:true} */
+function segFill(M,i,j,s){const hue=M.cols[i].hue||C.hue[i];
+  if(M.grid){const a=[.78,.5,.3,.18][j]||.18;return{fill:hexA(hue,a),ink:a>.45?'#071022':C.ink}}
+  if(s.kind==='B')return{fill:'url(#cl-lit)',ink:'#241a02'};
+  return{fill:hexA(hue,.26),ink:C.ink}}
+function hexA(h,a){const n=parseInt(h.slice(1),16);return `rgba(${n>>16},${n>>8&255},${n&255},${a})`}
+function mosaic(M,Vw){Vw=Vw||{};const out=[],cols=M.cols,nc=cols.length;let x=0;
+  const PB=cols.reduce((a,c)=>a+c.w*c.segs[0].h,0);
+  let stackY=0;
+  cols.forEach((c,i)=>{let cx=x,cw=c.w;
+    if(Vw.focus!==undefined&&Vw.focus>=0){if(i<Vw.focus){cx=0;cw=0}else if(i>Vw.focus){cx=1;cw=0}else{cx=0;cw=1}}
+    let y=0;
+    c.segs.forEach((s,j)=>{const id=`c${i}s${j}`,f=segFill(M,i,j,s);
+      let g={x:cx,y:y,w:cw,h:s.h,o:(Vw.focus>=0&&i!==Vw.focus)?0:1};
+      if(Vw.gather){if(j===0){const a=c.w*s.h,hh=Vw.gatherB?a/PB:a,yy=Vw.gatherB?stackY/PB:stackY;g={x:0,y:yy,w:1,h:hh,o:1};stackY+=a}else g.o=0}
+      const gb=Vw.gather&&j===0&&nc>1;
+      out.push(Object.assign({id,t:'r',fill:gb?hexA(c.hue||C.hue[i],.78):f.fill,stroke:gb?C.gold2:undefined,ink:gb?'#071022':f.ink,lab:s.lab,sub:gb?`${c.name} ∩ ${M.bName||'B'}`:s.sub,size:s.size||M.size||24,hl:(Vw.hl||[]).indexOf(id)>=0,
+},g,(s.from&&!items.has(id))?{from:s.from}:{}));
+      if(Vw.gather&&j===0&&nc>1){/* la bande garde la couleur de sa colonne sur le bord gauche */
+        out.push({id:`c${i}tag`,t:'r',x:0,y:g.y,w:.018,h:g.h,fill:c.hue||C.hue[i],o:1,lab:''})}
+      y+=s.h});
+    if(Vw.colLab!==false&&!Vw.gather){const show=Vw.focus===undefined||Vw.focus<0||Vw.focus===i;
+      out.push({id:`cl${i}`,t:'t',x:cx+cw/2,y:-.052,txt:c.name,size:22,fill:c.hue||C.hue[i],o:show&&cw>0.04?1:0})}
+    x+=c.w});
+  if(Vw.gather){out.push({id:'gbr',t:'l',x1:1.025,y1:0,x2:1.025,y2:Vw.gatherB?1:PB,stroke:C.gold2,sw:3});
+    out.push({id:'gtx',t:'t',x:.5,y:-.052,txt:Vw.gatherB?`Sachant ${M.bName||'B'} : les morceaux de ${M.bName||'B'} forment le carré entier`:`Les morceaux de ${M.bName||'B'} rassemblés`,size:18,fill:C.gold2})}
+  if(Vw.straight!==undefined&&!Vw.gather){const h0=cols[0].segs[0].h,ok=cols.every(c=>Math.abs(c.segs[0].h-h0)<1e-9);
+    out.push({id:'str0',t:'l',x1:-.035,y1:h0,x2:1.035,y2:h0,stroke:'rgba(190,210,255,.35)',sw:14,o:ok?1:0});
+    out.push({id:'str',t:'l',x1:-.035,y1:h0,x2:1.035,y2:h0,stroke:'#ffffff',sw:4,o:ok?1:0})}
+  if(Vw.rowLab&&!Vw.gather&&!(Vw.focus>=0)){let y=0;Vw.rowLab.forEach((t,j)=>{const h=cols[0].segs[j].h;out.push({id:`rl${j}`,t:'t',x:-.03,y:y+h/2-.012,txt:t,size:20,anchor:'end',fill:C.ink});y+=h})}
+  if(Vw.extra)Vw.extra.forEach(e=>out.push(e));
+  return out}
+/* ---------- répétition de n épreuves de Bernoulli : on recoupe chaque case ---------- */
+function bernCells(n,p,step,Vw){Vw=Vw||{};const out=[],pv=N.val(p);
+  const rec=(path,g,t)=>{if(t===step){const k=(path.match(/S/g)||[]).length,id='b'+(path||'0');
+      const hl=Vw.hlK!==undefined?k===Vw.hlK:Vw.hlP?Vw.hlP.indexOf(path)>=0:false;
+      const dim=(Vw.hlK!==undefined||Vw.hlP)&&!hl;
+      const sp=Object.assign({id,t:'r',fill:hexA(C.kc[k],dim?.25:.85),ink:k>=1&&!dim?'#071022':C.ink,lab:Vw.labs===false?'':lab(path),size:step>=3?15:18,minW:40,hl},g);
+      if(t>0&&!items.has(id))sp.from=fromOf(path,g,pv);out.push(sp);return}
+    const vert=t%2===0,a=Object.assign({},g),b=Object.assign({},g);
+    if(vert){a.w=g.w*pv;b.x=g.x+g.w*pv;b.w=g.w*(1-pv)}else{a.h=g.h*pv;b.y=g.y+g.h*pv;b.h=g.h*(1-pv)}
+    rec(path+'S',a,t+1);rec(path+'E',b,t+1)};
+  rec('',{x:0,y:0,w:1,h:1,o:1},0);
+  if(step>=1){out.push({id:'bl0',t:'t',x:pv/2,y:-.052,txt:'S',size:22,fill:C.gold2});out.push({id:'bl1',t:'t',x:pv+(1-pv)/2,y:-.052,txt:'~S',size:22,fill:C.mut})}
+  if(step>=2){out.push({id:'bl2',t:'t',x:-.03,y:pv/2-.012,txt:'S',size:22,fill:C.gold2,anchor:'end'});out.push({id:'bl3',t:'t',x:-.03,y:pv+(1-pv)/2-.012,txt:'~S',size:22,fill:C.mut,anchor:'end'})}
+  return out}
+function lab(path){return path.split('').map(c=>c==='S'?'S':'~S').join(' ')}
+/* une case naît de sa mère : la partie S part de la case entière, la partie S̄ part du bord */
+function fromOf(path,g,pv){const last=path[path.length-1],t=path.length-1,vert=t%2===0;
+  if(last==='S')return vert?{w:g.w/pv,o:1}:{h:g.h/pv,o:1};
+  return vert?{x:g.x+g.w,w:0,o:1}:{y:g.y+g.h,h:0,o:1}}
+
+/* ---------- l'arbre pondéré ----------
+   T = {kids:[{lab, w, kids:[…], leaf, id}]}, opts = {hl:['0','0-1'], small:true} */
+const TX0=628,TX1=905,TY0=52,TY1=548;
+function depth(n){return n.kids&&n.kids.length?1+Math.max.apply(null,n.kids.map(depth)):0}
+function tree(T,opts){opts=opts||{};gTree.innerHTML='';hasTree=!!T;layout();const scol=document.getElementById('scol');if(!T){stage.classList.remove('tw');scol.classList.remove('tw');return}
+  stage.classList.add('tw');scol.classList.add('tw');
+  const D=depth(T),leaves=[];const walk=(n,id)=>{n._id=id;if(!n.kids||!n.kids.length){leaves.push(n);return}n.kids.forEach((k,i)=>walk(k,id?id+'-'+i:String(i)))};walk(T,'');
+  const L=leaves.length,dy=(TY1-TY0)/L;leaves.forEach((n,i)=>n._y=TY0+dy*(i+.5));
+  const fy=n=>{if(n._y===undefined)n._y=n.kids.reduce((a,k)=>a+fy(k),0)/n.kids.length;return n._y};fy(T);
+  const xs=d=>TX0+d*(TX1-TX0)/D;
+  const fs=L>8?14:L>4?17:19;
+  const hl=opts.hl||[];
+  const g=el('g',{class:'tfade'},gTree);
+  el('text',{x:TX0,y:28,'font-size':15,'font-weight':600,fill:C.mut,'text-anchor':'start'},g).textContent=opts.title||'Arbre pondéré';
+  const draw=(n,d)=>{if(!n.kids)return;n.kids.forEach(k=>{const on=hl.some(h=>h===k._id||h.indexOf(k._id+'-')===0);
+      const x1=xs(d)+(d?16:4),y1=n._y,x2=xs(d+1)-16,y2=k._y;
+      el('line',{x1,y1,x2,y2,stroke:on?C.gold2:'rgba(160,190,255,.45)','stroke-width':on?3.5:2},g);
+      if(k.w!==undefined&&k.w!==''&&!opts.noW){/* beaucoup de feuilles : poids rapprochés des feuilles, là où les branches s'écartent */
+        const tp=d>0&&L>8?.8:.5,mx=x1+(x2-x1)*tp,my=y1+(y2-y1)*tp,t=String(k.w),wd=Math.max(30,t.replace(/[_~]/g,'').length*fs*.55+12);
+        el('rect',{x:mx-wd/2,y:my-fs*.75,width:wd,height:fs*1.45,rx:fs*.7,fill:'#0b1730',stroke:on?C.gold2:'rgba(160,190,255,.3)'},g);
+        const tt=el('text',{x:mx,y:my+fs*.36,'font-size':fs,'font-weight':700,fill:t==='?'?C.gold2:C.ink,'text-anchor':'middle'},g);rich(tt,t)}
+      const nt=el('text',{x:xs(d+1),y:k._y+fs*.36,'font-size':fs+2,'font-weight':700,fill:on?C.gold2:(k.col||C.ink),'text-anchor':'middle'},g);rich(nt,k.lab);
+      if(!k.kids&&k.leaf!==undefined){const lt=el('text',{x:xs(d+1)+20,y:k._y+fs*.36,'font-size':fs,'font-weight':700,fill:on?C.gold2:C.mut,'text-anchor':'start'},g);rich(lt,String(k.leaf))}
+      draw(k,d+1)})};
+  el('circle',{cx:xs(0),cy:T._y,r:5,fill:C.ink},g);
+  draw(T,0)}
+/* ---------- téléphone : carré ou arbre ---------- */
+let narrow=false,view='sq',hasTree=false;
+function layout(){narrow=innerWidth<=860;if(!hasTree&&view==='tree')view='sq';svg.setAttribute('viewBox',!narrow?(hasTree?'0 0 1000 600':'-190 0 1000 600'):view==='tree'?'505 0 600 600':'4 0 600 600');
+  const hideSq=narrow&&view==='tree';[gSq,gOver,frame,omega,halo].forEach(g=>g.style.opacity=hideSq?0:1);
+  document.getElementById('swap').textContent=view==='tree'?'Voir le carré':'Voir l\'arbre'}
+document.getElementById('swap').onclick=()=>{view=view==='tree'?'sq':'tree';layout();SND.pop()};
+function setView(v){view=v;layout()}
+addEventListener('resize',layout);layout();
+function clear(){return show([],0).then(()=>tree(null))}
+return{show,mosaic,bernCells,tree,wait,SND,sound,clear,setView,reduceM,hexA,C,get busy(){return busy>0},state:()=>({items:[...items.keys()],narrow,view})};
+})();
+</script>
+
+<script>
+/* ======================= moteur : questions en étapes, deuxième essai = réponse donnée ======================= */
+window.CL_G=(function(){
+'use strict';
+const N=window.CL_N,S=window.CL_S,SND=S.SND,$=id=>document.getElementById(id),D_=window.CL_D;
+const cap=h=>{$('capt').innerHTML=`<span>${h||'&nbsp;'}</span>`};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const knorm=s=>String(s).toLowerCase().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.');
+const GAME='carre-de-lumiere';
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,busy=false;
+function starsOf(i){try{const g=SigmaKit.passport().games[GAME];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function fb(html,kind,extra){if(!html){$('fb').hidden=true;return}
+  $('fb').classList.toggle('rv',kind==='rv');$('fbt').textContent=kind==='rv'?'Voici la réponse.':'Pas tout à fait.';
+  $('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fbx').innerHTML='';if(extra)$('fbx').appendChild(extra);$('fb').hidden=false}
+/* une erreur : 1re fois, on explique ; 2e fois, on explique et on donne la réponse */
+function miss(p,why,reveal){p._e=(p._e||0)+1;errs++;SND.soft();
+  if(p._e<2){fb(why);return}
+  reveal();const b=document.createElement('div');b.className='btns';b.innerHTML='<button type="button" class="btn or" id="cont">Continuer →</button>';
+  fb(why+(p.solH?`<span class="sol">Réponse&nbsp;: ${p.solH}</span>`:''),'rv',b);
+  b.querySelector('button').onclick=async()=>{if(busy)return;fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()};
+  setTimeout(()=>{const c=$('cont');if(c&&matchMedia('(pointer:fine)').matches)c.focus({preventScroll:true});scrollPart($('fb'))},40)}
+const W={};
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);fb('');nextPart()}};
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):N.shuf(p.ch.map((_,j)=>j));
+  if(!p.solH)p.solH=p.ch.find(c=>c.ok).h;
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  const all=[...box.querySelectorAll('.opt')];
+  const lock=()=>all.forEach(x=>x.disabled=true);
+  all.forEach(b=>b.onclick=async()=>{if(busy||b.disabled)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){lock();b.classList.add('ok');SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+    else{b.classList.add('ko');b.disabled=true;miss(p,c.why,()=>{lock();all.forEach(x=>{if(p.ch[+x.dataset.j].ok)x.classList.add('ok')})})}})};
+function okBlank(b,v){if(b.w)return b.w.some(a=>knorm(a)===knorm(v));const x=N.parse(v);return !!x&&N.eq(x,b.r)}
+W.fill=(p,box)=>{
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const b=p.b[+i];return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" ${b.w?'':'inputmode="decimal"'} aria-label="Case ${+i+1}" style="width:${b.size||4.6}em">`});
+  if(!p.solH)p.solH=p.b.map(b=>b.w?b.w[0]:N.numH(b.r)).join('&nbsp;; ');
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+
+    `<p class="hint">${p.hint||'Écriture décimale, fraction ou pourcentage&nbsp;: tout est accepté.'}</p>`;
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy||f.dataset.done)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=v.map((x,i)=>okBlank(p.b[+ins[i].dataset.i],x));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){f.dataset.done=1;ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+    else miss(p,typeof p.why==='function'?p.why(v,oks):p.why,()=>{f.dataset.done=1;ins.forEach((x,i)=>{if(!oks[i]){const b=p.b[+x.dataset.i];x.value=b.w?b.w[0]:N.numT(b.r);x.classList.remove('ko');x.classList.add('rv')}x.disabled=true});f.querySelector('button').remove()})};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* coupe à placer : un curseur qui déplace la coupe dans le carré */
+W.slide=(p,box)=>{const st=p.step||5,tg=Math.round(N.val(p.target)*100);let init=p.init!==undefined?p.init:50;if(init===tg)init=tg>=50?tg-25:tg+25;
+  if(!p.solH)p.solH=`${p.lab} = ${N.dec(p.target)}`;
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="sl"><label for="sld"><span>${p.lab}</span></label><output id="sldo">${N.dec(N.R(init,100))}</output>`+
+    `<input type="range" id="sld" min="${p.min||0}" max="${p.max||100}" step="${st}" value="${init}" aria-label="${p.aria||'Position de la coupe'}"></div><div class="btns"><button class="btn or" type="button" id="sldv">Valider la coupe</button></div>`;
+  const r=box.querySelector('#sld'),o=box.querySelector('#sldo'),b=box.querySelector('#sldv');
+  const upd=()=>{const v=N.R(+r.value,100);o.textContent=N.dec(v);p.onInput(v)};
+  r.addEventListener('input',()=>{upd()});upd();
+  b.onclick=async()=>{if(busy)return;const v=N.R(+r.value,100);
+    if(N.eq(v,p.target)){r.disabled=true;b.remove();SND.cut();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+    else miss(p,typeof p.why==='function'?p.why(v):p.why,()=>{r.value=Math.round(N.val(p.target)*100);upd();r.disabled=true;b.remove()})}};
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;if(pi<Q.parts.length){const p=Q.parts[pi];if(p.pre)p.pre();const box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860&&box){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-140)scrollTo({top:scrollY+r.top-top-12,behavior:S.reduceM?'auto':'smooth'})}}
+const LV=[],LEG=$('legend').innerHTML;
+async function newQ(){busy=true;Q=LV[lvl].qs[qi]();pi=0;errs=0;
+  S.tree(null);cap(Q.cap0||'&nbsp;');S.setView('sq');
+  $('prompt').innerHTML=Q.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  try{if(Q.setup)await Q.setup()}finally{busy=false}
+  const p=Q.parts[0];if(p.pre)p.pre();const box=partEl();W[p.t](p,box)}
+function dots(){const n=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:n},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){fb('');SND.win();run.push(errs===0);dots();
+  const n=LV[lvl].qs.length,lvlDone=run.length>=n;
+  $('winx').textContent=errs===0?N.pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):N.pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=Q.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(Q.onWin)Q.onWin();
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lnum=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lnum,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lnum)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if(busy)return;if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:S.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];
+  $('chap').textContent=`Niveau ${l+1} sur ${LV.length} · ${LV[l].badge}`;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('legend').innerHTML=LV[l].legend||LEG;$('cours').open=false;renderLv();newQ()}
+function renderLv(){const snd=S.sound.get();$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;
+  if(b.id==='snd'){S.sound.set(!S.sound.get());renderLv();SND.pop();return}
+  goLevel(+b.dataset.l)});
+/* fabriques */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+const ch=(ask,list,o)=>Object.assign({t:'choice',ask,ch:list},o||{});
+const fill=(ask,tpl,b,why,o)=>Object.assign({t:'fill',ask,tpl,b,why},o||{});
+const slide=(ask,lab,target,onInput,why,o)=>Object.assign({t:'slide',ask,lab,target,onInput,why},o||{});
+const OK=(h,x)=>Object.assign({h,ok:true},x||{}),NO=(h,why,x)=>Object.assign({h,why},x||{});
+const BV=(D,key,o)=>Object.assign({r:D_.V(key,D),key},o||{});
+window.CL={start(){const m=/[?&]niveau=(\d)/.exec(location.search);goLevel(m?Math.min(+m[1]-1,LV.length-1):0)},
+  state:()=>{const p=Q&&Q.parts[pi];return{lvl,qi,nq:LV[lvl]&&LV[lvl].qs.length,busy:busy||S.busy,pi,win:!$('win').hidden,cont:!!$('cont')&&!$('fb').hidden,
+    part:p?{t:p.t,sol:p.b?p.b.map(b=>b.w?b.w[0]:N.numT(b.r)):null,choices:p.ch?p.ch.map(c=>({ok:!!c.ok})):null,target:p.target?Math.round(N.val(p.target)*100):null}:null,scene:S.state()}},
+  LV,goLevel,get Q(){return Q}};
+return{LV,W,act,ch,fill,slide,OK,NO,BV,cap,MAKI,renderLv};
+})();
+</script>
+
+<script>
+/* ======================= les sept niveaux ======================= */
+(function(){
+'use strict';
+const N=window.CL_N,S=window.CL_S,G=window.CL_G,D_=window.CL_D;
+const {R,add,sub,mul,div,comp,eq,cmp,pw,dec,pct,frH,numH,numT,fmtInt,ri,pick,shuf,dist,ev,P,isDec,ndec}=N;
+const {V,NT,ser}=D_;
+const {act,ch,fill,slide,OK,NO,BV,cap}=G;
+const F=n=>fmtInt(n);
+const nb=s=>s.replace(/ ([:;!?])/g,' $1');
+
+/* ---------- contextes : tableaux croisés d'effectifs ---------- */
+const XT=[
+ {intro:n=>`On a interrogé ${F(n)} élèves d'un lycée.`,sg:'un élève',il:'il',A:['est en Première','soit en Première'],nA:['n\'est pas en Première','ne soit pas en Première'],B:['pratique un sport en club','pratique un sport en club'],nB:['ne pratique pas de sport en club','ne pratique pas de sport en club']},
+ {intro:n=>`Un matin, on a interrogé ${F(n)} passagers de la barge entre Petite-Terre et Grande-Terre.`,sg:'un passager',il:'il',A:['est lycéen','soit lycéen'],nA:['n\'est pas lycéen','ne soit pas lycéen'],B:['a un abonnement','ait un abonnement'],nB:['n\'a pas d\'abonnement','n\'ait pas d\'abonnement']},
+ {intro:n=>`Un food-truck de Mamoudzou a servi ${F(n)} clients un samedi.`,sg:'un client',il:'il',A:['a pris une formule','ait pris une formule'],nA:['n\'a pas pris de formule','n\'ait pas pris de formule'],B:['a payé par carte','ait payé par carte'],nB:['a payé en espèces','ait payé en espèces']},
+ {intro:n=>`${F(n)} élèves participent à la journée sportive du lycée.`,sg:'un participant',il:'il',A:['a choisi le football','ait choisi le football'],nA:['a choisi une autre activité','ait choisi une autre activité'],B:['est en Seconde','soit en Seconde'],nB:['n\'est pas en Seconde','ne soit pas en Seconde']},
+ {intro:n=>`On a interrogé ${F(n)} lycéens sur leur téléphone.`,sg:'un lycéen',il:'il',A:['a un forfait internet illimité','ait un forfait internet illimité'],nA:['n\'a pas de forfait illimité','n\'ait pas de forfait illimité'],B:['passe plus de 3 h par jour sur son écran','passe plus de 3 h par jour sur son écran'],nB:['passe au plus 3 h par jour sur son écran','passe au plus 3 h par jour sur son écran']}];
+const defT=X=>`On choisit ${X.sg} au hasard. On note A l'événement «&nbsp;${X.il} ${X.A[0]}&nbsp;» et B l'événement «&nbsp;${X.il} ${X.B[0]}&nbsp;».`;
+function TB(o){o=o||{};for(let n=0;n<2000;n++){
+    const Nt=pick([200,400,500,800,1000]),pa=R(ri(3,7),10),a=Nt*pa.n/pa.d,b=Nt-a;
+    const q0=R(ri(3,17),20);if((a*q0.n)%q0.d)continue;
+    const q1=o.indep?q0:R(ri(3,17),20);if(!o.indep&&eq(q1,q0))continue;if((b*q1.n)%q1.d)continue;
+    const c00=a*q0.n/q0.d,c10=b*q1.n/q1.d,c=[[c00,a-c00],[c10,b-c10]];
+    if(c.flat().some(x=>x<=0))continue;
+    const D={type:'tab',f:['A','~A'],b:'B',c};if(o.test&&!o.test(D))continue;
+    return{X:pick(XT),D,N:Nt}}
+  throw new Error('TB')}
+function tabH(D){const c=D.c,k=[c[0][0]+c[0][1],c[1][0]+c[1][1]],r=[c[0][0]+c[1][0],c[0][1]+c[1][1]],t=k[0]+k[1];
+  return `<div class="ctw"><table class="ct"><thead><tr><th></th><th class="a">A</th><th class="na">${ev('~A')}</th><th>Total</th></tr></thead><tbody>`+
+    `<tr><th>B</th><td>${F(c[0][0])}</td><td>${F(c[1][0])}</td><td class="tot">${F(r[0])}</td></tr>`+
+    `<tr><th>${ev('~B')}</th><td>${F(c[0][1])}</td><td>${F(c[1][1])}</td><td class="tot">${F(r[1])}</td></tr>`+
+    `<tr><th>Total</th><td class="tot">${F(k[0])}</td><td class="tot">${F(k[1])}</td><td class="tot">${F(t)}</td></tr></tbody></table></div>`}
+const tots=D=>{const c=D.c;return{k:[c[0][0]+c[0][1],c[1][0]+c[1][1]],r:[c[0][0]+c[1][0],c[0][1]+c[1][1]],t:c.flat().reduce((a,b)=>a+b,0)}};
+
+/* ---------- contextes : arbres pondérés ---------- */
+const XR=[
+ {s:(p,q)=>`Un matin, la mer est agitée avec une probabilité de ${pct(p[0])}. Quand la mer est agitée, la barge part en retard avec une probabilité de ${pct(q[0])}&nbsp;; sinon, avec une probabilité de ${pct(q[1])}.`,d:'On note A&nbsp;: «&nbsp;la mer est agitée&nbsp;» et B&nbsp;: «&nbsp;la barge part en retard&nbsp;».',u:'matins'},
+ {s:(p,q)=>`${pct(p[0])} des élèves d'un lycée viennent en bus. Parmi eux, ${pct(q[0])} arrivent avant 7&nbsp;h&nbsp;15&nbsp;; parmi les autres, ${pct(q[1])}.`,d:'On choisit un élève au hasard. A&nbsp;: «&nbsp;il vient en bus&nbsp;», B&nbsp;: «&nbsp;il arrive avant 7&nbsp;h&nbsp;15&nbsp;».',u:'élèves'},
+ {s:(p,q)=>`Pendant un match, ${pct(p[0])} des tirs d'une équipe de basket sont des tirs à trois points. ${pct(q[0])} des tirs à trois points sont réussis, contre ${pct(q[1])} des autres tirs.`,d:'On choisit un tir au hasard. A&nbsp;: «&nbsp;c\'est un tir à trois points&nbsp;», B&nbsp;: «&nbsp;le tir est réussi&nbsp;».',u:'tirs'},
+ {s:(p,q)=>`${pct(p[0])} des colis d'un magasin en ligne sont livrés en point relais, les autres à domicile. ${pct(q[0])} des colis livrés en point relais arrivent en moins de trois jours, contre ${pct(q[1])} des colis livrés à domicile.`,d:'On choisit un colis au hasard. A&nbsp;: «&nbsp;il est livré en point relais&nbsp;», B&nbsp;: «&nbsp;il arrive en moins de trois jours&nbsp;».',u:'colis'},
+ {s:(p,q)=>`Avant un contrôle, ${pct(p[0])} des élèves d'un niveau ont fait les exercices d'entraînement. Parmi eux, ${pct(q[0])} obtiennent au moins 10&nbsp;; parmi les autres, ${pct(q[1])}.`,d:'On choisit un élève au hasard. A&nbsp;: «&nbsp;il a fait les exercices&nbsp;», B&nbsp;: «&nbsp;il obtient au moins 10&nbsp;».',u:'élèves'},
+ {s:(p,q)=>`Un soir, ${pct(p[0])} des lycéens d'un internat mettent leur téléphone en charge. Le lendemain, la batterie tient toute la journée pour ${pct(q[0])} d'entre eux, et pour ${pct(q[1])} des autres.`,d:'On choisit un lycéen au hasard. A&nbsp;: «&nbsp;il a mis son téléphone en charge&nbsp;», B&nbsp;: «&nbsp;la batterie tient toute la journée&nbsp;».',u:'lycéens'}];
+function TR(o){o=o||{};for(let n=0;n<2000;n++){const p0=R(ri(2,8),10),q0=R(ri(o.q10?1:2,o.q10?9:18),o.q10?10:20),q1=o.indep?q0:R(ri(o.q10?1:2,o.q10?9:18),o.q10?10:20);
+    if(!o.indep&&eq(q0,q1))continue;
+    const D={type:'tree',f:['A','~A'],b:'B',p:[p0,comp(p0)],q:[q0,q1]};if(o.test&&!o.test(D))continue;
+    const X=pick(XR);return{X,D,story:X.s(D.p,D.q)+' '+X.d}}
+  throw new Error('TR')}
+function T3(o){o=o||{};const PS=[[5,3,2],[4,4,2],[2,3,5],[4,35,25],[6,25,15],[3,5,2],[45,35,2]];
+  for(let n=0;n<2000;n++){const ps=pick(PS).map(x=>x<10?R(x,10):R(x,100)),q=[0,1,2].map(()=>R(ri(1,8),20));if(!dist(q))continue;
+    if(N.cmp(N.sum(ps),R(1))!==0)continue;
+    const D={type:'tree',f:['A₁','A₂','A₃'],b:'B',p:ps,q};if(o.test&&!o.test(D))continue;
+    return{D,story:`Les élèves d'un lycée arrivent par trois lignes de bus A₁, A₂ et A₃, qui transportent respectivement ${pct(ps[0])}, ${pct(ps[1])} et ${pct(ps[2])} des élèves. Ce matin, sur ces trois lignes, la proportion d'élèves arrivés en retard est respectivement de ${pct(q[0])}, ${pct(q[1])} et ${pct(q[2])}. On choisit un élève au hasard. On note A₁, A₂, A₃ les événements «&nbsp;il arrive par la ligne A₁&nbsp;» (A₂, A₃) et B&nbsp;: «&nbsp;il est arrivé en retard&nbsp;».`}}
+  throw new Error('T3')}
+function PAB(ind){for(let n=0;n<2000;n++){const pA=R(ri(2,8),10),pB=R(ri(2,8),10),d=ind?R(0):R(pick([-4,-3,-2,2,3,4]),100),pI=add(mul(pA,pB),d);
+    if(cmp(pI,R(0))<=0||cmp(pI,pA)>=0||cmp(pI,pB)>=0||cmp(sub(pB,pI),comp(pA))>=0)continue;return{type:'pab',f:['A','~A'],b:'B',pA,pB,pI}}
+  throw new Error('PAB')}
+
+/* ---------- du jeu de données au carré et à l'arbre ---------- */
+const HUE=S.C.hue;
+function M_of(D,o){o=o||{};const J=D_.joint(D);
+  const cols=D.f.map((nm,i)=>{const w=add(J[i][0],J[i][1]),h=eq(w,R(0))?R(0):div(J[i][0],w);
+    const lb=j=>o.labs==='count'?F(D.c[i][j]):o.labs==='prob'?dec4(J[i][j]):o.labs==='nt'?(j?`${nm} ∩ ~B`:`${nm} ∩ B`):'';
+    return{w:N.val(w),name:nm,hue:HUE[i],segs:[{h:N.val(h),kind:'B',lab:lb(0)},{h:1-N.val(h),kind:'nB',lab:lb(1)}]}});
+  return{cols,bName:'B'}}
+const dec4=r=>isDec(r)&&ndec(r)<=4?dec(r):'≈ '+dec(N.R(Math.round(N.val(r)*1000),1000));
+const nm=s=>s; /* noms d'événements pour l'arbre (≈ notation ~A) */
+function treeOf(D,o){o=o||{};const hide=o.hide||[];const lab=(k,v)=>hide.indexOf(k)>=0?'?':o.nt?o.nt(k):numT(v);
+  return{kids:D.f.map((f,i)=>({lab:f,col:HUE[i],w:o.noP?'':lab('p'+i,D.p?D.p[i]:V(`P(${f})`,D)),
+    kids:o.one?undefined:[{lab:'B',w:lab('q'+i,D.q?D.q[i]:V(`P(B|${f})`,D)),leaf:o.leaf?o.leaf(i,0):undefined},{lab:'~B',w:lab('n'+i,comp(D.q?D.q[i]:V(`P(B|${f})`,D))),leaf:o.leaf?o.leaf(i,1):undefined}]}))}}
+const leafV=D=>(i,j)=>numT(V(`P(${D.f[i]} ∩ ${j?'~B':'B'})`,D));
+const sqView=(D,o,v)=>S.show(S.mosaic(M_of(D,o),v||{}));
+
+/* ======================= Niveau 1 · Sachant A (tableau croisé) ======================= */
+const L1={t:'Sachant A',badge:'Tableau croisé · aire = effectif ÷ total',
+ rule:`<p>${P('B','A')} se lit «&nbsp;probabilité de B sachant A&nbsp;»&nbsp;: on ne regarde plus que les issues de A.</p>
+ <p>Dans un tableau d'effectifs, on reste dans la colonne A&nbsp;: ${P('B','A')} = ${frH('effectif de A ∩ B','effectif de A')}.</p>
+ <p>À ne pas confondre avec ${P('A ∩ B')} = ${frH('effectif de A ∩ B','effectif total')}. Dans le carré, «&nbsp;sachant A&nbsp;», la bande A s'étire jusqu'à devenir le carré entier.</p>
+ <p>Dans la colonne A, les deux parties remplissent tout&nbsp;: ${P('~B','A')} = 1 − ${P('B','A')}.</p>`,
+ qs:[
+ ()=>{const {X,D,N:Nt}=TB({test:D=>{const t=tots(D);return dist([R(D.c[0][0],t.k[0]),R(D.c[0][0],t.t),R(D.c[0][0],t.r[0])])}}),t=tots(D),c=D.c[0][0];
+  return{setup:()=>sqView(D,{labs:'count'}),cap0:'Le carré&nbsp;: chaque case a une aire proportionnelle à son effectif',meta:{D:ser(D)},
+   prompt:`<p>${X.intro(Nt)} ${defT(X)}</p>${tabH(D)}`,
+   parts:[ch(`On choisit au hasard ${X.sg} qui ${X.A[0]}. La probabilité qu'${X.il} ${X.B[1]} est&nbsp;:`,[
+      OK(frH(F(c),F(t.k[0])),{v:R(c,t.k[0])}),NO(frH(F(c),F(t.t)),`Diviser par ${F(t.t)}, c'est compter dans toute la population&nbsp;: c'est ${P('A ∩ B')}. Ici, on ne choisit que parmi les ${F(t.k[0])} personnes de A.`,{v:R(c,t.t)}),
+      NO(frH(F(c),F(t.r[0])),`${F(t.r[0])} est le total de la ligne B. Or on se place dans A&nbsp;: c'est le total de la colonne A qui compte.`,{v:R(c,t.r[0])})],
+     {audit:{type:'num',key:'P(B|A)'},onOk:async()=>{S.SND.stretch();cap(`Sachant A&nbsp;: la bande A devient tout le carré`);await sqView(D,{labs:'count'},{focus:0});
+       cap(`${P('B','A')} = ${frH(F(c),F(t.k[0]))} = ${numH(R(c,t.k[0]))}`)}}),
+    ch('Cette probabilité se note&nbsp;:',[OK(P('B','A'),{nt:'P(B|A)'}),NO(P('A','B'),`${P('A','B')} se placerait dans B (sachant B). Ici, la condition est A&nbsp;: elle s'écrit en indice.`,{nt:'P(A|B)'}),
+      NO(P('A ∩ B'),`${P('A ∩ B')} se calcule sur toute la population. Ici, on se place dans A&nbsp;: c'est une probabilité conditionnelle.`,{nt:'P(A ∩ B)'})],{audit:{type:'nt'}})],
+   done:`Sachant A, le carré se réduit à la bande A&nbsp;: on divise par l'effectif de A, ${F(t.k[0])}.`}},
+ ()=>{const {X,D,N:Nt}=TB({test:D=>!eq(V('P(A ∩ B)',D),V('P(B|A)',D))}),t=tots(D),c=D.c[0][0];
+  return{setup:()=>sqView(D,{labs:'count'}),cap0:'Même case A ∩ B… mais deux points de vue',meta:{D:ser(D)},
+   prompt:`<p>${X.intro(Nt)} ${defT(X)}</p>${tabH(D)}`,
+   parts:[act('Allumer A ∩ B dans tout le carré',async()=>{await sqView(D,{labs:'count'},{hl:['c0s0']});cap(`${P('A ∩ B')}&nbsp;: la case A ∩ B dans le carré entier`)}),
+    fill(null,`${P('A ∩ B')} = {0}`,[BV(D,'P(A ∩ B)')],`On compte dans toute la population&nbsp;: ${frH(F(c),F(t.t))}.`),
+    act('Sachant A&nbsp;: étirer la bande A',async()=>{S.SND.stretch();await sqView(D,{labs:'count'},{focus:0,hl:['c0s0']});cap(`Sachant A&nbsp;: la même case, dans un carré qui n'est plus que A`)}),
+    fill(null,`${P('B','A')} = {0}`,[BV(D,'P(B|A)')],`On ne compte que dans la colonne A, d'effectif ${F(t.k[0])}&nbsp;: ${frH(F(c),F(t.k[0]))}.`)],
+   done:`Même numérateur ${F(c)}, deux dénominateurs&nbsp;: ${F(t.t)} pour ${P('A ∩ B')}, ${F(t.k[0])} pour ${P('B','A')}.`}},
+ ()=>{const {X,D,N:Nt}=TB(),t=tots(D);
+  return{setup:()=>sqView(D,{labs:'count'}),meta:{D:ser(D)},prompt:`<p>${X.intro(Nt)} ${defT(X)}</p>${tabH(D)}`,cap0:'Et sachant que A n\'est pas réalisé&nbsp;?',
+   parts:[act(`Sachant ${ev('~A')}&nbsp;: étirer la bande ${ev('~A')}`,async()=>{S.SND.stretch();await sqView(D,{labs:'count'},{focus:1});cap(`Sachant ${ev('~A')}&nbsp;: la bande ${ev('~A')} devient l'univers`)}),
+    fill(null,`${P('B','~A')} = {0}`,[BV(D,'P(B|~A)')],`On reste dans la colonne ${ev('~A')}, d'effectif ${F(t.k[1])}&nbsp;: ${frH(F(D.c[1][0]),F(t.k[1]))}.`),
+    fill('Les deux parties de la bande remplissent tout le carré&nbsp;:',`${P('~B','~A')} = {0}`,[BV(D,'P(~B|~A)')],`${P('~B','~A')} = 1 − ${P('B','~A')}, ou ${frH(F(D.c[1][1]),F(t.k[1]))}.`)],
+   done:`${P('B','~A')} + ${P('~B','~A')} = 1&nbsp;: sachant ${ev('~A')}, B et ${ev('~B')} se partagent tout le carré.`}},
+ ()=>{const {X,D,N:Nt}=TB({test:D=>dist(['P(B|A)','P(~B|A)','P(B|~A)','P(~B|~A)'].map(k=>V(k,D)))}),t=tots(D);
+  const opts=[['P(B|A)',X.A[0],X.B[1]],['P(~B|A)',X.A[0],X.nB[1]],['P(B|~A)',X.nA[0],X.B[1]],['P(~B|~A)',X.nA[0],X.nB[1]]],k=ri(0,3),[key,cond,ev2]=opts[k];
+  const i=key.indexOf('~A')>0?1:0;
+  return{setup:()=>sqView(D,{labs:'count'}),meta:{D:ser(D)},prompt:`<p>${X.intro(Nt)} ${defT(X)}</p>${tabH(D)}`,cap0:'Phrase → notation → valeur',
+   parts:[ch(`On choisit au hasard ${X.sg} qui ${cond}. La probabilité qu'${X.il} ${ev2} se note&nbsp;:`,
+      opts.map(([kk],j)=>j===k?OK(NT(kk),{nt:kk}):NO(NT(kk),`La condition («&nbsp;parmi ceux qui…&nbsp;») va en indice, et l'événement cherché entre parenthèses. Relis la phrase&nbsp;: ${NT(key)}.`,{nt:kk})),
+      {audit:{type:'nt'},onOk:async()=>{S.SND.stretch();await sqView(D,{labs:'count'},{focus:i,hl:[`c${i}s${key.indexOf('~B')>0?1:0}`]})}}),
+    fill(null,`${NT(key)} = {0}`,[BV(D,key)],`On reste dans la colonne ${ev(D.f[i])} (effectif ${F(t.k[i])})&nbsp;: ${frH(F(D.c[i][key.indexOf('~B')>0?1:0]),F(t.k[i]))}.`)],
+   done:`La condition va en indice&nbsp;: c'est elle qui fixe le dénominateur (le total de la colonne).`}},
+ ()=>{const {X,D,N:Nt}=TB({test:D=>!eq(V('P(B|A)',D),V('P(B|~A)',D))}),a=V('P(B|A)',D),b=V('P(B|~A)',D),big=cmp(a,b)>0;
+  return{setup:()=>sqView(D,{labs:'count'}),meta:{D:ser(D)},prompt:`<p>${X.intro(Nt)} ${defT(X)}</p>${tabH(D)}`,cap0:'Où la lumière B est-elle la plus haute&nbsp;?',
+   parts:[act('Comparer&nbsp;: sachant A, puis sachant '+ev('~A'),async()=>{S.SND.stretch();await sqView(D,{labs:'count'},{focus:0});cap(`Sachant A&nbsp;: B monte à ${numH(a)}`);await S.wait(900);
+      S.SND.stretch();await sqView(D,{labs:'count'},{focus:1});cap(`Sachant ${ev('~A')}&nbsp;: B monte à ${numH(b)}`);await S.wait(600);await sqView(D,{labs:'count'});cap(`${P('B','A')} = ${numH(a)} et ${P('B','~A')} = ${numH(b)}`)},{doneLabel:'Comparaison faite'}),
+    fill(null,`${P('B','A')} = {0} et ${P('B','~A')} = {1}`,[BV(D,'P(B|A)'),BV(D,'P(B|~A)')],`Chaque colonne a son propre dénominateur&nbsp;: ${frH(F(D.c[0][0]),F(tots(D).k[0]))} et ${frH(F(D.c[1][0]),F(tots(D).k[1]))}.`),
+    ch('Donc&nbsp;:',[OK(`B est plus fréquent parmi ${big?'A':ev('~A')} que parmi ${big?ev('~A'):'A'}`,{tag:big?'A':'~A'}),NO(`B est plus fréquent parmi ${big?ev('~A'):'A'} que parmi ${big?'A':ev('~A')}`,`Compare les deux valeurs que tu viens de calculer&nbsp;: ${numH(a)} et ${numH(b)}.`,{tag:big?'~A':'A'}),
+      NO('On ne peut pas comparer, les colonnes n\'ont pas le même effectif','Justement&nbsp;: les probabilités conditionnelles ramènent chaque colonne à un carré entier, on peut donc les comparer.',{tag:'='})],{audit:{type:'tag',want:big?'A':'~A'}})],
+   done:`Comparer ${P('B','A')} et ${P('B','~A')}, c'est comparer les hauteurs de lumière dans les deux bandes étirées.`}}]};
+
+/* ======================= Niveau 2 · Dans quel sens ? ======================= */
+const L2={t:'Dans quel sens ?',badge:'Sachant A ou sachant B ?',
+ rule:`<p>Si ${P('A')} &gt; 0&nbsp;: ${P('B','A')} = ${frH(P('A ∩ B'),P('A'))}, donc ${P('A ∩ B')} = ${P('A')} × ${P('B','A')}.</p>
+ <p>Dans le carré&nbsp;: la bande A a pour largeur ${P('A')}, la partie B y monte à la hauteur ${P('B','A')}&nbsp;; l'aire du rectangle A ∩ B est largeur × hauteur.</p>
+ <p>Sachant B&nbsp;: on rassemble les morceaux de B et on les étire en un carré entier&nbsp;; dans un tableau, ${P('A','B')} = ${frH('effectif de A ∩ B','effectif de B')}. En général, ${P('B','A')} ≠ ${P('A','B')}.</p>`,
+ qs:[
+ ()=>{const {X,D,N:Nt}=TB({test:D=>{const t=tots(D);return t.r[0]!==t.k[0]&&dist([R(D.c[0][0],t.r[0]),R(D.c[0][0],t.k[0]),R(D.c[0][0],t.t)])}}),t=tots(D),c=D.c[0][0];
+  return{setup:()=>sqView(D,{labs:'count'}),meta:{D:ser(D)},prompt:`<p>${X.intro(Nt)} ${defT(X)}</p>${tabH(D)}`,cap0:'Cette fois, la condition est B',
+   parts:[ch(`Pour calculer ${P('A','B')}, on divise l'effectif de A ∩ B par&nbsp;:`,[OK(`${F(t.r[0])}, l'effectif de B`,{v:R(t.r[0])}),NO(`${F(t.k[0])}, l'effectif de A`,`Diviser par l'effectif de A donne ${P('B','A')}. Ici, on sait que B est réalisé&nbsp;: on se place dans B.`,{v:R(t.k[0])}),
+      NO(`${F(t.t)}, l'effectif total`,`Diviser par le total donne ${P('A ∩ B')}. Sachant B, on ne compte que dans B.`,{v:R(t.t)})],{audit:{type:'num',key:'n(B)'},
+      onOk:async()=>{S.SND.merge();cap('Les morceaux de B se rassemblent…');await sqView(D,{labs:'count'},{gather:true});await S.wait(500);S.SND.stretch();await sqView(D,{labs:'count'},{gather:true,gatherB:true});cap(`Sachant B&nbsp;: la part de A dans B`)}}),
+    fill(null,`${P('A','B')} = {0}`,[BV(D,'P(A|B)')],`${frH(F(c),F(t.r[0]))}&nbsp;: effectif de A ∩ B sur effectif de B.`)],
+   done:`Sachant B, c'est B qui devient le carré entier&nbsp;: ${P('A','B')} = ${frH(F(c),F(t.r[0]))}, alors que ${P('B','A')} = ${frH(F(c),F(t.k[0]))}.`}},
+ ()=>{const {X,D,N:Nt}=TB({test:D=>{const t=tots(D),c=D.c[0][0];return dist([R(c,t.k[0]),R(c,t.r[0]),R(c,t.t)])}}),t=tots(D),c=D.c[0][0],v=R(c,t.k[0]);
+  return{setup:()=>sqView(D,{labs:'count'}),meta:{D:ser(D)},prompt:`<p>${X.intro(Nt)} ${defT(X)}</p>${tabH(D)}`,cap0:'Trois notations, trois dénominateurs',
+   parts:[ch(`On a calculé ${frH(F(c),F(t.k[0]))} = ${numH(v)}. Quelle égalité est vraie&nbsp;?`,[OK(`${P('B','A')} = ${numH(v)}`,{nt:'P(B|A)'}),
+      NO(`${P('A','B')} = ${numH(v)}`,`${F(t.k[0])} est l'effectif de A&nbsp;: on s'est placé dans A, c'est donc A qui va en indice.`,{nt:'P(A|B)'}),
+      NO(`${P('A ∩ B')} = ${numH(v)}`,`${P('A ∩ B')} se calcule sur l'effectif total ${F(t.t)}, pas sur ${F(t.k[0])}.`,{nt:'P(A ∩ B)'})],{audit:{type:'nt',v},onOk:async()=>{S.SND.stretch();await sqView(D,{labs:'count'},{focus:0,hl:['c0s0']})}}),
+    fill('Et les deux autres&nbsp;:',`${P('A','B')} = {0} et ${P('A ∩ B')} = {1}`,[BV(D,'P(A|B)'),BV(D,'P(A ∩ B)')],`${P('A','B')} = ${frH(F(c),F(t.r[0]))} (dans B) et ${P('A ∩ B')} = ${frH(F(c),F(t.t))} (dans tout).`)],
+   done:`Le dénominateur dit où l'on se place&nbsp;: A (colonne), B (ligne) ou la population entière.`}},
+ ()=>{const D=PAB(false),q=V('P(B|A)',D);
+  return{setup:()=>sqView(D,{labs:'nt'},{}),meta:{D:ser(D)},cap0:`La bande A a pour largeur ${dec(D.pA)}&nbsp;; la case A ∩ B a pour aire ${dec(D.pI)}`,
+   prompt:`<p>On donne ${P('A')} = ${dec(D.pA)} et ${P('A ∩ B')} = ${dec(D.pI)}.</p>`,
+   parts:[act('Sachant A&nbsp;: étirer la bande A',async()=>{S.SND.stretch();await sqView(D,{labs:'nt'},{focus:0,hl:['c0s0']});cap(`Étirer la bande de largeur ${dec(D.pA)} jusqu'à 1, c'est diviser par ${dec(D.pA)}`)}),
+    fill(null,`${P('B','A')} = {0}`,[BV(D,'P(B|A)')],`${P('B','A')} = ${frH(P('A ∩ B'),P('A'))} = ${frH(dec(D.pI),dec(D.pA))}.`)],
+   done:`${P('B','A')} = ${frH(dec(D.pI),dec(D.pA))} = ${numH(q)}&nbsp;: la hauteur de B dans la bande A.`}},
+ ()=>{const D=TR({q10:true}).D,p=D.p[0],q=D.q[0],a=mul(p,q);
+  return{setup:()=>sqView(D,{},{}),meta:{D:ser(D)},cap0:`Largeur ${dec(p)}, hauteur ${dec(q)}`,
+   prompt:`<p>On donne ${P('A')} = ${dec(p)} et ${P('B','A')} = ${dec(q)}.</p>`,
+   parts:[ch('L\'aire du rectangle A ∩ B, c\'est&nbsp;:',[OK(`${P('A')} × ${P('B','A')}`,{tag:'x'}),NO(`${P('A')} + ${P('B','A')}`,'Une aire de rectangle, c\'est largeur × hauteur, pas largeur + hauteur.',{tag:'+'}),
+      NO(frH(P('B','A'),P('A')),`Diviser par ${P('A')}, c'est l'opération inverse&nbsp;: elle sert à passer de ${P('A ∩ B')} à ${P('B','A')}.`,{tag:'/'})],{audit:{type:'tag',want:'x'},onOk:async()=>{await sqView(D,{},{hl:['c0s0']});cap(`${P('A ∩ B')} = ${P('A')} × ${P('B','A')}`)}}),
+    fill(null,`${P('A ∩ B')} = {0}`,[BV(D,'P(A ∩ B)')],`${dec(p)} × ${dec(q)} = ${dec(a)}.`)],
+   done:`${P('A ∩ B')} = ${dec(p)} × ${dec(q)} = ${dec(a)}&nbsp;: largeur × hauteur.`}},
+ ()=>{const D=TR({q10:true}).D,q=D.q[0];
+  return{setup:()=>sqView(D,{},{focus:0}),meta:{D:ser(D)},cap0:'Sachant A',
+   prompt:`<p>On sait que ${P('B','A')} = ${dec(q)}.</p>`,
+   parts:[ch('Cela signifie&nbsp;:',[OK(`quand A est réalisé, B a ${pct(q)} de chances de l'être`,{tag:'BA'}),NO(`quand B est réalisé, A a ${pct(q)} de chances de l'être`,`Ça, ce serait ${P('A','B')}&nbsp;: la condition (après «&nbsp;quand&nbsp;») est celle qui va en indice.`,{tag:'AB'}),
+      NO(`A et B sont réalisés en même temps avec une probabilité de ${dec(q)}`,`Ça, c'est ${P('A ∩ B')}&nbsp;: aucune condition, on reste dans tout l'univers.`,{tag:'I'})],{audit:{type:'tag',want:'BA'}}),
+    fill('Dans la bande A, ce qui n\'est pas B&nbsp;:',`${P('~B','A')} = {0}`,[BV(D,'P(~B|A)')],`${P('~B','A')} = 1 − ${P('B','A')} = 1 − ${dec(q)}.`)],
+   done:`Sachant A, B et ${ev('~B')} se partagent la bande&nbsp;: ${dec(q)} + ${dec(comp(q))} = 1.`}}]};
+
+/* ======================= Niveau 3 · Couper le carré (arbres pondérés) ======================= */
+const L3={t:'Couper le carré',badge:'Arbre pondéré · largeur × hauteur',
+ rule:`<p>Sur un arbre pondéré, la somme des poids des branches issues d'un même nœud vaut 1.</p>
+ <p>Au premier niveau&nbsp;: ${P('A')} et ${P('~A')}. Au second niveau, les poids sont des probabilités conditionnelles&nbsp;: ${P('B','A')}, ${P('~B','A')}, ${P('B','~A')}, ${P('~B','~A')}.</p>
+ <p>La probabilité d'un chemin est le produit des poids&nbsp;: ${P('A ∩ B')} = ${P('A')} × ${P('B','A')}. Dans le carré, c'est largeur × hauteur, et les quatre rectangles pavent le carré&nbsp;: leurs aires ont pour somme 1.</p>`,
+ qs:[
+ ()=>{const {D,story}=TR(),p=D.p[0],[q0,q1]=D.q;let cur={p:R(1,2),q0:R(1,2),q1:R(1,2)};
+  const draw=(dur)=>{const E={type:'tree',f:['A','~A'],b:'B',p:[cur.p,comp(cur.p)],q:[cur.q0,cur.q1]};S.show(S.mosaic(M_of(E),{}),dur)};
+  const tr=(k)=>S.tree(treeOf(D,{hide:['p0','p1','q0','n0','q1','n1'].slice(k===0?0:k===1?2:k===2?4:6)}));
+  return{setup:async()=>{cur={p:R(1,2),q0:R(1,2),q1:R(1,2)};draw(0);tr(0)},meta:{D:ser(D)},cap0:'Les coupes sont au milieu&nbsp;: à toi de les placer',
+   prompt:`<p>${story}</p>`,
+   parts:[slide('Place la coupe verticale&nbsp;: la bande A a pour largeur P(A).',P('A'),p,v=>{cur.p=v;draw(0);cap(`Largeur de la bande A&nbsp;: ${dec(v)}`)},v=>`La largeur de A doit être ${P('A')}, lue dans l'énoncé (${pct(p)} = ${dec(p)})&nbsp;; ta coupe est à ${dec(v)}.`,{onOk:async()=>tr(1)}),
+    slide('Dans la bande A, place la coupe de B&nbsp;: hauteur P<sub>A</sub>(B).',P('B','A'),q0,v=>{cur.q0=v;draw(0);cap(`Hauteur de B dans A&nbsp;: ${dec(v)}`)},v=>`Dans A, B occupe ${pct(q0)} de la bande&nbsp;: ${P('B','A')} = ${dec(q0)}. Ta coupe est à ${dec(v)}.`,{onOk:async()=>tr(2)}),
+    slide(`Dans la bande ${ev('~A')}, place la coupe de B&nbsp;: hauteur P<sub><span class="ov">A</span></sub>(B).`,P('B','~A'),q1,v=>{cur.q1=v;draw(0);cap(`Hauteur de B dans ${ev('~A')}&nbsp;: ${dec(v)}`)},v=>`Dans ${ev('~A')}, B occupe ${pct(q1)} de la bande&nbsp;: ${P('B','~A')} = ${dec(q1)}. Ta coupe est à ${dec(v)}.`,
+     {onOk:async()=>{tr(3);cap('Le carré et l\'arbre racontent la même histoire')}})],
+   done:'Chaque coupe du carré est une branche de l\'arbre&nbsp;: les largeurs au premier niveau, les hauteurs (conditionnelles) au second.'}},
+ ()=>{const {D,story}=TR(),p=D.p[0],[q0,q1]=D.q;
+  return{setup:async()=>{await sqView(D,{});S.tree(treeOf(D,{hide:['p1','n0','n1']}))},meta:{D:ser(D)},cap0:'Trois poids manquent sur l\'arbre',prompt:`<p>${story}</p>`,
+   parts:[fill('Sur chaque nœud, les poids ont pour somme 1&nbsp;:',`${P('~A')} = {0}&nbsp;; ${P('~B','A')} = {1}&nbsp;; ${P('~B','~A')} = {2}`,[BV(D,'P(~A)'),BV(D,'P(~B|A)'),BV(D,'P(~B|~A)')],
+     `1 − ${dec(p)}&nbsp;; 1 − ${dec(q0)}&nbsp;; 1 − ${dec(q1)}.`,{onOk:async()=>{S.tree(treeOf(D));cap('L\'arbre est complet')}})],
+   done:`Une bande se partage entièrement&nbsp;: largeurs ${dec(p)} + ${dec(comp(p))} = 1, hauteurs ${dec(q0)} + ${dec(comp(q0))} = 1.`}},
+ ()=>{const {D,story}=TR();const k=ri(0,3),keys=['P(B|A)','P(~B|A)','P(B|~A)','P(~B|~A)'],key=keys[k],i=k>>1,j=k&1;
+  const hlp=`${i}-${j}`;
+  return{setup:async()=>{await sqView(D,{});S.tree(treeOf(D,{nt:kk=>({p0:'P(A)',p1:'P(~A)',q0:'?',n0:'?',q1:'?',n1:'?'})[kk]}),{hl:[hlp]})},meta:{D:ser(D)},cap0:'Que porte la branche allumée&nbsp;?',prompt:`<p>${story}</p>`,
+   parts:[ch(`Sur l'arbre, la branche qui va de ${ev(D.f[i])} vers ${ev(j?'~B':'B')} porte&nbsp;:`,[OK(NT(key),{nt:key}),NO(P(`${D.f[i]} ∩ ${j?'~B':'B'}`),`${P(`${D.f[i]} ∩ ${j?'~B':'B'}`)} est la probabilité du chemin entier (le produit), pas celle de la branche.`,{nt:`P(${D.f[i]} ∩ ${j?'~B':'B'})`}),
+      NO(P(j?'~B':'B'),`Au second niveau, on est déjà dans ${ev(D.f[i])}&nbsp;: la branche porte une probabilité conditionnelle.`,{nt:`P(${j?'~B':'B'})`}),NO(P(D.f[i],j?'~B':'B'),`L'ordre compte&nbsp;: on part de ${ev(D.f[i])}, c'est la condition, elle va en indice.`,{nt:`P(${D.f[i]}|${j?'~B':'B'})`})],
+     {audit:{type:'nt'},onOk:async()=>{S.tree(treeOf(D),{hl:[hlp]});await sqView(D,{},{hl:[`c${i}s${j}`]})}}),
+    fill('Avec les données de l\'énoncé&nbsp;:',`${NT(key)} = {0}`,[BV(D,key)],`Lis l'énoncé&nbsp;: ${j?'on prend le complément à 1 de la probabilité donnée.':'c\'est directement une donnée.'}`)],
+   done:`Une branche du second niveau = une hauteur dans une bande = une probabilité conditionnelle.`}},
+ ()=>{const {D,story}=TR({test:D=>ndec(mul(D.p[0],D.q[0]))<=3});const k=ri(0,3),i=k>>1,j=k&1,ek=`${D.f[i]} ∩ ${j?'~B':'B'}`,w=D.p[i],h=j?comp(D.q[i]):D.q[i];
+  return{setup:async()=>{await sqView(D,{});S.tree(treeOf(D),{hl:[`${i}-${j}`]})},meta:{D:ser(D)},cap0:'Un chemin de l\'arbre = un rectangle du carré',prompt:`<p>${story}</p>`,
+   parts:[act(`Allumer le rectangle ${ev(ek)}`,async()=>{await sqView(D,{},{hl:[`c${i}s${j}`]});cap(`Largeur ${dec(w)} × hauteur ${dec(h)}`)}),
+    fill(null,`${P(ek)} = {0}`,[BV(D,`P(${ek})`)],`Produit le long du chemin&nbsp;: ${P(D.f[i])} × ${P(j?'~B':'B',D.f[i])} = ${dec(w)} × ${dec(h)}.`,{onOk:async()=>{S.tree(treeOf(D,{leaf:(a,b)=>a===i&&b===j?numT(mul(w,h)):''}),{hl:[`${i}-${j}`]})}})],
+   done:`${P(ek)} = ${dec(w)} × ${dec(h)} = ${dec(mul(w,h))}.`}},
+ ()=>{const {D,story}=TR({test:D=>[0,1,2,3].every(k=>ndec(V(`P(${D.f[k>>1]} ∩ ${k&1?'~B':'B'})`,D))<=3)});const k=ri(0,3),i=k>>1,j=k&1,ek=`${D.f[i]} ∩ ${j?'~B':'B'}`;
+  const lf=(a,b)=>a===i&&b===j?'?':numT(V(`P(${D.f[a]} ∩ ${b?'~B':'B'})`,D));
+  return{setup:async()=>{await sqView(D,{labs:'prob'});S.tree(treeOf(D,{leaf:lf}),{hl:[`${i}-${j}`]})},meta:{D:ser(D)},cap0:'Les quatre rectangles pavent le carré',prompt:`<p>${story}</p><p>Trois chemins sont déjà calculés au bout de l'arbre.</p>`,
+   parts:[fill('Sans multiplier, à l\'aide des trois autres feuilles&nbsp;:',`${P(ek)} = {0}`,[BV(D,`P(${ek})`)],`Les quatre feuilles ont pour somme 1 (les quatre rectangles remplissent le carré)&nbsp;: 1 moins les trois autres.`,
+     {onOk:async()=>{S.tree(treeOf(D,{leaf:leafV(D)}),{hl:[`${i}-${j}`]});await sqView(D,{labs:'prob'},{hl:[`c${i}s${j}`]})}})],
+   done:'Somme des quatre feuilles = aire du carré = 1. C\'est aussi un bon moyen de vérifier un arbre.'}}]};
+
+/* ======================= Niveau 4 · Rassembler B (probabilités totales) ======================= */
+const L4={t:'Rassembler B',badge:'Partition · somme des chemins',
+ rule:`<p>A et ${ev('~A')} forment une partition de l'univers (ils ne se chevauchent pas et couvrent tout). Formule des probabilités totales&nbsp;:</p>
+ <p>${P('B')} = ${P('A ∩ B')} + ${P('~A ∩ B')} = ${P('A')} × ${P('B','A')} + ${P('~A')} × ${P('B','~A')}.</p>
+ <p>Avec une partition en trois événements A₁, A₂, A₃&nbsp;: ${P('B')} = ${P('A₁ ∩ B')} + ${P('A₂ ∩ B')} + ${P('A₃ ∩ B')}. Dans le carré, on rassemble tous les morceaux de lumière B.</p>`,
+ qs:[
+ ()=>{const {D,story}=TR({test:D=>ndec(V('P(B)',D))<=3}),a=V('P(A ∩ B)',D),b=V('P(~A ∩ B)',D);
+  return{setup:async()=>{await sqView(D,{});S.tree(treeOf(D))},meta:{D:ser(D)},cap0:'B est en deux morceaux&nbsp;: un dans A, un dans '+ev('~A'),prompt:`<p>${story}</p>`,
+   parts:[fill('Les deux chemins qui mènent à B&nbsp;:',`${P('A ∩ B')} = {0} et ${P('~A ∩ B')} = {1}`,[BV(D,'P(A ∩ B)'),BV(D,'P(~A ∩ B)')],`Produit le long de chaque chemin&nbsp;: ${dec(D.p[0])} × ${dec(D.q[0])} et ${dec(D.p[1])} × ${dec(D.q[1])}.`,
+     {onOk:async()=>{S.tree(treeOf(D,{leaf:(i,j)=>j?'':numT(V(`P(${D.f[i]} ∩ B)`,D))}),{hl:['0-0','1-0']});await sqView(D,{labs:'prob'})}}),
+    act('Rassembler les morceaux de B',async()=>{S.SND.merge();await sqView(D,{labs:'prob'},{gather:true});cap(`${dec(a)} + ${dec(b)}`)}),
+    fill(null,`${P('B')} = {0}`,[BV(D,'P(B)')],`On additionne les deux morceaux&nbsp;: ${dec(a)} + ${dec(b)}.`)],
+   done:`${P('B')} = ${dec(a)} + ${dec(b)} = ${dec(V('P(B)',D))}&nbsp;: la somme des chemins qui mènent à B.`}},
+ ()=>{const {D,story}=TR({test:D=>{const [q0,q1]=D.q;return dist([V('P(B)',D),add(q0,q1),div(add(q0,q1),R(2)),mul(D.p[0],q0)])&&cmp(add(q0,q1),R(1))!==0}}),[q0,q1]=D.q,PB=V('P(B)',D);
+  return{setup:async()=>{await sqView(D,{});S.tree(treeOf(D))},meta:{D:ser(D)},cap0:'Combien de lumière en tout&nbsp;?',prompt:`<p>${story}</p>`,
+   parts:[ch(`${P('B')} =`,[OK(dec(PB),{v:PB}),NO(dec(add(q0,q1)),`Additionner ${P('B','A')} et ${P('B','~A')} ne tient pas compte des largeurs des bandes&nbsp;: il faut d'abord multiplier par ${P('A')} et ${P('~A')}.`,{v:add(q0,q1)}),
+      NO(numH(div(add(q0,q1),R(2))),`La moyenne simple supposerait deux bandes de même largeur, or ${P('A')} = ${dec(D.p[0])}.`,{v:div(add(q0,q1),R(2))}),NO(dec(mul(D.p[0],q0)),`Ce n'est que le morceau de B situé dans A&nbsp;: il manque celui de ${ev('~A')}.`,{v:mul(D.p[0],q0)})],
+     {audit:{type:'num',key:'P(B)'},onOk:async()=>{S.SND.merge();await sqView(D,{labs:'prob'},{gather:true});cap(`${P('B')} = ${dec(D.p[0])} × ${dec(q0)} + ${dec(D.p[1])} × ${dec(q1)} = ${dec(PB)}`)}})],
+   done:`Chaque hauteur est pondérée par la largeur de sa bande&nbsp;: ${dec(D.p[0])} × ${dec(q0)} + ${dec(D.p[1])} × ${dec(q1)} = ${dec(PB)}.`}},
+ ()=>{const {D,story}=T3({test:D=>ndec(V('P(B)',D))<=4});
+  return{setup:async()=>{await sqView(D,{});S.tree(treeOf(D))},meta:{D:ser(D)},cap0:'Trois bandes, trois morceaux de lumière',prompt:`<p>${story}</p>`,
+   parts:[ch('A₁, A₂, A₃ forment une partition de l\'univers, car&nbsp;:',[OK('ils sont deux à deux incompatibles et leur réunion est l\'univers',{tag:'part'}),NO('leurs probabilités sont différentes','Les probabilités n\'y sont pour rien&nbsp;: une partition, ce sont des bandes qui ne se chevauchent pas et qui couvrent tout le carré.',{tag:'diff'}),
+      NO('chacun a une probabilité non nulle','Ça ne suffit pas&nbsp;: il faut qu\'ils ne se chevauchent pas et qu\'ils couvrent tout l\'univers.',{tag:'nn'})],{audit:{type:'tag',want:'part'}}),
+    act('Rassembler les morceaux de B',async()=>{S.SND.merge();await sqView(D,{labs:'prob'},{gather:true});cap(D.f.map((f,i)=>`${dec(D.p[i])} × ${dec(D.q[i])}`).join(' + '))}),
+    fill(null,`${P('B')} = {0}`,[BV(D,'P(B)')],`${P('B')} = ${D.f.map((f,i)=>`${dec(D.p[i])} × ${dec(D.q[i])}`).join(' + ')}.`)],
+   done:`Probabilités totales avec trois bandes&nbsp;: ${P('B')} = ${dec(V('P(B)',D))}.`}},
+ ()=>{const {D,story}=TR({test:D=>ndec(V('P(B)',D))<=3});
+  return{setup:async()=>{await sqView(D,{});S.tree(treeOf(D))},meta:{D:ser(D)},cap0:'La lumière… et l\'ombre',prompt:`<p>${story}</p>`,
+   parts:[fill(null,`${P('B')} = {0}`,[BV(D,'P(B)')],`${dec(D.p[0])} × ${dec(D.q[0])} + ${dec(D.p[1])} × ${dec(D.q[1])}.`,{onOk:async()=>{S.SND.merge();await sqView(D,{labs:'prob'},{gather:true})}}),
+    fill('Ce qui reste du carré&nbsp;:',`${P('~B')} = {0}`,[BV(D,'P(~B)')],`${P('~B')} = 1 − ${P('B')}&nbsp;; on peut aussi additionner les chemins qui mènent à ${ev('~B')}.`)],
+   done:`${P('~B')} = 1 − ${dec(V('P(B)',D))} = ${dec(V('P(~B)',D))}.`}},
+ ()=>{const {D,story,X}=TR({test:D=>ndec(V('P(B)',D))<=2}),n=V('x100(B)',D);
+  return{setup:async()=>{await sqView(D,{});S.tree(treeOf(D))},meta:{D:ser(D)},cap0:'Des probabilités aux effectifs',prompt:`<p>${story}</p>`,
+   parts:[fill(null,`${P('B')} = {0}`,[BV(D,'P(B)')],`Probabilités totales&nbsp;: ${dec(D.p[0])} × ${dec(D.q[0])} + ${dec(D.p[1])} × ${dec(D.q[1])}.`,{onOk:async()=>{S.SND.merge();await sqView(D,{labs:'prob'},{gather:true})}}),
+    fill(`Sur 100 ${X.u} pris au hasard dans les mêmes conditions, pour combien d'entre eux B est-il réalisé, en moyenne&nbsp;?`,'{0}',[BV(D,'x100(B)',{size:4})],`100 × ${dec(V('P(B)',D))}.`,{hint:'Un nombre entier.'})],
+   done:`Environ ${dec(n)} sur 100&nbsp;: une probabilité se lit aussi comme une proportion.`}}]};
+
+/* ======================= Niveau 5 · La coupe droite (indépendance) ======================= */
+const L5={t:'La coupe droite',badge:'Indépendance · une seule coupe',
+ rule:`<p>A et B sont indépendants lorsque ${P('A ∩ B')} = ${P('A')} × ${P('B')}.</p>
+ <p>Si ${P('A')} ≠ 0, cela revient à ${P('B','A')} = ${P('B')}&nbsp;: savoir que A est réalisé ne change pas la probabilité de B.</p>
+ <p>Dans le carré, la coupe de B est à la même hauteur dans A et dans ${ev('~A')}&nbsp;: elle traverse tout le carré, bien droite.</p>
+ <p>Si A et B sont indépendants, ${ev('~A')} et B le sont aussi (de même A et ${ev('~B')}, ${ev('~A')} et ${ev('~B')}). Attention&nbsp;: indépendants ne veut pas dire incompatibles.</p>`,
+ qs:[
+ ()=>{let p,q0;do{p=R(ri(3,7),10);q0=R(ri(3,17),20)}while(!dist([q0,comp(q0),mul(p,q0)]));const D={type:'tree',f:['A','~A'],b:'B',p:[p,comp(p)],q:[q0,q0]};let q1=R(1,10);
+  const draw=(dur)=>{const E={type:'tree',f:['A','~A'],b:'B',p:D.p,q:[q0,q1]};S.show(S.mosaic(M_of(E),{straight:true}),dur)};
+  return{setup:async()=>{q1=R(10,100);draw(0)},meta:{D:ser(D)},cap0:'Les deux coupes de B ne sont pas alignées',
+   prompt:`<p>${P('A')} = ${dec(p)} et ${P('B','A')} = ${dec(q0)}. On veut que A et B soient indépendants.</p>`,
+   parts:[slide(`Règle la coupe de B dans la bande ${ev('~A')}.`,P('B','~A'),q0,v=>{q1=v;draw(0);cap(eq(v,q0)?'<span class="k">Une seule coupe, bien droite&nbsp;!</span>':`${P('B','A')} = ${dec(q0)} et ${P('B','~A')} = ${dec(v)}`)},
+     v=>`Pour l'indépendance, savoir A ou ${ev('~A')} ne doit rien changer&nbsp;: la hauteur de B doit être la même dans les deux bandes (${dec(q0)}). Ta coupe est à ${dec(v)}.`,{init:10,onOk:async()=>{S.SND.line()}}),
+    ch('Alors&nbsp;:',[OK(`${P('B')} = ${dec(q0)}`,{v:q0}),NO(`${P('B')} = ${dec(mul(p,q0))}`,`${dec(mul(p,q0))} est l'aire de A ∩ B seulement. Quand la coupe est droite, B est une bande horizontale de hauteur ${dec(q0)} sur toute la largeur.`,{v:mul(p,q0)}),
+      NO(`${P('B')} = ${dec(comp(q0))}`,`${dec(comp(q0))} est la hauteur de ${ev('~B')}. La partie B est une bande de hauteur ${dec(q0)} sur toute la largeur 1&nbsp;: son aire est ${dec(q0)}.`,{v:comp(q0)})],{audit:{type:'num',key:'P(B)'}})],
+   done:`Coupe droite&nbsp;: ${P('B','A')} = ${P('B','~A')} = ${P('B')} = ${dec(q0)}. Savoir A ne change rien à B.`}},
+ ()=>{const ind=Math.random()<.5,D=PAB(ind),pr=mul(D.pA,D.pB);
+  return{setup:async()=>{await sqView(D,{},{})},meta:{D:ser(D)},cap0:'Coupe droite ou coupe brisée&nbsp;?',
+   prompt:`<p>On donne ${P('A')} = ${dec(D.pA)}, ${P('B')} = ${dec(D.pB)} et ${P('A ∩ B')} = ${dec(D.pI)}.</p>`,
+   parts:[fill(null,`${P('A')} × ${P('B')} = {0}`,[BV(D,'prod(A;B)')],`${dec(D.pA)} × ${dec(D.pB)}.`),
+    ch('A et B sont-ils indépendants&nbsp;?',[OK(ind?`Oui, car ${P('A ∩ B')} = ${P('A')} × ${P('B')}`:`Non, car ${P('A ∩ B')} ≠ ${P('A')} × ${P('B')}`,{tag:ind?'oui':'non'}),
+      NO(ind?`Non, car ${P('A ∩ B')} ≠ 0`:`Oui, car ${P('A ∩ B')} ≠ 0`,`Le critère n'est pas ${P('A ∩ B')} ≠ 0&nbsp;: on compare ${P('A ∩ B')} = ${dec(D.pI)} avec ${P('A')} × ${P('B')} = ${dec(pr)}.`,{tag:ind?'non':'oui'}),
+      NO(ind?`Non, car ${P('A')} ≠ ${P('B')}`:`Oui, car ${P('A')} ≠ ${P('B')}`,`Comparer ${P('A')} et ${P('B')} ne dit rien&nbsp;: on compare ${P('A ∩ B')} et ${P('A')} × ${P('B')}.`,{tag:'x'})],
+     {audit:{type:'tag',want:ind?'oui':'non'},onOk:async()=>{await sqView(D,{},{straight:true});cap(ind?`<span class="k">Coupe droite&nbsp;: ${P('B','A')} = ${P('B','~A')} = ${dec(D.pB)}</span>`:`Coupe brisée&nbsp;: ${P('B','A')} = ${numH(V('P(B|A)',D))} et ${P('B','~A')} = ${numH(V('P(B|~A)',D))}`)}})],
+   done:ind?`${dec(D.pA)} × ${dec(D.pB)} = ${dec(pr)} = ${P('A ∩ B')}&nbsp;: indépendants.`:`${dec(D.pA)} × ${dec(D.pB)} = ${dec(pr)} ≠ ${dec(D.pI)}&nbsp;: pas indépendants.`}},
+ ()=>{const ind=Math.random()<.5,{X,D,N:Nt}=TB({indep:ind}),a=V('P(B|A)',D),b=V('P(B)',D);
+  return{setup:()=>sqView(D,{labs:'count'}),meta:{D:ser(D)},prompt:`<p>${X.intro(Nt)} ${defT(X)}</p>${tabH(D)}`,cap0:'Savoir A change-t-il la probabilité de B&nbsp;?',
+   parts:[fill(null,`${P('B','A')} = {0} et ${P('B')} = {1}`,[BV(D,'P(B|A)'),BV(D,'P(B)')],`${P('B','A')} = ${frH(F(D.c[0][0]),F(tots(D).k[0]))} (colonne A) et ${P('B')} = ${frH(F(tots(D).r[0]),F(tots(D).t))} (ligne B sur le total).`),
+    ch('A et B sont-ils indépendants&nbsp;?',[OK(ind?`Oui, car ${P('B','A')} = ${P('B')}`:`Non, car ${P('B','A')} ≠ ${P('B')}`,{tag:ind?'oui':'non'}),NO(ind?`Non, car ${P('B','A')} ≠ ${P('B')}`:`Oui, car ${P('B','A')} = ${P('B')}`,`Compare les deux valeurs calculées&nbsp;: ${numH(a)} et ${numH(b)}.`,{tag:ind?'non':'oui'}),
+      NO('On ne peut pas savoir sans arbre','Le tableau suffit&nbsp;: on compare la proportion de B dans A et dans la population entière.',{tag:'x'})],{audit:{type:'tag',want:ind?'oui':'non'},
+      onOk:async()=>{await sqView(D,{labs:'count'},{straight:true});cap(ind?'<span class="k">La coupe de B est droite</span>':'La coupe de B est brisée')}})],
+   done:ind?`${P('B','A')} = ${P('B')} = ${numH(b)}&nbsp;: A et B sont indépendants.`:`${P('B','A')} = ${numH(a)} ≠ ${numH(b)} = ${P('B')}&nbsp;: A et B ne sont pas indépendants.`}},
+ ()=>{const D=PAB(true);
+  return{setup:async()=>{await sqView(D,{},{straight:true})},meta:{D:ser(D)},cap0:'Une coupe droite, d\'un bord à l\'autre',
+   prompt:`<p>A et B sont indépendants, avec ${P('A')} = ${dec(D.pA)} et ${P('B')} = ${dec(D.pB)}.</p>`,
+   parts:[fill(null,`${P('A ∩ B')} = {0}`,[BV(D,'P(A ∩ B)')],`Indépendants&nbsp;: ${P('A ∩ B')} = ${P('A')} × ${P('B')} = ${dec(D.pA)} × ${dec(D.pB)}.`,{onOk:async()=>{await sqView(D,{},{straight:true,hl:['c0s0']})}}),
+    fill(null,`${P('B','A')} = {0}`,[BV(D,'P(B|A)')],`Indépendants&nbsp;: savoir A ne change rien, ${P('B','A')} = ${P('B')}.`,{onOk:async()=>{S.SND.stretch();await sqView(D,{},{focus:0,straight:true})}})],
+   done:`${P('B','A')} = ${frH(dec(mul(D.pA,D.pB)),dec(D.pA))} = ${dec(D.pB)} = ${P('B')}.`}},
+ ()=>{let D;do{D=PAB(true)}while(!dist([mul(comp(D.pA),D.pB),comp(mul(D.pA,D.pB)),mul(D.pA,D.pB)]));const v=mul(comp(D.pA),D.pB);
+  return{setup:async()=>{await sqView(D,{},{straight:true})},meta:{D:ser(D)},cap0:'La coupe droite traverse aussi la bande '+ev('~A'),
+   prompt:`<p>A et B sont indépendants, avec ${P('A')} = ${dec(D.pA)} et ${P('B')} = ${dec(D.pB)}.</p>`,
+   parts:[ch(`${P('~A ∩ B')} =`,[OK(dec(v),{v}),NO(dec(comp(mul(D.pA,D.pB))),`1 − ${P('A')} × ${P('B')} est la probabilité du contraire de A ∩ B, pas celle de ${ev('~A')} ∩ B.`,{v:comp(mul(D.pA,D.pB))}),
+      NO(dec(mul(D.pA,D.pB)),`C'est ${P('A ∩ B')}. Ici, la bande est ${ev('~A')}, de largeur 1 − ${dec(D.pA)}.`,{v:mul(D.pA,D.pB)})],{audit:{type:'num',key:'P(~A ∩ B)'},
+      onOk:async()=>{await sqView(D,{},{straight:true,hl:['c1s0']});cap(`${ev('~A')} et B sont aussi indépendants&nbsp;: ${dec(comp(D.pA))} × ${dec(D.pB)}`)}}),
+    ch('Deux événements incompatibles, de probabilités non nulles, peuvent-ils être indépendants&nbsp;?',[OK(`Non&nbsp;: leur intersection est vide, donc ${P('A ∩ B')} = 0 ≠ ${P('A')} × ${P('B')}`,{tag:'inc-non'}),
+      NO('Oui, toujours&nbsp;: ils n\'ont rien à voir l\'un avec l\'autre','C\'est le piège classique&nbsp;! Incompatibles, ils s\'influencent au maximum&nbsp;: si A est réalisé, B ne peut plus l\'être.',{tag:'inc-oui'}),
+      NO('Oui, si leurs probabilités sont égales',`Quelles que soient les probabilités, ${P('A ∩ B')} = 0 alors que ${P('A')} × ${P('B')} &gt; 0.`,{tag:'inc-egal'})],{audit:{type:'tag',want:'inc-non'}})],
+   done:`${P('~A ∩ B')} = ${P('~A')} × ${P('B')} = ${dec(v)}. Et indépendants ≠ incompatibles&nbsp;!`}}]};
+
+/* ======================= Niveau 6 · Deux épreuves indépendantes ======================= */
+const XD=[
+ ()=>{const r=ri(2,6),g=pick([2,3,4].filter(x=>x!==r)),n=r+g;const o=[{l:'R',p:R(r,n)},{l:'V',p:R(g,n)}];
+   return{r,g,o1:o,o2:o,t1:'1er tirage',t2:'2e tirage',txt:`Une urne contient ${r} boules rouges (R) et ${g} boules vertes (V), indiscernables au toucher. On tire une boule au hasard, on note sa couleur, on la remet dans l'urne, puis on tire une seconde boule.`,same:true,
+     nm:l=>l==='R'?'rouge':'verte',cell:(a,b)=>`(${a}&nbsp;;&nbsp;${b})`}},
+ ()=>{const ws=pick([[5,3,2],[4,4,2],[6,3,1],[5,4,1]]),o1=[{l:'R',p:R(ws[0],10)},{l:'B',p:R(ws[1],10)},{l:'J',p:R(ws[2],10)}];
+   return{o1,o2:[{l:'P',p:R(1,2)},{l:'F',p:R(1,2)}],t1:'roue',t2:'pièce',txt:`Une roue de loterie a trois secteurs&nbsp;: rouge (R) avec la probabilité ${dec(o1[0].p)}, bleu (B) avec ${dec(o1[1].p)} et jaune (J) avec ${dec(o1[2].p)}. On fait tourner la roue, puis on lance une pièce équilibrée (P&nbsp;: pile, F&nbsp;: face).`,
+     cell:(a,b)=>`(${a}&nbsp;;&nbsp;${b})`}},
+ ()=>{const o=[1,2,3,4].map(k=>({l:String(k),p:R(1,4)}));
+   return{o1:o,o2:o,t1:'1er dé',t2:'2e dé',txt:'On lance deux fois de suite un dé équilibré à quatre faces numérotées de 1 à 4.',same:true,cell:(a,b)=>`(${a}&nbsp;;&nbsp;${b})`}},
+ ()=>{const ws=pick([[5,3,2],[4,4,2],[5,4,1],[6,3,1]]),o=[{l:'R',p:R(ws[0],10)},{l:'B',p:R(ws[1],10)},{l:'J',p:R(ws[2],10)}];
+   return{o1:o,o2:o,t1:'1er tour',t2:'2e tour',txt:`Une roue de loterie a trois secteurs&nbsp;: rouge (R) avec la probabilité ${dec(o[0].p)}, bleu (B) avec ${dec(o[1].p)} et jaune (J) avec ${dec(o[2].p)}. On la fait tourner deux fois de suite.`,same:true,cell:(a,b)=>`(${a}&nbsp;;&nbsp;${b})`}}];
+function gridM(E,o){o=o||{};return{grid:true,size:o.size||18,cols:E.o1.map((a,i)=>({w:N.val(a.p),name:a.l,hue:HUE[i%4],segs:E.o2.map((b,j)=>({h:N.val(b.p),lab:o.labs?o.labs(i,j):'',from:o.grow&&j>0?{y:1,h:0,o:1}:undefined}))}))}}
+function gridTree(E,o){o=o||{};return{kids:E.o1.map((a,i)=>({lab:a.l,col:HUE[i%4],w:numT(a.p),kids:E.o2.map((b,j)=>({lab:b.l,w:o.hide2?'?':numT(b.p),leaf:o.leaf?o.leaf(i,j):undefined}))}))}}
+const Dd=E=>({type:'dbl',o1:E.o1.map(x=>({l:x.l,p:x.p})),o2:E.o2.map(x=>({l:x.l,p:x.p}))});
+const cellK=(i,j)=>`set:${i}-${j}`;
+function gridTab(E,cells){/* tableau à double entrée : lignes = 1re épreuve, colonnes = 2e épreuve ; cells(i,j) → html */
+  return `<div class="ctw"><table class="ct"><thead><tr><th>${E.t1} \\ ${E.t2}</th>${E.o2.map(b=>`<th>${b.l} (${numH(b.p)})</th>`).join('')}</tr></thead><tbody>`+
+    E.o1.map((a,i)=>`<tr><th>${a.l} (${numH(a.p)})</th>${E.o2.map((b,j)=>`<td class="${cells(i,j)==='?'?'q':''}">${cells(i,j)}</td>`).join('')}</tr>`).join('')+'</tbody></table></div>'}
+const L6={t:'Deux épreuves',legend:'<span>colonnes&nbsp;: 1re épreuve</span><span>lignes&nbsp;: 2e épreuve</span><span>aire d\'une case = probabilité de l\'issue</span>',badge:'Arbre ou tableau',
+ rule:`<p>Deux épreuves sont indépendantes quand le résultat de la première ne change pas les probabilités de la seconde (par exemple deux tirages <b>avec remise</b>).</p>
+ <p>Sur l'arbre, les poids du second niveau sont alors les mêmes après chaque issue de la première épreuve. Dans le carré, les coupes horizontales traversent tout le carré.</p>
+ <p>La probabilité d'une issue (x&nbsp;;&nbsp;y) est le produit P(x) × P(y)&nbsp;: c'est l'aire de la case. Un tableau à double entrée rassemble toutes ces cases.</p>`,
+ qs:[
+ ()=>{const E=XD[0](),D=Dd(E),pr=E.o1[0].p,r=E.r,n=E.r+E.g;
+  const bad=R(r-1,n-1);
+  return{setup:async()=>{await S.show(S.mosaic({grid:true,size:18,cols:E.o1.map((a,i)=>({w:N.val(a.p),name:a.l,hue:HUE[i],segs:[{h:1,lab:a.l}]}))},{}),0);
+     S.tree({kids:E.o1.map((a,i)=>({lab:a.l,col:HUE[i],w:numT(a.p)}))})},meta:{D:ser(D)},cap0:'Premier tirage&nbsp;: deux bandes',prompt:`<p>${E.txt}</p>`,
+   parts:[act('Tracer les coupes du second tirage',async()=>{S.SND.cut();await S.show(S.mosaic(gridM(E,{labs:(i,j)=>E.o1[i].l+E.o2[j].l,grow:true}),{}));S.tree(gridTree(E));cap('Les coupes du second tirage traversent tout le carré')}),
+    ch('Après une première boule rouge, la probabilité de tirer une boule rouge au second tirage est&nbsp;:',[OK(`${numH(pr)}, comme au premier tirage`,{v:pr}),
+      NO(`${numH(bad)}`,`Ce serait le cas sans remise (il resterait ${r-1} rouges sur ${n-1} boules). Ici la boule est remise&nbsp;: l'urne est la même qu'au départ.`,{v:bad}),
+      NO(`${numH(mul(pr,pr))}`,`${numH(mul(pr,pr))} est la probabilité de l'issue (R&nbsp;;&nbsp;R) entière. La branche du second niveau ne porte que ${numH(pr)}.`,{v:mul(pr,pr)})],{audit:{type:'num',key:'p2:0'}}),
+    fill(null,`P(R&nbsp;;&nbsp;R) = {0}`,[BV(D,cellK(0,0))],`Produit le long du chemin&nbsp;: ${numH(pr)} × ${numH(pr)}.`,{onOk:async()=>{await S.show(S.mosaic(gridM(E,{labs:(i,j)=>E.o1[i].l+E.o2[j].l}),{hl:['c0s0']}))}})],
+   done:`Avec remise, les deux tirages sont indépendants&nbsp;: P(R&nbsp;;&nbsp;R) = ${numH(pr)} × ${numH(pr)} = ${numH(mul(pr,pr))}.`}},
+ ()=>{const E=XD[1](),D=Dd(E),c1=[ri(0,2),ri(0,1)],c2=[(c1[0]+ri(1,2))%3,1-c1[1]];
+  const cl=(i,j)=>(i===c1[0]&&j===c1[1])||(i===c2[0]&&j===c2[1])?'?':numT(V(cellK(i,j),D));
+  return{setup:async()=>{await S.show(S.mosaic(gridM(E,{labs:(i,j)=>cl(i,j)==='?'?'?':E.o1[i].l+E.o2[j].l}),{}));S.tree(gridTree(E,{leaf:(i,j)=>cl(i,j)}))},meta:{D:ser(D)},cap0:'Chaque case du carré est une issue',
+   prompt:`<p>${E.txt}</p>${gridTab(E,cl)}`,
+   parts:[fill('Complète les deux cases du tableau&nbsp;:',`P(${E.o1[c1[0]].l}&nbsp;;&nbsp;${E.o2[c1[1]].l}) = {0} et P(${E.o1[c2[0]].l}&nbsp;;&nbsp;${E.o2[c2[1]].l}) = {1}`,[BV(D,cellK(c1[0],c1[1])),BV(D,cellK(c2[0],c2[1]))],
+     `Chaque case est un produit&nbsp;: ${dec(E.o1[c1[0]].p)} × 0,5 et ${dec(E.o1[c2[0]].p)} × 0,5.`,{onOk:async()=>{await S.show(S.mosaic(gridM(E,{labs:(i,j)=>numT(V(cellK(i,j),D))}),{hl:[`c${c1[0]}s${c1[1]}`,`c${c2[0]}s${c2[1]}`]}));S.tree(gridTree(E,{leaf:(i,j)=>numT(V(cellK(i,j),D))}))}})],
+   done:'Le tableau, l\'arbre et le carré contiennent les mêmes six produits, de somme 1.'}},
+ ()=>{const E=pick([XD[0],XD[3]])(),D=Dd(E),n=E.o1.length,cells=E.o1.map((_,i)=>`${i}-${i}`).join(',');
+  return{setup:async()=>{await S.show(S.mosaic(gridM(E,{labs:(i,j)=>E.o1[i].l+E.o2[j].l}),{}));S.tree(gridTree(E,{leaf:(i,j)=>numT(V(cellK(i,j),D))}))},meta:{D:ser(D)},cap0:'Un événement = plusieurs cases',
+   prompt:`<p>${E.txt}</p><p>On note M l'événement «&nbsp;les deux résultats sont de la même couleur&nbsp;».</p>`,
+   parts:[act('Allumer les cases de M',async()=>{await S.show(S.mosaic(gridM(E,{labs:(i,j)=>E.o1[i].l+E.o2[j].l}),{hl:E.o1.map((_,i)=>`c${i}s${i}`)}));cap(`${n} cases sur la diagonale`)}),
+    fill(null,'P(M) = {0}',[BV(D,'set:'+cells)],`On additionne les cases de M&nbsp;: ${E.o1.map(a=>`${numH(a.p)} × ${numH(a.p)}`).join(' + ')}.`)],
+   done:`P(M) = ${E.o1.map(a=>numH(mul(a.p,a.p))).join(' + ')} = ${numH(V('set:'+cells,D))}.`}},
+ ()=>{const E=XD[2](),D=Dd(E),s=ri(3,7),cells=[];E.o1.forEach((a,i)=>E.o2.forEach((b,j)=>{if(+a.l + +b.l===s)cells.push(`${i}-${j}`)}));
+  return{setup:async()=>{await S.show(S.mosaic(gridM(E,{labs:(i,j)=>String(+E.o1[i].l + +E.o2[j].l)}),{}));S.tree(gridTree(E),{})},meta:{D:ser(D)},cap0:'Dans chaque case&nbsp;: la somme des deux dés',
+   prompt:`<p>${E.txt}</p><p>On s'intéresse à la somme des deux résultats.</p>`,
+   parts:[fill(`Combien de cases donnent une somme égale à ${s}&nbsp;?`,'{0}',[{r:R(cells.length),key:`sumcount=${s}`,w:[String(cells.length)],size:3}],`Repère les cases du carré où s'affiche ${s}.`,{hint:'Un nombre entier.',
+      onOk:async()=>{await S.show(S.mosaic(gridM(E,{labs:(i,j)=>String(+E.o1[i].l + +E.o2[j].l)}),{hl:cells.map(c=>{const [i,j]=c.split('-');return `c${i}s${j}`})}))}}),
+    fill(null,`P(somme égale à ${s}) = {0}`,[BV(D,'set:'+cells.join(','))],`Chaque case a pour aire ${numH(R(1,4))} × ${numH(R(1,4))} = ${numH(R(1,16))}&nbsp;: ${cells.length} × ${numH(R(1,16))}.`)],
+   done:`${cells.length} cases d'aire ${numH(R(1,16))}&nbsp;: P(somme = ${s}) = ${numH(V('set:'+cells.join(','),D))}.`,meta2:{count:cells.length}}},
+ ()=>{const E=XD[0](),D=Dd(E),k=ri(0,1),i=k,j=1-k;
+  return{setup:async()=>{await S.show(S.mosaic(gridM(E,{labs:(a,b)=>E.o1[a].l+E.o2[b].l}),{}));S.tree(gridTree(E))},meta:{D:ser(D)},cap0:'Avec ou sans remise&nbsp;?',prompt:`<p>${E.txt}</p>`,
+   parts:[ch('Dans quelle situation les deux tirages sont-ils deux épreuves indépendantes&nbsp;?',[OK('On remet la première boule avant le second tirage',{tag:'avec'}),
+      NO('On garde la première boule hors de l\'urne','Sans remise, la composition de l\'urne change après le premier tirage&nbsp;: la seconde épreuve dépend de la première.',{tag:'sans'}),
+      NO('Dans les deux cas','Sans remise, il manque une boule au second tirage&nbsp;: les probabilités changent selon le premier résultat.',{tag:'deux'})],{audit:{type:'tag',want:'avec'}}),
+    fill(null,`P(${E.o1[i].l}&nbsp;;&nbsp;${E.o2[j].l}) = {0}`,[BV(D,cellK(i,j))],`${numH(E.o1[i].p)} × ${numH(E.o2[j].p)}.`,{onOk:async()=>{await S.show(S.mosaic(gridM(E,{labs:(a,b)=>E.o1[a].l+E.o2[b].l}),{hl:[`c${i}s${j}`]}))}})],
+   done:`Avec remise&nbsp;: P(${E.o1[i].l}&nbsp;;&nbsp;${E.o2[j].l}) = ${numH(E.o1[i].p)} × ${numH(E.o2[j].p)} = ${numH(V(cellK(i,j),D))}.`}}]};
+
+/* ======================= Niveau 7 · Bernoulli, n ⩽ 4 ======================= */
+const XB=[
+ p=>({p,txt:n=>`Une basketteuse réussit chaque lancer franc avec la probabilité ${dec(p)}, indépendamment des autres. Elle tire ${n} lancers francs. Succès S&nbsp;: «&nbsp;le lancer est réussi&nbsp;».`}),
+ p=>({p,txt:n=>`Chaque matin, la barge part à l'heure avec la probabilité ${dec(p)}, indépendamment des autres jours. On observe ${n} matins. Succès S&nbsp;: «&nbsp;la barge part à l'heure&nbsp;».`}),
+ p=>({p,txt:n=>`Un archer touche la cible avec la probabilité ${dec(p)} à chaque tir, indépendamment des autres. Il tire ${n} flèches. Succès S&nbsp;: «&nbsp;la flèche touche la cible&nbsp;».`}),
+ ()=>({p:R(1,4),txt:n=>`On répond au hasard aux ${n} questions d'un QCM&nbsp;: chaque question a 4 réponses proposées, dont une seule est juste. Succès S&nbsp;: «&nbsp;la réponse est juste&nbsp;».`}),
+ ()=>({p:R(1,2),txt:n=>`On lance ${n} fois une pièce équilibrée. Succès S&nbsp;: «&nbsp;obtenir pile&nbsp;».`})];
+function XBp(o){o=o||{};const k=ri(0,XB.length-1);return XB[k](R(ri(o.lo||2,o.hi||8),10))}
+function bernTree(n,p,o){o=o||{};const pv=numT(p),qv=numT(comp(p));
+  const mk=(d,path)=>d===n?undefined:['S','E'].map(c=>({lab:c==='S'?'S':'~S',w:o.noW?'':(c==='S'?pv:qv),kids:mk(d+1,path+c),leaf:d+1===n&&o.leaf?o.leaf(path+c):undefined}));
+  return{kids:mk(0,'')}}
+const bernShow=(n,p,step,v)=>S.show(S.bernCells(n,p,step,v||{}),700);
+const pathsK=(n,k)=>{const out=[];for(let s=0;s<(1<<n);s++){let path='';for(let t=0;t<n;t++)path+=(s>>(n-1-t)&1)?'E':'S';if((path.match(/S/g)||[]).length===k)out.push(path)}return out};
+const pathH=s=>s.split('').map(c=>c==='S'?'S':'<span class="ov">S</span>').join('');
+const L7={t:'Quatre fois au plus',legend:S.C.kc.map((c,k)=>`<span><i style="background:${S.hexA(c,.85)}"></i>${k} succès</span>`).join(''),badge:'Épreuves de Bernoulli · 4 au plus',
+ rule:`<p>Une épreuve de Bernoulli a deux issues&nbsp;: le succès S, de probabilité p, et l'échec ${ev('~S')}, de probabilité 1 − p.</p>
+ <p>On répète n fois (n ⩽ 4) la même épreuve, de façon indépendante&nbsp;: l'arbre a 2<sup>n</sup> chemins, et la probabilité d'un chemin est le produit de ses poids. Dans le carré, on recoupe chaque case à chaque épreuve.</p>
+ <p>P(aucun succès) = (1 − p)<sup>n</sup>&nbsp;; P(au moins un succès) = 1 − (1 − p)<sup>n</sup>. Pour «&nbsp;exactement k succès&nbsp;», on additionne les chemins qui en comptent k.</p>`,
+ qs:[
+ ()=>{const n=ri(2,3),B=XBp(),p=B.p,D={type:'bern',n,p};let st=0;
+  const cutAct=t=>act(`Épreuve ${t}&nbsp;: recouper chaque case`,async()=>{st=t;S.SND.cut();await bernShow(n,p,t);S.tree(bernTree(t,p,{leaf:t===n?(s=>s==='S'.repeat(n)?'?':''):undefined}),{hl:t===n?[Array(n).fill(0).join('-')]:[]});cap(`${2**t} cases après ${t} épreuve${t>1?'s':''}`)});
+  return{setup:async()=>{await bernShow(n,p,0);S.tree(null)},meta:{D:ser(D)},cap0:'Le carré entier&nbsp;: aucune épreuve encore',prompt:`<p>${B.txt(n)}</p>`,
+   parts:Array.from({length:n},(_,t)=>cutAct(t+1)).concat([fill(`Le chemin ${pathH('S'.repeat(n))} (que des succès)&nbsp;:`,`P(${n} succès) = {0}`,[BV(D,'path:'+'S'.repeat(n))],`On multiplie ${n} fois ${numH(p)}&nbsp;: ${Array(n).fill(numH(p)).join(' × ')}.`,
+     {onOk:async()=>{await bernShow(n,p,n,{hlP:['S'.repeat(n)]})}})]),
+   done:`P(${pathH('S'.repeat(n))}) = ${numH(p)}<sup>${n}</sup> = ${numH(V('path:'+'S'.repeat(n),D))}&nbsp;: la case de coin, recoupée ${n} fois.`}},
+ ()=>{const n=ri(3,4),B=XBp({lo:5,hi:9}),p=B.p,D={type:'bern',n,p},e='E'.repeat(n);
+  return{setup:async()=>{await bernShow(n,p,n);S.tree(bernTree(n,p,{noW:n>3}),{hl:[Array(n).fill(1).map((_,k)=>Array(k+1).fill(1).join('-')).pop()]})},meta:{D:ser(D)},cap0:`${2**n} cases&nbsp;: une par chemin`,prompt:`<p>${B.txt(n)}</p>`,
+   parts:[act('Allumer le chemin «&nbsp;aucun succès&nbsp;»',async()=>{await bernShow(n,p,n,{hlP:[e]});cap(`${pathH(e)}&nbsp;: ${n} échecs de suite`)}),
+    fill(null,'P(aucun succès) = {0}',[BV(D,'k=0')],`Un seul chemin, ${pathH(e)}&nbsp;: (1 − ${numH(p)})<sup>${n}</sup> = ${numH(comp(p))}<sup>${n}</sup>.`)],
+   done:`P(aucun succès) = ${numH(comp(p))}<sup>${n}</sup> = ${numH(V('k=0',D))}.`}},
+ ()=>{const n=ri(2,4),B=XBp(),p=B.p,D={type:'bern',n,p};
+  return{setup:async()=>{await bernShow(n,p,n);S.tree(bernTree(n,p,{noW:n>3}))},meta:{D:ser(D)},cap0:'Au moins un succès&nbsp;: presque toutes les cases…',prompt:`<p>${B.txt(n)}</p>`,
+   parts:[ch('Le contraire de «&nbsp;au moins un succès&nbsp;» est&nbsp;:',[OK('«&nbsp;aucun succès&nbsp;»',{tag:'aucun'}),NO('«&nbsp;au plus un succès&nbsp;»','«&nbsp;Au plus un&nbsp;» contient «&nbsp;exactement un&nbsp;», qui fait aussi partie de «&nbsp;au moins un&nbsp;». Le contraire, c\'est zéro succès.',{tag:'auplus'}),
+      NO('«&nbsp;exactement un succès&nbsp;»','«&nbsp;Exactement un&nbsp;» est un cas particulier de «&nbsp;au moins un&nbsp;», pas son contraire.',{tag:'un'})],{audit:{type:'tag',want:'aucun'},
+      onOk:async()=>{await bernShow(n,p,n,{hlP:['E'.repeat(n)]});cap('Toutes les cases sauf une&nbsp;: celle de '+pathH('E'.repeat(n)))}}),
+    fill(null,'P(au moins un succès) = {0}',[BV(D,'k>=1')],`1 − P(aucun succès) = 1 − ${numH(comp(p))}<sup>${n}</sup>.`)],
+   done:`P(au moins un succès) = 1 − ${numH(comp(p))}<sup>${n}</sup> = ${numH(V('k>=1',D))}.`}},
+ ()=>{const n=3,B=XBp(),p=B.p,D={type:'bern',n,p},ps=pathsK(3,1);
+  return{setup:async()=>{await bernShow(n,p,n);S.tree(bernTree(n,p))},meta:{D:ser(D)},cap0:'Les couleurs comptent les succès de chaque case',prompt:`<p>${B.txt(n)}</p>`,
+   parts:[act('Allumer les cases à un seul succès',async()=>{await bernShow(n,p,n,{hlK:1});S.tree(bernTree(n,p),{hl:ps.map(s=>s.split('').map(c=>c==='S'?0:1).join('-'))});cap(`${ps.map(pathH).join(', ')}`)}),
+    fill(null,'Nombre de chemins avec exactement un succès&nbsp;: {0}',[{r:R(3),key:'paths=1',w:['3'],size:3}],'Compte les cases allumées (ou les chemins de l\'arbre)&nbsp;: le succès arrive à la 1re, à la 2e ou à la 3e épreuve.',{hint:'Un nombre entier.'}),
+    fill('Chacun de ces chemins a la même probabilité&nbsp;:',`P(exactement un succès) = {0}`,[BV(D,'k=1')],`3 chemins de probabilité ${numH(p)} × ${numH(comp(p))} × ${numH(comp(p))}&nbsp;: 3 × ${numH(mul(p,pw(comp(p),2)))}.`)],
+   done:`P(exactement un succès) = 3 × ${numH(p)} × ${numH(comp(p))}<sup>2</sup> = ${numH(V('k=1',D))}.`}},
+ ()=>{const n=4,B=Math.random()<.5?XB[4]():XBp({lo:2,hi:8}),p=B.p,D={type:'bern',n,p},ps=pathsK(4,2);
+  return{setup:async()=>{await bernShow(n,p,n);S.tree(bernTree(n,p,{noW:true}),{})},meta:{D:ser(D)},cap0:'Quatre épreuves&nbsp;: 16 cases',prompt:`<p>${B.txt(n)}</p>`,
+   parts:[act('Allumer les cases à deux succès',async()=>{await bernShow(n,p,n,{hlK:2});S.tree(bernTree(n,p,{noW:true}),{hl:ps.map(s=>s.split('').map(c=>c==='S'?0:1).join('-'))});cap(ps.map(pathH).join(', '))}),
+    fill(null,'Nombre de chemins avec exactement deux succès&nbsp;: {0}',[{r:R(6),key:'paths=2',w:['6'],size:3}],'Choisis la place des deux succès parmi les quatre épreuves&nbsp;: SS··, S·S·, S··S, ·SS·, ·S·S, ··SS.',{hint:'Un nombre entier.'}),
+    fill('Chacun de ces chemins a pour probabilité p² × (1 − p)²&nbsp;:',`P(exactement deux succès) = {0}`,[BV(D,'k=2')],`6 × ${numH(p)}<sup>2</sup> × ${numH(comp(p))}<sup>2</sup>.`)],
+   done:`P(exactement deux succès) = 6 × ${numH(p)}<sup>2</sup> × ${numH(comp(p))}<sup>2</sup> = ${numH(V('k=2',D))}.`}}]};
+
+G.LV.push(L1,L2,L3,L4,L5,L6,L7);
+window.CL_CTX={TB,TR,T3,PAB,XD,XB,XBp,tabH,gridTab,tots,Dd,pathsK,pathH,defT};
+})();
+</script>
+
+<script>
+/* ======================= épreuves finales : Bronze, Argent, Or ======================= */
+(function(){
+'use strict';
+const N=window.CL_N,D_=window.CL_D,X=window.CL_CTX;
+const {R,add,sub,mul,div,comp,eq,cmp,pw,dec,pct,frH,numH,numT,fmtInt,ri,pick,shuf,dist,ev,P,isDec,ndec,ans}=N;
+const {V,NT,ser}=D_;const {TB,TR,T3,PAB,XD,XBp,XB,tabH,gridTab,tots,Dd,defT}=X;
+const F=n=>fmtInt(n);
+const qcm=(level,prompt,good,bad,explain,meta)=>({type:'qcm',level,prompt,choices:[good].concat(bad),answer:0,explain,meta});
+const trous=(level,prompt,blanks,explain,meta)=>({type:'trous',level,prompt,blanks,explain,meta});
+const BL=(D,key,o)=>{o=o||{};return{answers:ans(V(key,D),o.extra),size:o.size||4}};
+const M=(D,o)=>Object.assign({D:ser(D)},o);
+const tq=(X0,D,Nt)=>`${X0.intro(Nt)} ${defT(X0)}${tabH(D)}`;
+const dg=r=>isDec(r)?ndec(r):6;
+
+/* ===================== Bronze · Les bases ===================== */
+const BRONZE={qcm:[
+ {lv:1,f:()=>{const {X:X0,D,N:Nt}=TB({test:D=>{const t=tots(D);return dist([R(D.c[0][0],t.k[0]),R(D.c[0][0],t.t),R(D.c[0][0],t.r[0])])}}),t=tots(D),c=D.c[0][0];
+   return qcm(1,`${tq(X0,D,Nt)}On choisit au hasard ${X0.sg} qui ${X0.A[0]}. La probabilité qu'${X0.il} ${X0.B[1]} est&nbsp;:`,frH(F(c),F(t.k[0])),[frH(F(c),F(t.t)),frH(F(c),F(t.r[0]))],
+    `On se place dans A&nbsp;: on divise par l'effectif de A, ${F(t.k[0])}. C'est ${P('B','A')}.`,M(D,{key:'P(B|A)',vals:[R(c,t.k[0]),R(c,t.t),R(c,t.r[0])],steps:1}))}},
+ {lv:2,f:()=>{const D=PAB(false);const v=V('P(B|A)',D);if(!dist([v,mul(D.pA,D.pI),D.pI]))return BRONZE.qcm[1].f();
+   return qcm(2,`${P('A')} = ${dec(D.pA)} et ${P('A ∩ B')} = ${dec(D.pI)}. Alors ${P('B','A')} =`,numH(v),[dec(mul(D.pA,D.pI)),dec(D.pI)],
+    `${P('B','A')} = ${frH(P('A ∩ B'),P('A'))} = ${frH(dec(D.pI),dec(D.pA))} = ${numH(v)}.`,M(D,{key:'P(B|A)',vals:[v,mul(D.pA,D.pI),D.pI],steps:1}))}},
+ {lv:3,f:()=>{const {D}=TR();
+   return qcm(3,`Sur un arbre pondéré qui commence par A et ${ev('~A')}, la branche qui va de A vers B porte&nbsp;:`,P('B','A'),[P('A ∩ B'),P('B')],
+    `Au second niveau, on est déjà dans A&nbsp;: la branche porte la probabilité conditionnelle ${P('B','A')}.`,M(D,{kind:'nt',want:'P(B|A)',nts:['P(B|A)','P(A ∩ B)','P(B)'],steps:1}))}},
+ {lv:4,f:()=>{const {D}=TR({q10:true}),a=V('P(A ∩ B)',D),b=V('P(~A ∩ B)',D),s=V('P(B)',D);if(!dist([s,mul(a,b),a]))return BRONZE.qcm[3].f();
+   return qcm(4,`A et ${ev('~A')} forment une partition de l'univers, ${P('A ∩ B')} = ${dec(a)} et ${P('~A ∩ B')} = ${dec(b)}. Alors ${P('B')} =`,dec(s),[dec(mul(a,b)),dec(a)],
+    `Probabilités totales&nbsp;: ${P('B')} = ${dec(a)} + ${dec(b)} = ${dec(s)}.`,M(D,{key:'P(B)',vals:[s,mul(a,b),a],steps:1}))}},
+ {lv:5,f:()=>{const D=PAB(true),pr=mul(D.pA,D.pB);
+   return qcm(5,`A et B sont indépendants, ${P('A')} = ${dec(D.pA)} et ${P('B')} = ${dec(D.pB)}. Alors ${P('A ∩ B')} =`,dec(pr),[dec(add(D.pA,D.pB)),'0'],
+    `Indépendants&nbsp;: ${P('A ∩ B')} = ${dec(D.pA)} × ${dec(D.pB)} = ${dec(pr)}. Indépendants ne veut pas dire incompatibles.`,M(D,{key:'P(A ∩ B)',vals:[pr,add(D.pA,D.pB),R(0)],steps:1}))}},
+ {lv:6,f:()=>{const k=ri(1,6),D={type:'dbl',o1:[{l:'P',p:R(1,2)},{l:'F',p:R(1,2)}],o2:[1,2,3,4,5,6].map(x=>({l:String(x),p:R(1,6)}))};
+   return qcm(6,`On lance une pièce équilibrée puis un dé équilibré à six faces. La probabilité d'obtenir pile puis ${k} est&nbsp;:`,frH(1,12),[frH(2,3),frH(1,6)],
+    `Les deux épreuves sont indépendantes&nbsp;: ${frH(1,2)} × ${frH(1,6)} = ${frH(1,12)}.`,M(D,{key:`set:0-${k-1}`,vals:[R(1,12),R(2,3),R(1,6)],steps:1}))}},
+ {lv:7,f:()=>{const D={type:'bern',n:3,p:R(1,2)};
+   return qcm(7,'On lance trois fois une pièce équilibrée. La probabilité d\'obtenir trois fois pile est&nbsp;:',frH(1,8),[frH(1,6),frH(1,2)],
+    `Trois épreuves indépendantes&nbsp;: on multiplie les trois poids, ${frH(1,2)} × ${frH(1,2)} × ${frH(1,2)} = ${frH(1,8)}. ${frH(1,2)} n'est la probabilité que d'un seul lancer.`,M(D,{key:'k=3',vals:[R(1,8),R(1,6),R(1,2)],steps:1}))}}],
+trous:[
+ {lv:1,f:()=>{const {X:X0,D,N:Nt}=TB(),t=tots(D),c=D.c[0][0];
+   return trous(1,`${tq(X0,D,Nt)}${P('A ∩ B')} = {0}`,[BL(D,'P(A ∩ B)',{extra:[`${c}/${t.t}`]})],`On compte dans toute la population&nbsp;: ${frH(F(c),F(t.t))}.`,M(D,{keys:['P(A ∩ B)'],steps:1}))}},
+ {lv:2,f:()=>{const {D}=TR({q10:true});
+   return trous(2,`${P('B','A')} = ${dec(D.q[0])}, donc ${P('~B','A')} = {0}.`,[BL(D,'P(~B|A)')],`Sachant A, B et ${ev('~B')} se partagent tout&nbsp;: 1 − ${dec(D.q[0])}.`,M(D,{keys:['P(~B|A)'],steps:1}))}},
+ {lv:3,f:()=>{const {D}=TR();
+   return trous(3,`${P('A')} = ${dec(D.p[0])}, donc ${P('~A')} = {0}.`,[BL(D,'P(~A)')],`${P('~A')} = 1 − ${dec(D.p[0])}.`,M(D,{keys:['P(~A)'],steps:1}))}},
+ {lv:4,f:()=>{const {D}=TR({q10:true}),a=V('P(A ∩ B)',D),b=V('P(~A ∩ B)',D);
+   return trous(4,`A et ${ev('~A')} forment une partition de l'univers, ${P('A ∩ B')} = ${dec(a)} et ${P('~A ∩ B')} = ${dec(b)}. Donc ${P('B')} = {0}.`,[BL(D,'P(B)')],`${dec(a)} + ${dec(b)} = ${dec(V('P(B)',D))}.`,M(D,{keys:['P(B)'],steps:1}))}},
+ {lv:5,f:()=>{const D=PAB(true);
+   return trous(5,`A et B sont indépendants et ${P('B')} = ${dec(D.pB)}. Alors ${P('B','A')} = {0}.`,[BL(D,'P(B|A)')],`Indépendants&nbsp;: savoir A ne change rien, ${P('B','A')} = ${P('B')}.`,M(D,{keys:['P(B|A)'],steps:1}))}},
+ {lv:6,f:()=>{const E=XD[3](),D=Dd(E),i=ri(0,2),j=ri(0,2);
+   return trous(6,`${E.txt} P(${E.o1[i].l}&nbsp;;&nbsp;${E.o2[j].l}) = {0}`,[BL(D,`set:${i}-${j}`)],`Deux tours indépendants&nbsp;: ${dec(E.o1[i].p)} × ${dec(E.o2[j].p)}.`,M(D,{keys:[`set:${i}-${j}`],steps:1}))}},
+ {lv:7,f:()=>{const B=XBp(),D={type:'bern',n:2,p:B.p};
+   return trous(7,`${B.txt(2)} La probabilité de deux succès est {0}.`,[BL(D,'k=2')],`${dec(B.p)} × ${dec(B.p)} = ${dec(V('k=2',D))}.`,M(D,{keys:['k=2'],steps:1}))}}]};
+
+/* ===================== Argent · La maîtrise ===================== */
+const ARGENT={qcm:[
+ {lv:1,f:()=>{const {X:X0,D,N:Nt}=TB({test:D=>{const t=tots(D),c=D.c[0][0];return dist([R(c,t.k[0]),R(c,t.t),R(t.k[0],t.t),R(c,t.r[0])])}}),t=tots(D),c=D.c[0][0],vs=[R(c,t.k[0]),R(c,t.t),R(t.k[0],t.t),R(c,t.r[0])];
+   return qcm(1,`${tq(X0,D,Nt)}${P('B','A')} =`,numH(vs[0]),vs.slice(1).map(numH),`Sachant A&nbsp;: on reste dans la colonne A, ${frH(F(c),F(t.k[0]))} = ${numH(vs[0])}.`,M(D,{key:'P(B|A)',vals:vs,steps:2}))}},
+ {lv:2,f:()=>{const {X:X0,D,N:Nt}=TB({test:D=>{const t=tots(D),c=D.c[0][0];return dist([R(c,t.k[0]),R(c,t.r[0]),R(c,t.t)])}}),t=tots(D),c=D.c[0][0],v=R(c,t.r[0]);
+   return qcm(2,`${tq(X0,D,Nt)}Laquelle de ces égalités est vraie&nbsp;?`,`${P('A','B')} = ${numH(v)}`,[`${P('B','A')} = ${numH(v)}`,`${P('A ∩ B')} = ${numH(v)}`],
+    `${numH(v)} = ${frH(F(c),F(t.r[0]))}&nbsp;: on divise par l'effectif de B, c'est donc ${P('A','B')}.`,M(D,{kind:'ntv',v,nts:['P(A|B)','P(B|A)','P(A ∩ B)'],steps:2}))}},
+ {lv:3,f:()=>{const {D,story}=TR({test:D=>dist(['P(~A ∩ ~B)','P(~A ∩ B)','P(A ∩ ~B)'].map(k=>V(k,D)).concat([comp(D.q[1])]))&&ndec(V('P(~A ∩ ~B)',D))<=3}),ks=['P(~A ∩ ~B)','P(~A ∩ B)','P(A ∩ ~B)'],vs=ks.map(k=>V(k,D)).concat([comp(D.q[1])]);
+   return qcm(3,`${story} ${P('~A ∩ ~B')} =`,dec(vs[0]),vs.slice(1).map(dec),`Chemin ${ev('~A')} puis ${ev('~B')}&nbsp;: ${dec(D.p[1])} × ${dec(comp(D.q[1]))} = ${dec(vs[0])}.`,M(D,{key:'P(~A ∩ ~B)',vals:vs,steps:2}))}},
+ {lv:4,f:()=>{const {D,story}=TR({test:D=>{const [q0,q1]=D.q;return dist([V('P(B)',D),add(q0,q1),div(add(q0,q1),R(2)),mul(D.p[0],q0)])}}),[q0,q1]=D.q,vs=[V('P(B)',D),add(q0,q1),div(add(q0,q1),R(2)),mul(D.p[0],q0)];
+   return qcm(4,`${story} ${P('B')} =`,dec(vs[0]),vs.slice(1).map(numH),`Probabilités totales&nbsp;: ${dec(D.p[0])} × ${dec(q0)} + ${dec(D.p[1])} × ${dec(q1)} = ${dec(vs[0])}.`,M(D,{key:'P(B)',vals:vs,steps:2}))}},
+ {lv:5,f:()=>{const ind=Math.random()<.5,D=PAB(ind),pr=mul(D.pA,D.pB);
+   const good=ind?`Oui, car ${P('A')} × ${P('B')} = ${dec(pr)} = ${P('A ∩ B')}`:`Non, car ${P('A')} × ${P('B')} = ${dec(pr)} ≠ ${P('A ∩ B')}`;
+   return qcm(5,`${P('A')} = ${dec(D.pA)}, ${P('B')} = ${dec(D.pB)} et ${P('A ∩ B')} = ${dec(D.pI)}. A et B sont-ils indépendants&nbsp;?`,good,
+    [ind?`Non, car ${P('A ∩ B')} ≠ 0`:`Oui, car ${P('A ∩ B')} ≠ 0`,ind?`Non, car ${P('A')} ≠ ${P('B')}`:`Oui, car ${P('A')} ≠ ${P('B')}`],
+    `On compare ${P('A')} × ${P('B')} = ${dec(pr)} et ${P('A ∩ B')} = ${dec(D.pI)}&nbsp;: ${ind?'égaux, donc indépendants':'différents, donc pas indépendants'}.`,M(D,{kind:'indep',verdict:ind?'oui':'non',steps:2}))}},
+ {lv:6,f:()=>{const E=XD[3](),D=Dd(E),cells='0-0,1-1,2-2',v=V('set:'+cells,D),bad=[N.sum(E.o1.map(a=>a.p)),mul(R(3),mul(E.o1[0].p,E.o1[0].p)),R(1,3)];
+   if(!dist([v].concat(bad)))return ARGENT.qcm[5].f();
+   return qcm(6,`${E.txt} La probabilité d'obtenir deux fois la même couleur est&nbsp;:`,dec(v),bad.map(numH),
+    `Trois issues&nbsp;: (R&nbsp;;&nbsp;R), (B&nbsp;;&nbsp;B), (J&nbsp;;&nbsp;J). ${E.o1.map(a=>`${dec(a.p)}²`).join(' + ')} = ${dec(v)}.`,M(D,{key:'set:'+cells,vals:[v].concat(bad),steps:2}))}},
+ {lv:7,f:()=>{const B=XBp(),n=3,D={type:'bern',n,p:B.p},v=V('k>=1',D),bad=[mul(R(3),B.p),comp(pw(B.p,3)),pw(B.p,3)];if(!dist([v].concat(bad))||cmp(bad[0],R(1))>0)return ARGENT.qcm[6].f();
+   return qcm(7,`${B.txt(3)} La probabilité d'obtenir au moins un succès est&nbsp;:`,dec(v),bad.map(dec),
+    `Le contraire de «&nbsp;au moins un succès&nbsp;» est «&nbsp;aucun succès&nbsp;»&nbsp;: 1 − ${dec(comp(B.p))}³ = ${dec(v)}.`,M(D,{key:'k>=1',vals:[v].concat(bad),steps:2}))}}],
+trous:[
+ {lv:1,f:()=>{const {X:X0,D,N:Nt}=TB(),t=tots(D),c=D.c[0][0];
+   return trous(1,`${tq(X0,D,Nt)}${P('A')} = {0} et ${P('B','A')} = {1}.`,[BL(D,'P(A)',{extra:[`${t.k[0]}/${t.t}`]}),BL(D,'P(B|A)',{extra:[`${c}/${t.k[0]}`]})],
+    `${P('A')} = ${frH(F(t.k[0]),F(t.t))}&nbsp;; sachant A, on divise par ${F(t.k[0])}&nbsp;: ${frH(F(c),F(t.k[0]))}.`,M(D,{keys:['P(A)','P(B|A)'],steps:2}))}},
+ {lv:2,f:()=>{const D=PAB(false);
+   return trous(2,`${P('A')} = ${dec(D.pA)}, ${P('B')} = ${dec(D.pB)} et ${P('A ∩ B')} = ${dec(D.pI)}. Alors ${P('B','A')} = {0} et ${P('A','B')} = {1}.`,[BL(D,'P(B|A)'),BL(D,'P(A|B)')],
+    `${P('B','A')} = ${frH(dec(D.pI),dec(D.pA))} et ${P('A','B')} = ${frH(dec(D.pI),dec(D.pB))}.`,M(D,{keys:['P(B|A)','P(A|B)'],steps:2}))}},
+ {lv:3,f:()=>{const {D}=TR();
+   return trous(3,`On donne ${P('~A')} = ${dec(D.p[1])} et ${P('~B','A')} = ${dec(comp(D.q[0]))}. Alors ${P('A')} = {0} et ${P('B','A')} = {1}.`,[BL(D,'P(A)'),BL(D,'P(B|A)')],
+    `Sur chaque nœud, la somme des poids vaut 1&nbsp;: 1 − ${dec(D.p[1])} et 1 − ${dec(comp(D.q[0]))}.`,M(D,{keys:['P(A)','P(B|A)'],steps:2}))}},
+ {lv:4,f:()=>{const {D,story}=TR();
+   return trous(4,`${story} ${P('B')} = {0}`,[BL(D,'P(B)')],`${dec(D.p[0])} × ${dec(D.q[0])} + ${dec(D.p[1])} × ${dec(D.q[1])} = ${dec(V('P(B)',D))}.`,M(D,{keys:['P(B)'],steps:2}))}},
+ {lv:5,f:()=>{const D=PAB(true);
+   return trous(5,`A et B sont indépendants, ${P('A')} = ${dec(D.pA)} et ${P('B')} = ${dec(D.pB)}. Alors ${P('~A ∩ B')} = {0}.`,[BL(D,'P(~A ∩ B)')],
+    `${ev('~A')} et B sont aussi indépendants&nbsp;: ${dec(comp(D.pA))} × ${dec(D.pB)} = ${dec(V('P(~A ∩ B)',D))}.`,M(D,{keys:['P(~A ∩ B)'],steps:2}))}},
+ {lv:6,f:()=>{const E=XD[0](),D=Dd(E);
+   return trous(6,`${E.txt} P(R&nbsp;;&nbsp;R) = {0} et P(V&nbsp;;&nbsp;V) = {1}.`,[BL(D,'set:0-0'),BL(D,'set:1-1')],`Avec remise, les tirages sont indépendants&nbsp;: ${numH(E.o1[0].p)} × ${numH(E.o1[0].p)} et ${numH(E.o1[1].p)} × ${numH(E.o1[1].p)}.`,M(D,{keys:['set:0-0','set:1-1'],steps:2}))}},
+ {lv:7,f:()=>{const B=XBp(),D={type:'bern',n:3,p:B.p};
+   return trous(7,`${B.txt(3)} La probabilité d'obtenir exactement un succès est {0}.`,[BL(D,'k=1')],`Trois chemins (S${ev('~S')}${ev('~S')}, ${ev('~S')}S${ev('~S')}, ${ev('~S')}${ev('~S')}S)&nbsp;: 3 × ${dec(B.p)} × ${dec(comp(B.p))}² = ${dec(V('k=1',D))}.`,M(D,{keys:['k=1'],steps:2}))}}]};
+
+/* ===================== Or · L'expert ===================== */
+const OR={qcm:[
+ {lv:1,f:()=>{const {X:X0,D,N:Nt}=TB({test:D=>{const t=tots(D),c=D.c[0][0];return dist([R(c,t.t),R(c,t.k[0]),R(t.k[0],t.t),R(c,t.r[0])])}}),t=tots(D),c=D.c[0][0],vs=[R(c,t.t),R(c,t.k[0]),R(t.k[0],t.t),R(c,t.r[0])];
+   return qcm(1,`${tq(X0,D,Nt)}${P('A')} × ${P('B','A')} =`,numH(vs[0]),vs.slice(1).map(numH),`${P('A')} × ${P('B','A')} = ${P('A ∩ B')} = ${frH(F(c),F(t.t))} = ${numH(vs[0])}.`,M(D,{key:'P(A ∩ B)',vals:vs,steps:3}))}},
+ {lv:4,f:()=>{const {D,story}=T3({test:D=>ndec(V('P(B)',D))<=4}),s=N.sum(D.q),vs=[V('P(B)',D),s,add(mul(D.p[0],D.q[0]),mul(D.p[1],D.q[1])),mul(D.p[0],D.q[0])];if(!dist(vs))return OR.qcm[1].f();
+   /* leurres : somme des taux sans pondération, un chemin oublié, un seul chemin */
+   return qcm(4,`${story} ${P('B')} =`,dec(vs[0]),vs.slice(1).map(numH),`Probabilités totales avec la partition A₁, A₂, A₃&nbsp;: ${D.p.map((p,i)=>`${dec(p)} × ${dec(D.q[i])}`).join(' + ')} = ${dec(vs[0])}.`,M(D,{key:'P(B)',vals:vs,steps:4}))}},
+ {lv:4,f:()=>{for(let n=0;n<500;n++){const p0=R(ri(2,8),10),q0=R(ri(1,9),10),q1=R(ri(1,9),10);if(eq(q0,q1))continue;const D={type:'tree',f:['A','~A'],b:'B',p:[p0,comp(p0)],q:[q0,q1]},PB=V('P(B)',D);
+     const vs=[q1,sub(PB,mul(p0,q0)),div(PB,comp(p0)),comp(q0)];
+     if(!dist(vs)||vs.some(v=>cmp(v,R(0))<=0||cmp(v,R(1))>=0)||ndec(PB)>3)continue;
+     return qcm(4,`On donne ${P('A')} = ${dec(p0)}, ${P('B','A')} = ${dec(q0)} et ${P('B')} = ${dec(PB)}. Alors ${P('B','~A')} =`,dec(vs[0]),vs.slice(1).map(numH),
+      `${P('A ∩ B')} = ${dec(p0)} × ${dec(q0)} = ${dec(mul(p0,q0))}, donc ${P('~A ∩ B')} = ${dec(PB)} − ${dec(mul(p0,q0))} = ${dec(sub(PB,mul(p0,q0)))}, puis ${P('B','~A')} = ${frH(dec(sub(PB,mul(p0,q0))),dec(comp(p0)))} = ${dec(q1)}.`,M(D,{key:'P(B|~A)',vals:vs,steps:3}))}
+   throw new Error('or4')}},
+ {lv:5,f:()=>{const ind=Math.random()<.5,{X:X0,D,N:Nt}=TB({indep:ind}),a=V('P(B|A)',D),b=V('P(B)',D);
+   const good=ind?`Oui&nbsp;: ${P('B','A')} = ${P('B')} = ${numH(b)}`:`Non&nbsp;: ${P('B','A')} = ${numH(a)} et ${P('B')} = ${numH(b)}`;
+   return qcm(5,`${tq(X0,D,Nt)}Les événements A et B sont-ils indépendants&nbsp;?`,good,[ind?`Non&nbsp;: ${P('B','A')} ≠ ${P('B')}`:`Oui&nbsp;: ${P('B','A')} = ${P('B')}`,'On ne peut pas savoir sans arbre'],
+    `${P('B','A')} = ${numH(a)} et ${P('B')} = ${numH(b)}&nbsp;: ${ind?'égales, donc indépendants':'différentes, donc pas indépendants'}.`,M(D,{kind:'indep',verdict:ind?'oui':'non',steps:3}))}},
+ {lv:6,f:()=>{const D={type:'dbl',o1:[1,2,3,4,5,6].map(x=>({l:String(x),p:R(1,6)})),o2:[1,2,3,4,5,6].map(x=>({l:String(x),p:R(1,6)}))},cells=[];for(let i=0;i<6;i++)for(let j=0;j<6;j++)if(i===5||j===5)cells.push(`${i}-${j}`);
+   return qcm(6,'On lance deux fois de suite un dé équilibré à six faces. La probabilité d\'obtenir au moins un 6 est&nbsp;:',frH(11,36),[frH(1,3),frH(1,36),frH(25,36)],
+    `Contraire&nbsp;: aucun 6, de probabilité ${frH(5,6)} × ${frH(5,6)} = ${frH(25,36)}&nbsp;; donc 1 − ${frH(25,36)} = ${frH(11,36)}. Ajouter ${frH(1,6)} + ${frH(1,6)} compterait deux fois l'issue (6&nbsp;;&nbsp;6).`,M(D,{key:'set:'+cells.join(','),vals:[R(11,36),R(1,3),R(1,36),R(25,36)],steps:3}))}},
+ {lv:7,f:()=>{const B=Math.random()<.5?XB[4]():XBp(),D={type:'bern',n:4,p:B.p},v=V('k=2',D),bad=[mul(pw(B.p,2),pw(comp(B.p),2)),mul(R(4),mul(pw(B.p,2),pw(comp(B.p),2))),pw(B.p,2)];
+   if(!dist([v].concat(bad)))return OR.qcm[5].f();
+   return qcm(7,`${B.txt(4)} La probabilité d'obtenir exactement deux succès est&nbsp;:`,dec(v),bad.map(dec),
+    `6 chemins comptent exactement deux succès (SS${ev('~S')}${ev('~S')}, S${ev('~S')}S${ev('~S')}, …), chacun de probabilité ${dec(B.p)}² × ${dec(comp(B.p))}²&nbsp;: 6 × ${dec(bad[0])} = ${dec(v)}.`,M(D,{key:'k=2',vals:[v].concat(bad),steps:3}))}},
+ {lv:2,f:()=>{const D=PAB(false),v=V('P(A|B)',D),bad=[V('P(B|A)',D),D.pI,mul(D.pI,D.pB)];if(!dist([v].concat(bad)))return OR.qcm[6].f();
+   return qcm(2,`On donne ${P('A')} = ${dec(D.pA)}, ${P('B')} = ${dec(D.pB)} et ${P('A ∩ B')} = ${dec(D.pI)}. Alors ${P('A','B')} =`,numH(v),bad.map(numH),
+    `Sachant B, on divise par ${P('B')}&nbsp;: ${P('A','B')} = ${frH(dec(D.pI),dec(D.pB))} = ${numH(v)}. Ne pas confondre avec ${P('B','A')} = ${numH(bad[0])}.`,M(D,{key:'P(A|B)',vals:[v].concat(bad),steps:3}))}}],
+trous:[
+ {lv:1,f:()=>{const {X:X0,D,N:Nt}=TB({test:D=>!eq(V('P(B|A)',D),V('P(A|B)',D))}),t=tots(D),c=D.c[0][0];
+   return trous(1,`${tq(X0,D,Nt)}${P('B','A')} = {0} et ${P('A','B')} = {1}.`,[BL(D,'P(B|A)',{extra:[`${c}/${t.k[0]}`]}),BL(D,'P(A|B)',{extra:[`${c}/${t.r[0]}`]})],
+    `Même numérateur ${F(c)}, deux dénominateurs&nbsp;: ${F(t.k[0])} (effectif de A) et ${F(t.r[0])} (effectif de B).`,M(D,{keys:['P(B|A)','P(A|B)'],steps:3}))}},
+ {lv:3,f:()=>{const {D}=TR({test:D=>ndec(mul(D.p[0],D.q[0]))>=2&&ndec(mul(D.p[0],D.q[0]))<=3}),l=V('P(A ∩ B)',D);
+   return trous(3,`${P('B','A')} = ${dec(D.q[0])} et ${P('A ∩ B')} = ${dec(l)}. Alors ${P('A')} = {0} et ${P('~A')} = {1}.`,[BL(D,'P(A)'),BL(D,'P(~A)')],
+    `${P('A ∩ B')} = ${P('A')} × ${P('B','A')}, donc ${P('A')} = ${frH(dec(l),dec(D.q[0]))} = ${dec(D.p[0])}, puis ${P('~A')} = 1 − ${dec(D.p[0])}.`,M(D,{keys:['P(A)','P(~A)'],steps:3}))}},
+ {lv:4,f:()=>{const {D,story}=T3();
+   return trous(4,`${story} ${P('B')} = {0} et ${P('~B')} = {1}.`,[BL(D,'P(B)'),BL(D,'P(~B)')],`${D.p.map((p,i)=>`${dec(p)} × ${dec(D.q[i])}`).join(' + ')} = ${dec(V('P(B)',D))}, puis 1 − ${dec(V('P(B)',D))}.`,M(D,{keys:['P(B)','P(~B)'],steps:4}))}},
+ {lv:5,f:()=>{const D=PAB(true),u=sub(add(D.pA,D.pB),mul(D.pA,D.pB)),U={type:'pab',f:D.f,b:D.b,pA:D.pA,pB:D.pB,pI:D.pI};
+   return trous(5,`A et B sont indépendants, ${P('A')} = ${dec(D.pA)} et ${P('B')} = ${dec(D.pB)}. Alors ${P('A ∩ B')} = {0} et P(A ∪ B) = {1}.`,[BL(D,'P(A ∩ B)'),{answers:ans(u),size:4}],
+    `${P('A ∩ B')} = ${dec(D.pA)} × ${dec(D.pB)} = ${dec(mul(D.pA,D.pB))}, puis P(A ∪ B) = ${P('A')} + ${P('B')} − ${P('A ∩ B')} = ${dec(u)}.`,M(U,{keys:['P(A ∩ B)','union'],steps:3}))}},
+ {lv:6,f:()=>{const E=XD[0](),D=Dd(E);
+   return trous(6,`${E.txt} La probabilité d'obtenir deux boules de même couleur est {0} et celle d'obtenir deux boules de couleurs différentes est {1}.`,[BL(D,'set:0-0,1-1'),BL(D,'set:0-1,1-0')],
+    `Même couleur&nbsp;: ${numH(E.o1[0].p)}² + ${numH(E.o1[1].p)}²&nbsp;; couleurs différentes&nbsp;: le contraire, 1 moins ce résultat.`,M(D,{keys:['set:0-0,1-1','set:0-1,1-0'],steps:3}))}},
+ {lv:7,f:()=>{const B=XBp(),D={type:'bern',n:4,p:B.p};
+   return trous(7,`${B.txt(4)} P(aucun succès) = {0} et P(au moins un succès) = {1}.`,[BL(D,'k=0'),BL(D,'k>=1')],`(1 − ${dec(B.p)})⁴ = ${dec(V('k=0',D))}, puis 1 − ${dec(V('k=0',D))} = ${dec(V('k>=1',D))}.`,M(D,{keys:['k=0','k>=1'],steps:3}))}},
+ {lv:7,f:()=>{const B=XBp(),D={type:'bern',n:4,p:B.p};
+   return trous(7,`${B.txt(4)} La probabilité d'obtenir exactement un succès est {0}.`,[BL(D,'k=1')],`4 chemins (le succès à la 1re, 2e, 3e ou 4e épreuve), chacun de probabilité ${dec(B.p)} × ${dec(comp(B.p))}³&nbsp;: ${dec(V('k=1',D))}.`,M(D,{keys:['k=1'],steps:3}))}}]};
+
+/* tirage : 6 QCM + 4 trous, mélangés, les sept niveaux représentés */
+function build(B){for(let n=0;n<600;n++){const q=shuf(B.qcm.slice()).slice(0,6),t=shuf(B.trous.slice()).slice(0,4);
+    if(new Set(q.concat(t).map(x=>x.lv)).size<7)continue;
+    return shuf(q.map(x=>x.f()).concat(t.map(x=>x.f())))}
+  throw new Error('build')}
+window.CL_FIN={bronze:()=>build(BRONZE),argent:()=>build(ARGENT),or:()=>build(OR),banks:{BRONZE,ARGENT,OR}};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'carre-de-lumiere',title:'Le Carré de lumière',levels:7,
+  levelNames:['Sachant A','Dans quel sens ?','Couper le carré','Rassembler B','La coupe droite','Deux épreuves','Quatre fois au plus'],
+  music:'aventure',finals:{bronze:()=>(window.CL_lastFinal=CL_FIN.bronze()),argent:()=>(window.CL_lastFinal=CL_FIN.argent()),or:()=>(window.CL_lastFinal=CL_FIN.or())}});
+CL.start();
+(function(){ /* espace insécable avant « : ; ! ? » et après « dans tout le texte affiché */
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|TEXTAREA|INPUT)$/.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>ms.forEach(m=>{m.addedNodes.forEach(fix);if(m.type==='characterData')fix(m.target)})).observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>
