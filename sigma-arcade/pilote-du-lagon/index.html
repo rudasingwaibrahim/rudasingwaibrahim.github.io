@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le Pilote du Lagon · Sigma Arcade</title>
+<meta name="description" content="Vecteurs en Seconde : translation, somme et relation de Chasles, produit par un réel, colinéarité et déterminant, alignement, parallélisme, milieu et distance. Tu pilotes une vedette dans le lagon : chaque vecteur est un déplacement.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours.
+   IDEA : l'élève pilote une vedette de nuit dans le lagon ; un vecteur EST un déplacement : on l'enchaîne, on l'additionne, on l'étire.
+   PICTURE : le lagon la nuit, quadrillé par un repère de balises ; la vedette glisse et laisse un sillage.
+   COLOUR and TYPE : nuit « océan profond », accent violet-bleu pour l'action, or pour les réussites, corail pour les erreurs ; Outfit.
+   LAYOUT : lagon et bandeau à gauche (collés en haut sur téléphone), carnet de bord à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);
+--cu:#8ea6ff;--cv:#e8c766;--cw:#4fd1c5}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:72ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#040b1a;user-select:none;-webkit-user-select:none}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.badge{position:absolute;left:10px;top:10px;z-index:2;font:600 13px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.78);color:var(--mut);border:1px solid var(--soft);pointer-events:none;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,22px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .35em}
+.capt .k{color:var(--gold2)}.capt .r{color:var(--ko)}.capt .m{color:var(--mut);font-weight:600}.capt .w{color:var(--cw)}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px;line-height:1.75}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.75;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px;line-height:1.75}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.7 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(19px,2.2vw,23px)/2.3 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:3.4em;height:46px;margin:0 3px;padding:0 6px;font:700 20px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+/* écritures mathématiques */
+.vec{display:inline-block;position:relative;padding-top:.36em;line-height:1;font-style:normal}
+.vec.it{font-style:italic;padding-right:.06em}
+.vec::before{content:"";position:absolute;left:.04em;right:.1em;top:.14em;border-top:.085em solid currentColor}
+.vec::after{content:"";position:absolute;right:.06em;top:.03em;width:.22em;height:.22em;border-top:.085em solid currentColor;border-right:.085em solid currentColor;transform:rotate(45deg)}
+.cv{display:inline-flex;align-items:center;vertical-align:middle;margin:0 .08em;font-variant-numeric:tabular-nums}
+.cv>.pa{font-weight:300;font-size:1.9em;line-height:1;transform:translateY(-.06em)}
+.cv>.cs{display:inline-flex;flex-direction:column;align-items:center;line-height:1.15;padding:0 .12em}
+.cv .in,.cv .sk-in{margin:2px 0}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .1em;line-height:1.1;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .2em}.fr>span:first-child{border-bottom:2px solid currentColor}
+.sq{white-space:nowrap}.sq>span{border-top:.08em solid currentColor;padding:0 .08em;margin-left:.02em}
+.det{display:inline-flex;align-items:center;vertical-align:middle;border-left:2px solid currentColor;border-right:2px solid currentColor;padding:0 .3em;margin:0 .15em;line-height:1.15}
+.det>span{display:inline-flex;flex-direction:column;align-items:center;padding:0 .25em}
+.sk-q,.sk-ch{line-height:1.75}
+.nw{white-space:nowrap}
+.sk-q sup .sk-in{width:3em!important}
+/* pilotage */
+.pilot{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:2px 0 12px}
+.pilot .lab{font:700 21px var(--sg-font);display:inline-flex;align-items:center;gap:8px}
+.steps{display:inline-flex;flex-direction:column;gap:6px}
+.step{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:var(--solid)}
+.step button{width:48px;height:46px;font:600 24px var(--sg-font);border:0;background:transparent;color:var(--ink);cursor:pointer}
+.step button:hover{background:var(--sg-hover)}
+.step input{width:3.4em;height:46px;border:0;border-left:1px solid var(--soft);border-right:1px solid var(--soft);background:transparent;color:var(--ink);font:700 21px var(--sg-font);text-align:center;font-variant-numeric:tabular-nums}
+.step .ax{width:38px;text-align:center;font:600 14px var(--sg-font);color:var(--mut)}
+.paren{font:300 64px/1 var(--sg-font);color:var(--mut);transform:translateY(-4px)}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0;line-height:1.7}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px;line-height:1.75}
+.mk{display:inline-flex}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .stage{aspect-ratio:auto;height:clamp(210px,36svh,330px);border-radius:14px}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .pilot{gap:10px}
+  .step button{width:46px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Le Pilote du Lagon</h1>
+<p>Cette nuit, tu pilotes la vedette du lagon. Chaque ordre de pilotage est un vecteur&nbsp;: on l'enchaîne, on l'additionne, on l'étire, on le renverse. Le lagon est quadrillé par un repère de balises&nbsp;: à toi de viser juste.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Le lagon quadrillé, la vedette et ses vecteurs de déplacement">
+    <canvas id="cv" aria-hidden="true"></canvas>
+    <span class="badge" id="badge"></span>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+<script>
+/* ======================= LE PILOTE DU LAGON — outils et scène ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* ---------- nombres et écritures ---------- */
+const f=n=>{if(Object.is(n,-0)||Math.abs(n)<1e-12)n=0;const a=Math.abs(n),s=Number.isInteger(a)?String(a):String(+a.toFixed(6)).replace('.',',');return (n<0?'−':'')+s};
+const ans=n=>{const s=f(n);return s[0]==='−'?[s,'-'+s.slice(1)]:[s]};
+const P=(nm,p)=>`${nm}(${f(p[0])}&nbsp;; ${f(p[1])})`;
+const V=s=>`<span class="vec${s.length===1?' it':''}">${s}</span>`;
+const nw=h=>String(h).replace(/(^|[\s(;,=+])(k|−|\d+)(<span class="vec[^"]*">[^<]*<\/span>)/g,'$1<span class="nw">$2$3</span>').replace(/((?:<span class="(?:vec|cv|sq|fr)[^"]*">(?:(?!<\/span><\/span><\/span>).)*?<\/span>(?:<\/span>)*)|\))(&nbsp;|\u00a0)([:;!?])/g,'<span class="nw">$1$2$3</span>');
+const Vi=V('ı'),Vj=V('ȷ'),V0=V('0');
+const col=(a,b)=>`<span class="cv"><span class="pa">(</span><span class="cs"><span>${typeof a==='number'?f(a):a}</span><span>${typeof b==='number'?f(b):b}</span></span><span class="pa">)</span></span>`;
+const fr=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const sq=n=>`<span class="sq">√<span>${n}</span></span>`;
+const dett=(u,v)=>`<span class="det"><span><span>${f(u[0])}</span><span>${f(u[1])}</span></span><span><span>${f(v[0])}</span><span>${f(v[1])}</span></span></span>`;
+const kfmt=k=>{if(k===1)return '';if(k===-1)return '−';if(Number.isInteger(k))return f(k);for(let d=2;d<=12;d++){const n=Math.round(Math.abs(k)*d);if(Math.abs(Math.abs(k)*d-n)<1e-9)return (k<0?'−':'')+fr(n,d)}return f(k)};
+const kV=(k,s)=>kfmt(k)+V(s);
+/* x ı + y ȷ sans « + − » ni « 1ı » */
+const lin=(x,y)=>{const t=(c,v,first)=>c===0?'':(first?(c<0?'−':''):(c<0?' − ':' + '))+(Math.abs(c)===1?'':f(Math.abs(c)))+v;
+  if(!x&&!y)return V0;const a=t(x,Vi,true),b=t(y,Vj,!x);return a+b};
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const nz=(a,b)=>{let v;do v=ri(a,b);while(!v);return v};
+const add=(p,q,s=1)=>[p[0]+s*q[0],p[1]+s*q[1]];
+const sub=(p,q)=>[p[0]-q[0],p[1]-q[1]];
+const mul=(k,v)=>[k*v[0],k*v[1]];
+const det=(a,b)=>a[0]*b[1]-b[0]*a[1];
+const same=(a,b)=>Math.abs(a[0]-b[0])<1e-9&&Math.abs(a[1]-b[1])<1e-9;
+const inG=p=>Math.abs(p[0])<=6&&Math.abs(p[1])<=4;
+const rp=(m=6,n=4)=>[ri(-m,m),ri(-n,n)];
+const rv=(m=4,n=3)=>{let v;do v=[ri(-m,m),ri(-n,n)];while(!v[0]&&!v[1]);return v};
+const until=g=>{for(let i=0;i<4000;i++){const r=g();if(r)return r}throw new Error('génération impossible')};
+const d2=(a,b)=>(a[0]-b[0])**2+(a[1]-b[1])**2;
+/* racine : a√b avec b sans facteur carré */
+const rad=n=>{let k=1,b=n;for(let d=2;d*d<=b;d++)while(b%(d*d)===0){b/=d*d;k*=d}return [k,b]};
+const radH=n=>{const [k,b]=rad(n);return b===1?f(k):(k===1?'':f(k))+sq(b)};
+const lens=(...pts)=>new Set(pts.map(p=>p.join(','))).size===pts.length;
+
+/* ---------- scène : le lagon ---------- */
+const C={u:'#8ea6ff',v:'#e8c766',w:'#4fd1c5',ko:'#ff6b6b',pt:'#f0f4ff',mut:'rgba(200,215,255,.62)',ghost:'rgba(240,244,255,.55)',gold:'#e8c766'};
+const SC=(function(){
+  const cv=$('cv'),cx=cv.getContext('2d');
+  let W=1,H=1,dpr=1,u=40,ox=0,oy=0,bg=null;
+  let S;
+  function reset(o){S={pts:{},arr:{},boats:[],lines:[],segs:[],marks:[],goals:{},ij:!!(o&&o.ij),rt:null}}
+  reset();
+  const T=(x,y)=>[ox+x*u,oy-y*u];
+  function fit(){const r=cv.getBoundingClientRect();if(!r.width)return;dpr=Math.min(2,window.devicePixelRatio||1);W=r.width;H=r.height;
+    cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);u=Math.min(W/14.6,H/9.4);ox=W/2;oy=H/2;bg=null}
+  new ResizeObserver(fit).observe(cv);fit();
+  /* décor fixe : eau, lune, côte de Grande-Terre (mis en cache) */
+  function decor(){const c=document.createElement('canvas');c.width=cv.width;c.height=cv.height;const g=c.getContext('2d');g.scale(dpr,dpr);
+    const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#071631');gr.addColorStop(.5,'#06122a');gr.addColorStop(1,'#030a18');g.fillStyle=gr;g.fillRect(0,0,W,H);
+    const mx=W*.86,my=H*.1,rg=g.createRadialGradient(mx,my,0,mx,my,H*.55);rg.addColorStop(0,'rgba(233,237,247,.13)');rg.addColorStop(1,'rgba(233,237,247,0)');g.fillStyle=rg;g.fillRect(0,0,W,H);
+    g.fillStyle='rgba(238,241,248,.85)';g.beginPath();g.arc(mx,my,Math.max(7,H*.035),0,7);g.fill();g.fillStyle='#071631';g.beginPath();g.arc(mx+H*.012,my-H*.008,Math.max(6,H*.031),0,7);g.fill();
+    /* reflet de lune */
+    for(let i=0;i<12;i++){const y=my+H*.1+i*H*.045,w=(16-i)*W*.0035;g.strokeStyle=`rgba(238,241,248,${(.06-i*.004).toFixed(3)})`;g.lineWidth=1.5;g.beginPath();g.moveTo(mx-w/2+(i%2?3:-3),y);g.quadraticCurveTo(mx+(i%2?3:-3),y-2,mx+w/2+(i%2?3:-3),y);g.stroke()}
+    /* côte lointaine */
+    g.fillStyle='rgba(9,20,40,.95)';g.beginPath();g.moveTo(0,H*.1);
+    for(let x=0;x<=W;x+=W/24){g.lineTo(x,H*(.07+.035*Math.sin(x/W*7.3)+.02*Math.sin(x/W*17)))}g.lineTo(W,0);g.lineTo(0,0);g.fill();
+    for(let i=0;i<26;i++){const x=(i*97)%W,y=H*(.05+.03*Math.sin(i*1.7));g.fillStyle=i%4?'rgba(243,207,106,.5)':'rgba(159,180,255,.45)';g.fillRect(x,y,2,2)}
+    bg=c}
+  /* ---------- dessin ---------- */
+  function line(a,b,col,w,dash){cx.strokeStyle=col;cx.lineWidth=w;cx.setLineDash(dash||[]);cx.beginPath();cx.moveTo(a[0],a[1]);cx.lineTo(b[0],b[1]);cx.stroke();cx.setLineDash([])}
+  function vlabel(txt,x,y,col,fs){cx.font=`700 ${fs}px Outfit,system-ui,sans-serif`;cx.textAlign='center';cx.textBaseline='alphabetic';
+    const it=txt.length===1&&/[a-zıȷ]/.test(txt);if(it)cx.font=`italic 700 ${fs}px Outfit,system-ui,sans-serif`;
+    const w=cx.measureText(txt).width;cx.lineWidth=4;cx.strokeStyle='rgba(3,8,20,.85)';cx.strokeText(txt,x,y);cx.fillStyle=col;cx.fillText(txt,x,y);
+    const yy=y-fs*.92,x0=x-w/2+1,x1=x+w/2+1;cx.strokeStyle=col;cx.lineWidth=1.6;cx.beginPath();cx.moveTo(x0,yy);cx.lineTo(x1,yy);cx.moveTo(x1-4,yy-3);cx.lineTo(x1,yy);cx.lineTo(x1-4,yy+3);cx.stroke()}
+  function text(txt,x,y,col,fs,al){cx.font=`700 ${fs}px Outfit,system-ui,sans-serif`;cx.textAlign=al||'left';cx.textBaseline='middle';cx.lineWidth=4;cx.strokeStyle='rgba(3,8,20,.85)';cx.strokeText(txt,x,y);cx.fillStyle=col;cx.fillText(txt,x,y)}
+  function arrowDraw(a){const p=a.from,q=add(p,mul(a.k,a.v)),P1=T(p[0],p[1]),Q1=T(q[0],q[1]);cx.globalAlpha=a.a==null?1:a.a;
+    const dx=Q1[0]-P1[0],dy=Q1[1]-P1[1],L=Math.hypot(dx,dy),w=u>30?3.4:2.6;
+    if(L<2){cx.strokeStyle=a.col;cx.lineWidth=2;cx.beginPath();cx.arc(P1[0],P1[1],7,0,7);cx.stroke();cx.globalAlpha=1;return}
+    const ux=dx/L,uy=dy/L,hl=Math.min(L*.45,u>30?14:11),hw=hl*.55,bx=Q1[0]-ux*hl,by=Q1[1]-uy*hl;
+    cx.shadowColor=a.col;cx.shadowBlur=a.dash?0:8;line(P1,[bx,by],a.col,w,a.dash?[7,6]:null);cx.shadowBlur=0;
+    cx.fillStyle=a.col;cx.beginPath();cx.moveTo(Q1[0],Q1[1]);cx.lineTo(bx-uy*hw,by+ux*hw);cx.lineTo(bx+uy*hw,by-ux*hw);cx.closePath();cx.fill();
+    if(a.lab){const fs=u>30?16:13,s=a.side||1,mx=(P1[0]+Q1[0])/2-uy*16*s,my=(P1[1]+Q1[1])/2+ux*16*s+fs*.35;vlabel(a.lab,mx,my,a.col,fs)}
+    cx.globalAlpha=1}
+  function boatDraw(b){if(!b.vis)return;const [x,y]=T(b.x,b.y),s=Math.max(.62,Math.min(1.05,u/42));
+    /* sillage */
+    const tr=b.trail;for(let i=1;i<tr.length;i++){const al=Math.max(0,1-(performance.now()-tr[i].t)/2600);if(al<=0)continue;const A=T(tr[i-1].x,tr[i-1].y),B=T(tr[i].x,tr[i].y);
+      cx.strokeStyle=`rgba(190,220,255,${(.32*al).toFixed(3)})`;cx.lineWidth=(3+5*(1-al))*s;cx.lineCap='round';cx.beginPath();cx.moveTo(A[0],A[1]);cx.lineTo(B[0],B[1]);cx.stroke()}
+    cx.lineCap='butt';
+    cx.save();cx.translate(x,y);cx.rotate(b.ang);cx.scale(s,s);
+    cx.fillStyle='rgba(0,0,0,.35)';cx.beginPath();cx.ellipse(1,3,15,7,0,0,7);cx.fill();
+    cx.fillStyle=b.col||'#eef2ff';cx.beginPath();cx.moveTo(16,0);cx.quadraticCurveTo(8,-7,-2,-7);cx.lineTo(-12,-6);cx.quadraticCurveTo(-14,0,-12,6);cx.lineTo(-2,7);cx.quadraticCurveTo(8,7,16,0);cx.fill();
+    cx.strokeStyle=b.stripe||'#ff9a3c';cx.lineWidth=2;cx.beginPath();cx.moveTo(-11,-4.6);cx.lineTo(4,-5.6);cx.moveTo(-11,4.6);cx.lineTo(4,5.6);cx.stroke();
+    cx.fillStyle='#1b2c52';cx.beginPath();cx.roundRect?cx.roundRect(-7,-3.6,9,7.2,2):cx.rect(-7,-3.6,9,7.2);cx.fill();
+    cx.fillStyle='#9fd8ff';cx.fillRect(0,-3,2,6);
+    cx.fillStyle='#ff5d5d';cx.beginPath();cx.arc(3,-6.2,1.6,0,7);cx.fill();cx.fillStyle='#5fd27c';cx.beginPath();cx.arc(3,6.2,1.6,0,7);cx.fill();
+    cx.fillStyle='#fff';cx.beginPath();cx.arc(-12.5,0,1.4,0,7);cx.fill();
+    cx.restore()}
+  function draw(t){if(!W||W<2){fit();return}if(!bg)decor();cx.setTransform(dpr,0,0,dpr,0,0);cx.drawImage(bg,0,0,W,H);
+    /* vaguelettes */
+    cx.strokeStyle='rgba(160,190,255,.06)';cx.lineWidth=1.2;for(let i=0;i<34;i++){const x=((i*173)%W+t*.008*(1+i%3))%(W+40)-20,y=H*.16+((i*89)%Math.max(1,H*.82));cx.beginPath();cx.moveTo(x,y);cx.quadraticCurveTo(x+7,y-3,x+14,y);cx.stroke()}
+    /* quadrillage */
+    const xm=Math.ceil(W/2/u),ym=Math.ceil(H/2/u);
+    for(let i=-xm;i<=xm;i++){const [X]=T(i,0);line([X,0],[X,H],i?'rgba(120,160,255,.11)':'rgba(200,215,255,.42)',i?1:1.6)}
+    for(let j=-ym;j<=ym;j++){const [,Y]=T(0,j);line([0,Y],[W,Y],j?'rgba(120,160,255,.11)':'rgba(200,215,255,.42)',j?1:1.6)}
+    const fs=u>30?11:9.5;cx.globalAlpha=.75;
+    for(let i=-xm+1;i<xm;i++){if(!i)continue;const [X,Y]=T(i,0);text(f(i),X,Y+fs+2,C.mut,fs,'center')}
+    for(let j=-ym+1;j<ym;j++){if(!j)continue;const [X,Y]=T(0,j);text(f(j),X-5,Y,C.mut,fs,'right')}
+    cx.globalAlpha=1;
+    { const [X,Y]=T(0,0);text('O',X-6,Y+fs+2,C.mut,fs+1,'right') }
+    if(S.ij){arrowDraw({from:[0,0],v:[1,0],k:1,col:C.gold,lab:'ı',side:-1,a:.9});arrowDraw({from:[0,0],v:[0,1],k:1,col:C.gold,lab:'ȷ',side:1,a:.9})}
+    /* droites */
+    S.lines.forEach(l=>{const d=sub(l.b,l.a),L=Math.hypot(d[0],d[1]);if(!L)return;const e=[d[0]/L*40,d[1]/L*40],A=T(...add(l.a,e,-1)),B=T(...add(l.a,e));cx.globalAlpha=l.a2==null?1:l.a2;line(A,B,l.col||'rgba(240,244,255,.35)',l.w||1.6,l.dash===false?null:[5,6]);cx.globalAlpha=1;
+      if(l.lab){const q=l.lp?T(...l.lp):T(...add(l.b,mul(.5/L,d)));text(l.lab,q[0]+7,q[1]-11,l.col||C.mut,u>30?14:12)}});
+    /* segments */
+    S.segs.forEach(s=>{const A=T(...s.a),B=T(...s.b);cx.globalAlpha=s.al==null?1:s.al;line(A,B,s.col||C.ghost,s.w||2,s.dash?[6,5]:null);cx.globalAlpha=1;
+      if(s.lab){const fs2=u>30?14:12;text(s.lab,(A[0]+B[0])/2+(s.ox||0),(A[1]+B[1])/2+(s.oy||0),s.col||C.mut,fs2,'center')}});
+    if(S.rt){const [p,a,b]=S.rt,P1=T(...p),e1=sub(T(...a),P1),e2=sub(T(...b),P1),n1=Math.hypot(...e1),n2=Math.hypot(...e2),k=Math.min(10,u*.3);if(n1&&n2){
+      const A=add(P1,mul(k/n1,e1)),B=add(P1,mul(k/n2,e2)),Cc=add(A,mul(k/n2,e2));cx.strokeStyle=C.mut;cx.lineWidth=1.4;cx.beginPath();cx.moveTo(...A);cx.lineTo(...Cc);cx.lineTo(...B);cx.stroke()}}
+    /* objectifs (balises dorées) */
+    Object.values(S.goals).forEach(g=>{const [X,Y]=T(...g.p),r=9+2.2*Math.sin(t/260);cx.strokeStyle=g.col||C.gold;cx.globalAlpha=.9;cx.lineWidth=2;cx.beginPath();cx.arc(X,Y,r,0,7);cx.stroke();
+      cx.globalAlpha=.18;cx.fillStyle=g.col||C.gold;cx.beginPath();cx.arc(X,Y,r+5,0,7);cx.fill();cx.globalAlpha=1});
+    /* vecteurs */
+    Object.values(S.arr).forEach(arrowDraw);
+    /* marques d'erreur */
+    S.marks.forEach(m=>{const [X,Y]=T(...m.p),r=7;cx.strokeStyle=C.ko;cx.lineWidth=3;cx.beginPath();cx.moveTo(X-r,Y-r);cx.lineTo(X+r,Y+r);cx.moveTo(X+r,Y-r);cx.lineTo(X-r,Y+r);cx.stroke()});
+    /* points */
+    Object.entries(S.pts).forEach(([n,p])=>{if(p.hide)return;const [X,Y]=T(p.x,p.y);cx.globalAlpha=p.a==null?1:p.a;cx.fillStyle=p.col||C.pt;cx.strokeStyle='#030814';cx.lineWidth=2;cx.beginPath();cx.arc(X,Y,u>30?5:4,0,7);cx.fill();cx.stroke();
+      if(p.lab!==false){const fs2=u>30?15:12.5,dx=p.dx==null?8:p.dx,dy=p.dy==null?-10:p.dy;text(p.lab||n,X+dx,Y+dy,p.col||C.pt,fs2,dx<0?'right':'left')}cx.globalAlpha=1});
+    S.boats.forEach(boatDraw)}
+  function loop(t){draw(t);requestAnimationFrame(loop)}requestAnimationFrame(loop);
+  /* ---------- animations ---------- */
+  const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+  function anim(ms,fn){return new Promise(res=>{if(reduceM)ms=Math.min(ms,80);const t0=performance.now();(function st(){const x=Math.min(1,(performance.now()-t0)/ms);fn(ease(x));if(x<1)requestAnimationFrame(st);else res()})()})}
+  function boat(p,i=0,o){S.boats[i]=Object.assign({x:p[0],y:p[1],ang:0,vis:true,trail:[]},o||{});return S.boats[i]}
+  async function sail(path,o){o=o||{};const b=S.boats[o.b||0]||boat(path[0],o.b||0);b.vis=true;b.x=path[0][0];b.y=path[0][1];
+    for(let i=1;i<path.length;i++){const A=path[i-1],B=path[i],L=Math.hypot(B[0]-A[0],B[1]-A[1]);if(L<1e-9)continue;
+      b.ang=Math.atan2(-(B[1]-A[1]),B[0]-A[0]);if(o.snd!==false)window.PL_SND&&PL_SND.go();
+      await anim(Math.max(520,L*(o.speed||330)),e=>{b.x=A[0]+(B[0]-A[0])*e;b.y=A[1]+(B[1]-A[1])*e;b.trail.push({x:b.x,y:b.y,t:performance.now()});if(b.trail.length>240)b.trail.shift()});
+      if(o.pause)await new Promise(r=>setTimeout(r,reduceM?20:o.pause))}}
+  async function stretch(id,k1,ms){const a=S.arr[id];if(!a)return;const k0=a.k;await anim(ms||900,e=>{a.k=k0+(k1-k0)*e})}
+  return{reset(o){reset(o)},get S(){return S},T,boat,sail,stretch,anim,
+    pt(n,p,o){S.pts[n]=Object.assign({x:p[0],y:p[1]},o||{})},
+    goal(n,p,o){S.goals[n]=Object.assign({p},o||{});if(!(o&&o.nopt))S.pts[n]=Object.assign({x:p[0],y:p[1],col:C.gold},o&&o.pt||{})},
+    arrow(id,o){S.arr[id]=Object.assign({k:1,col:C.u},o)},del(id){delete S.arr[id]},
+    line(o){S.lines.push(o)},seg(o){S.segs.push(o)},mark(p){S.marks.push({p})},clearMarks(){S.marks=[]},
+    get u(){return u},draw};
+})();
+window.PL_S={nw,f,ans,P,V,Vi,Vj,V0,col,fr,sq,dett,kfmt,kV,lin,ri,pick,shuf,nz,add,sub,mul,det,same,inG,rp,rv,until,d2,rad,radH,lens,C,SC,reduceM};
+})();
+</script>
+<script>
+/* ======================= LE PILOTE DU LAGON — jeu (niveaux, widgets) ======================= */
+(function(){
+'use strict';
+const S=window.PL_S,{nw,f,ans,P,V,Vi,Vj,V0,col,fr,sq,dett,kfmt,kV,lin,ri,pick,shuf,nz,add,sub,mul,det,same,inG,rp,rv,until,d2,rad,radH,lens,C,SC}=S;
+const $=id=>document.getElementById(id);
+const cap=h=>{$('capt').innerHTML=h||'&nbsp;'};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const norm=s=>String(s).toLowerCase().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/^\+/,'');
+const sleep=ms=>new Promise(r=>setTimeout(r,S.reduceM?Math.min(ms,40):ms));
+
+/* ---------- bruitages ---------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(fq,d,v,type,w){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),gn=a.createGain();o.type=type||'triangle';o.frequency.value=fq;
+  gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(v,t+.015);gn.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(gn);gn.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+function swish(d,v){const a=ac();if(!a)return;const b=a.createBuffer(1,Math.floor(a.sampleRate*d),a.sampleRate),x=b.getChannelData(0);for(let i=0;i<x.length;i++)x[i]=(Math.random()*2-1)*Math.sin(Math.PI*i/x.length);
+  const s=a.createBufferSource(),fl=a.createBiquadFilter(),gn=a.createGain();fl.type='lowpass';fl.frequency.value=900;gn.gain.value=v;s.buffer=b;s.connect(fl);fl.connect(gn);gn.connect(a.destination);s.start()}
+const SND={pop(){if(snd){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)}},go(){if(snd)swish(.45,.16)},
+  soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((q,i)=>tone(q,.4,.05,'triangle',i*.1))}};
+window.PL_SND=SND;
+
+/* ---------- état ---------- */
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,busy=false,perr=0;
+function starsOf(i){try{const g=SigmaKit.passport().games['pilote-du-lagon'];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function fb(html){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=nw(html);$('fb').hidden=false}
+const api={err(why){errs++;perr++;SND.soft();fb(why)},ok(){fb('');nextPart()}};
+const W={};
+/* curseurs (−/+ ou saisie) */
+function stepper(lab,val,o){o=o||{};return `<div class="step">${lab?`<span class="ax">${lab}</span>`:''}<button type="button" data-d="-1" aria-label="${o.al||lab} : moins">−</button><input value="${f(val)}" inputmode="text" autocomplete="off" aria-label="${o.al||lab}"><button type="button" data-d="1" aria-label="${o.al||lab} : plus">+</button></div>`}
+function wireSteps(box,st,lim,onc){box.querySelectorAll('.step').forEach((el,i)=>{const inp=el.querySelector('input'),L=lim[i];
+  const set=v=>{v=Math.max(L.min,Math.min(L.max,Math.round(v/L.step)*L.step));st[i]=+v.toFixed(4);inp.value=f(st[i]);onc()};
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(busy)return;set(st[i]+ +b.dataset.d*L.step);SND.pop()});
+  inp.addEventListener('change',()=>{const v=parseFloat(inp.value.replace('−','-').replace(',','.'));set(isNaN(v)?st[i]:v)});
+  inp.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();set(st[i]+(e.key==='ArrowUp'?1:-1)*L.step)}})})}
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);api.ok()}};
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{if(busy)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){box.querySelectorAll('.opt').forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else{b.classList.add('ko');b.disabled=true;api.err(c.why)}})};
+W.fill=(p,box)=>{const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>`<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Case ${+i+1}" style="width:${Math.max(2.8,Math.max(...p.ans[i].map(a=>a.length))*.72+1.8)}em">`);
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`;
+  const fm=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  fm.onsubmit=async e=>{e.preventDefault();if(busy)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=v.map((x,i)=>p.ans[+ins[i].dataset.i].some(a=>norm(a)===norm(x)));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){ins.forEach(x=>x.disabled=true);fm.querySelector('button').remove();SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else api.err(typeof p.why==='function'?p.why(v,oks):p.why)};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* piloter : régler un vecteur (x ; y) puis lancer la vedette */
+W.vec=(p,box)=>{const st=[0,0],from=p.from;
+  box.innerHTML=`<p class="ask">${p.ask}</p><div class="pilot"><span class="lab">${p.labH}</span><span class="paren">(</span><div class="steps">${stepper('x',0,{al:'Déplacement horizontal x'})}${stepper('y',0,{al:'Déplacement vertical y'})}</div><span class="paren">)</span></div>
+   <div class="btns"><button type="button" class="btn or go">${p.go||'Lancer la vedette'}</button></div>`;
+  const prev=()=>{if(st[0]||st[1])SC.arrow('pv',{from,v:st.slice(),col:C.w,dash:true,lab:p.lab});else SC.del('pv');cap(`${p.labH} ${col(st[0],st[1])}`)};
+  wireSteps(box,st,[{min:-12,max:12,step:1},{min:-8,max:8,step:1}],prev);prev();
+  box.querySelector('.go').onclick=async()=>{if(busy)return;busy=true;SND.pop();SC.clearMarks();fb('');const end=add(from,st);
+    try{await SC.sail([from,end]);
+      if(same(st,p.sol)){SC.arrow('pv',{from,v:st.slice(),col:C.w,lab:p.lab});box.querySelectorAll('button,input').forEach(x=>x.disabled=true);if(p.onOk)await p.onOk();busy=false;api.ok();return}
+      SC.mark(end);await sleep(350);await SC.sail([end,from],{snd:false,speed:220})}finally{busy=false}
+    api.err(p.why(st.slice(),perr))}};
+/* placer un point (x ; y) */
+W.pt=(p,box)=>{const st=(p.start||[0,0]).slice();
+  box.innerHTML=`<p class="ask">${p.ask}</p><div class="pilot"><span class="lab">${p.name}</span><span class="paren">(</span><div class="steps">${stepper('x',st[0],{al:'Abscisse de '+p.name})}${stepper('y',st[1],{al:'Ordonnée de '+p.name})}</div><span class="paren">)</span></div>
+   <div class="btns"><button type="button" class="btn or go">${p.go||'Placer '+p.name}</button></div>`;
+  const prev=()=>{SC.pt(p.name,st.slice(),{col:C.w,a:.75});cap(`${P(p.name,st)}`)};
+  wireSteps(box,st,[{min:-7,max:7,step:p.step||1},{min:-5,max:5,step:p.step||1}],prev);prev();
+  box.querySelector('.go').onclick=async()=>{if(busy)return;SC.clearMarks();fb('');
+    if(same(st,p.sol)){busy=true;SND.pop();SC.pt(p.name,st.slice(),{col:C.w});box.querySelectorAll('button,input').forEach(x=>x.disabled=true);try{if(p.onOk)await p.onOk()}finally{busy=false}api.ok();return}
+    SC.mark(st.slice());api.err(p.why(st.slice(),perr))}};
+/* étirer : choisir k et lancer la vedette selon k·u */
+W.k=(p,box)=>{const st=[p.k0==null?1:p.k0];
+  box.innerHTML=`<p class="ask">${p.ask}</p><div class="pilot"><span class="lab">k =</span>${stepper('',st[0],{al:'Réel k'})}</div>
+   <div class="btns"><button type="button" class="btn or go">${p.go||'Lancer la vedette'}</button></div>`;
+  const prev=()=>{SC.arrow('pv',{from:p.from,v:p.u,k:st[0],col:C.w,dash:true,lab:p.lab});cap(`k = ${f(st[0])} <span class="m">·</span> ${st[0]===0?V0:kV(st[0],p.name)} ${col(st[0]*p.u[0],st[0]*p.u[1])}`)};
+  wireSteps(box,st,[{min:-4,max:4,step:.5}],prev);prev();
+  box.querySelector('.go').onclick=async()=>{if(busy)return;busy=true;SND.pop();SC.clearMarks();fb('');const end=add(p.from,mul(st[0],p.u));
+    try{if(st[0])await SC.sail([p.from,end]);
+      if(Math.abs(st[0]-p.sol)<1e-9){SC.arrow('pv',{from:p.from,v:p.u,k:st[0],col:C.w,lab:p.lab});box.querySelectorAll('button,input').forEach(x=>x.disabled=true);if(p.onOk)await p.onOk();busy=false;api.ok();return}
+      if(st[0]){SC.mark(end);await sleep(350);await SC.sail([end,p.from],{snd:false,speed:220})}}finally{busy=false}
+    api.err(p.why(st[0],perr))}};
+
+/* ---------- déroulé d'une question ---------- */
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function startPart(){perr=0;const p=Q.parts[pi],box=partEl();W[p.t](p,box);box.querySelectorAll('.ask,.opt').forEach(e=>{e.innerHTML=nw(e.innerHTML)});return box}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;if(pi<Q.parts.length){const box=startPart();scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:S.reduceM?'auto':'smooth'})}}
+const LV=[];
+function newQ(){Q=LV[lvl].qs[qi]();pi=0;errs=0;
+  SC.reset({ij:!!Q.ij});Q.scene();cap(Q.cap0||'&nbsp;');$('badge').textContent=LV[lvl].ch;
+  $('prompt').innerHTML=nw(Q.prompt);$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();startPart()}
+function dots(){const N=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:N},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){fb('');SND.win();run.push(errs===0);dots();
+  const N=LV[lvl].qs.length,lvlDone=run.length>=N;
+  $('winx').textContent=errs===0?pick(['Cap tenu !','Exactement !','Pile sur la balise !','Bien vu !']):pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=nw(Q.done);
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;setTimeout(()=>scrollPart($('win')),60)}
+function endLevel(){const L=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:L,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==L)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:S.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];$('chap').textContent=LV[l].ch;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;renderLv();newQ()}
+function renderLv(){$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('sigma-fanfare',snd?'1':'0')}catch(_){}renderLv();SND.pop();return}
+  if(busy)return;goLevel(+b.dataset.l)});
+
+/* ---------- fabriques ---------- */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+const ch=(ask,list,au,o)=>Object.assign({t:'choice',ask,ch:list,au},o||{});
+const fill=(ask,tpl,ans,why,au,o)=>Object.assign({t:'fill',ask,tpl,ans,why,au},o||{});
+const OK=(h,v)=>({h,ok:true,v}),NO=(h,why,v)=>({h,why,v});
+/* garde des choix distincts (par valeur v), le bon en premier */
+const uniq=(L)=>{const seen=new Set(),out=[];L.forEach(c=>{const k=JSON.stringify(c.v);if(!seen.has(k)){seen.add(k);out.push(c)}});return out};
+const colP=p=>col(p[0],p[1]);
+/* raison d'un mauvais déplacement */
+function whyMove(v,sol,fromNm,toNm,B,A){const parts=[];
+  if(same(v,[sol[1],sol[0]])&&sol[0]!==sol[1])return `Tu as échangé les deux nombres&nbsp;: en haut le déplacement horizontal (abscisses), en bas le déplacement vertical (ordonnées).`;
+  if(same(v,mul(-1,sol)))return `Bonne direction, mauvais sens&nbsp;: tu es parti de ${toNm} vers ${fromNm}. On calcule <b>arrivée − départ</b>.`;
+  if(B&&same(v,B)&&!same(B,sol))return `${col(B[0],B[1])}, ce sont les coordonnées du point ${toNm}, pas le déplacement. On calcule x<sub>${toNm}</sub> − x<sub>${fromNm}</sub> et y<sub>${toNm}</sub> − y<sub>${fromNm}</sub>.`;
+  if(A&&B&&same(v,add(A,B))&&!same(add(A,B),sol))return `On ne fait pas la somme des coordonnées&nbsp;: on calcule <b>arrivée − départ</b>.`;
+  if(v[0]!==sol[0])parts.push(`horizontalement, compte les carreaux de ${fromNm} à ${toNm}${sol[0]<0?' (vers la gauche&nbsp;: négatif)':''}`);
+  if(v[1]!==sol[1])parts.push(`verticalement, compte les carreaux de ${fromNm} à ${toNm}${sol[1]<0?' (vers le bas&nbsp;: négatif)':''}`);
+  return `La vedette a manqué la balise. ${parts.length?parts.join('&nbsp;; ').replace(/^./,c=>c.toUpperCase())+'.':''}`}
+const dist0=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+function projCh(A,Hh,hz,c){const pa=x=>x<0?'('+f(x)+')':f(x);const d=dist0(A,Hh),L=[OK(f(d),d)];const ax=hz?Math.abs(A[1]):Math.abs(A[0]),ot=hz?Math.abs(A[0]-c):Math.abs(A[1]-c);
+  if(ax&&ax!==d)L.push(NO(f(ax),hz?'C\'est la distance à l\'axe des abscisses (y = 0), pas au quai.':'C\'est la distance à l\'axe des ordonnées (x = 0), pas au quai.',ax));
+  if(ot&&ot!==d&&ot!==ax)L.push(NO(f(ot),hz?'Le quai est horizontal&nbsp;: c\'est l\'écart des <b>ordonnées</b> qui compte, |y<sub>A</sub> − '+pa(c)+'|.':'Le quai est vertical&nbsp;: c\'est l\'écart des <b>abscisses</b> qui compte, |x<sub>A</sub> − '+pa(c)+'|.',ot));
+  const sm=d+Math.abs(c);if(L.length<3&&sm!==ax&&sm!==ot&&sm!==d)L.push(NO(f(sm),'On ne cumule pas&nbsp;: AH est l\'écart entre A et le quai, le long de la perpendiculaire.',sm));
+  for(let e=1;L.length<3;e++){const x=d+e;if(!L.some(q=>q.v===x))L.push(NO(f(x),'Compte les carreaux le long de la perpendiculaire, de A jusqu\'au quai.',x))}return L}
+const LET=[['A','B','C'],['M','N','P'],['E','F','G'],['R','S','T'],['K','L','M'],['D','E','F']];
+
+/* ===================== Niveau 1 · Le cap ===================== */
+LV.push({t:'Le cap',ch:'Le repère du lagon',
+ rule:`<p><b>Repère orthonormé</b> (O&nbsp;; ${Vi}, ${Vj})&nbsp;: ${Vi} ⟂ ${Vj} et ‖${Vi}‖ = ‖${Vj}‖ = 1. M(x<sub>M</sub>&nbsp;; y<sub>M</sub>) signifie ${V('OM')} = x<sub>M</sub>${Vi} + y<sub>M</sub>${Vj}.</p>
+  <p>Un <b>vecteur</b> est un déplacement&nbsp;: une direction, un sens, une norme. Si A(x<sub>A</sub>&nbsp;; y<sub>A</sub>) et B(x<sub>B</sub>&nbsp;; y<sub>B</sub>)&nbsp;: ${V('AB')}${col('x<sub>B</sub> − x<sub>A</sub>','y<sub>B</sub> − y<sub>A</sub>')} (arrivée − départ).</p>
+  <p><b>Vecteurs égaux</b>&nbsp;: même direction, même sens, même norme. ${V('AB')} = ${V('DC')} ⟺ ABCD est un parallélogramme (éventuellement aplati).</p>`,
+ qs:[
+ ()=>{const A=[nz(-5,5),nz(-3,3)];
+  return{d:1,ij:true,prompt:`La vedette est au port <b>O</b>. Pilote-la jusqu'à la balise dorée <b>A</b>&nbsp;: en haut le déplacement horizontal (selon ${Vi}), en bas le déplacement vertical (selon ${Vj}).`,
+   scene(){SC.goal('A',A);SC.boat([0,0])},cap0:'Le port O, origine du repère',
+   parts:[{t:'vec',from:[0,0],lab:'OA',labH:V('OA'),sol:A,ask:'Règle le déplacement, puis lance la vedette&nbsp;:',why:v=>whyMove(v,A,'O','A'),au:{k:'AB',A:[0,0],B:A}},
+     fill('Lis les coordonnées de la balise A&nbsp;:','A( {0}&nbsp;; {1} )',[ans(A[0]),ans(A[1])],'Les coordonnées de A sont celles du déplacement depuis O&nbsp;: d\'abord l\'abscisse, puis l\'ordonnée.',{k:'read',M:A})],
+   done:`${V('OA')} = ${lin(A[0],A[1])}, donc A(${f(A[0])}&nbsp;; ${f(A[1])}). Les coordonnées de A sont celles du vecteur ${V('OA')}.`}},
+ ()=>{const [A,B]=until(()=>{const A=rp(5,3),B=rp(5,3),v=sub(B,A);return !same(A,B)&&v[0]&&v[1]&&!same(v,B)&&!same(v,[v[1],v[0]])&&A[0]&&A[1]?[A,B]:null}),v=sub(B,A);
+  return{d:1,prompt:`La vedette est à la balise ${P('A',A)}. Mène-la jusqu'à ${P('B',B)}&nbsp;: règle le vecteur ${V('AB')}.`,
+   scene(){SC.pt('A',A);SC.goal('B',B);SC.boat(A)},cap0:'Départ A, arrivée B',
+   parts:[{t:'vec',from:A,lab:'AB',labH:V('AB'),sol:v,ask:'Calcule arrivée − départ, puis lance la vedette&nbsp;:',why:(w,n)=>whyMove(w,v,'A','B',B,A)+(n>=1?` Ici x<sub>B</sub> − x<sub>A</sub> = ${f(B[0])} − ${A[0]<0?'('+f(A[0])+')':f(A[0])}.`:''),au:{k:'AB',A,B}}],
+   done:`${V('AB')}${col(`${f(B[0])} − ${A[0]<0?'('+f(A[0])+')':f(A[0])}`,`${f(B[1])} − ${A[1]<0?'('+f(A[1])+')':f(A[1])}`)} = ${col(v[0],v[1])}&nbsp;: c'est le déplacement de A vers B.`}},
+ ()=>{const [E,F]=until(()=>{const E=[nz(-6,6),nz(-4,4)],F=pick([[nz(-6,6),0],[0,nz(-4,4)]]);return lens(E,F)&&E[0]!==E[1]?[E,F]:null});
+  return{d:1,ij:true,prompt:`Deux bouées lumineuses, <b>E</b> et <b>F</b>, flottent dans le lagon. Lis leurs coordonnées sur le quadrillage.`,
+   scene(){SC.pt('E',E,{col:C.v});SC.pt('F',F,{col:C.v});SC.boat([0,0])},cap0:'Lecture : abscisse, puis ordonnée',
+   parts:[fill('Coordonnées des bouées&nbsp;:','E( {0}&nbsp;; {1} ) et F( {2}&nbsp;; {3} )',[ans(E[0]),ans(E[1]),ans(F[0]),ans(F[1])],
+      (v,o)=>(!o[0]||!o[1])&&norm(v[0])===norm(f(E[1]))&&norm(v[1])===norm(f(E[0]))?'Pour E, tu as échangé&nbsp;: on lit d\'abord l\'abscisse (axe horizontal), puis l\'ordonnée (axe vertical).':(!o[2]||!o[3])?`F est sur un axe&nbsp;: une de ses coordonnées vaut 0.`:'Lis d\'abord l\'abscisse (axe horizontal), puis l\'ordonnée (axe vertical). À gauche de O ou en dessous, c\'est négatif.',{k:'read2',M:E,N:F},
+      {onOk:async()=>{await SC.sail([[0,0],[E[0],0],E]);await SC.sail([E,[0,0],F],{speed:260})}})],
+   done:`E(${f(E[0])}&nbsp;; ${f(E[1])}) et F(${f(F[0])}&nbsp;; ${f(F[1])})&nbsp;: ${V('OE')} = ${lin(E[0],E[1])} et ${V('OF')} = ${lin(F[0],F[1])}.`}},
+ ()=>{const [A,B,Cp,D]=until(()=>{const A=rp(5,3),u=rv(4,3),B=add(A,u),Cp=rp(5,3),D=add(Cp,u);return inG(B)&&inG(D)&&det(u,sub(Cp,A))!==0&&lens(A,B,Cp,D)&&Math.abs(u[0])+Math.abs(u[1])>=2?[A,B,Cp,D]:null}),u=sub(B,A);
+  return{d:2,prompt:`La vedette a fait le trajet ${V('AB')}. Une seconde vedette part de la balise <b>C</b> avec <b>le même ordre de pilotage</b>. Place son point d'arrivée <b>D</b>, tel que ${V('CD')} = ${V('AB')}.`,
+   scene(){SC.pt('A',A);SC.pt('B',B);SC.pt('C',Cp,{col:C.v});SC.arrow('ab',{from:A,v:u,col:C.u,lab:'AB'});SC.boat(A)},cap0:`${V('AB')} ${colP(u)}`,
+   parts:[{t:'pt',name:'D',start:Cp,sol:D,ask:'Depuis C, refais le même déplacement que de A à B&nbsp;:',why:(w)=>same(w,sub(Cp,u))?'Tu as fait le déplacement à l\'envers&nbsp;: c\'est −'+V('AB')+'. Même sens que de A vers B&nbsp;!':`Depuis C, déplace-toi de ${f(u[0])} horizontalement et de ${f(u[1])} verticalement.`,au:{k:'tr',M:Cp,u},
+      onOk:async()=>{SC.boat(Cp,1,{col:'#ffe7a8'});await SC.sail([Cp,D],{b:1});SC.arrow('cd',{from:Cp,v:u,col:C.w,lab:'CD'})}},
+    ch('Les vecteurs '+V('AB')+' et '+V('CD')+' sont égaux. Quel quadrilatère est un parallélogramme&nbsp;?',uniq([OK('ABDC','ABDC'),
+      NO('ABCD',`Attention à l'ordre des lettres&nbsp;: ${V('AB')} = ${V('DC')} ⟺ ABCD parallélogramme. Ici c'est ${V('AB')} = ${V('CD')}.`,'ABCD'),
+      NO('ADBC',`Dans ADBC, [AB] et [CD] seraient les diagonales. Suis les côtés&nbsp;: A → B → D → C.`,'ADBC')]),{k:'pnm',A,B,C:Cp,D},
+      {onOk:async()=>{SC.seg({a:B,b:D,col:C.ghost,dash:true});SC.seg({a:A,b:Cp,col:C.ghost,dash:true})}})],
+   done:`${V('AB')} = ${V('CD')}&nbsp;: les deux vedettes ont fait le même déplacement. ABDC est un parallélogramme.`}},
+ ()=>{const [M,N]=until(()=>{const M=[nz(-5,5),nz(-3,3)],N=[nz(-5,5),nz(-3,3)],v=sub(N,M);return v[0]&&v[1]&&!same(v,N)&&!same(add(M,N),v)?[M,N]:null}),v=sub(N,M);
+  const L=uniq([OK(`${V('MN')}${colP(v)}`,v),NO(`${V('MN')}${colP(sub(M,N))}`,`C'est ${V('NM')}&nbsp;: tu as fait départ − arrivée. On calcule x<sub>N</sub> − x<sub>M</sub>.`,sub(M,N)),
+    NO(`${V('MN')}${colP(add(M,N))}`,'On ne fait pas la somme des coordonnées&nbsp;: on calcule arrivée − départ.',add(M,N)),NO(`${V('MN')}${colP(N)}`,'Ce sont les coordonnées du point N, pas celles du déplacement de M vers N.',N)]);
+  return{d:1,prompt:`Sans tracer&nbsp;: ${P('M',M)} et ${P('N',N)}. Quelles sont les coordonnées du vecteur ${V('MN')}&nbsp;?`,
+   scene(){SC.pt('M',M);SC.pt('N',N);SC.boat(M)},cap0:'Calcule, puis vérifie en pilotant',
+   parts:[ch('',L,{k:'AB',A:M,B:N},{onOk:async()=>{await SC.sail([M,N]);SC.arrow('mn',{from:M,v,col:C.w,lab:'MN'})}})],
+   done:`${V('MN')}${col(`x<sub>N</sub> − x<sub>M</sub>`,`y<sub>N</sub> − y<sub>M</sub>`)} = ${colP(v)}.`}}
+]});
+
+/* ===================== Niveau 2 · Bout à bout ===================== */
+/* simplification symbolique (pour les explications) */
+LV.push({t:'Bout à bout',ch:'Enchaîner les trajets',
+ rule:`<p>Enchaîner la translation de vecteur ${V('u')} <b>puis</b> celle de vecteur ${V('v')}, c'est faire la translation de vecteur ${V('u')} + ${V('v')}&nbsp;: on trace ${V('v')} au bout de ${V('u')}.</p>
+  <p><b>Relation de Chasles</b>&nbsp;: ${V('AB')} + ${V('BC')} = ${V('AC')}.</p><p><b>Vecteur nul</b>&nbsp;: ${V('AA')} = ${V0}. <b>Opposé</b>&nbsp;: ${V('BA')} = −${V('AB')}, et ${V('AB')} + ${V('BA')} = ${V0}.</p>`,
+ qs:[
+ ()=>{const [A,u,v]=until(()=>{const A=rp(5,3),u=rv(4,3),v=rv(4,3),B=add(A,u),Cc=add(B,v);return inG(B)&&inG(Cc)&&det(u,v)!==0&&lens(A,B,Cc)?[A,u,v]:null}),B=add(A,u),Cc=add(B,v);
+  return{d:1,prompt:`Ordre de pilotage&nbsp;: d'abord ${V('u')}, <b>puis</b> ${V('v')}. La vedette part de A.`,
+   scene(){SC.pt('A',A);SC.arrow('u',{from:[-6.6,-3.6],v:u,col:C.u,lab:'u',a:.55});SC.arrow('v',{from:[3.4,-3.6].map((x,i)=>i?x:Math.min(x,6.6-v[0])),v,col:C.v,lab:'v',a:.55});SC.boat(A)},cap0:`${V('u')} ${colP(u)} puis ${V('v')} ${colP(v)}`,
+   parts:[act('Enchaîner '+V('u')+' puis '+V('v'),async()=>{SC.del('u');SC.del('v');SC.arrow('ab',{from:A,v:u,col:C.u,lab:'u'});await SC.sail([A,B]);SC.pt('B',B);SC.arrow('bc',{from:B,v,col:C.v,lab:'v'});await SC.sail([B,Cc]);SC.pt('C',Cc);
+       await sleep(250);SC.arrow('ac',{from:A,v:add(u,v),col:C.w,lab:'AC',side:-1});cap(`${V('u')} + ${V('v')} = ${V('AC')}`)}),
+     ch(`La vedette est passée par B, puis est arrivée en C. Quel vecteur est égal à ${V('u')} + ${V('v')}&nbsp;?`,uniq([OK(V('AC'),'AC'),NO(V('CA'),'Bonne direction, mais mauvais sens&nbsp;: la vedette part de A et arrive en C.','CA'),
+       NO(V('AB'),`${V('AB')}, c'est seulement ${V('u')}&nbsp;: il manque le trajet ${V('v')}.`,'AB'),NO(V('BC'),`${V('BC')}, c'est seulement ${V('v')}.`,'BC')]),{k:'vx',terms:['AB','BC']})],
+   done:`${V('u')} + ${V('v')} = ${V('AB')} + ${V('BC')} = ${V('AC')}&nbsp;: du départ à l'arrivée, directement.`}},
+ ()=>{const [X,Y,Z]=pick(LET),[p1,p2,p3]=until(()=>{const a=rp(5,3),b=rp(5,3),c=rp(5,3);return lens(a,b,c)&&det(sub(b,a),sub(c,a))!==0&&d2(a,b)>=5&&d2(b,c)>=5?[a,b,c]:null});
+  const rev=Math.random()<.5,expr=rev?`${V(Y+Z)} + ${V(X+Y)}`:`${V(X+Y)} + ${V(Y+Z)}`;
+  return{d:rev?2:1,prompt:`Simplifie ${expr}.${rev?' L\'ordre des trajets ne change pas l\'arrivée&nbsp;: commence par celui qui part de '+X+'.':''}`,
+   scene(){SC.pt(X,p1);SC.pt(Y,p2);SC.pt(Z,p3);SC.boat(p1)},cap0:expr,
+   parts:[act(`Piloter ${X} → ${Y} → ${Z}`,async()=>{SC.arrow('a',{from:p1,v:sub(p2,p1),col:C.u,lab:X+Y});await SC.sail([p1,p2]);SC.arrow('b',{from:p2,v:sub(p3,p2),col:C.v,lab:Y+Z});await SC.sail([p2,p3])}),
+     ch(`${expr} = &nbsp;?`,uniq([OK(V(X+Z),X+Z),NO(V(Z+X),`Mauvais sens&nbsp;: la vedette part de ${X} et arrive en ${Z}.`,Z+X),NO(V(Y+X),`Relation de Chasles&nbsp;: ${V(X+Y)} + ${V(Y+Z)}, la lettre ${Y} du milieu «&nbsp;disparaît&nbsp;»&nbsp;: il reste ${X}…${Z}.`,Y+X),NO(V0,`Le trajet ne revient pas au départ&nbsp;: la vedette finit en ${Z}, pas en ${X}.`,'0')]),{k:'vx',terms:rev?[Y+Z,X+Y]:[X+Y,Y+Z]},
+       {onOk:async()=>{SC.arrow('c',{from:p1,v:sub(p3,p1),col:C.w,lab:X+Z,side:-1});cap(`${expr} = ${V(X+Z)}`)}})],
+   done:`${V(X+Y)} + ${V(Y+Z)} = ${V(X+Z)} (relation de Chasles).`}},
+ ()=>{const quad=Math.random()<.4,nm=quad?['A','B','C','D']:['A','B','C'],pts=until(()=>{const p=nm.map(()=>rp(5,3));return lens(...p)&&det(sub(p[1],p[0]),sub(p[2],p[0]))!==0&&p.every((q,i)=>d2(q,p[(i+1)%p.length])>=5)?p:null});
+  const terms=nm.map((a,i)=>a+nm[(i+1)%nm.length]),expr=terms.map(V).join(' + ');
+  return{d:quad?2:1,prompt:`La vedette fait le tour ${nm.join(' → ')} → A. Simplifie ${expr}.`,
+   scene(){nm.forEach((n,i)=>SC.pt(n,pts[i]));SC.boat(pts[0])},cap0:expr,
+   parts:[act('Faire le tour',async()=>{const cols=[C.u,C.v,C.w,'#c9a2ff'];for(let i=0;i<nm.length;i++){const a=pts[i],b=pts[(i+1)%nm.length];SC.arrow('t'+i,{from:a,v:sub(b,a),col:cols[i],lab:terms[i]});await SC.sail([a,b])}cap(`Retour au point de départ A`)}),
+     ch(`${expr} = &nbsp;?`,uniq([OK(V0,'0'),NO(V('AC'),`Le dernier trajet ${V(terms[terms.length-1])} ramène la vedette en A&nbsp;: elle n'a finalement pas bougé.`,'AC'),NO(V(nm[nm.length-1]+'A'),`C'est seulement le dernier trajet. Du départ A à l'arrivée A, le déplacement est nul.`,nm[nm.length-1]+'A')]),{k:'vx',terms})],
+   done:`${expr} = ${V('AA')} = ${V0}&nbsp;: départ et arrivée confondus, le déplacement est nul.`}},
+ ()=>{const [A,B]=until(()=>{const A=rp(5,3),B=rp(5,3),v=sub(B,A);return v[0]&&v[1]&&!same(v,[v[1],v[0]])?[A,B]:null}),v=sub(B,A);
+  return{d:1,prompt:`La vedette a fait le trajet ${V('AB')}${colP(v)}. Ramène-la de B jusqu'en A.`,
+   scene(){SC.pt('A',A,{col:C.v});SC.pt('B',B);SC.arrow('ab',{from:A,v,col:C.u,lab:'AB',a:.6});SC.boat(B)},cap0:`${V('AB')} ${colP(v)}`,
+   parts:[{t:'vec',from:B,lab:'BA',labH:V('BA'),sol:mul(-1,v),ask:'Règle '+V('BA')+', puis lance la vedette&nbsp;:',why:w=>same(w,v)?'Tu as refait le même trajet que '+V('AB')+'&nbsp;: la vedette s\'éloigne encore. Pour revenir, on change le sens&nbsp;: les deux coordonnées changent de signe.':whyMove(w,mul(-1,v),'B','A'),au:{k:'AB',A:B,B:A}},
+     ch('Que vaut '+V('BA')+'&nbsp;?',uniq([OK('−'+V('AB'),'-AB'),NO(V('AB'),'Même direction et même norme, mais le sens est contraire&nbsp;: ce sont des vecteurs opposés.','AB'),NO(V0,`${V('AB')} + ${V('BA')} = ${V0}, mais ${V('BA')} n'est pas nul&nbsp;: la vedette s'est bien déplacée.`,'0')]),{k:'vx',terms:['BA']})],
+   done:`${V('BA')} = −${V('AB')} = ${colP(mul(-1,v))}, et ${V('AB')} + ${V('BA')} = ${V('AA')} = ${V0}.`}},
+ ()=>{const c=pick([[['CA','AB'],'CB','BC','CA'],[['AO','OB'],'AB','BA','OB'],[['MN','NP','PQ'],'MQ','QM','MP'],[['BC','AB'],'AC','CA','BA'],[['DA','AB','BC'],'DC','CD','DB']]);
+  const [terms,res,r1,r2]=c,nm=[...new Set(terms.join('').split(''))],pts=until(()=>{const p=nm.map(()=>rp(5,3));return lens(...p)&&det(sub(p[1],p[0]),sub(p[2],p[0]))!==0?p:null}),Pp={};nm.forEach((n,i)=>Pp[n]=pts[i]);
+  const expr=terms.map(V).join(' + '),order=terms[0][0]===res[0]?terms:[terms[1],terms[0]];
+  return{d:terms.length>2||order!==terms?2:1,prompt:`Simplifie ${expr}.`,
+   scene(){nm.forEach(n=>SC.pt(n,Pp[n]));SC.boat(Pp[res[0]])},cap0:expr,
+   parts:[ch(`${expr} = &nbsp;?`,uniq([OK(V(res),res),NO(V(r1),`Mauvais sens&nbsp;: le trajet part de ${res[0]} et arrive en ${res[1]}.`,r1),NO(V(r2),`Enchaîne les trajets bout à bout (la fin de l'un est le début du suivant)&nbsp;: de ${res[0]}, la vedette arrive en ${res[1]}.`,r2)]),{k:'vx',terms},
+      {onOk:async()=>{let cur=res[0];const seq=[];let rest=terms.slice();while(rest.length){const i=rest.findIndex(t=>t[0]===cur);seq.push(rest[i]);cur=rest[i][1];rest.splice(i,1)}
+        for(const t of seq){SC.arrow('s'+t,{from:Pp[t[0]],v:sub(Pp[t[1]],Pp[t[0]]),col:C.u,lab:t});await SC.sail([Pp[t[0]],Pp[t[1]]])}SC.arrow('r',{from:Pp[res[0]],v:sub(Pp[res[1]],Pp[res[0]]),col:C.w,lab:res,side:-1})}})],
+   done:`On enchaîne bout à bout&nbsp;: ${expr} = ${V(res)}.`}}
+]});
+
+/* ===================== Niveau 3 · Les deux vedettes ===================== */
+LV.push({t:'Les deux vedettes',ch:'Parallélogramme et soustraction',
+ rule:`<p><b>Règle du parallélogramme</b>&nbsp;: ABCD est un parallélogramme ⟺ ${V('AC')} = ${V('AB')} + ${V('AD')}. On a aussi ${V('AB')} = ${V('DC')} et ${V('AD')} = ${V('BC')}.</p>
+  <p><b>Soustraction</b>&nbsp;: ${V('u')} − ${V('v')} = ${V('u')} + (−${V('v')})&nbsp;: on enchaîne ${V('u')} puis ${V('v')} à l'envers.</p><p>Exemple&nbsp;: ${V('AB')} − ${V('AC')} = ${V('AB')} + ${V('CA')} = ${V('CA')} + ${V('AB')} = ${V('CB')}.</p>`,
+ qs:[
+ ()=>{const [A,u,v]=until(()=>{const A=rp(5,3),u=rv(4,3),v=rv(4,3);return det(u,v)!==0&&inG(add(A,u))&&inG(add(A,v))&&inG(add(add(A,u),v))&&Math.abs(det(u,v))>=3?[A,u,v]:null}),B=add(A,u),D=add(A,v),Cc=add(B,v);
+  return{d:1,prompt:`Deux vedettes partent de A. La première fait ${V('AB')} puis ${V('BC')}, la seconde fait ${V('AD')} puis ${V('DC')}. Le quadrilatère ABCD est un parallélogramme.`,
+   scene(){SC.pt('A',A);SC.pt('B',B);SC.pt('D',D);SC.pt('C',Cc,{col:C.v});SC.boat(A);SC.boat(A,1,{col:'#ffe7a8'})},cap0:'Deux routes, une même arrivée ?',
+   parts:[act('Lancer les deux vedettes',async()=>{SC.arrow('ab',{from:A,v:u,col:C.u,lab:'AB'});SC.arrow('ad',{from:A,v,col:C.v,lab:'AD',side:-1});
+       await Promise.all([SC.sail([A,B,Cc],{pause:120}),SC.sail([A,D,Cc],{b:1,pause:120,snd:false})]);SC.arrow('bc',{from:B,v,col:C.v,a:.5});SC.arrow('dc',{from:D,v:u,col:C.u,a:.5});
+       SC.arrow('ac',{from:A,v:add(u,v),col:C.w,lab:'AC'});cap(`${V('AB')} + ${V('AD')} = ${V('AC')}`)}),
+     ch(`${V('AB')} + ${V('AD')} = &nbsp;?`,uniq([OK(V('AC'),'AC'),NO(V('BD'),`${V('BD')}, c'est l'autre diagonale&nbsp;: elle ne part pas de A. La somme part de A, comme les deux vedettes.`,'BD'),NO(V('DB'),`${V('DB')} = ${V('AB')} − ${V('AD')}&nbsp;: c'est une différence, pas une somme.`,'DB'),NO(V('CA'),'Mauvais sens&nbsp;: les vedettes partent de A et arrivent en C.','CA')]),{k:'vx',terms:['AB','AD'],par:'ABCD'})],
+   done:`ABCD parallélogramme&nbsp;: ${V('AB')} + ${V('AD')} = ${V('AB')} + ${V('BC')} = ${V('AC')}.`}},
+ ()=>{const [A,B,D]=until(()=>{const A=rp(5,3),B=rp(5,3),D=rp(5,3),Pq=add(B,sub(D,A));return lens(A,B,D)&&det(sub(B,A),sub(D,A))!==0&&inG(Pq)&&d2(A,B)>=5&&d2(A,D)>=5?[A,B,D]:null}),Pq=add(B,sub(D,A));
+  return{d:2,prompt:`Place le point <b>P</b> tel que ${V('AP')} = ${V('AB')} + ${V('AD')}.`,
+   scene(){SC.pt('A',A);SC.pt('B',B);SC.pt('D',D);SC.arrow('ab',{from:A,v:sub(B,A),col:C.u,lab:'AB',a:.7});SC.arrow('ad',{from:A,v:sub(D,A),col:C.v,lab:'AD',a:.7,side:-1});SC.boat(A)},cap0:'Trace '+V('AD')+' au bout de '+V('AB'),
+   parts:[{t:'pt',name:'P',start:A,sol:Pq,ask:'Depuis B, refais le trajet '+V('AD')+'&nbsp;:',au:{k:'tr',M:B,u:sub(D,A)},
+     why:w=>same(w,add(D,sub(B,A)))?`Ce point est bien au bout de ${V('AD')} + ${V('AB')}… vérifie tes calculs&nbsp;: il faut le même déplacement que de A à D, depuis B.`:same(w,add(B,sub(A,D)))?'Tu as fait '+V('AD')+' à l\'envers depuis B&nbsp;: c\'est '+V('AB')+' − '+V('AD')+'.':`Depuis B, déplace-toi exactement comme de A vers D&nbsp;: ${colP(sub(D,A))}.`,
+     onOk:async()=>{SC.arrow('bp',{from:B,v:sub(D,A),col:C.v,a:.55});await SC.sail([A,B,Pq],{pause:100});SC.arrow('ap',{from:A,v:sub(Pq,A),col:C.w,lab:'AP',side:-1});SC.seg({a:D,b:Pq,dash:true})}}],
+   done:`${V('AP')} = ${V('AB')} + ${V('AD')}&nbsp;: ABPD est un parallélogramme, et P(${f(Pq[0])}&nbsp;; ${f(Pq[1])}).`}},
+ ()=>{const [A,u,v]=until(()=>{const A=rp(4,3),u=rv(4,3),v=rv(3,3),B=add(A,u),F=sub(B,v);return det(u,v)!==0&&inG(B)&&inG(F)&&inG(add(A,v))&&lens(A,B,F)?[A,u,v]:null}),B=add(A,u),F=sub(B,v);
+  return{d:2,prompt:`Ordre de pilotage&nbsp;: ${V('u')} − ${V('v')}, depuis A. Où arrive la vedette&nbsp;?`,
+   scene(){SC.pt('A',A);SC.arrow('u',{from:A,v:u,col:C.u,lab:'u'});SC.arrow('v',{from:A,v,col:C.v,lab:'v',side:-1});SC.boat(A)},cap0:`${V('u')} ${colP(u)} et ${V('v')} ${colP(v)}`,
+   parts:[ch(`${V('u')} − ${V('v')} = ${V('u')} + &nbsp;?`,[OK('(−'+V('v')+')&nbsp;: le vecteur '+V('v')+' à l\'envers','neg'),NO(V('v'),'Ajouter '+V('v')+' donnerait '+V('u')+' + '+V('v')+'. Soustraire, c\'est ajouter l\'opposé.','pos'),NO('(−'+V('u')+')','C\'est '+V('v')+' qu\'on soustrait, pas '+V('u')+'.','negu')],{k:'txt'},
+      {onOk:async()=>{SC.del('v');SC.arrow('mv',{from:A,v,col:C.v,lab:'v',side:-1});await SC.stretch('mv',-1,900);SC.S.arr.mv.lab='−v';cap(`−${V('v')} ${colP(mul(-1,v))}`)}}),
+     {t:'pt',name:'F',start:A,sol:F,ask:'Place l\'arrivée F&nbsp;: '+V('u')+' depuis A, puis −'+V('v')+' au bout&nbsp;:',au:{k:'tr2',M:A,u,v,s:-1},
+      why:w=>same(w,add(B,v))?'Tu as ajouté '+V('v')+'&nbsp;: il faut le prendre à l\'envers.':same(w,sub(A,v))?'Tu as oublié '+V('u')+'&nbsp;: d\'abord '+V('u')+', puis −'+V('v')+' au bout.':`D'abord ${V('u')} ${colP(u)}, puis −${V('v')} ${colP(mul(-1,v))}.`,
+      onOk:async()=>{SC.arrow('u2',{from:B,v:mul(-1,v),col:C.v,lab:'−v',a:.8});await SC.sail([A,B,F],{pause:100});SC.arrow('af',{from:A,v:sub(F,A),col:C.w,lab:'AF',side:-1})}}],
+   done:`${V('AF')} = ${V('u')} − ${V('v')} = ${V('u')} + (−${V('v')}).`}},
+ ()=>{const [A,B,Cc]=until(()=>{const A=rp(4,3),B=rp(5,3),Cc=rp(5,3),F=add(A,sub(B,Cc));return lens(A,B,Cc,F)&&inG(F)&&det(sub(B,A),sub(Cc,A))!==0&&d2(B,Cc)>=5?[A,B,Cc]:null}),F=add(A,sub(B,Cc));
+  return{d:2,prompt:`Simplifie ${V('AB')} − ${V('AC')}, puis place F tel que ${V('AF')} = ${V('AB')} − ${V('AC')}.`,
+   scene(){SC.pt('A',A);SC.pt('B',B);SC.pt('C',Cc);SC.arrow('ab',{from:A,v:sub(B,A),col:C.u,lab:'AB'});SC.arrow('ac',{from:A,v:sub(Cc,A),col:C.v,lab:'AC',side:-1});SC.boat(A)},cap0:`${V('AB')} − ${V('AC')} = ${V('AB')} + ${V('CA')}`,
+   parts:[ch(`${V('AB')} − ${V('AC')} = ${V('AB')} + ${V('CA')} = &nbsp;?`,uniq([OK(V('CB'),'CB'),NO(V('BC'),`Mauvais sens&nbsp;: ${V('CA')} + ${V('AB')}, la vedette part de C et arrive en B.`,'BC'),NO(V('CA'),`Il manque le trajet ${V('AB')}&nbsp;: ${V('CA')} + ${V('AB')}.`,'CA'),NO(V0,'Les deux vecteurs ne sont pas égaux&nbsp;: leur différence n\'est pas nulle.','0')]),{k:'vx',terms:['AB','-AC']},
+      {onOk:async()=>{SC.arrow('cb',{from:Cc,v:sub(B,Cc),col:C.w,lab:'CB'});cap(`${V('AB')} − ${V('AC')} = ${V('CA')} + ${V('AB')} = ${V('CB')}`)}}),
+     {t:'pt',name:'F',start:A,sol:F,ask:'Place F tel que '+V('AF')+' = '+V('CB')+'&nbsp;: depuis A, refais le trajet de C à B.',au:{k:'tr',M:A,u:sub(B,Cc)},
+      why:w=>same(w,add(A,sub(Cc,B)))?'Tu as fait '+V('BC')+'&nbsp;: c\'est le sens contraire.':`Depuis A, déplace-toi comme de C vers B&nbsp;: ${colP(sub(B,Cc))}.`,
+      onOk:async()=>{await SC.sail([A,F]);SC.arrow('af',{from:A,v:sub(F,A),col:C.w,lab:'AF',side:-1})}}],
+   done:`${V('AF')} = ${V('AB')} − ${V('AC')} = ${V('CB')}&nbsp;: AFBC est un parallélogramme.`}},
+ ()=>{const [A,u,v]=until(()=>{const A=rp(4,3),u=rv(4,2),v=rv(3,3);return det(u,v)!==0&&Math.abs(det(u,v))>=4&&inG(add(A,u))&&inG(add(A,v))&&inG(add(add(A,u),v))?[A,u,v]:null}),B=add(A,u),D=add(A,v),Cc=add(B,v);
+  return{d:2,prompt:`ABCD est un parallélogramme. Quelle égalité est vraie&nbsp;?`,
+   scene(){[['A',A],['B',B],['C',Cc],['D',D]].forEach(([n,p])=>SC.pt(n,p));[[A,B],[B,Cc],[Cc,D],[D,A]].forEach(([a,b])=>SC.seg({a,b,col:'rgba(240,244,255,.4)'}));SC.boat(A)},cap0:'Parallélogramme ABCD',
+   parts:[ch('',uniq([OK(`${V('AB')} = ${V('DC')}`,['AB','DC']),NO(`${V('AB')} = ${V('CD')}`,`Même direction et même longueur, mais ${V('CD')} va dans l'autre sens&nbsp;: ${V('CD')} = −${V('AB')}.`,['AB','CD']),
+      NO(`${V('AD')} = ${V('CB')}`,`${V('CB')} va de C vers B&nbsp;: c'est le sens contraire de ${V('AD')}. On a ${V('AD')} = ${V('BC')}.`,['AD','CB']),NO(`${V('AC')} = ${V('BD')}`,'Les diagonales d\'un parallélogramme n\'ont pas la même direction.',['AC','BD'])]),{k:'pveq'},
+      {onOk:async()=>{SC.arrow('ab',{from:A,v:u,col:C.u,lab:'AB'});SC.arrow('dc',{from:A,v:u,col:C.u,lab:'DC',side:-1,a:.8});SC.boat(A);await SC.anim(900,e=>{SC.S.arr.dc.from=add(A,mul(e,v))});await SC.sail([D,Cc])}})],
+   done:`Dans le parallélogramme ABCD&nbsp;: ${V('AB')} = ${V('DC')} et ${V('AD')} = ${V('BC')} (même direction, même sens, même norme).`}}
+]});
+
+/* ===================== Niveau 4 · Plein gaz ===================== */
+const NORMS=[[[3,4],5],[[4,3],5],[[0,3],3],[[2,0],2],[[-3,4],5],[[4,-3],5],[[0,-2],2],[[-3,0],3]];
+LV.push({t:'Plein gaz',ch:'Produit par un réel',
+ rule:`<p>Soit ${V('u')} un vecteur et k un réel. Le vecteur k${V('u')}&nbsp;: <b>même direction</b> que ${V('u')}&nbsp;; <b>même sens</b> si k&nbsp;&gt;&nbsp;0, <b>sens opposé</b> si k&nbsp;&lt;&nbsp;0&nbsp;; <b>norme</b> ‖k${V('u')}‖ = |k| × ‖${V('u')}‖.</p>
+  <p>En coordonnées&nbsp;: si ${V('u')}${col('x','y')}, alors k${V('u')}${col('kx','ky')}.</p>`,
+ qs:[
+ ()=>{const k=pick([2,3]),[A,u]=until(()=>{const A=rp(5,3),u=rv(2,2);return inG(add(A,mul(k,u)))&&u[0]&&u[1]?[A,u]:null}),B=add(A,mul(k,u));
+  return{d:1,prompt:`Plein gaz&nbsp;! Étire le vecteur ${V('u')}${colP(u)} pour atteindre la balise B, en ligne droite depuis A.`,
+   scene(){SC.pt('A',A);SC.goal('B',B);SC.arrow('u',{from:A,v:u,col:C.u,lab:'u',side:-1});SC.boat(A)},cap0:`${V('u')} ${colP(u)}`,
+   parts:[{t:'k',from:A,u,name:'u',lab:'ku',sol:k,ask:'Choisis k, puis lance la vedette selon k'+V('u')+'&nbsp;:',au:{k:'kfind',u,v:mul(k,u)},why:(x)=>x<0?'Avec k négatif, la vedette part dans le sens opposé. La balise est devant&nbsp;: k &gt; 0.':x<k?'Pas assez loin&nbsp;: étire davantage.':'Trop loin&nbsp;: la balise est plus près.'},
+     fill(`Coordonnées de ${kV(k,'u')}&nbsp;:`,`${kV(k,'u')} ${col('{0}','{1}')}`,[ans(k*u[0]),ans(k*u[1])],`On multiplie <b>les deux</b> coordonnées par ${k}&nbsp;: ${k} × ${f(u[0])} et ${k} × ${f(u[1])}.`,{k:'ku',kk:k,u})],
+   done:`${kV(k,'u')}${col(`${k} × ${u[0]<0?'('+f(u[0])+')':f(u[0])}`,`${k} × ${u[1]<0?'('+f(u[1])+')':f(u[1])}`)} = ${colP(mul(k,u))}&nbsp;: même direction, même sens, ${k} fois plus long.`}},
+ ()=>{const k=pick([-1,-2]),[A,u]=until(()=>{const A=rp(4,3),u=rv(3,2);return inG(add(A,mul(k,u)))&&inG(add(A,u))&&u[0]&&u[1]?[A,u]:null}),B=add(A,mul(k,u));
+  return{d:2,prompt:`Marche arrière&nbsp;! La balise B est derrière la vedette. Trouve k tel que ${V('AB')} = k${V('u')}.`,
+   scene(){SC.pt('A',A);SC.goal('B',B);SC.arrow('u',{from:A,v:u,col:C.u,lab:'u'});SC.boat(A)},cap0:`${V('u')} ${colP(u)}`,
+   parts:[{t:'k',from:A,u,name:'u',lab:'ku',sol:k,ask:'Choisis k (il peut être négatif), puis lance la vedette&nbsp;:',au:{k:'kfind',u,v:mul(k,u)},why:x=>x>0?'Avec k positif, la vedette avance dans le sens de '+V('u')+'. Pour reculer, k doit être <b>négatif</b>.':x===0?'k = 0 donne le vecteur nul&nbsp;: la vedette ne bouge pas.':'Bon sens&nbsp;! Ajuste la longueur&nbsp;: compte combien de fois '+V('u')+' tient dans '+V('AB')+'.'},
+     fill(`Coordonnées de ${kV(k,'u')}&nbsp;:`,`${kV(k,'u')} ${col('{0}','{1}')}`,[ans(k*u[0]),ans(k*u[1])],`On multiplie les deux coordonnées par ${f(k)}&nbsp;: attention aux signes.`,{k:'ku',kk:k,u})],
+   done:`${V('AB')} = ${kV(k,'u')}${colP(mul(k,u))}&nbsp;: même direction, sens opposé (k &lt; 0), norme ${Math.abs(k)===1?'égale':'doublée'}.`}},
+ ()=>{const k=pick([.5,-.5]),[A,u]=until(()=>{const A=rp(5,3),u=[2*nz(-2,2),2*ri(-1,1)];return inG(add(A,u))&&inG(add(A,mul(k,u)))&&u[0]?[A,u]:null}),B=add(A,mul(k,u));
+  return{d:2,prompt:`Mi-gaz&nbsp;: la balise B est à mi-chemin, ${k>0?'devant':'derrière'} la vedette. Trouve k tel que ${V('AB')} = k${V('u')}.`,
+   scene(){SC.pt('A',A);SC.goal('B',B);SC.arrow('u',{from:A,v:u,col:C.u,lab:'u'});SC.boat(A)},cap0:`${V('u')} ${colP(u)}`,
+   parts:[{t:'k',from:A,u,name:'u',lab:'ku',sol:k,ask:'k n\'est pas forcément entier (pas de 0,5)&nbsp;:',au:{k:'kfind',u,v:mul(k,u)},why:x=>(x>0)!==(k>0)?'Mauvais sens&nbsp;: '+(k>0?'la balise est devant, k &gt; 0.':'la balise est derrière, k &lt; 0.'):'Bon sens&nbsp;! La balise est à la moitié de '+V('u')+'&nbsp;: |k| = 0,5.'},
+     fill(`Coordonnées de ${kV(k,'u')}&nbsp;:`,`${kV(k,'u')} ${col('{0}','{1}')}`,[ans(k*u[0]),ans(k*u[1])],`On multiplie les deux coordonnées par ${f(k)}, c'est-à-dire qu'on les divise par ${k>0?'2':'−2'}.`,{k:'ku',kk:k,u})],
+   done:`${kV(k,'u')}${colP(mul(k,u))}&nbsp;: deux fois plus court que ${V('u')}${k<0?', et de sens opposé':''}.`}},
+ ()=>{const [u,n,k,A]=until(()=>{const [u,n]=pick(NORMS),k=pick([-2,-3,2,3]),A=rp(5,3);return inG(add(A,mul(k,u)))&&inG(add(A,u))?[u,n,k,A]:null});
+  return{d:2,prompt:`${V('u')}${colP(u)} a pour norme ‖${V('u')}‖ = ${n}. Quelle est la norme de ${kV(k,'u')}&nbsp;?`,
+   scene(){SC.pt('A',A);SC.arrow('u',{from:A,v:u,col:C.u,lab:'u'});SC.boat(A)},cap0:`‖${V('u')}‖ = ${n}`,
+   parts:[ch(`‖${kV(k,'u')}‖ = &nbsp;?`,uniq([OK(f(Math.abs(k)*n),Math.abs(k)*n),...(k<0?[NO(f(k*n),'Une norme est une longueur&nbsp;: elle n\'est jamais négative. ‖k'+V('u')+'‖ = |k| × ‖'+V('u')+'‖.',k*n)]:[]),
+      NO(f(n),'Le vecteur est étiré&nbsp;: sa norme change. ‖k'+V('u')+'‖ = |k| × ‖'+V('u')+'‖.',n),NO(f(n+Math.abs(k)),'On multiplie la norme par |k|, on ne l\'ajoute pas.',n+Math.abs(k)),NO(f(n*k*k),'On multiplie la norme par |k|, pas par k².',n*k*k)]).slice(0,4),{k:'norm',kk:k,n,u},
+      {onOk:async()=>{SC.arrow('ku',{from:A,v:u,col:C.w,lab:'ku',side:-1});await SC.stretch('ku',k,1100);await SC.sail([A,add(A,mul(k,u))])}})],
+   done:`‖${kV(k,'u')}‖ = |${f(k)}| × ${n} = ${f(Math.abs(k)*n)}${k<0?'&nbsp;: le sens change, mais une longueur reste positive.':'.'}`}},
+ ()=>{const u=[nz(-3,3),nz(-3,3)],k1=pick([3,2]),k2=pick([-2,-3]);
+  return{d:2,prompt:`${V('u')}${colP(u)}. Calcule les coordonnées de ${kV(k1,'u')} et de ${kV(k2,'u')}.`,
+   scene(){SC.pt('O',[0,0],{lab:false});SC.arrow('u',{from:[0,0],v:u,col:C.u,lab:'u'});SC.boat([0,0])},cap0:`${V('u')} ${colP(u)}`,
+   parts:[fill('Coordonnées&nbsp;:',`${kV(k1,'u')} ${col('{0}','{1}')} &nbsp; ${kV(k2,'u')} ${col('{2}','{3}')}`,[ans(k1*u[0]),ans(k1*u[1]),ans(k2*u[0]),ans(k2*u[1])],
+      (v,o)=>(!o[2]||!o[3])&&(o[0]&&o[1])?`Pour ${kV(k2,'u')}, attention aux signes&nbsp;: ${f(k2)} × ${u[0]<0?'('+f(u[0])+')':f(u[0])} = ${f(k2*u[0])}.`:'On multiplie chaque coordonnée par k&nbsp;: k'+V('u')+col('kx','ky')+'.',{k:'ku2',k1,k2,u},
+      {onOk:async()=>{SC.arrow('a',{from:[0,0],v:u,col:C.w,lab:'',a:.9});await SC.stretch('a',k1,800);SC.S.arr.a.lab=k1+'u';SC.arrow('b',{from:[0,0],v:u,col:C.v,a:.9});await SC.stretch('b',k2,900);SC.S.arr.b.lab=f(k2)+'u'}})],
+   done:`${kV(k1,'u')}${colP(mul(k1,u))} et ${kV(k2,'u')}${colP(mul(k2,u))}&nbsp;: tous ont la même direction que ${V('u')}.`}}
+]});
+
+/* ===================== Niveau 5 · Même cap ===================== */
+LV.push({t:'Même cap',ch:'Colinéarité et déterminant',
+ rule:`<p>${V('u')} et ${V('v')} sont <b>colinéaires</b> s'il existe un réel k tel que ${V('u')} = k${V('v')} (ou ${V('v')} = k${V('u')}). Le vecteur ${V0} est colinéaire à tout vecteur.</p>
+  <p><b>Déterminant</b> de ${V('u')}${col('x','y')} et ${V('v')}${col("x′","y′")}&nbsp;: det(${V('u')}, ${V('v')}) = ${`<span class="det"><span><span>x</span><span>y</span></span><span><span>x′</span><span>y′</span></span></span>`} = xy′ − x′y.</p><p>${V('u')} et ${V('v')} colinéaires ⟺ det(${V('u')}, ${V('v')}) = 0.</p>`,
+ qs:[
+ ()=>{const k=pick([2,-2,3,-1,.5,-.5]),[v,A,Bp]=until(()=>{const v=Math.abs(k)===.5?[2*nz(-2,2),2*nz(-1,1)]:rv(2,2),A=[-5+ri(0,2),ri(-2,2)],Bp=[2+ri(0,2),ri(-2,2)];return v[0]&&v[1]&&inG(add(A,mul(k,v)))&&inG(add(Bp,v))&&inG(add(Bp,mul(k,v)))?[v,A,Bp]:null}),u=mul(k,v);
+  return{d:1,prompt:`La vedette doit suivre le cap ${V('u')}${colP(u)}. Elle ne connaît que l'ordre ${V('v')}${colP(v)}, qu'elle peut étirer. Trouve k tel que ${V('u')} = k${V('v')}.`,
+   scene(){SC.arrow('u',{from:A,v:u,col:C.v,lab:'u',dash:true});SC.goal('U',add(A,u),{nopt:true});SC.arrow('v',{from:Bp,v,col:C.u,lab:'v',a:.7});SC.boat(A)},cap0:`${V('u')} ${colP(u)} et ${V('v')} ${colP(v)}`,
+   parts:[{t:'k',from:A,u:v,name:'v',lab:'kv',sol:k,ask:'Étire '+V('v')+' depuis le départ de '+V('u')+'&nbsp;:',au:{k:'kfind',u:v,v:u},why:x=>(x>0)!==(k>0)?'Regarde le sens&nbsp;: '+V('u')+' et '+V('v')+(k>0?' vont dans le même sens, donc k &gt; 0.':' vont en sens contraires, donc k &lt; 0.'):`Bon sens. Compare les abscisses&nbsp;: ${f(u[0])} = k × ${f(v[0])}.`}],
+   done:`${V('u')} = ${kV(k,'v')}&nbsp;: ${V('u')} et ${V('v')} sont colinéaires (même direction).`}},
+ ()=>{const [u,v]=until(()=>{const u=rv(3,3),v=rv(3,3);return det(u,v)!==0&&u[0]&&u[1]&&v[0]&&v[1]&&u[0]%v[0]===0?[u,v]:null}),kx=u[0]/v[0],A=[-1,0];
+  return{d:2,prompt:`${V('u')}${colP(u)} et ${V('v')}${colP(v)}. En étirant ${V('v')}, peut-on obtenir ${V('u')}&nbsp;?`,
+   scene(){SC.arrow('u',{from:A,v:u,col:C.v,lab:'u',dash:true});SC.arrow('kv',{from:A,v,col:C.u,lab:'kv',side:-1});SC.boat(A)},cap0:`${V('u')} ${colP(u)} et ${V('v')} ${colP(v)}`,
+   parts:[act('Étirer '+V('v')+' de k = −3 à k = 3',async()=>{await SC.stretch('kv',-3,500);await SC.stretch('kv',3,2200);cap(`k${V('v')} reste sur sa droite&nbsp;: jamais sur ${V('u')}`)}),
+     ch(`${V('u')} et ${V('v')} sont-ils colinéaires&nbsp;?`,uniq([OK(`Non&nbsp;: aucun réel k ne donne ${V('u')} = k${V('v')}.`,false),NO(`Oui, avec k = ${f(kx)}.`,`Avec k = ${f(kx)}, les abscisses collent, mais ${f(kx)} × ${f(v[1])} = ${f(kx*v[1])} ≠ ${f(u[1])}&nbsp;: il faut que les deux coordonnées collent avec le même k.`,true)]),{k:'col',u,v})],
+   done:`det(${V('u')}, ${V('v')}) = ${f(u[0])} × ${v[1]<0?'('+f(v[1])+')':f(v[1])} − ${v[0]<0?'('+f(v[0])+')':f(v[0])} × ${u[1]<0?'('+f(u[1])+')':f(u[1])} = ${f(det(u,v))} ≠ 0&nbsp;: non colinéaires.`}},
+ ()=>{const c=Math.random()<.5,[u,v]=until(()=>{const u=rv(4,4);let v;if(c){const k=pick([2,-2,3,-1,-3]);v=mul(k,u)}else v=rv(4,4);return u[0]&&u[1]&&v[0]&&v[1]&&(c?det(u,v)===0:det(u,v)!==0)&&!same(u,v)&&Math.abs(v[0])<=8&&Math.abs(v[1])<=8?[u,v]:null}),D=det(u,v);
+  const pa=x=>x<0?'('+f(x)+')':f(x);
+  return{d:2,prompt:`${V('u')}${colP(u)} et ${V('v')}${colP(v)}. Calcule le déterminant pour savoir s'ils ont le même cap.`,
+   scene(){SC.arrow('u',{from:[-3,0],v:u,col:C.u,lab:'u'});SC.arrow('v',{from:[3,0],v,col:C.v,lab:'v'});SC.boat([-3,0])},cap0:`det(${V('u')}, ${V('v')}) = xy′ − x′y`,
+   parts:[fill(`det(${V('u')}, ${V('v')}) = ${dett(u,v)} =`,`${pa(u[0])} × ${pa(v[1])} − ${pa(v[0])} × ${pa(u[1])} = {0}`,[ans(D)],(w)=>{const x=parseFloat(String(w[0]).replace('−','-').replace(',','.'));return x===u[0]*v[1]+v[0]*u[1]?'Tu as additionné&nbsp;: c\'est une <b>différence</b>, xy′ − x′y.':x===-D?'Tu as calculé x′y − xy′&nbsp;: c\'est l\'opposé. L\'ordre est xy′ − x′y.':'Calcule d\'abord chaque produit (attention aux signes), puis la différence.'},{k:'det',u,v}),
+     ch('Conclusion&nbsp;:',uniq([OK(c?'Colinéaires&nbsp;: det = 0.':'Pas colinéaires&nbsp;: det ≠ 0.',c),NO(c?'Pas colinéaires&nbsp;: det = 0.':'Colinéaires&nbsp;: det ≠ 0.','Colinéaires ⟺ det = 0.',!c)]),{k:'col',u,v},
+      {onOk:async()=>{if(c){SC.arrow('w',{from:[3,0],v:u,col:C.w,lab:'',a:.9});const k=v[0]/u[0];await SC.stretch('w',k,1000)}}})],
+   done:`det(${V('u')}, ${V('v')}) = ${f(D)}${c?'&nbsp;: les vecteurs sont colinéaires.':'&nbsp;≠ 0&nbsp;: les vecteurs ne sont pas colinéaires.'}`}},
+ ()=>{const [u,xp,yp]=until(()=>{const u=[nz(-3,3),nz(-4,4)],xp=nz(-6,6),yp=u[1]*xp/u[0];return Number.isInteger(yp)&&Math.abs(yp)<=8&&xp!==u[0]?[u,xp,yp]:null});
+  return{d:2,prompt:`${V('u')}${colP(u)} et ${V('v')}${col(f(xp),'y')}. Quelle valeur de y rend ${V('u')} et ${V('v')} colinéaires&nbsp;?`,
+   scene(){SC.arrow('u',{from:[0,0],v:u,col:C.u,lab:'u'});SC.line({a:[0,0],b:u});SC.boat([0,0])},cap0:'Colinéaires ⟺ det = 0',
+   parts:[fill(`det(${V('u')}, ${V('v')}) = ${f(u[0])} × y − ${xp<0?'('+f(xp)+')':f(xp)} × ${u[1]<0?'('+f(u[1])+')':f(u[1])} = 0, donc`,'y = {0}',[ans(yp)],`On résout ${f(u[0])}y − ${f(xp*u[1])} = 0${xp*u[1]<0?' (attention au signe)':''}&nbsp;: y = ${f(xp*u[1])} ÷ ${u[0]<0?'('+f(u[0])+')':f(u[0])}.`.replace('− −','+ '),{k:'ypar',u,x:xp},
+      {onOk:async()=>{SC.arrow('v',{from:[0,0],v:[xp,yp],col:C.v,lab:'v',side:-1});await SC.sail([[0,0],[xp,yp]])}})],
+   done:`y = ${f(yp)}&nbsp;: ${V('v')}${colP([xp,yp])} = ${kV(xp/u[0],'u')}, les deux vecteurs ont la même direction.`.replace(/<span class="fr"><span>(\d+)<\/span><span>2<\/span><\/span>/,'$&')}},
+ ()=>{const [u,v]=until(()=>{const u=rv(5,4),v=rv(5,4),D=det(u,v),s=u[0]*v[1]+v[0]*u[1],t=u[0]*v[0]-u[1]*v[1];return u[0]&&u[1]&&v[0]&&v[1]&&D!==0&&new Set([D,-D,s,t]).size===4&&!same(u,v)?[u,v]:null}),D=det(u,v);
+  return{d:2,prompt:`Calcule det(${V('u')}, ${V('v')}) pour ${V('u')}${colP(u)} et ${V('v')}${colP(v)}.`,
+   scene(){SC.arrow('u',{from:[-3,-1],v:u,col:C.u,lab:'u'});SC.arrow('v',{from:[3,-1],v,col:C.v,lab:'v'});SC.boat([-3,-1])},cap0:`det(${V('u')}, ${V('v')}) = xy′ − x′y`,
+   parts:[ch(`det(${V('u')}, ${V('v')}) = &nbsp;?`,uniq([OK(f(D),D),NO(f(-D),'C\'est x′y − xy′&nbsp;: l\'ordre compte. det = xy′ − x′y.',-D),NO(f(u[0]*v[1]+v[0]*u[1]),'C\'est une différence, pas une somme&nbsp;: xy′ − x′y.',u[0]*v[1]+v[0]*u[1]),NO(f(u[0]*v[0]-u[1]*v[1]),'On croise&nbsp;: x avec y′, puis x′ avec y.',u[0]*v[0]-u[1]*v[1])]),{k:'det',u,v})],
+   done:`det(${V('u')}, ${V('v')}) = ${dett(u,v)} = ${f(u[0])} × ${v[1]<0?'('+f(v[1])+')':f(v[1])} − ${v[0]<0?'('+f(v[0])+')':f(v[0])} × ${u[1]<0?'('+f(u[1])+')':f(u[1])} = ${f(D)}.`}}
+]});
+
+/* ===================== Niveau 6 · Balises alignées ===================== */
+const pa=x=>x<0?'('+f(x)+')':f(x);
+const detLine=(u,v)=>`${pa(u[0])} × ${pa(v[1])} − ${pa(v[0])} × ${pa(u[1])} = ${f(det(u,v))}`;
+LV.push({t:'Balises alignées',ch:'Alignement et parallélisme',
+ rule:`<p><b>Alignement</b>&nbsp;: A, B, C alignés ⟺ ${V('AB')} et ${V('AC')} colinéaires ⟺ det(${V('AB')}, ${V('AC')}) = 0.</p><p><b>Parallélisme</b>&nbsp;: (AB) ∥ (CD) ⟺ ${V('AB')} et ${V('CD')} colinéaires ⟺ det(${V('AB')}, ${V('CD')}) = 0.</p>`,
+ qs:[
+ ()=>{const al=Math.random()<.5,[A,B,Cc]=until(()=>{const A=rp(5,3),u=rv(3,2),B=add(A,u),k=pick([2,3,-1,-2]);let Cc=add(A,mul(k,u));if(!al)Cc=add(Cc,pick([[1,0],[0,1],[-1,0],[0,-1]]));return inG(B)&&inG(Cc)&&lens(A,B,Cc)&&u[0]&&u[1]?[A,B,Cc]:null}),u=sub(B,A),w=sub(Cc,A);
+  return{d:3,prompt:`Trois balises&nbsp;: ${P('A',A)}, ${P('B',B)} et ${P('C',Cc)}. La vedette part de A et vise B&nbsp;: passera-t-elle exactement par C&nbsp;?`,
+   scene(){SC.pt('A',A);SC.pt('B',B);SC.pt('C',Cc,{col:C.v});SC.boat(A)},cap0:'A, B, C alignés ?',
+   parts:[fill('Coordonnées des deux vecteurs&nbsp;:',`${V('AB')} ${col('{0}','{1}')} &nbsp; ${V('AC')} ${col('{2}','{3}')}`,[ans(u[0]),ans(u[1]),ans(w[0]),ans(w[1])],'Arrivée − départ, pour chaque vecteur&nbsp;: les deux partent de A.',{k:'AB2',A,B,C:Cc}),
+     fill(`det(${V('AB')}, ${V('AC')}) =`,`${pa(u[0])} × ${pa(w[1])} − ${pa(w[0])} × ${pa(u[1])} = {0}`,[ans(det(u,w))],'Calcule chaque produit avec son signe, puis la différence.',{k:'det',u,v:w}),
+     ch('Conclusion&nbsp;:',uniq([OK(al?'A, B, C sont alignés.':'A, B, C ne sont pas alignés.',al),NO(al?'A, B, C ne sont pas alignés.':'A, B, C sont alignés.','det = 0 ⟺ alignés.',!al)]),{k:'ali',A,B,C:Cc},
+      {onOk:async()=>{SC.line({a:A,b:B,col:al?'rgba(79,209,197,.6)':'rgba(240,244,255,.35)'});const far=add(A,mul(al?(Math.abs(w[0])>Math.abs(u[0])||Math.abs(w[1])>Math.abs(u[1])?w[0]/u[0]||w[1]/u[1]:1):1,u));
+        await SC.sail([A,al&&det(u,w)===0?Cc:B]);cap(al?'La vedette passe exactement par C':'La route (AB) frôle C sans passer dessus')}})],
+   done:`det(${V('AB')}, ${V('AC')}) = ${detLine(u,w)}${al?'&nbsp;: A, B, C sont alignés.':'&nbsp;≠ 0&nbsp;: A, B, C ne sont pas alignés.'}`}},
+ ()=>{const pr=Math.random()<.5,[A,B,Cc,D]=until(()=>{const A=rp(5,3),u=rv(3,2),B=add(A,u),Cc=rp(5,3),k=pick([1,2,-1,-2]);let D=add(Cc,mul(k,u));if(!pr)D=add(D,pick([[1,0],[0,1],[-1,0],[0,-1]]));return inG(B)&&inG(D)&&lens(A,B,Cc,D)&&det(u,sub(Cc,A))!==0&&u[0]&&u[1]?[A,B,Cc,D]:null}),u=sub(B,A),w=sub(D,Cc);
+  return{d:3,prompt:`Deux routes de navigation&nbsp;: (AB) et (CD), avec ${P('A',A)}, ${P('B',B)}, ${P('C',Cc)}, ${P('D',D)}. Sont-elles parallèles&nbsp;?`,
+   scene(){[['A',A],['B',B],['C',Cc],['D',D]].forEach(([n,p])=>SC.pt(n,p));SC.line({a:A,b:B});SC.line({a:Cc,b:D});SC.boat(A);SC.boat(Cc,1,{col:'#ffe7a8'})},cap0:'(AB) ∥ (CD) ?',
+   parts:[fill('Coordonnées&nbsp;:',`${V('AB')} ${col('{0}','{1}')} &nbsp; ${V('CD')} ${col('{2}','{3}')}`,[ans(u[0]),ans(u[1]),ans(w[0]),ans(w[1])],'Arrivée − départ&nbsp;: B − A, puis D − C.',{k:'AB2b',A,B,C:Cc,D}),
+     fill(`det(${V('AB')}, ${V('CD')}) =`,`${pa(u[0])} × ${pa(w[1])} − ${pa(w[0])} × ${pa(u[1])} = {0}`,[ans(det(u,w))],'Chaque produit avec son signe, puis la différence.',{k:'det',u,v:w}),
+     ch('Conclusion&nbsp;:',uniq([OK(pr?'(AB) ∥ (CD)':'(AB) et (CD) ne sont pas parallèles',pr),NO(pr?'(AB) et (CD) ne sont pas parallèles':'(AB) ∥ (CD)','det = 0 ⟺ parallèles.',!pr)]),{k:'par',A,B,C:Cc,D},
+      {onOk:async()=>{SC.arrow('ab',{from:A,v:u,col:C.u,lab:'AB'});SC.arrow('cd',{from:Cc,v:w,col:C.v,lab:'CD'});await Promise.all([SC.sail([A,B]),SC.sail([Cc,D],{b:1,snd:false})])}})],
+   done:`det(${V('AB')}, ${V('CD')}) = ${detLine(u,w)}${pr?'&nbsp;: les routes sont parallèles.':'&nbsp;≠ 0&nbsp;: les routes ne sont pas parallèles.'}`}},
+ ()=>{const [A,B,xc]=until(()=>{const A=rp(5,3),u=[nz(-2,2),nz(-2,2)],B=add(A,u),k=pick([2,3,-1,-2]),Cc=add(A,mul(k,u));return inG(B)&&inG(Cc)&&lens(A,B,Cc)?[A,B,Cc[0]]:null}),u=sub(B,A),yc=A[1]+u[1]*(xc-A[0])/u[0];
+  return{d:3,prompt:`La balise C, d'abscisse ${f(xc)}, doit être sur la route (AB), avec ${P('A',A)} et ${P('B',B)}. Trouve son ordonnée.`,
+   scene(){SC.pt('A',A);SC.pt('B',B);SC.arrow('ab',{from:A,v:u,col:C.u,lab:'AB'});SC.line({a:[xc,-3],b:[xc,3],col:'rgba(232,199,102,.35)',lab:'x = '+f(xc),lp:[xc,-3.4]});SC.boat(A)},cap0:'C sur (AB) ⟺ det('+V('AB')+', '+V('AC')+') = 0',
+   parts:[{t:'pt',name:'C',start:[xc,0],sol:[xc,yc],ask:`Place C(${f(xc)}&nbsp;; y) sur la route (AB)&nbsp;:`,au:{k:'yali',A,B,x:xc},why:w=>w[0]!==xc?`L'abscisse de C est imposée&nbsp;: ${f(xc)}.`:`Avec ${V('AB')}${colP(u)}, chaque pas de ${f(u[0])} en x donne ${f(u[1])} en y. Utilise det(${V('AB')}, ${V('AC')}) = 0.`,
+      onOk:async()=>{SC.line({a:A,b:B,col:'rgba(79,209,197,.6)'});await SC.sail([A,B,[xc,yc]],{pause:80})}}],
+   done:`C(${f(xc)}&nbsp;; ${f(yc)})&nbsp;: ${V('AC')}${colP(sub([xc,yc],A))} = ${kV((xc-A[0])/u[0],'AB')}, donc det = 0 et A, B, C sont alignés.`}},
+ ()=>{const [A,B,Cc]=until(()=>{const A=rp(5,3),u=rv(2,2),B=add(A,u),Cc=add(A,mul(pick([2,3,-2]),u));return u[0]&&u[1]&&inG(B)&&inG(Cc)?[A,B,Cc]:null}),u=sub(B,A),w=sub(Cc,A),D=det(u,w);
+  return{d:2,prompt:`${P('A',A)}, ${P('B',B)}, ${P('C',Cc)}. Que vaut det(${V('AB')}, ${V('AC')})&nbsp;?`,
+   scene(){SC.pt('A',A);SC.pt('B',B);SC.pt('C',Cc);SC.boat(A)},cap0:`${V('AB')} ${colP(u)} et ${V('AC')} ${colP(w)}`,
+   parts:[ch(`det(${V('AB')}, ${V('AC')}) = &nbsp;?`,uniq([OK(f(D),D),NO(f(u[0]*w[1]+w[0]*u[1]),'C\'est une différence&nbsp;: xy′ − x′y.',u[0]*w[1]+w[0]*u[1]),NO(f(det(B,Cc)),'Le déterminant se calcule avec les coordonnées des <b>vecteurs</b> '+V('AB')+' et '+V('AC')+', pas avec celles des points B et C.',det(B,Cc)),NO(f(u[0]*w[0]-u[1]*w[1]),'On croise&nbsp;: x avec y′, puis x′ avec y.',u[0]*w[0]-u[1]*w[1])]),{k:'detAC',A,B,C:Cc},
+      {onOk:async()=>{SC.line({a:A,b:B,col:'rgba(79,209,197,.6)'});await SC.sail([A,Cc])}})],
+   done:`det(${V('AB')}, ${V('AC')}) = ${detLine(u,w)}&nbsp;: A, B, C sont alignés.`}},
+ ()=>{const [A,B,Cc]=until(()=>{const A=rp(6,4),u=[nz(-4,4),nz(-3,3)],B=add(A,u),k=pick([2,3]),Cc=add(add(A,mul(k,u)),pick([[1,0],[0,1],[-1,0],[0,-1]]));return inG(B)&&inG(Cc)&&lens(A,B,Cc)&&Math.abs(det(u,sub(Cc,A)))===1&&Math.abs(u[0])+Math.abs(u[1])>=4?[A,B,Cc]:null}),u=sub(B,A),w=sub(Cc,A);
+  return{d:3,prompt:`Sur le quadrillage, ${P('A',A)}, ${P('B',B)} et ${P('C',Cc)} <b>semblent</b> alignés. Le sont-ils vraiment&nbsp;?`,
+   scene(){SC.pt('A',A);SC.pt('B',B);SC.pt('C',Cc);SC.boat(A)},cap0:'Le calcul tranche, pas l\'œil',
+   parts:[ch('A, B, C sont-ils alignés&nbsp;?',uniq([OK(`Non&nbsp;: det(${V('AB')}, ${V('AC')}) = ${f(det(u,w))} ≠ 0.`,false),NO('Oui&nbsp;: ils sont presque sur une même droite.','«&nbsp;Presque&nbsp;» ne suffit pas&nbsp;: calcule det('+V('AB')+', '+V('AC')+').',true),NO('On ne peut pas savoir sans tracer.','Le déterminant donne la réponse exacte, sans tracer.',null)]),{k:'ali',A,B,C:Cc},
+      {onOk:async()=>{SC.line({a:A,b:B,col:'rgba(240,244,255,.45)'});await SC.sail([A,add(A,mul(Math.abs(w[0])>Math.abs(u[0])?w[0]/u[0]:w[1]/u[1],u))]);cap('La route (AB) passe tout près de C, sans le toucher')}})],
+   done:`${V('AB')}${colP(u)}, ${V('AC')}${colP(w)}&nbsp;: det = ${detLine(u,w)} ≠ 0. A, B, C ne sont pas alignés, même si l'œil s'y trompe.`}}
+]});
+
+/* ===================== Niveau 7 · Rendez-vous ===================== */
+LV.push({t:'Rendez-vous',ch:'Milieu, distance, médiatrice',
+ rule:`<p><b>Milieu</b> de [AB]&nbsp;: I${'('+fr('x<sub>A</sub> + x<sub>B</sub>','2')+'&nbsp;; '+fr('y<sub>A</sub> + y<sub>B</sub>','2')+')'}.</p><p><b>Distance</b> (repère orthonormé)&nbsp;: AB = √((x<sub>B</sub> − x<sub>A</sub>)² + (y<sub>B</sub> − y<sub>A</sub>)²) (théorème de Pythagore).</p>
+  <p><b>Projeté orthogonal</b> de A sur une droite d&nbsp;: le pied H de la perpendiculaire à d passant par A. AH est la plus courte distance de A à d.</p><p><b>Médiatrice</b> de [AB]&nbsp;: M est sur la médiatrice ⟺ MA = MB.</p>`,
+ qs:[
+ ()=>{const [A,B]=until(()=>{const A=rp(6,4),B=rp(6,4);return (A[0]+B[0])%2===0&&(A[1]+B[1])%2===0&&d2(A,B)>=16&&A[0]!==B[0]&&A[1]!==B[1]?[A,B]:null}),I=[(A[0]+B[0])/2,(A[1]+B[1])/2];
+  return{d:1,prompt:`Deux vedettes, en ${P('A',A)} et ${P('B',B)}, se donnent rendez-vous au milieu I de [AB]. Place I.`,
+   scene(){SC.pt('A',A);SC.pt('B',B);SC.seg({a:A,b:B,dash:true});SC.boat(A);SC.boat(B,1,{col:'#ffe7a8'})},cap0:'I : la moyenne des coordonnées',
+   parts:[{t:'pt',name:'I',start:[0,0],sol:I,ask:'Calcule les coordonnées de I, puis place-le&nbsp;:',au:{k:'mil',A,B},why:w=>same(w,sub(B,A))||same(w,mul(.5,sub(B,A)))?'Ce n\'est pas le déplacement qu\'on cherche&nbsp;: on fait la <b>moyenne</b> des coordonnées, (x<sub>A</sub> + x<sub>B</sub>) ÷ 2.':same(w,add(A,B))?'Tu as oublié de diviser par 2.':`x<sub>I</sub> = (${f(A[0])} + ${pa(B[0])}) ÷ 2 et y<sub>I</sub> = (${f(A[1])} + ${pa(B[1])}) ÷ 2.`,
+      onOk:async()=>{await Promise.all([SC.sail([A,I]),SC.sail([B,I],{b:1,snd:false})]);cap('Rendez-vous en I : AI = IB')}}],
+   done:`I(${fr(`${f(A[0])} + ${pa(B[0])}`,2)}&nbsp;; ${fr(`${f(A[1])} + ${pa(B[1])}`,2)}) = I(${f(I[0])}&nbsp;; ${f(I[1])}).`}},
+ ()=>{const [A,B]=until(()=>{const A=rp(5,3),B=rp(5,3);return A[0]!==B[0]&&A[1]!==B[1]&&Math.abs(A[0]-B[0])!==Math.abs(A[1]-B[1])?[A,B]:null}),dx=Math.abs(B[0]-A[0]),dy=Math.abs(B[1]-A[1]),s=dx*dx+dy*dy,H=[B[0],A[1]];
+  const L=uniq([OK(radH(s)==='1'?'1':(rad(s)[1]===1?f(rad(s)[0]):sq(s)),{sq:s}),NO(f(dx+dy),'Ce serait la longueur du trajet en «&nbsp;L&nbsp;» (horizontal puis vertical). La ligne droite est plus courte&nbsp;: Pythagore.',{n:dx+dy}),
+    NO(f(s),'C\'est AB², pas AB&nbsp;: il manque la racine carrée.',{n:s}),NO(sq(dx+dy),'La racine d\'une somme de carrés&nbsp;: √(dx² + dy²), pas √(dx + dy).',{sq:dx+dy})]);
+  return{d:2,prompt:`Distance en ligne droite entre ${P('A',A)} et ${P('B',B)}&nbsp;? Le repère est orthonormé.`,
+   scene(){SC.pt('A',A);SC.pt('B',B);SC.boat(A)},cap0:'AB = √((x<sub>B</sub> − x<sub>A</sub>)² + (y<sub>B</sub> − y<sub>A</sub>)²)',
+   parts:[act('Tracer le triangle rectangle',async()=>{SC.seg({a:A,b:H,col:C.u,lab:String(dx),oy:A[1]>B[1]?-12:14});SC.seg({a:H,b:B,col:C.v,lab:String(dy),ox:B[0]>A[0]?12:-12});S.SC.S.rt=[H,A,B];await SC.sail([A,B]);SC.seg({a:A,b:B,col:C.w,w:3})}),
+     fill('Pythagore dans le triangle rectangle&nbsp;:',`AB² = {0}² + {1}² = {2}`,[[String(dx)],[String(dy)],[String(s)]],(v,o)=>o[0]&&o[1]?`${dx}² + ${dy}² = ${dx*dx} + ${dy*dy}.`:'Les côtés de l\'angle droit mesurent |x<sub>B</sub> − x<sub>A</sub>| et |y<sub>B</sub> − y<sub>A</sub>|&nbsp;: compte les carreaux.',{k:'leg',A,B}),
+     ch('Donc AB = &nbsp;?',L,{k:'dist',A,B})],
+   done:`AB = √(${dx}² + ${dy}²) = ${sq(s)}${rad(s)[0]>1?' = '+radH(s):''}.`}},
+ ()=>{const hz=Math.random()<.5,c=ri(-3,3),[A]=until(()=>{const A=hz?[ri(-5,5),ri(-4,4)]:[ri(-6,6),ri(-3,3)];return (hz?Math.abs(A[1]-c):Math.abs(A[0]-c))>=2?[A]:null});
+  const Hh=hz?[A[0],c]:[c,A[1]],L1=hz?[[-6,c],[6,c]]:[[c,-4],[c,4]];
+  return{d:2,prompt:`La vedette est en ${P('A',A)}, en panne d'essence. Elle doit rejoindre le quai, la droite d d'équation ${hz?'y = '+f(c):'x = '+f(c)}, par le <b>plus court chemin</b>. Place le point d'arrivée H.`,
+   scene(){SC.line({a:L1[0],b:L1[1],col:'rgba(232,199,102,.75)',dash:false,w:3,lab:'d (quai)',lp:hz?[3.6,c]:[c,-3.4]});SC.pt('A',A);SC.boat(A)},cap0:'Le plus court chemin : la perpendiculaire',
+   parts:[{t:'pt',name:'H',start:hz?[0,c]:[c,0],sol:Hh,ask:'Place H sur le quai&nbsp;:',au:{k:'proj',A,B:L1[0],C:L1[1]},why:(w,n)=>{const onL=hz?w[1]===c:w[0]===c;if(!onL)return 'H doit être <b>sur</b> le quai d.';const dd=dist0(A,w).toFixed(2).replace('.',','),dh=dist0(A,Hh);
+      return `Ce point est sur le quai, mais AH ≈ ${dd} alors qu'on peut faire ${f(dh)}&nbsp;: le plus court chemin est <b>perpendiculaire</b> au quai.`},
+      onOk:async()=>{SC.seg({a:A,b:Hh,col:C.w,w:3});S.SC.S.rt=[Hh,A,L1[0][0]===Hh[0]&&L1[0][1]===Hh[1]?L1[1]:L1[0]];await SC.sail([A,Hh])}},
+     ch('Quelle est la distance AH&nbsp;?',projCh(A,Hh,hz,c),{k:'projd',A,B:L1[0],C:L1[1]})],
+   done:`H(${f(Hh[0])}&nbsp;; ${f(Hh[1])}) est le projeté orthogonal de A sur d&nbsp;: AH = ${f(dist0(A,Hh))}, la plus courte distance de A au quai.`}},
+ ()=>{const on=Math.random()<.5,[A,B,M]=until(()=>{const A=rp(5,3),B=rp(5,3);if(same(A,B)||d2(A,B)<8)return null;const cand=[];for(let x=-6;x<=6;x++)for(let y=-4;y<=4;y++){const m=[x,y];if(lens(A,B,m)&&(d2(m,A)===d2(m,B))===on&&(on||Math.abs(d2(m,A)-d2(m,B))<=8)&&!same(m,[(A[0]+B[0])/2,(A[1]+B[1])/2]))cand.push(m)}return cand.length?[A,B,pick(cand)]:null});
+  const a=d2(M,A),b=d2(M,B);
+  return{d:2,prompt:`Deux pontons, ${P('A',A)} et ${P('B',B)}. Une bouée est en ${P('M',M)}. Est-elle sur la médiatrice de [AB], à égale distance des deux pontons&nbsp;?`,
+   scene(){SC.pt('A',A);SC.pt('B',B);SC.pt('M',M,{col:C.v});SC.seg({a:M,b:A,dash:true});SC.seg({a:M,b:B,dash:true});SC.boat(M)},cap0:'M sur la médiatrice ⟺ MA = MB',
+   parts:[fill('Calcule les carrés des distances&nbsp;:','MA² = {0} &nbsp; MB² = {1}',[[String(a)],[String(b)]],`MA² = (x<sub>A</sub> − x<sub>M</sub>)² + (y<sub>A</sub> − y<sub>M</sub>)²&nbsp;: un carré n'est jamais négatif.`,{k:'d2pair',M,A,B}),
+     ch('Conclusion&nbsp;:',uniq([OK(on?'Oui&nbsp;: MA = MB, M est sur la médiatrice.':'Non&nbsp;: MA ≠ MB, M n\'est pas sur la médiatrice.',on),NO(on?'Non&nbsp;: M n\'est pas sur [AB].':'Oui&nbsp;: M est assez près du milieu.',on?'La médiatrice est perpendiculaire à [AB]&nbsp;: ses points ne sont pas sur [AB] (sauf le milieu). Le critère est MA = MB.':'Il faut MA = MB exactement.',!on)]),{k:'med',A,B,M},
+      {onOk:async()=>{await SC.sail([M,A],{speed:240});await SC.sail([A,M,B],{speed:240})}})],
+   done:`MA² = ${a} et MB² = ${b}${on?'&nbsp;: MA = MB, M est sur la médiatrice de [AB].':'&nbsp;: MA ≠ MB, M n\'est pas sur la médiatrice de [AB].'}`}},
+ ()=>{const [A,I]=until(()=>{const A=rp(5,3),I=rp(4,3),B=sub(mul(2,I),A);return inG(B)&&!same(A,I)&&A[0]!==I[0]&&A[1]!==I[1]?[A,I]:null}),B=sub(mul(2,I),A);
+  return{d:3,prompt:`La vedette part de ${P('A',A)}. La bouée ${P('I',I)} est le milieu du trajet [AB]. Où est l'arrivée B&nbsp;?`,
+   scene(){SC.pt('A',A);SC.pt('I',I,{col:C.v});SC.arrow('ai',{from:A,v:sub(I,A),col:C.u,lab:'AI'});SC.boat(A)},cap0:'I milieu de [AB] ⟺ '+V('AI')+' = '+V('IB'),
+   parts:[{t:'pt',name:'B',start:I,sol:B,ask:'Depuis I, refais le trajet '+V('AI')+'&nbsp;:',au:{k:'symB',A,I},why:w=>same(w,[(A[0]+I[0])/2,(A[1]+I[1])/2])?'Ce point est le milieu de [AI], pas l\'arrivée&nbsp;: I doit être au milieu de [AB].':same(w,A)?'C\'est le départ&nbsp;!':`I est le milieu&nbsp;: ${V('IB')} = ${V('AI')}${colP(sub(I,A))}.`,
+      onOk:async()=>{SC.arrow('ib',{from:I,v:sub(I,A),col:C.u,lab:'IB'});await SC.sail([A,I,B])}}],
+   done:`${V('IB')} = ${V('AI')}, donc B(${f(B[0])}&nbsp;; ${f(B[1])}). Vérification&nbsp;: (${f(A[0])} + ${pa(B[0])}) ÷ 2 = ${f(I[0])} et (${f(A[1])} + ${pa(B[1])}) ÷ 2 = ${f(I[1])}.`}}
+]});
+
+/* ordre des questions : difficulté croissante dans chaque niveau */
+const reord=(i,o)=>{const q=LV[i].qs;LV[i].qs=o.map(k=>q[k])};reord(0,[0,1,2,4,3]);reord(1,[0,3,1,2,4]);reord(5,[3,0,1,2,4]);
+/* ---------- accès pour les tests ---------- */
+window.PL={state:()=>({busy,lvl,qi,pi,part:Q&&Q.parts[pi]?JSON.parse(JSON.stringify(Q.parts[pi],(k,v)=>typeof v==='function'?undefined:v)):null,nParts:Q?Q.parts.length:0,win:!$('win').hidden}),
+  LV,gen:(l,q)=>{const x=LV[l].qs[q]();return JSON.parse(JSON.stringify({prompt:x.prompt,done:x.done,d:x.d,parts:x.parts},(k,v)=>typeof v==='function'?undefined:v))},
+  start(){renderLv();goLevel(0)},go:goLevel};
+window.PL_W={f,ans,P,V,Vi,Vj,V0,col,colP,fr,sq,dett,kfmt,kV,lin,pa,radH,rad};
+})();
+</script>
+<script>
+/* ======================= LE PILOTE DU LAGON — épreuves finales ======================= */
+(function(){
+'use strict';
+const S=window.PL_S,{ri,pick,shuf,nz,add,sub,mul,det,same,inG,rp,rv,until,d2,rad,lens}=S;
+const {f,ans,P,V,Vi,Vj,V0,col,colP,fr,sq,dett,kV,lin,pa,radH}=window.PL_W;
+const nw=S.nw;
+const Q=(level,prompt,items,au,explain,d)=>{items=uniqI(items);return{type:'qcm',level,prompt:nw(prompt),choices:items.map(c=>nw(c[0])),answer:0,explain:nw(explain),au,chv:items.map(c=>c[1]),d}};
+const T=(level,prompt,blanks,au,explain,d)=>({type:'trous',level,prompt:nw(prompt),blanks:blanks.map(b=>({answers:b,size:Math.max(3,...b.map(a=>a.length))})),explain,au,d});
+const uniqI=L=>{const s=new Set(),o=[];L.forEach(c=>{const k=JSON.stringify(c[1]);if(!s.has(k)){s.add(k);o.push(c)}});return o};
+const pv=p=>colP(p);
+const twoPts=(m=5,n=4,ok)=>until(()=>{const A=rp(m,n),B=rp(m,n);return !same(A,B)&&(!ok||ok(A,B))?[A,B]:null});
+const okv=(A,B)=>{const v=sub(B,A);return v[0]&&v[1]&&!same(v,B)&&!same(v,add(A,B))&&!same(v,mul(-1,v))};
+const dLine=(u,v)=>`${pa(u[0])} × ${pa(v[1])} − ${pa(v[0])} × ${pa(u[1])} = ${f(det(u,v))}`;
+
+/* ----- Bronze : une étape, petits nombres ----- */
+const bQ=[
+ ()=>{const [A,B]=twoPts(4,4,okv),v=sub(B,A);return Q(1,`On donne ${P('A',A)} et ${P('B',B)}. Les coordonnées de ${V('AB')} sont&nbsp;:`,[[pv(v),v],[pv(sub(A,B)),sub(A,B)],[pv(add(A,B)),add(A,B)],[pv(B),B]],{k:'AB',A,B},`${V('AB')}${col('x<sub>B</sub> − x<sub>A</sub>','y<sub>B</sub> − y<sub>A</sub>')} = ${pv(v)}&nbsp;: arrivée − départ.`,1)},
+ ()=>{const [X,Y,Z]=pick([['A','B','C'],['M','N','P'],['E','F','G'],['R','S','T']]);return Q(2,`${V(X+Y)} + ${V(Y+Z)} est égal à&nbsp;:`,[[V(X+Z),X+Z],[V(Z+X),Z+X],[V(Y+X),Y+X],[V0,'0']],{k:'vx',terms:[X+Y,Y+Z]},`Relation de Chasles&nbsp;: ${V(X+Y)} + ${V(Y+Z)} = ${V(X+Z)}.`,1)},
+ ()=>{const k=pick([2,3,-2,-1]),u=[nz(-4,4),nz(-4,4)];return Q(4,`${V('u')}${pv(u)}. Les coordonnées de ${kV(k,'u')} sont&nbsp;:`,[[pv(mul(k,u)),mul(k,u)],[pv([k*u[0],u[1]]),[k*u[0],u[1]]],[pv([u[0]+k,u[1]+k]),[u[0]+k,u[1]+k]],[pv(mul(-k,u)),mul(-k,u)]],{k:'ku',kk:k,u},`On multiplie les deux coordonnées par ${f(k)}&nbsp;: ${kV(k,'u')}${pv(mul(k,u))}.`,1)},
+ ()=>Q(2,`Le vecteur ${V('BA')} est égal à&nbsp;:`,[['−'+V('AB'),'-AB'],[V('AB'),'AB'],[V0,'0']],{k:'vx',terms:['BA']},`${V('BA')} = −${V('AB')}&nbsp;: même direction, même norme, sens contraire.`,1),
+ ()=>{const [A,B]=twoPts(5,4,(A,B)=>(A[0]+B[0])%2===0&&(A[1]+B[1])%2===0&&A[0]!==B[0]&&A[1]!==B[1]),I=[(A[0]+B[0])/2,(A[1]+B[1])/2];
+   return Q(7,`${P('A',A)} et ${P('B',B)}. Le milieu I de [AB] a pour coordonnées&nbsp;:`,[[P('I',I),I],[P('I',add(A,B)),add(A,B)],[P('I',sub(B,A)),sub(B,A)],[P('I',[(B[0]-A[0])/2,(B[1]-A[1])/2]),[(B[0]-A[0])/2,(B[1]-A[1])/2]]],{k:'mil',A,B},`I(${fr('x<sub>A</sub> + x<sub>B</sub>',2)}&nbsp;; ${fr('y<sub>A</sub> + y<sub>B</sub>',2)}) = I(${f(I[0])}&nbsp;; ${f(I[1])}).`,1)},
+ ()=>Q(3,'ABCD est un parallélogramme. Quelle égalité est vraie&nbsp;?',[[`${V('AB')} = ${V('DC')}`,['AB','DC']],[`${V('AB')} = ${V('CD')}`,['AB','CD']],[`${V('AD')} = ${V('CB')}`,['AD','CB']],[`${V('AC')} = ${V('BD')}`,['AC','BD']]],{k:'pveq'},`ABCD parallélogramme ⟺ ${V('AB')} = ${V('DC')} (même direction, même sens, même norme).`,1),
+ ()=>{const k=pick([2,3,-2,-3]),v=[nz(-3,3),nz(-3,3)],u=mul(k,v);return Q(5,`${V('u')}${pv(u)} et ${V('v')}${pv(v)}. Pour quel réel k a-t-on ${V('u')} = k${V('v')}&nbsp;?`,[[f(k),k],[f(-k),-k],[fr(1,Math.abs(k)).replace('<span class="fr">',k<0?'−<span class="fr">':'<span class="fr">'),1/k]],{k:'kfind',u:v,v:u},`${f(u[0])} = ${f(k)} × ${pa(v[0])} et ${f(u[1])} = ${f(k)} × ${pa(v[1])}&nbsp;: ${V('u')} = ${kV(k,'v')}.`,1)},
+ ()=>{const M=[nz(-5,5),nz(-5,5)];return Q(1,`Dans le repère (O&nbsp;; ${Vi}, ${Vj}), ${P('M',M)} signifie&nbsp;:`,[[`${V('OM')} = ${lin(M[0],M[1])}`,M],[`${V('OM')} = ${lin(M[1],M[0])}`,[M[1],M[0]]],[`${V('OM')} = ${lin(-M[0],-M[1])}`,[-M[0],-M[1]]]],{k:'read',M},`${V('OM')} = x<sub>M</sub>${Vi} + y<sub>M</sub>${Vj} = ${lin(M[0],M[1])}.`,1)},
+ ()=>Q(6,'A, B, C sont alignés si et seulement si&nbsp;:',[[`det(${V('AB')}, ${V('AC')}) = 0`,'det0'],[`det(${V('AB')}, ${V('AC')}) = 1`,'det1'],[`${V('AB')} = ${V('AC')}`,'eq'],[`AB = AC`,'len']],{k:'txt'},`A, B, C alignés ⟺ ${V('AB')} et ${V('AC')} colinéaires ⟺ det(${V('AB')}, ${V('AC')}) = 0.`,1)
+];
+const bT=[
+ ()=>{const [A,B]=twoPts(4,4,okv),v=sub(B,A);return T(1,`${P('A',A)} et ${P('B',B)}. Alors ${V('AB')} ${col('{0}','{1}')}.`,[ans(v[0]),ans(v[1])],{k:'AB',A,B},`Arrivée − départ&nbsp;: ${V('AB')}${pv(v)}.`,1)},
+ ()=>{const k=pick([2,3,-2]),u=[nz(-4,4),nz(-4,4)];return T(4,`${V('u')}${pv(u)}. Alors ${kV(k,'u')} ${col('{0}','{1}')}.`,[ans(k*u[0]),ans(k*u[1])],{k:'ku',kk:k,u},`On multiplie chaque coordonnée par ${f(k)}.`,1)},
+ ()=>{const [A,B]=twoPts(5,4,(A,B)=>(A[0]+B[0])%2===0&&(A[1]+B[1])%2===0),I=[(A[0]+B[0])/2,(A[1]+B[1])/2];return T(7,`${P('A',A)} et ${P('B',B)}. Le milieu de [AB] est I( {0}&nbsp;; {1} ).`,[ans(I[0]),ans(I[1])],{k:'mil',A,B},`On fait la moyenne&nbsp;: I(${f(I[0])}&nbsp;; ${f(I[1])}).`,1)},
+ ()=>{const u=[ri(1,4),ri(1,4)],v=[ri(1,4),ri(1,4)];return T(5,`${V('u')}${pv(u)} et ${V('v')}${pv(v)}. det(${V('u')}, ${V('v')}) = {0}.`,[ans(det(u,v))],{k:'det',u,v},`det = xy′ − x′y = ${dLine(u,v)}.`,1)},
+ ()=>{const M=[ri(1,6),ri(1,6)];return T(1,`Si ${V('OM')} = ${lin(M[0],M[1])}, alors M( {0}&nbsp;; {1} ).`,[ans(M[0]),ans(M[1])],{k:'read',M},`${V('OM')} = x<sub>M</sub>${Vi} + y<sub>M</sub>${Vj}&nbsp;: M(${f(M[0])}&nbsp;; ${f(M[1])}).`,1)},
+ ()=>{const [A,u]=until(()=>{const A=rp(4,3),u=rv(3,3);return inG(add(A,u))&&u[0]&&u[1]?[A,u]:null}),B=add(A,u);return T(2,`La translation de vecteur ${V('u')}${pv(u)} envoie ${P('A',A)} sur B( {0}&nbsp;; {1} ).`,[ans(B[0]),ans(B[1])],{k:'tr',M:A,u},`${V('AB')} = ${V('u')}&nbsp;: on ajoute le déplacement aux coordonnées de A.`,1)}
+];
+/* ----- Argent : toute la notion, pièges classiques ----- */
+const aQ=[
+ ()=>{const [A,B]=twoPts(6,5,(A,B)=>okv(A,B)&&(A[0]<0||A[1]<0)),v=sub(B,A);return Q(1,`${P('A',A)} et ${P('B',B)}. Les coordonnées de ${V('AB')} sont&nbsp;:`,[[pv(v),v],[pv(sub(A,B)),sub(A,B)],[pv(add(A,B)),add(A,B)],[pv([B[0]-A[0],A[1]-B[1]]),[B[0]-A[0],A[1]-B[1]]]],{k:'AB',A,B},`${V('AB')}${col(`${f(B[0])} − ${pa(A[0])}`,`${f(B[1])} − ${pa(A[1])}`)} = ${pv(v)}.`,2)},
+ ()=>{const [X,Y,Z]=pick([['A','B','C'],['M','N','P'],['E','F','G']]);return Q(2,`${V(Z+Y)} + ${V(X+Z)} est égal à&nbsp;:`,[[V(X+Y),X+Y],[V(Y+X),Y+X],[V(Z+X),Z+X],[V0,'0']],{k:'vx',terms:[Z+Y,X+Z]},`On réordonne&nbsp;: ${V(X+Z)} + ${V(Z+Y)} = ${V(X+Y)} (Chasles).`,2)},
+ ()=>Q(3,`${V('AB')} − ${V('AC')} est égal à&nbsp;:`,[[V('CB'),'CB'],[V('BC'),'BC'],[V('CA'),'CA'],[V0,'0']],{k:'vx',terms:['AB','-AC']},`${V('AB')} − ${V('AC')} = ${V('AB')} + ${V('CA')} = ${V('CA')} + ${V('AB')} = ${V('CB')}.`,2),
+ ()=>{const k=pick([-2,-3,-4]),n=pick([2,3,5]);return Q(4,`‖${V('u')}‖ = ${n}. La norme de ${kV(k,'u')} vaut&nbsp;:`,[[f(-k*n),-k*n],[f(k*n),k*n],[f(n),n],[f(n-k),n-k]],{k:'norm',kk:k,n},`‖k${V('u')}‖ = |k| × ‖${V('u')}‖ = ${f(-k)} × ${n} = ${f(-k*n)}&nbsp;: une norme est toujours positive.`,2)},
+ ()=>{const [u,v]=until(()=>{const u=rv(5,5),v=rv(5,5),D=det(u,v);return u[0]&&u[1]&&v[0]&&v[1]&&D&&new Set([D,-D,u[0]*v[1]+v[0]*u[1],u[0]*v[0]-u[1]*v[1]]).size===4?[u,v]:null}),D=det(u,v);
+   return Q(5,`${V('u')}${pv(u)} et ${V('v')}${pv(v)}. det(${V('u')}, ${V('v')}) vaut&nbsp;:`,[[f(D),D],[f(-D),-D],[f(u[0]*v[1]+v[0]*u[1]),u[0]*v[1]+v[0]*u[1]],[f(u[0]*v[0]-u[1]*v[1]),u[0]*v[0]-u[1]*v[1]]],{k:'det',u,v},`det = xy′ − x′y = ${dLine(u,v)}.`,2)},
+ ()=>{const al=Math.random()<.5,[A,B,Cc]=until(()=>{const A=rp(5,4),u=rv(3,3),k=pick([2,3,-2]);let Cc=add(A,mul(k,u));if(!al)Cc=add(Cc,pick([[1,0],[0,1],[-1,0],[0,-1]]));const B=add(A,u);return u[0]&&u[1]&&inG(B)&&lens(A,B,Cc)?[A,B,Cc]:null});
+   return Q(6,`${P('A',A)}, ${P('B',B)}, ${P('C',Cc)}. Les points A, B, C sont-ils alignés&nbsp;?`,[[al?'Oui':'Non',al],[al?'Non':'Oui',!al],['On ne peut pas savoir sans tracer une figure.',null]],{k:'ali',A,B,C:Cc},`${V('AB')}${pv(sub(B,A))}, ${V('AC')}${pv(sub(Cc,A))}&nbsp;: det = ${dLine(sub(B,A),sub(Cc,A))}${al?'&nbsp;: alignés.':' ≠ 0&nbsp;: non alignés.'}`,2)},
+ ()=>{const [A,B]=twoPts(5,4,(A,B)=>A[0]!==B[0]&&A[1]!==B[1]&&rad(d2(A,B))[1]!==1),dx=Math.abs(B[0]-A[0]),dy=Math.abs(B[1]-A[1]),s=dx*dx+dy*dy;
+   return Q(7,`Dans un repère orthonormé, ${P('A',A)} et ${P('B',B)}. La distance AB vaut&nbsp;:`,[[sq(s),{sq:s}],[f(dx+dy),{n:dx+dy}],[f(s),{n:s}],[sq(dx+dy),{sq:dx+dy}]],{k:'dist',A,B},`AB = √(${dx}² + ${dy}²) = ${sq(s)}.`,2)},
+ ()=>{const hz=Math.random()<.5,c=nz(-3,3),A=until(()=>{const A=[nz(-5,5),nz(-4,4)];return (hz?A[1]:A[0])!==c&&A[0]!==A[1]?A:null}),H=hz?[A[0],c]:[c,A[1]],L=hz?[[0,c],[1,c]]:[[c,0],[c,1]];
+   return Q(7,`${P('A',A)}. Le projeté orthogonal de A sur la droite d d'équation ${hz?'y = '+f(c):'x = '+f(c)} est&nbsp;:`,[[P('H',H),H],[P('H',hz?[c,A[1]]:[A[0],c]),hz?[c,A[1]]:[A[0],c]],[P('H',hz?[A[0],0]:[0,A[1]]),hz?[A[0],0]:[0,A[1]]],[P('H',[c,c]),[c,c]]],{k:'proj',A,B:L[0],C:L[1]},`H est le pied de la perpendiculaire à d passant par A&nbsp;: H(${f(H[0])}&nbsp;; ${f(H[1])}).`,2)},
+ ()=>Q(3,'ABCD est un parallélogramme si et seulement si&nbsp;:',[[`${V('AC')} = ${V('AB')} + ${V('AD')}`,['AC','AB','AD']],[`${V('BD')} = ${V('AB')} + ${V('AD')}`,['BD','AB','AD']],[`${V('AC')} = ${V('AB')} + ${V('CD')}`,['AC','AB','CD']],[`${V('AC')} = ${V('BA')} + ${V('AD')}`,['AC','BA','AD']]],{k:'psum'},`Règle du parallélogramme&nbsp;: ${V('AC')} = ${V('AB')} + ${V('AD')}.`,2),
+ ()=>Q(4,`Le vecteur −3${V('u')} (avec ${V('u')} non nul)&nbsp;:`,[['a la même direction que '+V('u')+', le sens opposé, et une norme 3 fois plus grande.','ok'],['a la même direction et le même sens que '+V('u')+'.','s'],['a une norme égale à −3 × ‖'+V('u')+'‖.','n'],['n\'est pas colinéaire à '+V('u')+'.','c']],{k:'txt'},`k = −3 &lt; 0&nbsp;: même direction, sens opposé, norme |−3| × ‖${V('u')}‖ = 3‖${V('u')}‖.`,2)
+];
+const aT=[
+ ()=>{const [A,B]=twoPts(6,5,(A,B)=>okv(A,B)&&A[0]<0),v=sub(B,A);return T(1,`${P('A',A)} et ${P('B',B)}. ${V('AB')} ${col('{0}','{1}')}.`,[ans(v[0]),ans(v[1])],{k:'AB',A,B},`${V('AB')}${col(`${f(B[0])} − ${pa(A[0])}`,`${f(B[1])} − ${pa(A[1])}`)} = ${pv(v)}.`,2)},
+ ()=>{const u=[2*nz(-3,3),2*nz(-3,3)],k=pick([-.5,.5,-3]);return T(4,`${V('u')}${pv(u)}. ${kV(k,'u')} ${col('{0}','{1}')}.`,[ans(k*u[0]),ans(k*u[1])],{k:'ku',kk:k,u},`On multiplie chaque coordonnée par ${f(k)}&nbsp;: ${kV(k,'u')}${pv(mul(k,u))}.`,2)},
+ ()=>{const [u,xp,yp]=until(()=>{const u=[nz(-4,4),nz(-4,4)],xp=nz(-8,8),yp=u[1]*xp/u[0];return Number.isInteger(yp)&&xp!==u[0]&&Math.abs(yp)<=12?[u,xp,yp]:null});
+   return T(5,`${V('u')}${pv(u)} et ${V('v')}${col(f(xp),'y')} sont colinéaires pour y = {0}.`,[ans(yp)],{k:'ypar',u,x:xp},`det = ${f(u[0])}y − ${pa(xp)} × ${pa(u[1])} = 0, donc y = ${f(yp)}.`,2)},
+ ()=>{const [A,B]=twoPts(6,5,(A,B)=>(A[0]+B[0])%2===0&&(A[1]+B[1])%2===0&&(A[0]<0||B[1]<0)),I=[(A[0]+B[0])/2,(A[1]+B[1])/2];return T(7,`${P('A',A)} et ${P('B',B)}. Le milieu de [AB] est I( {0}&nbsp;; {1} ).`,[ans(I[0]),ans(I[1])],{k:'mil',A,B},`I(${fr(`${f(A[0])} + ${pa(B[0])}`,2)}&nbsp;; ${fr(`${f(A[1])} + ${pa(B[1])}`,2)}) = I(${f(I[0])}&nbsp;; ${f(I[1])}).`,2)},
+ ()=>{const [A,B]=twoPts(5,4,(A,B)=>A[0]!==B[0]&&A[1]!==B[1]);const s=d2(A,B);return T(7,`Repère orthonormé&nbsp;: ${P('A',A)} et ${P('B',B)}. AB² = {0}.`,[[String(s)]],{k:'dist2',A,B},`AB² = (${f(B[0])} − ${pa(A[0])})² + (${f(B[1])} − ${pa(A[1])})² = ${s}.`,2)},
+ ()=>{const [u,v]=until(()=>{const u=rv(5,5),v=rv(5,5);return u[0]&&u[1]&&v[0]&&v[1]&&(u[0]<0||u[1]<0||v[0]<0||v[1]<0)?[u,v]:null});return T(5,`${V('u')}${pv(u)} et ${V('v')}${pv(v)}. det(${V('u')}, ${V('v')}) = {0}.`,[ans(det(u,v))],{k:'det',u,v},`det = ${dLine(u,v)}.`,2)}
+];
+/* ----- Or : plusieurs étapes, notions mélangées ----- */
+const oQ=[
+ ()=>{const al=Math.random()<.5,[A,B,Cc]=until(()=>{const A=[ri(-6,6),ri(-6,6)],u=[nz(-4,4),nz(-4,4)],k=pick([3,-2,2.5,-1.5]);let Cc=add(A,mul(k,u));if(!al)Cc=add(Cc,pick([[1,0],[0,1],[-.5,0],[0,.5]]));return Number.isInteger(2*Cc[0])&&lens(A,add(A,u),Cc)&&Math.abs(Cc[0])<=12&&Math.abs(Cc[1])<=12?[A,add(A,u),Cc]:null});
+   return Q(6,`${P('A',A)}, ${P('B',B)}, ${P('C',Cc)}. Les points A, B, C sont-ils alignés&nbsp;?`,[[al?`Oui&nbsp;: det(${V('AB')}, ${V('AC')}) = 0.`:`Non&nbsp;: det(${V('AB')}, ${V('AC')}) = ${f(det(sub(B,A),sub(Cc,A)))}.`,al],[al?`Non&nbsp;: ${V('AB')} ≠ ${V('AC')}.`:'Oui&nbsp;: ils sont presque sur une même droite.',!al],['On ne peut pas conclure sans figure.',null]],{k:'ali',A,B,C:Cc},`${V('AB')}${pv(sub(B,A))}, ${V('AC')}${pv(sub(Cc,A))}&nbsp;: det = ${dLine(sub(B,A),sub(Cc,A))}.`,3)},
+ ()=>{const pr=Math.random()<.5,[A,B,Cc,D]=until(()=>{const A=rp(6,6),u=[nz(-4,4),nz(-4,4)],B=add(A,u),Cc=rp(6,6),k=pick([2,-1,3,-2]);let D=add(Cc,mul(k,u));if(!pr)D=add(D,pick([[1,0],[0,1],[-1,0],[0,-1]]));return lens(A,B,Cc,D)&&det(u,sub(Cc,A))!==0?[A,B,Cc,D]:null});
+   return Q(6,`${P('A',A)}, ${P('B',B)}, ${P('C',Cc)}, ${P('D',D)}. Les droites (AB) et (CD) sont&nbsp;:`,[[pr?'parallèles':'sécantes',pr],[pr?'sécantes':'parallèles',!pr],['confondues','conf']],{k:'par',A,B,C:Cc,D},`det(${V('AB')}, ${V('CD')}) = ${dLine(sub(B,A),sub(D,Cc))}${pr?'&nbsp;: parallèles.':' ≠ 0&nbsp;: sécantes.'}`,3)},
+ ()=>{const [A,B]=twoPts(6,5,(A,B)=>A[0]!==B[0]&&A[1]!==B[1]&&rad(d2(A,B))[0]>1&&rad(d2(A,B))[1]>1),s=d2(A,B),[k,b]=rad(s),dx=Math.abs(B[0]-A[0]),dy=Math.abs(B[1]-A[1]);
+   return Q(7,`Repère orthonormé&nbsp;: ${P('A',A)} et ${P('B',B)}. La distance AB s'écrit&nbsp;:`,[[`${f(k)}${sq(b)}`,{sq:s}],[f(dx+dy),{n:dx+dy}],[`${f(b)}${sq(k)}`,{sq:b*b*k}],[`${f(k)}${sq(b*2)}`,{sq:k*k*b*2}]],{k:'dist',A,B},`AB = √(${dx}² + ${dy}²) = ${sq(s)} = ${sq(k*k+' × '+b)} = ${f(k)}${sq(b)}.`,3)},
+ ()=>{const [u,xp]=until(()=>{const u=[nz(-4,4),nz(-4,4)],xp=nz(-6,6),y=u[1]*xp/u[0];return Number.isInteger(y)&&xp!==u[0]&&Math.abs(u[0])!==1?[u,xp]:null}),yp=u[1]*xp/u[0];
+   return Q(5,`${V('u')}${pv(u)} et ${V('v')}${col(f(xp),'m')}. Pour quelle valeur de m les vecteurs sont-ils colinéaires&nbsp;?`,[[f(yp),yp],[f(-yp),-yp],[f(u[0]*xp/u[1]),u[0]*xp/u[1]],[f(xp*u[1]),xp*u[1]]],{k:'ypar',u,x:xp},`det = ${f(u[0])}m − ${pa(xp)} × ${pa(u[1])} = 0 ⟺ m = ${f(yp)}.`,3)},
+ ()=>{const terms=pick([['AB','CD','BC','DA'],['MN','PQ','NP'],['AB','DA','BC','CD']]),nm=[...new Set(terms.join(''))];const s=terms.reduce((a,t)=>{a[t[1]]=(a[t[1]]||0)+1;a[t[0]]=(a[t[0]]||0)-1;return a},{});
+   const end=Object.keys(s).find(k=>s[k]===1),st=Object.keys(s).find(k=>s[k]===-1),res=end?st+end:'0';
+   return Q(2,`${terms.map(V).join(' + ')} est égal à&nbsp;:`,[[res==='0'?V0:V(res),res],...(res==='0'?[[V('AC'),'AC'],[V('BD'),'BD'],['2'+V('AC'),'2AC']]:[[V(res[1]+res[0]),res[1]+res[0]],[V0,'0'],[V(nm[0]+nm[nm.length-1]===res?nm[1]+nm[0]:nm[0]+nm[nm.length-1]),nm[0]+nm[nm.length-1]===res?nm[1]+nm[0]:nm[0]+nm[nm.length-1]]])],{k:'vx',terms},`On réordonne pour enchaîner bout à bout&nbsp;: le résultat est ${res==='0'?V0+' (retour au point de départ)':V(res)}.`,3)},
+ ()=>{const [v,num,den]=until(()=>{const den=pick([2,3]),num=pick([-3,3,-1,1,2,-2,-4,4,5,-5]);if(Math.abs(num)%den===0)return null;const v=[den*nz(-2,2),den*nz(-2,2)];return [v,num,den]}),k=num/den,u=mul(k,v);
+   const kh=x=>{const n=Math.round(x*den);return (n<0?'−':'')+fr(Math.abs(n),den)};
+   return Q(5,`${V('u')}${pv(u)} et ${V('v')}${pv(v)}. On a ${V('u')} = k${V('v')} avec k = &nbsp;?`,[[kh(k),k],[kh(-k),-k],[(k<0?'−':'')+fr(den,Math.abs(num)),1/k]],{k:'kfind',u:v,v:u},`${f(u[0])} = k × ${pa(v[0])} donne k = ${kh(k)}, et on vérifie avec les ordonnées.`,3)},
+ ()=>{const [A,I]=until(()=>{const A=rp(6,5),I=rp(5,5);return !same(A,I)&&A[0]!==I[0]&&A[1]!==I[1]?[A,I]:null}),B=sub(mul(2,I),A);
+   return Q(7,`I est le milieu de [AB], avec ${P('A',A)} et ${P('I',I)}. Alors&nbsp;:`,[[P('B',B),B],[P('B',[(A[0]+I[0])/2,(A[1]+I[1])/2]),[(A[0]+I[0])/2,(A[1]+I[1])/2]],[P('B',sub(I,A)),sub(I,A)],[P('B',add(A,I)),add(A,I)]],{k:'symB',A,I},`${V('IB')} = ${V('AI')}${pv(sub(I,A))}&nbsp;: B(${f(B[0])}&nbsp;; ${f(B[1])}). Vérification&nbsp;: (${f(A[0])} + ${pa(B[0])}) ÷ 2 = ${f(I[0])}.`,3)},
+ ()=>{const [A,B,Cc]=until(()=>{const A=rp(5,4),B=rp(5,4),Cc=rp(5,4);return lens(A,B,Cc)&&det(sub(B,A),sub(Cc,A))!==0?[A,B,Cc]:null}),F=sub(add(B,Cc),A);
+   return Q(3,`${P('A',A)}, ${P('B',B)}, ${P('C',Cc)}. Le point F tel que ${V('AF')} = ${V('AB')} + ${V('AC')} est&nbsp;:`,[[P('F',F),F],[P('F',add(B,Cc)),add(B,Cc)],[P('F',sub(add(A,Cc),B)),sub(add(A,Cc),B)],[P('F',add(sub(B,A),sub(Cc,A)).map((x,i)=>x)),add(sub(B,A),sub(Cc,A))]].filter((c,i)=>i<3||!same(c[1],F)),{k:'trAB',A,B,C:Cc},`ABFC est un parallélogramme&nbsp;: ${V('CF')} = ${V('AB')}${pv(sub(B,A))}, donc F(${f(F[0])}&nbsp;; ${f(F[1])}).`,3)},
+ ()=>{const [A,B,M,on]=until(()=>{const A=rp(5,4),B=rp(5,4);if(same(A,B))return null;const on=Math.random()<.5,c=[];for(let x=-6;x<=6;x++)for(let y=-5;y<=5;y++){const m=[x,y];if(lens(A,B,m)&&(d2(m,A)===d2(m,B))===on&&!same(m,[(A[0]+B[0])/2,(A[1]+B[1])/2]))c.push(m)}return c.length?[A,B,pick(c),on]:null});
+   return Q(7,`${P('A',A)}, ${P('B',B)} et ${P('M',M)}. Le point M est-il sur la médiatrice de [AB]&nbsp;?`,[[on?`Oui&nbsp;: MA² = MB² = ${d2(M,A)}.`:`Non&nbsp;: MA² = ${d2(M,A)} et MB² = ${d2(M,B)}.`,on],[on?'Non&nbsp;: M n\'est pas le milieu de [AB].':'Oui&nbsp;: M est à égale distance de A et de B.',!on],['Oui&nbsp;: M est le milieu de [AB].','mid']],{k:'med',A,B,M},`M est sur la médiatrice de [AB] ⟺ MA = MB&nbsp;: MA² = ${d2(M,A)}, MB² = ${d2(M,B)}.`,3)}
+];
+oQ.push(
+ ()=>{const [A,B,Cc]=until(()=>{const A=rp(5,4),B=rp(5,4),Cc=rp(5,4);return lens(A,B,Cc)&&det(sub(B,A),sub(Cc,A))!==0&&!same(sub(B,A),[0,0])?[A,B,Cc]:null}),D=add(Cc,sub(B,A));
+   return Q(1,`${P('A',A)}, ${P('B',B)}, ${P('C',Cc)}. Le point D tel que ${V('AB')} = ${V('CD')} est&nbsp;:`,[[P('D',D),D],[P('D',sub(Cc,sub(B,A))),sub(Cc,sub(B,A))],[P('D',add(A,sub(Cc,B))),add(A,sub(Cc,B))],[P('D',add(B,Cc)),add(B,Cc)]],{k:'tr',M:Cc,u:sub(B,A)},`${V('CD')} = ${V('AB')}${pv(sub(B,A))}&nbsp;: depuis C, on refait le déplacement de A vers B, donc D(${f(D[0])}&nbsp;; ${f(D[1])}). ABDC est un parallélogramme.`,3)},
+ ()=>{const [a,b]=pick([[3,4],[4,3],[-3,4],[4,-3],[3,-4],[-4,3]]),u=[2*a,2*b],k=pick([-.5,-1.5]),n=Math.abs(k)*10,w=mul(k,u);
+   return Q(4,`${V('u')}${pv(u)}, de norme 10. Quel vecteur est colinéaire à ${V('u')}, de sens contraire, et de norme ${f(n)}&nbsp;?`,[[pv(w),w],[pv(mul(-k,u)),mul(-k,u)],[pv(mul(k*2,u)),mul(k*2,u)],[pv([w[1],-w[0]]),[w[1],-w[0]]]],{k:'kn',u,n,s:-1},`‖${V('u')}‖ = √(${pa(u[0])}² + ${pa(u[1])}²) = 10. On cherche k${V('u')} avec k &lt; 0 et |k| × 10 = ${f(n)}&nbsp;: k = ${f(k)}, d'où ${pv(w)}.`,3)});
+const oT=[
+ ()=>{const [A,B,Cc]=until(()=>{const A=rp(5,4),B=rp(5,4),Cc=rp(5,4);return lens(A,B,Cc)&&det(sub(B,A),sub(Cc,A))!==0?[A,B,Cc]:null}),D=add(A,sub(Cc,B));
+   return T(3,`${P('A',A)}, ${P('B',B)}, ${P('C',Cc)}. ABCD est un parallélogramme pour D( {0}&nbsp;; {1} ).`,[ans(D[0]),ans(D[1])],{k:'par4',A,B,C:Cc},`ABCD parallélogramme ⟺ ${V('AD')} = ${V('BC')}${pv(sub(Cc,B))}&nbsp;: D(${f(D[0])}&nbsp;; ${f(D[1])}).`,3)},
+ ()=>{const [A,B,xc]=until(()=>{const A=rp(5,5),u=[nz(-3,3),nz(-4,4)],k=pick([2,3,-2,-1]),Cc=add(A,mul(k,u));return Math.abs(Cc[0])<=10&&Math.abs(Cc[1])<=12&&!same(Cc,add(A,u))?[A,add(A,u),Cc[0]]:null}),u=sub(B,A),yc=A[1]+u[1]*(xc-A[0])/u[0];
+   return T(6,`${P('A',A)} et ${P('B',B)}. Le point C(${f(xc)}&nbsp;; y) est sur la droite (AB) pour y = {0}.`,[ans(yc)],{k:'yali',A,B,x:xc},`det(${V('AB')}, ${V('AC')}) = 0 avec ${V('AB')}${pv(u)} et ${V('AC')}${col(f(xc-A[0]),'y − '+pa(A[1]))}&nbsp;: y = ${f(yc)}.`.replace('− (−','+ (').replace(/\+ \((\d+)\)/,'+ $1'),3)},
+ ()=>{const [A,B]=twoPts(6,5,(A,B)=>A[0]!==B[0]&&A[1]!==B[1]&&rad(d2(A,B))[0]>1&&rad(d2(A,B))[1]>1),[k,b]=rad(d2(A,B));return T(7,`Repère orthonormé&nbsp;: ${P('A',A)} et ${P('B',B)}. AB = {0}${sq('{1}')} (b entier le plus petit possible).`,[[String(k)],[String(b)]],{k:'distk',A,B},`AB = ${sq(d2(A,B))} = ${sq(k*k+' × '+b)} = ${k}${sq(b)}.`,3)},
+ ()=>{const [A,I]=until(()=>{const A=rp(6,5),I=rp(5,5);return !same(A,I)&&A[0]!==I[0]&&A[1]!==I[1]?[A,I]:null}),B=sub(mul(2,I),A);return T(7,`${P('I',I)} est le milieu de [AB] et ${P('A',A)}. Alors B( {0}&nbsp;; {1} ).`,[ans(B[0]),ans(B[1])],{k:'symB',A,I},`${V('IB')} = ${V('AI')}&nbsp;: B(${f(B[0])}&nbsp;; ${f(B[1])}).`,3)},
+ ()=>{const [A,B,Cc,D]=until(()=>{const p=[rp(5,5),rp(5,5),rp(5,5),rp(5,5)];return lens(...p)?p:null});return T(6,`${P('A',A)}, ${P('B',B)}, ${P('C',Cc)}, ${P('D',D)}. det(${V('AB')}, ${V('CD')}) = {0}.`,[ans(det(sub(B,A),sub(D,Cc)))],{k:'detCD',A,B,C:Cc,D},`${V('AB')}${pv(sub(B,A))}, ${V('CD')}${pv(sub(D,Cc))}&nbsp;: det = ${dLine(sub(B,A),sub(D,Cc))}.`,3)},
+ ()=>{const hz=Math.random()<.5,c=nz(-4,4),A=until(()=>{const A=[nz(-6,6),nz(-5,5)];return Math.abs((hz?A[1]:A[0])-c)>=2?A:null}),H=hz?[A[0],c]:[c,A[1]],L=hz?[[0,c],[1,c]]:[[c,0],[c,1]];
+   return T(7,`${P('A',A)} et d la droite d'équation ${hz?'y = '+f(c):'x = '+f(c)}. Le projeté orthogonal de A sur d est H( {0}&nbsp;; {1} ), et la distance de A à d vaut {2}.`,[ans(H[0]),ans(H[1]),ans(Math.abs((hz?A[1]:A[0])-c))],{k:'projfull',A,B:L[0],C:L[1]},`H(${f(H[0])}&nbsp;; ${f(H[1])}) et AH = ${f(Math.abs((hz?A[1]:A[0])-c))}, la plus courte distance de A à d.`,3)}
+];
+function build(qs,ts){for(;;){const out=[...shuf(qs.slice()).slice(0,6).map(g=>g()),...shuf(ts.slice()).slice(0,4).map(g=>g())];
+  if(out.some(q=>q.type==='qcm'&&q.choices.length<3))continue;
+  const pr=new Set(out.map(q=>q.prompt));if(pr.size<out.length)continue;return shuf(out)}}
+window.PL_FIN={bronze:()=>build(bQ,bT),argent:()=>build(aQ,aT),or:()=>build(oQ,oT)};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'pilote-du-lagon',title:'Le Pilote du Lagon',levels:7,
+  levelNames:['Le cap','Bout à bout','Les deux vedettes','Plein gaz','Même cap','Balises alignées','Rendez-vous'],
+  music:'aventure',finals:{bronze:()=>(window.PL_lastFinal=PL_FIN.bronze()),argent:()=>(window.PL_lastFinal=PL_FIN.argent()),or:()=>(window.PL_lastFinal=PL_FIN.or())}});
+PL.start();
+(function(){ /* espace insécable avant « : ; ! ? » dans le texte affiché (jeu et fenêtres du kit) */
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|INPUT|TEXTAREA)$/.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(fix)}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>

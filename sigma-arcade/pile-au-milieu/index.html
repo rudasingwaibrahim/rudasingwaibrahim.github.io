@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pile au milieu · Sigma Arcade</title>
+<meta name="description" content="Statistiques descriptives en Seconde : moyenne, moyenne pondérée, fréquences, médiane, quartiles, écart interquartile, diagramme en boîte, variance et écart type. Deux façons d'être au milieu : le pivot qui tient le plateau en équilibre (la moyenne) et la coupe qui partage la file en deux (la médiane).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours.
+   IDEA : deux façons d'être « au milieu ». Le plateau bascule autour d'un pivot : il tient en équilibre
+          exactement à la moyenne. La file des jetons, rangée, se coupe en deux : la coupe tombe sur la médiane.
+          Une valeur extrême fait glisser le pivot loin, la coupe d'un demi-pas seulement.
+   PICTURE : un plateau lumineux sur un pivot doré, une file de jetons au-dessus, une scène nocturne (studio, toit-terrasse, plage).
+   COLOUR and TYPE : nuit « océan profond » ; violet-bleu pour l'action ; or pour le pivot et les réussites ;
+          turquoise pour la coupe (médiane), lilas pour les quartiles ; corail pour les erreurs ; Outfit.
+   LAYOUT : scène et légende à gauche (collées en haut sur téléphone), carnet de l'analyste à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);
+--cut:#4fd1c5;--quart:#b79cff;--intr:#ff9b4a}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:74ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible,canvas:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .labb{border-color:rgba(200,168,75,.6)}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#050a16;user-select:none;-webkit-user-select:none;touch-action:pan-y}
+.stage .decor,.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage .decor{transition:opacity .5s}
+.stage .decor.fade{opacity:0}
+.badge{position:absolute;left:10px;top:10px;z-index:2;font:600 13px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--mut);border:1px solid var(--soft);pointer-events:none;max-width:calc(100% - 130px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.count{position:absolute;right:10px;top:10px;z-index:2;font:700 14px var(--sg-font);font-variant-numeric:tabular-nums;padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--gold2);border:1px solid rgba(200,168,75,.35);pointer-events:none}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,22px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .45em}
+.capt .k{color:var(--gold2)}.capt .c{color:var(--cut)}.capt .q{color:var(--quart)}.capt .r{color:var(--ko)}.capt .m{color:var(--mut);font-weight:600}.capt .x{color:var(--intr)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:center;margin-top:8px;font-size:14px;color:var(--mut)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
+.legend .lp{width:0;height:0;border-radius:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:13px solid var(--gold2)}
+.legend .lc{width:4px;height:16px;background:var(--cut);border-radius:2px}
+.legend .lq{width:4px;height:16px;background:var(--quart);border-radius:2px}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.5;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.serie{display:inline-block;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink);background:rgba(255,255,255,.04);border:1px solid var(--soft);border-radius:8px;padding:1px 8px;margin:2px 0}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(19px,2.1vw,23px)/2.2 var(--sg-font);font-variant-numeric:tabular-nums}
+.fill .lab{color:var(--mut);font-weight:600}
+.in{width:3.6em;height:46px;margin:0 3px;padding:0 6px;font:700 21px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle;font-variant-numeric:tabular-nums}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.ov{text-decoration:overline;text-decoration-thickness:2px}
+.nw{white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-width:48px;min-height:46px;padding:0 10px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:700 18px var(--sg-font);font-variant-numeric:tabular-nums;cursor:pointer;transition:border-color .15s,background .15s,opacity .2s}
+.chip:hover:not(:disabled){border-color:var(--ac)}
+.chip.yes{border-color:var(--gold);background:rgba(200,168,75,.16);color:var(--gold2)}
+.chip.no{border-color:rgba(255,107,107,.6);animation:shake .4s}
+.chip:disabled{cursor:default}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.pv{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.pv button{min-width:56px;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:700 17px var(--sg-font);cursor:pointer;font-variant-numeric:tabular-nums}
+.pv button:hover{border-color:var(--ac)}
+.pv output{min-width:6.2em;text-align:center;font:800 22px var(--sg-font);color:var(--gold2);font-variant-numeric:tabular-nums}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+.tab{border-collapse:collapse;font-variant-numeric:tabular-nums;margin:4px 0 8px;font-size:17px}
+.tab th,.tab td{border:1px solid var(--soft);padding:4px 10px;text-align:center;min-width:2.6em}
+.tab th{color:var(--mut);font-weight:600;text-align:left;font-size:15px}
+.tabw{overflow-x:auto;max-width:100%}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+/* labo */
+.labf{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:6px 0 10px}
+.labin{flex:1 1 260px;min-height:48px;padding:0 12px;border-radius:12px;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);background:var(--solid);color:var(--ink);font:600 18px var(--sg-font);font-variant-numeric:tabular-nums}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.quick button,.tog button{min-height:44px;padding:0 13px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer}
+.quick button:hover,.tog button:hover{border-color:var(--ac)}
+.tog{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 12px}
+.tog button[aria-pressed=true]{background:var(--acsoft);border-color:var(--ac)}
+.ind{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:8px 0 0}
+.ind div{padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--soft)}
+.ind small{display:block;font-size:13px;color:var(--mut);font-weight:600}
+.ind b{font-size:19px;font-variant-numeric:tabular-nums}
+.ind .g b{color:var(--gold2)}.ind .c b{color:var(--cut)}.ind .q b{color:var(--quart)}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .stage{aspect-ratio:auto;height:clamp(210px,36svh,330px);border-radius:14px}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+  .legend{display:none}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .pv{gap:6px}.pv button{min-width:48px;padding:0 4px}
+  .pv output{min-width:4.6em;font-size:18px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win,.chip.no{animation:none}.stage .decor{transition:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Pile au milieu</h1>
+<p>Deux façons d'être au milieu. Le <b>pivot</b> tient le plateau en équilibre&nbsp;: c'est la moyenne. La <b>coupe</b> partage la file rangée en deux&nbsp;: c'est la médiane. Fais entrer une valeur extrême et regarde lequel des deux bouge le plus.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage">
+    <svg class="decor" id="decor" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+    <canvas id="cv" role="img" aria-label="Scène : la file des jetons et le plateau sur son pivot"></canvas>
+    <span class="badge" id="badge"></span>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+  <div class="legend" aria-hidden="true"><span><i class="lp"></i>pivot&nbsp;: moyenne</span><span><i class="lc"></i>coupe&nbsp;: médiane</span><span><i class="lq"></i>quartiles</span></div>
+</div>
+<section class="panel" id="panel">
+  <div id="game">
+    <div class="chap" id="chap"></div>
+    <h2 id="lvt"></h2>
+    <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+    <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+    <div class="prompt" id="prompt"></div>
+    <div id="work"></div>
+    <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+    <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+      <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+  </div>
+  <div id="labv" hidden>
+    <div class="chap">Le labo</div>
+    <h2>Mon plateau</h2>
+    <p class="prompt">Écris ta propre série (de 1 à 16 valeurs, séparées par des points-virgules) et regarde le pivot, la coupe, les quartiles, la boîte et les carrés.</p>
+    <form class="labf" id="labf"><input class="labin" id="labin" aria-label="Valeurs de la série" autocomplete="off" spellcheck="false" value="8 ; 9 ; 10 ; 10 ; 11 ; 12 ; 14 ; 15"><button class="btn or" type="submit">Afficher</button></form>
+    <div class="quick" id="labq"></div>
+    <div class="tog" id="labt"></div>
+    <p class="hint" id="labw" aria-live="polite"></p>
+    <div class="ind" id="labind"></div>
+  </div>
+</section>
+</main>
+<script>
+/* ======================= PILE AU MILIEU — moteur de scène ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const cv=$('cv'),ctx=cv.getContext('2d');
+let W=800,H=500,dpr=1;
+const FONT='Outfit,system-ui,sans-serif';
+const C={gold:'#e8c766',gold2:'#c8a84b',cut:'#4fd1c5',quart:'#b79cff',intr:'#ff9b4a',acc:'#6c8eff',ink:'#f0f4ff',mut:'rgba(200,215,255,.72)',ko:'#ff6b6b'};
+const PAL=['#7fa0ff','#4fd1c5','#b79cff','#dfe6ff','#8fb8ff','#6fe0c9'];
+
+/* ---------- nombres ---------- */
+function fmtN(x){ // écriture française d'un décimal (≤ 3 décimales)
+  if(!isFinite(x))return '?';const neg=x<0;let s=(Math.round(Math.abs(x)*1000)/1000).toString();
+  if(s.includes('e'))s=Math.abs(x).toFixed(3);let [ip,dp]=s.split('.');if(ip.length>3)ip=ip.replace(/\B(?=(\d{3})+(?!\d))/g,'\u00a0');return (neg?'−':'')+ip+(dp?','+dp:'')}
+
+/* ---------- état de la scène ---------- */
+const S={
+  mode:{file:false,plat:true,pivot:true,ranks:false},
+  lo:0,hi:20,gran:1,labStep:2,
+  toks:[],nFile:0,
+  p:10,th:0,thv:0,thT:0,lockLevel:false,
+  cuts:{},          // clé → {pos,a,col,label,val}
+  boxes:[],         // {five,prog,label,col,y}
+  sq:null,          // {mean,items,prog,fuse,V,sigma}
+  drag:null,        // 'pivot' | 'token'
+  dragTok:null,onDrag:null,
+  tweens:[],sparks:[],busyUntil:0,
+  balanceGlow:0,
+  chapter:0
+};
+let idSeq=1;
+function now(){return performance.now()}
+function ease(t){return t<0?0:t>1?1:t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2}
+function tween(o,k,to,dur){return new Promise(res=>{
+  S.tweens=S.tweens.filter(t=>!(t.o===o&&t.k===k&&(t.res(),true)));
+  if(reduceM||dur<=0){o[k]=to;res();kick();return}
+  S.tweens.push({o,k,from:o[k],to,t0:now(),dur,res});kick()})}
+function wait(ms){return new Promise(r=>setTimeout(r,reduceM?Math.min(ms,60):ms))}
+
+/* ---------- géométrie ---------- */
+function geo(){
+  const g={};const both=S.mode.file&&S.mode.plat;
+  g.ax0=W*.065;g.ax1=W*.935;
+  g.beamT=Math.max(15,Math.min(22,H*.045));
+  g.pivH=Math.max(22,H*.085);
+  if(both){g.fTop=H*.135;g.fBot=H*.45;g.pTop=H*.5;g.beamY=H*.86-g.pivH}
+  else if(S.mode.file){g.fTop=H*.16;g.fBot=H*.9;g.pTop=H;g.beamY=H*2}
+  else{g.fTop=0;g.fBot=0;g.pTop=H*.14;g.beamY=H*.9-g.pivH}
+  if(!S.mode.pivot&&S.mode.plat)g.beamY+=g.pivH*.55;
+  g.unit=(g.ax1-g.ax0)/(S.hi-S.lo);
+  return g}
+let G=null;
+function X(v){return G.ax0+(v-S.lo)*G.unit}
+function invX(x){return S.lo+(x-G.ax0)/G.unit}
+/* file : centres des emplacements (rangs 1..n) */
+function slotW(){const n=Math.max(S.nFile,1);return Math.min(58,(W*.9)/n)}
+function slotX(r){const n=Math.max(S.nFile,1),w=slotW(),x0=W/2-n*w/2;return x0+(r-.5)*w}
+function rowY(row){const h=G.fBot-G.fTop;return row==='pool'?G.fTop+h*.2:G.fTop+h*.66}
+function fileTokSize(){const w=slotW();const h=Math.min(40,(G.fBot-G.fTop)*(S.mode.pool?.32:.42));return{w:Math.max(12,w*.84),h:Math.max(16,h)}}
+/* plateau : piles */
+function platSize(){
+  const stepPx=G.unit*S.gran;const counts={};let mx=1;
+  S.toks.forEach(t=>{if(t.onPlat&&!t.gone){counts[t.v]=(counts[t.v]||0)+1;mx=Math.max(mx,counts[t.v])}});
+  const avail=G.beamY-G.beamT/2-G.pTop-10;
+  const h=Math.max(6,Math.min(S.mode.file?20:28,avail/Math.max(mx,S.stackMin||1)));
+  const w=Math.max(5,Math.min(stepPx*.88,S.mode.file?30:44));
+  return{w,h}}
+function stackIndex(t){let k=0;for(const u of S.toks){if(u===t)break;if(u.onPlat&&!u.gone&&u.v===t.v)k++}return k}
+function rot(x,y){ // repère du plateau (origine au pivot) → scène
+  const px=X(S.p),py=G.beamY,c=Math.cos(S.th),s=Math.sin(S.th);return[px+x*c-y*s,py+x*s+y*c]}
+function platTarget(t){const ps=platSize(),k=stackIndex(t);return rot(X(t.v)-X(S.p),-G.beamT/2-(k+.5)*ps.h-1)}
+function fileTarget(t){return[slotX(t.slot),rowY(t.row)]}
+
+/* ---------- jetons ---------- */
+function mkTok(v,o){o=o||{};return{id:idSeq++,v,col:o.col||PAL[(idSeq)%PAL.length],slot:o.slot||1,row:o.row||'rank',inFile:o.inFile!==false,onPlat:o.onPlat!==false,
+  label:o.label,hl:0,dim:0,a:o.a==null?1:o.a,fa:null,pa:null,miss:!!o.miss,intr:!!o.intr,gone:false}}
+function curFile(t){const tg=fileTarget(t);const a=t.fa;if(!a)return tg;const e=ease((now()-a.t0)/a.dur);
+  const x=a.x+(tg[0]-a.x)*e,y=a.y+(tg[1]-a.y)*e-Math.sin(Math.PI*Math.min(1,Math.max(0,e)))*(a.arc||0);return[x,y]}
+function curPlat(t){const tg=platTarget(t);const a=t.pa;if(!a)return tg;const e=ease((now()-a.t0)/a.dur);
+  return[a.x+(tg[0]-a.x)*e,a.y+(tg[1]-a.y)*e-Math.sin(Math.PI*Math.min(1,Math.max(0,e)))*(a.arc||0)]}
+function animFile(t,dur,arc,from){const c=from||curFile(t);t.fa={x:c[0],y:c[1],t0:now(),dur:reduceM?1:dur,arc:arc||0};S.busyUntil=Math.max(S.busyUntil,now()+dur+30);kick()}
+function animPlat(t,dur,arc,from){const c=from||curPlat(t);t.pa={x:c[0],y:c[1],t0:now(),dur:reduceM?1:dur,arc:arc||0};S.busyUntil=Math.max(S.busyUntil,now()+dur+30);kick()}
+/* fige les positions actuelles puis relance toutes les animations vers les nouvelles cibles */
+function snapshot(){return S.toks.map(t=>({t,f:curFile(t),p:curPlat(t)}))}
+function relayout(snap,dur){snap.forEach(o=>{if(o.t.inFile)animFile(o.t,dur,0,o.f);if(o.t.onPlat)animPlat(o.t,dur,0,o.p)})}
+
+/* ---------- physique du plateau ---------- */
+function torque(){let s=0;S.toks.forEach(t=>{if(t.onPlat&&!t.gone)s+=t.v-S.p});return s}
+function balanced(){return Math.abs(torque())<1e-9}
+function updTilt(){
+  if(!S.mode.plat||S.lockLevel||!S.mode.pivot){S.thT=0;return}
+  let n=0;S.toks.forEach(t=>{if(t.onPlat&&!t.gone)n++});
+  const tq=torque();if(Math.abs(tq)<1e-9||!n){S.thT=0;return}
+  const span=S.hi-S.lo,m=9*Math.PI/180,mn=1.6*Math.PI/180;
+  S.thT=Math.sign(tq)*(mn+(m-mn)*Math.tanh(Math.abs(tq)/(n*span*.05)))}
+
+/* ---------- boucle ---------- */
+let running=false,last=0;
+function kick(){if(!running){running=true;last=now();requestAnimationFrame(frame)}}
+function isBusy(){const t=now();return S.tweens.length>0||t<S.busyUntil||Math.abs(S.th-S.thT)>.002||Math.abs(S.thv)>.004||S.sparks.length>0}
+function frame(t){
+  const dt=Math.min(.05,(t-last)/1000);last=t;
+  for(const tw of S.tweens.slice()){const e=ease((t-tw.t0)/tw.dur);tw.o[tw.k]=tw.from+(tw.to-tw.from)*e;if(t-tw.t0>=tw.dur){tw.o[tw.k]=tw.to;S.tweens.splice(S.tweens.indexOf(tw),1);tw.res()}}
+  updTilt();
+  if(reduceM){S.th=S.thT;S.thv=0}else{const K=55,Cc=8.5;const steps=4;for(let i=0;i<steps;i++){const h=dt/steps;const a=-K*(S.th-S.thT)-Cc*S.thv;S.thv+=a*h;S.th+=S.thv*h}}
+  S.sparks=S.sparks.filter(p=>(p.life-=dt)>0);S.sparks.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=260*dt});
+  S.toks.forEach(tk=>{if(tk.fa&&t-tk.fa.t0>=tk.fa.dur)tk.fa=null;if(tk.pa&&t-tk.pa.t0>=tk.pa.dur)tk.pa=null});
+  const bal=S.mode.plat&&S.mode.pivot&&balanced()&&S.toks.some(u=>u.onPlat&&!u.gone);
+  S.balanceGlow+=((bal?1:0)-S.balanceGlow)*Math.min(1,dt*6);
+  draw(t);
+  if(isBusy()||Math.abs(S.balanceGlow-(bal?1:0))>.01)requestAnimationFrame(frame);else{running=false;draw(t)}}
+
+function sparkle(x,y,n,col){if(reduceM)return;for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=80+Math.random()*160;S.sparks.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-120,life:.6+Math.random()*.5,col:col||C.gold})}kick()}
+
+/* ---------- dessin ---------- */
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function txt(s,x,y,size,col,w,al,base){ctx.font=`${w||700} ${size}px ${FONT}`;ctx.fillStyle=col;ctx.textAlign=al||'center';ctx.textBaseline=base||'middle';ctx.fillText(s,x,y)}
+function tokColor(t){return t.intr?C.intr:t.miss?C.gold:t.col}
+function drawPill(x,y,w,h,t,showText,angle){
+  ctx.save();ctx.translate(x,y);if(angle)ctx.rotate(angle);ctx.globalAlpha=(t.a==null?1:t.a)*(t.dim?.28:1);
+  const col=tokColor(t);
+  if(t.hl){ctx.shadowColor=t.intr?C.intr:C.gold;ctx.shadowBlur=14*t.hl}
+  const g=ctx.createLinearGradient(0,-h/2,0,h/2);g.addColorStop(0,col);g.addColorStop(1,shade(col,-.35));
+  rr(-w/2,-h/2,w,h,Math.min(h/2,9));ctx.fillStyle=t.miss?'rgba(232,199,102,.18)':g;ctx.fill();ctx.shadowBlur=0;
+  if(t.miss){ctx.setLineDash([4,3]);ctx.strokeStyle=C.gold;ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([])}
+  else{ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1;ctx.stroke()}
+  if(showText){const fs=Math.max(10,Math.min(h*.56,w*.5,17));txt(t.label!=null?t.label:fmtN(t.v),0,1,fs,t.miss?C.gold:'#071022',800)}
+  ctx.restore()}
+function shade(hex,k){const n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;const f=v=>Math.round(Math.max(0,Math.min(255,k<0?v*(1+k):v+(255-v)*k)));return `rgb(${f(r)},${f(g)},${f(b)})`}
+
+function drawFile(){
+  const ts=fileTokSize(),n=S.nFile;
+  // rail et étiquette
+  ctx.save();ctx.globalAlpha=.9;
+  const y=rowY('rank'),x0=slotX(.5),x1=slotX(n+.5);
+  ctx.strokeStyle='rgba(120,160,255,.28)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x0,y+ts.h/2+5);ctx.lineTo(x1,y+ts.h/2+5);ctx.stroke();
+  txt('LA FILE',Math.max(10,x0),G.fTop-2+(S.mode.pool?0:4),11,'rgba(200,215,255,.55)',700,'left','top');
+  if(S.mode.ranks){for(let r=1;r<=n;r++){const fs=Math.min(12,slotW()*.42);txt(String(r),slotX(r),y+ts.h/2+5+fs*.9,fs,'rgba(200,215,255,.6)',600)}}
+  ctx.restore();
+  // coupes (derrière les jetons)
+  Object.values(S.cuts).forEach(c=>{if(c.a<=.01)return;const x=slotX(c.pos);
+    ctx.save();ctx.globalAlpha=c.a;ctx.strokeStyle=c.col;ctx.lineWidth=c.key==='med'?3:2.4;ctx.shadowColor=c.col;ctx.shadowBlur=12;
+    ctx.beginPath();ctx.moveTo(x,G.fTop+6);ctx.lineTo(x,rowY('rank')+ts.h/2+8);ctx.stroke();ctx.shadowBlur=0;
+    const lab=c.label;ctx.font=`800 ${Math.min(14,W*.03)}px ${FONT}`;const tw=ctx.measureText(lab).width+12;
+    rr(x-tw/2,G.fTop-4,tw,18,9);ctx.fillStyle='rgba(4,9,20,.85)';ctx.fill();ctx.strokeStyle=c.col;ctx.lineWidth=1;ctx.stroke();
+    txt(lab,x,G.fTop+5,Math.min(13,W*.028),c.col,800);ctx.restore()});
+  // jetons
+  S.toks.forEach(t=>{if(!t.inFile||t.gone)return;const p=curFile(t);drawPill(p[0],p[1],ts.w,ts.h,t,ts.w>=17)});
+  // comptes de part et d'autre de la coupe médiane
+  const m=S.cuts.med;const qOn=['q1','q3'].some(k=>S.cuts[k]&&S.cuts[k].a>.05);if(m&&m.a>.5&&m.counts&&!qOn){const yy=rowY('rank')-ts.h/2-12;
+    ctx.save();ctx.globalAlpha=(m.a-.5)*2;txt(m.counts[0]+' jeton'+(m.counts[0]>1?'s':''),(slotX(.5)+slotX(m.pos))/2,yy,Math.min(13,W*.028),C.cut,700);
+    txt(m.counts[1]+' jeton'+(m.counts[1]>1?'s':''),(slotX(m.pos)+slotX(n+.5))/2,yy,Math.min(13,W*.028),C.cut,700);ctx.restore()}}
+
+function drawConnectors(){
+  if(!(S.mode.file&&S.mode.plat))return;
+  Object.values(S.cuts).forEach(c=>{if(c.a<=.01||c.val==null)return;
+    const x0=slotX(c.pos),y0=rowY('rank')+fileTokSize().h/2+8;const p=rot(X(c.val)-X(S.p),-G.beamT/2);
+    ctx.save();ctx.globalAlpha=c.a*.85;ctx.strokeStyle=c.col;ctx.lineWidth=1.6;ctx.setLineDash([5,5]);
+    ctx.beginPath();ctx.moveTo(x0,y0);ctx.bezierCurveTo(x0,(y0+p[1])/2,p[0],(y0+p[1])/2,p[0],p[1]-2);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=c.col;ctx.beginPath();ctx.arc(p[0],p[1]-2,4,0,Math.PI*2);ctx.fill();ctx.restore()})}
+
+function drawPlateau(){
+  const g=G,L=g.ax0-14,R=g.ax1+14,px=X(S.p);
+  ctx.save();ctx.translate(px,g.beamY);ctx.rotate(S.th);
+  // plateau-règle
+  const bt=g.beamT,glow=S.balanceGlow;
+  ctx.shadowColor=glow>.05?C.gold:'rgba(108,142,255,.6)';ctx.shadowBlur=10+14*glow;
+  const gr=ctx.createLinearGradient(0,-bt/2,0,bt/2);gr.addColorStop(0,'#1d3463');gr.addColorStop(1,'#0e1c3a');
+  rr(L-px,-bt/2,R-L,bt,6);ctx.fillStyle=gr;ctx.fill();ctx.shadowBlur=0;
+  ctx.strokeStyle=glow>.05?`rgba(232,199,102,${.45+.5*glow})`:'rgba(120,160,255,.55)';ctx.lineWidth=1.6;ctx.stroke();
+  // graduations
+  let lab=S.labStep;while(lab*g.unit<26)lab*=2;
+  const fs=Math.max(9,Math.min(12.5,bt*.62));
+  for(let v=S.lo;v<=S.hi+1e-9;v+=S.gran){const x=X(v)-px;const major=Math.abs(v/lab-Math.round(v/lab))<1e-9;
+    ctx.strokeStyle=major?'rgba(220,230,255,.7)':'rgba(220,230,255,.3)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,-bt/2);ctx.lineTo(x,-bt/2+(major?5:3));ctx.stroke();
+    if(major)txt(fmtN(v),x,1.5,fs,'rgba(230,238,255,.92)',600)}
+  ctx.restore();
+  // boîtes
+  S.boxes.forEach(drawBox);
+  // jetons du plateau (puis les carrés par-dessus, translucides)
+  const ps=platSize(),showT=!S.mode.file&&ps.h>=15&&ps.w>=22;
+  S.toks.forEach(t=>{if(!t.onPlat||t.gone)return;const p=curPlat(t);drawPill(p[0],p[1],ps.w,ps.h,t,showT||t.miss,S.th)});
+  if(S.sq)drawSquares();
+  // jetons trop étroits pour leur valeur : la valeur s'affiche au-dessus de la pile
+  if(!S.mode.file&&!showT){const top={};S.toks.forEach(t=>{if(!t.onPlat||t.gone||t.miss)return;const k=stackIndex(t);if(!top[t.v]||k>top[t.v].k)top[t.v]={k,t}});
+    Object.values(top).forEach(({t})=>{if(t.pa||t.dim)return;const p=curPlat(t);txt(t.label!=null?t.label:fmtN(t.v),p[0],p[1]-ps.h/2-9,Math.min(12,W*.03),'rgba(240,244,255,.92)',800)})}
+  // pivot
+  if(S.mode.pivot){
+    const tipY=g.beamY+bt/2,baseY=tipY+g.pivH,w=g.pivH*.8;
+    ctx.save();ctx.shadowColor=C.gold;ctx.shadowBlur=8+16*glow;
+    const pg=ctx.createLinearGradient(0,tipY,0,baseY);pg.addColorStop(0,'#f6dc8a');pg.addColorStop(1,'#a8862c');
+    ctx.beginPath();ctx.moveTo(px,tipY);ctx.lineTo(px+w/2,baseY);ctx.lineTo(px-w/2,baseY);ctx.closePath();ctx.fillStyle=pg;ctx.fill();ctx.restore();
+    ctx.fillStyle='rgba(200,168,75,.35)';rr(px-w*.8,baseY,w*1.6,4,2);ctx.fill();
+    const pl=glow>.5&&S.pLabel?S.pLabel:fmtN(Math.round(S.p*1000)/1000);const lab=(glow>.5?(pl.startsWith('≈')?'x̄ ':'x̄ = '):'pivot ')+pl;
+    ctx.font=`800 ${Math.min(15,W*.032)}px ${FONT}`;const tw=ctx.measureText(lab).width+14;let lx=Math.max(tw/2+4,Math.min(W-tw/2-4,px));
+    const ly=Math.min(H-13,baseY+14);
+    rr(lx-tw/2,ly-11,tw,22,11);ctx.fillStyle=glow>.5?'rgba(200,168,75,.25)':'rgba(4,9,20,.8)';ctx.fill();ctx.strokeStyle=glow>.5?C.gold:'rgba(200,168,75,.5)';ctx.lineWidth=1;ctx.stroke();
+    txt(lab,lx,ly+1,Math.min(14,W*.03),C.gold,800)}
+  // étiquette
+  if(S.mode.file)txt('LE PLATEAU',g.ax0-8,g.pTop-2,11,'rgba(200,215,255,.55)',700,'left','top');
+}
+
+function drawBox(b){
+  if(b.prog<=.01)return;const g=G,p=b.prog;const five=b.five;const y=b.y!=null?b.y:g.beamY-g.beamT/2-Math.min(64,(g.beamY-g.pTop)*.45);
+  const h=Math.max(18,Math.min(40,(g.beamY-g.pTop)*.26));const xs=five.map(X);
+  const mid=xs[2];const L=v=>mid+(v-mid)*ease(p);
+  ctx.save();ctx.globalAlpha=Math.min(1,p*2);
+  ctx.strokeStyle=b.col||C.quart;ctx.lineWidth=2.4;
+  ctx.beginPath();ctx.moveTo(L(xs[0]),y);ctx.lineTo(L(xs[1]),y);ctx.moveTo(L(xs[3]),y);ctx.lineTo(L(xs[4]),y);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(L(xs[0]),y-h*.3);ctx.lineTo(L(xs[0]),y+h*.3);ctx.moveTo(L(xs[4]),y-h*.3);ctx.lineTo(L(xs[4]),y+h*.3);ctx.stroke();
+  rr(L(xs[1]),y-h/2,L(xs[3])-L(xs[1]),h,5);ctx.fillStyle='rgba(183,156,255,.16)';ctx.fill();ctx.stroke();
+  ctx.strokeStyle=C.cut;ctx.lineWidth=3.2;ctx.beginPath();ctx.moveTo(mid,y-h/2);ctx.lineTo(mid,y+h/2);ctx.stroke();
+  if(b.label)txt(b.label,Math.max(14,L(xs[0])-14),y,15,b.col||C.quart,800,'right');
+  if(b.ticks&&p>.95){const fs=Math.min(12.5,W*.027);const names=['min','Q1','Med','Q3','max'];
+    xs.forEach((x,i)=>txt(names[i],x,y-h/2-9-(i%2?0:0),fs,i===2?C.cut:'rgba(220,210,255,.85)',700))}
+  ctx.restore()}
+
+function drawSquares(){
+  const q=S.sq,g=G,base=g.beamY-g.beamT/2;const u=g.unit;const xm=X(q.mean);
+  const p=ease(q.prog),f=ease(q.fuse||0);
+  ctx.save();
+  // carrés des écarts
+  const seen={};
+  q.items.forEach((it,i)=>{const d=it.v-q.mean;if(Math.abs(d)<1e-9)return;const side=Math.abs(d)*u*p;
+    const key=it.v;seen[key]=(seen[key]||0)+1;const mult=q.items.filter(o=>o.v===it.v).length;
+    const x0=d>0?xm:xm-side;const y0=base-side;
+    ctx.globalAlpha=(1-f)*.9;ctx.fillStyle=d>0?'rgba(79,209,197,.12)':'rgba(183,156,255,.12)';ctx.strokeStyle=d>0?'rgba(79,209,197,.85)':'rgba(183,156,255,.85)';ctx.lineWidth=1.8;
+    ctx.fillRect(x0,y0,side,side);ctx.strokeRect(x0,y0,side,side);
+    if(seen[key]===1&&p>.9){const fs=Math.max(10,Math.min(14,side*.32));
+      const small=side<64;txt((Math.abs(d*d*1000-Math.round(d*d*1000))>1e-6?'≈\u00a0'+fmtN(Math.round(d*d*100)/100):fmtN(d*d))+(mult>1?' (×'+mult+')':''),x0+side/2,small?y0-10:y0+side/2,Math.max(11,fs),d>0?C.cut:C.quart,800)}});
+  // carré moyen
+  if(f>0){const side=q.sigma*u;const s2=side*Math.min(1,f*1.15);ctx.globalAlpha=Math.min(1,f*1.4);
+    ctx.fillStyle='rgba(232,199,102,.16)';ctx.strokeStyle=C.gold;ctx.lineWidth=2.6;ctx.shadowColor=C.gold;ctx.shadowBlur=12;
+    ctx.fillRect(xm-s2/2,base-s2,s2,s2);ctx.strokeRect(xm-s2/2,base-s2,s2,s2);ctx.shadowBlur=0;
+    if(f>.95){const fs=Math.min(14,W*.03),eq=v=>String(v).startsWith('≈')?' '+v:' = '+v;txt('V'+eq(q.VLabel||fmtN(q.V)),xm,base-s2/2,Math.max(10,Math.min(fs,s2*.3)),C.gold,800);
+      txt('σ'+eq(q.sigLabel||fmtN(q.sigma)),xm,base-s2-11,fs,C.gold,800)}}
+  ctx.restore()}
+
+function draw(){
+  G=geo();ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  // voile pour la lisibilité
+  const vg=ctx.createLinearGradient(0,0,0,H);vg.addColorStop(0,'rgba(3,7,16,.15)');vg.addColorStop(.5,'rgba(3,7,16,.35)');vg.addColorStop(1,'rgba(3,7,16,.55)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+  if(S.mode.plat){const y=G.pTop-6;ctx.fillStyle='rgba(6,12,26,.5)';rr(W*.02,y,W*.96,H-y-W*.02,14);ctx.fill()}
+  if(S.mode.file){ctx.fillStyle='rgba(6,12,26,.6)';rr(W*.02,G.fTop-12,W*.96,G.fBot-G.fTop+16,14);ctx.fill()}
+  if(S.mode.plat)drawPlateau();
+  drawConnectors();
+  if(S.mode.file)drawFile();
+  S.sparks.forEach(p=>{ctx.globalAlpha=Math.min(1,p.life*2);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,2.2,0,Math.PI*2);ctx.fill()});ctx.globalAlpha=1;
+}
+
+/* ---------- interaction : glisser le pivot ou un jeton ---------- */
+function ptr(e){const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]}
+let dragging=false;
+cv.addEventListener('pointerdown',e=>{if(!S.drag)return;const[x,y]=ptr(e);G=geo();if(y<G.pTop-10)return;
+  dragging=true;cv.setPointerCapture(e.pointerId);moveTo(x);e.preventDefault()});
+cv.addEventListener('pointermove',e=>{if(!dragging)return;moveTo(ptr(e)[0])});
+['pointerup','pointercancel'].forEach(ev=>cv.addEventListener(ev,()=>{if(dragging){dragging=false;S.onDragEnd&&S.onDragEnd()}}));
+function moveTo(x){const st=S.dragStep||.5;let v=Math.round(invX(x)/st)*st;v=Math.max(S.dragMin!=null?S.dragMin:S.lo,Math.min(S.dragMax!=null?S.dragMax:S.hi,v));S.onDrag&&S.onDrag(v)}
+cv.style.cursor='default';
+
+/* ---------- redimensionnement ---------- */
+function resize(){const r=$('stage').getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);W=Math.max(200,r.width);H=Math.max(150,r.height);
+  cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);G=geo();draw()}
+new ResizeObserver(resize).observe($('stage'));
+
+/* ---------- décors (SVG originaux, nocturnes) ---------- */
+function starsSvg(n,seed,ymax){let s='',r=seed;const R=()=>{r=(r*9301+49297)%233280;return r/233280};
+  for(let i=0;i<n;i++)s+=`<circle cx="${(R()*1600).toFixed(0)}" cy="${(R()*ymax).toFixed(0)}" r="${(R()*1.7+.5).toFixed(1)}" fill="#fff" opacity="${(R()*.55+.2).toFixed(2)}"/>`;return s}
+const DECOR=[
+ /* 0 · le studio */
+ ()=>`<defs><linearGradient id="s0w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#040815"/><stop offset="1" stop-color="#0b1430"/></linearGradient>
+ <linearGradient id="s0f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f1a34"/><stop offset="1" stop-color="#050a17"/></linearGradient>
+ <linearGradient id="s0b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8c766" stop-opacity=".2"/><stop offset="1" stop-color="#e8c766" stop-opacity="0"/></linearGradient>
+ <linearGradient id="s0c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6c8eff" stop-opacity=".2"/><stop offset="1" stop-color="#6c8eff" stop-opacity="0"/></linearGradient>
+ <radialGradient id="s0r" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#6c8eff" stop-opacity=".18"/><stop offset="1" stop-color="#6c8eff" stop-opacity="0"/></radialGradient></defs>
+ <rect width="1600" height="1000" fill="url(#s0w)"/>
+ <g opacity=".9">${Array.from({length:14*4},(_,i)=>{const c=i%14,r=Math.floor(i/14),on=(c*5+r*3)%7===0;return `<rect x="${60+c*108}" y="${110+r*70}" width="98" height="60" rx="5" fill="${on?'#20386c':'#0d1a36'}" stroke="#1a2b52" stroke-width="2"/>`}).join('')}</g>
+ <g font-family="Outfit,system-ui,sans-serif" font-weight="800" fill="#6c8eff" opacity=".13" text-anchor="middle"><text x="400" y="300" font-size="110">x̄</text><text x="800" y="300" font-size="110">Σ</text><text x="1200" y="300" font-size="110">σ</text></g>
+ <rect x="0" y="40" width="1600" height="20" fill="#18233f"/><g fill="#26345a">${Array.from({length:32},(_,i)=>`<rect x="${i*50}" y="40" width="4" height="20" transform="skewX(30)"/>`).join('')}</g>
+ ${[180,600,1000,1420].map((x,i)=>`<path d="M${x-12} 62 L${x+12} 62 L${x+240*(i<2?1:-1)} 1000 L${x-240*(i<2?-1:1)} 1000Z" fill="url(#${i%2?'s0c':'s0b'})"/><rect x="${x-16}" y="56" width="32" height="28" rx="6" fill="#33426a"/><circle cx="${x}" cy="84" r="8" fill="#f3cf6a"/>`).join('')}
+ <rect y="420" width="1600" height="580" fill="url(#s0f)"/>
+ <ellipse cx="800" cy="760" rx="620" ry="170" fill="url(#s0r)"/>
+ <g stroke="#1f3058" stroke-width="2" opacity=".6">${Array.from({length:9},(_,i)=>`<path d="M${800+(i-4)*110} 420 L${800+(i-4)*400} 1000"/>`).join('')}${[500,600,740,920].map(y=>`<path d="M0 ${y} H1600"/>`).join('')}</g>
+ <path d="M0 420 H1600" stroke="#6c8eff" stroke-width="3" opacity=".45"/>`,
+ /* 1 · le toit-terrasse */
+ ()=>`<defs><linearGradient id="s1s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#030716"/><stop offset=".6" stop-color="#0e1d42"/><stop offset="1" stop-color="#1c2b55"/></linearGradient>
+ <radialGradient id="s1m"><stop offset="0" stop-color="#eef1f8" stop-opacity=".4"/><stop offset="1" stop-color="#eef1f8" stop-opacity="0"/></radialGradient>
+ <radialGradient id="s1l" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#f3cf6a" stop-opacity=".35"/><stop offset="1" stop-color="#f3cf6a" stop-opacity="0"/></radialGradient></defs>
+ <rect width="1600" height="1000" fill="url(#s1s)"/>${starsSvg(80,11,360)}
+ <circle cx="1490" cy="120" r="60" fill="url(#s1m)"/><circle cx="1490" cy="120" r="22" fill="#eef1f8"/><circle cx="1501" cy="113" r="19" fill="#0d1b3c"/>
+ <path d="M0 470 C160 380 300 360 430 400 C560 440 640 330 800 320 C980 310 1060 410 1200 390 C1340 370 1440 300 1600 330 V560 H0Z" fill="#0a1530"/>
+ <g fill="#f3cf6a">${Array.from({length:90},(_,i)=>{const x=(i*173)%1600,y=420+((i*97)%120);return `<circle cx="${x}" cy="${y}" r="${(i%3)+1.2}" opacity="${.35+(i%4)*.15}"/>`}).join('')}</g>
+ <path d="M0 560 H1600 V1000 H0Z" fill="#0b1328"/>
+ <rect y="548" width="1600" height="16" fill="#1a2747"/>
+ <g stroke="#2a3a63" stroke-width="5">${Array.from({length:17},(_,i)=>`<path d="M${i*100} 548 V500"/>`).join('')}<path d="M0 500 H1600"/></g>
+ <path d="M0 330 Q400 410 800 340 T1600 350" stroke="#3a4766" stroke-width="2" fill="none"/>
+ ${Array.from({length:16},(_,i)=>{const x=50+i*100,y=(i<8?330+60*Math.sin(Math.PI*x/800):340+55*Math.sin(Math.PI*(x-800)/800)).toFixed(0);return `<circle cx="${x}" cy="${y}" r="6" fill="${i%3?'#f3cf6a':'#9fb4ff'}"/><circle cx="${x}" cy="${y}" r="24" fill="url(#s1l)"/>`}).join('')}`,
+ /* 2 · la plage */
+ ()=>`<defs><linearGradient id="s2s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#040a20"/><stop offset=".6" stop-color="#14204a"/><stop offset="1" stop-color="#273566"/></linearGradient>
+ <linearGradient id="s2w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2a55"/><stop offset="1" stop-color="#091530"/></linearGradient>
+ <linearGradient id="s2b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2a40"/><stop offset="1" stop-color="#121424"/></linearGradient>
+ <radialGradient id="s2m"><stop offset="0" stop-color="#f2f4fb" stop-opacity=".5"/><stop offset="1" stop-color="#f2f4fb" stop-opacity="0"/></radialGradient></defs>
+ <rect width="1600" height="480" fill="url(#s2s)"/>${starsSvg(90,5,380)}
+ <circle cx="1490" cy="120" r="70" fill="url(#s2m)"/><circle cx="1490" cy="120" r="24" fill="#f2f4fb"/>
+ <path d="M0 480 C140 420 260 410 360 440 C430 460 470 480 520 480Z" fill="#101a38"/><path d="M1000 480 C1100 430 1200 400 1330 420 C1440 440 1520 470 1600 470 V480Z" fill="#101a38"/>
+ <rect y="480" width="1600" height="160" fill="url(#s2w)"/>
+ <g fill="#f2f4fb">${Array.from({length:8},(_,i)=>`<rect x="${1400-90+(i%2)*26-i*4}" y="${492+i*16}" width="${180-i*14}" height="3" rx="1.5" opacity="${(.6-i*.06).toFixed(2)}"/>`).join('')}</g>
+ <path d="M0 640 C300 620 600 660 900 636 C1200 616 1400 646 1600 630 V1000 H0Z" fill="url(#s2b)"/>
+ <path d="M0 642 C300 622 600 662 900 638 C1200 618 1400 648 1600 632" stroke="#e9e2d0" stroke-width="3" opacity=".25" fill="none"/>
+ <g fill="#0a0f1e"><path d="M120 660 C126 560 118 470 136 380 L144 382 C130 470 140 560 134 660Z"/><path d="M140 380 C90 352 40 372 10 410 C50 382 92 382 136 392Z"/><path d="M140 380 C190 340 250 350 280 392 C240 366 190 366 144 392Z"/><path d="M140 380 C120 330 80 312 50 312 C90 324 116 346 136 386Z"/></g>`
+];
+function setChapter(i,label){if(S.chapter===i&&$('decor').innerHTML){$('badge').textContent=label;return}S.chapter=i;const d=$('decor');
+  if(!d.innerHTML||reduceM){d.innerHTML=DECOR[i]();$('badge').textContent=label;return}
+  d.classList.add('fade');setTimeout(()=>{d.innerHTML=DECOR[i]();d.classList.remove('fade');$('badge').textContent=label},260)}
+function setCount(s){$('count').textContent=s;$('count').hidden=!s}
+
+/* ---------- API de scène ---------- */
+const API={S,fmtN,mkTok,tween,wait,kick,sparkle,setChapter,setCount,relayout,snapshot,animFile,animPlat,balanced,torque,PAL,C,
+  geo:()=>{G=geo();return G},X:v=>{G=geo();return X(v)},isBusy,
+  reset(o){S.pLabel=null;S.toks=[];S.cuts={};S.boxes=[];S.sq=null;S.drag=null;S.onDrag=null;S.onDragEnd=null;S.pTarget=null;S.lockLevel=false;S.stackMin=0;
+    S.mode=Object.assign({file:false,plat:true,pivot:true,ranks:false,pool:false},o.mode||{});
+    S.lo=o.lo;S.hi=o.hi;S.gran=o.gran||1;S.labStep=o.lab||2;S.p=o.p!=null?o.p:(o.lo+o.hi)/2;S.th=0;S.thv=0;S.nFile=0;S.sparks=[];S.tweens.forEach(t=>t.res());S.tweens=[];
+    cv.style.cursor='default';kick()},
+  render(){kick()},
+  pivotTo(v,dur){return tween(S,'p',v,dur==null?600:dur)},
+  cut(key,o){const c=S.cuts[key]||(S.cuts[key]={key,pos:o.pos,a:0,col:o.col||(key==='med'?C.cut:C.quart),label:o.label||key});
+    if(o.label)c.label=o.label;if('val' in o)c.val=o.val;if('counts' in o)c.counts=o.counts;
+    const ps=[];if(o.pos!=null)ps.push(tween(c,'pos',o.pos,o.dur==null?500:o.dur));ps.push(tween(c,'a',o.a==null?1:o.a,350));return Promise.all(ps)},
+  hideCuts(){Object.values(S.cuts).forEach(c=>tween(c,'a',0,250))},
+  box(o){const b={five:o.five,prog:0,label:o.label,col:o.col,y:o.y,ticks:o.ticks!==false};S.boxes.push(b);return tween(b,'prog',1,o.dur==null?900:o.dur).then(()=>b)},
+  squares(o){S.sq={mean:o.mean,items:o.items,prog:0,fuse:0,V:o.V,sigma:o.sigma,VLabel:o.VLabel,sigLabel:o.sigLabel};return tween(S.sq,'prog',1,o.dur==null?1100:o.dur)},
+  fuse(){return S.sq?tween(S.sq,'fuse',1,1200):Promise.resolve()},
+  /* tri animé : chaque jeton rejoint son rang (arcs) */
+  async sortAll(order,dur){const snap=snapshot();order.forEach((t,i)=>{t.slot=i+1;t.row='rank'});S.mode.pool=false;
+    snap.forEach(o=>{if(o.t.inFile)animFile(o.t,dur||900,30+Math.random()*30,o.f)});await wait((dur||900)+60)},
+  cursor(c){cv.style.cursor=c}
+};
+window.PAM_S=API;
+})();
+</script>
+<script>
+/* ======================= PILE AU MILIEU — jeu ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const SC=window.PAM_S,S=SC.S,fmtN=SC.fmtN,C=SC.C;
+
+/* ---------- rationnels exacts ---------- */
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a||1};
+function q(n,d){d=d==null?1:d;if(d<0){n=-n;d=-d}const g=gcd(n,d);return{n:n/g,d:d/g}}
+const qv=x=>x.n/x.d;
+const qeq=(a,b)=>a.n===b.n&&a.d===b.d;
+function qfmt(x){ // écriture décimale exacte (sinon null)
+  let d=x.d,k=0;while(d%2===0){d/=2;k++}while(d%5===0){d/=5;k++}if(d!==1)return null;
+  let e=0,p=1;while(p%x.d!==0||e<k){p*=10;e++}if(e>4)return null;
+  const N=Math.abs(x.n)*(p/x.d);let s=String(N);if(e){s=s.padStart(e+1,'0');s=s.slice(0,-e)+','+s.slice(-e);s=s.replace(/0+$/,'').replace(/,$/,'')}
+  return (x.n<0?'−':'')+s}
+const F=x=>typeof x==='number'?fmtN(x):qfmt(x);
+function parseQ(s){s=String(s).trim().replace(/\s+/g,'').replace(/[−–]/g,'-').replace(',','.').replace(/%$/,'');
+  let m=/^(-?)(\d+)(?:\.(\d+))?$/.exec(s);if(m){const dec=m[3]||'';return q((m[1]?-1:1)*parseInt(m[2]+dec,10),Math.pow(10,dec.length))}
+  m=/^(-?\d+)\/(\d+)$/.exec(s);if(m&&+m[2])return q(+m[1],+m[2]);return null}
+/* ---------- statistiques (convention du cours) ---------- */
+const sum=a=>a.reduce((s,x)=>s+x,0);
+const sorted=a=>a.slice().sort((x,y)=>x-y);
+const meanQ=a=>q(sum(a),a.length);
+function medQ(a){const s=sorted(a),n=s.length;return n%2?q(s[(n-1)/2]):q(s[n/2-1]+s[n/2],2)}
+function quart(a){const s=sorted(a),n=s.length;return{q1:s[n/4-1],q3:s[3*n/4-1]}}
+function varQ(a){const n=a.length,S0=sum(a);return q(sum(a.map(x=>(n*x-S0)*(n*x-S0))),n*n*n)}
+function sqrtQ(x){const a=Math.round(Math.sqrt(x.n)),b=Math.round(Math.sqrt(x.d));return a*a===x.n&&b*b===x.d?q(a,b):null}
+const expand=tab=>tab.flatMap(([v,n])=>Array(n).fill(v));
+const nice=(x,den)=>(x.n*den)%x.d===0;            // x multiple de 1/den
+const exact=x=>qfmt(x)!==null&&qfmt(x).split(',')[1]?.length<=2||qfmt(x)!==null&&!qfmt(x).includes(',');
+
+/* ---------- hasard ---------- */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function until(f){for(let i=0;i<5000;i++){const r=f();if(r)return r}throw new Error('génération impossible')}
+
+/* ---------- écriture ---------- */
+const NB=' ';
+const ser=a=>`<span class="serie">${a.map(F).join(NB+'; ')}</span>`;
+const fr=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const XB='<span class="ov">x</span>';
+function tabHTML(tab,o){o=o||{};return `<div class="tabw"><table class="tab"><tr><th>${o.lv||'Valeur'}</th>${tab.map(r=>`<td>${F(r[0])}</td>`).join('')}</tr><tr><th>${o.ln||'Effectif'}</th>${tab.map(r=>`<td>${r[1]==null?'?':r[1]}</td>`).join('')}</tr>${o.extra||''}</table></div>`}
+
+/* ---------- sons ---------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){if(!snd)return;const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const SND={tick:()=>tone(880,.06,.025),step:()=>tone(520,.08,.03,'sine'),ok:()=>{tone(659,.16,.05);tone(988,.26,.05,'triangle',.08)},
+  win:()=>{[523,659,784,1047].forEach((f,i)=>tone(f,.3,.05,'triangle',i*.08))},err:()=>tone(196,.22,.05,'sine'),
+  thud:()=>{tone(110,.25,.08,'sine');tone(70,.3,.06,'sine',.02)},whoosh:()=>{[300,420,560].forEach((f,i)=>tone(f,.12,.025,'sine',i*.05))},
+  laser:()=>{tone(1320,.18,.03,'sawtooth');tone(990,.2,.02,'square',.05)},bal:()=>{tone(784,.2,.045);tone(1175,.35,.04,'triangle',.1)}};
+window.PAM_SND=()=>SND;
+
+/* ---------- panneau ---------- */
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+let LV=[],lvl=0,qi=0,Q=null,pi=0,errs=0,run=[],solved=false,mode='game',part=null,qToken=0;
+const cap=h=>{$('capt').innerHTML=h};
+function fb(html){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fb').hidden=false;SND.err();
+  const r=$('fb').getBoundingClientRect();if(r.bottom>innerHeight-8)scrollBy({top:r.bottom-innerHeight+20,behavior:reduce()?'auto':'smooth'})}
+function starsOf(i){try{const g=SigmaKit.passport().games['pile-au-milieu'];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-140)scrollTo({top:scrollY+r.top-top-12,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}}
+async function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');fb('');
+  if(pi>=Q.parts.length){win();return}const p=Q.parts[pi++];part=p;const box=partEl();await p.render(box);}
+function done(){SND.ok();nextPart()}
+function newQ(){qToken++;const tk=qToken;Q=LV[lvl].qs[qi]();pi=0;errs=0;solved=false;part=null;
+  $('work').innerHTML='';$('win').hidden=true;fb('');$('prompt').innerHTML=Q.prompt;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  SC.setChapter(LV[lvl].ch,`Chapitre ${LV[lvl].ch+1} · ${['Le studio','Le toit-terrasse','La plage'][LV[lvl].ch]}`);
+  Q.setup();cap(Q.cap0||'');nextPart()}
+function dots(){const N=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:N},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){solved=true;part=null;fb('');SND.win();run.push(errs===0);dots();
+  $('winmk').innerHTML=MAKI(errs?'joie':'bravo');$('winx').textContent=errs?'C\'est réussi !':'Du premier coup !';
+  $('winp').innerHTML=Q.done||'';$('next').textContent=qi<LV[lvl].qs.length-1?'Question suivante →':'Terminer le niveau';$('win').hidden=false;
+  scrollPart($('win'));setTimeout(()=>$('next').focus({preventScroll:true}),60)}
+$('next').onclick=()=>{if(qi<LV[lvl].qs.length-1){qi++;newQ()}else endLevel()};
+function endLevel(){const L=lvl+1,sc=run.filter(Boolean).length,tot=run.length;renderLv();
+  if(window.SigmaKit)SigmaKit.levelComplete({level:L,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==L||mode!=='game')return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+function goLevel(l){mode='game';lvl=l;qi=0;run=[];$('game').hidden=false;$('labv').hidden=true;
+  $('chap').textContent=`Chapitre ${LV[l].ch+1} · Niveau ${l+1}`;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('cours').open=false;
+  renderLv();newQ()}
+function renderLv(){$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${mode==='game'&&i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<button type="button" class="labb" data-l="lab" aria-pressed="${mode==='lab'}">★ Mon plateau</button>`+
+  `<button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('sigma-fanfare',snd?'1':'0')}catch(_){}renderLv();SND.tick();return}
+  if(b.dataset.l==='lab'){mode='lab';qToken++;renderLv();$('game').hidden=true;$('labv').hidden=false;window.PAM_LAB&&PAM_LAB.open();return}
+  goLevel(+b.dataset.l)});
+
+/* ---------- parties ---------- */
+function act(label,runf,o){o=o||{};return{t:'act',label,async render(box){
+  box.innerHTML=(o.ask?`<p class="ask">${o.ask}</p>`:'')+`<div class="btns"><button class="btn or act" type="button">${label}</button></div>`;scrollPart(box);
+  const b=box.querySelector('.act');b.focus({preventScroll:true});
+  b.onclick=async()=>{b.disabled=true;const tk=qToken;await runf();if(tk!==qToken)return;b.classList.add('did');b.innerHTML='✓ '+label;b.disabled=true;nextPart()}}}}
+function choice(ask,chs,o){o=o||{};return{t:'choice',ask,chs,ck:o.ck,async render(box){
+  const order=o.keep?chs.map((_,i)=>i):shuf(chs.map((_,i)=>i));
+  box.innerHTML=`<p class="ask">${ask}</p><div class="opts">${order.map(j=>`<button class="opt" type="button" data-j="${j}">${chs[j].h}</button>`).join('')}</div>`;scrollPart(box);
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{const c=chs[+b.dataset.j];
+    if(c.ok){box.querySelectorAll('.opt').forEach(x=>x.disabled=true);b.classList.add('ok');fb('');const tk=qToken;if(o.then)await o.then();if(tk!==qToken)return;done()}
+    else{errs++;b.classList.add('ko');b.disabled=true;fb(c.why||'Regarde bien la scène.')}})}}}
+const OK=(h,v)=>({h,ok:true,v});const NO=(h,why,v)=>({h,ok:false,why,v});
+/* fill : html avec {0}, {1}… ; blanks : [{a:rationnel, lures:[[rationnel,msg]], hint}] */
+function fill(ask,html,blanks,o){o=o||{};return{t:'fill',ask,blanks,ck:o.ck,async render(box){
+  let tries=0;
+  const h=html.replace(/\{(\d+)\}/g,(_,i)=>`<input class="in" data-i="${i}" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="Réponse ${+i+1}" style="width:${(blanks[+i].w||3.6)}em">`);
+  box.innerHTML=`<p class="ask">${ask}</p><form class="fill">${h} <button class="btn or" type="submit" style="margin-left:6px;vertical-align:middle">Valider</button></form>`;scrollPart(box);
+  const ins=[...box.querySelectorAll('.in')];setTimeout(()=>ins[0].focus({preventScroll:true}),30);
+  box.querySelector('form').onsubmit=async e=>{e.preventDefault();
+    if(ins.some(x=>!x.value.trim())){fb('Remplis toutes les cases avant de valider.');return}
+    let bad=null;ins.forEach(inp=>{const b=blanks[+inp.dataset.i],v=parseQ(inp.value),good=v&&qeq(v,b.a);inp.classList.toggle('ok',!!good);inp.classList.toggle('ko',!good);if(!good&&!bad)bad={b,v,inp}});
+    if(!bad){ins.forEach(x=>x.disabled=true);box.querySelector('button[type=submit]').remove();fb('');const tk=qToken;if(o.then)await o.then();if(tk!==qToken)return;done();return}
+    errs++;tries++;let msg=null;
+    if(!bad.v)msg='Écris un nombre (avec une virgule si besoin, par exemple 10,5).';
+    else{for(const [lv,m] of (bad.b.lures||[]))if(lv&&qeq(lv,bad.v)){msg=m;break}}
+    if(!msg)msg=bad.b.hint||'Vérifie ce calcul.';
+    if(tries>=2)msg+=` <br>La bonne réponse est <b>${qfmt(bad.b.a)}</b>&nbsp;: écris-la pour continuer.`;
+    fb(msg);bad.inp.focus()}}}}
+const B=(a,hint,lures,w)=>({a:typeof a==='number'?q(a):a,hint,lures:(lures||[]).map(([x,m])=>[typeof x==='number'?q(x):x,m]),w});
+
+/* pivot : déplacer le pivot (ou un jeton) jusqu'à l'équilibre */
+function pivotPart(ask,o){return{t:'pivot',ask,target:o.target,step:o.step,who:o.who||'pivot',async render(box){
+  const st=o.step,big=o.big||Math.max(1,st*2),tok=o.tok;
+  const val=()=>o.who==='token'?tok.v:S.p;
+  box.innerHTML=`<p class="ask">${ask}</p><div class="pv"><button type="button" data-d="${-big}" aria-label="Reculer de ${fmtN(big)}">−${fmtN(big)}</button><button type="button" data-d="${-st}" aria-label="Reculer de ${fmtN(st)}">−${fmtN(st)}</button><output aria-live="polite"></output><button type="button" data-d="${st}" aria-label="Avancer de ${fmtN(st)}">+${fmtN(st)}</button><button type="button" data-d="${big}" aria-label="Avancer de ${fmtN(big)}">+${fmtN(big)}</button></div>
+    <p class="hint">${o.who==='token'?'Tu peux aussi faire glisser le jeton doré sur la scène.':'Tu peux aussi faire glisser le pivot ▲ sur la scène.'}</p>`;scrollPart(box);
+  const out=box.querySelector('output'),tk=qToken;let ver=0,fin=false;
+  const lo=o.min!=null?o.min:S.lo,hi=o.max!=null?o.max:S.hi;
+  function show(){const v=val();out.textContent=(o.who==='token'?'jeton ':'pivot ')+fmtN(v);
+    const tq=SC.torque();cap(Math.abs(tq)<1e-9?`<span class="k">Équilibre&nbsp;!</span>`:`${o.who==='token'?'Jeton':'Pivot'} à ${fmtN(v)} <span class="m">·</span> le plateau penche à ${tq>0?'droite':'gauche'}`)}
+  function set(v){if(fin||tk!==qToken)return;v=Math.round(Math.max(lo,Math.min(hi,v))/st)*st;v=Math.round(v*1000)/1000;if(v===val())return;SND.step();
+    if(o.who==='token'){tok.v=v;SC.animPlat(tok,220)}else SC.pivotTo(v,220);
+    show();const my=++ver;
+    setTimeout(()=>{if(my!==ver||tk!==qToken||fin)return;if(Math.abs(val()-o.target)<1e-9){fin=true;S.drag=null;SC.cursor('default');
+      const g=SC.geo();SC.sparkle(SC.X(S.p),g.beamY,26);SND.bal();
+      box.querySelectorAll('button').forEach(b=>b.disabled=true);if(o.who==='token'){tok.miss=false;tok.label=null;tok.hl=1}
+      setTimeout(()=>{if(tk===qToken){o.then&&o.then();done()}},reduce()?50:650)}},reduce()?60:520)}
+  box.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>set(val()+(+b.dataset.d)));
+  S.drag=o.who||'pivot';S.dragStep=st;S.dragMin=lo;S.dragMax=hi;S.onDrag=set;SC.cursor('ew-resize');show();
+  box.querySelector('[data-d]').focus({preventScroll:true})}}}
+const reduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* tri : toucher les jetons du plus petit au plus grand */
+function sortPart(ask,o){o=o||{};return{t:'sort',ask,async render(box){
+  const toks=S.toks.filter(t=>t.inFile&&!t.gone);const vals=toks.map(t=>t.v);
+  box.innerHTML=`<p class="ask">${ask}</p><div class="chips">${toks.map((t,j)=>`<button type="button" class="chip" data-j="${j}">${fmtN(t.v)}</button>`).join('')}</div><p class="hint">Touche à chaque fois la plus petite valeur qui reste&nbsp;: le jeton rejoint la file rangée.</p>`;scrollPart(box);
+  let k=0,started=false;const left=new Set(toks.map((_,j)=>j));
+  part.sortVals=vals;
+  box.querySelectorAll('.chip').forEach(b=>b.onclick=async()=>{const j=+b.dataset.j,t=toks[j];
+    const mn=Math.min(...[...left].map(i=>toks[i].v));
+    if(t.v!==mn){errs++;b.classList.remove('no');void b.offsetWidth;b.classList.add('no');fb(`Il reste plus petit que ${fmtN(t.v)}&nbsp;: cherche la plus petite valeur qui n'est pas encore rangée.`);return}
+    fb('');b.disabled=true;b.classList.add('yes');left.delete(j);
+    if(!started){started=true;const snap=SC.snapshot();S.mode.pool=true;toks.forEach(u=>u.row='pool');SC.relayout(snap,350)}
+    k++;t.row='rank';t.slot=k;t.hl=1;SC.animFile(t,480,26);SND.tick();setTimeout(()=>{t.hl=0;SC.render()},700);
+    cap(`Rang ${k}&nbsp;: <span class="k">${fmtN(t.v)}</span>`);
+    if(!left.size){await SC.wait(520);const snap=SC.snapshot();S.mode.pool=false;S.mode.ranks=true;SC.relayout(snap,350);await SC.wait(380);
+      cap(`File rangée&nbsp;: ${toks.length} jetons, du plus petit au plus grand`);done()}})}}}
+
+/* ---------- mise en place des scènes ---------- */
+const CTX={
+  notes:{lo:0,hi:20,gran:1,lab:2,u:'',name:'notes'},
+  min:{lo:0,hi:60,gran:5,lab:10,u:' min',name:'minutes'},
+  pt:{lo:35,hi:46,gran:1,lab:1,u:'',name:'pointures'},
+};
+function scene(o){ // o : {xs, ctx, file, plat, sortedFile, pivot, p, pool}
+  const c=o.ctx;SC.reset({lo:c.lo,hi:c.hi,gran:c.gran,lab:c.lab,p:o.p,mode:{file:!!o.file,plat:o.plat!==false,pivot:o.pivot!==false,ranks:!!o.sortedFile}});
+  const xs=o.xs;const ord=o.sortedFile?xs.map((v,i)=>[v,i]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).map(x=>x[1]):xs.map((_,i)=>i);
+  const toks=xs.map((v,i)=>SC.mkTok(v,{col:SC.PAL[i%SC.PAL.length],inFile:!!o.file,onPlat:o.plat!==false,slot:ord.indexOf(i)+1}));
+  // les jetons du plateau sont empilés dans l'ordre croissant
+  S.toks=toks.slice().sort((a,b)=>a.v-b.v||a.id-b.id);S.nFile=o.file?xs.length:0;
+  SC.setCount(o.count===false?'':`N = ${xs.length}`);
+  // arrivée
+  const g=SC.geo();S.toks.forEach((t,i)=>{if(t.onPlat)SC.animPlat(t,650+i*35,0,[SC.X(t.v),-30-i*8]);if(t.inFile)SC.animFile(t,600+i*30,0,[W0(),-40])});
+  return toks}
+const W0=()=>$('stage').getBoundingClientRect().width/2;
+function medCutInfo(n){return n%2?{pos:(n+1)/2,counts:[(n-1)/2,(n-1)/2]}:{pos:n/2+.5,counts:[n/2,n/2]}}
+function showMed(xs,o){o=o||{};const n=xs.length,m=medQ(xs),ci=medCutInfo(n);SND.laser();
+  return SC.cut('med',{pos:ci.pos,counts:ci.counts,val:qv(m),label:o.label||('Med = '+qfmt(m))})}
+
+/* ======================= NIVEAUX ======================= */
+const RULE_MEAN=`<p><b>Moyenne.</b> ${XB}&nbsp;= ${fr('x<sub>1</sub> + … + x<sub>n</sub>','n')} = ${fr('S','N')} (somme des valeurs divisée par l'effectif total).</p><p>Sur la scène&nbsp;: le plateau tient en équilibre <b>exactement</b> quand le pivot est à la moyenne.</p>`;
+
+/* ===== Niveau 1 · L'équilibre ===== */
+LV.push({t:'L\'équilibre',ch:0,rule:RULE_MEAN+`<p>Exemple du cours&nbsp;: 8&nbsp;; 9&nbsp;; 10&nbsp;; 10&nbsp;; 11&nbsp;; 12&nbsp;; 14&nbsp;; 15&nbsp;: S = 89, N = 8, ${XB}&nbsp;= ${fr(89,8)} = 11,125.</p>`,qs:[
+ ()=>{const xs=until(()=>{const m=ri(9,14),a=[ri(3,19),ri(3,19),ri(3,19)],l=4*m-sum(a);const x=a.concat([l]);
+    return l>=3&&l<=19&&Math.max(...x)-Math.min(...x)>=6&&new Set(x).size>=3?shuf(x):null});
+  const S0=sum(xs),m=S0/4,p0=m>=11?m-ri(3,5):m+ri(3,5);
+  return{meta:{sets:{A:xs}},setup(){scene({xs,ctx:CTX.notes,p:p0})},cap0:'Le plateau penche&nbsp;: le pivot n\'est pas sous le point d\'équilibre',
+   prompt:`Les notes de Naël aux 4 derniers contrôles&nbsp;: ${ser(xs)}. Chaque note est un jeton posé sur le plateau-règle.`,
+   parts:[pivotPart('Déplace le pivot jusqu\'à ce que le plateau tienne en équilibre.',{target:m,step:.5,big:1}),
+     fill('Calcule la moyenne pour confirmer&nbsp;:',`S = ${xs.join(' + ')} = {0} <br>${XB}&nbsp;= S ÷ 4 = {1}`,
+       [B(S0,'Additionne les 4 notes.'),B(m,'Divise la somme par N = 4.',[[S0,'C\'est la somme S&nbsp;: il reste à diviser par N = 4.'],[medQ(xs),'Ça, c\'est la médiane. Ici on veut S ÷ N.']])],{ck:['S:A','mean:A']})],
+   done:`${XB}&nbsp;= ${S0} ÷ 4 = ${fmtN(m)}&nbsp;: le plateau tient en équilibre pile sous la moyenne.`}},
+ ()=>{const xs=until(()=>{const x=Array.from({length:5},()=>5*ri(1,9));const s=sum(x);const m=s/5;return Math.max(...x)-Math.min(...x)>=20&&Number.isInteger(m)?x:null});
+  const S0=sum(xs),m=S0/5;const P=until(()=>{const p=m+pick([-1,1])*ri(4,9);return p>=5&&p<=55?p:null});const right=m>P;
+  return{meta:{sets:{A:xs},P},setup(){scene({xs,ctx:CTX.min,p:P})},cap0:`Pivot à ${P} min <span class="m">·</span> le plateau penche à ${right?'droite':'gauche'}`,
+   prompt:`Temps de trajet jusqu'au lycée (en minutes) de 5 élèves&nbsp;: ${ser(xs)}. Le pivot est placé à <b>${P} min</b>.`,
+   parts:[choice(`Le plateau penche à ${right?'droite':'gauche'}. La moyenne est donc&nbsp;:`,[OK(`plus ${right?'grande':'petite'} que ${P}`,right?'gt':'lt'),
+       NO(`plus ${right?'petite':'grande'} que ${P}`,`Le côté qui descend est le plus «&nbsp;lourd&nbsp;»&nbsp;: il faut déplacer le pivot vers ${right?'la droite':'la gauche'}.`,right?'lt':'gt'),
+       NO(`égale à ${P}`,'Si la moyenne était égale à '+P+', le plateau serait en équilibre.','eq')],{ck:'tilt:A'}),
+     pivotPart('Déplace le pivot jusqu\'à l\'équilibre.',{target:m,step:1,big:5}),
+     fill('Vérifie par le calcul&nbsp;:',`S = {0} <br>${XB}&nbsp;= S ÷ 5 = {1}`,[B(S0,'Additionne les 5 temps.'),B(m,'Divise S par 5.',[[S0,'C\'est la somme&nbsp;: divise-la par N = 5.']])],{ck:['S:A','mean:A']})],
+   done:`${XB}&nbsp;= ${S0} ÷ 5 = ${m} min. Le pivot s'arrête là où les écarts à gauche compensent exactement les écarts à droite.`}},
+ ()=>{const xs=until(()=>{const x=[ri(2,18),ri(2,18),ri(2,18),ri(2,18)];const s=sum(x);return s%4!==0&&Math.max(...x)-Math.min(...x)>=5&&new Set(x).size===4?x:null});
+  const S0=sum(xs),mq=q(S0,4),m=qv(mq);
+  return{meta:{sets:{A:xs}},setup(){scene({xs,ctx:CTX.notes,p:10})},cap0:'Pivot à 10',
+   prompt:`Calcule d'abord, vérifie ensuite sur le plateau. Série&nbsp;: ${ser(xs)}.`,
+   parts:[fill('Calcule la somme puis la moyenne (valeur exacte)&nbsp;:',`S = {0} <br>${XB}&nbsp;= {1}`,[B(S0,'Additionne les 4 valeurs.'),
+       B(mq,'Divise S par N = 4. Le résultat peut être décimal&nbsp;: '+S0+' ÷ 4.',[[S0,'C\'est S&nbsp;: divise par N = 4.'],[q(Math.round(m)),'N\'arrondis pas&nbsp;: '+S0+' ÷ 4 tombe juste en décimal.'],[q(Math.floor(m)),'N\'arrondis pas&nbsp;: '+S0+' ÷ 4 tombe juste en décimal.']])],{ck:['S:A','mean:A']}),
+     act(`Poser le pivot à ${qfmt(mq)}`,async()=>{await SC.pivotTo(m,900);await SC.wait(500);if(SC.balanced()){SC.sparkle(SC.X(m),SC.geo().beamY,26);SND.bal();cap(`<span class="k">Équilibre&nbsp;! ${XB}&nbsp;= ${qfmt(mq)}</span>`)}await SC.wait(500)})],
+   done:`${XB}&nbsp;= ${S0} ÷ 4 = ${qfmt(mq)}. Une moyenne n'est pas forcément une des valeurs, ni un nombre entier.`}},
+ ()=>{const r=until(()=>{const m=ri(10,14),a=[ri(5,18),ri(5,18),ri(5,18)],l=4*m-sum(a);return l>=3&&l<=19&&l!==m&&Math.abs(l-m)>=2?{m,a,l}:null});
+  const {m,a,l}=r;const start=l>m?ri(1,3):ri(17,19);
+  return{meta:{sets:{A:a.concat([l])},m},setup(){const toks=scene({xs:a,ctx:CTX.notes,p:m});const t=SC.mkTok(start,{miss:true,label:'?',inFile:false});S.toks.push(t);SC.setCount('N = 4');SC.animPlat(t,700,0,[SC.X(start),-30]);this.tok=t;Q.tok=t},
+   cap0:`Pivot fixé à la moyenne visée&nbsp;: ${m}`,
+   prompt:`Inès vise <b>${m}</b> de moyenne sur 4 contrôles. Elle a déjà ${ser(a)}. Le pivot est fixé à ${m}&nbsp;: il manque le 4e jeton (doré).`,
+   parts:[{t:'pivot',lazy:true,async render(box){const p=pivotPart('Fais glisser le jeton doré jusqu\'à ce que le plateau tienne en équilibre.',{target:l,step:1,big:3,who:'token',tok:Q.tok,min:0,max:20});part=Object.assign(part,{target:l,step:1,who:'token'});await p.render(box)}},
+     fill('Retrouve-la par le calcul&nbsp;:',`total des 4 notes = 4 × ${m} = {0} <br>note manquante = total − ${sum(a)} = {1}`,[B(4*m,'Pour avoir '+m+' de moyenne sur 4 notes, le total doit être 4 × '+m+'.'),B(l,'Retire au total la somme des 3 notes déjà obtenues&nbsp;: '+a.join(' + ')+' = '+sum(a)+'.',[[m,'Non&nbsp;: avoir '+m+' au dernier contrôle ne suffit pas, regarde le plateau.']])],{ck:['S:A','idx3:A']})],
+   done:`4 × ${m} = ${4*m}, et ${4*m} − ${sum(a)} = ${l}. Le jeton manquant équilibre exactement les autres autour de ${m}.`}}
+]});
+
+/* ===== Niveau 2 · Les piles ===== */
+LV.push({t:'Les piles',ch:0,rule:`<p><b>Moyenne pondérée.</b> Quand la valeur x<sub>i</sub> apparaît n<sub>i</sub> fois (son effectif)&nbsp;: ${XB}&nbsp;= ${fr('n<sub>1</sub>x<sub>1</sub> + … + n<sub>p</sub>x<sub>p</sub>','n<sub>1</sub> + … + n<sub>p</sub>')} = ${fr('∑ n<sub>i</sub>x<sub>i</sub>','∑ n<sub>i</sub>')}.</p><p><b>Fréquence.</b> f<sub>i</sub> = ${fr('n<sub>i</sub>','N')}, et en %&nbsp;: 100 × f<sub>i</sub>. Exemple&nbsp;: 10 apparaît 2 fois sur 8, f = 2 ÷ 8 = 0,25 = 25 %.</p><p>Sur la scène, chaque valeur forme une pile&nbsp;: plus la pile est haute, plus elle pèse.</p>`,qs:[
+ ()=>{const r=until(()=>{let a=ri(8,13),b=a+ri(3,6);if(b>19)return null;if(Math.random()<.5)[a,b]=[b,a];const na=ri(3,6),nb=ri(1,na-1);const N=na+nb,T=na*a+nb*b;const mq=q(T,N);return nice(mq,4)?{a,b,na,nb,N,T,mq}:null});
+  const {a,b,na,nb,N,T,mq}=r;const xs=expand([[a,na],[b,nb]]);const mid=(a+b)/2;
+  return{meta:{sets:{A:xs}},setup(){scene({xs,ctx:CTX.notes,p:mid})},cap0:`Pivot au milieu de ${a} et ${b}&nbsp;: le plateau penche vers ${a}`,
+   prompt:`Dans un groupe, la note <b>${a}</b> est obtenue <b>${na} fois</b> et la note <b>${b}</b> est obtenue <b>${nb} fois</b>. Le pivot est placé à ${fmtN(mid)}, pile au milieu de ${a} et ${b}.`,
+   parts:[choice(`Le plateau penche vers ${a}. Pourquoi&nbsp;?`,[OK(`Il y a plus de ${a} que de ${b}&nbsp;: chaque valeur compte autant de fois que son effectif.`,'w'),
+       NO(`Parce que ${a} est ${a<b?'plus petit':'plus grand'} que ${b}.`,`Si les deux piles avaient la même hauteur, le plateau tiendrait au milieu. C'est la hauteur des piles (les effectifs) qui compte.`,'o'),
+       NO('Le pivot est mal fabriqué.','Le pivot est juste&nbsp;: regarde la hauteur des deux piles.','x')],{ck:'fixed:w'}),
+     fill('Calcule la moyenne pondérée&nbsp;:',`N = ${na} + ${nb} = {0} <br>∑ n<sub>i</sub>x<sub>i</sub> = ${na} × ${a} + ${nb} × ${b} = {1} <br>${XB}&nbsp;= {2}`,
+       [B(N,'Additionne les effectifs.'),B(T,`Calcule ${na} × ${a} puis ${nb} × ${b}, et ajoute.`,[[a+b,'Chaque valeur doit être multipliée par son effectif.']]),
+        B(mq,'Divise ∑ n<sub>i</sub>x<sub>i</sub> par N = '+N+'.',[[q(a+b,2),'C\'est la moyenne de '+a+' et '+b+' sans tenir compte des effectifs&nbsp;: le plateau penche&nbsp;!'],[q(T,2),'On divise par l\'effectif total N = '+N+', pas par le nombre de valeurs différentes.'],[q(T),'Il reste à diviser par N = '+N+'.']])],
+       {ck:['N:A','S:A','mean:A'],then:async()=>{await SC.pivotTo(qv(mq),900);await SC.wait(450);SC.sparkle(SC.X(qv(mq)),SC.geo().beamY,24);SND.bal();cap(`<span class="k">Équilibre&nbsp;! ${XB}&nbsp;= ${qfmt(mq)}</span>`);await SC.wait(400)}})],
+   done:`${XB}&nbsp;= ${fr(`${na} × ${a} + ${nb} × ${b}`,N)} = ${fr(T,N)} = ${qfmt(mq)}. Le pivot glisse vers la pile la plus haute.`}},
+ ()=>{const r=until(()=>{const N=pick([20,25,50]);const vals=[0,1,2,3,4];const ns=[ri(1,8),ri(2,9),ri(2,9),ri(1,6)];const last=N-sum(ns);if(last<1||last>12)return null;ns.push(last);return{N,tab:vals.map((v,i)=>[v,ns[i]])}});
+  const {N,tab}=r;const k=ri(0,4),[v,n]=tab[k];const f=q(n,N);const xs=expand(tab);
+  return{meta:{sets:{A:xs},v},setup(){scene({xs,ctx:{lo:0,hi:4,gran:1,lab:1},pivot:false});S.toks.forEach(t=>t.dim=t.v===v?0:1);S.toks.forEach(t=>{if(t.v===v)t.hl=1})},
+   cap0:`Pile de ${v}&nbsp;: <span class="k">${n}</span> jetons sur N = ${N}`,
+   prompt:`Nombre de buts marqués par chacun des ${N} joueurs d'un tournoi de quartier&nbsp;:${tabHTML(tab,{lv:'Buts'})}La pile de la valeur <b>${v}</b> est éclairée.`,
+   parts:[fill(`Fréquence de la valeur ${v}&nbsp;:`,`f = ${fr(n,N)} = {0} = {1} %`,[B(f,`Divise l'effectif ${n} par l'effectif total ${N}.`,[[q(N,n),'C\'est l\'inverse&nbsp;: f = n ÷ N, l\'effectif de la valeur divisé par l\'effectif total.'],[q(n,100),'On divise par N = '+N+', pas par 100.']],4.2),
+       B(q(100*n,N),'Multiplie la fréquence par 100.',[[f,'En pourcentage, on multiplie la fréquence par 100.']],3.6)],{ck:['f:A:'+v,'fp:A:'+v]}),
+     choice('Si on additionne les fréquences de toutes les valeurs, on obtient&nbsp;:',[OK('1, c\'est-à-dire 100 %','one'),NO(String(N),'Ce sont les effectifs qui ont pour somme N = '+N+'. Les fréquences, elles, ont pour somme '+N+' ÷ '+N+' = 1.','N'),NO('ça dépend de la série','Toujours 1&nbsp;: (n<sub>1</sub> + … + n<sub>p</sub>) ÷ N = N ÷ N = 1.','dep')],{ck:'fixed:one'})],
+   done:`f = ${n} ÷ ${N} = ${qfmt(f)} = ${qfmt(q(100*n,N))} %. Une fréquence est toujours comprise entre 0 et 1.`}},
+ ()=>{const r=until(()=>{const base=ri(36,40);const vals=[base,base+ri(1,2),base+ri(3,5)].filter((v,i,a)=>a.indexOf(v)===i);if(vals.length<3||vals[2]>45)return null;
+    const ns=vals.map(()=>ri(1,5));const N=sum(ns);if(N>12||N<6)return null;const tab=vals.map((v,i)=>[v,ns[i]]);const T=sum(tab.map(([v,n])=>v*n));const mq=q(T,N);return nice(mq,2)&&mq.d!==1?{tab,N,T,mq}:null});
+  const {tab,N,T,mq}=r;const xs=expand(tab);const p0=tab[0][0];
+  return{meta:{sets:{A:xs}},setup(){scene({xs,ctx:CTX.pt,p:p0})},cap0:`Pivot à ${p0}`,
+   prompt:`Pointures des baskets d'une équipe&nbsp;:${tabHTML(tab,{lv:'Pointure'})}`,
+   parts:[pivotPart('Trouve l\'équilibre du plateau (le pivot avance de 0,5 en 0,5).',{target:qv(mq),step:.5,big:1}),
+     fill('Confirme par le calcul&nbsp;:',`∑ n<sub>i</sub>x<sub>i</sub> = {0} <br>N = {1} <br>${XB}&nbsp;= {2}`,[B(T,'Multiplie chaque pointure par son effectif, puis additionne.'),B(N,'Additionne les effectifs.',[[3,'Il y a 3 pointures différentes, mais '+N+' joueurs.']]),B(mq,'Divise par N.',[[q(sum(tab.map(r=>r[0])),3),'C\'est la moyenne des trois pointures sans les effectifs.']])],{ck:['S:A','N:A','mean:A']})],
+   done:`${XB}&nbsp;= ${fr(T,N)} = ${qfmt(mq)}&nbsp;: une moyenne de pointures n'a pas à être une pointure qui existe.`}},
+ ()=>{const r=until(()=>{const fs=[ri(1,8)*5,ri(1,8)*5,ri(1,8)*5];const m=100-sum(fs);if(m<10||m>50||m%5)return null;return{fs,m}});
+  const {fs,m}=r;const N=40;const vals=[1,2,3,4];const k=ri(0,3);const all=fs.slice();all.splice(k,0,m);const ns=all.map(f=>f*N/100);const tab=vals.map((v,i)=>[v,ns[i]]);const xs=expand(tab);
+  return{meta:{sets:{A:xs},v:vals[k]},setup(){scene({xs,ctx:{lo:0,hi:5,gran:1,lab:1},pivot:false});S.toks.forEach(t=>{if(t.v===vals[k]){t.miss=true;t.label='?'}})},
+   cap0:`N = 40 jeunes <span class="m">·</span> une pile est en pointillés`,
+   prompt:`On a demandé à ${N} jeunes combien de soirs par semaine ils regardent une série. Fréquences en %&nbsp;:${tabHTML(vals.map((v,i)=>[v,i===k?null:all[i]]),{lv:'Soirs',ln:'Fréquence (%)'})}`,
+   parts:[fill(`Complète pour la valeur ${vals[k]}&nbsp;:`,`fréquence = {0} % <br>effectif = {1}`,[B(m,'Les fréquences ont pour somme 100 %.',[[sum(fs),'C\'est la somme des trois autres&nbsp;: retire-la de 100.']]),
+       B(m*N/100,`${m} % de ${N}&nbsp;: ${m} ÷ 100 × ${N}.`,[[m,'C\'est la fréquence en %. L\'effectif, c\'est un nombre de jeunes&nbsp;: '+m+' % de '+N+'.']])],
+       {ck:['fp:A:'+vals[k],'n:A:'+vals[k]],then:async()=>{S.toks.forEach(t=>{if(t.v===vals[k]){t.miss=false;t.label=null;t.hl=1}});SC.render();cap(`Pile de ${vals[k]}&nbsp;: <span class="k">${m*N/100}</span> jetons sur 40`);await SC.wait(500)}})],
+   done:`100 − ${sum(fs)} = ${m} %, et ${m} % de ${N} = ${m*N/100}.`}}
+]});
+
+/* ===== Niveau 3 · La coupe ===== */
+const RULE_MED=`<p><b>Médiane.</b> On <b>range</b> d'abord la série dans l'ordre croissant.</p><p>Si N est impair&nbsp;: Med est la valeur au rang ${fr('N + 1','2')}. Exemple&nbsp;: 2&nbsp;; 5&nbsp;; 7&nbsp;; 9&nbsp;; 12 → Med = 7.</p><p>Si N est pair&nbsp;: Med est la moyenne des deux valeurs centrales. Exemple&nbsp;: 8&nbsp;; 9&nbsp;; 10&nbsp;; 10&nbsp;; 11&nbsp;; 12&nbsp;; 14&nbsp;; 15 → Med = ${fr('10 + 11',2)} = 10,5.</p><p>Sur la scène, la coupe partage la file rangée en deux moitiés de même effectif.</p>`;
+function medHints(xs){const s=sorted(xs),n=s.length,mid=n%2?q(s[(n-1)/2]):null;const raw=xs[Math.floor(n/2)];const L=[[meanQ(xs),'Ça, c\'est la moyenne (le pivot). La médiane, c\'est la coupe de la file rangée.']];
+  if(n%2&&raw!==s[(n-1)/2])L.push([q(raw),'C\'est la valeur du milieu de la liste NON rangée&nbsp;: il faut ranger d\'abord.']);
+  if(n%2===0){L.push([q(s[n/2-1]),'C\'est une seule des deux valeurs centrales&nbsp;: prends leur moyenne.'],[q(s[n/2]),'C\'est une seule des deux valeurs centrales&nbsp;: prends leur moyenne.'],[q(s[n/2-1]+s[n/2]),'Divise la somme des deux valeurs centrales par 2.'])}
+  return L}
+LV.push({t:'La coupe',ch:1,rule:RULE_MED,qs:[
+ ()=>{const xs=until(()=>{const x=shuf(Array.from({length:5},()=>ri(2,19)));const s=sorted(x);return new Set(x).size===5&&x[2]!==s[2]?x:null});const m=medQ(xs);
+  return{meta:{sets:{A:xs}},setup(){scene({xs,ctx:CTX.notes,file:true,pivot:false})},cap0:'5 jetons en désordre',
+   prompt:`Notes de 5 élèves, dans l'ordre où elles arrivent&nbsp;: ${ser(xs)}.`,
+   parts:[sortPart('Range la file du plus petit au plus grand.'),
+     fill('N = 5 est impair. La médiane est au rang (N + 1) ÷ 2&nbsp;:',`rang = {0}`,[B(3,'(5 + 1) ÷ 2 = 3.',[[q(5,2),'(N + 1) ÷ 2 avec N = 5 donne 6 ÷ 2.']])],{ck:['rkmed:A'],then:async()=>{await showMed(xs,{label:'rang 3'});cap('<span class="c">La coupe tombe sur le rang 3</span> <span class="m">· 2 jetons de chaque côté</span>')}}),
+     fill('Lis la valeur coupée&nbsp;:',`Med = {0}`,[B(m,'Lis la valeur du 3e jeton de la file rangée.',medHints(xs))],{ck:['med:A'],then:async()=>{SC.cut('med',{label:'Med = '+qfmt(m)});cap(`<span class="c">Med = ${qfmt(m)}</span>`);await SC.wait(300)}})],
+   done:`Série rangée&nbsp;: ${ser(sorted(xs))}. La 3e valeur est ${qfmt(m)}&nbsp;: autant de jetons avant qu'après.`}},
+ ()=>{const n=pick([7,9]);const xs=until(()=>{const x=Array.from({length:n},()=>ri(3,18));const s=sorted(x);return x[(n-1)/2]!==s[(n-1)/2]&&new Set(x).size<n?x:null});const m=medQ(xs);const r=(n+1)/2;
+  return{meta:{sets:{A:xs}},setup(){scene({xs,ctx:CTX.notes,file:true,pivot:false})},cap0:`${n} jetons en désordre (avec des ex æquo)`,
+   prompt:`Une série de ${n} notes&nbsp;: ${ser(xs)}. Attention, certaines valeurs sont répétées&nbsp;: chaque jeton compte.`,
+   parts:[sortPart('Range la file.'),
+     fill('Repère le rang central puis la médiane&nbsp;:',`rang = {0} <br>Med = {1}`,[B(r,`(${n} + 1) ÷ 2 = ${r}.`),B(m,`Lis la valeur au rang ${r}.`,medHints(xs))],{ck:['rkmed:A','med:A'],then:()=>showMed(xs)})],
+   done:`N = ${n}, rang ${r}&nbsp;: Med = ${qfmt(m)}. Les valeurs répétées gardent chacune leur place dans la file.`}},
+ ()=>{const n=pick([6,8]);const xs=until(()=>{const x=Array.from({length:n},()=>ri(2,19));const s=sorted(x);return s[n/2-1]!==s[n/2]&&new Set(x).size>=n-1?x:null});const s=sorted(xs),m=medQ(xs);
+  return{meta:{sets:{A:xs}},setup(){scene({xs,ctx:CTX.notes,file:true,pivot:false})},cap0:`${n} jetons en désordre`,
+   prompt:`Cette fois N = ${n} est pair&nbsp;: ${ser(xs)}.`,
+   parts:[sortPart('Range la file.'),
+     fill('Les deux valeurs centrales sont aux rangs&nbsp;:',`{0} et {1}`,[B(n/2,`N ÷ 2 = ${n/2}.`),B(n/2+1,`Le rang juste après ${n/2}.`)],{ck:['rk:'+(n/2),'rk:'+(n/2+1)],then:async()=>{await showMed(xs,{label:'coupe'});cap(`<span class="c">La coupe passe entre le rang ${n/2} et le rang ${n/2+1}</span> <span class="m">· ${n/2} jetons de chaque côté</span>`)}}),
+     fill('La médiane est la moyenne des deux valeurs centrales&nbsp;:',`Med = {0}`,[B(m,`Calcule (${s[n/2-1]} + ${s[n/2]}) ÷ 2.`,medHints(xs))],{ck:['med:A'],then:async()=>{SC.cut('med',{label:'Med = '+qfmt(m)});cap(`<span class="c">Med = ${fr(`${s[n/2-1]} + ${s[n/2]}`,2)} = ${qfmt(m)}</span>`)}})],
+   done:`Med = (${s[n/2-1]} + ${s[n/2]}) ÷ 2 = ${qfmt(m)}. La coupe tombe entre deux jetons&nbsp;: la médiane n'est pas forcément une valeur de la série.`}},
+ ()=>{const xs=until(()=>{const x=Array.from({length:5},()=>ri(2,19));const s=sorted(x);return new Set(x).size===5&&Math.abs(x[2]-s[2])>=3?x:null});const m=medQ(xs);
+  return{meta:{sets:{A:xs}},setup(){scene({xs,ctx:CTX.notes,file:true,pivot:false});SC.cut('med',{pos:3,label:'Med = '+xs[2]+' ?',col:C.ko,dur:0})},cap0:`Zoé coupe la file… sans l'avoir rangée`,
+   prompt:`Zoé coupe la file ${ser(xs)} en son milieu et annonce&nbsp;: «&nbsp;Med = ${xs[2]}&nbsp;».`,
+   parts:[choice('Qu\'en penses-tu&nbsp;?',[OK('Elle se trompe&nbsp;: il faut d\'abord ranger la série.','sort'),NO('Elle a raison&nbsp;: '+xs[2]+' est au milieu de la liste.','Au milieu de la liste, oui, mais la liste n\'est pas rangée&nbsp;: '+xs[2]+' n\'a pas autant de valeurs plus petites que de plus grandes.','mid'),
+       NO('Elle se trompe&nbsp;: la médiane, c\'est la moyenne.','Médiane et moyenne sont deux indicateurs différents&nbsp;: le pivot et la coupe.','mean')],{ck:'fixed:sort'}),
+     act('Ranger la file',async()=>{SC.hideCuts();delete S.cuts.med;const ord=S.toks.slice().sort((a,b)=>a.v-b.v);S.mode.ranks=true;SND.whoosh();await SC.sortAll(ord,900);await showMed(xs,{label:'rang 3'})}),
+     fill('Maintenant que la file est rangée&nbsp;:',`Med = {0}`,[B(m,'Lis la 3e valeur de la file rangée.',medHints(xs))],{ck:['med:A'],then:()=>SC.cut('med',{label:'Med = '+qfmt(m)})})],
+   done:`Rangée&nbsp;: ${ser(sorted(xs))}. Med = ${qfmt(m)}, et non ${xs[2]}. On range toujours avant de couper.`}}
+]});
+
+/* ===== Niveau 4 · L'intrus ===== */
+function intrude(xs,v,o){o=o||{};return async()=>{const n=xs.length+1,all=xs.concat([v]);SND.whoosh();
+  const snap=SC.snapshot();const t=SC.mkTok(v,{intr:true,slot:n,inFile:!!S.mode.file});
+  // place l'intrus dans la file rangée : les plus grands se décalent
+  const rank=sorted(all).lastIndexOf(v)+1;S.toks.forEach(u=>{if(u.inFile&&u.slot>=rank)u.slot++});t.slot=rank;
+  S.toks.push(t);S.toks.sort((a,b)=>a.v-b.v||a.id-b.id);S.nFile=S.mode.file?n:0;SC.setCount('N = '+n);
+  SC.relayout(snap,650);if(S.mode.file)SC.animFile(t,800,50,[v>qv(meanQ(xs))?SC.geo().ax1+60:-60,SC.geo().fTop]);SC.animPlat(t,800,0,[SC.X(v),-40]);
+  await SC.wait(300);if(S.cuts.med){const ci=medCutInfo(n);SC.cut('med',{pos:ci.pos,counts:ci.counts,val:qv(medQ(all)),label:'Med = '+qfmt(medQ(all)),dur:700})}
+  await SC.wait(650);SND.thud();cap('<span class="x">L\'intrus atterrit</span> <span class="m">· le plateau bascule…</span>');await SC.wait(900);
+  await SC.pivotTo(qv(meanQ(all)),1300);await SC.wait(350);SC.sparkle(SC.X(S.p),SC.geo().beamY,20);SND.bal();
+  cap(`<span class="c">Med&nbsp;: ${qfmt(medQ(xs))} → ${qfmt(medQ(all))}</span> <span class="m">·</span> <span class="k">${XB}&nbsp;: ${qfmt(meanQ(xs))} → ${qfmt(meanQ(all))}</span>`)}}
+function genIntrus(){return until(()=>{const n=7;const m=ri(10,13);const a=Array.from({length:n-1},()=>ri(m-4,m+4));const l=n*m-sum(a);const xs=a.concat([l]);
+  if(l<m-5||l>m+5||new Set(xs).size<5)return null;const v=pick([0,1,2,19,20]);const all=xs.concat([v]);const M1=meanQ(all);if(!nice(M1,4))return null;
+  const dm=Math.abs(qv(M1)-m),dd=Math.abs(qv(medQ(all))-qv(medQ(xs)));if(dm<=dd+.5)return null;return{xs:sorted(xs),v,all}})}
+LV.push({t:'L\'intrus',ch:1,rule:`<p><b>Valeur extrême.</b> La moyenne utilise <b>toutes les valeurs</b>&nbsp;: une valeur très grande (ou très petite) la tire fortement.</p><p>La médiane n'utilise que les <b>rangs</b>&nbsp;: une valeur extrême déplace la coupe d'un demi-rang au plus.</p><p>Exemple du cours&nbsp;: 8&nbsp;; 9&nbsp;; 10&nbsp;; 10&nbsp;; 11&nbsp;; 12&nbsp;; 14&nbsp;; 15 a pour médiane 10,5&nbsp;; on ajoute 16&nbsp;: N = 9, Med = 11 (5e valeur).</p>`,qs:[
+ ()=>{const {xs,v,all}=genIntrus();const m0=meanQ(xs),M=meanQ(all),med1=medQ(all);
+  return{meta:{sets:{A:xs,B:all}},setup(){scene({xs,ctx:CTX.notes,file:true,sortedFile:true,p:qv(m0)});setTimeout(()=>showMed(xs),700)},cap0:`<span class="k">${XB}&nbsp;= ${qfmt(m0)}</span> <span class="m">·</span> <span class="c">Med = ${qfmt(medQ(xs))}</span>`,
+   prompt:`Une série de 7 notes rangée&nbsp;: ${ser(xs)}. Le plateau est en équilibre à ${XB}&nbsp;= ${qfmt(m0)}, la coupe est à Med = ${qfmt(medQ(xs))}. Une 8e note arrive&nbsp;: <b>${v}</b>.`,
+   parts:[choice('Avant de la faire entrer&nbsp;: lequel va bouger le plus&nbsp;?',[OK('Le pivot (la moyenne)','mean'),NO('La coupe (la médiane)','La coupe ne peut avancer que d\'un demi-rang&nbsp;: la nouvelle note se range au bout de la file. Le pivot, lui, doit compenser l\'écart de '+v+'.','med'),NO('Les deux bougent pareil','Fais l\'expérience&nbsp;: regarde bien les deux.','same')],{ck:'moved:A:B'}),
+     act(`Faire entrer la note ${v}`,intrude(xs,v)),
+     fill('Lis les nouveaux indicateurs (N = 8)&nbsp;:',`Med = {0} <br>${XB}&nbsp;= {1}`,[B(med1,'N = 8&nbsp;: moyenne des 4e et 5e valeurs de la nouvelle file.',medHints(all)),B(M,`(${sum(xs)} + ${v}) ÷ 8.`,[[m0,'C\'était l\'ancienne moyenne.'],[q(sum(all)),'Divise par N = 8.']])],{ck:['med:B','mean:B']})],
+   done:`La coupe passe de ${qfmt(medQ(xs))} à ${qfmt(med1)}, le pivot de ${qfmt(m0)} à ${qfmt(M)}. La moyenne est sensible aux valeurs extrêmes, la médiane beaucoup moins.`}},
+ ()=>{const r=until(()=>{const x=sorted(Array.from({length:6},()=>5*ri(2,8)));if(new Set(x).size<5)return null;const nv=x[5]+5*ri(4,7);if(nv>80)return null;const y=x.slice(0,5).concat([nv]);const M=meanQ(y),M0=meanQ(x);return nice(M,4)&&nice(M0,4)?{x,y,nv}:null});
+  const {x,y,nv}=r;const m0=meanQ(x),M=meanQ(y);const ctx={lo:0,hi:80,gran:5,lab:10};
+  return{meta:{sets:{A:x,B:y}},setup(){scene({xs:x,ctx,file:true,sortedFile:true,p:qv(m0)});setTimeout(()=>showMed(x),700)},cap0:`<span class="k">${XB}&nbsp;= ${qfmt(m0)}</span> <span class="m">·</span> <span class="c">Med = ${qfmt(medQ(x))}</span>`,
+   prompt:`Temps de trajet (min) de 6 élèves&nbsp;: ${ser(x)}. On s'aperçoit que le plus long n'est pas ${x[5]} mais <b>${nv} min</b> (barge comprise).`,
+   parts:[choice('Que devient la médiane&nbsp;?',[OK('Elle ne change pas','same'),NO('Elle augmente','Le jeton reste le dernier de la file&nbsp;: les 3e et 4e jetons ne bougent pas.','up'),NO('Elle augmente de '+(nv-x[5])+' ÷ 6','C\'est la moyenne qui augmente ainsi. La coupe ne regarde que les rangs.','frac')],{ck:'medchg:A:B'}),
+     act(`Corriger&nbsp;: ${x[5]} → ${nv} min`,async()=>{const t=S.toks.find(u=>u.v===x[5]&&u.slot===6)||S.toks[S.toks.length-1];t.intr=true;SND.whoosh();
+       const st=t.v;const o={v:st};await SC.tween(o,'v',nv,900);t.v=nv;SC.animPlat(t,10);SND.thud();await SC.wait(700);await SC.pivotTo(qv(M),1200);await SC.wait(300);SND.bal();
+       cap(`<span class="c">Med = ${qfmt(medQ(y))} (inchangée)</span> <span class="m">·</span> <span class="k">${XB}&nbsp;: ${qfmt(m0)} → ${qfmt(M)}</span>`)}),
+     fill('Nouvelle moyenne&nbsp;:',`${XB}&nbsp;= {0}`,[B(M,'Nouvelle somme ÷ 6.',[[m0,'C\'est l\'ancienne moyenne&nbsp;: le pivot a bougé.']])],{ck:['mean:B']})],
+   done:`Med reste ${qfmt(medQ(y))}&nbsp;; ${XB} passe de ${qfmt(m0)} à ${qfmt(M)} (+ ${nv-x[5]} ÷ 6). Un seul jeton déplacé suffit à tirer la moyenne.`}},
+ ()=>{const r=until(()=>{const v=ri(0,2);const a=sorted(Array.from({length:8},()=>ri(9,16)));const x=sorted(a.concat([v]));const M0=meanQ(x),M=meanQ(a);return nice(M,4)&&nice(M0,4)&&medQ(a).d!==1?{v,a,x}:null});
+  const {v,a,x}=r;const m0=meanQ(x),M=meanQ(a);
+  return{meta:{sets:{A:x,B:a}},setup(){scene({xs:x,ctx:CTX.notes,file:true,sortedFile:true,p:qv(m0)});setTimeout(()=>showMed(x),700);setTimeout(()=>{const t=S.toks.find(u=>u.v===v);if(t){t.intr=true;SC.render()}},50)},
+   cap0:`<span class="k">${XB}&nbsp;= ${qfmt(m0)}</span> <span class="m">·</span> <span class="c">Med = ${qfmt(medQ(x))}</span>`,
+   prompt:`9 notes rangées&nbsp;: ${ser(x)}. La note <b>${v}</b> correspond à une copie blanche&nbsp;: on décide de la retirer de la série.`,
+   parts:[choice('Sans ce jeton, la moyenne va&nbsp;:',[OK('augmenter','up'),NO('diminuer','On retire une valeur plus petite que la moyenne&nbsp;: le côté gauche s\'allège, le pivot part vers la droite.','down'),NO('rester la même','La moyenne utilise toutes les valeurs&nbsp;: retirer '+v+' la change.','same')],{ck:'meandir:A:B'}),
+     act(`Retirer le jeton ${v}`,async()=>{const t=S.toks.find(u=>u.v===v);SND.whoosh();const snap=SC.snapshot();t.gone=true;S.toks=S.toks.filter(u=>u!==t);S.toks.forEach(u=>{if(u.slot>t.slot)u.slot--});S.nFile=8;SC.setCount('N = 8');SC.relayout(snap,650);
+       const ci=medCutInfo(8);SC.cut('med',{pos:ci.pos,counts:ci.counts,val:qv(medQ(a)),label:'Med = '+qfmt(medQ(a)),dur:700});await SC.wait(1100);await SC.pivotTo(qv(M),1200);await SC.wait(300);SND.bal();
+       cap(`<span class="c">Med&nbsp;: ${qfmt(medQ(x))} → ${qfmt(medQ(a))}</span> <span class="m">·</span> <span class="k">${XB}&nbsp;: ${qfmt(m0)} → ${qfmt(M)}</span>`)}),
+     fill('Nouveaux indicateurs (N = 8)&nbsp;:',`Med = {0} <br>${XB}&nbsp;= {1}`,[B(medQ(a),'N = 8&nbsp;: moyenne des 4e et 5e valeurs.',medHints(a)),B(M,`(${sum(x)} − ${v}) ÷ 8.`,[[m0,'C\'est l\'ancienne moyenne.']])],{ck:['med:B','mean:B']})],
+   done:`Sans le ${v}, ${XB} passe de ${qfmt(m0)} à ${qfmt(M)} alors que la médiane passe seulement de ${qfmt(medQ(x))} à ${qfmt(medQ(a))}.`}},
+ ()=>{const r=until(()=>{const a=sorted(Array.from({length:5},()=>50*ri(3,8)));if(new Set(a).size<4)return null;const big=50*ri(22,25);const x=a.concat([big]);const M=meanQ(x);return nice(M,1)?{x,big}:null});
+  const {x,big}=r;const M=meanQ(x),md=medQ(x);
+  return{meta:{sets:{A:x}},setup(){scene({xs:x,ctx:{lo:0,hi:1300,gran:50,lab:200},file:true,sortedFile:true,p:qv(M)});setTimeout(()=>{showMed(x);const t=S.toks.find(u=>u.v===big);t.intr=true},700)},
+   cap0:`<span class="k">${XB}&nbsp;= ${qfmt(M)} €</span> <span class="m">·</span> <span class="c">Med = ${qfmt(md)} €</span>`,
+   prompt:`Prix (en €) des téléphones de 6 amis&nbsp;: ${ser(x)}. Le pivot est à la moyenne, la coupe à la médiane.`,
+   parts:[choice(`Quel indicateur est le moins influencé par le téléphone à ${fmtN(big)}&nbsp;€&nbsp;?`,[OK('La médiane','med'),NO('La moyenne','Regarde le pivot&nbsp;: '+qfmt(M)+'&nbsp;€, plus cher que '+x.filter(v=>v<qv(M)).length+' des 6 téléphones&nbsp;! Le prix extrême le tire vers la droite.','mean'),NO('Aucun des deux','La coupe, elle, reste au milieu de la file.','none')],{ck:'robust'}),
+     fill('Lis les deux indicateurs&nbsp;:',`Med = {0} € <br>${XB}&nbsp;= {1} €`,[B(md,'N = 6&nbsp;: moyenne des 3e et 4e prix.',medHints(x),4.2),B(M,'Somme des 6 prix ÷ 6.',[],4.2)],{ck:['med:A','mean:A']})],
+   done:`Med = ${qfmt(md)} € décrit bien un prix «&nbsp;du milieu&nbsp;»&nbsp;; ${XB}&nbsp;= ${qfmt(M)} € est tirée par le téléphone à ${fmtN(big)}&nbsp;€.`}}
+]});
+
+/* ===== Niveau 5 · Les quarts ===== */
+const RULE_Q=`<p><b>Quartiles</b> (série rangée, N multiple de 4)&nbsp;: Q<sub>1</sub> est la valeur au rang ${fr('N','4')}, Q<sub>3</sub> la valeur au rang ${fr('3N','4')}.</p><p>Q<sub>1</sub> laisse 25 % des valeurs en dessous, Q<sub>3</sub> en laisse 75 %. Exemple du cours (N = 8)&nbsp;: rang 2 → Q<sub>1</sub> = 9&nbsp;; rang 6 → Q<sub>3</sub> = 12.</p><p><b>Écart interquartile</b>&nbsp;: I = Q<sub>3</sub> − Q<sub>1</sub> (ici 12 − 9 = 3).</p><p>Avec un tableau, on repère les rangs à l'aide des <b>effectifs cumulés</b>.</p>`;
+function genQ(n,lo,hi){return until(()=>{const x=Array.from({length:n},()=>ri(lo,hi));const s=sorted(x);const a=n/4,b=3*n/4;return s[a-1]<s[a]&&s[b-1]<s[b]&&s[0]<s[a-1]&&new Set(x).size>=n-2?x:null})}
+async function showQ(xs){const n=xs.length,{q1,q3}=quart(xs);SND.laser();await Promise.all([SC.cut('q1',{pos:n/4,val:q1,label:'Q1 = '+q1}),SC.cut('q3',{pos:3*n/4,val:q3,label:'Q3 = '+q3})])}
+const qHints=(xs,which)=>{const s=sorted(xs),n=xs.length,r=which===1?n/4:3*n/4;return[[q(r),'Ça, c\'est le rang. Q'+(which===1?'1':'3')+' est la VALEUR qui occupe ce rang dans la file rangée.'],[q(s[r]),'Tu as pris le rang suivant&nbsp;: compte à partir du 1er jeton.'],[medQ(xs),'C\'est la médiane.']]};
+LV.push({t:'Les quarts',ch:2,rule:RULE_Q,qs:[
+ ()=>{const xs=genQ(8,4,19);const s=sorted(xs),{q1,q3}=quart(xs);
+  return{meta:{sets:{A:xs}},setup(){scene({xs:s,ctx:CTX.notes,file:true,sortedFile:true,pivot:false})},cap0:'8 jetons rangés',
+   prompt:`Série rangée de 8 notes&nbsp;: ${ser(s)}.`,
+   parts:[fill('Premier quartile&nbsp;:',`rang de Q<sub>1</sub> = N ÷ 4 = {0} <br>Q<sub>1</sub> = {1}`,[B(2,'8 ÷ 4.'),B(q1,'Lis la valeur au rang 2.',qHints(xs,1))],{ck:['rkq1:A','q1:A'],then:async()=>{SND.laser();await SC.cut('q1',{pos:2,val:q1,label:'Q1 = '+q1});cap(`<span class="q">Q1 = ${q1}</span> <span class="m">· 2 jetons sur 8 (25 %) jusqu'à Q1</span>`)}}),
+     fill('Troisième quartile&nbsp;:',`rang de Q<sub>3</sub> = 3N ÷ 4 = {0} <br>Q<sub>3</sub> = {1}`,[B(6,'3 × 8 ÷ 4.'),B(q3,'Lis la valeur au rang 6.',qHints(xs,3))],{ck:['rkq3:A','q3:A'],then:async()=>{SND.laser();await SC.cut('q3',{pos:6,val:q3,label:'Q3 = '+q3});cap(`<span class="q">Q1 = ${q1} · Q3 = ${q3}</span> <span class="m">· 6 jetons sur 8 (75 %) jusqu'à Q3</span>`)}}),
+     fill('Écart interquartile&nbsp;:',`I = Q<sub>3</sub> − Q<sub>1</sub> = {0}`,[B(q3-q1,`${q3} − ${q1}.`,[[q1+q3,'C\'est une différence&nbsp;: Q3 − Q1.'],[q1-q3,'Dans l\'ordre&nbsp;: Q3 − Q1, le plus grand moins le plus petit.']])],{ck:['I:A']})],
+   done:`Q1 = ${q1}, Q3 = ${q3}, I = ${q3} − ${q1} = ${q3-q1}&nbsp;: la moitié centrale de la file tient dans un intervalle de longueur ${q3-q1}.`}},
+ ()=>{const xs=genQ(12,3,19);const {q1,q3}=quart(xs);
+  return{meta:{sets:{A:xs}},setup(){scene({xs,ctx:CTX.notes,file:true,pivot:false})},cap0:'12 jetons en désordre',
+   prompt:`12 notes, en désordre&nbsp;: ${ser(xs)}.`,
+   parts:[act('Ranger la file',async()=>{const ord=S.toks.slice().sort((a,b)=>a.v-b.v);S.mode.ranks=true;SND.whoosh();await SC.sortAll(ord,1000);cap('File rangée&nbsp;: 12 jetons')}),
+     fill('N = 12&nbsp;: repère les rangs puis les quartiles.',`Q<sub>1</sub>&nbsp;: rang {0}, valeur {1} <br>Q<sub>3</sub>&nbsp;: rang {2}, valeur {3}`,[B(3,'12 ÷ 4.'),B(q1,'Valeur au rang 3.',qHints(xs,1)),B(9,'3 × 12 ÷ 4.'),B(q3,'Valeur au rang 9.',qHints(xs,3))],{ck:['rkq1:A','q1:A','rkq3:A','q3:A'],then:async()=>{await showQ(xs);cap(`<span class="q">Q1 = ${q1} · Q3 = ${q3}</span>`)}}),
+     fill('Écart interquartile&nbsp;:',`I = {0}`,[B(q3-q1,'Q3 − Q1.',[[q1+q3,'C\'est Q3 − Q1.']])],{ck:['I:A']})],
+   done:`Rangs 3 et 9&nbsp;: Q1 = ${q1}, Q3 = ${q3}, I = ${q3-q1}.`}},
+ ()=>{const r=until(()=>{const vals=sorted([...new Set(Array.from({length:5},()=>ri(8,16)))]);if(vals.length<4)return null;const ns=vals.map(()=>ri(2,7));const N=sum(ns);if(N!==20)return null;return{tab:vals.map((v,i)=>[v,ns[i]])}});
+  const {tab}=r;const xs=expand(tab);const {q1,q3}=quart(xs),md=medQ(xs);let c=0;const cum=tab.map(([v,n])=>c+=n);
+  return{meta:{sets:{A:xs}},setup(){scene({xs,ctx:{lo:6,hi:18,gran:1,lab:1},file:true,sortedFile:true,pivot:false})},cap0:'20 jetons rangés',
+   prompt:`Notes d'une classe de 20 élèves&nbsp;:${tabHTML(tab,{lv:'Note'})}`,
+   parts:[fill('Complète les effectifs cumulés&nbsp;:',tab.map((r,i)=>`${r[0]}&nbsp;→ {${i}}`).join(' &nbsp; '),cum.map((cv,i)=>B(cv,i?`Ajoute l'effectif de ${tab[i][0]} au cumul précédent (${cum[i-1]}).`:'Le premier cumul est l\'effectif de la première valeur.',i?[[tab[i][1],'C\'est l\'effectif seul&nbsp;: ajoute le cumul précédent.']]:[])),{ck:cum.map((_,i)=>'cum:A:'+tab[i][0])}),
+     fill('Avec les cumuls, lis les valeurs aux rangs voulus&nbsp;:',`Q<sub>1</sub> (rang 5) = {0} <br>Med (rangs 10 et 11) = {1} <br>Q<sub>3</sub> (rang 15) = {2}`,[B(q1,'Cherche le premier cumul qui atteint 5.',qHints(xs,1)),B(md,'Valeurs aux rangs 10 et 11, puis leur moyenne.',medHints(xs)),B(q3,'Cherche le premier cumul qui atteint 15.',qHints(xs,3))],
+       {ck:['q1:A','med:A','q3:A'],then:async()=>{await showQ(xs);await showMed(xs,{label:'Med'});cap(`<span class="q">Q1 = ${q1}</span> <span class="m">·</span> <span class="c">Med = ${qfmt(md)}</span> <span class="m">·</span> <span class="q">Q3 = ${q3}</span>`)}})],
+   done:`Effectifs cumulés&nbsp;: ${cum.join(', ')}. Q1 = ${q1}, Med = ${qfmt(md)}, Q3 = ${q3}.`}},
+ ()=>{const xs=genQ(8,5,19);const s=sorted(xs),{q1,q3}=quart(xs);const lures=[...new Set([2,s[2],qv(medQ(xs))])].filter(v=>v!==q1);
+  return{meta:{sets:{A:xs}},setup(){scene({xs:s,ctx:CTX.notes,file:true,sortedFile:true,pivot:false})},cap0:'8 jetons rangés',
+   prompt:`Série rangée&nbsp;: ${ser(s)}. Hugo écrit&nbsp;: «&nbsp;rang de Q<sub>1</sub> = 8 ÷ 4 = 2, donc Q<sub>1</sub> = 2&nbsp;».`,
+   parts:[choice('Que vaut vraiment Q<sub>1</sub>&nbsp;?',[OK(String(q1),q1),...lures.map(v=>NO(fmtN(v),v===2?'2, c\'est le rang. Q1 est la valeur qui occupe le rang 2.':v===s[2]?'C\'est la valeur au rang 3. Compte depuis le premier jeton.':'C\'est la médiane, pas Q1.',v))],{ck:'num:q1:A'}),
+     fill('Termine&nbsp;:',`Q<sub>3</sub> = {0} <br>I = {1}`,[B(q3,'Valeur au rang 6.',qHints(xs,3)),B(q3-q1,'Q3 − Q1.')],{ck:['q3:A','I:A'],then:showQ.bind(null,xs)})],
+   done:`Q1 = ${q1} (valeur au rang 2), Q3 = ${q3} (rang 6), I = ${q3-q1}.`}}
+]});
+
+/* ===== Niveau 6 · La boîte ===== */
+const five=xs=>{const s=sorted(xs),{q1,q3}=quart(xs);return[s[0],q1,qv(medQ(xs)),q3,s[s.length-1]]};
+LV.push({t:'La boîte',ch:2,rule:`<p><b>Diagramme en boîte</b>&nbsp;: il résume une série par 5 nombres (min, Q<sub>1</sub>, Med, Q<sub>3</sub>, max).</p><p>On trace une boîte de Q<sub>1</sub> à Q<sub>3</sub>, un trait à la médiane, et des moustaches jusqu'au min et au max. Exemple du cours&nbsp;: 8&nbsp;; 9&nbsp;; 10&nbsp;; 10&nbsp;; 11&nbsp;; 12&nbsp;; 14&nbsp;; 15 → (8, 9, 10,5, 12, 15).</p><p>Il permet de comparer rapidement la position (médiane) et la dispersion (longueur de la boîte = I) de deux séries.</p>`,qs:[
+ ()=>{const xs=genQ(8,3,19);const s=sorted(xs),f=five(xs);
+  return{meta:{sets:{A:xs}},setup(){scene({xs:s,ctx:CTX.notes,file:true,sortedFile:true,pivot:false})},cap0:'8 jetons rangés',
+   prompt:`Série rangée&nbsp;: ${ser(s)}. Trouve les 5 nombres du diagramme en boîte.`,
+   parts:[fill('Les cinq nombres&nbsp;:',`<span class="nw">min = {0}</span> &nbsp; <span class="nw">Q<sub>1</sub> = {1}</span> &nbsp; <span class="nw">Med = {2}</span> <br><span class="nw">Q<sub>3</sub> = {3}</span> &nbsp; <span class="nw">max = {4}</span>`,[B(f[0],'La plus petite valeur.'),B(f[1],'Rang 8 ÷ 4 = 2.',qHints(xs,1)),B(q(f[2]*2,2),'Moyenne des 4e et 5e valeurs.',medHints(xs)),B(f[3],'Rang 3 × 8 ÷ 4 = 6.',qHints(xs,3)),B(f[4],'La plus grande valeur.')],{ck:['min:A','q1:A','med:A','q3:A','max:A'],then:async()=>{await showQ(xs);await showMed(xs,{label:'Med'})}}),
+     act('Tracer la boîte',async()=>{SND.whoosh();await SC.box({five:f});cap(`(${f.map(fmtN).join(' ; ')})`)})],
+   done:`La boîte va de Q1 = ${f[1]} à Q3 = ${f[3]}&nbsp;; le trait est à Med = ${fmtN(f[2])}&nbsp;; les moustaches vont de ${f[0]} à ${f[4]}.`}},
+ ()=>{const f=until(()=>{const a=sorted([ri(2,8),ri(6,11),ri(9,13),ri(11,16),ri(14,20)]);return new Set(a).size===5&&a[3]-a[1]>=3?a:null});
+  return{meta:{five:f},setup(){scene({xs:[],ctx:CTX.notes,pivot:false,count:false});SC.box({five:f,ticks:true})},cap0:'Diagramme en boîte d\'une série de notes',
+   prompt:'Voici le diagramme en boîte des notes d\'une classe. Lis-le sur la règle graduée.',
+   parts:[fill('Lecture&nbsp;:',`Med = {0} <br>Q<sub>1</sub> = {1} &nbsp; Q<sub>3</sub> = {2} <br>I = {3}`,[B(f[2],'Le trait turquoise dans la boîte.'),B(f[1],'Le bord gauche de la boîte.'),B(f[3],'Le bord droit de la boîte.'),B(f[3]-f[1],'Q3 − Q1&nbsp;: la longueur de la boîte.',[[f[4]-f[0],'Ça, c\'est la longueur totale (du min au max). I = Q3 − Q1, la longueur de la boîte.']])],{ck:['b:2','b:1','b:3','bI']})],
+   done:`Med = ${f[2]}, Q1 = ${f[1]}, Q3 = ${f[3]}&nbsp;: I = ${f[3]-f[1]}, c'est la longueur de la boîte.`}},
+ ()=>{const r=until(()=>{const A=genQ(8,3,19),Bs=genQ(8,3,19);const fa=five(A),fb=five(Bs);return fa[2]!==fb[2]&&(fa[3]-fa[1])!==(fb[3]-fb[1])?{A,Bs,fa,fb}:null});
+  const {A,Bs,fa,fb}=r;const hiMed=fa[2]>fb[2]?'A':'B',hiI=(fa[3]-fa[1])>(fb[3]-fb[1])?'A':'B';
+  return{meta:{sets:{A,B:Bs}},setup(){scene({xs:[],ctx:CTX.notes,pivot:false,count:false});const g=SC.geo();const h=g.beamY-g.pTop;SC.box({five:fa,label:'A',y:g.pTop+h*.3,ticks:false});SC.box({five:fb,label:'B',y:g.pTop+h*.72,ticks:false,col:'#8fb8ff'})},
+   cap0:'Seconde A et Seconde B&nbsp;: même contrôle',
+   prompt:`Les notes de deux classes au même contrôle sont résumées par deux boîtes&nbsp;: A (${fa.map(fmtN).join(' ; ')}) et B (${fb.map(fmtN).join(' ; ')}).`,
+   parts:[choice('Quelle classe a la plus grande médiane&nbsp;?',[OK('Classe '+hiMed,hiMed),NO('Classe '+(hiMed==='A'?'B':'A'),'Compare les traits turquoise (les médianes)&nbsp;: '+fmtN(fa[2])+' pour A, '+fmtN(fb[2])+' pour B.',hiMed==='A'?'B':'A')],{ck:'cmpmed:A:B'}),
+     choice('Quelle classe a les notes les plus dispersées au milieu (plus grand écart interquartile)&nbsp;?',[OK('Classe '+hiI,hiI),NO('Classe '+(hiI==='A'?'B':'A'),'Compare les longueurs des boîtes&nbsp;: I = '+(fa[3]-fa[1])+' pour A, '+(fb[3]-fb[1])+' pour B.',hiI==='A'?'B':'A')],{ck:'cmpI:A:B'})],
+   done:`Médianes&nbsp;: ${fmtN(fa[2])} (A) et ${fmtN(fb[2])} (B). Écarts interquartiles&nbsp;: ${fa[3]-fa[1]} (A) et ${fb[3]-fb[1]} (B).`}},
+ ()=>{const xs=genQ(12,2,20);const f=five(xs);
+  return{meta:{sets:{A:xs}},setup(){scene({xs,ctx:CTX.notes,file:true,pivot:false})},cap0:'12 jetons en désordre',
+   prompt:`12 notes en désordre&nbsp;: ${ser(xs)}.`,
+   parts:[act('Ranger la file',async()=>{const ord=S.toks.slice().sort((a,b)=>a.v-b.v);S.mode.ranks=true;SND.whoosh();await SC.sortAll(ord,1000)}),
+     fill('Les cinq nombres (N = 12)&nbsp;:',`<span class="nw">min = {0}</span> &nbsp; <span class="nw">Q<sub>1</sub> = {1}</span> &nbsp; <span class="nw">Med = {2}</span> <br><span class="nw">Q<sub>3</sub> = {3}</span> &nbsp; <span class="nw">max = {4}</span>`,[B(f[0],'La plus petite valeur.'),B(f[1],'Rang 12 ÷ 4 = 3.',qHints(xs,1)),B(q(f[2]*2,2),'Moyenne des 6e et 7e valeurs.',medHints(xs)),B(f[3],'Rang 3 × 12 ÷ 4 = 9.',qHints(xs,3)),B(f[4],'La plus grande valeur.')],{ck:['min:A','q1:A','med:A','q3:A','max:A'],then:async()=>{await showQ(xs);await showMed(xs,{label:'Med'})}}),
+     act('Tracer la boîte',async()=>{SND.whoosh();await SC.box({five:f});cap(`(${f.map(fmtN).join(' ; ')}) <span class="m">· I = ${f[3]-f[1]}</span>`)})],
+   done:`Boîte (${f.map(fmtN).join(' ; ')}), I = ${f[3]-f[1]}.`}}
+]});
+
+/* ===== Niveau 7 · Les carrés ===== */
+const DEV={};function devSets(n){if(DEV[n])return DEV[n];const out=[];const rec=(arr,lo)=>{if(arr.length===n){const s=sum(arr);if(s!==0)return;const v=sum(arr.map(d=>d*d))/n;const r=Math.round(Math.sqrt(v));if(Number.isInteger(v)&&r*r===v&&r>=1&&r<=4)out.push(arr.slice());return}
+  for(let d=lo;d<=6;d++){arr.push(d);rec(arr,d);arr.pop()}};rec([],-6);return DEV[n]=out}
+function genSq(n,sig){return until(()=>{const ds=pick(devSets(n).filter(a=>!sig||Math.round(Math.sqrt(sum(a.map(d=>d*d))/n))===sig));const m=ri(8,12);const xs=shuf(ds.map(d=>m+d));return xs.every(x=>x>=2&&x<=19)&&new Set(xs).size>=2?xs:null})}
+const sqItems=xs=>xs.map(v=>({v}));
+LV.push({t:'Les carrés',ch:2,rule:`<p><b>Variance.</b> V = ${fr(1,'N')} ∑ (x<sub>i</sub> − ${XB})²&nbsp;: la moyenne des carrés des écarts à la moyenne (on divise par N).</p><p><b>Écart type.</b> σ = √V. Un écart type grand signifie une série <b>dispersée</b>&nbsp;; petit, une série <b>homogène</b> (resserrée autour de la moyenne).</p><p>Sur la scène&nbsp;: chaque jeton dessine un carré de côté |x<sub>i</sub> − ${XB}|. Leur aire moyenne est V&nbsp;; le côté du carré moyen est σ.</p>`,qs:[
+ ()=>{const xs=genSq(4);const m=meanQ(xs),V=varQ(xs),sg=sqrtQ(V),SS=sum(xs.map(x=>(x-qv(m))**2));const ctx={lo:qv(m)-8,hi:qv(m)+8,gran:1,lab:2};
+  return{meta:{sets:{A:xs}},setup(){scene({xs,ctx,p:qv(m)-3})},cap0:'Pivot à '+fmtN(qv(m)-3),
+   prompt:`Série de 4 valeurs&nbsp;: ${ser(xs)}.`,
+   parts:[fill('D\'abord la moyenne&nbsp;:',`${XB}&nbsp;= {0}`,[B(m,'S ÷ 4.')],{ck:['mean:A'],then:async()=>{await SC.pivotTo(qv(m),800);await SC.wait(400);SND.bal();cap(`<span class="k">Équilibre à ${XB}&nbsp;= ${qfmt(m)}</span>`)}}),
+     act('Faire monter les carrés des écarts',async()=>{SND.whoosh();await SC.squares({mean:qv(m),items:sqItems(xs),V:qv(V),sigma:qv(sg)});cap(`Écarts au carré&nbsp;: ${xs.map(x=>'('+fmtN(x)+' − '+qfmt(m)+')²').join(' + ').replace(/− −/g,'+ ')}`)}),
+     fill('Additionne les aires puis divise par N&nbsp;:',`somme des carrés = {0} <br>V = {1}`,[B(SS,'Additionne les nombres écrits dans les carrés.',[[sum(xs.map(x=>Math.abs(x-qv(m)))),'Ce sont les écarts sans les élever au carré. Chaque écart doit être mis au carré.']]),
+       B(V,'Divise la somme par N = 4.',[[q(SS),'Il reste à diviser par N = 4.'],[q(SS,3),'Dans le cours, on divise par N = 4.']])],{ck:['SS:A','V:A']}),
+     act('Fusionner en un carré moyen',async()=>{SND.laser();await SC.fuse();cap(`<span class="k">Carré moyen&nbsp;: aire V = ${qfmt(V)}, côté σ = ${qfmt(sg)}</span>`)}),
+     fill('Écart type&nbsp;:',`σ = √V = {0}`,[B(sg,'Quel nombre au carré donne '+qfmt(V)+'&nbsp;?',[[V,'Ça, c\'est V. σ = √V.']])],{ck:['sigma:A']})],
+   done:`V = ${SS} ÷ 4 = ${qfmt(V)} et σ = √${qfmt(V)} = ${qfmt(sg)}&nbsp;: le côté du carré moyen.`}},
+ ()=>{const n=pick([5,6]);const xs=genSq(n);const m=meanQ(xs),V=varQ(xs),sg=sqrtQ(V),SS=sum(xs.map(x=>(x-qv(m))**2));const ctx={lo:qv(m)-8,hi:qv(m)+8,gran:1,lab:2};
+  return{meta:{sets:{A:xs}},setup(){scene({xs,ctx,p:qv(m)});SC.squares({mean:qv(m),items:sqItems(xs),V:qv(V),sigma:qv(sg),dur:900})},cap0:`<span class="k">${XB}&nbsp;= ${qfmt(m)}</span> <span class="m">· les carrés des écarts sont dressés</span>`,
+   prompt:`Série de ${n} valeurs&nbsp;: ${ser(xs)}, de moyenne ${XB}&nbsp;= ${qfmt(m)}.`,
+   parts:[fill('Variance puis écart type&nbsp;:',`V = {0} <br>σ = {1}`,[B(V,`Somme des carrés (${SS}) divisée par N = ${n}.`,[[q(SS),'Divise par N = '+n+'.'],[q(SS,n-1),'Dans le cours, on divise par N = '+n+'.']]),B(sg,'σ = √V.',[[V,'Ça, c\'est V.']])],{ck:['V:A','sigma:A']}),
+     act('Fusionner en un carré moyen',async()=>{SND.laser();await SC.fuse();cap(`<span class="k">V = ${qfmt(V)} · σ = ${qfmt(sg)}</span>`)})],
+   done:`V = ${SS} ÷ ${n} = ${qfmt(V)}, σ = ${qfmt(sg)}.`}},
+ ()=>{const r=until(()=>{const a=genSq(4,1),b=genSq(4,pick([2,3]));const ma=meanQ(a),mb=meanQ(b);if(!qeq(ma,mb))return null;return{a,b}});
+  const {a,b}=r;const m=meanQ(a),Va=varQ(a),Vb=varQ(b),sa=sqrtQ(Va),sb=sqrtQ(Vb);const ctx={lo:qv(m)-8,hi:qv(m)+8,gran:1,lab:2};
+  return{meta:{sets:{A:a,B:b}},setup(){scene({xs:a,ctx,p:qv(m)});SC.squares({mean:qv(m),items:sqItems(a),V:qv(Va),sigma:qv(sa),dur:900})},cap0:`Série A&nbsp;: ${a.map(fmtN).join(' ; ')}`,
+   prompt:`Deux séries de même moyenne ${qfmt(m)}&nbsp;: A = ${ser(a)} et B = ${ser(b)}. La scène montre les carrés de A.`,
+   parts:[act('Voir les carrés de B',async()=>{SND.whoosh();const snap=SC.snapshot();S.toks.forEach(t=>t.gone=true);S.toks=b.map((v,i)=>SC.mkTok(v,{col:SC.PAL[(i+2)%6],inFile:false})).sort((x,y)=>x.v-y.v);S.toks.forEach((t,i)=>SC.animPlat(t,600+i*40,0,[SC.X(t.v),-30]));
+       await SC.squares({mean:qv(m),items:sqItems(b),V:qv(Vb),sigma:qv(sb)});cap(`Série B&nbsp;: ${b.map(fmtN).join(' ; ')}`)}),
+     choice('Quelle série a le plus grand écart type&nbsp;?',[OK('La série B','B'),NO('La série A','Les carrés de A sont bien plus petits&nbsp;: ses valeurs sont resserrées autour de la moyenne.','A'),NO('Elles ont le même écart type, car elles ont la même moyenne','Même moyenne ne veut pas dire même dispersion&nbsp;: compare les carrés.','eq')],{ck:'bigsig:A:B'}),
+     fill('Écarts types&nbsp;:',`σ<sub>A</sub> = {0} &nbsp; σ<sub>B</sub> = {1}`,[B(sa,'V(A) = '+qfmt(Va)+'.'),B(sb,'V(B) = '+qfmt(Vb)+'.')],{ck:['sigma:A','sigma:B']})],
+   done:`σ<sub>A</sub> = ${qfmt(sa)} et σ<sub>B</sub> = ${qfmt(sb)}&nbsp;: B est plus dispersée, A plus homogène.`}},
+ ()=>{const r=until(()=>{const ds=pick([[[-2,2],[0,4],[2,2]],[[-3,1],[-1,3],[1,3],[3,1]],[[-4,1],[0,6],[4,1]],[[-2,4],[2,4]],[[-3,2],[0,4],[3,2]],[[-1,3],[0,2],[1,3]]]);const m=ri(9,13);const tab=ds.map(([d,n])=>[m+d,n]);const xs=expand(tab);const V=varQ(xs);return V.d===1?{tab,m,xs,V}:null});
+  const {tab,m,xs,V}=r;const N=xs.length,SS=sum(xs.map(x=>(x-m)**2));const sg=sqrtQ(V);
+  return{meta:{sets:{A:xs}},setup(){scene({xs,ctx:{lo:m-7,hi:m+7,gran:1,lab:1},p:m})},cap0:`<span class="k">${XB}&nbsp;= ${m}</span>`,
+   prompt:`Une série donnée par un tableau (moyenne ${XB}&nbsp;= ${m})&nbsp;:${tabHTML(tab)}`,
+   parts:[fill('Variance (chaque carré compte autant de fois que l\'effectif)&nbsp;:',`∑ n<sub>i</sub>(x<sub>i</sub> − ${XB})² = {0} <br>V = {1}`,[B(SS,'Pour chaque valeur&nbsp;: effectif × (écart)², puis additionne.',[[sum(tab.map(([v])=>(v-m)**2)),'N\'oublie pas les effectifs&nbsp;: chaque carré compte n<sub>i</sub> fois.']]),B(V,'Divise par N = '+N+'.',[[q(SS),'Divise par N = '+N+'.']])],
+       {ck:['SS:A','V:A'],then:async()=>{SND.whoosh();await SC.squares({mean:m,items:sqItems(xs),V:qv(V),sigma:sg?qv(sg):Math.sqrt(qv(V))});if(sg)await SC.fuse();cap(`<span class="k">V = ${qfmt(V)} · σ = ${sg?qfmt(sg):'√'+qfmt(V)}</span>`)}}),
+     choice('Un écart type grand signifie que la série est&nbsp;:',[OK('dispersée','disp'),NO('homogène','C\'est l\'inverse&nbsp;: homogène = valeurs proches de la moyenne = petits carrés = petit σ.','homo'),NO('de grande moyenne','σ mesure la dispersion autour de la moyenne, pas la position.','pos')],{ck:'fixed:disp'})],
+   done:`V = ${SS} ÷ ${N} = ${qfmt(V)}${sg?`, σ = ${qfmt(sg)}`:`, σ = √${qfmt(V)}`}. Plus les carrés sont grands, plus la série est dispersée.`}}
+]});
+
+/* ---------- état exposé (tests) ---------- */
+function sanitize(p){const o={t:p.t,ck:p.ck};if(p.t==='fill')o.ans=p.blanks.map(b=>[qfmt(b.a),b.a.n+'/'+b.a.d]);if(p.t==='choice')o.choices=p.chs.map(c=>({ok:c.ok,h:c.h,v:c.v}));if(p.t==='pivot'){o.target=p.target;o.step=p.step;o.who=p.who;o.cur=p.who==='token'&&Q&&Q.tok?Q.tok.v:S.p}if(p.t==='sort')o.vals=p.sortVals;return o}
+window.PM={
+  state:()=>({lvl,qi,pi,nq:LV[lvl].qs.length,mode,busy:SC.isBusy(),solved,part:part?sanitize(part):null,errs}),
+  gen:(l,i)=>{const g=LV[l].qs[i]();const parts=g.parts.map(p=>p.lazy?{t:'pivot',ck:null}:sanitize(p));return{meta:g.meta,parts,prompt:g.prompt,done:g.done}},
+  levels:()=>LV.map(l=>l.qs.length),
+  start(){renderLv();goLevel(0)}
+};
+window.PAM_STAT={scene,showMed,showQ,medCutInfo,q,qfmt,meanQ,medQ,quart,varQ,sqrtQ,sorted,sum,expand,nice,ri,pick,shuf,until,ser,fr,XB,tabHTML,F,genSq,genQ,five,parseQ};
+})();
+</script>
+<script>
+/* ======================= PILE AU MILIEU — épreuves finales ======================= */
+(function(){
+'use strict';
+const {q,qfmt,meanQ,medQ,quart,varQ,sqrtQ,sorted,sum,expand,nice,ri,pick,shuf,until,fr,XB,tabHTML}=window.PAM_STAT;
+const NB=' ';
+const qv=x=>x.n/x.d;const qeq=(a,b)=>a.n===b.n&&a.d===b.d;
+const toQ=x=>typeof x==='number'?(Number.isInteger(x)?q(x):q(Math.round(x*1000),1000)):x;
+const Fq=x=>qfmt(toQ(x));
+const ser=a=>a.map(x=>Fq(x)).join(NB+'; ');
+const Q1='Q<sub>1</sub>',Q3='Q<sub>3</sub>';
+function ans(x){x=typeof x==='number'?q(x):x;const s=qfmt(x);const out=[s];if(s.includes(','))out.push(s.replace(',','.'));if(s.startsWith('−'))out.push(s.replace('−','-'));return out}
+const plain=h=>String(h).replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();
+/* QCM : bonne réponse en premier (le kit mélange) ; leurres : [html, valeur] */
+function QC(level,prompt,right,lures,explain,meta){
+  const seen=new Set([plain(right[0])]),ch=[right[0]],vals=[right[1]];
+  for(const [h,v] of lures){const p=plain(h);if(seen.has(p))continue;seen.add(p);ch.push(h);vals.push(v);if(ch.length===4)break}
+  if(ch.length<3)return null;
+  return{type:'qcm',level,prompt,choices:ch,answer:0,explain,meta:Object.assign({vals},meta)}}
+function TR(level,prompt,answers,explain,meta){return{type:'trous',level,prompt,blanks:answers.map(a=>({answers:a,size:Math.max(3,a[0].length+1)})),explain,meta}}
+/* leurres numériques distincts de la bonne valeur */
+function numLures(right,cands){cands=cands.map(c=>[c[0]==null?null:toQ(c[0])]);const out=[];const seen=[right];for(const [x,why] of cands){if(!x)continue;const xq=typeof x==='number'?q(x):x;if(qfmt(xq)===null)continue;if(seen.some(s=>qeq(s,xq)))continue;seen.push(xq);out.push([Fq(xq),xq.n+'/'+xq.d])}return out}
+const V=x=>{x=typeof x==='number'?q(x):x;return x.n+'/'+x.d};
+
+/* ---------- générateurs de séries ---------- */
+function s4int(lo,hi){return until(()=>{const m=ri(lo+3,hi-3),a=[ri(lo,hi),ri(lo,hi),ri(lo,hi)],l=4*m-sum(a);const x=a.concat([l]);return l>=lo&&l<=hi&&new Set(x).size>=3&&Math.max(...x)-Math.min(...x)>=5?x:null})}
+function sQ8(lo,hi,n){n=n||8;return until(()=>{const x=Array.from({length:n},()=>ri(lo,hi));const s=sorted(x),a=n/4,b=3*n/4;return s[a-1]<s[a]&&s[b-1]<s[b]&&new Set(x).size>=n-2?x:null})}
+const DEVS={};function devs(n){if(DEVS[n])return DEVS[n];const out=[];const rec=(arr,lo)=>{if(arr.length===n){if(sum(arr)!==0)return;const v=sum(arr.map(d=>d*d))/n;const r=Math.round(Math.sqrt(v));if(Number.isInteger(v)&&r*r===v&&r>=1&&r<=4)out.push(arr.slice());return}for(let d=lo;d<=6;d++){arr.push(d);rec(arr,d);arr.pop()}};rec([],-6);return DEVS[n]=out}
+function sSq(n,sig){return until(()=>{const L=devs(n).filter(a=>!sig||Math.round(Math.sqrt(sum(a.map(d=>d*d))/n))===sig);const ds=pick(L);const m=ri(8,13);const x=shuf(ds.map(d=>m+d));return x.every(v=>v>=1&&v<=20)?x:null})}
+const mx=a=>Math.max(...a.map(Math.abs));
+
+/* ======================= BRONZE ======================= */
+const bq={
+ mean4(){const x=s4int(4,19),m=meanQ(x),S0=sum(x);return QC(1,`Calculer la moyenne de la série&nbsp;: ${ser(x)}.`,[Fq(m),V(m)],numLures(m,[[S0],[medQ(x)],[q(S0,3)],[q(Math.min(...x)+Math.max(...x),2)],[q(S0,5)]]),
+   `${XB}&nbsp;= ${fr(S0,4)} = ${Fq(m)}&nbsp;: somme des valeurs divisée par l'effectif.`,{ck:'mean:A',sets:{A:x},steps:1,mx:S0})},
+ medOdd(){const x=until(()=>{const a=Array.from({length:5},()=>ri(1,20));return new Set(a).size===5?a:null});const sorted_=Math.random()<.5;const xs=sorted_?sorted(x):x;const m=medQ(x);
+   return QC(3,`Trouver la médiane de la série${sorted_?' rangée':''}&nbsp;: ${ser(xs)}.`,[Fq(m),V(m)],numLures(m,[[xs[2]],[3],[meanQ(x)],[sorted(x)[1]],[sorted(x)[3]]]),
+   `On range&nbsp;: ${ser(sorted(x))}. N = 5 est impair, la médiane est la 3e valeur&nbsp;: ${Fq(m)}.`,{ck:'med:A',sets:{A:x},steps:1,mx:20})},
+ medEven(){const x=until(()=>{const a=sorted(Array.from({length:4},()=>ri(1,20)));return new Set(a).size===4&&(a[1]+a[2])%2===0?a:null});const m=medQ(x);
+   return QC(3,`Trouver la médiane de la série rangée&nbsp;: ${ser(x)}.`,[Fq(m),V(m)],numLures(m,[[x[1]],[x[2]],[x[1]+x[2]],[meanQ(x)]]),
+   `N = 4 est pair&nbsp;: Med = ${fr(`${x[1]} + ${x[2]}`,2)} = ${Fq(m)}, la moyenne des deux valeurs centrales.`,{ck:'med:A',sets:{A:x},steps:1,mx:20})},
+ iq(){const a=ri(3,9),b=a+ri(3,8);const I=b-a;return QC(5,`On a ${Q1} = ${a} et ${Q3} = ${b}. L'écart interquartile I vaut&nbsp;:`,[String(I),V(I)],numLures(q(I),[[a+b],[q(a+b,2)],[a-b]]),
+   `I = ${Q3} − ${Q1} = ${b} − ${a} = ${I}.`,{ck:'I:given',given:{q1:a,q3:b},steps:1,mx:b})},
+ sigmaBig(){return QC(7,'Un écart type grand signifie que la série est&nbsp;:',['dispersée','disp'],[['homogène','homo'],['de grande moyenne','pos'],['de grand effectif','eff']],
+   'Un écart type grand indique des valeurs éloignées de la moyenne&nbsp;: la série est dispersée.',{ck:'fixed:disp',steps:1,mx:0})},
+ freq(){const N=pick([20,25,50]),n=until(()=>{const k=ri(2,N-3);return k!==N/10?k:null});const f=q(n,N);
+   return QC(2,`Dans un groupe de ${N} élèves, ${n} ont obtenu la note 14. La fréquence de la note 14 est&nbsp;:`,[Fq(f),V(f)],numLures(f,[[q(n,100)],[q(n,10)],[n],[q(N-n,N)]]),
+   `f = ${fr(n,N)} = ${Fq(f)}&nbsp;: effectif de la valeur divisé par l'effectif total.`,{ck:'f:given',given:{n,N},steps:1,mx:N})},
+ wmean2(){const r=until(()=>{const a=ri(8,12),b=a+ri(3,6),na=ri(2,5),nb=1;const T=na*a+nb*b,N=na+nb;const m=q(T,N);return b<=20&&nice(m,2)&&!qeq(m,q(a+b,2))?{a,b,na,nb,T,N,m}:null});const {a,b,na,nb,T,N,m}=r;
+   return QC(2,`${na} élèves ont obtenu ${a} et 1 élève a obtenu ${b}. La moyenne de ces ${N} élèves est&nbsp;:`,[Fq(m),V(m)],numLures(m,[[q(a+b,2)],[T],[q(T,2)],[q(T,na)]]),
+   `${XB}&nbsp;= ${fr(`${na} × ${a} + ${b}`,N)} = ${fr(T,N)} = ${Fq(m)}&nbsp;: chaque note compte autant de fois qu'elle apparaît.`,{ck:'mean:A',sets:{A:expand([[a,na],[b,nb]])},steps:1,mx:T})},
+ medSame(){const x=until(()=>{const a=sorted(Array.from({length:7},()=>ri(5,16)));return new Set(a).size>=5?a:null});const B=x.slice(0,6).concat([100]);
+   return QC(4,`Série rangée&nbsp;: ${ser(x)}. On remplace la plus grande valeur, ${x[6]}, par 100. La médiane&nbsp;:`,['ne change pas','same'],[['augmente','up'],['diminue','down'],['devient 100','big']],
+   `La médiane reste la 4e valeur, ${x[3]}&nbsp;: la plus grande valeur reste la dernière de la série rangée.`,{ck:'medchg:A:B',sets:{A:x,B},steps:1,mx:100})},
+ boxLine(){return QC(6,'Dans un diagramme en boîte, le trait tracé à l\'intérieur de la boîte représente&nbsp;:',['la médiane','med'],[['la moyenne','mean'],['le premier quartile','q1'],['l\'écart interquartile','I']],
+   'La boîte va de Q<sub>1</sub> à Q<sub>3</sub>&nbsp;; le trait intérieur est la médiane.',{ck:'fixed:med',steps:1,mx:0})}
+};
+const bt={
+ mean4(){const x=until(()=>{const a=[ri(2,18),ri(2,18),ri(2,18),ri(2,18)];return nice(meanQ(a),4)&&new Set(a).size>=3?a:null});const m=meanQ(x);
+   return TR(1,`La moyenne de la série ${ser(x)} est {0}.`,[ans(m)],`${XB}&nbsp;= ${fr(sum(x),4)} = ${Fq(m)}.`,{ck:['mean:A'],sets:{A:x},steps:1,mx:sum(x)})},
+ freq(){const N=pick([20,25,50]),n=ri(2,N-4);const f=q(n,N);
+   return TR(2,`Sur ${N} élèves, ${n} ont 12. La fréquence de 12 est {0}, soit {1} %.`,[ans(f),ans(q(100*n,N))],`f = ${fr(n,N)} = ${Fq(f)} = ${Fq(q(100*n,N))} %.`,{ck:['f:given','fp:given'],given:{n,N},steps:1,mx:N})},
+ med5(){const x=until(()=>{const a=sorted(Array.from({length:5},()=>ri(1,20)));return new Set(a).size===5?a:null});
+   return TR(3,`La médiane de la série rangée ${ser(x)} est {0}.`,[ans(x[2])],`N = 5&nbsp;: la médiane est la 3e valeur, ${x[2]}.`,{ck:['med:A'],sets:{A:x},steps:1,mx:20})},
+ iq(){const a=ri(2,10),b=a+ri(2,9);return TR(5,`Si ${Q1} = ${a} et ${Q3} = ${b}, alors I = {0}.`,[ans(b-a)],`I = ${Q3} − ${Q1} = ${b-a}.`,{ck:['I:given'],given:{q1:a,q3:b},steps:1,mx:b})},
+ rank(){const n=pick([7,9,11,13,15,21,25]);return TR(3,`Pour une série rangée de ${n} valeurs, la médiane est la valeur au rang {0}.`,[ans((n+1)/2)],`N = ${n} est impair&nbsp;: rang ${fr('N + 1',2)} = ${(n+1)/2}.`,{ck:['rkmed:n'],given:{n},steps:1,mx:n})}
+};
+
+/* ======================= ARGENT ======================= */
+function tab3(){return until(()=>{const v=sorted([...new Set([ri(6,10),ri(11,14),ri(15,19)])]);if(v.length<3)return null;const n=v.map(()=>ri(1,7));const N=sum(n);const tab=v.map((x,i)=>[x,n[i]]);const T=sum(tab.map(([x,k])=>x*k));const m=q(T,N);return nice(m,4)&&N>=6&&!qeq(m,q(sum(v),3))?{tab,N,T,m}:null})}
+const aq={
+ wmean(){const {tab,N,T,m}=tab3();const xs=expand(tab);
+   return QC(2,`Calculer la moyenne de la série&nbsp;:${tabHTML(tab)}`,[Fq(m),V(m)],numLures(m,[[q(sum(tab.map(r=>r[0])),3)],[q(T,3)],[medQ(xs)],[T]]),
+   `${XB}&nbsp;= ${fr('∑ n<sub>i</sub>x<sub>i</sub>','N')} = ${fr(T,N)} = ${Fq(m)}.`,{ck:'mean:A',sets:{A:xs},steps:2,mx:T})},
+ medUnsorted(){const x=until(()=>{const a=Array.from({length:6},()=>ri(1,20));const s=sorted(a);return new Set(a).size===6&&!qeq(q(a[2]+a[3],2),medQ(a))?a:null});const s=sorted(x),m=medQ(x);
+   return QC(3,`Déterminer la médiane de la série&nbsp;: ${ser(x)}.`,[Fq(m),V(m)],numLures(m,[[q(x[2]+x[3],2)],[s[2]],[s[3]],[meanQ(x)]]),
+   `On range&nbsp;: ${ser(s)}. N = 6&nbsp;: Med = ${fr(`${s[2]} + ${s[3]}`,2)} = ${Fq(m)}.`,{ck:'med:A',sets:{A:x},steps:2,mx:20})},
+ quarts(){const x=sQ8(2,20);const s=sorted(x),{q1,q3}=quart(x);const P=(a,b)=>`${Q1} = ${Fq(a)} et ${Q3} = ${Fq(b)}`;
+   const cands=[[s[2],s[6]],[q(s[1]+s[2],2),q(s[5]+s[6],2)],[2,6],[s[0],s[7]]];const lures=[];const seen=[P(q1,q3)];
+   for(const [a,b] of cands){const h=P(a,b);if(!seen.includes(h)){seen.push(h);lures.push([h,V(a)+';'+V(b)])}}
+   return QC(5,`Série rangée&nbsp;: ${ser(s)}. Les quartiles sont&nbsp;:`,[P(q1,q3),V(q1)+';'+V(q3)],lures,
+   `N = 8&nbsp;: ${Q1} est la valeur au rang 8 ÷ 4 = 2, soit ${q1}&nbsp;; ${Q3} est la valeur au rang 6, soit ${q3}.`,{ck:'pairq:A',sets:{A:x},steps:2,mx:20})},
+ medTab(){const r=until(()=>{const v=sorted([...new Set(Array.from({length:4},()=>ri(8,17)))]);if(v.length<4)return null;const n=v.map(()=>ri(2,8));if(sum(n)!==20)return null;const tab=v.map((x,i)=>[x,n[i]]);const xs=expand(tab);const m=medQ(xs);return{tab,xs,m,v}});
+   const {tab,xs,m,v}=r;const big=tab.reduce((a,b)=>b[1]>a[1]?b:a)[0];
+   return QC(5,`Les notes de 20 élèves sont données par le tableau&nbsp;:${tabHTML(tab)}La médiane est&nbsp;:`,[Fq(m),V(m)],numLures(m,[[q(v[1]+v[2],2)],[big],[meanQ(xs)],[q(10)]]),
+   `Effectifs cumulés&nbsp;: ${(()=>{let c=0;return tab.map(([,k])=>c+=k).join(', ')})()}. Les 10e et 11e valeurs donnent Med = ${Fq(m)}.`,{ck:'med:A',sets:{A:xs},steps:2,mx:20})},
+ boxI(){const f=until(()=>{const a=sorted([ri(1,6),ri(5,10),ri(8,13),ri(11,16),ri(14,20)]);return new Set(a).size===5?a:null});
+   return QC(6,`Un diagramme en boîte a pour cinq nombres (min, ${Q1}, Med, ${Q3}, max) = (${f.join(' ; ')}). L'écart interquartile vaut&nbsp;:`,[String(f[3]-f[1]),V(f[3]-f[1])],numLures(q(f[3]-f[1]),[[f[4]-f[0]],[f[3]-f[2]],[f[2]-f[1]],[f[3]+f[1]]]),
+   `I = ${Q3} − ${Q1} = ${f[3]} − ${f[1]} = ${f[3]-f[1]}&nbsp;: c'est la longueur de la boîte.`,{ck:'I:five',five:f,steps:1,mx:20})},
+ variance(){const x=sSq(4);const m=meanQ(x),Vv=varQ(x),SS=Vv.n/Vv.d*4,s=sqrtQ(Vv);
+   return QC(7,`Calculer la variance de la série&nbsp;: ${ser(x)}.`,[Fq(Vv),V(Vv)],numLures(Vv,[[s],[SS],[q(SS,3)],[q(sum(x.map(v=>Math.abs(v-qv(m)))),4)]]),
+   `${XB}&nbsp;= ${Fq(m)}&nbsp;; V = ${fr('(x<sub>1</sub> − '+XB+')² + … + (x<sub>4</sub> − '+XB+')²',4)} = ${fr(SS,4)} = ${Fq(Vv)}.`,{ck:'V:A',sets:{A:x},steps:3,mx:SS})},
+ intrus(){const r=until(()=>{const x=sorted(Array.from({length:7},()=>ri(6,15)));const v=pick([0,1,20]);const B=sorted(x.concat([v]));const m=medQ(B);return new Set(x).size>=5&&!qeq(m,medQ(x))?{x,v,B}:null});const {x,v,B}=r;const m=medQ(B);
+   return QC(4,`Série rangée de 7 notes&nbsp;: ${ser(x)}. On ajoute la note ${v}. La nouvelle médiane est&nbsp;:`,[Fq(m),V(m)],numLures(m,[[medQ(x)],[meanQ(B)],[x[4]],[x[2]]]),
+   `Avec ${v}, N = 8&nbsp;: ${ser(B)}. Med = moyenne des 4e et 5e valeurs = ${Fq(m)}.`,{ck:'med:B',sets:{A:x,B},steps:2,mx:20})},
+ cmpSig(){const r=until(()=>{const a=sSq(4,1),b=sSq(4,pick([2,3]));return qeq(meanQ(a),meanQ(b))?{a,b}:null});const sw=Math.random()<.5;const A=sw?r.b:r.a,B=sw?r.a:r.b;const big=sw?'A':'B';
+   return QC(7,`Deux séries ont la même moyenne&nbsp;: A = ${ser(A)} et B = ${ser(B)}. Laquelle a le plus grand écart type&nbsp;?`,[`la série ${big}`,big],[[`la série ${big==='A'?'B':'A'}`,big==='A'?'B':'A'],['elles ont le même écart type','eq']],
+   `Les valeurs de ${big} sont plus éloignées de la moyenne&nbsp;: σ<sub>A</sub> = ${Fq(sqrtQ(varQ(A)))}, σ<sub>B</sub> = ${Fq(sqrtQ(varQ(B)))}.`,{ck:'bigsig:A:B',sets:{A,B},steps:2,mx:20})},
+ mean5(){const x=until(()=>{const a=Array.from({length:5},()=>ri(4,20));return sum(a)%5&&new Set(a).size>=4?a:null});const m=meanQ(x),S0=sum(x);
+   return QC(1,`Calculer la moyenne de la série&nbsp;: ${ser(x)}.`,[Fq(m),V(m)],numLures(m,[[S0],[q(S0,4)],[medQ(x)],[q(Math.round(qv(m)))]]),
+   `${XB}&nbsp;= ${fr(S0,5)} = ${Fq(m)}&nbsp;: la valeur exacte, sans arrondir.`,{ck:'mean:A',sets:{A:x},steps:2,mx:S0})},
+ freqPct(){const r=until(()=>{const N=pick([20,25,40,50]);const n=[ri(1,9),ri(1,9),ri(1,9)];const l=N-sum(n);if(l<1)return null;n.push(l);const k=ri(0,3);const p=q(100*n[k],N);return p.d===1||p.d===2?{N,n,k,p}:null});const {N,n,k,p}=r;const tab=[1,2,3,4].map((v,i)=>[v,n[i]]);
+   return QC(2,`Nombre de frères et sœurs de ${N} élèves&nbsp;:${tabHTML(tab)}La fréquence de la valeur ${k+1}, en %, est&nbsp;:`,[Fq(p)+' %',V(p)],numLures(p,[[n[k]],[q(n[k],N)],[q(100,n[k]).d===1?q(100,n[k]):null],[q(N-n[k])]]).map(([h,v])=>[h+' %',v]),
+   `f = ${fr(n[k],N)} = ${Fq(q(n[k],N))}, soit ${Fq(p)} %.`,{ck:'fp:A:'+(k+1),sets:{A:expand(tab)},steps:2,mx:N})}
+};
+const at={
+ wmean(){const {tab,N,T,m}=tab3();return TR(2,`Moyenne de la série donnée par le tableau${tabHTML(tab)}${XB}&nbsp;= {0}`,[ans(m)],`${XB}&nbsp;= ${fr(T,N)} = ${Fq(m)}.`,{ck:['mean:A'],sets:{A:expand(tab)},steps:2,mx:T})},
+ med6(){const x=until(()=>{const a=Array.from({length:6},()=>ri(1,20));return new Set(a).size>=5?a:null});const s=sorted(x);
+   return TR(3,`La médiane de la série ${ser(x)} est {0}.`,[ans(medQ(x))],`Rangée&nbsp;: ${ser(s)}&nbsp;; Med = ${fr(`${s[2]} + ${s[3]}`,2)} = ${Fq(medQ(x))}.`,{ck:['med:A'],sets:{A:x},steps:2,mx:20})},
+ quarts(){const x=sQ8(1,20);const {q1,q3}=quart(x);
+   return TR(5,`Pour la série ${ser(x)}&nbsp;: ${Q1} = {0}, ${Q3} = {1} et I = {2}.`,[ans(q1),ans(q3),ans(q3-q1)],`Rangée&nbsp;: ${ser(sorted(x))}. Rangs 2 et 6&nbsp;: ${Q1} = ${q1}, ${Q3} = ${q3}, I = ${q3-q1}.`,{ck:['q1:A','q3:A','I:A'],sets:{A:x},steps:3,mx:20})},
+ varSig(){const x=sSq(pick([4,5]));const Vv=varQ(x),s=sqrtQ(Vv);
+   return TR(7,`Pour la série ${ser(x)} (de moyenne ${Fq(meanQ(x))})&nbsp;: V = {0} et σ = {1}.`,[ans(Vv),ans(s)],`V = moyenne des carrés des écarts = ${Fq(Vv)}&nbsp;; σ = √V = ${Fq(s)}.`,{ck:['V:A','sigma:A'],sets:{A:x},steps:3,mx:20})},
+ box12(){const x=sQ8(1,20,12);const s=sorted(x);const {q1,q3}=quart(x);
+   return TR(6,`Série rangée de 12 valeurs&nbsp;: ${ser(s)}. Dans son diagramme en boîte, le trait de la médiane est à {0} et la boîte a pour longueur I = {1}.`,[ans(medQ(x)),ans(q3-q1)],`Med = ${fr(`${s[5]} + ${s[6]}`,2)} = ${Fq(medQ(x))}&nbsp;; ${Q1} = ${q1} (rang 3), ${Q3} = ${q3} (rang 9), I = ${q3-q1}.`,{ck:['med:A','I:A'],sets:{A:x},steps:3,mx:20})},
+ total(){const r=until(()=>{const N=ri(6,30),m=q(ri(16,30),2);const S0=q(N*m.n,m.d);return S0.d===1?{N,m,S0}:null});const {N,m,S0}=r;
+   return TR(1,`Une série de ${N} valeurs a pour moyenne ${Fq(m)}. La somme de ses valeurs est {0}.`,[ans(S0)],`${XB}&nbsp;= ${fr('S','N')} donc S = N × ${XB}&nbsp;= ${N} × ${Fq(m)} = ${Fq(S0)}.`,{ck:['total'],given:{N,m:[m.n,m.d]},steps:1,mx:qv(S0)})},
+ newMean(){const r=until(()=>{const x=Array.from({length:4},()=>ri(8,16)),v=pick([0,1,2,20]);const B=x.concat([v]);return nice(meanQ(B),4)&&nice(meanQ(x),4)?{x,v,B}:null});const {x,v,B}=r;
+   return TR(4,`La série ${ser(x)} a pour moyenne ${Fq(meanQ(x))}. On ajoute la valeur ${v}&nbsp;: la nouvelle moyenne est {0}.`,[ans(meanQ(B))],`${fr(`${sum(x)} + ${v}`,5)} = ${Fq(meanQ(B))}.`,{ck:['mean:B'],sets:{A:x,B},steps:2,mx:sum(B)})}
+};
+
+/* ======================= OR ======================= */
+const oq={
+ missing(){const r=until(()=>{const a=Array.from({length:4},()=>ri(6,17)),m=ri(10,14),l=5*m-sum(a);return l>=0&&l<=20&&l!==m?{a,m,l}:null});const {a,m,l}=r;
+   return QC(1,`Les 4 premières notes de Sami sont ${ser(a)}. Quelle note doit-il obtenir au 5e contrôle pour avoir exactement ${m} de moyenne&nbsp;?`,[String(l),V(l)],numLures(q(l),[[m],[4*m-sum(a)],[meanQ(a)],[q(8*m-sum(a),4)]].filter(([x])=>{const v=typeof x==='number'?x:qv(x);return v>=0&&v<=20})),
+   `Il faut un total de 5 × ${m} = ${5*m}. Or ${a.join(' + ')} = ${sum(a)}, donc la 5e note est ${5*m} − ${sum(a)} = ${l}.`,{ck:'missing:5',given:{a,m},steps:3,mx:5*m})},
+ merge(){const r=until(()=>{const n1=pick([8,10,12,15,16,20]),n2=pick([5,8,10,12,15]),m1=ri(9,14),m2=ri(9,15);if(m1===m2)return null;const T=n1*m1+n2*m2,N=n1+n2,M=q(T,N);return nice(M,4)&&n1!==n2&&!qeq(M,q(m1+m2,2))?{n1,n2,m1,m2,T,N,M}:null});const {n1,n2,m1,m2,T,N,M}=r;
+   return QC(2,`Le groupe A (${n1} élèves) a ${m1} de moyenne&nbsp;; le groupe B (${n2} élèves) a ${m2} de moyenne. La moyenne des ${N} élèves réunis est&nbsp;:`,[Fq(M),V(M)],numLures(M,[[q(m1+m2,2)],[q(T,2)],[q(n1*m2+n2*m1,N)]]),
+   `On revient aux sommes&nbsp;: ${n1} × ${m1} + ${n2} × ${m2} = ${T}, puis ${XB}&nbsp;= ${fr(T,N)} = ${Fq(M)}.`,{ck:'merge',given:{n1,n2,m1,m2},steps:3,mx:T})},
+ replace(){const r=until(()=>{const n=pick([5,8]);const x=sorted(Array.from({length:n},()=>ri(6,15)));const D=pick([10,20,30,40]);const k=q(D,n);return nice(k,4)&&new Set(x).size>=n-2?{n,x,D,k}:null});const {n,x,D,k}=r;const B=x.slice(0,n-1).concat([x[n-1]+D]);
+   return QC(4,`Série rangée&nbsp;: ${ser(x)}. On ajoute ${D} à la plus grande valeur. Alors&nbsp;:`,[`la médiane ne change pas et la moyenne augmente de ${Fq(k)}`,'ok'],
+     [[`la médiane et la moyenne augmentent de ${Fq(k)}`,'both'],[`la médiane ne change pas et la moyenne augmente de ${D}`,'D'],[`la moyenne ne change pas et la médiane augmente de ${Fq(k)}`,'inv']],
+   `La plus grande valeur reste la dernière&nbsp;: Med ne bouge pas. La somme augmente de ${D}, donc la moyenne augmente de ${fr(D,n)} = ${Fq(k)}.`,{ck:'replace:A:B',sets:{A:x,B},D,steps:3,mx:x[n-1]+D})},
+ quartTab(){const r=until(()=>{const v=sorted([...new Set(Array.from({length:5},()=>ri(8,18)))]);if(v.length<5)return null;const n=v.map(()=>ri(2,9));const N=sum(n);if(N!==20&&N!==40&&N!==24&&N!==28)return null;const tab=v.map((x,i)=>[x,n[i]]);const xs=expand(tab);const {q1,q3}=quart(xs);return q1!==q3?{tab,xs,q1,q3,N}:null});
+   const {tab,xs,q1,q3,N}=r;const s=sorted(xs);const P=(a,b)=>`${Q1} = ${Fq(a)} et ${Q3} = ${Fq(b)}`;const cands=[[s[N/4],s[3*N/4]],[N/4,3*N/4],[tab[1][0],tab[3][0]],[s[0],s[N-1]]];const lures=[];const seen=[P(q1,q3)];
+   for(const [a,b] of cands){const h=P(a,b);if(!seen.includes(h)){seen.push(h);lures.push([h,V(a)+';'+V(b)])}}
+   return QC(5,`Nombre de messages envoyés en une journée par ${N} lycéens&nbsp;:${tabHTML(tab,{lv:'Messages'})}Les quartiles sont&nbsp;:`,[P(q1,q3),V(q1)+';'+V(q3)],lures,
+   `N = ${N}&nbsp;: ${Q1} est au rang ${N/4}, ${Q3} au rang ${3*N/4}. Avec les effectifs cumulés (${(()=>{let c=0;return tab.map(([,k])=>c+=k).join(', ')})()})&nbsp;: ${Q1} = ${q1}, ${Q3} = ${q3}.`,{ck:'pairq:A',sets:{A:xs},steps:3,mx:N})},
+ boxCmp(){const r=until(()=>{const a=sQ8(2,20),b=sQ8(2,20);const fa=fiveOf(a),fb=fiveOf(b);return fa[2]!==fb[2]&&(fa[3]-fa[1])!==(fb[3]-fb[1])?{fa,fb}:null});const {fa,fb}=r;
+   const hm=fa[2]>fb[2]?'A':'B',hi=(fa[3]-fa[1])>(fb[3]-fb[1])?'A':'B';const st=(m,i)=>`${m} a la plus grande médiane et ${i} le plus grand écart interquartile`;
+   const all=[['A','A'],['A','B'],['B','A'],['B','B']].filter(([m,i])=>!(m===hm&&i===hi));
+   return QC(6,`Deux séries sont résumées par leurs cinq nombres (min, ${Q1}, Med, ${Q3}, max)&nbsp;: A = (${fa.map(Fq).join(' ; ')}) et B = (${fb.map(Fq).join(' ; ')}). Quelle affirmation est vraie&nbsp;?`,[st(hm,hi),hm+hi],all.map(([m,i])=>[st(m,i),m+i]),
+   `Médianes&nbsp;: ${Fq(fa[2])} et ${Fq(fb[2])}&nbsp;; I = ${fa[3]-fa[1]} pour A et ${fb[3]-fb[1]} pour B.`,{ck:'boxcmp',fa,fb,steps:3,mx:20})},
+ sigTab(){const r=until(()=>{const ds=pick([[[-4,1],[0,6],[4,1]],[[-2,4],[2,4]],[[-3,2],[0,14],[3,2]],[[-6,1],[0,7],[6,1]],[[-3,4],[3,4]],[[-5,2],[-1,8],[1,8],[5,2]]]);const m=ri(9,13);const tab=ds.map(([d,n])=>[m+d,n]);const xs=expand(tab);const Vv=varQ(xs);return sqrtQ(Vv)&&tab.every(([v])=>v>=0&&v<=20)?{tab,xs,Vv,m}:null});
+   const {tab,xs,Vv,m}=r;const s=sqrtQ(Vv);const N=xs.length;const SS=qv(Vv)*N;const vals=tab.map(r=>r[0]);const naive=sqrtQ(varQ(vals));
+   return QC(7,`Série de moyenne ${XB}&nbsp;= ${m}&nbsp;:${tabHTML(tab)}Son écart type est&nbsp;:`,[Fq(s),V(s)],numLures(s,[[Vv],[naive],[q(SS)],[Number.isInteger(Math.sqrt(SS))?q(Math.sqrt(SS)):null]]),
+   `V = ${fr('∑ n<sub>i</sub>(x<sub>i</sub> − '+XB+')²','N')} = ${fr(SS,N)} = ${Fq(Vv)}, donc σ = √${Fq(Vv)} = ${Fq(s)}.`,{ck:'sigma:A',sets:{A:xs},steps:3,mx:N})},
+ medVsMean(){const r=until(()=>{const x=Array.from({length:pick([8,10])},()=>ri(3,20));const md=medQ(x),m=meanQ(x);return !qeq(md,m)&&nice(m,10)&&Math.abs(qv(md)-qv(m))>=.5?{x,md,m}:null});const {x,md,m}=r;
+   const rel=qv(md)<qv(m)?'lt':'gt';const H={lt:`Med &lt; ${XB}`,gt:`Med &gt; ${XB}`,eq:`Med = ${XB}`};
+   return QC(3,`Pour la série ${ser(x)}, on compare la médiane Med et la moyenne ${XB}&nbsp;:`,[H[rel],rel],[[H[rel==='lt'?'gt':'lt'],rel==='lt'?'gt':'lt'],[H.eq,'eq']],
+   `On range la série&nbsp;: ${ser(sorted(x))}. Med = ${Fq(md)} et ${XB}&nbsp;= ${fr(sum(x),x.length)} = ${Fq(m)}.`,{ck:'cmpmm:A',sets:{A:x},steps:3,mx:sum(x)})},
+ effPct(){const r=until(()=>{const N=pick([20,25,40,50,60]),p=pick([10,15,20,25,30,35,40,45,60,75]);const n=q(p*N,100);return n.d===1&&p!==n.n?{N,p,n:n.n}:null});const {N,p,n}=r;
+   return QC(2,`Dans un club de ${N} jeunes, ${p} % ont 15 ans. Combien de jeunes du club ont 15 ans&nbsp;?`,[String(n),V(n)],numLures(q(n),[[p],[N-n],[q(p*N,10)],[q(N*100,p).d===1?q(N*100,p):null]]),
+   `${p} % de ${N}&nbsp;: ${fr(p,100)} × ${N} = ${n}.`,{ck:'effpct',given:{N,p},steps:2,mx:N})}
+};
+function fiveOf(x){const s=sorted(x),{q1,q3}=quart(x);return[s[0],q1,qv(medQ(x)),q3,s[s.length-1]]}
+const ot={
+ missing(){const r=until(()=>{const a=Array.from({length:3},()=>ri(6,17)),m=ri(10,14),l=4*m-sum(a);return l>=0&&l<=20&&l!==m?{a,m,l}:null});const {a,m,l}=r;
+   return TR(1,`Avec les notes ${ser(a)} et une quatrième note x, la moyenne est ${m}. Donc x = {0}.`,[ans(l)],`4 × ${m} = ${4*m}&nbsp;; x = ${4*m} − ${sum(a)} = ${l}.`,{ck:['missing:4'],given:{a,m},steps:3,mx:4*m})},
+ merge(){const r=until(()=>{const n1=pick([10,12,15,18,20]),n2=pick([5,6,10,12]),m1=ri(9,15),m2=ri(8,16);const T=n1*m1+n2*m2,N=n1+n2,M=q(T,N);return m1!==m2&&n1!==n2&&nice(M,4)?{n1,n2,m1,m2,T,N,M}:null});const {n1,n2,m1,m2,T,N,M}=r;
+   return TR(2,`Une classe compte ${n1} filles (moyenne ${m1}) et ${n2} garçons (moyenne ${m2}). La moyenne de la classe est {0}.`,[ans(M)],`${fr(`${n1} × ${m1} + ${n2} × ${m2}`,N)} = ${fr(T,N)} = ${Fq(M)}.`,{ck:['merge'],given:{n1,n2,m1,m2},steps:3,mx:T})},
+ quartTab(){const r=until(()=>{const v=sorted([...new Set(Array.from({length:5},()=>ri(6,18)))]);if(v.length<5)return null;const n=v.map(()=>ri(1,8));if(sum(n)!==20)return null;return{tab:v.map((x,i)=>[x,n[i]])}});const xs=expand(r.tab);const {q1,q3}=quart(xs);
+   return TR(5,`Pour la série donnée par le tableau${tabHTML(r.tab)}${Q1} = {0}, Med = {1} et ${Q3} = {2}.`,[ans(q1),ans(medQ(xs)),ans(q3)],`N = 20&nbsp;: rangs 5, 10 et 11, 15 (effectifs cumulés). ${Q1} = ${q1}, Med = ${Fq(medQ(xs))}, ${Q3} = ${q3}.`,{ck:['q1:A','med:A','q3:A'],sets:{A:xs},steps:3,mx:20})},
+ full(){const x=sSq(pick([4,5]));const m=meanQ(x),Vv=varQ(x);return TR(7,`Pour la série ${ser(x)}&nbsp;: ${XB}&nbsp;= {0}, V = {1} et σ = {2}.`,[ans(m),ans(Vv),ans(sqrtQ(Vv))],`${XB}&nbsp;= ${Fq(m)}, V = ${Fq(Vv)}, σ = ${Fq(sqrtQ(Vv))}.`,{ck:['mean:A','V:A','sigma:A'],sets:{A:x},steps:3,mx:20})},
+ replace(){const r=until(()=>{const x=sorted(Array.from({length:6},()=>ri(5,15)));const nv=ri(30,60);const B=x.slice(0,5).concat([nv]);return nice(meanQ(B),4)&&new Set(x).size>=5?{x,nv,B}:null});const {x,nv,B}=r;
+   return TR(4,`Série rangée&nbsp;: ${ser(x)}. On remplace ${x[5]} par ${nv}. Nouvelle médiane&nbsp;: {0}&nbsp;; nouvelle moyenne&nbsp;: {1}.`,[ans(medQ(B)),ans(meanQ(B))],`La médiane reste ${Fq(medQ(B))}&nbsp;; ${XB}&nbsp;= ${fr(sum(B),6)} = ${Fq(meanQ(B))}.`,{ck:['med:B','mean:B'],sets:{A:x,B},steps:3,mx:sum(B)})},
+ pctMean(){const r=until(()=>{const N=pick([20,25,40]),p=pick([20,25,40,60,75]),a=ri(8,12),b=a+ri(3,7);const na=p*N/100;if(!Number.isInteger(na)||b>20)return null;const nb=N-na;const M=q(na*a+nb*b,N);return nice(M,4)?{N,p,a,b,na,nb,M}:null});const {N,p,a,b,na,nb,M}=r;
+   return TR(2,`Sur ${N} élèves, ${p} % ont eu ${a} et les autres ont eu ${b}. Effectif de la note ${a}&nbsp;: {0}&nbsp;; moyenne de la classe&nbsp;: {1}.`,[ans(na),ans(M)],`${p} % de ${N} = ${na}&nbsp;; ${XB}&nbsp;= ${fr(`${na} × ${a} + ${nb} × ${b}`,N)} = ${Fq(M)}.`,{ck:['effpct','mean:A'],given:{N,p},sets:{A:expand([[a,na],[b,nb]])},steps:3,mx:N*b})}
+};
+
+/* ---------- assemblage : 6 QCM + 4 trous, mélangés ---------- */
+const pickN=(o,k)=>shuf(Object.keys(o)).slice(0,k).map(n=>o[n]);
+function build(qs,ts){let Q=[];for(const f of qs){let x=null;for(let i=0;i<50&&!x;i++)x=f();Q.push(x)}for(const f of ts)Q.push(f());return shuf(Q)}
+const FIN={
+  bronze:()=>build(pickN(bq,6),pickN(bt,4)),
+  argent:()=>build(pickN(aq,6),pickN(at,4)),
+  or:()=>build(pickN(oq,6),pickN(ot,4))
+};
+window.PAM_FIN=FIN;
+})();
+</script>
+<script>
+/* ======================= PILE AU MILIEU — le labo « Mon plateau » ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const SC=window.PAM_S,S=SC.S,T=window.PAM_STAT,fmtN=SC.fmtN;
+const {q,qfmt,sorted,sum}=T;
+let xs=[8,9,10,10,11,12,14,15];
+const show={piv:true,cut:true,quart:false,box:false,sq:false};
+const TOG=[['piv','Pivot (moyenne)'],['cut','Coupe (médiane)'],['quart','Quartiles'],['box','Boîte'],['sq','Carrés (écart type)']];
+const QUICK=[['cours','Série du cours'],['plus16','+ un élève à 16'],['extreme','+ une valeur extrême'],['pop','Retirer la dernière'],['homo','Série homogène'],['disp','Série dispersée']];
+function parse(str){const parts=str.includes(';')?str.split(/[;\n]+/):str.trim().split(/\s+/);const out=[];
+  for(let p of parts){p=p.trim().replace(/\s/g,'').replace(',','.').replace(/[−–]/g,'-');if(!p)continue;if(!/^\d+(\.\d{1,2})?$/.test(p))return{err:`«&nbsp;${p}&nbsp;» n'est pas un nombre positif (au plus 2 décimales).`};const v=parseFloat(p);if(v>10000)return{err:'Valeurs jusqu\'à 10 000.'};out.push(v)}
+  if(!out.length)return{err:'Écris au moins une valeur.'};if(out.length>16)return{err:'16 valeurs au plus, pour que la file tienne sur la scène.'};return{xs:out}}
+function axis(a){const mn=Math.min(...a),mx=Math.max(...a),span=Math.max(mx-mn,2);
+  const steps=[.5,1,2,5,10,20,50,100,200,500,1000,2000];const lab=steps.find(s=>span/s<=8)||2000;
+  let lo=Math.floor((mn-lab*.5)/lab)*lab,hi=Math.ceil((mx+lab*.5)/lab)*lab;if(mn>=0&&lo<0)lo=0;
+  const gran=lab>=5&&lab%5===0?lab/5:lab>=1?lab/2:lab;return{lo,hi,gran,lab}}
+const I=a=>a.map(v=>Math.round(v*100));
+const disp=x=>{const s=qfmt(x);if(s&&(s.split(',')[1]||'').length<=3)return s;return '≈ '+fmtN(Math.round(x.n/x.d*100)/100)};
+function stats(a){const n=a.length,ii=I(a),S0=q(sum(ii),100),m=q(sum(ii),100*n);const md=T.medQ(ii);const med=q(md.n,md.d*100);
+  const v=T.varQ(ii);const V=q(v.n,v.d*10000);const sg=T.sqrtQ(V);
+  const o={n,S:S0,m,med,V,sg,sgApprox:Math.sqrt(V.n/V.d)};if(n%4===0){const s=sorted(a);o.q1=s[n/4-1];o.q3=s[3*n/4-1];o.I=Math.round((o.q3-o.q1)*100)/100}return o}
+function render(){
+  const st=stats(xs),m=st.m.n/st.m.d,n=xs.length;let ax=axis(xs);
+  if(show.sq){const dmax=Math.max(...xs.map(v=>Math.abs(v-m)),.5),half=Math.max(dmax*2.8,(Math.max(...xs)-Math.min(...xs))/2+1);ax=axis([m-half,m+half]);if(Math.min(...xs)>=0&&ax.lo<0){ax.hi+=-ax.lo;ax.lo=0}}
+  $('labw').innerHTML='';
+  T.scene({xs,ctx:ax,file:true,sortedFile:true,pivot:show.piv,p:show.piv?m:ax.lo});
+  SC.setChapter(1,'Le labo · Mon plateau');S.pLabel=disp(st.m);
+  const warn=[];
+  setTimeout(()=>{
+    if(show.cut){const ci=T.medCutInfo(n);SC.cut('med',{pos:ci.pos,counts:ci.counts,val:st.med.n/st.med.d,label:'Med '+(disp(st.med).startsWith('≈')?'':'= ')+disp(st.med)})}
+    if((show.quart||show.box)&&n%4===0){SC.cut('q1',{pos:n/4,val:st.q1,label:'Q1 = '+fmtN(st.q1)});SC.cut('q3',{pos:3*n/4,val:st.q3,label:'Q3 = '+fmtN(st.q3)})}
+    if(show.box&&n%4===0)SC.box({five:[Math.min(...xs),st.q1,st.med.n/st.med.d,st.q3,Math.max(...xs)]});
+    if(show.sq){const g=SC.geo(),u=g.unit,dmax=Math.max(...xs.map(v=>Math.abs(v-m)));
+      if(dmax*u<=g.beamY-g.pTop-14){SC.squares({mean:m,items:xs.map(v=>({v})),V:st.V.n/st.V.d,sigma:st.sgApprox,VLabel:disp(st.V),sigLabel:st.sg?qfmt(st.sg):'≈ '+fmtN(Math.round(st.sgApprox*100)/100)}).then(()=>SC.fuse())}
+      else $('labw').textContent='Les carrés des écarts seraient trop grands pour la scène avec cette série.'}
+  },650);
+  if((show.quart||show.box)&&n%4)warn.push('Quartiles et boîte&nbsp;: avec la convention du cours (rangs N ÷ 4 et 3N ÷ 4), choisis un effectif N multiple de 4.');
+  if(warn.length)$('labw').innerHTML=warn.join(' ');
+  const cell=(k,lab,v,c)=>`<div class="${c||''}"><small>${lab}</small><b>${v}</b></div>`;
+  $('labind').innerHTML=cell('n','Effectif N',n)+cell('s','Somme S',disp(st.S))+cell('m','Moyenne '+T.XB,disp(st.m),'g')+cell('d','Médiane',disp(st.med),'c')+
+    cell('q1','Q<sub>1</sub>',n%4?'—':fmtN(st.q1),'q')+cell('q3','Q<sub>3</sub>',n%4?'—':fmtN(st.q3),'q')+cell('i','I = Q<sub>3</sub> − Q<sub>1</sub>',n%4?'—':fmtN(st.I),'q')+
+    cell('v','Variance V',disp(st.V))+cell('e','Écart type σ',st.sg?qfmt(st.sg):'≈ '+fmtN(Math.round(st.sgApprox*100)/100));
+  const eq=v=>v.startsWith('≈')?' '+v:' = '+v;$('capt').innerHTML=`<span class="k">${T.XB}${eq(disp(st.m))}</span> <span class="m">·</span> <span class="c">Med${eq(disp(st.med))}</span>`;
+  $('labin').value=xs.map(fmtN).join(' ; ')}
+function renderCtl(){$('labt').innerHTML=TOG.map(([k,l])=>`<button type="button" data-t="${k}" aria-pressed="${show[k]}">${l}</button>`).join('');
+  $('labq').innerHTML=QUICK.map(([k,l])=>`<button type="button" data-q="${k}">${l}</button>`).join('')}
+$('labt').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;show[b.dataset.t]=!show[b.dataset.t];renderCtl();render()});
+$('labq').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(!b)return;const k=b.dataset.q;
+  if(k==='cours')xs=[8,9,10,10,11,12,14,15];
+  else if(k==='plus16'){if(xs.length<16)xs=xs.concat([16])}
+  else if(k==='extreme'){if(xs.length<16){const mx=Math.max(...xs),mn=Math.min(...xs);xs=xs.concat([Math.round(mx+Math.max(10,2*(mx-mn)))])}}
+  else if(k==='pop'){if(xs.length>1)xs=xs.slice(0,-1)}
+  else if(k==='homo')xs=[9,10,10,11,11,12];
+  else if(k==='disp')xs=[2,5,9,14,17,19];
+  render()});
+$('labf').addEventListener('submit',e=>{e.preventDefault();const r=parse($('labin').value);if(r.err){$('labw').innerHTML=r.err;return}xs=r.xs;render()});
+window.PAM_LAB={open(){renderCtl();render()},state:()=>({xs:xs.slice(),show:Object.assign({},show)})};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'pile-au-milieu',title:'Pile au milieu',levels:7,
+  levelNames:['L\'équilibre','Les piles','La coupe','L\'intrus','Les quarts','La boîte','Les carrés'],
+  music:'aventure',finals:{bronze:()=>(window.PAM_lastFinal=PAM_FIN.bronze()),argent:()=>(window.PAM_lastFinal=PAM_FIN.argent()),or:()=>(window.PAM_lastFinal=PAM_FIN.or())}});
+PM.start();
+(function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|INPUT|TEXTAREA)$/.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(fix)}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>
