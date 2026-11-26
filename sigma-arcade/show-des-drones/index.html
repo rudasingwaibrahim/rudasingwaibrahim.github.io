@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le Show des Drones · Sigma Arcade</title>
+<meta name="description" content="Les fonctions de référence en Seconde : carré, cube, inverse, racine carrée, fonctions paires et impaires, positions de x, x² et x³. Tu programmes un show de drones lumineux : chaque drone vole à l'altitude f(x).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours.
+   IDEA : l'élève programme un show de drones lumineux au-dessus du lagon ; le drone d'abscisse x vole à l'altitude f(x).
+          L'image EST le décollage ; la parité EST un miroir ou un demi-tour de la formation ; 0 et les négatifs sont des pistes interdites.
+   PICTURE : ciel de nuit, laser horizontal (axe des abscisses), mât lumineux gradué (axe des ordonnées), essaim de drones à LED.
+   COLOUR and TYPE : nuit « océan profond », accent violet-bleu pour l'action, or pour les réussites, corail pour les erreurs ; Outfit.
+   LAYOUT : scène et bandeau à gauche (collés en haut sur téléphone), pupitre de pilotage à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);
+--c1:#7fb2ff;--c2:#5fe0c8;--c3:#d4b0ff}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:72ch}
+.back{display:inline-flex;align-items:center;min-height:44px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+i{font-style:italic}
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(340px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#040916;user-select:none;-webkit-user-select:none;touch-action:pan-y}
+.stage.drag{touch-action:none;cursor:ns-resize}.stage.dragx{touch-action:none;cursor:ew-resize}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.badge{position:absolute;left:10px;top:10px;z-index:2;font:600 13px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--mut);border:1px solid var(--soft);pointer-events:none;max-width:calc(100% - 160px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prog{position:absolute;right:10px;top:10px;z-index:2;font:700 14px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--gold2);border:1px solid rgba(200,168,75,.35);pointer-events:none;white-space:nowrap}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,22px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .35em}
+.capt .k{color:var(--gold2)}.capt .r{color:var(--ko)}.capt .m{color:var(--mut);font-weight:600}
+.capt .c1{color:var(--c1)}.capt .c2{color:var(--c2)}.capt .c3{color:var(--c3)}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 4px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.55;margin:0 0 12px}
+.prompt b{color:var(--gold2);font-weight:700}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.45 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.tools{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 12px;padding:10px;border-radius:12px;border:1px dashed var(--soft);background:rgba(0,0,0,.14);align-items:center}
+.tools .lab{font-size:14px;color:var(--mut);font-weight:600;margin-right:2px}
+.tbtn{min-height:46px;padding:0 16px;border-radius:999px;border:1.5px solid rgba(200,168,75,.55);background:rgba(200,168,75,.08);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer}
+.tbtn:hover:not(:disabled){background:rgba(200,168,75,.18)}
+.tbtn:disabled{opacity:.45;cursor:default}
+/* pupitre */
+.ro{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px}
+.ro label{font-weight:600;color:var(--mut);font-size:15px;min-width:7.5em}
+.rv{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:var(--solid)}
+.rv button{width:48px;height:52px;border:0;background:transparent;color:var(--ink);font:600 20px var(--sg-font);cursor:pointer}
+.rv button:hover{background:var(--sg-hover)}
+.rv input{width:6.2em;height:52px;border:0;border-left:1px solid var(--soft);border-right:1px solid var(--soft);background:transparent;color:var(--ink);font:700 24px var(--sg-font);text-align:center;font-variant-numeric:tabular-nums}
+.rv input.ok{color:var(--ok)}.rv input.ko{color:var(--ko)}
+.pad{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;max-width:380px}
+.pad button{height:52px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);font:600 22px var(--sg-font);color:var(--ink);cursor:pointer}
+.pad button:hover:not(:disabled){border-color:var(--ac)}
+.pad .val{grid-column:span 3;background:var(--ac);color:var(--on);border-color:var(--ac);font-size:18px}.pad .val:hover:not(:disabled){background:#86a2ff}
+.pad .none{grid-column:span 4;font-size:17px;border-style:dashed;border-color:rgba(255,107,107,.55)}
+.pad button:disabled{opacity:.4;cursor:default}
+.hint{color:var(--mut);font-size:15px;margin:10px 0 0}
+.rank{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
+.chip{min-width:64px;min-height:50px;padding:0 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:700 20px var(--sg-font);cursor:pointer}
+.chip:hover:not(:disabled){border-color:var(--ac)}
+.chip.c1{border-color:rgba(127,178,255,.7);color:var(--c1)}.chip.c2{border-color:rgba(95,224,200,.7);color:var(--c2)}.chip.c3{border-color:rgba(212,176,255,.7);color:var(--c3)}
+.chip:disabled{opacity:.35;cursor:default}
+.order{min-height:56px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 12px;border-radius:12px;border:1.5px dashed var(--line);font:700 22px var(--sg-font);margin:0 0 10px;color:var(--mut)}
+.order .s{color:var(--ink)}.order .lt{color:var(--mut)}
+.order .s.c1{color:var(--c1)}.order .s.c2{color:var(--c2)}.order .s.c3{color:var(--c3)}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.sk-q .fr,.sk-ch .fr{font-size:.95em}
+.rt{white-space:nowrap}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin:0 0 14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb>div>b:first-child{display:block;font-size:18px}.fb .mk{flex:none;width:52px}.fb>div{flex:1}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+/* scène : drones et décor */
+.ax{stroke:#c9d6ff;stroke-width:1.3}
+.laser{stroke:#8ea6ff;stroke-width:2.2}.laserg{stroke:#6c8eff;stroke-width:9;opacity:.22}
+.mast{stroke:#e8c766;stroke-width:2;opacity:.85}.mastg{stroke:#e8c766;stroke-width:8;opacity:.12}
+.gr{stroke:rgba(140,170,255,.09);stroke-width:1}.gr.M{stroke:rgba(140,170,255,.17)}
+.tk{font:600 12px var(--sg-font);fill:rgba(220,230,255,.78);font-variant-numeric:tabular-nums;paint-order:stroke;stroke:#050b18;stroke-width:3px;stroke-linejoin:round}
+.tk.y{fill:rgba(240,215,140,.85)}
+.axl{font:700 13px var(--sg-font);fill:#c9d6ff;font-style:italic;paint-order:stroke;stroke:#050b18;stroke-width:3px}
+.dr{--c:#9fb4ff}
+.dr .bd{fill:#16223c;stroke:#8396c6;stroke-width:1}
+.dr .arm{stroke:#6f7fa8;stroke-width:2;stroke-linecap:round}
+.dr .rot{fill:rgba(200,215,255,.32);transform-box:fill-box;transform-origin:center;animation:spin .14s linear infinite}
+.dr .led{fill:var(--c);filter:drop-shadow(0 0 4px var(--c)) drop-shadow(0 0 9px var(--c))}
+.dr .beam{fill:var(--c);opacity:.0;transition:opacity .3s}
+.dr.act .beam{opacity:.12}
+.dr .ring{fill:none;stroke:var(--c);stroke-width:1.6;opacity:0}
+.dr.act .ring{opacity:.9;transform-box:fill-box;transform-origin:center;animation:ring 1.4s ease-out infinite}
+.dr.ok{--c:#e8c766}.dr.ko{--c:#ff6b6b}.dr.g{--c:#e8c766}.dr.c1{--c:#7fb2ff}.dr.c2{--c:#5fe0c8}.dr.c3{--c:#d4b0ff}
+.dr.park .led{filter:drop-shadow(0 0 3px var(--c))}
+.dr .lb{font:700 13px var(--sg-font);fill:#f0f4ff;text-anchor:middle;paint-order:stroke;stroke:#050b18;stroke-width:3.5px;stroke-linejoin:round;font-variant-numeric:tabular-nums}
+.dr .lb.k{fill:#e8c766}
+.dr.sm .bd,.dr.sm .arm,.dr.sm .rot{display:none}
+.bob{animation:bob 2.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-2px)}}
+@keyframes spin{50%{transform:scaleX(.2)}}
+@keyframes ring{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.9);opacity:0}}
+.trail{stroke:var(--c,#9fb4ff);stroke-width:3;stroke-linecap:round;opacity:.45;transition:opacity .9s}
+.trail.off{opacity:0}
+.ghost circle{fill:none;stroke:#e8c766;stroke-width:2;stroke-dasharray:3 2}
+.ghost.bad circle{stroke:#ff6b6b}
+.hl{stroke:#e8c766;stroke-width:1.6;stroke-dasharray:6 5;opacity:.9}
+.hl.b{stroke:#9fb4ff}.hl.r{stroke:#ff9b7a}
+.hlt{font:700 12.5px var(--sg-font);fill:#e8c766;paint-order:stroke;stroke:#050b18;stroke-width:3.5px}
+.hlt.b{fill:#9fb4ff}
+.curve{fill:none;stroke:#e8c766;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px rgba(232,199,102,.7))}
+.curve.faint{stroke-width:2;opacity:.35;filter:none}
+.curve.c1{stroke:#7fb2ff;filter:drop-shadow(0 0 4px rgba(127,178,255,.6))}.curve.c2{stroke:#5fe0c8;filter:drop-shadow(0 0 4px rgba(95,224,200,.6))}.curve.c3{stroke:#d4b0ff;filter:drop-shadow(0 0 4px rgba(212,176,255,.6))}
+.ban{fill:rgba(255,107,107,.08);stroke:none}
+.banx{stroke:#ff6b6b;stroke-width:2.4;stroke-linecap:round}
+.bant{font:700 12px var(--sg-font);fill:#ffb0a6;paint-order:stroke;stroke:#050b18;stroke-width:3px}
+.shade{fill:url(#hatch)}
+.bal{fill:#e8c766;stroke:#050b18;stroke-width:1.5}
+.balr{stroke:#e8c766;stroke-width:1.5;stroke-dasharray:3 4;opacity:.7}
+.meet{fill:none;stroke:#e8c766;stroke-width:2}
+.spark{fill:#fff3c4}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .stage{aspect-ratio:auto;height:clamp(210px,34svh,330px);border-radius:14px}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .pad{max-width:none}
+  .ro label{min-width:0;width:100%}
+  .rv input{width:5.4em}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}.bob,.dr .rot,.dr.act .ring{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Le Show des Drones</h1>
+<p>Ce soir, tu programmes le show de drones au-dessus du lagon. Chaque drone part du laser à l'abscisse <i>x</i> et monte (ou descend) à l'altitude <i>f</i>(<i>x</i>)&nbsp;: carré, cube, inverse, racine carrée… la courbe, c'est ton essaim.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Ciel de nuit : le laser horizontal est l'axe des abscisses, le mât doré est l'axe des ordonnées ; chaque drone vole à l'altitude f(x)">
+    <svg id="sc" aria-hidden="true"></svg>
+    <span class="badge" id="badge"></span>
+    <span class="prog" id="fxchip"></span>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+  <div id="work"></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+
+<script>
+/* ======================= LE SHOW DES DRONES — calcul exact ======================= */
+(function(){
+'use strict';
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t}return a||1};
+function R(n,d=1){if(d<0){n=-n;d=-d}const g=gcd(n,d);return{n:n/g,d:d/g}}
+const add=(a,b)=>R(a.n*b.d+b.n*a.d,a.d*b.d),sub=(a,b)=>R(a.n*b.d-b.n*a.d,a.d*b.d),mul=(a,b)=>R(a.n*b.n,a.d*b.d),
+  div=(a,b)=>R(a.n*b.d,a.d*b.n),neg=a=>R(-a.n,a.d),inv=a=>R(a.d,a.n);
+const cmp=(a,b)=>Math.sign(a.n*b.d-b.n*a.d),eq=(a,b)=>a.n===b.n&&a.d===b.d,num=a=>a.n/a.d;
+const pow=(a,k)=>{let r=R(1);for(let i=0;i<k;i++)r=mul(r,a);return r};
+const isq=n=>{if(n<0)return null;const s=Math.round(Math.sqrt(n));return s*s===n?s:null};
+function sqrtR(a){if(a.n<0)return null;const p=isq(a.n),q=isq(a.d);return p===null||q===null?undefined:R(p,q)}
+function term(d){if(!d)return -1;let x=d,k=0,m=0;while(x%2===0){x/=2;k++}while(x%5===0){x/=5;m++}return x===1?Math.max(k,m):-1}
+/* écriture décimale française (virgule, signe −) ; null si le décimal ne se termine pas */
+function dec(a){const k=term(a.d);if(k<0)return null;const s=a.n<0?'−':'',n=Math.abs(a.n)*(10**k/a.d);
+  let t=String(Math.round(n));if(!k)return s+t;t=t.padStart(k+1,'0');return s+t.slice(0,-k)+','+t.slice(-k)}
+const plainFr=a=>(a.n<0?'−':'')+Math.abs(a.n)+'/'+a.d;
+const fmt=a=>dec(a)??plainFr(a);
+const FR=(p,q)=>`<span class="fr"><span>${p}</span><span>${q}</span></span>`;
+const fmtH=a=>{const d=dec(a);return d!==null?d:(a.n<0?'−':'')+FR(Math.abs(a.n),a.d)};
+const par=a=>a.n<0?'('+fmt(a)+')':fmt(a);                 // (−3) ou 3
+const parW=a=>a.n<0?'('+fmt(a)+')':fmt(a);       // pour un produit : (−1,5) × (−1,5)
+function parseR(s){if(s==null)return null;s=String(s).trim().replace(/[−–—]/g,'-').replace(/\s+/g,'').replace(',','.').replace(/^\+/,'');
+  let m=/^(-?)(\d+)\/(\d+)$/.exec(s);if(m){const d=+m[3];if(!d)return null;return R((m[1]?-1:1)*+m[2],d)}
+  m=/^(-?)(\d*)(?:\.(\d*))?$/.exec(s);if(!m||(!m[2]&&!m[3]))return null;
+  const f=m[3]||'',n=+(m[2]||'0')*10**f.length+(f?+f:0);return R((m[1]?-1:1)*n,10**f.length)}
+const SUP={1:'',2:'²',3:'³',4:'⁴'};
+const X='<i>x</i>';
+/* polynôme : termes [[coef entier, degré]] dans l'ordre d'affichage */
+function polyH(T,v=X){let s='';T.forEach(([c,d])=>{if(!c)return;const a=Math.abs(c),mono=d===0?String(a):(a===1?'':a)+v+SUP[d];
+  s+=s===''?(c<0?'−':'')+mono:(c<0?' − ':' + ')+mono});return s||'0'}
+function polySub(T){let s='';const mx='(−'+X+')';T.forEach(([c,d])=>{if(!c)return;const a=Math.abs(c),mono=d===0?String(a):(a===1?'':a)+mx+SUP[d];
+  s+=s===''?(c<0?'−':'')+mono:(c<0?' − ':' + ')+mono});return s}
+const polyPy=T=>T.map(([c,d])=>`${c<0?'-':'+'}${Math.abs(c)}${d?'*x**'+d:''}`).join('').replace(/^\+/,'');
+function polyFn(T,opt={}){const f=a=>T.reduce((s,[c,d])=>add(s,mul(R(c),pow(a,d))),R(0)),v=x=>T.reduce((s,[c,d])=>s+c*x**d,0);
+  const ev=T.every(([c,d])=>!c||d%2===0),od=T.every(([c,d])=>!c||d%2===1);
+  return Object.assign({id:'p'+polyPy(T),h:polyH(T),py:polyPy(T),f,v,T,dom:()=>true,par:ev?'paire':od?'impaire':'ni'},opt)}
+const F={
+  sq:{id:'sq',name:'carré',nameF:'la fonction carré',h:X+'²',py:'x**2',f:a=>mul(a,a),v:x=>x*x,dom:()=>true,par:'paire'},
+  cube:{id:'cube',name:'cube',nameF:'la fonction cube',h:X+'³',py:'x**3',f:a=>pow(a,3),v:x=>x*x*x,dom:()=>true,par:'impaire'},
+  inv:{id:'inv',name:'inverse',nameF:'la fonction inverse',h:FR(1,X),py:'1/x',f:a=>a.n===0?null:inv(a),v:x=>1/x,dom:a=>a.n!==0,par:'impaire'},
+  sqrt:{id:'sqrt',name:'racine carrée',nameF:'la fonction racine carrée',h:'√'+X,py:'sqrt(x)',f:a=>a.n<0?null:sqrtR(a),v:x=>x<0?NaN:Math.sqrt(x),dom:a=>a.n>=0,par:'ni'}
+};
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const sample=(a,k)=>shuf(a.slice()).slice(0,k);
+const r=s=>parseR(s);
+/* toutes les écritures acceptables d'un nombre (trous) */
+function answers(a){const out=new Set(),d=dec(a);if(d!==null){out.add(d);out.add(d.replace(',','.'));}
+  if(a.d!==1){out.add(plainFr(a));}
+  if(d!==null&&/^−?0,/.test(d)){out.add(d.replace(/^(−?)0,/,'$1,'))}
+  return [...out]}
+/* italique pour la variable x dans le texte (hors balises, sans doubler <i>x</i>) */
+const xi=h=>String(h).replace(/<i>x<\/i>/g,'\u0001').replace(/(<[^>]+>)|\bx\b/g,(m,t)=>t?t:'\u0001').replace(/\u0001/g,X);
+window.SD_M={xi,R,add,sub,mul,div,neg,inv,cmp,eq,num,pow,sqrtR,dec,fmt,fmtH,FR,par,parW,parseR,polyH,polySub,polyPy,polyFn,F,ri,pick,shuf,sample,r,answers,X,SUP};
+})();
+</script>
+
+<script>
+/* ======================= LE SHOW DES DRONES — scène ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id),M=window.SD_M;
+const NS='http://www.w3.org/2000/svg';
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const svg=$('sc'),stage=$('stage');
+let W=800,H=500,V={x0:-3.6,x1:3.6,y0:-1.4,y1:10.4,xt:.5,yt:1},zones={};
+const Mg={l:46,r:14,t:42,b:30};
+const px=x=>Mg.l+(x-V.x0)/(V.x1-V.x0)*(W-Mg.l-Mg.r);
+const py=y=>Mg.t+(V.y1-y)/(V.y1-V.y0)*(H-Mg.t-Mg.b);
+const ix=p=>V.x0+(p-Mg.l)/(W-Mg.l-Mg.r)*(V.x1-V.x0);
+const iy=p=>V.y1-(p-Mg.t)/(H-Mg.t-Mg.b)*(V.y1-V.y0);
+const el=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+const fN=v=>{const s=(Math.round(v*1e4)/1e4).toString();return s.replace('-','−').replace('.',',')};
+let L={};
+function layers(){svg.innerHTML='';
+  const defs=el('defs',{},svg);
+  defs.innerHTML=`<linearGradient id="gsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#02060f"/><stop offset=".55" stop-color="#081631"/><stop offset="1" stop-color="#10264d"/></linearGradient>
+  <linearGradient id="gsea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b2a4a"/><stop offset="1" stop-color="#030a16"/></linearGradient>
+  <radialGradient id="gmoon"><stop offset="0" stop-color="#e8c766" stop-opacity=".35"/><stop offset="1" stop-color="#e8c766" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gbeam" cx=".5" cy="0" r="1"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+  <pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="9" height="9" fill="rgba(2,5,12,.5)"/><path d="M0 0V9" stroke="rgba(255,107,107,.22)" stroke-width="3"/></pattern>
+  <clipPath id="clipP"><rect id="clipR" x="0" y="0" width="10" height="10"/></clipPath>`;
+  L.decor=el('g',{},svg);L.grid=el('g',{},svg);L.zone=el('g',{},svg);L.axes=el('g',{},svg);L.curve=el('g',{'clip-path':'url(#clipP)'},svg);
+  L.lines=el('g',{},svg);L.trail=el('g',{},svg);L.ghost=el('g',{},svg);L.dr=el('g',{},svg);L.fx=el('g',{},svg)}
+layers();
+/* ---------- décor (ciel, étoiles, collines, lagon) ---------- */
+function rnd(seed){let q=seed;return()=>(q=q*16807%2147483647)/2147483647}
+function decor(){const g=L.decor;g.innerHTML='';const r=rnd(7);
+  let s=`<rect width="${W}" height="${H}" fill="url(#gsky)"/>`;
+  for(let i=0;i<Math.round(W*H/5200);i++)s+=`<circle cx="${(r()*W).toFixed(1)}" cy="${(r()*H*.8).toFixed(1)}" r="${(.35+r()*.8).toFixed(2)}" fill="#fff" opacity="${(.25+r()*.6).toFixed(2)}"/>`;
+  const hb=H-14;
+  s+=`<path d="M0 ${hb} L0 ${hb-16} Q${W*.08} ${hb-30} ${W*.16} ${hb-22} Q${W*.24} ${hb-48} ${W*.3} ${hb-58} Q${W*.34} ${hb-40} ${W*.42} ${hb-26} Q${W*.55} ${hb-18} ${W*.64} ${hb-30} Q${W*.74} ${hb-44} ${W*.82} ${hb-24} Q${W*.92} ${hb-14} ${W} ${hb-20} L${W} ${hb}Z" fill="#06101f" opacity=".95"/>`;
+  for(let i=0;i<Math.round(W/22);i++){const x=r()*W;s+=`<circle cx="${x.toFixed(1)}" cy="${(hb-3-r()*10).toFixed(1)}" r="${(.6+r()*.8).toFixed(2)}" fill="${r()<.7?'#e8c766':'#9fb4ff'}" opacity="${(.35+r()*.5).toFixed(2)}"/>`}
+  s+=`<rect x="0" y="${hb}" width="${W}" height="14" fill="url(#gsea)"/>`;
+  for(let i=0;i<14;i++){const x=r()*W,w=10+r()*30;s+=`<path d="M${x.toFixed(1)} ${(hb+4+r()*8).toFixed(1)}h${w.toFixed(1)}" stroke="#9fb4ff" stroke-width=".8" opacity="${(.15+r()*.25).toFixed(2)}"/>`}
+  g.innerHTML=s}
+/* ---------- quadrillage, laser, mât ---------- */
+function niceStep(base,pxPer,min){for(const k of [1,2,4,5,10,20,40,50,100]){if(base*k*pxPer>=min)return base*k}return base*100}
+function axes(){const G=L.grid,A=L.axes;G.innerHTML='';A.innerHTML='';
+  const cr=svg.querySelector('#clipR');cr.setAttribute('x',Mg.l-8);cr.setAttribute('y',Mg.t-12);cr.setAttribute('width',W-Mg.l-Mg.r+16);cr.setAttribute('height',H-Mg.t-Mg.b+24);
+  const ux=(W-Mg.l-Mg.r)/(V.x1-V.x0),uy=(H-Mg.t-Mg.b)/(V.y1-V.y0);
+  const sx=niceStep(V.xt,ux,W<500?34:40),sy=niceStep(V.yt,uy,22);
+  let g='';const ox=V.x0<=0&&V.x1>=0?px(0):Mg.l,oy=V.y0<=0&&V.y1>=0?py(0):H-Mg.b;
+  for(let k=Math.ceil(V.x0/V.xt);k*V.xt<=V.x1+1e-9;k++){const x=k*V.xt,big=Math.abs(x/sx-Math.round(x/sx))<1e-6;g+=`<path class="gr${big?' M':''}" d="M${px(x).toFixed(1)} ${Mg.t-8}V${H-Mg.b+4}"/>`}
+  for(let k=Math.ceil(V.y0/V.yt);k*V.yt<=V.y1+1e-9;k++){const y=k*V.yt,big=Math.abs(y/sy-Math.round(y/sy))<1e-6;g+=`<path class="gr${big?' M':''}" d="M${Mg.l-6} ${py(y).toFixed(1)}H${W-Mg.r}"/>`}
+  G.innerHTML=g;
+  let a=`<path class="mastg" d="M${ox} ${Mg.t-10}V${H-Mg.b+4}"/><path class="mast" d="M${ox} ${Mg.t-10}V${H-Mg.b+4}"/>`+
+    `<path class="laserg" d="M${Mg.l-8} ${oy}H${W-Mg.r+4}"/><path class="laser" d="M${Mg.l-8} ${oy}H${W-Mg.r+4}"/>`+
+    `<path d="M${W-Mg.r+4} ${oy}l-8 -4v8z" fill="#8ea6ff"/><path d="M${ox} ${Mg.t-12}l-4 8h8z" fill="#e8c766"/>`;
+  for(let k=Math.ceil(V.x0/sx);k*sx<=V.x1+1e-9;k++){const x=k*sx;if(Math.abs(x)<1e-9)continue;
+    a+=`<path d="M${px(x).toFixed(1)} ${oy-4}v8" stroke="#8ea6ff" stroke-width="1.4"/><text class="tk" x="${px(x).toFixed(1)}" y="${(oy+18).toFixed(1)}" text-anchor="middle">${fN(x)}</text>`}
+  for(let k=Math.ceil(V.y0/sy);k*sy<=V.y1+1e-9;k++){const y=k*sy;if(Math.abs(y)<1e-9)continue;
+    a+=`<path d="M${ox-4} ${py(y).toFixed(1)}h8" stroke="#e8c766" stroke-width="1.4"/><text class="tk y" x="${(ox-8).toFixed(1)}" y="${(py(y)+4).toFixed(1)}" text-anchor="end">${fN(y)}</text>`}
+  a+=`<text class="tk" x="${(ox-7).toFixed(1)}" y="${(oy+17).toFixed(1)}" text-anchor="end">0</text>`;
+  a+=`<text class="axl" x="${W-Mg.r-2}" y="${oy-9}" text-anchor="end">x</text><text class="axl" x="${ox+9}" y="${Mg.t-2}">f(x)</text>`;
+  A.innerHTML=a;drawZones()}
+/* ---------- zones interdites ---------- */
+function drawZones(){const Z=L.zone;Z.innerHTML='';const oy=V.y0<=0&&V.y1>=0?py(0):H-Mg.b;
+  if(zones.shade&&V.x0<0){const x=px(Math.min(0,V.x1));
+    Z.innerHTML+=`<rect class="shade" x="${Mg.l-8}" y="${Mg.t-12}" width="${(x-Mg.l+8).toFixed(1)}" height="${H-Mg.t-Mg.b+16}"/>`+
+      `<text class="bant" x="${((Mg.l+x)/2).toFixed(1)}" y="${Math.min(oy-30,Mg.t+30).toFixed(1)}" text-anchor="middle">x &lt; 0 : pas d'image</text>`}
+  if(zones.ban&&V.x0<0&&V.x1>0){const x=px(0);
+    Z.innerHTML+=`<circle class="ban" cx="${x}" cy="${oy}" r="15"/><circle cx="${x}" cy="${oy}" r="12" fill="none" stroke="#ff6b6b" stroke-width="2"/>`+
+      `<path class="banx" d="M${x-6} ${oy-6}l12 12M${x+6} ${oy-6}l-12 12"/><text class="bant" x="${x+16}" y="${oy-12}">0 : pas d'image</text>`}}
+function setZones(z){zones=Object.assign({},z||{});drawZones()}
+/* ---------- drones ---------- */
+const D=new Map();
+function droneG(s){return `<g class="bob"><path class="beam" d="M0 3 L${-s*.7} 26 H${s*.7} Z"/><circle class="ring" cx="0" cy="0" r="${s*.55}"/>`+
+  `<path class="arm" d="M${-s} -9H${s}"/><ellipse class="rot" cx="${-s}" cy="-11.5" rx="${s*.6}" ry="1.9"/><ellipse class="rot" cx="${s}" cy="-11.5" rx="${s*.6}" ry="1.9"/>`+
+  `<rect class="bd" x="${-s*.42}" y="-11" width="${s*.84}" height="9" rx="4.5"/><circle class="led" cx="0" cy="0" r="${Math.max(3,s*.24)}"/></g><text class="lb" x="0" y="-19"></text>`}
+function dsize(){return W<520?12:16}
+function add(id,x,y,o={}){rm(id);const g=el('g',{class:'dr '+(o.cls||'')},L.dr);g.innerHTML=droneG(o.small?6:dsize());
+  if(o.small)g.classList.add('sm');const d={id,x,y,g,dx:o.dx||0,lab:o.lab||'',anim:null,side:o.side||''};
+  g.querySelector('.bob').style.animationDelay=(-Math.random()*2.6).toFixed(2)+'s';D.set(id,d);label(id,o.lab||'');place(d);return d}
+function place(d){const yy=Math.max(V.y0,Math.min(V.y1,d.y));const X=px(d.x)+d.dx,Y=py(yy);d.g.setAttribute('transform',`translate(${X.toFixed(1)} ${Y.toFixed(1)})`);
+  const off=d.y>V.y1+1e-9?'↑ ':d.y<V.y0-1e-9?'↓ ':'';const t=d.g.querySelector('.lb');t.textContent=off?off+(d.lab||''):d.lab||'';
+  const s=dsize();if(d.side==='l'){t.setAttribute('x',-s-5);t.setAttribute('y',5);t.setAttribute('text-anchor','end')}
+  else if(d.side==='r'){t.setAttribute('x',s+5);t.setAttribute('y',5);t.setAttribute('text-anchor','start')}
+  else{t.setAttribute('x',0);t.setAttribute('text-anchor','middle');if(d.y<V.y0-1e-9||d.y>V.y1+1e-9)t.setAttribute('y','34');else t.setAttribute('y','-19')}}
+function label(id,t,cls){const d=D.get(id);if(!d)return;d.lab=t;const e=d.g.querySelector('.lb');e.classList.toggle('k',cls==='k');place(d)}
+function cls(id,c){const d=D.get(id);if(!d)return;d.g.setAttribute('class','dr '+c)}
+function rm(id){const d=D.get(id);if(d){d.g.remove();if(d.tr)d.tr.remove();D.delete(id)}}
+function clear(){for(const id of [...D.keys()])rm(id);L.ghost.innerHTML='';L.lines.innerHTML='';L.fx.innerHTML='';L.trail.innerHTML='';L.curve.innerHTML=''}
+const ease=u=>u<.5?2*u*u:1-((2-2*u)**2)/2;
+let raf=0;
+function loop(t){let any=false;for(const d of D.values()){const a=d.anim;if(!a)continue;any=true;
+    const u=a.dur<=0?1:Math.min(1,(t-a.t0)/a.dur),e=ease(Math.max(0,u));
+    if(t<a.t0){continue}
+    d.x=a.fx+(a.tx-a.fx)*e;d.y=a.fy+(a.ty-a.fy)*e;place(d);
+    if(d.tr){const cy=Math.max(V.y0,Math.min(V.y1,d.y));d.tr.setAttribute('x2',(px(d.x)+d.dx).toFixed(1));d.tr.setAttribute('y2',py(cy).toFixed(1))}
+    if(u>=1){d.anim=null;if(d.tr){const tr=d.tr;d.tr=null;tr.classList.add('off');setTimeout(()=>tr.remove(),950)}a.res()}}
+  raf=any?requestAnimationFrame(loop):0}
+function move(id,x,y,ms=700,delay=0,trail=true){const d=D.get(id);if(!d)return Promise.resolve();
+  if(d.anim){d.anim.res()}
+  return new Promise(res=>{const dur=reduceM?0:ms;
+    if(trail&&!reduceM&&(Math.abs(y-d.y)>1e-9||Math.abs(x-d.x)>1e-9)){const c=getComputedStyle(d.g).getPropertyValue('--c')||'#9fb4ff';
+      const cy=Math.max(V.y0,Math.min(V.y1,d.y));d.tr=el('line',{class:'trail',x1:(px(d.x)+d.dx).toFixed(1),y1:py(cy).toFixed(1),x2:(px(d.x)+d.dx).toFixed(1),y2:py(cy).toFixed(1),style:'--c:'+c},L.trail)}
+    d.anim={fx:d.x,fy:d.y,tx:x,ty:y,t0:performance.now()+(reduceM?0:delay),dur,res};if(!raf)raf=requestAnimationFrame(loop)})}
+function setPos(id,x,y){const d=D.get(id);if(!d)return;if(d.anim){const a=d.anim;d.anim=null;a.res()}d.x=x;d.y=y;place(d)}
+/* ---------- lignes de repère, courbe ---------- */
+function hline(y,cl,txt){const yy=py(y);el('path',{class:'hl '+(cl||''),d:`M${Mg.l-6} ${yy.toFixed(1)}H${W-Mg.r}`},L.lines);
+  if(txt){const t=el('text',{class:'hlt '+(cl||''),x:W-Mg.r-4,y:(yy-6).toFixed(1),'text-anchor':'end'},L.lines);t.textContent=txt}}
+function vline(x,y,cl){const oy=V.y0<=0&&V.y1>=0?py(0):H-Mg.b;el('path',{class:'hl '+(cl||''),d:`M${px(x).toFixed(1)} ${oy}V${py(y).toFixed(1)}`},L.lines)}
+function clearLines(){L.lines.innerHTML=''}
+function pathOf(v,a,b){a=a??V.x0;b=b??V.x1;const N=Math.max(240,Math.round(W*.8));let d='',pen=false,prev=null;
+  for(let i=0;i<=N;i++){const x=a+(b-a)*i/N,y=v(x);
+    if(!isFinite(y)||Math.abs(y)>(V.y1-V.y0)*6||(prev!==null&&Math.sign(x)!==Math.sign(prev)&&v===M.F.inv.v)){pen=false;prev=x;continue}
+    d+=(pen?'L':'M')+px(x).toFixed(1)+' '+py(y).toFixed(1);pen=true;prev=x}
+  return d}
+function curve(v,cl,ms=900,a,b){const p=el('path',{class:'curve '+(cl||''),d:pathOf(v,a,b)},L.curve);
+  if(reduceM||!ms)return Promise.resolve(p);const len=p.getTotalLength();p.style.strokeDasharray=len;p.style.strokeDashoffset=len;
+  p.getBoundingClientRect();p.style.transition=`stroke-dashoffset ${ms}ms ease-in-out`;p.style.strokeDashoffset=0;
+  return new Promise(r=>setTimeout(()=>{p.style.strokeDasharray='';r(p)},ms+30))}
+function clearCurve(){L.curve.innerHTML=''}
+/* ---------- miroir et demi-tour (la parité en mouvement) ---------- */
+function sym(type,pts,good,ms=1100){L.ghost.innerHTML='';const ox=px(0),oy=py(0);
+  const g=el('g',{class:'ghost'+(good?'':' bad')},L.ghost);
+  for(const p of pts){const yy=Math.max(V.y0,Math.min(V.y1,p.y));el('circle',{cx:px(p.x).toFixed(1),cy:py(yy).toFixed(1),r:dsize()*.55},g)}
+  return new Promise(res=>{const dur=reduceM?0:ms,t0=performance.now();
+    const st=t=>{const u=dur?Math.min(1,(t-t0)/dur):1,e=ease(u);
+      if(type==='miroir'){const s=1-2*e;g.setAttribute('transform',`translate(${ox} 0) scale(${s.toFixed(4)} 1) translate(${-ox} 0)`)}
+      else g.setAttribute('transform',`rotate(${(180*e).toFixed(2)} ${ox} ${oy})`);
+      if(u<1)requestAnimationFrame(st);else res()};requestAnimationFrame(st)})}
+function clearGhost(){L.ghost.innerHTML=''}
+function sparks(x,y){if(reduceM)return;const X=px(x),Y=py(Math.max(V.y0,Math.min(V.y1,y)));
+  for(let i=0;i<10;i++){const a=i/10*Math.PI*2,c=el('circle',{class:'spark',cx:X,cy:Y,r:2},L.fx);
+    c.animate([{transform:'translate(0,0)',opacity:1},{transform:`translate(${Math.cos(a)*24}px,${Math.sin(a)*24}px)`,opacity:0}],{duration:650,easing:'ease-out'}).onfinish=()=>c.remove()}}
+function meet(x,y){const c=el('circle',{class:'meet',cx:px(x),cy:py(y),r:14},L.fx);if(!reduceM)c.animate([{r:6,opacity:1},{r:26,opacity:0}],{duration:900,iterations:2}).onfinish=()=>c.remove();else setTimeout(()=>c.remove(),800)}
+/* ---------- balise de course ---------- */
+let bal=null;
+function balise(x){if(x==null){if(bal){bal.remove();bal=null}return}
+  if(!bal){bal=el('g',{},L.fx);bal.innerHTML=`<path class="balr" d=""/><path class="bal" d="M0 0 l-8 14 h16z"/>`}
+  const oy=V.y0<=0&&V.y1>=0?py(0):H-Mg.b,X=px(x);bal.querySelector('.bal').setAttribute('transform',`translate(${X.toFixed(1)} ${oy+2})`);
+  bal.querySelector('.balr').setAttribute('d',`M${X.toFixed(1)} ${Mg.t-8}V${oy}`)}
+/* ---------- vue ---------- */
+let onRedraw=null;
+function resize(){const b=stage.getBoundingClientRect();W=Math.max(280,Math.round(b.width));H=Math.max(180,Math.round(b.height));
+  Mg.l=W<520?38:46;Mg.t=W<520?38:42;Mg.b=W<520?26:30;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);decor();axes();for(const d of D.values())place(d);if(onRedraw)onRedraw()}
+function setView(v){V=Object.assign({},v);axes();for(const d of D.values())place(d)}
+new ResizeObserver(()=>resize()).observe(stage);
+resize();
+/* ---------- glisser sur la scène ---------- */
+let dragH=null;
+function onDrag(h,axis){dragH=h;stage.classList.toggle('drag',!!h&&axis!=='x');stage.classList.toggle('dragx',!!h&&axis==='x')}
+function ptr(e){const b=svg.getBoundingClientRect();return{x:ix((e.clientX-b.left)*W/b.width),y:iy((e.clientY-b.top)*H/b.height)}}
+stage.addEventListener('pointerdown',e=>{if(!dragH)return;e.preventDefault();try{stage.setPointerCapture(e.pointerId)}catch(_){}
+  dragH(ptr(e),'down');const mv=ev=>{dragH&&dragH(ptr(ev),'move')},up=ev=>{stage.removeEventListener('pointermove',mv);stage.removeEventListener('pointerup',up);stage.removeEventListener('pointercancel',up);dragH&&dragH(ptr(ev),'up')};
+  stage.addEventListener('pointermove',mv);stage.addEventListener('pointerup',up);stage.addEventListener('pointercancel',up)});
+window.SD_SC={add,move,setPos,label,cls,rm,clear,hline,vline,clearLines,curve,clearCurve,sym,clearGhost,sparks,meet,balise,setView,setZones,onDrag,
+  get V(){return V},get W(){return W},D,reduceM,set onRedraw(f){onRedraw=f},px,py};
+})();
+</script>
+
+<script>
+/* ======================= LE SHOW DES DRONES — niveaux ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id),M=window.SD_M,S=window.SD_SC;
+const {R,add,sub,mul,neg,inv,cmp,eq,num,pow,dec,fmt,fmtH,FR,par,parW,parseR,polyH,polySub,polyFn,F,ri,pick,shuf,sample,r,X}=M;
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const sleep=ms=>new Promise(res=>setTimeout(res,S.reduceM?Math.min(ms,40):ms));
+const cap=h=>{$('capt').innerHTML=h||'&nbsp;'};
+const fx=(a,name='f')=>`${name}(${fmt(a)})`;
+const VIEWS={
+  sq:{x0:-3.6,x1:3.6,y0:-1.4,y1:10.4,xt:.5,yt:1},
+  cube:{x0:-2.7,x1:2.7,y0:-9.8,y1:9.8,xt:.5,yt:1},
+  inv:{x0:-4.7,x1:4.7,y0:-4.8,y1:4.8,xt:.5,yt:.5},
+  sqrt:{x0:-4.6,x1:16.9,y0:-.7,y1:4.8,xt:1,yt:.5},
+  race:{x0:-.16,x1:2.2,y0:-.24,y1:2.8,xt:.1,yt:.1},
+  raceS:{x0:-.09,x1:1.3,y0:-.12,y1:1.12,xt:.1,yt:.1},
+  raceL:{x0:-.15,x1:2.35,y0:-.6,y1:8.8,xt:.1,yt:.5},
+  bouquet:{x0:-3.3,x1:3.3,y0:-3.6,y1:4.6,xt:.5,yt:.5}
+};
+/* ---------- bruitages ---------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w,f2){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),gn=a.createGain();o.type=type||'triangle';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
+  gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(v,t+.02);gn.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(gn);gn.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const SND={fly(up){if(snd){tone(up?180:240,.5,.022,'sawtooth',0,up?300:150);tone(up?360:480,.45,.012,'sine',0,up?600:300)}},
+  ok(){if(snd){tone(1046.5,.5,.05,'sine');tone(1318.5,.7,.045,'sine',.12)}},
+  soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  pop(){if(snd){tone(660,.1,.035);tone(990,.07,.02,'sine',.03)}},
+  whoosh(){if(snd)tone(220,.9,.03,'triangle',0,660)},
+  show(){if(snd)[523.25,659.25,783.99,1046.5,1318.5].forEach((f,i)=>tone(f,.5,.045,'triangle',i*.12))}};
+
+/* ---------- textes communs ---------- */
+const NONE='none';
+function calcTxt(fun,a){const v=fun.f(a);
+  if(fun===F.sq)return `${fx(a)} = ${par(a)}² = ${parW(a)} × ${parW(a)} = ${fmt(v)}`;
+  if(fun===F.cube)return `${fx(a)} = ${par(a)}³ = ${parW(a)} × ${parW(a)} × ${parW(a)} = ${fmt(v)}`;
+  if(fun===F.inv)return v===null?`0 n'a pas d'image : on ne peut pas diviser par 0`:`${fx(a)} = ${FR(1,fmt(a))} = ${fmtH(v)}`;
+  if(fun===F.sqrt)return v===null?`${fmt(a)} &lt; 0 : √(${fmt(a)}) n'existe pas`:`${fx(a)} = √${fmt(a)} = ${fmt(v)} car ${fmt(v)}² = ${fmt(a)} et ${fmt(v)} ≥ 0`;
+  return `${fx(a)} = ${fmt(v)}`}
+function hintPlace(fun,a,v){const c=fun.f(a);
+  if(c===null){return fun===F.inv?'Le drone d\'abscisse 0 ne peut pas décoller&nbsp;: 1 ÷ 0 n\'existe pas. Choisis «&nbsp;Pas d\'image&nbsp;».'
+    :`${fmt(a)} est négatif&nbsp;: aucun nombre positif n'a pour carré ${fmt(a)}. Choisis «&nbsp;Pas d'image&nbsp;».`}
+  if(v===NONE)return fun===F.inv?`${fmt(a)} n'est pas 0&nbsp;: on peut calculer ${FR(1,fmt(a))}. Ce drone peut décoller.`:`${fmt(a)} est positif ou nul&nbsp;: ${fmt(a)} a une racine carrée. Ce drone peut décoller.`;
+  if(fun===F.sq){if(eq(v,neg(c))&&c.n)return `Un carré n'est jamais négatif&nbsp;: ${parW(a)} × ${parW(a)}, c'est «&nbsp;moins par moins&nbsp;», donc positif. Le drone ne descend jamais sous le laser.`;
+    if(eq(v,mul(R(2),a))||eq(v,mul(R(-2),a)))return `${par(a)}², ce n'est pas 2 × ${par(a)}&nbsp;: c'est ${parW(a)} × ${parW(a)}.`;
+    if(a.d!==1){const ip=R(Math.trunc(num(a))),fp=sub(a,ip);if(eq(v,add(mul(ip,ip),mul(fp,fp))))return `On ne met pas au carré «&nbsp;morceau par morceau&nbsp;»&nbsp;: calcule ${parW(a)} × ${parW(a)} en entier.`;
+      if(eq(v,mul(c,R(10)))||eq(v,mul(c,R(1,10))))return `Attention à la virgule&nbsp;: compte les chiffres après la virgule dans ${parW(a)} × ${parW(a)}.`}
+    return `${fx(a)} = ${par(a)}² = ${parW(a)} × ${parW(a)}. Calcule ce produit.`}
+  if(fun===F.cube){if(eq(v,neg(c))&&c.n)return a.n<0?`Trois facteurs négatifs&nbsp;: le produit ${parW(a)} × ${parW(a)} × ${parW(a)} est négatif. Le drone descend sous le laser.`:`${fmt(a)} est positif&nbsp;: son cube aussi.`;
+    if(eq(v,mul(R(3),a)))return `${par(a)}³, ce n'est pas 3 × ${par(a)}&nbsp;: c'est ${parW(a)} × ${parW(a)} × ${parW(a)}.`;
+    if(eq(v,mul(a,a)))return `Ça, c'est le carré. Le cube a trois facteurs&nbsp;: ${parW(a)} × ${parW(a)} × ${parW(a)}.`;
+    return `${fx(a)} = ${parW(a)} × ${parW(a)} × ${parW(a)}. Calcule ce produit.`}
+  if(fun===F.inv){if(eq(v,neg(a)))return `L'inverse n'est pas l'opposé&nbsp;: l'inverse de ${fmt(a)} est ${FR(1,fmt(a))}.`;
+    if(eq(v,neg(c)))return `L'inverse garde le signe&nbsp;: ${FR(1,fmt(a))} est ${a.n<0?'négatif':'positif'}.`;
+    if(eq(v,a))return `Le drone n'a pas bougé&nbsp;: calcule 1 ÷ ${par(a)}.`;
+    return `${fx(a)} = 1 ÷ ${par(a)}. Vérifie&nbsp;: ${fmt(a)} × ${fmt(v)} = ${fmt(mul(a,v))}, il faut obtenir 1.`}
+  if(fun===F.sqrt){if(v.n<0)return 'Une racine carrée n\'est jamais négative&nbsp;: le drone reste au-dessus du laser.';
+    if(eq(v,mul(a,R(1,2))))return `La racine carrée n'est pas la moitié&nbsp;: vérifie, ${fmt(v)}² = ${fmt(mul(v,v))}, pas ${fmt(a)}.`;
+    return `Vérifie&nbsp;: ${fmt(v)}² = ${fmt(mul(v,v))}. Il faut un nombre positif dont le carré vaut ${fmt(a)}.`}
+  if(fun.f)return `Remplace <i>x</i> par ${par(a)} dans f(x) = ${fun.h}, puis calcule.`;
+  return 'Recalcule.'}
+/* ---------- fabrique de questions ---------- */
+const L=[];   // niveaux
+function Qplace(o){ // o: fun, a (R), level, view, allowNone, twin, given, step
+  const fun=o.fun,a=o.a,c=fun.f(a);const ans=c===null?NONE:c;
+  return Object.assign({kind:'place',ans,step:o.step||.25,
+    meta:{k:'img',f:fun.py,x:fmt(a),ans:c===null?'none':fmt(c)},
+    hint:v=>o.hint?o.hint(v):hintPlace(fun,a,v),
+    sol:o.sol||(calcTxt(fun,a)+'.')},o)}
+const promptPlace=(fun,a,nn)=>`Programme du show&nbsp;: <b>f(x) = ${fun.h}</b>. Envoie le drone d'abscisse <b>${fmt(a)}</b> à l'altitude <b>${fx(a)}</b>${nn?', ou choisis «&nbsp;Pas d\'image&nbsp;» s\'il ne peut pas décoller':''}.`;
+function mkPlace(level,fun,a,extra={}){const nn=!!extra.allowNone;return Qplace(Object.assign({level,fun,a,view:VIEWS[fun.id]||extra.view,prompt:promptPlace(fun,a,nn)},extra))}
+/* jumeau : parité */
+function mkTwin(level,fun,a,kind,view,named){const fa=fun.f(a),ma=neg(a),fm=fun.f(ma);
+  const nm=named||(fun.nameF?`La fonction ${fun.name} est ${kind}`:`La fonction f(x) = ${fun.h} est ${kind}`);
+  const rule=kind==='paire'?'f(−x) = f(x)':'f(−x) = −f(x)';
+  return Qplace({level,fun,a:ma,view,step:.25,kind:'place',
+    prompt:`${nm}&nbsp;: <b>${rule}</b>. Le drone d'abscisse <b>${fmt(a)}</b> vole à l'altitude ${fx(a)} = ${fmt(fa)}. Envoie son jumeau d'abscisse <b>${fmt(ma)}</b> à l'altitude <b>${fx(ma)}</b>.`,
+    given:[{x:a,y:fa,lab:`${fmt(fa)}`}],twin:kind==='paire'?'miroir':'demitour',
+    meta:{k:'twin',f:fun.py,x:fmt(ma),given:fmt(a),gv:fmt(fa),ans:fmt(fm),par:kind},
+    hint:v=>{if(kind==='paire'&&eq(v,neg(fa))&&fa.n)return 'Paire&nbsp;: f(−x) = f(x). Le jumeau vole à la <b>même</b> altitude, de l\'autre côté du mât.';
+      if(kind==='impaire'&&eq(v,fa)&&fa.n)return 'Impaire&nbsp;: f(−x) = −f(x). Le jumeau vole à l\'altitude <b>opposée</b>&nbsp;: un demi-tour autour de l\'origine.';
+      return kind==='paire'?`f(${fmt(ma)}) = f(${fmt(a)}) car f est paire.`:`f(${fmt(ma)}) = −f(${fmt(a)}) car f est impaire.`},
+    sol:kind==='paire'?`f est paire&nbsp;: ${fx(ma)} = ${fx(a)} = ${fmt(fm)}. Le miroir de l'axe des ordonnées le montre.`
+      :`f est impaire&nbsp;: ${fx(ma)} = −${fx(a)} = ${fmt(fm)}. Le demi-tour autour de l'origine le montre.`})}
+/* comparer deux images */
+const REL={'-1':'&lt;','0':'=','1':'&gt;'};
+function mkCmp(level,fun,a,b,view){const fa=fun.f(a),fb=fun.f(b),s=cmp(fa,fb);
+  const ch=[-1,0,1].map(k=>({h:`${fx(a)} ${REL[k]} ${fx(b)}`,ok:k===s,rel:k,
+    why:k===cmp(a,b)&&k!==s?`Attention&nbsp;: ${fmt(a)} ${REL[cmp(a,b)]} ${fmt(b)}, mais on compare les <b>images</b>. Calcule ${fx(a)} et ${fx(b)} d'abord.`
+      :`Calcule chaque image&nbsp;: ${fx(a)} = ${fun===F.sqrt?'√'+fmt(a):fun===F.inv?FR(1,fmt(a)):par(a)+(fun===F.cube?'³':'²')}, puis ${fx(b)}, et compare les résultats.`}));
+  return {kind:'choice',level,view,fun,prompt:`Programme du show&nbsp;: <b>f(x) = ${fun.h}</b>. Les drones d'abscisses <b>${fmt(a)}</b> et <b>${fmt(b)}</b> vont décoller. Compare leurs altitudes ${fx(a)} et ${fx(b)}.`,
+    ch,keep:true,meta:{k:'cmp',f:fun.py,a:fmt(a),b:fmt(b),rel:s},
+    setup:async()=>{S.add('A',num(a),0,{lab:'x = '+fmt(a),cls:'act park'});S.add('B',num(b),0,{lab:'x = '+fmt(b),cls:'act park'})},
+    proof:async()=>{SND.fly(true);S.cls('A','ok');S.cls('B','ok');await Promise.all([S.move('A',num(a),num(fa),900),S.move('B',num(b),num(fb),900,120)]);
+      S.label('A',fmt(fa),'k');S.label('B',fmt(fb),'k');S.hline(num(fa),'',`${fx(a)} = ${fmt(fa)}`);if(s)S.hline(num(fb),'b',`${fx(b)} = ${fmt(fb)}`);
+      if(fun.par==='paire'&&(a.n<0||b.n<0)){const m=a.n<0?a:b;S.add('M',-num(m),num(fun.f(m)),{cls:'g sm'});await S.sym('miroir',[{x:num(m),y:num(fun.f(m))}],true,900)}},
+    sol:`${calcTxt(fun,a)} et ${calcTxt(fun,b)}, donc ${fx(a)} ${REL[s]} ${fx(b)}.`}}
+/* tester la symétrie d'une formation */
+function formation(fun,xs){return xs.filter(x=>fun.dom(x)).map(x=>({x:num(x),y:num(fun.f(x)),X:x}))}
+function symOk(fun,xs,type){return xs.every(x=>{const m=neg(x),okD=fun.dom(x);if(!okD)return true;if(!fun.dom(m))return false;
+  const a=fun.f(x),b=fun.f(m);return type==='miroir'?eq(a,b):eq(b,neg(a))})}
+function witness(fun,xs){for(const x of xs){if(!x.n||!fun.dom(x))continue;const m=neg(x);if(!fun.dom(m))return {x,none:true};const a=fun.f(x),b=fun.f(m);
+    if(!eq(a,b)&&!eq(b,neg(a)))return {x,m,a,b}}return null}
+function toolsRun(fun,xs){return async type=>{const pts=formation(fun,xs),good=symOk(fun,xs,type);S.clearGhost();
+  cap(type==='miroir'?'Miroir : chaque drone se reflète de l\'autre côté du mât…':'Demi-tour : la formation tourne de 180° autour de l\'origine…');SND.whoosh();
+  await S.sym(type,pts,good,1200);
+  cap(good?`<span class="k">${type==='miroir'?'Miroir':'Demi-tour'} : le reflet retombe exactement sur le show ✓</span>`:`<span class="r">${type==='miroir'?'Miroir':'Demi-tour'} : le reflet ne retombe pas sur le show ✗</span>`);
+  if(good)SND.ok();else SND.soft();return good}}
+function mkSym(level,fun,xs,view,three){const P=fun.par;
+  const ch=three?[{h:'f est paire',ok:P==='paire',why:'Teste avec le miroir&nbsp;: si f est paire, le reflet de chaque drone retombe sur un drone du show.'},
+      {h:'f est impaire',ok:P==='impaire',why:'Teste avec le demi-tour&nbsp;: si f est impaire, la formation tournée de 180° autour de l\'origine retombe sur elle-même.'},
+      {h:'f n\'est ni paire ni impaire',ok:P==='ni',why:'Fais les deux tests&nbsp;: l\'un des deux retombe exactement sur le show.'}]
+    :[{h:'Oui, f est paire',ok:P==='paire',why:'Lance le miroir&nbsp;: le reflet ne retombe pas exactement sur le show.'},{h:'Non, f n\'est pas paire',ok:P!=='paire',why:'Lance le miroir&nbsp;: le reflet retombe exactement sur le show, drone pour drone.'}];
+  const w=witness(fun,xs);
+  const sol=P==='paire'?`f(x) = ${fun.h}&nbsp;: pour chaque x, f(−x) = f(x). La courbe est symétrique par rapport à l'axe des ordonnées.`
+    :P==='impaire'?`f(x) = ${fun.h}&nbsp;: pour chaque x, f(−x) = −f(x). La courbe est symétrique par rapport à l'origine du repère.`
+    :w?`f(x) = ${fun.h}&nbsp;: f(${fmt(w.m)}) = ${fmt(w.b)} et f(${fmt(w.x)}) = ${fmt(w.a)}. Ni égales, ni opposées&nbsp;: f n'est ${three?'ni paire ni impaire':'pas paire'}.`:'';
+  return {kind:'choice',level,view,fun,hideF:true,keep:true,ch,tools:three?['miroir','demitour']:['miroir'],toolsRun:toolsRun(fun,xs),
+    prompt:`Le show ci-contre a été programmé avec une fonction f. ${three?'Est-elle paire, impaire, ou ni l\'un ni l\'autre&nbsp;?':'Est-elle paire&nbsp;?'} Teste ta réponse avec ${three?'le miroir et le demi-tour':'le miroir'}.`,
+    meta:{k:'par',f:fun.py,ans:P},
+    setup:async()=>{const pts=formation(fun,xs);pts.forEach((p,i)=>S.add('F'+i,p.x,0,{cls:'park'}));SND.fly(true);
+      await Promise.all(pts.map((p,i)=>S.move('F'+i,p.x,p.y,800,i*40)));pts.forEach((p,i)=>S.cls('F'+i,''))},
+    proof:async()=>{const t=P==='impaire'?'demitour':'miroir';await toolsRun(fun,xs)(t);S.curve(fun.v,'',800)},
+    sol}}
+/* ligne de calcul du cours : montrer que f est paire / impaire */
+function mkProof(level,T,kind,view){const fun=polyFn(T),mx=T.map(([c,d])=>[c*(d%2?-1:1),d]);
+  const good=`f(−x) = ${polySub(T)} = ${polyH(mx)} = ${kind==='paire'?'f(x)':'−f(x)'}, donc f est ${kind}.`;
+  let wrong=[];
+  if(kind==='paire'){const wA=T.map(([c,d],i)=>[i===0?-c:c,d]);wrong.push({h:`f(−x) = ${polySub(T)} = ${polyH(wA)}, donc f n'est pas paire.`,why:`Attention&nbsp;: (−x)${M.SUP[T[0][1]]} = x${M.SUP[T[0][1]]} car l'exposant est pair («&nbsp;moins par moins&nbsp;»).`});
+    const wB=T.map(([c,d])=>[-c,d]);wrong.push({h:`f(−x) = ${polySub(T)} = ${polyH(wB)} = −f(x), donc f est impaire.`,why:'Les exposants sont pairs&nbsp;: (−x)² = x² et (−x)⁴ = x⁴. Les signes ne changent pas.'})}
+  else{const wA=T.map(([c,d],i)=>[i===0?-c:c,d]);wrong.push({h:`f(−x) = ${polySub(T)} = ${polyH(wA)}, donc f n'est ni paire ni impaire.`,why:'Attention aux signes&nbsp;: (−x)³ = −x³, mais aussi c × (−x) = −c × x, pour chaque terme.'});
+    wrong.push({h:`f(−x) = ${polySub(T)} = ${polyH(T)} = f(x), donc f est paire.`,why:'(−x)³ = (−x) × (−x) × (−x) = −x³&nbsp;: un exposant impair garde le signe moins.'})}
+  wrong=wrong.map(w=>Object.assign(w,{h:w.h}));
+  const ch=shuf([{h:good,ok:true},...wrong]);
+  return {kind:'choice',level,view,fun,keep:true,ch,
+    prompt:`Programme du show&nbsp;: <b>f(x) = ${fun.h}</b>. Quelle rédaction montre correctement que f est ${kind}&nbsp;?`,
+    meta:{k:'proof',f:fun.py,par:kind},
+    setup:async()=>{const pts=formation(fun,XS);pts.forEach((p,i)=>S.add('F'+i,p.x,0,{cls:'park'}));SND.fly(true);await Promise.all(pts.map((p,i)=>S.move('F'+i,p.x,p.y,700,i*35)));pts.forEach((p,i)=>S.cls('F'+i,''))},
+    cap0:'Le show est en place : choisis la rédaction correcte.',
+    proof:async()=>{await toolsRun(fun,XS)(kind==='paire'?'miroir':'demitour')},
+    sol:`On calcule f(−x)&nbsp;: ${good}`}}
+/* antécédent par la fonction inverse */
+function mkAnte(level,y,view){const ans=inv(y);
+  return {kind:'ante',level,view,fun:F.inv,ans,y,step:.25,
+    prompt:`Programme du show&nbsp;: <b>f(x) = ${F.inv.h}</b>. Une balise dorée brille à l'altitude <b>${fmt(y)}</b>. Quel est l'antécédent de ${fmt(y)}&nbsp;? Indique l'abscisse du drone qui l'atteint.`,
+    meta:{k:'ante',f:'1/x',y:fmt(y),ans:fmt(ans)},
+    hint:v=>{if(v===NONE)return 'Un nombre non nul a toujours un antécédent par la fonction inverse.';if(!v.n)return '0 n\'a pas d\'image&nbsp;: aucun drone ne décolle de 0.';
+      if(eq(v,y))return `Le drone d'abscisse ${fmt(y)} monte à ${FR(1,fmt(y))} = ${fmt(inv(y))}, pas à ${fmt(y)}. On résout ${FR(1,X)} = ${fmt(y)}.`;
+      if(eq(v,neg(ans)))return 'Bon nombre, mauvais signe&nbsp;: 1/x a le même signe que x.';
+      return `On résout ${FR(1,X)} = ${fmt(y)}, c'est-à-dire x = ${FR(1,fmt(y))}.`},
+    sol:`On résout f(x) = ${fmt(y)}&nbsp;: ${FR(1,X)} = ${fmt(y)} donne x = ${FR(1,fmt(y))} = ${fmt(ans)}. L'antécédent de ${fmt(y)} est ${fmt(ans)}.`}}
+/* la course x, x², x³ */
+const POW=[{k:'x',h:X,c:'c1',e:1},{k:'x2',h:X+'²',c:'c2',e:2},{k:'x3',h:X+'³',c:'c3',e:3}];
+function race(a){return POW.map(p=>({...p,v:pow(a,p.e)}))}
+function orderOf(a){const v=race(a);if(eq(v[0].v,v[1].v)&&eq(v[1].v,v[2].v))return 'eq';return v.slice().sort((p,q)=>cmp(p.v,q.v)).map(p=>p.k).join('<')}
+async function raceFly(a,ms=900){const A=num(a);race(a).forEach((p,i)=>{if(!S.D.has('R'+i))S.add('R'+i,A,0,{cls:p.c,dx:(i-1)*(S.W<520?18:22),side:['l','','r'][i]})});
+  SND.fly(true);await Promise.all(race(a).map((p,i)=>S.move('R'+i,A,num(p.v),ms,i*90)));race(a).forEach((p,i)=>S.label('R'+i,fmt(p.v)))}
+function mkRank(level,a){const ord=orderOf(a);
+  return {kind:'rank',level,view:num(a)>1?VIEWS.raceL:VIEWS.raceS,a,ans:ord,meta:{k:'ord',x:fmt(a),ans:ord},
+    prompt:`Les trois drones de la course partent de l'abscisse <b>x = ${fmt(a)}</b>&nbsp;: le bleu monte à <b>x</b>, le vert à <b>x²</b>, le violet à <b>x³</b>. Range x, x² et x³ dans l'ordre croissant (du plus bas au plus haut), avant le décollage.`,
+    hint:o=>{const v=race(a);if(num(a)<1&&num(a)>0)return `Pour 0 &lt; x &lt; 1, multiplier par x fait <b>diminuer</b>&nbsp;: ${fmt(a)} × ${fmt(a)} = ${fmt(v[1].v)} &lt; ${fmt(a)}.`;
+      if(num(a)>1)return `Pour x &gt; 1, multiplier par x fait <b>augmenter</b>&nbsp;: ${fmt(a)} × ${fmt(a)} = ${fmt(v[1].v)} &gt; ${fmt(a)}.`;
+      return `Calcule&nbsp;: ${fmt(a)}² = ${fmt(v[1].v)} et ${fmt(a)}³ = ${fmt(v[2].v)}.`},
+    setup:async()=>{race(a).forEach((p,i)=>S.add('R'+i,num(a),0,{cls:p.c+' park',dx:(i-1)*(S.W<520?18:22),side:['l','','r'][i]}));S.balise(num(a))},
+    proof:async()=>{await raceFly(a)},
+    sol:ord==='eq'?`Pour x = ${fmt(a)}&nbsp;: x = x² = x³ = ${fmt(a)}. Les trois drones sont au rendez-vous.`
+      :`Pour x = ${fmt(a)}&nbsp;: ${ord.split('<').map(k=>fmt(race(a).find(p=>p.k===k).v)).join(' &lt; ')}, donc ${ord.split('<').map(k=>POW.find(p=>p.k===k).h).join(' &lt; ')}.`}}
+/* ======================= les sept niveaux ======================= */
+const PAIRE_T=[{T:[[1,2],[1,0]],as:[1,2,3]},{T:[[-1,2],[9,0]],as:[1,2,3],h:'9 − '+X+'²'},{T:[[1,4],[-2,2]],as:[1,2]},{T:[[5,2],[3,0]],as:[1]},{T:[[2,2],[-1,0]],as:[1,2]},{T:[[1,2],[-4,0]],as:[2,3]}];
+const IMP_T=[{T:[[1,3],[-3,1]],as:[1,2]},{T:[[1,3],[-1,1]],as:[2]},{T:[[1,3],[1,1]],as:[1]},{T:[[-1,3],[4,1]],as:[1]},{T:[[2,1]],as:[1,2]},{T:[[-1,3]],as:[1,2]},{T:[[3,1]],as:[1,2]}];
+function custom(h,py,f,v,par){return {id:py,h,py,f,v,dom:()=>true,par}}
+const Fm1=custom(`(${X} − 1)²`,'(x-1)**2',a=>{const t=sub(a,R(1));return mul(t,t)},x=>(x-1)**2,'ni');
+const Fp1=custom(`(${X} + 1)²`,'(x+1)**2',a=>{const t=add(a,R(1));return mul(t,t)},x=>(x+1)**2,'ni');
+const pf=(T,h)=>{const f=polyFn(T);if(h)f.h=h;return f};
+const SYM2_P=[pf([[1,2]]),pf([[-1,2],[9,0]],'9 − '+X+'²'),pf([[1,2],[1,0]]),pf([[1,4],[-2,2]]),pf([[2,2],[-1,0]]),pf([[1,2],[4,0]])];
+const SYM2_N=[Fm1,Fp1,pf([[1,2],[1,1]]),pf([[1,1],[5,0]]),pf([[2,1],[4,0]]),pf([[1,2],[1,1],[2,0]])];
+const SYM3_I=[pf([[1,3]]),pf([[1,3],[-3,1]]),pf([[1,3],[-1,1]]),pf([[2,1]]),pf([[-1,3],[4,1]]),pf([[3,1]])];
+const SYM3_P=[pf([[1,2]]),pf([[-2,2],[6,0]],'6 − 2'+X+'²'),pf([[1,2],[-4,0]])];
+const SYM3_N=[pf([[1,3],[1,0]]),pf([[1,2],[1,1]]),pf([[1,1],[2,0]]),pf([[2,1],[3,0]]),pf([[1,2],[-2,1]])];
+const XS=[-4,-3,-2,-1,0,1,2,3,4].map(k=>R(k,2));
+const PROOF_P=[[[5,2],[3,0]],[[1,4],[-2,2]],[[1,2],[1,0]],[[2,2],[-1,0]],[[1,4],[3,2]]];
+const PROOF_I=[[[1,3],[-1,1]],[[1,3],[-3,1]],[[2,3],[1,1]],[[1,3],[4,1]],[[-1,3],[2,1]]];
+const ld=(arr)=>{const a=shuf(arr.slice());return ()=>a.length?a.pop():pick(arr)};
+
+L.push({t:'Décollage',ch:'La fonction carré',fn:F.sq,view:VIEWS.sq,
+  rule:'<p>La fonction carré est définie sur ℝ par <b>f(x) = x²</b>, avec x² = x × x.</p><p>Un carré n\'est jamais négatif&nbsp;: (−3)² = (−3) × (−3) = 9. Le drone ne descend jamais sous le laser.</p><p>Quelques valeurs&nbsp;: f(−2) = 4, f(−1) = 1, f(0) = 0, f(1) = 1, f(2) = 4. Sa courbe est une parabole.</p>',
+  make(){const s=(arr)=>pick(arr);
+    return [()=>mkPlace(1,F.sq,r(s(['2','3']))),()=>mkPlace(1,F.sq,r(s(['−2','−3']))),()=>mkPlace(1,F.sq,r(s(['−1','0','1']))),
+      ()=>mkPlace(1,F.sq,r(s(['0,5','1,5']))),()=>mkPlace(1,F.sq,r(s(['−0,5','−1,5']))),()=>mkPlace(1,F.sq,r(s(['2,5','−2,5'])))]}});
+L.push({t:'Le Miroir',ch:'Fonctions paires',fn:F.sq,view:VIEWS.sq,
+  rule:'<p>Une fonction f est <b>paire</b> si <b>f(−x) = f(x)</b>&nbsp;: les drones d\'abscisses x et −x volent à la même altitude.</p><p>Sa courbe est symétrique par rapport à l\'axe des ordonnées (le mât)&nbsp;: c\'est un miroir. La fonction carré est paire.</p><p>Pour comparer deux images, on calcule les valeurs puis on compare les résultats.</p>',
+  make(){const pt=pick(PAIRE_T),fp=pf(pt.T,pt.h),ap=R(pick(pt.as));const pair1=pick([['−3','2'],['−3','−2'],['−2','2'],['−4','3']].filter(p=>Math.abs(num(r(p[0])))<=3.5));
+    const pair2=pick([['−1,5','−1'],['−0,5','0,4'],['1,5','−2'],['−2,5','2,5'],['−1','0,5']]);const sp=Math.random()<.5;
+    return [()=>mkTwin(2,F.sq,R(pick([1,2,3])),'paire',VIEWS.sq),()=>mkCmp(2,F.sq,r(pair1[0]),r(pair1[1]),VIEWS.sq),
+      ()=>mkTwin(2,fp,ap,'paire',VIEWS.sq),()=>mkSym(2,sp?pick(SYM2_P):pick(SYM2_N),XS,{x0:-2.7,x1:2.7,y0:-1.6,y1:9.8,xt:.5,yt:1},false),
+      ()=>mkCmp(2,F.sq,r(pair2[0]),r(pair2[1]),VIEWS.sq),()=>mkProof(2,pick(PROOF_P),'paire',VIEWS.sq)]}});
+L.push({t:'Le Demi-tour',ch:'La fonction cube · fonctions impaires',fn:F.cube,view:VIEWS.cube,
+  rule:'<p>La fonction cube est définie sur ℝ par <b>f(x) = x³</b>, avec x³ = x × x × x. Exemple&nbsp;: (−2)³ = (−2) × (−2) × (−2) = −8.</p><p>Une fonction f est <b>impaire</b> si <b>f(−x) = −f(x)</b>&nbsp;: les drones d\'abscisses x et −x volent à des altitudes opposées.</p><p>Sa courbe est symétrique par rapport à l\'origine du repère&nbsp;: un demi-tour autour de O. La fonction cube est impaire.</p>',
+  make(){const it=pick(IMP_T),fi=pf(it.T),a2=R(pick(it.as));const k=pick(['paire','impaire','ni','impaire']);
+    const fs=k==='paire'?pick(SYM3_P):k==='impaire'?pick(SYM3_I):pick(SYM3_N);
+    return [()=>mkPlace(3,F.cube,r(pick(['1','2']))),()=>mkPlace(3,F.cube,r(pick(['−1','−2']))),()=>mkTwin(3,F.cube,R(pick([1,2])),'impaire',VIEWS.cube),
+      ()=>mkTwin(3,fi,a2,'impaire',VIEWS.cube),()=>mkSym(3,fs,XS,VIEWS.cube,true),()=>mkProof(3,pick(PROOF_I),'impaire',VIEWS.cube)]}});
+L.push({t:'Le Drone interdit',ch:'La fonction inverse',fn:F.inv,view:VIEWS.inv,zone:{},
+  rule:'<p>La fonction inverse est définie sur <b>ℝ ∖ {0}</b> par <b>f(x) = '+FR(1,'x')+'</b>&nbsp;: <b>0 n\'a pas d\'image</b>, on ne divise jamais par 0.</p><p>Quelques valeurs&nbsp;: f(−2) = −0,5, f(−1) = −1, f(0,5) = 2, f(1) = 1, f(2) = 0,5. Sa courbe est une hyperbole. Elle est impaire.</p><p>Pour déterminer un antécédent de y, on résout l\'équation f(x) = y.</p>',
+  make(){return [()=>mkPlace(4,F.inv,R(0),{allowNone:true,onDone:()=>S.setZones({ban:true})}),()=>mkPlace(4,F.inv,r(pick(['1','2','4'])),{allowNone:true}),
+    ()=>mkPlace(4,F.inv,r(pick(['0,5','0,25'])),{allowNone:true}),()=>mkPlace(4,F.inv,r(pick(['−2','−4','−0,5','−0,25'])),{allowNone:true}),
+    ()=>mkTwin(4,F.inv,r(pick(['2','4','0,5','0,25'])),'impaire',VIEWS.inv),()=>mkAnte(4,r(pick(['4','2','0,5','−2','−0,5','−4','0,25'])),VIEWS.inv)]}});
+L.push({t:'La Zone d\'ombre',ch:'La fonction racine carrée',fn:F.sqrt,view:VIEWS.sqrt,zone:{},
+  rule:'<p>La fonction racine carrée est définie sur <b>[0 ; +∞[</b> par <b>f(x) = √x</b>. Elle n\'est pas définie pour les nombres négatifs.</p><p>√x est le nombre positif (ou nul) dont le carré vaut x&nbsp;: √0,36 = 0,6 car 0,6² = 0,36.</p><p>Quelques valeurs&nbsp;: √0 = 0, √1 = 1, √4 = 2, √9 = 3, √16 = 4.</p>',
+  make(){const ca=pick(['0,25','0,36','0,64','0,81','1','4']);
+    return [()=>mkPlace(5,F.sqrt,r(pick(['−1','−4','−2','−3'])),{allowNone:true,step:.1,onDone:()=>S.setZones({shade:true})}),
+    ()=>mkPlace(5,F.sqrt,r(pick(['4','9','16'])),{allowNone:true,step:.1}),()=>mkPlace(5,F.sqrt,r(pick(['0','1'])),{allowNone:true,step:.1}),
+    ()=>mkPlace(5,F.sqrt,r(pick(['0,25','0,36','0,49','0,64','0,81'])),{allowNone:true,step:.1}),()=>mkPlace(5,F.sqrt,r(pick(['1,44','2,25','6,25','12,25'])),{allowNone:true,step:.1}),
+    ()=>mkCmpRoot(5,r(ca))]}});
+L.push({t:'La Course',ch:'Positions de x, x² et x³',fn:null,view:VIEWS.race,
+  rule:'<p>Pour <b>x ≥ 1</b>&nbsp;: <b>x³ ≥ x² ≥ x</b>. Pour <b>0 ≤ x ≤ 1</b>&nbsp;: <b>x³ ≤ x² ≤ x</b>.</p><p>Exemples&nbsp;: si x = 2, alors 2 &lt; 4 &lt; 8&nbsp;; si x = 0,5, alors 0,125 &lt; 0,25 &lt; 0,5.</p><p>Pour comparer, on étudie le signe de x² − x = x(x − 1) et de x³ − x² = x²(x − 1).</p>',
+  make(){const x1=pick(['0,5','0,2','0,8','0,4','0,6']),x2=pick(['1,5','2','1,2']),x3=pick(['1','0']);
+    return [()=>mkExplore(6),()=>mkRank(6,r(x1)),()=>mkRank(6,r(x2)),()=>mkLead(6),()=>mkRank(6,r(x3)),()=>mkSign(6,r(pick(['0,3','0,6','1,5','2','0,4','1,2'])),pick([2,3]))]}});
+L.push({t:'Le Grand Show',ch:'Toutes les fonctions de référence',fn:null,view:VIEWS.bouquet,
+  rule:'<p><b>Carré</b>&nbsp;: x², sur ℝ, paire. <b>Racine carrée</b>&nbsp;: √x, sur [0 ; +∞[, ni paire ni impaire. <b>Inverse</b>&nbsp;: '+FR(1,'x')+', sur ℝ ∖ {0}, impaire. <b>Cube</b>&nbsp;: x³, sur ℝ, impaire.</p><p>Paire&nbsp;: f(−x) = f(x), symétrie par rapport à l\'axe des ordonnées. Impaire&nbsp;: f(−x) = −f(x), symétrie par rapport à l\'origine.</p>',
+  make(){return [()=>mkRecog(7),()=>mkCmp7(7),()=>mkMixed(7),()=>mkParF(7),()=>mkAnte(7,r(pick(['−2','−4','0,5','−0,5','0,25','−0,25'])),VIEWS.inv),()=>mkNoImg(7)]}});
+/* comparer √a et a (niveau 5) */
+function mkCmpRoot(level,a){const s=F.sqrt.f(a),k=cmp(s,a);
+  const ch=[-1,0,1].map(j=>({h:`√${fmt(a)} ${REL[j]} ${fmt(a)}`,ok:j===k,why:`Calcule d'abord √${fmt(a)}&nbsp;: c'est le nombre positif dont le carré vaut ${fmt(a)}. Puis compare.`}));
+  return {kind:'choice',level,view:VIEWS.sqrt,fun:F.sqrt,keep:true,ch,meta:{k:'cmpr',x:fmt(a),rel:k},
+    prompt:`Programme du show&nbsp;: <b>f(x) = √${X}</b>. Le drone d'abscisse <b>${fmt(a)}</b> va monter à l'altitude √${fmt(a)}. Une balise brille à l'altitude ${fmt(a)}. Compare √${fmt(a)} et ${fmt(a)}.`,
+    setup:async()=>{S.add('A',num(a),0,{lab:'x = '+fmt(a),cls:'act park'});S.hline(num(a),'b',`altitude ${fmt(a)}`)},
+    proof:async()=>{S.cls('A','ok');SND.fly(true);await S.move('A',num(a),num(s),900);S.label('A',fmt(s),'k');S.hline(num(s),'',`√${fmt(a)} = ${fmt(s)}`)},
+    sol:`√${fmt(a)} = ${fmt(s)}, donc √${fmt(a)} ${REL[k]} ${fmt(a)}.`}}
+/* niveau 6 : rendez-vous, meneur, signe */
+function mkExplore(level){return {kind:'explore',level,view:VIEWS.race,target:R(1),meta:{k:'explore'},
+  prompt:`Tour de chauffe. Fais glisser la balise dorée le long du laser (ou utilise ◀ ▶)&nbsp;: les drones bleu, vert et violet volent à <b>${X}</b>, <b>${X}²</b> et <b>${X}³</b>. Trouve l'abscisse <b>x &gt; 0</b> où les trois drones se rejoignent.`,
+  sol:`En x = 1&nbsp;: 1 = 1² = 1³. Avant 1, ${X}³ est le plus bas&nbsp;; après 1, c'est le plus haut.`}}
+function mkLead(level){const low=Math.random()<.5,big=Math.random()<.5;
+  const zone=big?`${X} &gt; 1`:`0 &lt; ${X} &lt; 1`,ansk=big?(low?'x':'x3'):(low?'x3':'x');
+  const ch=POW.map(p=>({h:`le drone ${p.h} (${p.c==='c1'?'bleu':p.c==='c2'?'vert':'violet'})`,ok:p.k===ansk,
+    why:big?`Pour ${X} &gt; 1, multiplier par ${X} fait augmenter&nbsp;: essaie ${X} = 2, on obtient 2 &lt; 4 &lt; 8.`:`Pour 0 &lt; ${X} &lt; 1, multiplier par ${X} fait diminuer&nbsp;: essaie ${X} = 0,5, on obtient 0,125 &lt; 0,25 &lt; 0,5.`}));
+  return {kind:'choice',level,view:big?VIEWS.raceL:VIEWS.raceS,keep:true,ch,meta:{k:'lead',zone:big?'>1':'0<x<1',low,ans:ansk},
+    prompt:`Pendant toute la partie de la course où <b>${zone}</b>, quel drone est le plus ${low?'bas':'haut'}&nbsp;?`,
+    setup:async()=>{const a=big?R(6,5):R(1,5);race(a).forEach((p,i)=>S.add('R'+i,num(a),0,{cls:p.c+' park',dx:(i-1)*(S.W<520?18:22),side:['l','','r'][i]}));S.balise(num(a))},
+    proof:async()=>{const xs=big?['1,2','1,4','1,6']:['0,2','0,5','0,8'];for(const s of xs){const a=r(s);S.balise(num(a));race(a).forEach((p,i)=>S.label('R'+i,''));await raceFly(a,600);await sleep(350)}},
+    sol:big?`Pour ${X} &gt; 1&nbsp;: ${X} &lt; ${X}² &lt; ${X}³. Le plus ${low?'bas est '+X:'haut est '+X+'³'}.`:`Pour 0 &lt; ${X} &lt; 1&nbsp;: ${X}³ &lt; ${X}² &lt; ${X}. Le plus ${low?'bas est '+X+'³':'haut est '+X}.`}}
+function mkSign(level,a,form){const one=sub(a,R(1)),e=form===2?mul(a,one):mul(mul(a,a),one),s=cmp(e,R(0));
+  const E=form===2?`${X}² − ${X} = ${X}(${X} − 1)`:`${X}³ − ${X}² = ${X}²(${X} − 1)`,A=form===2?`${X}²`:`${X}³`,B=form===2?X:`${X}²`;
+  const ch=[{s:-1,h:`négatif, donc ${A} &lt; ${B}`},{s:0,h:`nul, donc ${A} = ${B}`},{s:1,h:`positif, donc ${A} &gt; ${B}`}].map(c=>({h:c.h,ok:c.s===s,
+    why:`Étudie le signe de chaque facteur&nbsp;: pour ${X} = ${fmt(a)}, ${form===2?X:X+'²'} est positif et ${X} − 1 = ${fmt(one)} est ${one.n<0?'négatif':'positif'}.`}));
+  return {kind:'choice',level,view:num(a)>1?VIEWS.raceL:VIEWS.raceS,keep:true,ch,meta:{k:'sign',x:fmt(a),form,s},
+    prompt:`On sait que <b>${E}</b>. Pour <b>${X} = ${fmt(a)}</b>, le nombre ${form===2?X+'² − '+X:X+'³ − '+X+'²'} est…`,
+    setup:async()=>{race(a).forEach((p,i)=>S.add('R'+i,num(a),0,{cls:p.c+' park',dx:(i-1)*(S.W<520?18:22),side:['l','','r'][i]}));S.balise(num(a))},
+    proof:async()=>{await raceFly(a)},
+    sol:`${form===2?X:X+'²'} &gt; 0 et ${X} − 1 = ${fmt(one)} ${one.n<0?'&lt; 0':'&gt; 0'}&nbsp;: le produit vaut ${fmt(e)}, il est ${s<0?'négatif':'positif'}. Donc ${A} ${s<0?'&lt;':'&gt;'} ${B} pour ${X} = ${fmt(a)}.`}}
+/* niveau 7 */
+const REF=[F.sq,F.cube,F.inv,F.sqrt];
+const RECO={sq:{xs:['−2','−1,5','−1','−0,5','0','0,5','1','1,5','2','2,5','−2,5'],view:{x0:-3,x1:3,y0:-1.4,y1:7.2,xt:.5,yt:1}},
+  cube:{xs:['−2','−1,5','−1','−0,5','0','0,5','1','1,5','2'],view:VIEWS.cube},
+  inv:{xs:['−4','−2','−1','−0,5','−0,25','0,25','0,5','1','2','4'],view:VIEWS.inv},
+  sqrt:{xs:['0','0,25','1','2,25','4','6,25','9','12,25','16'],view:VIEWS.sqrt}};
+const RWHY={sq:'La fonction carré donne des altitudes positives ou nulles, et son show est symétrique par rapport au mât.',
+  cube:'La fonction cube envoie les abscisses négatives sous le laser&nbsp;: (−2)³ = −8.',
+  inv:'Avec la fonction inverse, aucun drone ne décolle de 0 et les altitudes grandissent près de 0.',
+  sqrt:'La fonction racine carrée n\'a aucun drone à gauche du mât&nbsp;: les négatifs n\'ont pas d\'image.'};
+function mkRecog(level){const f=pick(REF),R0=RECO[f.id];
+  const ch=REF.map(g=>({h:g.nameF.replace(/^la/,'La')+(g===F.sq?' (x²)':g===F.cube?' (x³)':g===F.inv?' (1/x)':' (√x)'),ok:g===f,why:RWHY[g.id]+' Ce n\'est pas ce qu\'on voit ici.'}))
+    .map(c=>Object.assign(c,{h:c.h.replace('(x²)','('+X+'²)').replace('(x³)','('+X+'³)').replace('(1/x)','('+FR(1,X)+')').replace('(√x)','(√'+X+')')}));
+  return {kind:'choice',level,view:R0.view,keep:true,ch,meta:{k:'recog',f:f.py},
+    prompt:'Un show a été programmé avec une fonction de référence. Observe la formation&nbsp;: quelle fonction a été utilisée&nbsp;?',
+    setup:async()=>{const pts=R0.xs.map(s=>{const a=r(s);return {x:num(a),y:num(f.f(a))}});pts.forEach((p,i)=>S.add('F'+i,p.x,0,{cls:'park'}));SND.fly(true);
+      await Promise.all(pts.map((p,i)=>S.move('F'+i,p.x,p.y,800,i*40)));pts.forEach((p,i)=>S.cls('F'+i,''))},
+    proof:async()=>{await S.curve(f.v,'',900)},
+    sol:`C'est ${f.nameF}&nbsp;: ${RWHY[f.id]}`}}
+function mkCmp7(level){const o=pick([[F.cube,'−2','−1'],[F.cube,'−1','0,5'],[F.inv,'2','4'],[F.inv,'−2','−0,5'],[F.inv,'−1','1'],[F.sqrt,'0,25','0,36'],[F.sq,'−2','1,5'],[F.sq,'−0,5','0,5'],[F.cube,'−1,5','1']]);
+  const f=o[0],q=mkCmp(level,f,r(o[1]),r(o[2]),VIEWS[f.id]);if(f===F.inv)q.zone={ban:true};if(f===F.sqrt)q.zone={shade:true};return q}
+function mkMixed(level){const o=pick([[F.sq,'−0,5'],[F.sq,'−2,5'],[F.cube,'−1'],[F.inv,'−0,25'],[F.inv,'0'],[F.sqrt,'2,25'],[F.sqrt,'−9'],[F.sqrt,'0,49'],[F.cube,'2']]);
+  return mkPlace(level,o[0],r(o[1]),{allowNone:true,step:o[0]===F.sqrt?.1:.25})}
+const PARF=[...[[[1,3],[-1,1]],[[1,4],[-2,2]],[[5,2],[3,0]],[[1,3],[-3,1]],[[1,2],[1,1]],[[1,3],[1,0]],[[2,1],[1,0]],[[-1,2],[4,0]],[[1,3],[2,1]]].map(T=>polyFn(T))];
+function mkParF(level){const f=pick(PARF),P=f.par,xs=XS;
+  const ch=[{h:'paire',ok:P==='paire'},{h:'impaire',ok:P==='impaire'},{h:'ni paire ni impaire',ok:P==='ni'}].map(c=>Object.assign(c,{why:'Calcule f(−x)&nbsp;: remplace x par (−x), puis compare à f(x) et à −f(x).'}));
+  let vals=xs.map(x=>num(f.f(x))),lo=Math.min(...vals,0),hi=Math.max(...vals,0);const pad=Math.max(.6,(hi-lo)*.12);
+  const yt=hi-lo>12?2:hi-lo>5?1:.5;
+  return {kind:'choice',level,view:{x0:-2.7,x1:2.7,y0:lo-pad,y1:hi+pad,xt:.5,yt},keep:true,ch,meta:{k:'par',f:f.py,ans:P},
+    prompt:`Programme du show&nbsp;: <b>f(x) = ${f.h}</b>. Sans voir le show, la fonction f est…`,
+    setup:async()=>{},proof:async()=>{const pts=formation(f,xs);pts.forEach((p,i)=>S.add('F'+i,p.x,0,{cls:'park'}));SND.fly(true);
+      await Promise.all(pts.map((p,i)=>S.move('F'+i,p.x,p.y,700,i*35)));await toolsRun(f,xs)(P==='impaire'?'demitour':'miroir')},
+    sol:P==='paire'?`f(−x) = ${polySub(f.T)} = ${f.h} = f(x)&nbsp;: f est paire.`:P==='impaire'?`f(−x) = ${polySub(f.T)} = ${polyH(f.T.map(([c,d])=>[-c,d]))} = −f(x)&nbsp;: f est impaire.`
+      :(()=>{const w=witness(f,xs);return `f(${fmt(w.m)}) = ${fmt(w.b)} et f(${fmt(w.x)}) = ${fmt(w.a)}&nbsp;: ni égales, ni opposées. f n'est ni paire ni impaire.`})()}}
+function mkNoImg(level){const a=r(pick(['0','−1','−2','−0,5']));const isZero=!a.n;
+  const ch=REF.map(g=>({h:g.nameF.replace(/^la/,'La'),ok:!g.dom(a),why:g===F.sqrt&&isZero?'√0 = 0&nbsp;: 0 a bien une image par la fonction racine carrée.':g===F.inv&&!isZero?`${FR(1,fmt(a))} = ${fmt(inv(a))}&nbsp;: un nombre négatif a bien un inverse.`:`${calcTxt(g,a)}&nbsp;: ${fmt(a)} a une image.`}));
+  return {kind:'choice',level,view:{x0:-4.6,x1:4.6,y0:-4.8,y1:4.8,xt:.5,yt:.5},keep:true,ch,meta:{k:'noimg',x:fmt(a)},
+    prompt:`Les quatre drones du final partent tous de l'abscisse <b>${fmt(a)}</b>, chacun avec une fonction de référence. Lequel reste cloué au sol, car ${fmt(a)} n'a pas d'image&nbsp;?`,
+    setup:async()=>{REF.forEach((g,i)=>S.add('N'+i,num(a),0,{cls:'park c'+(i%3+1),dx:(i-1.5)*(S.W<520?22:30)}))},
+    proof:async()=>{SND.fly(true);await Promise.all(REF.map((g,i)=>{const v=g.f(a);if(v===null){S.cls('N'+i,'ko');S.label('N'+i,'✗');return Promise.resolve()}S.label('N'+i,fmt(v));return S.move('N'+i,num(a),num(v),800,i*90)}))},
+    sol:isZero?`1 ÷ 0 n'existe pas&nbsp;: la fonction inverse n'est pas définie en 0. En revanche 0² = 0³ = √0 = 0.`:`${fmt(a)} &lt; 0&nbsp;: √(${fmt(a)}) n'existe pas. Carré, cube et inverse sont définis en ${fmt(a)}.`}}
+window.SD_LV={L,VIEWS,mkPlace,mkTwin,mkCmp,mkSym,mkProof,mkAnte,mkRank,orderOf,race,POW,REF,SND,tone,calcTxt,hintPlace,NONE,
+  get snd(){return snd},set snd(v){snd=v},raceFly,formation,symOk,witness};
+})();
+</script>
+
+<script>
+/* ======================= LE SHOW DES DRONES — déroulé du jeu ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id),M=window.SD_M,S=window.SD_SC,G=window.SD_LV;
+const {R,eq,num,fmt,parseR,F,pick,shuf,X,pow,cmp}=M;
+const {L,SND,NONE}=G;
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const sleep=ms=>new Promise(res=>setTimeout(res,S.reduceM?Math.min(ms,40):ms));
+const cap=h=>{$('capt').innerHTML=h?M.xi(h):'&nbsp;'};
+let lvl=0,qi=0,run=[],Q=null,QS=[],tries=0,solved=false,busy=false,token=0,keep=[];
+function starsOf(i){try{const g=SigmaKit.passport().games['show-des-drones'];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function fb(html,t){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI('pense');$('fbt').textContent=t||'Pas tout à fait.';$('fbp').innerHTML=M.xi(html);$('fb').hidden=false;setTimeout(()=>{const r=$('fb').getBoundingClientRect(),top=innerWidth<=860?$('scol').getBoundingClientRect().bottom:0;if(r.top<top+4)scrollTo({top:scrollY+r.top-top-10,behavior:S.reduceM?'auto':'smooth'});else if(r.bottom>innerHeight-8)scrollTo({top:scrollY+r.bottom-innerHeight+24,behavior:S.reduceM?'auto':'smooth'})},40)}
+function dots(){const N=QS.length;$('dots').innerHTML=Array.from({length:N},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function renderLv(){$('lv').innerHTML=L.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${G.snd}">♪ Bruitages : ${G.snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){G.snd=!G.snd;try{localStorage.setItem('sigma-fanfare',G.snd?'1':'0')}catch(_){}renderLv();if(G.snd)SND.pop();return}
+  if(b.dataset.l!=null)goLevel(+b.dataset.l)});
+const qfx=a=>`f(${fmt(a)})`;
+/* ---------- pupitre numérique ---------- */
+function padHTML(label,allowNone){return `<div class="ro"><label for="val">${label}</label><div class="rv"><button type="button" class="nud" data-d="-1" aria-label="Diminuer">▼</button><input id="val" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="none" aria-label="${label}"><button type="button" class="nud" data-d="1" aria-label="Augmenter">▲</button></div></div>
+  <div class="pad" id="pad">${['7','8','9','⌫','4','5','6','−','1','2','3',','].map(k=>`<button type="button" data-k="${k}" aria-label="${k==='⌫'?'Effacer':k==='−'?'Signe moins':k===','?'Virgule':k}">${k}</button>`).join('')}
+  <button type="button" data-k="0">0</button><button type="button" class="val" data-k="ok">Valider</button>${allowNone?'<button type="button" class="none" data-k="none">Pas d\'image</button>':''}</div>
+  <p class="hint">${Q.kind==='ante'?'Astuce&nbsp;: tu peux aussi faire glisser le drone le long du laser.':'Astuce&nbsp;: tu peux aussi faire glisser le drone sur la scène, ou utiliser ▲ ▼.'}</p>`}
+function wirePad(onVal,onSubmit){const inp=$('val');
+  $('pad').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy||solved)return;const k=b.dataset.k;
+    if(k==='ok'){onSubmit(inp.value);return}if(k==='none'){onSubmit(NONE);return}
+    if(k==='⌫')inp.value=inp.value.slice(0,-1);else if(k==='−'){inp.value=inp.value.startsWith('−')?inp.value.slice(1):'−'+inp.value}else inp.value+=k;
+    inp.classList.remove('ok','ko');onVal(inp.value)});
+  inp.addEventListener('input',()=>{inp.value=inp.value.replace(/-/g,'−').replace(/\./g,',');inp.classList.remove('ok','ko');onVal(inp.value)});
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(!busy&&!solved)onSubmit(inp.value)}
+    else if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();nudge(e.key==='ArrowUp'?1:-1)}});
+  document.querySelectorAll('.nud').forEach(b=>b.onclick=()=>{if(!busy&&!solved)nudge(+b.dataset.d)});
+  function nudge(d){let v=parseR(inp.value);let x=v?num(v):0;x=Math.round((x+d*Q.step)/Q.step)*Q.step;x=Math.round(x*1000)/1000;inp.value=fmtNum(x);onVal(inp.value)}
+  if(matchMedia('(pointer:fine)').matches)setTimeout(()=>inp.focus({preventScroll:true}),60)}
+const fmtNum=x=>{const s=(Math.round(x*1000)/1000).toString();return s.replace('-','−').replace('.',',')};
+/* ---------- types de questions ---------- */
+const W={};
+W.place=()=>{const a=Q.a,A=num(a),fun=Q.fun;const tw=!!Q.twin;
+  (Q.given||[]).forEach((g,i)=>S.add('G'+i,num(g.x),num(g.y),{cls:'g',lab:g.lab}));
+  S.add('A',A,0,{cls:'act park',lab:'x = '+fmt(a)});
+  cap(`Drone <span class="k">x = ${fmt(a)}</span> <span class="m">· sur le laser, prêt à décoller</span>`);
+  $('work').innerHTML=padHTML('Altitude du drone',Q.allowNone);
+  const live=s=>{const v=parseR(s);if(!v){return}const y=num(v);S.move('A',A,y,380,0,false);S.label('A','x = '+fmt(a));
+    cap(`Drone <span class="k">x = ${fmt(a)}</span> <span class="m">· altitude</span> ${fmt(v)}`)};
+  wirePad(live,submit);
+  S.onDrag((p,ph)=>{if(busy||solved)return;let y=Math.round(p.y/Q.step)*Q.step;y=Math.max(S.V.y0,Math.min(S.V.y1,y));y=Math.round(y*1000)/1000;
+    $('val').value=fmtNum(y);$('val').classList.remove('ok','ko');S.setPos('A',A,y);cap(`Drone <span class="k">x = ${fmt(a)}</span> <span class="m">· altitude</span> ${fmtNum(y)}`)},'y');
+  async function submit(s){let v=s===NONE?NONE:parseR(s);
+    if(v===null||s===''){fb('Tape une altitude sur le pupitre (ou fais glisser le drone), puis valide.','Il manque l\'altitude.');return}
+    busy=true;const ok=Q.ans===NONE?v===NONE:(v!==NONE&&eq(v,Q.ans));const inp=$('val');
+    if(ok){fb('');inp.classList.add('ok');
+      if(v===NONE){S.cls('A','ko');S.label('A','pas d\'image');cap(`<span class="r">x = ${fmt(a)} : pas d'image</span> <span class="m">· le drone reste au sol</span>`);SND.ok();if(Q.onDone)Q.onDone()}
+      else{S.cls('A','ok');SND.fly(num(v)>=0);await S.move('A',A,num(v),500);S.label('A',fmt(v),'k');S.sparks(A,num(v));SND.ok();
+        cap(`<span class="k">${qfx(a)} = ${fmt(v)}</span> <span class="m">· drone en place ✓</span>`);
+        if(tw){const g=Q.given[0];await sleep(250);cap(Q.twin==='miroir'?'Miroir : le jumeau est le reflet du drone doré…':'Demi-tour : le jumeau est l\'image du drone doré par un demi-tour autour de O…');
+          SND.whoosh();await S.sym(Q.twin,[{x:num(g.x),y:num(g.y)}],true,1100);cap(`<span class="k">${Q.twin==='miroir'?'f(−x) = f(x)':'f(−x) = −f(x)'} ✓</span>`)}}
+      busy=false;success();return}
+    tries++;inp.classList.add('ko');SND.soft();
+    if(v===NONE){S.cls('A','ko park');S.setPos('A',A,0);cap(`<span class="r">Pas d'image ?</span> <span class="m">· vérifie</span>`)}
+    else{S.cls('A','ko');await S.move('A',A,num(v),420);cap(`<span class="r">${qfx(a)} = ${fmt(v)} ?</span> <span class="m">· le drone n'est pas à sa place</span>`)}
+    busy=false;
+    if(tries>=2){reveal();return}
+    fb(Q.hint(v))}
+  async function reveal(){busy=true;fb('');solved=true;const inp=$('val');
+    if(Q.ans===NONE){S.cls('A','ko');S.setPos('A',A,0);S.label('A','pas d\'image');inp.value='Pas d\'image';if(Q.onDone)Q.onDone()}
+    else{S.cls('A','ok');inp.value=fmt(Q.ans);SND.fly(true);await S.move('A',A,num(Q.ans),700);S.label('A',fmt(Q.ans),'k')}
+    inp.classList.remove('ko');inp.classList.add('ok');cap(`<span class="k">${Q.ans===NONE?'x = '+fmt(a)+' : pas d\'image':qfx(a)+' = '+fmt(Q.ans)}</span> <span class="m">· voici la bonne altitude</span>`);
+    busy=false;success(true)}};
+W.ante=()=>{const y=Q.y;S.hline(num(y),'',`altitude ${fmt(y)}`);
+  let cur=null;
+  cap(`Balise à l'altitude <span class="k">${fmt(y)}</span> <span class="m">· quelle abscisse x ?</span>`);
+  $('work').innerHTML=padHTML('Abscisse x du drone',false);
+  const show=v=>{if(!v){return}if(!v.n){S.rm('A');cur=null;cap('<span class="r">x = 0 : pas d\'image</span> <span class="m">· aucun drone ne décolle de 0</span>');return}
+    const X0=num(v),Y0=num(M.inv(v));if(!S.D.has('A'))S.add('A',X0,0,{cls:'act'});S.setPos('A',X0,0);S.move('A',X0,Y0,380,0,false);S.label('A','x = '+fmt(v));cur=v;
+    cap(`x = ${fmt(v)} <span class="m">· altitude</span> ${fmt(M.inv(v))}`)};
+  wirePad(s=>show(parseR(s)),submit);
+  S.onDrag((p,ph)=>{if(busy||solved)return;let x=Math.round(p.x/Q.step)*Q.step;x=Math.max(S.V.x0+.1,Math.min(S.V.x1-.1,x));x=Math.round(x*1000)/1000;
+    $('val').value=fmtNum(x);const v=parseR(fmtNum(x));if(!v.n){show(v);return}const X0=num(v),Y0=1/X0;if(!S.D.has('A'))S.add('A',X0,Y0,{cls:'act'});S.setPos('A',X0,Y0);S.label('A','x = '+fmt(v));cur=v;
+    cap(`x = ${fmt(v)} <span class="m">· altitude</span> ${fmt(M.inv(v))}`)},'x');
+  async function submit(s){const v=parseR(s);if(!v){fb('Tape une abscisse sur le pupitre (ou fais glisser le drone), puis valide.','Il manque l\'abscisse.');return}
+    busy=true;show(v);await sleep(420);const ok=eq(v,Q.ans);
+    if(ok){fb('');$('val').classList.add('ok');S.cls('A','ok');S.label('A','x = '+fmt(v),'k');S.sparks(num(v),num(y));S.curve(F.inv.v,'faint',600);SND.ok();cap(`<span class="k">f(${fmt(v)}) = ${fmt(y)}</span> <span class="m">· l'antécédent de ${fmt(y)} est ${fmt(v)} ✓</span>`);busy=false;success();return}
+    tries++;$('val').classList.add('ko');SND.soft();if(S.D.has('A'))S.cls('A','ko');busy=false;
+    if(tries>=2){busy=true;solved=true;fb('');const v2=Q.ans;$('val').value=fmt(v2);$('val').classList.remove('ko');$('val').classList.add('ok');show(v2);S.cls('A','ok');await sleep(450);
+      cap(`<span class="k">f(${fmt(v2)}) = ${fmt(y)}</span> <span class="m">· voici l'antécédent</span>`);busy=false;success(true);return}
+    fb(Q.hint(v))}};
+W.choice=async()=>{const tk=token;
+  let h='';if(Q.tools)h+=`<div class="tools"><span class="lab">Tester&nbsp;:</span>${Q.tools.map(t=>`<button type="button" class="tbtn" data-t="${t}">${t==='miroir'?'⇋ Miroir':'⟲ Demi-tour'}</button>`).join('')}</div>`;
+  const idx=Q.keep?Q.ch.map((_,j)=>j):shuf(Q.ch.map((_,j)=>j));
+  h+=`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${M.xi(Q.ch[j].h)}</button>`).join('')}</div>`;
+  $('work').innerHTML=h;cap('&nbsp;');busy=true;await Q.setup();if(tk!==token)return;busy=false;
+  cap(Q.tools?'Lance un test, puis choisis ta réponse.':Q.cap0||'Choisis ta réponse.');
+  $('work').querySelectorAll('.tbtn').forEach(b=>b.onclick=async()=>{if(busy)return;busy=true;$('work').querySelectorAll('.tbtn').forEach(x=>x.disabled=true);
+    await Q.toolsRun(b.dataset.t);busy=false;$('work').querySelectorAll('.tbtn').forEach(x=>x.disabled=solved)});
+  $('work').querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{if(busy||solved)return;const c=Q.ch[+b.dataset.j];
+    if(c.ok){$('work').querySelectorAll('.opt,.tbtn').forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();fb('');busy=true;solved=true;
+      S.clearGhost();await Q.proof();busy=false;success(tries>0)}
+    else{b.classList.add('ko');b.disabled=true;tries++;SND.soft();fb(c.why)}})};
+W.rank=async()=>{const tk=token;let seq=[];
+  $('work').innerHTML=`<div class="order" id="ord" aria-live="polite"></div><div class="rank">${G.POW.map(p=>`<button type="button" class="chip ${p.c}" data-k="${p.k}">${p.h}</button>`).join('')}</div>
+    <div class="btns"><button type="button" class="btn gh" id="eqb">Les trois sont égaux</button><button type="button" class="btn gh" id="clr">Effacer</button></div>
+    <p class="hint">${M.xi('Touche x, x² et x³ du plus bas au plus haut.')}</p>`;
+  const ord=$('ord');const draw=()=>{ord.innerHTML=seq.length?seq.map(k=>{const p=G.POW.find(q=>q.k===k);return `<span class="s ${p.c}">${p.h}</span>`}).join('<span class="lt">&lt;</span>')+(seq.length<3?'<span class="lt">&lt; …</span>':''):'<span>… &lt; … &lt; …</span>';
+    $('work').querySelectorAll('.chip').forEach(c=>c.disabled=seq.includes(c.dataset.k)||solved)};draw();
+  busy=true;await Q.setup();if(tk!==token)return;busy=false;cap(`Abscisse <span class="k">x = ${fmt(Q.a)}</span> <span class="m">· les trois drones attendent le départ</span>`);
+  const check=async(ans)=>{if(ans===Q.ans){solved=true;draw();$('eqb').disabled=$('clr').disabled=true;SND.pop();fb('');busy=true;await Q.proof();busy=false;
+      cap(Q.ans==='eq'?`<span class="k">x = x² = x³ = ${fmt(Q.a)}</span> <span class="m">· rendez-vous ✓</span>`:`<span class="k">${Q.ans.split('<').map(k=>G.race(Q.a).find(p=>p.k===k)).map(p=>`<span class="${p.c}">${fmt(p.v)}</span>`).join(' &lt; ')}</span> ✓`);success(tries>0)}
+    else{tries++;SND.soft();fb(Q.hint(ans));seq=[];setTimeout(draw,350)}};
+  $('work').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{if(busy||solved||seq.includes(c.dataset.k))return;seq.push(c.dataset.k);draw();SND.pop();if(seq.length===3)check(seq.join('<'))});
+  $('eqb').onclick=()=>{if(busy||solved)return;check('eq')};$('clr').onclick=()=>{if(solved)return;seq=[];draw()}};
+W.explore=async()=>{let x=.2;const tk=token;const draw=()=>{const a=parseR(fmtNum(x));S.balise(x);
+    G.race(a).forEach((p,i)=>{if(!S.D.has('R'+i))S.add('R'+i,x,0,{cls:p.c,dx:(i-1)*(S.W<520?18:22),side:['l','','r'][i]});S.setPos('R'+i,x,num(p.v));S.label('R'+i,'')});
+    cap(`x = ${fmt(a)} <span class="m">·</span> <span class="c1">x = ${fmt(a)}</span> <span class="c2">x² = ${fmt(pow(a,2))}</span> <span class="c3">x³ = ${fmt(pow(a,3))}</span>`);
+    if(!solved&&Math.abs(x-1)<1e-9)found()};
+  $('work').innerHTML=`<div class="btns"><button type="button" class="btn" id="xm" aria-label="Reculer la balise">◀ Reculer</button><button type="button" class="btn" id="xp" aria-label="Avancer la balise">Avancer ▶</button></div><p class="hint">Pas de 0,05. Au clavier&nbsp;: flèches ← et →.</p>`;
+  POWcurves();draw();
+  const step=d=>{if(busy)return;x=Math.round((x+d*.05)*100)/100;x=Math.max(0,Math.min(2.1,x));draw()};
+  $('xm').onclick=()=>step(-1);$('xp').onclick=()=>step(1);
+  keyH=e=>{if(e.target.closest('input'))return;if(e.key==='ArrowRight'){e.preventDefault();step(1)}else if(e.key==='ArrowLeft'){e.preventDefault();step(-1)}};
+  S.onDrag(p=>{if(busy)return;x=Math.max(0,Math.min(2.1,Math.round(p.x*20)/20));draw()},'x');
+  if(matchMedia('(pointer:fine)').matches)setTimeout(()=>$('xp').focus({preventScroll:true}),60);
+  async function found(){solved=true;busy=true;S.meet(1,1);SND.ok();cap('<span class="k">x = 1 : 1 = 1² = 1³ · rendez-vous ✓</span>');await sleep(600);busy=false;success(false,true)}};
+let keyH=null;document.addEventListener('keydown',e=>{if(keyH)keyH(e)});
+function POWcurves(){S.curve(x=>x,'c1 faint',0,0,2.2);S.curve(x=>x*x,'c2 faint',0,0,2.2);S.curve(x=>x*x*x,'c3 faint',0,0,2.2)}
+/* ---------- déroulé ---------- */
+function success(late,keepExplore){run.push(!late&&tries===0);dots();solved=true;S.onDrag(null);
+  if(Q.hideF&&Q.fun)$('fxchip').innerHTML=`f(${X}) = ${Q.fun.h}`;
+  if((Q.kind==='place')&&Q.ans!==NONE){keep.push({x:num(Q.a),y:num(Q.ans),view:Q.view});(Q.given||[]).forEach(g=>keep.push({x:num(g.x),y:num(g.y),view:Q.view}))}
+  const pd=$('pad');if(pd){pd.hidden=true;const h=$('work').querySelector('.hint');if(h)h.hidden=true}
+  const N=QS.length,done=run.length>=N;
+  $('winx').textContent=!late&&tries===0?pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(!late&&tries===0?'joie':'neutre');$('winp').innerHTML=M.xi(Q.sol);
+  $('next').textContent=done?'Lancer le grand final du niveau':'Question suivante →';$('next').dataset.go=done?'end':'';
+  $('win').hidden=false;setTimeout(()=>{scrollWin();if(matchMedia('(pointer:fine)').matches)$('next').focus({preventScroll:true})},80)}
+function scrollWin(){const r=$('win').getBoundingClientRect();if(innerWidth<=860){const top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.bottom>innerHeight)scrollTo({top:scrollY+r.top-top-12,behavior:S.reduceM?'auto':'smooth'})}
+  else if(r.bottom>innerHeight-8)scrollTo({top:scrollY+r.bottom-innerHeight+24,behavior:S.reduceM?'auto':'smooth'})}
+function newQ(){token++;Q=QS[qi]();tries=0;solved=false;busy=false;keyH=null;S.onDrag(null);
+  S.clear();S.balise(null);S.setView(Q.view||L[lvl].view);S.setZones(Q.zone||(lvl===3&&qi>0?{ban:true}:lvl===4&&qi>0?{shade:true}:{}));
+  keep.forEach((k,i)=>{if(k.view===(Q.view||L[lvl].view))S.add('K'+i,k.x,k.y,{cls:'g sm'})});
+  $('badge').textContent=`Niveau ${lvl+1} · ${L[lvl].t}`;$('fxchip').innerHTML=Q.hideF?`f(${X}) = ?`:Q.fun?`f(${X}) = ${Q.fun.h}`:lvl===5?`${X} · ${X}² · ${X}³`:'Grand show';
+  $('prompt').innerHTML=M.xi(Q.prompt);$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${QS.length}`;dots();
+  W[Q.kind]()}
+async function finale(){const tk=token;busy=true;$('next').disabled=true;S.onDrag(null);keyH=null;S.clear();S.balise(null);S.setZones({});
+  const l=L[lvl];const st=$('scol').getBoundingClientRect();if(innerWidth>860&&(st.top<0||st.bottom>innerHeight))scrollTo({top:scrollY+st.top-10,behavior:'auto'});else if(innerWidth<=860)scrollTo({top:Math.max(0,$('scol').offsetTop-4),behavior:'auto'});
+  cap('<span class="k">Grand final</span> <span class="m">· l\'essaim dessine la courbe</span>');SND.show();
+  if(lvl===5){S.setView(G.VIEWS.race);const xs=Array.from({length:12},(_,i)=>i*.18);
+    G.POW.forEach((p,j)=>xs.forEach((x,i)=>S.add(`S${j}_${i}`,x,0,{cls:p.c+' sm'})));
+    await Promise.all(G.POW.flatMap((p,j)=>xs.map((x,i)=>S.move(`S${j}_${i}`,x,x**p.e,900,i*50+j*200))));
+    await Promise.all([S.curve(x=>x,'c1',900,0,2.2),S.curve(x=>x*x,'c2',900,0,2.2),S.curve(x=>x*x*x,'c3',900,0,2.2)]);S.meet(1,1)}
+  else if(lvl===6){S.setView(G.VIEWS.bouquet);const fs=[F.sq,F.cube,F.inv,F.sqrt],cl=['','c1','c2','c3'];
+    for(let j=0;j<4;j++){const f=fs[j],xs=Array.from({length:23},(_,i)=>-3.3+i*.3).filter(x=>!(f===F.inv&&Math.abs(x)<.25)&&!(f===F.sqrt&&x<0));
+      xs.forEach((x,i)=>S.add(`S${j}_${i}`,x,0,{cls:(cl[j]||'g')+' sm'}));}
+    for(let j=0;j<4;j++){const f=fs[j],xs=Array.from({length:23},(_,i)=>-3.3+i*.3).filter(x=>!(f===F.inv&&Math.abs(x)<.25)&&!(f===F.sqrt&&x<0));
+      await Promise.all(xs.map((x,i)=>S.move(`S${j}_${i}`,x,f.v(x),700,i*25)));S.curve(f.v,cl[j],700)}
+    await sleep(500)}
+  else{const f=l.fn;S.setView(l.view);const n=29,xs=Array.from({length:n},(_,i)=>l.view.x0+.15+(l.view.x1-l.view.x0-.3)*i/(n-1)).filter(x=>!(f===F.inv&&Math.abs(x)<.2)&&!(f===F.sqrt&&x<0));
+    xs.forEach((x,i)=>S.add('S'+i,x,0,{cls:'g sm'}));
+    await Promise.all(xs.map((x,i)=>S.move('S'+i,x,f.v(x),900,i*35)));
+    if(lvl===1)await S.sym('miroir',xs.map(x=>({x,y:f.v(x)})),true,1100);
+    if(lvl===2)await S.sym('demitour',xs.map(x=>({x,y:f.v(x)})),true,1100);
+    await S.curve(f.v,'',1000)}
+  if(tk!==token)return;
+  cap(`<span class="k">${['La parabole de la fonction carré','La parabole, symétrique par rapport au mât','La courbe de la fonction cube, symétrique par rapport à O','L\'hyperbole de la fonction inverse','La courbe de la fonction racine carrée','x, x², x³ : rendez-vous en (1 ; 1)','Le bouquet final : carré, cube, inverse, racine carrée'][lvl]}</span>`);
+  await sleep(1500);busy=false;$('next').disabled=false;endLevel()}
+function endLevel(){const Lv=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lv,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lv)return;
+    if(v==='next')goLevel(Math.min(lvl+1,L.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if(busy)return;if($('next').dataset.go==='end'){finale();return}qi++;newQ();if(innerWidth<=860)scrollTo({top:$('panel').offsetTop-$('scol').offsetHeight-8,behavior:S.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];keep=[];QS=L[l].make();$('chap').textContent=L[l].ch;$('lvt').textContent=`Niveau ${l+1} · ${L[l].t}`;
+  $('rule').innerHTML=M.xi(L[l].rule);$('cours').open=false;renderLv();newQ()}
+S.onRedraw=()=>{if(Q&&Q.kind==='explore'){POWcurves()}};
+window.SD={start(){renderLv();goLevel(0)},goLevel,get Q(){return Q},get lvl(){return lvl},get qi(){return qi},get run(){return run},get solved(){return solved},get busy(){return busy},
+  genLevel:l=>L[l].make().map(f=>{const q=f();return Object.assign({},q,{setup:undefined,proof:undefined,toolsRun:undefined,hint:undefined,ch:q.ch&&q.ch.map(c=>({h:c.h,ok:c.ok,why:c.why})),fun:q.fun&&{py:q.fun.py,h:q.fun.h,id:q.fun.id},
+    a:q.a&&fmt(q.a),y:q.y&&fmt(q.y),ans:q.ans===NONE?'none':q.ans&&q.ans.n!==undefined?fmt(q.ans):q.ans,target:undefined,onDone:undefined,given:q.given&&q.given.map(g=>({x:fmt(g.x),y:fmt(g.y)}))})})};
+})();
+</script>
+
+<script>
+/* ======================= LE SHOW DES DRONES — épreuves finales ======================= */
+(function(){
+'use strict';
+const M=window.SD_M;
+const {R,add,sub,mul,div,neg,inv,cmp,eq,num,pow,dec,fmt,fmtH,FR,par,parW,parseR,polyH,polySub,polyPy,F,ri,pick,shuf,sample,r,answers,X}=M;
+const fx=a=>`f(${fmt(a)})`;
+/* QCM : bonne réponse en premier (le kit mélange l'ordre) ; leurres dédoublonnés */
+function qcm(level,prompt,good,bad,explain,meta,steps){const seen=new Set([String(good.k??good.h)]),ch=[good];
+  for(const b of bad){const k=String(b.k??b.h);if(seen.has(k))continue;seen.add(k);ch.push(b);if(ch.length===4)break}
+  if(ch.length<3)return null;
+  return {type:'qcm',level,prompt,choices:ch.map(c=>c.h),answer:0,explain,meta:Object.assign({steps:steps||1,cv:ch.map(c=>c.v??c.k??c.h)},meta)}}
+const NV=a=>({h:fmtH(a),k:fmt(a),v:fmt(a)});
+function trou(level,prompt,vals,explain,meta,steps){return {type:'trous',level,prompt,blanks:vals.map(v=>({answers:typeof v==='string'?[v]:answers(v),size:Math.max(3,(typeof v==='string'?v:fmt(v)).length)})),explain,meta:Object.assign({steps:steps||1,vals:vals.map(v=>typeof v==='string'?v:fmt(v))},meta)}}
+const fD=s=>'<b>f(<i>x</i>) = '+s+'</b>';
+const PAR=['paire','impaire','ni paire ni impaire'],PK={paire:'paire',impaire:'impaire',ni:'ni paire ni impaire'};
+const DOM={R:'ℝ',R0:'ℝ ∖ {0}',P:'[0 ; +∞[',Ps:']0 ; +∞[',N:']−∞ ; 0]'};
+/* ---------------- BRONZE ---------------- */
+const B={
+  sq(){const a=R(-pick([3,4,5,6])),v=mul(a,a);
+    return qcm(1,`Pour ${fD(X+'²')}, que vaut ${fx(a)}&nbsp;?`,NV(v),[NV(neg(v)),NV(mul(R(2),a)),NV(mul(R(-2),a))],`${fx(a)} = ${par(a)}² = ${par(a)} × ${par(a)} = ${fmt(v)}&nbsp;: un carré n'est jamais négatif.`,{k:'img',f:'x**2',x:fmt(a)})},
+  cube(){const a=R(pick([-3,-2,2,3])),v=pow(a,3);
+    return qcm(3,`Pour ${fD(X+'³')}, que vaut ${fx(a)}&nbsp;?`,NV(v),[NV(neg(v)),NV(mul(R(3),a)),NV(mul(a,a)),NV(mul(R(-3),a))],`${fx(a)} = ${par(a)} × ${par(a)} × ${par(a)} = ${fmt(v)}.`,{k:'img',f:'x**3',x:fmt(a)})},
+  inv(){const a=R(pick([2,4,5,10])),v=inv(a);
+    return qcm(4,`Pour ${fD(FR(1,X))}, que vaut ${fx(a)}&nbsp;?`,NV(v),[NV(neg(a)),NV(neg(v)),NV(a)],`${fx(a)} = ${FR(1,fmt(a))} = ${fmt(v)}&nbsp;: l'inverse n'est pas l'opposé.`,{k:'img',f:'1/x',x:fmt(a)})},
+  sqrt(){const n=pick([4,5,6,7,8,9,10]),a=R(n*n),v=R(n);
+    return qcm(5,`Que vaut √${fmt(a)}&nbsp;?`,NV(v),[NV(R(n*n,2)),NV(R(-n)),NV(R(2*n))],`√${fmt(a)} = ${n} car ${n}² = ${fmt(a)} et ${n} ≥ 0.`,{k:'img',f:'sqrt(x)',x:fmt(a)})},
+  dom(){if(Math.random()<.5)return qcm(4,'La fonction inverse est définie sur…',{h:DOM.R0,k:'R0'},[{h:DOM.R,k:'R'},{h:DOM.P,k:'P'},{h:DOM.Ps,k:'Ps'}],'On ne divise pas par 0&nbsp;: la fonction inverse est définie sur ℝ ∖ {0}.',{k:'dom',f:'1/x'});
+    return qcm(5,'La fonction racine carrée est définie sur…',{h:DOM.P,k:'P'},[{h:DOM.R,k:'R'},{h:DOM.R0,k:'R0'},{h:DOM.Ps,k:'Ps'}],'√x existe pour x ≥ 0, y compris √0 = 0&nbsp;: elle est définie sur [0 ; +∞[.',{k:'dom',f:'sqrt(x)'})},
+  parRef(){const f=pick([F.sq,F.cube,F.inv,F.sqrt]);const good=PK[f.par];
+    return qcm(f===F.sq?2:3,`La fonction ${f.name} est…`,{h:good,k:f.par},PAR.filter(p=>p!==good).map(p=>({h:p,k:p==='ni paire ni impaire'?'ni':p})),
+      f===F.sqrt?'La fonction racine carrée n\'est définie que pour x ≥ 0&nbsp;: elle n\'est ni paire ni impaire.':`La fonction ${f.name} est ${f.par}&nbsp;: f(−x) = ${f.par==='paire'?'f(x)':'−f(x)'}.`,{k:'parref',f:f.py})},
+  symC(){if(Math.random()<.5)return qcm(2,'La courbe d\'une fonction paire est symétrique par rapport…',{h:'à l\'axe des ordonnées',k:'oy'},[{h:'à l\'origine du repère',k:'o'},{h:'à l\'axe des abscisses',k:'ox'}],'Paire&nbsp;: f(−x) = f(x), les points (x ; y) et (−x ; y) se reflètent dans l\'axe des ordonnées.',{k:'symc',p:'paire'});
+    return qcm(3,'La courbe d\'une fonction impaire est symétrique par rapport…',{h:'à l\'origine du repère',k:'o'},[{h:'à l\'axe des ordonnées',k:'oy'},{h:'à l\'axe des abscisses',k:'ox'}],'Impaire&nbsp;: f(−x) = −f(x), les points (x ; y) et (−x ; −y) sont symétriques par rapport à l\'origine.',{k:'symc',p:'impaire'})},
+  noimg(){if(Math.random()<.5)return qcm(4,'Quel nombre n\'a pas d\'image par la fonction inverse&nbsp;?',{h:'0',k:'0',v:'0'},[{h:'1',k:'1',v:'1'},{h:'−1',k:'-1',v:'-1'},{h:'0,5',k:'0.5',v:'0,5'}],'On ne peut pas diviser par 0&nbsp;: 0 n\'a pas d\'image par la fonction inverse.',{k:'noimgN',f:'1/x'});
+    const a=R(-pick([1,4,9]));return qcm(5,'Lequel de ces nombres n\'a pas d\'image par la fonction racine carrée&nbsp;?',{h:fmt(a),k:fmt(a),v:fmt(a)},[{h:'0',k:'0',v:'0'},{h:'4',k:'4',v:'4'},{h:'0,25',k:'0,25',v:'0,25'}],`${fmt(a)} est négatif&nbsp;: √(${fmt(a)}) n'existe pas. Et √0 = 0.`,{k:'noimgN',f:'sqrt(x)'})},
+  race(){const a=R(pick([2,3]));return qcm(6,`Pour ${X} = ${fmt(a)}, on a…`,{h:`${X} &lt; ${X}² &lt; ${X}³`,k:'x<x2<x3'},[{h:`${X}³ &lt; ${X}² &lt; ${X}`,k:'x3<x2<x'},{h:`${X}² &lt; ${X} &lt; ${X}³`,k:'x2<x<x3'}],`${fmt(a)} &lt; ${fmt(pow(a,2))} &lt; ${fmt(pow(a,3))}&nbsp;: pour ${X} ≥ 1, ${X} ≤ ${X}² ≤ ${X}³.`,{k:'ord',x:fmt(a)})}
+};
+const BT={
+  sq(){const a=R(pick([-6,-5,-4,-3,-2,2,3,4,5,6])),v=mul(a,a);return trou(1,`Pour ${fD(X+'²')}&nbsp;: ${fx(a)} = {0}`,[v],`${fx(a)} = ${parW(a)} × ${parW(a)} = ${fmt(v)}.`,{k:'img',f:'x**2',x:fmt(a)})},
+  cube(){const a=R(pick([-3,-2,-1,1,2,3])),v=pow(a,3);return trou(3,`Pour ${fD(X+'³')}&nbsp;: ${fx(a)} = {0}`,[v],`${fx(a)} = ${parW(a)} × ${parW(a)} × ${parW(a)} = ${fmt(v)}.`,{k:'img',f:'x**3',x:fmt(a)})},
+  sqrt(){const n=pick([0,1,2,3,4,5,6,7,8,9,10]),a=R(n*n);return trou(5,`√${fmt(a)} = {0}`,[R(n)],`√${fmt(a)} = ${n} car ${n}² = ${fmt(a)}.`,{k:'img',f:'sqrt(x)',x:fmt(a)})},
+  inv(){const a=R(pick([2,4,5,10])),v=inv(a);return trou(4,`Par la fonction inverse, l'image de ${fmt(a)} est {0}`,[v],`${FR(1,fmt(a))} = ${fmt(v)}.`,{k:'img',f:'1/x',x:fmt(a)})},
+  twin(){const a=R(pick([2,3,4,5])),b=R(pick([1,2,3,5,6,7,8].filter(v=>v!==num(a))));
+    return trou(2,`f est une fonction paire et f(${fmt(a)}) = ${fmt(b)}. Donc f(${fmt(neg(a))}) = {0}`,[b],`Paire&nbsp;: f(−x) = f(x), donc f(${fmt(neg(a))}) = f(${fmt(a)}) = ${fmt(b)}.`,{k:'twin',par:'paire',a:fmt(a),b:fmt(b)})},
+  race(){const a=R(pick([2,3]));return trou(6,`Pour ${X} = ${fmt(a)}&nbsp;: ${X}² = {0} et ${X}³ = {1}`,[pow(a,2),pow(a,3)],`${fmt(a)}² = ${fmt(pow(a,2))} et ${fmt(a)}³ = ${fmt(pow(a,3))}.`,{k:'pw',x:fmt(a)})}
+};
+/* ---------------- ARGENT ---------------- */
+const intfrac=a=>{const ip=R(Math.trunc(num(a))),fp=sub(a,ip);return add(mul(ip,ip),mul(fp,fp))};
+const A={
+  sq(){const a=r(pick(['−1,5','−2,5','−0,5','−1,2','−0,3'])),v=mul(a,a);
+    return qcm(1,`Pour ${fD(X+'²')}, que vaut ${fx(a)}&nbsp;?`,NV(v),[NV(neg(v)),NV(mul(R(2),a)),NV(intfrac(a)),NV(mul(v,R(10)))],`${fx(a)} = ${parW(a)} × ${parW(a)} = ${fmt(v)}&nbsp;: positif, et calculé en entier.`,{k:'img',f:'x**2',x:fmt(a)},2)},
+  cmpSq(){const p=pick([['−3','2'],['−1,5','−1'],['−2','2'],['−0,5','0,25'],['−4','3'],['1,5','−2'],['−1','0,5']]),a=r(p[0]),b=r(p[1]),fa=mul(a,a),fb=mul(b,b),s=cmp(fa,fb);
+    const R3=[-1,0,1].map(k=>({h:`${fx(a)} ${['&lt;','=','&gt;'][k+1]} ${fx(b)}`,k:String(k)}));
+    return qcm(2,`Pour ${fD(X+'²')}, comparer ${fx(a)} et ${fx(b)}.`,R3[s+1],R3.filter((_,i)=>i!==s+1),`${fx(a)} = ${fmt(fa)} et ${fx(b)} = ${fmt(fb)}&nbsp;: on calcule les images, puis on compare.`,{k:'cmp',f:'x**2',a:fmt(a),b:fmt(b)},2)},
+  cube(){const a=r(pick(['−0,5','−1,5','0,2','−0,1','−3','−0,2'])),v=pow(a,3);
+    return qcm(3,`Pour ${fD(X+'³')}, que vaut ${fx(a)}&nbsp;?`,NV(v),[NV(neg(v)),NV(mul(R(3),a)),NV(mul(a,a)),NV(neg(mul(a,a)))],`${fx(a)} = ${parW(a)} × ${parW(a)} × ${parW(a)} = ${fmt(v)}.`,{k:'img',f:'x**3',x:fmt(a)},2)},
+  inv(){const a=r(pick(['−0,5','0,25','−0,25','−4','0,2','−0,1','−2'])),v=inv(a);
+    return qcm(4,`Pour ${fD(FR(1,X))}, que vaut ${fx(a)}&nbsp;?`,NV(v),[NV(neg(v)),NV(neg(a)),NV(a)],`${fx(a)} = ${FR(1,fmt(a))} = ${fmt(v)}&nbsp;: même signe que ${fmt(a)}.`,{k:'img',f:'1/x',x:fmt(a)},2)},
+  sqrt(){const a=r(pick(['0,36','0,49','0,64','0,81','1,44','0,25','0,09','2,25'])),v=M.sqrtR(a);
+    return qcm(5,`Que vaut √${fmt(a)}&nbsp;?`,NV(v),[NV(mul(v,R(1,10))),NV(mul(a,R(1,2))),NV(mul(v,R(10)))],`√${fmt(a)} = ${fmt(v)} car ${fmt(v)}² = ${fmt(a)}.`,{k:'img',f:'sqrt(x)',x:fmt(a)},2)},
+  parF(){const T=pick([[[1,4],[-2,2]],[[1,3],[-1,1]],[[5,2],[3,0]],[[1,3],[-3,1]],[[1,2],[1,1]],[[1,3],[1,0]],[[2,1],[1,0]],[[-1,2],[4,0]],[[2,3],[1,1]]]),f=M.polyFn(T),good=PK[f.par];
+    return qcm(f.par==='paire'?2:3,`La fonction ${fD(f.h)} est…`,{h:good,k:f.par},PAR.filter(p=>p!==good).map(p=>({h:p,k:p==='ni paire ni impaire'?'ni':p})),
+      `f(−x) = ${polySub(T)} = ${polyH(T.map(([c,d])=>[c*(d%2?-1:1),d]))}&nbsp;: on compare à f(x) et à −f(x).`,{k:'par',f:f.py},2)},
+  race(){if(Math.random()<.5)return qcm(6,`Pour 0 &lt; ${X} &lt; 1, on a…`,{h:`${X}³ &lt; ${X}² &lt; ${X}`,k:'x3<x2<x'},[{h:`${X} &lt; ${X}² &lt; ${X}³`,k:'x<x2<x3'},{h:`${X}² &lt; ${X}³ &lt; ${X}`,k:'x2<x3<x'},{h:`${X}³ &lt; ${X} &lt; ${X}²`,k:'x3<x<x2'}],`Exemple&nbsp;: 0,125 &lt; 0,25 &lt; 0,5 pour ${X} = 0,5. Multiplier par un nombre entre 0 et 1 fait diminuer.`,{k:'ordz',z:'01'},2);
+    return qcm(6,`Pour ${X} &gt; 1, on a…`,{h:`${X} &lt; ${X}² &lt; ${X}³`,k:'x<x2<x3'},[{h:`${X}³ &lt; ${X}² &lt; ${X}`,k:'x3<x2<x'},{h:`${X}² &lt; ${X} &lt; ${X}³`,k:'x2<x<x3'},{h:`${X} &lt; ${X}³ &lt; ${X}²`,k:'x<x3<x2'}],`Exemple&nbsp;: 2 &lt; 4 &lt; 8 pour ${X} = 2. Multiplier par un nombre plus grand que 1 fait augmenter.`,{k:'ordz',z:'1+'},2)},
+  ante(){const y=r(pick(['4','2','0,5','−2','0,25','−0,5','5','10'])),x=inv(y);
+    return qcm(4,`Pour ${fD(FR(1,X))}, quel est l'antécédent de ${fmt(y)}&nbsp;?`,NV(x),[NV(y),NV(neg(y)),NV(neg(x))],`On résout ${FR(1,X)} = ${fmt(y)}&nbsp;: ${X} = ${FR(1,fmt(y))} = ${fmt(x)}.`,{k:'ante',f:'1/x',y:fmt(y)},2)},
+  twin(){const a=R(pick([2,3,4])),b=R(pick([-5,-1,1,4,5,6,7].filter(v=>Math.abs(v)!==num(a))));
+    return qcm(3,`f est une fonction impaire et f(${fmt(a)}) = ${fmt(b)}. Alors f(${fmt(neg(a))}) = …`,NV(neg(b)),[NV(b),NV(neg(a)),NV(a)],`Impaire&nbsp;: f(−x) = −f(x), donc f(${fmt(neg(a))}) = −f(${fmt(a)}) = ${fmt(neg(b))}.`,{k:'twin',par:'impaire',a:fmt(a),b:fmt(b)},2)},
+  noimg0(){return qcm(7,'En 0, laquelle de ces fonctions n\'a pas d\'image&nbsp;?',{h:'la fonction inverse',k:'1/x'},[{h:'la fonction racine carrée',k:'sqrt(x)'},{h:'la fonction carré',k:'x**2'},{h:'la fonction cube',k:'x**3'}],'1 ÷ 0 n\'existe pas. En revanche √0 = 0, 0² = 0 et 0³ = 0.',{k:'noimg',x:'0'},2)}
+};
+const AT={
+  sq(){const a=r(pick(['−0,5','−1,2','−0,3','−2,5','−0,4','−1,5'])),v=mul(a,a);return trou(1,`Pour ${fD(X+'²')}&nbsp;: ${fx(a)} = {0}`,[v],`${fx(a)} = ${parW(a)} × ${parW(a)} = ${fmt(v)}.`,{k:'img',f:'x**2',x:fmt(a)},2)},
+  cube(){const a=r(pick(['−3','−0,5','−0,1','−0,2','0,3'])),v=pow(a,3);return trou(3,`Pour ${fD(X+'³')}&nbsp;: ${fx(a)} = {0}`,[v],`${fx(a)} = ${parW(a)} × ${parW(a)} × ${parW(a)} = ${fmt(v)}.`,{k:'img',f:'x**3',x:fmt(a)},2)},
+  inv(){const a=r(pick(['0,25','−0,5','0,2','−0,25','0,1'])),v=inv(a);return trou(4,`Pour ${fD(FR(1,X))}&nbsp;: ${fx(a)} = {0}`,[v],`${fx(a)} = ${FR(1,fmt(a))} = ${fmt(v)}.`,{k:'img',f:'1/x',x:fmt(a)},2)},
+  sqrt(){const a=r(pick(['1,44','2,25','0,49','0,81','0,64','6,25'])),v=M.sqrtR(a);return trou(5,`√${fmt(a)} = {0}`,[v],`√${fmt(a)} = ${fmt(v)} car ${fmt(v)}² = ${fmt(a)}.`,{k:'img',f:'sqrt(x)',x:fmt(a)},2)},
+  twin(){const k=pick(['paire','impaire']),a=R(pick([2,3,4])),b=R(pick([-4,-3,2,5,7].filter(v=>Math.abs(v)!==num(a)))),v=k==='paire'?b:neg(b);
+    return trou(k==='paire'?2:3,`f est une fonction ${k} et f(${fmt(a)}) = ${fmt(b)}. Donc f(${fmt(neg(a))}) = {0}`,[v],`${k==='paire'?'Paire : f(−x) = f(x)':'Impaire : f(−x) = −f(x)'}, donc f(${fmt(neg(a))}) = ${fmt(v)}.`,{k:'twin',par:k,a:fmt(a),b:fmt(b)},2)},
+  race(){const a=r(pick(['0,2','0,3','0,5','0,1','0,4']));return trou(6,`Pour ${X} = ${fmt(a)}&nbsp;: ${X}² = {0} et ${X}³ = {1}`,[pow(a,2),pow(a,3)],`${fmt(pow(a,3))} &lt; ${fmt(pow(a,2))} &lt; ${fmt(a)}&nbsp;: entre 0 et 1, ${X}³ ≤ ${X}² ≤ ${X}.`,{k:'pw',x:fmt(a)},2)},
+  ante(){const y=r(pick(['0,5','2','4','−2','0,2','−0,5'])),x=inv(y);return trou(4,`Par la fonction inverse, l'antécédent de ${fmt(y)} est {0}`,[x],`${FR(1,X)} = ${fmt(y)} donne ${X} = ${FR(1,fmt(y))} = ${fmt(x)}.`,{k:'ante',f:'1/x',y:fmt(y)},2)}
+};
+/* ---------------- OR ---------------- */
+const O={
+  fmx(){const kind=pick(['odd','even']);let T;
+    if(kind==='odd'){const p=pick([1,2,3]),q=pick([-5,-4,-3,-2,2,3,4,5]);T=[[p,3],[q,1]]}else{const p=pick([1,2,3]),q=pick([-5,-3,-2,2,3,4]);T=Math.random()<.5?[[p,4],[q,2]]:[[p,2],[q,0]]}
+    const f=M.polyFn(T),mx=T.map(([c,d])=>[c*(d%2?-1:1),d]);const e=(U)=>({h:polyH(U),k:polyPy(U)});
+    const bad=[e(T.map(([c,d],i)=>[i===0?-c:c,d])),e(T.map(([c,d],i)=>[i===1?-c:c,d])),e(T.map(([c,d])=>[-c,d])),e(T)];
+    return qcm(kind==='odd'?3:2,`Pour ${fD(f.h)}, l'expression f(−${X}) est égale à…`,e(mx),bad,`f(−${X}) = ${polySub(T)} = ${polyH(mx)}&nbsp;: (−${X})² = ${X}², (−${X})³ = −${X}³, (−${X})⁴ = ${X}⁴.`,{k:'fmx',f:f.py},3)},
+  anteAB(){for(;;){const a=pick([1,2,3]),b=pick([1,2,3,4,6]),d=pick([1,2,4,5,-1,-2]),y=R(a+d),x=R(b,d);if(a+d===0)continue;
+      const fH=`${a} + ${FR(b,X)}`;const good=NV(x);
+      const q=qcm(7,`On considère ${fD(fH)}. L'antécédent de ${fmt(y)} est…`,good,[NV(R(d,b)),NV(add(R(a),R(b,a+d))),NV(R(b*(a+d))),NV(neg(x))],
+        `On résout ${a} + ${FR(b,X)} = ${fmt(y)}&nbsp;: ${FR(b,X)} = ${fmt(R(d))}, donc ${X} = ${FR(b,fmt(R(d)))} = ${fmtH(x)}.`,{k:'anteab',a:String(a),b:String(b),y:fmt(y)},3);if(q)return q}},
+  sol(){const two=Math.random()<.5;const E=two?`${X}² − ${X} = ${X}(${X} − 1)`:`${X}³ − ${X}² = ${X}²(${X} − 1)`,Q=two?`${X}² = ${X}`:`${X}³ = ${X}²`;
+    return qcm(6,`On sait que ${E}. Les solutions de l'équation ${Q} sont…`,{h:'0 et 1',k:'0,1'},[{h:'1 seulement',k:'1'},{h:'0 seulement',k:'0'},{h:'−1 et 1',k:'-1,1'}],`${Q} ⇔ ${two?X+'(':X+'²('}${X} − 1) = 0&nbsp;: un produit est nul si l'un de ses facteurs est nul, donc ${X} = 0 ou ${X} = 1.`,{k:'sol',eq:two?'x**2-x':'x**3-x**2'},3)},
+  sign(){const a=r(pick(['0,3','0,6','0,9','1,5','2,5','1,2'])),one=sub(a,R(1)),s=cmp(one,R(0));
+    const c=[{h:`${X}² − ${X} &lt; 0, donc ${X}² &lt; ${X}`,k:'-1'},{h:`${X}² − ${X} &gt; 0, donc ${X}² &gt; ${X}`,k:'1'},{h:`${X}² − ${X} = 0, donc ${X}² = ${X}`,k:'0'}];
+    const g=c.find(t=>t.k===String(s));return qcm(6,`On sait que ${X}² − ${X} = ${X}(${X} − 1). Pour ${X} = ${fmt(a)}…`,g,c.filter(t=>t!==g),`${X} = ${fmt(a)} &gt; 0 et ${X} − 1 = ${fmt(one)} ${s<0?'&lt; 0':'&gt; 0'}&nbsp;: le produit est ${s<0?'négatif':'positif'}.`,{k:'sign',x:fmt(a)},3)},
+  odd0(){const a=R(pick([1,2,3,5])),b=R(pick([-4,-2,3,4,6,7]));
+    return qcm(3,`f est une fonction impaire définie sur ℝ et f(${fmt(a)}) = ${fmt(b)}. Que vaut f(${fmt(neg(a))}) + f(0)&nbsp;?`,NV(neg(b)),[NV(b),NV(add(neg(b),R(1))),NV(R(0)),NV(add(b,R(1)))],
+      `f(${fmt(neg(a))}) = −f(${fmt(a)}) = ${fmt(neg(b))}, et f(0) = −f(0) donne f(0) = 0. Total&nbsp;: ${fmt(neg(b))}.`,{k:'odd0',a:fmt(a),b:fmt(b)},3)},
+  cmpInv(){const p=pick([['−4','−0,25'],['−2','−0,5'],['−1','−0,5'],['−0,5','2'],['−0,25','−4'],['0,5','−2']]),a=r(p[0]),b=r(p[1]),fa=inv(a),fb=inv(b),s=cmp(fa,fb);
+    const R3=[-1,0,1].map(k=>({h:`${fx(a)} ${['&lt;','=','&gt;'][k+1]} ${fx(b)}`,k:String(k)}));
+    return qcm(7,`Pour ${fD(FR(1,X))}, comparer ${fx(a)} et ${fx(b)}.`,R3[s+1],R3.filter((_,i)=>i!==s+1),`${fx(a)} = ${fmt(fa)} et ${fx(b)} = ${fmt(fb)}, donc ${fx(a)} ${['&lt;','=','&gt;'][s+1]} ${fx(b)}.`,{k:'cmp',f:'1/x',a:fmt(a),b:fmt(b)},3)},
+  vol(){const a=r(pick(['0,5','1,5','0,2','0,4','2,5','0,3'])),v=pow(a,3);
+    return qcm(7,`Un cube a une arête de ${fmt(a)} m. Son volume (arête × arête × arête) vaut…`,{h:fmt(v)+' m³',k:fmt(v)},[{h:fmt(mul(R(3),a))+' m³',k:fmt(mul(R(3),a))},{h:fmt(mul(a,a))+' m³',k:fmt(mul(a,a))},{h:fmt(mul(R(6),mul(a,a)))+' m³',k:fmt(mul(R(6),mul(a,a)))}],
+      `V = ${fmt(a)}³ = ${fmt(a)} × ${fmt(a)} × ${fmt(a)} = ${fmt(v)} m³.`,{k:'img',f:'x**3',x:fmt(a),unit:'m³'},3)},
+  side(){const A2=r(pick(['2,25','0,64','1,44','6,25','0,49','0,36'])),c=M.sqrtR(A2);
+    return qcm(7,`Un carré a une aire de ${fmt(A2)} m². Son côté mesure…`,{h:fmt(c)+' m',k:fmt(c)},[{h:fmt(mul(A2,R(1,2)))+' m',k:fmt(mul(A2,R(1,2)))},{h:fmt(mul(A2,R(1,4)))+' m',k:fmt(mul(A2,R(1,4)))},{h:fmt(mul(c,R(1,10)))+' m',k:fmt(mul(c,R(1,10)))}],
+      `Le côté c vérifie c² = ${fmt(A2)} et c &gt; 0&nbsp;: c = √${fmt(A2)} = ${fmt(c)} m.`,{k:'img',f:'sqrt(x)',x:fmt(A2),unit:'m'},3)},
+  odd3(){const q=pick([-3,-2,-1,1,2]),a=R(pick([1,2,3]));const T=[[1,3],[q,1]],f=M.polyFn(T),v=f.f(neg(a)),fa=f.f(a);
+    return qcm(3,`On considère ${fD(f.h)}. Que vaut ${fx(neg(a))}&nbsp;?`,NV(v),[NV(fa),NV(add(neg(pow(a,3)),R(q*num(a)))),NV(add(pow(a,3),R(-q*num(a))))],
+      `${fx(neg(a))} = (${fmt(neg(a))})³ ${q<0?'−':'+'} ${Math.abs(q)===1?'':Math.abs(q)+' × '}(${fmt(neg(a))}) = ${fmt(v)}&nbsp;; f est impaire, c'est bien −f(${fmt(a)}).`.replace('+ (','+ (').replace(/ × \(/,' × ('),{k:'img',f:f.py,x:fmt(neg(a))},3)}
+};
+const OT={
+  anteAB(){let a,b,d;do{a=pick([1,2,3]);b=pick([2,3,4,6]);d=pick([1,2,4,-1,-2])}while(a+d===0);const y=R(a+d),x=R(b,d);
+    return trou(4,`On considère ${fD(a+' + '+FR(b,X))}. L'antécédent de ${fmt(y)} est {0}`,[x],`${FR(b,X)} = ${fmt(y)} − ${a} = ${fmt(R(d))}, donc ${X} = ${FR(b,fmt(R(d)))} = ${fmt(x)}.`,{k:'anteab',a:String(a),b:String(b),y:fmt(y)},3)},
+  poly(){const o=pick([[[[1,4],[-2,2]],'−2'],[[[5,2],[3,0]],'−0,5'],[[[1,4],[-2,2]],'−1,5'],[[[2,2],[-1,0]],'−1,5'],[[[5,2],[3,0]],'−1,2']]),f=M.polyFn(o[0]),a=r(o[1]),v=f.f(a);
+    return trou(2,`Pour ${fD(f.h)}&nbsp;: ${fx(a)} = {0}`,[v],`On remplace ${X} par ${par(a)}&nbsp;: ${fx(a)} = ${fmt(v)}.`,{k:'img',f:f.py,x:fmt(a)},3)},
+  odd2(){const T=pick([[[1,3],[-3,1]],[[1,3],[-1,1]],[[1,3],[2,1]],[[2,3],[-1,1]]]),f=M.polyFn(T),a=R(pick([2,3])),fa=f.f(a);
+    return trou(3,`Pour ${fD(f.h)}&nbsp;: ${fx(a)} = {0}. Comme f est impaire, ${fx(neg(a))} = {1}`,[fa,neg(fa)],`${fx(a)} = ${fmt(fa)} et f(−${X}) = −f(${X}), donc ${fx(neg(a))} = ${fmt(neg(fa))}.`,{k:'odd2',f:f.py,x:fmt(a)},3)},
+  fac(){const two=Math.random()<.5,a=r(pick(two?['0,4','0,5','1,5','3']:['3','0,5','2','−1'])),v=two?mul(a,sub(a,R(1))):mul(mul(a,a),sub(a,R(1)));
+    return trou(6,two?`Pour ${X} = ${fmt(a)}&nbsp;: ${X}² − ${X} = ${X}(${X} − 1) = {0}`:`Pour ${X} = ${fmt(a)}&nbsp;: ${X}³ − ${X}² = ${X}²(${X} − 1) = {0}`,[v],
+      `${two?fmt(a)+' × ('+fmt(a)+' − 1)':fmt(a)+'² × ('+fmt(a)+' − 1)'} = ${fmt(v)}.`.replace(/(−\d+(?:,\d+)?)(²? ×)/,'($1)$2').replace(/\((−[\d,]+) − 1\)/,'($1 − 1)'),{k:'expr',e:two?'x**2-x':'x**3-x**2',x:fmt(a)},3)},
+  anteNeg(){const y=r(pick(['−0,25','−0,5','−4','−0,2','−2'])),x=inv(y);return trou(4,`Par la fonction inverse, l'antécédent de ${fmt(y)} est {0}`,[x],`${FR(1,X)} = ${fmt(y)} donne ${X} = ${FR(1,fmt(y))} = ${fmt(x)}.`,{k:'ante',f:'1/x',y:fmt(y)},2)},
+  mix(){const a=r(pick(['0,5','0,25','2','4'])),b=r(pick(['−3','−2','−1,5'])),v=add(inv(a),mul(b,b));
+    return trou(7,`On considère f(${X}) = ${FR(1,X)} et g(${X}) = ${X}². Alors f(${fmt(a)}) + g(${fmt(b)}) = {0}`,[v],`f(${fmt(a)}) = ${fmt(inv(a))} et g(${fmt(b)}) = ${fmt(mul(b,b))}, donc la somme vaut ${fmt(v)}.`,{k:'mix',a:fmt(a),b:fmt(b)},3)},
+  side(){const A2=r(pick(['0,49','1,44','2,25','0,81','6,25'])),c=M.sqrtR(A2);return trou(5,`Un carré a une aire de ${fmt(A2)} m². Son côté mesure {0} m.`,[c],`c² = ${fmt(A2)} et c &gt; 0&nbsp;: c = √${fmt(A2)} = ${fmt(c)} m.`,{k:'img',f:'sqrt(x)',x:fmt(A2)},2)}
+};
+const xq=q=>Object.assign(q,{prompt:M.xi(q.prompt),explain:M.xi(q.explain),choices:q.choices&&q.choices.map(M.xi)});
+function build(QP,TP){for(;;){const qs=sample(Object.keys(QP),6).map(k=>QP[k]()),ts=sample(Object.keys(TP),4).map(k=>TP[k]());
+  if(qs.some(q=>!q))continue;return shuf(qs.concat(ts)).map(xq)}}
+window.SD_FIN={bronze:()=>build(B,BT),argent:()=>build(A,AT),or:()=>build(O,OT),B,BT,A,AT,O,OT};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'show-des-drones',title:'Le Show des Drones',levels:7,
+  levelNames:['Décollage','Le Miroir','Le Demi-tour','Le Drone interdit','La Zone d\'ombre','La Course','Le Grand Show'],
+  music:'aventure',finals:{bronze:()=>(window.SD_lastFinal=SD_FIN.bronze()),argent:()=>(window.SD_lastFinal=SD_FIN.argent()),or:()=>(window.SD_lastFinal=SD_FIN.or())}});
+SD.start();
+(function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|INPUT|TEXTAREA)$/.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(fix)}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>
