@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le Kaléidoscope · Sigma Arcade</title>
+<meta name="description" content="Trigonométrie, partie 2 (Première spécialité) : cosinus et sinus d'un nombre réel, coordonnées du point associé sur le cercle trigonométrique, lien avec le triangle rectangle, cos² x + sin² x = 1, valeurs remarquables, angles associés −x, π − x, π + x, π/2 − x. Un joyau de lumière posé sur le cercle projette deux ombres sur les axes, cos x et sin x ; quatre miroirs en font naître les reflets.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours, la réponse est donnée au deuxième essai.
+   IDEA : un kaléidoscope, la nuit. Un joyau de lumière se pose sur le cercle trigonométrique, au point M associé au réel x.
+          Deux projecteurs le visent : son ombre sur l'axe horizontal est cos x, son ombre sur l'axe vertical est sin x
+          (M(cos x ; sin x)). Sous le joyau, le triangle de lumière OHM a pour hypoténuse 1 : cos² x + sin² x = 1.
+          Quatre miroirs — l'axe (Ox), l'axe (Oy), le centre O, la droite y = x — font naître les reflets du joyau,
+          associés à −x, π − x, π + x, π/2 − x : on VOIT le reflet traverser le miroir et ses ombres glisser
+          (l'une reste, l'autre change de signe, ou elles s'échangent).
+   PICTURE : bleu nuit, cercle argenté, rosace discrète ; joyau cyan-blanc ; ombre cosinus turquoise, ombre sinus lilas ;
+          miroirs en bandes argentées ; points à toucher en violet-bleu ; or pour les réussites.
+   COLOUR and TYPE : « océan profond » du site ; violet-bleu pour l'action ; or pour les réussites ; corail pour les erreurs ;
+          Outfit partout.
+   LAYOUT : kaléidoscope et légende à gauche (collés en haut sur téléphone), carnet de questions à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);
+--cos:#4fd8c6;--sin:#c9a2ff}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:82ch}
+header .c{color:var(--cos);font-weight:600}header .s{color:var(--sin);font-weight:600}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button,input{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(340px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#060f22;user-select:none;-webkit-user-select:none;max-width:min(640px,calc(100vh - 110px));margin:0 auto}
+#scene{display:block;width:100%;height:auto;aspect-ratio:1/1}
+#scene .hit{cursor:pointer;outline:none}
+#scene .hit:focus-visible+.ring,#scene .hit:hover+.ring{stroke:#fff;stroke-width:4}
+#scene .ring{transition:stroke .15s}
+#scene .pulse{animation:kzp 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes kzp{50%{opacity:.35}}
+.capt{margin:10px auto 0;max-width:640px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(17px,1.8vw,21px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .4em}
+.capt .k{color:var(--gold2)}.capt .m{color:var(--mut);font-weight:600}.capt .c{color:var(--cos)}.capt .s{color:var(--sin)}.capt .x{color:var(--ko)}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:14px;font-weight:600;letter-spacing:.02em;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 4px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+table.vr{border-collapse:collapse;margin:6px 0 8px;font-variant-numeric:tabular-nums;font-size:15px}
+table.vr th,table.vr td{border:1px solid var(--line);padding:4px 7px;text-align:center}
+table.vr th{color:var(--mut);font-weight:600}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.6;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.cc{color:var(--cos);font-weight:600}.ss{color:var(--sin);font-weight:600}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px;line-height:1.6}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opts.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.opts.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.opt{min-height:52px;padding:8px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.opts.g3 .opt,.opts.g2 .opt{text-align:center;font-size:19px}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(18px,2vw,21px)/2.4 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.2em;height:46px;margin:0 3px;padding:0 6px;font:700 20px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+.tapbar{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:15px}
+.tapbar i{display:inline-block;width:16px;height:16px;border-radius:50%;border:2.5px solid var(--ac);background:rgba(108,142,255,.2);flex:none}
+/* écritures mathématiques */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .1em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .2em;align-self:stretch;text-align:center}
+.fr>span:first-child{border-bottom:2px solid currentColor;padding-bottom:.06em}
+.fr>span:last-child{padding-top:.4em}
+.sk-q .fr,.sk-ch .fr{font-size:.92em}
+.nw{white-space:nowrap}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb.rv{background:rgba(200,168,75,.09);border-left-color:var(--gold)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex;flex:none}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .stage{max-width:min(100%,max(41vh,272px))}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:15px;border-radius:10px}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 12px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .opts.g3 .opt,.opts.g2 .opt{font-size:18px;padding:6px 6px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}#scene .pulse{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Le Kaléidoscope</h1>
+<p>Un joyau de lumière se pose sur le cercle trigonométrique, au point M associé au réel x. Deux projecteurs le visent&nbsp;: son ombre sur l'axe horizontal, c'est <span class="c">cos x</span>&nbsp;; son ombre sur l'axe vertical, c'est <span class="s">sin x</span>. Quatre miroirs — l'axe (Ox), l'axe (Oy), le centre O et la droite y&nbsp;=&nbsp;x — font naître ses reflets, associés à <span class="nw">−x</span>, <span class="nw">π − x</span>, <span class="nw">π + x</span> et <span class="nw">π/2 − x</span>&nbsp;: regarde où tombent leurs ombres.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage">
+    <svg id="scene" viewBox="0 0 600 600" role="img" aria-label="Le kaléidoscope : le cercle trigonométrique, ses deux axes, le joyau et ses ombres"></svg>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+<script>
+/* ======================= LE KALÉIDOSCOPE — noyau : valeurs exactes, angles, scène, son ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const MINUS='−',NB=' ';
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t}return a||1};
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const frac=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+/* ---------- valeur exacte (n/d)·√s, s ∈ {1, 2, 3} ; dec : écrire en décimal si possible ---------- */
+function V(n,d,s,dec){d=d||1;s=s||1;if(d<0){n=-n;d=-d}const g=gcd(n,d);n/=g;d/=g;if(n===0){d=1;s=1}return{n,d,s,dec:!!dec}}
+const veq=(a,b)=>a.n===b.n&&a.d===b.d&&a.s===b.s;
+const vnum=a=>a.n/a.d*Math.sqrt(a.s);
+const vneg=a=>V(-a.n,a.d,a.s,a.dec);
+function decOf(n,d){for(let k=0;k<=3;k++){const p=10**k;if((n*p)%d===0){return (n<0?MINUS:'')+(Math.abs(n)/d).toFixed(k).replace('.',',')}}return null}
+function vH(a){const sg=a.n<0?MINUS:'',n=Math.abs(a.n);
+  if(a.s===1){if(a.d===1)return sg+n;if(a.dec){const t=decOf(a.n,a.d);if(t)return t}return sg+frac(n,a.d)}
+  const num=(n===1?'':n)+'√'+a.s;return sg+(a.d===1?num:frac(num,a.d))}
+function vT(a){const sg=a.n<0?MINUS:'',n=Math.abs(a.n);
+  if(a.s===1){if(a.d===1)return sg+n;if(a.dec){const t=decOf(a.n,a.d);if(t)return t}return sg+n+'/'+a.d}
+  const num=(n===1?'':n)+'√'+a.s;return sg+(a.d===1?num:num+'/'+a.d)}
+const vPy=a=>`(Rational(${a.n},${a.d})*sqrt(${a.s}))`;
+/* lecture d'un nombre tapé : entier, décimal (virgule ou point), fraction a/b */
+function parseQ(s){s=String(s).trim().replace(/[\s  ]/g,'').replace(/[−–—]/g,'-').replace(',','.').replace(/^\+/,'');
+  let m=/^(-?)(\d+)\/(\d+)$/.exec(s);if(m){if(+m[3]===0)return null;return V((m[1]?-1:1)*+m[2],+m[3])}
+  m=/^(-?)(\d*)(?:\.(\d+))?$/.exec(s);if(!m||(!m[2]&&!m[3]))return null;const f=m[3]||'';if(f.length>6)return null;
+  const den=10**f.length;return V((m[1]?-1:1)*((+(m[2]||'0'))*den+(f?+f:0)),den)}
+/* écritures acceptées pour un trou (valeur rationnelle) */
+function writes(a){const out=[],add=s=>{if(!out.includes(s))out.push(s)};const t=decOf(a.n,a.d);
+  if(a.d===1){add(String(a.n).replace('-',MINUS));add(String(a.n))}
+  else{const f=(a.n<0?MINUS:'')+Math.abs(a.n)+'/'+a.d;if(a.dec&&t){add(t);add(t.replace(MINUS,'-'));add(t.replace(MINUS,'-').replace(',','.'))}
+    add(f);add(f.replace(MINUS,'-'));if(t){add(t);add(t.replace(MINUS,'-'));add(t.replace(MINUS,'-').replace(',','.'))}}
+  return out}
+/* ---------- angles : p·π/q ---------- */
+function A(p,q){q=q||1;if(q<0){p=-p;q=-q}const g=gcd(p,q);return{p:p/g,q:q/g}}
+const aadd=(a,b)=>A(a.p*b.q+b.p*a.q,a.q*b.q),aneg=a=>A(-a.p,a.q),asub=(a,b)=>aadd(a,aneg(b)),aeq=(a,b)=>a.p===b.p&&a.q===b.q;
+const PI=A(1),PI2=A(1,2),ZERO=A(0);
+function aT(a){if(a.p===0)return '0';const sg=a.p<0?MINUS:'',n=Math.abs(a.p),num=(n===1?'':n)+'π';return sg+(a.q===1?num:num+'/'+a.q)}
+function aH(a){if(a.p===0)return '0';const sg=a.p<0?MINUS:'',n=Math.abs(a.p),num=(n===1?'':n)+'π';return sg+(a.q===1?num:frac(num,a.q))}
+const aPy=a=>`(Rational(${a.p},${a.q})*pi)`;
+const aRad=a=>a.p*Math.PI/a.q;
+function deg(a){const t=a.p*180/a.q;if(!Number.isInteger(t))throw new Error('angle '+aT(a));return ((t%360)+360)%360}
+const COS={0:V(1),30:V(1,2,3),45:V(1,2,2),60:V(1,2),90:V(0),120:V(-1,2),135:V(-1,2,2),150:V(-1,2,3),180:V(-1),210:V(-1,2,3),225:V(-1,2,2),240:V(-1,2),270:V(0),300:V(1,2),315:V(1,2,2),330:V(1,2,3)};
+function cosA(a){const v=COS[deg(a)];if(!v)throw new Error('non remarquable '+aT(a));return v}
+function sinA(a){const v=COS[(450-deg(a))%360];if(!v)throw new Error('non remarquable '+aT(a));return v}
+const samePt=(a,b)=>deg(a)===deg(b);
+/* les neuf valeurs remarquables, dans l'ordre */
+const VALS=[V(-1),V(-1,2,3),V(-1,2,2),V(-1,2),V(0),V(1,2),V(1,2,2),V(1,2,3),V(1)];
+const VAL5=[V(0),V(1,2),V(1,2,2),V(1,2,3),V(1)];
+
+/* ---------------- bruitages ---------------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),gn=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(v,t+.015);gn.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(gn);gn.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const SND={pop(){if(snd){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)}},
+  soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  glass(){if(snd)[1568,2093,2637,3136].forEach((f,i)=>tone(f,.5,.018,'sine',i*.07))},
+  shade(){if(snd){tone(880,.25,.03,'sine');tone(1320,.2,.015,'sine',.05)}},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))},
+  get on(){return snd},set on(v){snd=v}};
+
+/* ---------------- scène : le kaléidoscope ---------------- */
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?1:ms));
+function anim(ms,fn){return new Promise(res=>{if(reduceM)ms=1;const t0=performance.now();
+  const step=t=>{let k=Math.max(0,Math.min(1,(t-t0)/ms));fn(k);if(k<1)requestAnimationFrame(step);else res()};requestAnimationFrame(step)})}
+const ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+const svg=$('scene'),CX=300,CY=300,R=200;
+const X=c=>CX+R*c,Y=s=>CY-R*s;
+let S=null,onTap=null;
+const pt=(a,o)=>Object.assign({c:Math.cos(aRad(a)),s:Math.sin(aRad(a)),lab:aT(a),a},o||{});
+const ptn=(t,o)=>Object.assign({c:Math.cos(t),s:Math.sin(t),lab:'x'},o||{});
+function scene(o){S=Object.assign({gem:null,ghost:null,img:null,mirror:null,shC:0,shS:0,shOn:'gem',labC:'',labS:'',both:false,tri:false,eq:false,triLab:null,
+  cands:null,marks:[],band:null,arc:null,extra:[],rose:false},o||{});render()}
+function set(o){Object.assign(S,o);render()}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+const f1=v=>v.toFixed(1);
+const MIRN={ox:'miroir (Ox)',oy:'miroir (Oy)',o:'centre O',bis:'miroir y = x'};
+function shadowSvg(P,kC,kS,dim,labC,labS){let s='';const px=X(P.c),py=Y(P.s),op=dim?.35:1;
+  if(kC>0){const ey=py+(CY-py)*Math.min(1,kC);s+=`<path d="M${f1(px)} ${f1(py)}V${f1(ey)}" stroke="var(--cos)" stroke-width="2" stroke-dasharray="5 6" opacity="${op*.9}"/>`;
+    if(kC>=1){s+=`<path d="M${CX} ${CY}H${f1(px)}" stroke="var(--cos)" stroke-width="8" stroke-linecap="round" opacity="${op*.85}"/><circle cx="${f1(px)}" cy="${CY}" r="6" fill="var(--cos)" opacity="${op}"/>`;
+      if(labC&&!dim){const ly=P.s>=-.02?CY+34:CY-18,lx=Math.abs(P.c)<.25?px:(CX+px)/2;s+=`<text x="${f1(lx)}" y="${ly}" text-anchor="middle" class="tl" fill="var(--cos)" font-size="24">${esc(labC)}</text>`}}}
+  if(kS>0){const ex=px+(CX-px)*Math.min(1,kS);s+=`<path d="M${f1(px)} ${f1(py)}H${f1(ex)}" stroke="var(--sin)" stroke-width="2" stroke-dasharray="5 6" opacity="${op*.9}"/>`;
+    if(kS>=1){s+=`<path d="M${CX} ${CY}V${f1(py)}" stroke="var(--sin)" stroke-width="8" stroke-linecap="round" opacity="${op*.85}"/><circle cx="${CX}" cy="${f1(py)}" r="6" fill="var(--sin)" opacity="${op}"/>`;
+      if(labS&&!dim){const right=P.c<.02,ly=Math.abs(P.s)<.25?py:(CY+py)/2;s+=`<text x="${right?CX+14:CX-14}" y="${f1(ly+8)}" text-anchor="${right?'start':'end'}" class="tl" fill="var(--sin)" font-size="24">${esc(labS)}</text>`}}}
+  return s}
+function gemSvg(P,o){o=o||{};const x=X(P.c),y=Y(P.s),op=o.dim?.4:1;let s='';
+  s+=`<g opacity="${op}"><circle cx="${f1(x)}" cy="${f1(y)}" r="${o.small?12:18}" fill="#9fe8ff" opacity=".22" filter="url(#kzg)"/>`+
+    `<path d="M${f1(x)} ${f1(y-17)}L${f1(x+4.5)} ${f1(y-4.5)}L${f1(x+17)} ${f1(y)}L${f1(x+4.5)} ${f1(y+4.5)}L${f1(x)} ${f1(y+17)}L${f1(x-4.5)} ${f1(y+4.5)}L${f1(x-17)} ${f1(y)}L${f1(x-4.5)} ${f1(y-4.5)}Z" fill="url(#kzj)" filter="url(#kzg)"/>`+
+    `<circle cx="${f1(x)}" cy="${f1(y)}" r="6.5" fill="#fff"/></g>`;
+  const n=Math.hypot(P.c,P.s)||1,ux=P.c/n,uy=P.s/n;
+  if(P.lab){const lx=X(ux*1.2),ly=Y(uy*1.2)+9;s+=`<text x="${f1(lx)}" y="${f1(ly)}" text-anchor="middle" class="tl" fill="${o.dim?'rgba(230,240,255,.55)':'#eaf6ff'}" font-size="26">${esc(P.lab)}</text>`}
+  if(P.name){const lx=x-ux*20-uy*26,ly=y+uy*20-ux*26+8;s+=`<text x="${f1(lx)}" y="${f1(ly)}" text-anchor="middle" class="tl" fill="${o.dim?'rgba(230,240,255,.5)':'#cfe9ff'}" font-size="22" font-style="italic">${esc(P.name)}</text>`}
+  return s}
+function render(){if(!S)return;let s='';const foc=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#scene .hit');const focId=foc?foc.dataset.id:null;
+  s+=`<defs><radialGradient id="kzb" cx=".5" cy=".5" r=".62"><stop offset="0" stop-color="#11244c"/><stop offset=".72" stop-color="#081530"/><stop offset="1" stop-color="#040a17"/></radialGradient>`+
+    `<radialGradient id="kzj" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#c7f4ff"/><stop offset="1" stop-color="#58c9e4"/></radialGradient>`+
+    `<linearGradient id="kzm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#cfe0ff" stop-opacity=".15"/><stop offset=".5" stop-color="#eef4ff" stop-opacity=".55"/><stop offset="1" stop-color="#cfe0ff" stop-opacity=".15"/></linearGradient>`+
+    `<filter id="kzg" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+  s+=`<rect width="600" height="600" fill="url(#kzb)"/>`;
+  /* rosace discrète */
+  for(let k=0;k<12;k++){const t0=k*Math.PI/6,t1=t0+Math.PI/6,r=286;s+=`<path d="M${CX} ${CY}L${f1(CX+r*Math.cos(t0))} ${f1(CY-r*Math.sin(t0))}A${r} ${r} 0 0 0 ${f1(CX+r*Math.cos(t1))} ${f1(CY-r*Math.sin(t1))}Z" fill="${k%2?'rgba(108,142,255,.035)':'rgba(79,216,198,.02)'}"/>`}
+  s+=`<circle cx="${CX}" cy="${CY}" r="288" fill="none" stroke="rgba(120,160,255,.16)" stroke-width="6"/>`;
+  /* bande [−1 ; 1] */
+  if(S.band==='c')s+=`<path d="M${X(-1)} ${CY}H${X(1)}" stroke="var(--sg-gold)" stroke-width="16" stroke-linecap="round" opacity=".3"/>`;
+  if(S.band==='s')s+=`<path d="M${CX} ${Y(-1)}V${Y(1)}" stroke="var(--sg-gold)" stroke-width="16" stroke-linecap="round" opacity=".3"/>`;
+  /* miroir actif */
+  const M=S.mirror;
+  if(M==='ox')s+=`<path d="M36 ${CY}H564" stroke="url(#kzm)" stroke-width="14" opacity=".9"/><text x="560" y="${CY-14}" text-anchor="end" class="tl" fill="#dfe8ff" font-size="20">${MIRN.ox}</text>`;
+  if(M==='oy')s+=`<path d="M${CX} 36V564" stroke="url(#kzm)" stroke-width="14" opacity=".9"/><text x="${CX+12}" y="566" class="tl" fill="#dfe8ff" font-size="20">${MIRN.oy}</text>`;
+  if(M==='bis')s+=`<path d="M${X(-1.3)} ${Y(-1.3)}L${X(1.3)} ${Y(1.3)}" stroke="url(#kzm)" stroke-width="14" opacity=".9"/><text x="${X(1.28)}" y="${Y(1.28)+30}" text-anchor="end" class="tl" fill="#dfe8ff" font-size="20">y = x</text>`;
+  /* axes */
+  s+=`<path d="M30 ${CY}H566M${CX} 570V34" stroke="rgba(214,226,255,.55)" stroke-width="2"/><path d="M566 ${CY-6}L578 ${CY}L566 ${CY+6}ZM${CX-6} 34L${CX} 22L${CX+6} 34Z" fill="rgba(214,226,255,.7)"/>`;
+  s+=`<text x="574" y="${CY+30}" text-anchor="end" class="tl" fill="var(--cos)" font-size="22">cos</text><text x="${CX+14}" y="40" class="tl" fill="var(--sin)" font-size="22">sin</text>`;
+  for(const v of [.5,Math.SQRT1_2,Math.sqrt(3)/2]){for(const g of [1,-1]){s+=`<path d="M${f1(X(g*v))} ${CY-6}V${CY+6}M${CX-6} ${f1(Y(g*v))}H${CX+6}" stroke="rgba(214,226,255,.6)" stroke-width="2"/>`}}
+  s+=`<path d="M${X(1)} ${CY-9}V${CY+9}M${X(-1)} ${CY-9}V${CY+9}M${CX-9} ${Y(1)}H${CX+9}M${CX-9} ${Y(-1)}H${CX+9}" stroke="rgba(214,226,255,.8)" stroke-width="2.5"/>`;
+  s+=`<g class="tl" fill="rgba(214,226,255,.75)" font-size="20"><text x="${X(1)+8}" y="${CY+26}">1</text><text x="${X(-1)-8}" y="${CY+26}" text-anchor="end">${MINUS}1</text><text x="${CX-12}" y="${Y(1)-8}" text-anchor="end">1</text><text x="${CX-12}" y="${Y(-1)+22}" text-anchor="end">${MINUS}1</text><text x="${CX-10}" y="${CY+24}" text-anchor="end">O</text></g>`;
+  /* arc d'intervalle */
+  if(S.arc){const [t0,t1]=S.arc,n=40;let d='';for(let i=0;i<=n;i++){const t=t0+(t1-t0)*i/n;d+=(i?'L':'M')+f1(X(Math.cos(t)))+' '+f1(Y(Math.sin(t)))}s+=`<path d="${d}" stroke="var(--sg-accent)" stroke-width="12" fill="none" stroke-linecap="round" opacity=".55"/>`}
+  /* cercle trigonométrique */
+  s+=`<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="rgba(226,236,255,.75)" stroke-width="2.6"/>`;
+  for(const d of [0,30,45,60,90,120,135,150,180,210,225,240,270,300,315,330]){const t=d*Math.PI/180;s+=`<circle cx="${f1(X(Math.cos(t)))}" cy="${f1(Y(Math.sin(t)))}" r="3" fill="rgba(226,236,255,.55)"/>`}
+  if(M==='o')s+=`<circle cx="${CX}" cy="${CY}" r="16" fill="none" stroke="#eef4ff" stroke-width="3" opacity=".8" filter="url(#kzg)"/><text x="${CX+20}" y="${CY-20}" class="tl" fill="#dfe8ff" font-size="20">${MIRN.o}</text>`;
+  /* rosace des reflets */
+  if(S.rose&&S.gem&&S.gem.a){const a=S.gem.a,ps=[a,aneg(a),asub(PI,a),aadd(PI,a),asub(PI2,a),aadd(PI2,a),asub(a,PI2),aneg(aadd(PI2,a))].map(t=>aRad(t)).sort((u,w)=>((u%(2*Math.PI))+2*Math.PI)%(2*Math.PI)-((w%(2*Math.PI))+2*Math.PI)%(2*Math.PI));
+    let d='';ps.forEach((t,i)=>{d+=(i?'L':'M')+f1(X(Math.cos(t)))+' '+f1(Y(Math.sin(t)))});s+=`<path d="${d}Z" fill="rgba(159,232,255,.06)" stroke="rgba(159,232,255,.45)" stroke-width="1.5"/>`}
+  /* triangle de lumière */
+  const T=S.tri?(S.shOn==='img'&&S.img?S.img:S.gem):null;
+  if(T){const hx=X(T.c),my=Y(T.s);s+=`<path d="M${CX} ${CY}L${f1(hx)} ${CY}L${f1(hx)} ${f1(my)}Z" fill="rgba(159,232,255,.08)" stroke="rgba(159,232,255,.5)" stroke-width="1.5"/>`;
+    const sx=T.c>=0?-1:1,sy=T.s>=0?-1:1;s+=`<path d="M${f1(hx+sx*14)} ${CY}V${CY+sy*14}H${f1(hx)}" fill="none" stroke="rgba(226,236,255,.8)" stroke-width="1.6"/>`;
+    s+=`<text x="${f1(hx)}" y="${T.s>=0?CY+30:CY-14}" text-anchor="middle" class="tl" fill="#cfe9ff" font-size="21" font-style="italic">H</text>`;
+    if(S.eq){s+=`<path d="M${f1(X(T.c))} ${f1(Y(T.s))}L${X(1)} ${CY}" stroke="rgba(159,232,255,.6)" stroke-width="1.6" stroke-dasharray="6 5"/><text x="${X(1)+10}" y="${CY-10}" class="tl" fill="#cfe9ff" font-size="21" font-style="italic">I</text>`}
+    if(S.triLab){const L=S.triLab;if(L.om)s+=`<text x="${f1((CX+X(T.c))/2-T.s*22)}" y="${f1((CY+Y(T.s))/2-T.c*18)}" text-anchor="middle" class="tl" fill="#eaf6ff" font-size="22">${esc(L.om)}</text>`;
+      if(L.oh)s+=`<text x="${f1((CX+hx)/2)}" y="${T.s>=0?CY+30:CY-14}" text-anchor="middle" class="tl" fill="var(--cos)" font-size="22">${esc(L.oh)}</text>`;
+      if(L.hm)s+=`<text x="${f1(hx+(T.c>=0?12:-12))}" y="${f1((CY+my)/2+8)}" text-anchor="${T.c>=0?'start':'end'}" class="tl" fill="var(--sin)" font-size="22">${esc(L.hm)}</text>`}}
+  /* ombres */
+  if(S.both&&S.gem&&S.img)s+=shadowSvg(S.gem,S.shC,S.shS,true);
+  const F=S.shOn==='img'&&S.img?S.img:S.gem;if(F)s+=shadowSvg(F,S.shC,S.shS,false,S.labC,S.labS);
+  /* marques d'erreur sur les axes */
+  for(const m of S.marks){const v=Math.max(-1.32,Math.min(1.32,m.v));
+    if(m.ax==='c'){const x=X(v);s+=`<path d="M${f1(x)} ${CY-11}L${f1(x+9)} ${CY}L${f1(x)} ${CY+11}L${f1(x-9)} ${CY}Z" fill="var(--sg-coral)"/><text x="${f1(x)}" y="${CY-18}" text-anchor="middle" class="tl" fill="var(--sg-coral)" font-size="20">${esc(m.lab)}</text>`}
+    else{const y=Y(v);s+=`<path d="M${CX-11} ${f1(y)}L${CX} ${f1(y-9)}L${CX+11} ${f1(y)}L${CX} ${f1(y+9)}Z" fill="var(--sg-coral)"/><text x="${CX+18}" y="${f1(y+7)}" class="tl" fill="var(--sg-coral)" font-size="20">${esc(m.lab)}</text>`}}
+  /* points supplémentaires (points à tester, etc.) */
+  for(const e of S.extra){const x=X(e.c),y=Y(e.s);s+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="7" fill="${e.col||'#e6ecff'}" stroke="#061022" stroke-width="2"/>`;
+    if(e.lab)s+=`<text x="${f1(x+(e.dx||12))}" y="${f1(y+(e.dy||-10))}" class="tl" fill="${e.col||'#e6ecff'}" font-size="21" text-anchor="${e.anc||'start'}">${esc(e.lab)}</text>`}
+  /* joyau, reflet */
+  if(S.ghost)s+=gemSvg(S.ghost,{dim:true});
+  if(S.gem)s+=gemSvg(S.gem,{dim:!!S.img});
+  if(S.img)s+=gemSvg(S.img,{});
+  /* facettes à toucher */
+  if(S.cands){S.cands.forEach((c,k)=>{const x=X(c.c),y=Y(c.s),col=c.st==='ko'?'var(--sg-coral)':c.st==='ok'?'var(--sg-gold-bright)':'#6c8eff';
+    if(!c.st||c.st==='ok')s+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="22" fill="${c.st==='ok'?'rgba(232,199,102,.25)':'rgba(108,142,255,.16)'}" class="${c.st?'':'pulse'}"/>`;
+    s+=`<circle class="hit" data-id="${c.id}" cx="${f1(x)}" cy="${f1(y)}" r="50" fill="transparent" tabindex="${c.st?-1:0}" role="button" aria-label="Point ${k+1} du cercle"/>`;
+    s+=`<circle class="ring" cx="${f1(x)}" cy="${f1(y)}" r="15" fill="${c.st==='ko'?'rgba(255,107,107,.25)':'rgba(8,18,40,.6)'}" stroke="${col}" stroke-width="3.5" pointer-events="none"/>`;
+    if(c.st==='ko'&&c.lab){const n=Math.hypot(c.c,c.s)||1;s+=`<text x="${f1(X(c.c/n*1.2))}" y="${f1(Y(c.s/n*1.2)+8)}" text-anchor="middle" class="tl" fill="var(--sg-coral)" font-size="24">${esc(c.lab)}</text>`}})}
+  svg.innerHTML=s;
+  if(focId){const h=svg.querySelector(`.hit[data-id="${focId}"]`);if(h&&h.getAttribute('tabindex')==='0')h.focus({preventScroll:true})}}
+svg.addEventListener('click',e=>{const h=e.target.closest('.hit');if(h&&onTap)onTap(h.dataset.id)});
+svg.addEventListener('keydown',e=>{const h=e.target.closest&&e.target.closest('.hit');if(h&&onTap&&(e.key==='Enter'||e.key===' ')){e.preventDefault();onTap(h.dataset.id)}});
+/* animations */
+async function shadow(which,labs){labs=labs||{};SND.shade();if(which.includes('c'))S.labC=labs.c||S.labC;if(which.includes('s'))S.labS=labs.s||S.labS;
+  const c0=S.shC,s0=S.shS;await anim(650,k=>{if(which.includes('c'))S.shC=Math.max(c0,k);if(which.includes('s'))S.shS=Math.max(s0,k);render()})}
+/* reflet du joyau par un miroir : le point traverse le miroir en ligne droite */
+const IMG={ox:(c,s)=>[c,-s],oy:(c,s)=>[-c,s],o:(c,s)=>[-c,-s],bis:(c,s)=>[s,c]};
+async function reflect(kind,lab,name){const g=S.gem,[tc,ts]=IMG[kind](g.c,g.s);S.mirror=kind;S.img={c:g.c,s:g.s,lab:'',name:''};S.shOn='img';SND.glass();
+  await anim(1000,k=>{const e=ease(k);S.img.c=g.c+(tc-g.c)*e;S.img.s=g.s+(ts-g.s)*e;render()});
+  S.img={c:tc,s:ts,lab:lab===undefined?'':lab,name:name===undefined?'M′':name};render()}
+/* déplacement du joyau d'un point à un autre (le long du cercle) */
+async function travel(t0,t1,ms,each){await anim(ms||900,k=>{const t=t0+(t1-t0)*ease(k);S.gem=Object.assign({},S.gem,{c:Math.cos(t),s:Math.sin(t)});if(each)each(t);render()})}
+const cap=h=>{$('capt').innerHTML=h?'<span>'+h+'</span>':'&nbsp;'};
+window.KZK={$,MINUS,NB,gcd,ri,pick,shuf,frac,V,veq,vnum,vneg,vH,vT,vPy,parseQ,writes,decOf,A,aadd,aneg,asub,aeq,PI,PI2,ZERO,aT,aH,aPy,aRad,deg,cosA,sinA,samePt,VALS,VAL5,
+  SND,sleep,anim,ease,scene,set,render,shadow,reflect,travel,pt,ptn,X,Y,cap,IMG,reduceM,get S(){return S},setTap(f){onTap=f}};
+})();
+</script>
+<script>
+/* ======================= LE KALÉIDOSCOPE — déroulé des questions ======================= */
+(function(){
+'use strict';
+const K=window.KZK,{$,V,veq,vH,vT,parseQ,SND,shuf,pick}=K;
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+let lvl=0,qi=0,run=[],QN=null,pi=0,errs=0,busy=false,partState={};
+const LV=window.KZ_LV=[];
+function starsOf(i){try{const g=SigmaKit.passport().games['kaleidoscope'];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function fb(html,rv){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI(rv?'neutre':'pense');$('fbt').textContent=rv?'Voici la réponse.':'Pas tout à fait.';
+  $('fbp').innerHTML=html;$('fb').classList.toggle('rv',!!rv);$('fb').hidden=false;
+  const f=$('fb');if(innerWidth<=860&&f.getBoundingClientRect().bottom>innerHeight)setTimeout(()=>f.scrollIntoView({block:'end',behavior:K.reduceM?'auto':'smooth'}),30)}
+/* erreur : 1er essai → explication ; 2e essai → la réponse est donnée, on continue */
+function err(why,box,reveal,sol){errs++;partState.errors=(partState.errors||0)+1;SND.soft();
+  if(partState.errors>=2&&reveal){reveal();fb((why?why+' ':'')+(sol?'<br>'+sol:''),true);
+    const b=document.createElement('div');b.className='btns';b.style.marginTop='10px';b.innerHTML='<button type="button" class="btn or cont">Continuer →</button>';box.appendChild(b);
+    const c=b.querySelector('.cont');c.onclick=async()=>{if(busy)return;c.disabled=true;await finish(QN.parts[pi])};setTimeout(()=>c.focus({preventScroll:true}),30)}
+  else fb(why)}
+async function finish(p){fb('');busy=true;try{K.setTap(null);K.set({marks:[],cands:null});if(p&&p.onOk)await p.onOk()}finally{busy=false}nextPart()}
+const W={};
+/* choix */
+W.pick=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts${p.grid?' '+p.grid:''}">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  const all=[...box.querySelectorAll('.opt')];
+  all.forEach(b=>b.onclick=async()=>{if(busy||b.disabled)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){all.forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();await finish(p)}
+    else{b.classList.add('ko');b.disabled=true;if(c.mark)K.set({marks:K.S.marks.concat([c.mark])});
+      const why=typeof c.why==='function'?c.why():c.why;
+      err(why+(c.mark?' <span class="nw">Ton choix est en corail sur l\'axe.</span>':''),box,()=>{all.forEach(x=>{x.disabled=true;if(p.ch[+x.dataset.j].ok)x.classList.add('ok')})},'La bonne réponse est en vert.')}})};
+/* toucher un point du cercle */
+W.tap=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<p class="tapbar"><i></i>Touche un point lumineux du kaléidoscope.</p>`;
+  K.set({cands:p.cands.map(c=>Object.assign({},c,{st:''}))});
+  K.setTap(async id=>{if(busy)return;const c=K.S.cands.find(z=>z.id===id);if(!c||c.st)return;
+    if(id===p.okId){busy=true;K.setTap(null);c.st='ok';K.render();SND.pop();await K.sleep(250);busy=false;await finish(p)}
+    else{c.st='ko';K.render();
+      err(p.whyOf(id),box,()=>{K.setTap(null);const o=K.S.cands.find(z=>z.id===p.okId);o.st='ok';K.render()},'Le bon point est entouré d\'or.')}});
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches){const h=document.querySelector('#scene .hit[tabindex="0"]');if(h)h.focus({preventScroll:true})}},60)};
+/* trous numériques (valeurs rationnelles exactes) */
+W.fill=(p,box)=>{
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>`<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text" aria-label="Case ${+i+1}" style="width:${Math.max(3.2,vT(p.ans[+i]).length*.6+2).toFixed(1)}em">`);
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+`<p class="hint">${p.note||'Écris un entier, un décimal (avec une virgule) ou une fraction comme 3/4.'}</p>`;
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy||f.dataset.done)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const nums=v.map(parseQ);if(nums.some(z=>!z)){fb('Écris des nombres&nbsp;: entiers, décimaux (avec une virgule) ou fractions comme 3/4.');return}
+    const oks=nums.map((z,i)=>veq(z,V(p.ans[+ins[i].dataset.i].n,p.ans[+ins[i].dataset.i].d)));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){f.dataset.done=1;ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();await finish(p)}
+    else{const byI=[];ins.forEach((x,i)=>byI[+x.dataset.i]=nums[i]);
+      err(typeof p.why==='function'?p.why(byI):p.why,box,()=>{f.dataset.done=1;ins.forEach(x=>{x.value=vT(p.ans[+x.dataset.i]);x.classList.remove('ko');x.classList.add('ok');x.disabled=true});f.querySelector('button').remove()},
+      'Réponse&nbsp;: '+p.ans.map(a=>'<b style="display:inline">'+vH(a)+'</b>').join(' ; ')+'.')}};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* ---------- déroulé ---------- */
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;partState={};if(pi<QN.parts.length){const p=QN.parts[pi];if(p.on)p.on();const box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:K.reduceM?'auto':'smooth'})}}
+function newQ(){QN=LV[lvl].qs[qi]();pi=0;errs=0;partState={};K.setTap(null);
+  QN.scene();K.cap(QN.cap0||'M(<span class="c">cos x</span>&nbsp;;&nbsp;<span class="s">sin x</span>)');
+  $('prompt').innerHTML=QN.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  const p=QN.parts[0];if(p.on)p.on();const box=partEl();W[p.t](p,box)}
+function dots(){const N=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:N},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+async function win(){fb('');SND.win();run.push(errs===0);dots();
+  const N=LV[lvl].qs.length,lvlDone=run.length>=N;
+  $('winx').textContent=errs===0?pick(['Bravo !','Exactement !','Juste !','Pile dans la lumière !']):pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=QN.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(QN.onWin){busy=true;try{await QN.onWin()}finally{busy=false}}
+  if(QN.capEnd)K.cap(QN.capEnd);
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lv=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lv,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lv)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if(busy)return;if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:K.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];if(LV[l].reset)LV[l].reset();$('chap').textContent=LV[l].chap;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('cours').open=false;renderLv();newQ()}
+function renderLv(){$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}" title="${l.t}">${i+1}. ${l.s||l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${SND.on}">♪ Bruitages : ${SND.on?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;
+  if(b.id==='snd'){SND.on=!SND.on;try{localStorage.setItem('sigma-fanfare',SND.on?'1':'0')}catch(_){}renderLv();SND.pop();return}
+  goLevel(+b.dataset.l)});
+/* ---------- fabriques ---------- */
+/* choix : un seul juste, leurres en double retirés */
+const pk=(ask,list,o)=>{o=o||{};const out=[];const ok=list.find(c=>c.ok);if(ok)out.push(ok);
+  for(const c of list){if(c.ok)continue;if(out.some(d=>d.h===c.h))continue;out.push(c)}
+  const keep=o.all?out:out.slice(0,o.max||4);if(o.keep)keep.sort((a,b)=>list.indexOf(a)-list.indexOf(b));
+  return Object.assign({t:'pick',ask,ch:keep},o)};
+const tap=(ask,cands,okId,whyOf,o)=>Object.assign({t:'tap',ask,cands,okId,whyOf},o||{});
+const fill=(ask,tpl,ans,why,o)=>Object.assign({t:'fill',ask,tpl,ans,why},o||{});
+Object.assign(K,{pk,tap,fill,goLevel,renderLv});
+/* ---------- crochets de test ---------- */
+function ser(p){const o={t:p.t,ask:p.ask||'',target:p.target||null,kind:p.kind||null};
+  if(p.t==='pick')o.choices=p.ch.map(c=>({h:c.h,ok:!!c.ok,why:typeof c.why==='function'?c.why():c.why||'',py:c.py||null}));
+  if(p.t==='tap'){o.cands=p.cands.map(c=>({id:c.id,py:c.py}));o.okId=p.okId;o.whys=p.cands.filter(c=>c.id!==p.okId).map(c=>p.whyOf(c.id))}
+  if(p.t==='fill'){o.tpl=p.tpl;o.ans=p.ans.map(a=>({py:K.vPy(a),txt:vT(a)}));o.targets=p.targets||null;o.why=typeof p.why==='function'?p.why(p.ans.map(()=>V(12345))):p.why||''}
+  return o}
+window.KZ={state(){const p=QN&&QN.parts[pi];return{lvl,qi,nq:LV[lvl].qs.length,pi,busy,np:QN?QN.parts.length:0,part:p?ser(p):null}},
+  sample(L,i){const r=LV[L].reset;if(r&&i===0)r();const Qx=LV[L].qs[i]();return{prompt:Qx.prompt,done:Qx.done,spec:Qx.spec||{},parts:Qx.parts.map(ser)}},
+  get busy(){return busy}};
+})();
+</script>
+<script>
+/* ======================= LE KALÉIDOSCOPE — les sept niveaux ======================= */
+(function(){
+'use strict';
+const K=window.KZK,{V,veq,vnum,vneg,vH,vT,vPy,A,aadd,aneg,asub,aeq,PI,PI2,ZERO,aT,aH,aPy,aRad,deg,cosA,sinA,samePt,VALS,VAL5,frac,pick,shuf,ri,pk,tap,fill,pt,ptn,MINUS}=K;
+const LV=window.KZ_LV;
+const NBSP='&nbsp;';
+/* ---------- écritures ---------- */
+const fH=(fn,a)=>`${fn==='c'?'cos':'sin'}(${aH(a)})`;
+const fT=(fn,a)=>`${fn==='c'?'cos':'sin'}(${aT(a)})`;
+const fPy=(fn,a)=>`${fn==='c'?'cos':'sin'}(${aPy(a)})`;
+const FV=(fn,a)=>fn==='c'?cosA(a):sinA(a);
+const other=fn=>fn==='c'?'s':'c';
+const nm=fn=>fn==='c'?'cos':'sin';
+const pair=(a,b)=>`(${a}${NBSP};${NBSP}${b})`;
+const F3=[A(1,6),A(1,4),A(1,3)];
+let bag=[];const nextF=()=>{if(!bag.length)bag=shuf(F3.slice());return bag.pop()};
+/* ---------- explications ---------- */
+function sideTxt(fn,a){const v=vnum(FV(fn,a)),A_=aH(a);
+  if(fn==='c')return Math.abs(v)<1e-9?`le point associé à ${A_} est sur l'axe (Oy), donc cos(${A_}) = 0.`:v>0?`le point associé à ${A_} est à droite de l'axe (Oy), donc cos(${A_}) &gt; 0.`:`le point associé à ${A_} est à gauche de l'axe (Oy), donc cos(${A_}) &lt; 0.`;
+  return Math.abs(v)<1e-9?`le point associé à ${A_} est sur l'axe (Ox), donc sin(${A_}) = 0.`:v>0?`le point associé à ${A_} est au-dessus de l'axe (Ox), donc sin(${A_}) &gt; 0.`:`le point associé à ${A_} est au-dessous de l'axe (Ox), donc sin(${A_}) &lt; 0.`}
+/* angle de référence dans [0 ; π/2] et écriture « angle associé » */
+function refOf(a){const d=deg(a),m=d%180,r=m<=90?m:180-m;return A(r,180)}
+const FORMS=r=>[[r,'id',`${aT(r)}`],[aneg(r),'ox',`${MINUS}${aT(r)}`],[asub(PI,r),'oy',`π ${MINUS} ${aT(r)}`],[aadd(PI,r),'o',`π + ${aT(r)}`],[asub(r,PI),'o',`${MINUS}π + ${aT(r)}`],
+  [aneg(aadd(PI,r)),'oy',`${MINUS}π ${MINUS} ${aT(r)}`],[asub(A(2),r),'ox',`2π ${MINUS} ${aT(r)}`],[aadd(A(2),r),'id',`${aT(r)} + 2π`]];
+const SYM={id:'',ox:'symétrique par rapport à l\'axe (Ox)',oy:'symétrique par rapport à l\'axe (Oy)',o:'symétrique par rapport au centre O',bis:'symétrique par rapport à la droite y = x'};
+function route(a){const r=refOf(a);if(r.p===0||aeq(r,PI2))return null;for(const [b,k,t] of FORMS(r))if(aeq(b,a))return{r,k,t};
+  const d=deg(a),q=d<90?'id':d<180?'oy':d<270?'o':'ox';return{r,k:q,t:null}}
+function routeTxt(a){const R_=route(a);if(!R_||R_.k==='id')return '';const pre=R_.t?`${aT(a)} = ${R_.t}${NBSP}: `:'';return `${pre}le point associé à ${aH(a)} est le ${SYM[R_.k]} du point associé à ${aH(R_.r)}. `}
+function magTxt(r){if(aeq(r,A(1,6)))return `Pour ${aH(A(1,6))}, le point est proche de l'axe horizontal&nbsp;: abscisse grande, ordonnée petite.`;
+  if(aeq(r,A(1,3)))return `Pour ${aH(A(1,3))}, le point est proche de l'axe vertical&nbsp;: abscisse petite, ordonnée grande.`;
+  if(aeq(r,A(1,4)))return `Pour ${aH(A(1,4))}, le point est sur la droite y = x&nbsp;: abscisse et ordonnée sont égales.`;
+  return 'Ce point est sur un axe&nbsp;: ses coordonnées valent 0, 1 ou −1.'}
+function whyVal(fn,a,v){const t=FV(fn,a),u=FV(other(fn),a),A_=aH(a);
+  if(veq(v,u)&&!veq(u,t))return `Ça, c'est ${nm(other(fn))}(${A_})&nbsp;: ${fn==='c'?'le cosinus se lit sur l\'axe horizontal (abscisse du point)':'le sinus se lit sur l\'axe vertical (ordonnée du point)'}.`;
+  if(veq(v,vneg(t))&&!veq(v,t))return `La bonne valeur, mais pas le bon signe&nbsp;: ${sideTxt(fn,a)}`;
+  if(veq(vneg(v),u)&&!veq(u,t)&&!veq(v,u))return `Deux pièges&nbsp;: ${nm(fn)} et ${nm(other(fn))} échangés, et le signe. ${sideTxt(fn,a)}`;
+  const r=refOf(a);return routeTxt(a)+magTxt(r)+(veq(r,a)?'':' '+sideTxt(fn,a).replace(/^./,c=>c.toUpperCase()))}
+/* choix d'une valeur : les neuf (ou cinq) valeurs remarquables ; l'ombre choisie s'affiche en corail */
+function pickVal(fn,a,o){o=o||{};const t=FV(fn,a),set=o.set||VALS;
+  return pk(o.ask||`${fH(fn,a)} =${NBSP}?`,set.map(v=>({h:vH(v),py:vPy(v),ok:veq(v,t),why:()=>whyVal(fn,a,v),mark:{ax:fn,v:vnum(v),lab:vT(v)}})),
+    {all:true,keep:true,grid:'g3',target:fPy(fn,a),onOk:o.onOk||(async()=>{await K.shadow(fn,{[fn]:vT(t)})})})}
+/* points d'un réel (pour les cibles à toucher) */
+const cand=(a,id)=>Object.assign(pt(a),{id:id||('a'+a.p+'_'+a.q),lab:aT(a),py:`(cos(${aPy(a)}),sin(${aPy(a)}))`,a});
+function dedupe(list){const out=[];for(const a of list)if(!out.some(b=>samePt(a,b)))out.push(a);return out}
+const ORB=a=>dedupe([a,aneg(a),asub(PI,a),aadd(PI,a),asub(PI2,a),aadd(PI2,a),asub(a,PI2),aneg(aadd(PI2,a))]);
+const AXES=[ZERO,PI2,PI,aneg(PI2)];
+/* nom de la transformation qui mène de x au point c */
+const RELS=[[a=>a,'c\'est M lui-même.'],[a=>aneg(a),'c\'est le symétrique de M par rapport à l\'axe (Ox)&nbsp;: il est associé à −x.'],[a=>asub(PI,a),'c\'est le symétrique de M par rapport à l\'axe (Oy)&nbsp;: il est associé à π − x.'],
+  [a=>aadd(PI,a),'c\'est le symétrique de M par rapport au centre O&nbsp;: il est associé à π + x.'],[a=>asub(PI2,a),'c\'est le symétrique de M par rapport à la droite y = x&nbsp;: il est associé à π/2 − x.'],
+  [a=>aadd(PI2,a),'il s\'obtient en tournant d\'un quart de tour dans le sens direct&nbsp;: il est associé à π/2 + x, ce n\'est pas un reflet.'],[a=>asub(a,PI2),'il s\'obtient en tournant d\'un quart de tour dans le sens indirect&nbsp;: ce n\'est pas un reflet.'],
+  [a=>aneg(aadd(PI2,a)),'c\'est le symétrique de M par rapport à la droite y = −x, qui n\'est pas l\'un de nos miroirs.']];
+function relTxt(x,b){for(const [f,t] of RELS)if(samePt(f(x),b))return t;return ''}
+const coordTxt=a=>`ce point a pour coordonnées ${pair(vH(cosA(a)),vH(sinA(a)))}`;
+/* miroirs */
+const KD={
+  ox:{mn:'le miroir (Ox)',Mn:'Le miroir (Ox)',img:a=>aneg(a),lab:`${MINUS}x`,lh:`${MINUS}x`,py:'-x',mir:'l\'axe des abscisses (Ox)',m:'(Ox)',c:'c',s:'-s',rule:'garde l\'abscisse et change le signe de l\'ordonnée'},
+  oy:{mn:'le miroir (Oy)',Mn:'Le miroir (Oy)',img:a=>asub(PI,a),lab:`π ${MINUS} x`,lh:`π ${MINUS} x`,py:'pi-x',mir:'l\'axe des ordonnées (Oy)',m:'(Oy)',c:'-c',s:'s',rule:'garde l\'ordonnée et change le signe de l\'abscisse'},
+  o:{mn:'le centre O',Mn:'Le centre O',img:a=>aadd(PI,a),lab:'π + x',lh:'π + x',py:'pi+x',mir:'le centre O',m:'O',c:'-c',s:'-s',rule:'change le signe des deux coordonnées'},
+  bis:{mn:'le miroir y = x',Mn:'Le miroir y = x',img:a=>asub(PI2,a),lab:`π/2 ${MINUS} x`,lh:`${frac('π','2')} ${MINUS} x`,py:'pi/2-x',mir:'la droite d\'équation y = x',m:'y = x',c:'s',s:'c',rule:'échange l\'abscisse et l\'ordonnée'}};
+const EXP={c:['cos x','cos(x)'],'-c':[`${MINUS}cos x`,'-cos(x)'],s:['sin x','sin(x)'],'-s':[`${MINUS}sin x`,'-sin(x)']};
+const imgPt=(kind,a)=>KD[kind].img(a);
+const expAt=(e,a)=>`${e[0]==='-'?MINUS:''}${e.includes('c')?'cos':'sin'}(${aH(a)})`;
+const expPy=(e,cv,sv)=>`${e[0]==='-'?'-':''}(${e.includes('c')?vPy(cv):vPy(sv)})`;
+/* ======================= Niveau 1 : les deux ombres ======================= */
+function l1val(fn){return()=>{const a=nextF(),t=FV(fn,a);
+  return{prompt:`Le joyau est au point M du cercle trigonométrique associé au réel ${aH(a)}.`,
+    scene:()=>K.scene({gem:pt(a,{name:'M'})}),cap0:`M(<span class="c">cos x</span>${NBSP};${NBSP}<span class="s">sin x</span>)`,
+    parts:[pickVal(fn,a,{set:VAL5,ask:fn==='c'?`Son ombre sur l'axe horizontal, c'est son abscisse&nbsp;: ${fH('c',a)} =${NBSP}?`:`Son ombre sur l'axe vertical, c'est son ordonnée&nbsp;: ${fH('s',a)} =${NBSP}?`})],
+    done:`M${pair(fH('c',a),fH('s',a))} = ${pair(vH(cosA(a)),vH(sinA(a)))}.`,
+    onWin:async()=>{await K.shadow(other(fn),{[other(fn)]:vT(FV(other(fn),a))})},capEnd:`<span class="c">${fT('c',a)} = ${vT(cosA(a))}</span> <span class="m">·</span> <span class="s">${fT('s',a)} = ${vT(sinA(a))}</span>`}}}
+const TURN={'1_2':'un quart de tour dans le sens direct','1_1':'un demi-tour','-1_2':'un quart de tour dans le sens indirect','3_2':'trois quarts de tour dans le sens direct','-1_1':'un demi-tour dans le sens indirect','2_1':'un tour complet'};
+function l1axe(){const a=pick([PI2,PI,aneg(PI2),A(3,2),aneg(PI)]),c=cosA(a),s=sinA(a);
+  return{prompt:`Le joyau glisse jusqu'au point M associé au réel ${aH(a)}.`,
+    scene:()=>{K.scene({gem:pt(ZERO,{name:'M',lab:''})});},cap0:`M(<span class="c">cos x</span>${NBSP};${NBSP}<span class="s">sin x</span>)`,
+    parts:[Object.assign(fill(`Ses coordonnées&nbsp;: M${pair(fH('c',a),fH('s',a))}, c'est-à-dire`,`M( {0} ; {1} )`,[c,s],
+      `Depuis le point I(1${NBSP};${NBSP}0), ${aH(a)} correspond à ${TURN[a.p+'_'+a.q]}&nbsp;: le point arrive sur un axe, ses coordonnées valent 0, 1 ou −1.`,
+      {targets:[fPy('c',a),fPy('s',a)],on:()=>{K.travel(0,aRad(a),1100).then(()=>K.set({gem:pt(a,{name:'M'})}))},onOk:async()=>{await K.shadow('cs',{c:vT(c),s:vT(s)})}}))],
+    done:`M${pair(fH('c',a),fH('s',a))} = ${pair(vH(c),vH(s))}.`}}
+function l1tap(){const a=nextF(),c=cosA(a),s=sinA(a);const list=aeq(a,A(1,4))?[A(1,4),A(3,4),A(-1,4),A(-3,4),ZERO,PI2]:[ZERO,A(1,6),A(1,3),PI2,A(2,3),A(5,6)];
+  const cands=list.map(b=>cand(b));
+  return{prompt:`Un point du cercle trigonométrique a pour coordonnées ${pair(vH(c),vH(s))}.`,
+    scene:()=>K.scene({}),
+    parts:[tap('Place le joyau sur ce point&nbsp;: touche-le.',cands,cand(a).id,id=>{const b=cands.find(z=>z.id===id).a;
+      const cb=cosA(b),sb=sinA(b);let w=coordTxt(b)+'&nbsp;: ';
+      if(veq(cb,s)&&veq(sb,c))w+='tu as échangé abscisse (cos) et ordonnée (sin).';else if(vnum(cb)*vnum(c)<0)w+='son abscisse n\'a pas le bon signe.';else w+=`il faut une abscisse égale à ${vH(c)}.`;
+      return w.replace(/^./,x=>x.toUpperCase())},{target:`(${vPy(c)},${vPy(s)})`,onOk:async()=>{K.set({gem:pt(a,{name:'M'})});await K.shadow('cs',{c:vT(c),s:vT(s)})}})],
+    done:`Ce point est associé au réel ${aH(a)}&nbsp;: ${fH('c',a)} = ${vH(c)} et ${fH('s',a)} = ${vH(s)}.`}}
+function l1both(){const a=nextF();
+  return{prompt:`Le joyau est au point M associé au réel ${aH(a)}. Allume ses deux projecteurs.`,
+    scene:()=>K.scene({gem:pt(a,{name:'M'})}),cap0:`M(<span class="c">cos x</span>${NBSP};${NBSP}<span class="s">sin x</span>)`,
+    parts:[pickVal('c',a,{set:VAL5,ask:`Ombre horizontale&nbsp;: ${fH('c',a)} =${NBSP}?`}),pickVal('s',a,{set:VAL5,ask:`Ombre verticale&nbsp;: ${fH('s',a)} =${NBSP}?`})],
+    done:`M${pair(fH('c',a),fH('s',a))} = ${pair(vH(cosA(a)),vH(sinA(a)))}.`}}
+function l1borne(){const fn=pick(['c','s']),okL=[[V(1,1,3),'sqrt(3)'],[V(3,2),'Rational(3,2)'],[V(-3,2),'Rational(-3,2)'],[V(1,1,2),'sqrt(2)'],[V(-1,1,2),'-sqrt(2)']];
+  const [ov]=pick(okL);const pi4={h:frac('π','4'),py:'pi/4',why:`${frac('π','4')} ≈ 0,79 est entre −1 et 1&nbsp;: c'est bien le ${fn==='c'?'cosinus':'sinus'} d'un certain réel. Ne confonds pas le réel x et son ${fn==='c'?'cosinus':'sinus'}.`};
+  const wr=shuf([V(1,2,3),V(-1),V(0),V(-1,2,2),V(1),V(-1,2)]).slice(0,2).map(v=>({h:vH(v),py:vPy(v),why:`${vH(v)} est entre −1 et 1&nbsp;: c'est le ${fn==='c'?'cosinus':'sinus'} d'un réel (une ombre tombe bien là).`}));
+  const L=[{h:vH(ov),py:vPy(ov),ok:true}].concat(wr,[pi4]).map(c=>Object.assign(c,{py:`Abs(${c.py})>1`}));
+  return{prompt:`Les ombres du joyau tombent toujours sur le segment [${MINUS}1${NBSP};${NBSP}1] de chaque axe, car M est sur le cercle de rayon 1.`,
+    scene:()=>K.scene({gem:pt(A(1,3),{name:'M',lab:''})}),
+    parts:[pk(`Lequel de ces nombres ne peut pas être le ${fn==='c'?'cosinus':'sinus'} d'un réel${NBSP}?`,L,{grid:'g2',target:'True',onOk:async()=>{K.set({band:fn})}})],
+    done:`${vH(ov)} ${vnum(ov)>0?'&gt; 1':'&lt; −1'}&nbsp;: pour tout réel x, ${MINUS}1 ≤ ${nm(fn)} x ≤ 1.`}}
+LV.push({t:'Les deux ombres',s:'Ombres',chap:'Cosinus et sinus d\'un réel · définition',reset:()=>{bag=[]},
+  rule:`<p>Le point M du cercle trigonométrique associé au réel x a pour coordonnées <b>M(cos x${NBSP};${NBSP}sin x)</b>&nbsp;: <span class="cc">cos x</span> est son abscisse (l'ombre sur l'axe horizontal), <span class="ss">sin x</span> son ordonnée (l'ombre sur l'axe vertical).</p><p>Pour tout réel x&nbsp;: ${MINUS}1 ≤ cos x ≤ 1 et ${MINUS}1 ≤ sin x ≤ 1.</p>`+
+    `<table class="vr"><tr><th>x</th><td>0</td><td>${frac('π','6')}</td><td>${frac('π','4')}</td><td>${frac('π','3')}</td><td>${frac('π','2')}</td></tr><tr><th>cos x</th><td>1</td><td>${frac('√3','2')}</td><td>${frac('√2','2')}</td><td>${frac('1','2')}</td><td>0</td></tr><tr><th>sin x</th><td>0</td><td>${frac('1','2')}</td><td>${frac('√2','2')}</td><td>${frac('√3','2')}</td><td>1</td></tr></table>`,
+  qs:[l1val('c'),l1val('s'),l1axe,l1tap,l1both,l1borne]});
+/* ======================= Niveau 2 : le triangle de lumière ======================= */
+const TRIPLES=[[3,4,5,true],[5,12,13,false],[8,15,17,false],[7,24,25,true],[6,8,10,true]];
+function l2sides(){const g=ptn(.72,{name:'M',lab:'x'});
+  return{prompt:`Le joyau est en M, associé à un réel x de l'intervalle ]0${NBSP};${NBSP}${frac('π','2')}[. H est le pied de la perpendiculaire à l'axe (Ox) passant par M&nbsp;: le triangle OHM est rectangle en H, son angle en O mesure x radians et son hypoténuse OM mesure 1.`,
+    scene:()=>K.scene({gem:g,tri:true,triLab:{om:'1'}}),
+    parts:[pk('La longueur OH est égale à&nbsp;:',[{h:'cos x',py:'cos(x)',ok:true},{h:'sin x',py:'sin(x)',why:'sin x = côté opposé / hypoténuse = HM / OM&nbsp;: c\'est HM, pas OH.'},
+        {h:frac(1,'cos x'),py:'1/cos(x)',why:'cos x = côté adjacent / hypoténuse = OH / OM = OH / 1&nbsp;: OH est égal à cos x, pas à son inverse.'},{h:`1 ${MINUS} sin x`,py:'1-sin(x)',why:'OH + HM ne vaut pas OM&nbsp;: dans le triangle, seul le théorème de Pythagore relie les trois côtés.'}],
+        {grid:'g2',target:'cos(x)',onOk:async()=>{await K.shadow('c',{c:'cos x'})}}),
+      pk('Et la longueur HM&nbsp;?',[{h:'sin x',py:'sin(x)',ok:true},{h:'cos x',py:'cos(x)',why:'cos x, c\'est OH (côté adjacent à l\'angle en O)&nbsp;; HM est le côté opposé.'},
+        {h:frac(1,'sin x'),py:'1/sin(x)',why:'sin x = HM / OM = HM / 1&nbsp;: HM est égal à sin x, pas à son inverse.'},{h:`1 ${MINUS} cos x`,py:'1-cos(x)',why:'OH + HM ne vaut pas OM&nbsp;: seul le théorème de Pythagore relie les trois côtés.'}],
+        {grid:'g2',target:'sin(x)',onOk:async()=>{await K.shadow('s',{s:'sin x'})}})],
+    done:'OH = cos x (l\'ombre horizontale) et HM = sin x (l\'ombre verticale)&nbsp;: c\'est le cosinus et le sinus du triangle rectangle, avec une hypoténuse égale à 1.'}}
+function l2pyth(){const g=ptn(.62,{name:'M',lab:'x'});
+  return{prompt:`Dans le triangle OHM rectangle en H, OH = cos x, HM = sin x et OM = 1.`,
+    scene:()=>K.scene({gem:g,tri:true,triLab:{om:'1'},shC:1,shS:1,labC:'cos x',labS:'sin x'}),
+    parts:[pk('Le théorème de Pythagore donne, pour tout réel x&nbsp;:',[{h:'cos² x + sin² x = 1',py:'cos(x)**2+sin(x)**2-1',ok:true},{h:'cos x + sin x = 1',py:'cos(x)+sin(x)-1',why:'Pythagore porte sur les carrés des côtés&nbsp;: OH² + HM² = OM², pas OH + HM = OM.'},
+        {h:`cos² x ${MINUS} sin² x = 1`,py:'cos(x)**2-sin(x)**2-1',why:'L\'hypoténuse est OM&nbsp;: OM² est la somme OH² + HM², pas une différence.'},{h:'cos² x + sin² x = 2',py:'cos(x)**2+sin(x)**2-2',why:'OM = 1, donc OM² = 1 et non 2.'}],
+        {target:'0',onOk:async()=>{let t0=.12;await K.anim(2200,k=>{const t=t0+(1.45-t0)*k,c=Math.cos(t),s=Math.sin(t);K.set({gem:Object.assign({},K.S.gem,{c,s})});
+          K.cap(`<span class="c">cos² x ≈ ${(c*c).toFixed(2).replace('.',',')}</span> <span class="m">·</span> <span class="s">sin² x ≈ ${(s*s).toFixed(2).replace('.',',')}</span> <span class="m">·</span> <span class="k">somme = 1</span>`)})}})],
+    done:'Pour tout réel x, <b>cos² x + sin² x = 1</b> (OH² + HM² = OM² = 1). Le joyau a beau tourner, la somme des carrés de ses ombres vaut toujours 1.',capEnd:'<span class="c">cos² x</span> + <span class="s">sin² x</span> = <span class="k">1</span>'}}
+function l2find(){const [a,b,c,dec]=pick(TRIPLES),swap=Math.random()<.5,cv=V(swap?b:a,c,1,dec),sv=V(swap?a:b,c,1,dec),giv=pick(['c','s']),kv=giv==='c'?cv:sv,uv=giv==='c'?sv:cv,un=other(giv);
+  const g={c:vnum(cv),s:vnum(sv),name:'M',lab:'x'};
+  return{prompt:`x est un réel de [0${NBSP};${NBSP}${frac('π','2')}] et ${nm(giv)} x = ${vH(kv)}.`,
+    scene:()=>K.scene({gem:g,tri:true,triLab:{om:'1'},[giv==='c'?'shC':'shS']:1,[giv==='c'?'labC':'labS']:vT(kv)}),cap0:'<span class="c">cos² x</span> + <span class="s">sin² x</span> = <span class="k">1</span>',
+    parts:[fill(`Calcule l'autre ombre&nbsp;:`,`${nm(un)} x = {0}`,[uv],v=>{const x=v[0],k2=V(kv.n*kv.n,kv.d*kv.d),one=V(kv.d-kv.n,kv.d),u2=V(uv.n*uv.n,uv.d*uv.d);
+        if(veq(x,one))return `cos x + sin x ne vaut pas 1&nbsp;: c'est la somme des carrés qui vaut 1 (cos² x + sin² x = 1).`;
+        if(veq(x,u2))return `Tu as trouvé ${nm(un)}² x&nbsp;: il reste à prendre la racine carrée.`;
+        if(veq(x,vneg(uv)))return `x est dans [0${NBSP};${NBSP}${frac('π','2')}]&nbsp;: le point M est dans le premier quart du cercle, donc ${nm(un)} x ≥ 0.`;
+        return `Utilise ${nm(un)}² x = 1 ${MINUS} ${nm(giv)}² x = 1 ${MINUS} ${vH(k2)}, puis la racine carrée (${nm(un)} x ≥ 0 car x ∈ [0${NBSP};${NBSP}${frac('π','2')}]).`},
+      {targets:[`sqrt(1-(${vPy(kv)})**2)`],onOk:async()=>{await K.shadow(un,{[un]:vT(uv)})}})],
+    done:`${nm(un)}² x = 1 ${MINUS} ${vH(V(kv.n*kv.n,kv.d*kv.d))} = ${vH(V(uv.n*uv.n,uv.d*uv.d))} et ${nm(un)} x ≥ 0, donc ${nm(un)} x = ${vH(uv)}.`}}
+function l2circle(){const [a,b,c]=pick(TRIPLES.filter(t=>t[3])),sw=Math.random()<.5;const okp=[V(sw?b:a,c,1,true),V(sw?a:b,c,1,true)];
+  const bad=shuf([[V(5,10,1,true),V(5,10,1,true)],[V(4,10,1,true),V(6,10,1,true)],[V(7,10,1,true),V(7,10,1,true)],[V(3,10,1,true),V(9,10,1,true)],[V(2,10,1,true),V(8,10,1,true)]]).slice(0,3);
+  const names=shuf(['A','B','C','D']);const all=[okp].concat(bad);
+  const sq=p=>{const q=V(p[0].n*p[0].n*p[1].d*p[1].d+p[1].n*p[1].n*p[0].d*p[0].d,p[0].d*p[0].d*p[1].d*p[1].d,1,true);return q};
+  const L=all.map((p,i)=>({h:`${names[i]}${pair(vH(p[0]),vH(p[1]))}`,py:`(${vPy(p[0])})**2+(${vPy(p[1])})**2`,ok:i===0,
+    why:i?`${vH(p[0])}² + ${vH(p[1])}² = ${vH(sq(p))} ≠ 1&nbsp;: ce point n'est pas sur le cercle${vnum(sq(p))>.97?' (il en est tout près : à l\'œil, on ne peut pas trancher)':''}.`:''}));
+  return{prompt:`Quatre points sont marqués près du cercle trigonométrique. Un point P(a${NBSP};${NBSP}b) est sur ce cercle exactement quand a² + b² = 1.`,
+    scene:()=>K.scene({extra:all.map((p,i)=>({c:vnum(p[0]),s:vnum(p[1]),lab:names[i],col:'#e6ecff',dx:12,dy:-10}))}),
+    parts:[pk('Lequel est sur le cercle (et peut donc porter le joyau)&nbsp;?',L,{target:'1',onOk:async()=>{K.set({extra:[],gem:{c:vnum(okp[0]),s:vnum(okp[1]),name:names[0],lab:''}});await K.shadow('cs',{c:vT(okp[0]),s:vT(okp[1])})}})],
+    done:`${vH(okp[0])}² + ${vH(okp[1])}² = 1&nbsp;: le point ${names[0]} est sur le cercle, il est associé à un réel x tel que cos x = ${vH(okp[0])} et sin x = ${vH(okp[1])}.`}}
+function l2pi4(){const a=A(1,4);
+  return{prompt:`Démonstration&nbsp;: pour x = ${aH(a)}, la droite (OM) est la bissectrice de l'angle droit, donc le triangle OHM est rectangle isocèle en H&nbsp;: OH = HM. On note c cette longueur.`,
+    scene:()=>K.scene({gem:pt(a,{name:'M'}),tri:true,triLab:{om:'1',oh:'c',hm:'c'},mirror:'bis'}),
+    parts:[pk('Le théorème de Pythagore dans OHM s\'écrit&nbsp;:',[{h:'2c² = 1',py:'2*c**2-1',ok:true},{h:'c² = 1',py:'c**2-1',why:'OH² + HM² = c² + c² = 2c², et OM² = 1.'},{h:'2c = 1',py:'2*c-1',why:'Pythagore porte sur les carrés&nbsp;: c² + c², pas c + c.'},{h:'c² = 2',py:'c**2-2',why:'L\'hypoténuse OM vaut 1&nbsp;: c\'est OM² = 1 qui est la somme des deux carrés.'}],{grid:'g2',target:'2*c**2-1'}),
+      pk(`Donc ${fH('c',a)} = ${fH('s',a)} = c =`,[{h:vH(V(1,2,2)),py:vPy(V(1,2,2)),ok:true},{h:frac(1,2),py:'Rational(1,2)',why:'c² = 1/2, mais c n\'est pas 1/2&nbsp;: c = √(1/2) = 1/√2 = √2/2.'},{h:'√2',py:'sqrt(2)',why:'√2 &gt; 1&nbsp;: une ombre ne peut pas dépasser 1. c² = 1/2, donc c = √2/2.'},{h:frac(1,4),py:'Rational(1,4)',why:'2c² = 1 donne c² = 1/2, puis c = √(1/2) = √2/2.'}],
+        {grid:'g2',target:'sqrt(2)/2',onOk:async()=>{await K.shadow('cs',{c:'√2/2',s:'√2/2'})}})],
+    done:`2c² = 1, c² = ${frac(1,2)}, c &gt; 0, donc c = ${frac(1,'√2')} = ${frac('√2','2')}&nbsp;: ${fH('c',a)} = ${fH('s',a)} = ${frac('√2','2')}.`}}
+function l2pi3(){const a=A(1,3);
+  return{prompt:`Démonstration&nbsp;: pour x = ${aH(a)}, le triangle OIM est équilatéral (OI = OM = 1 et l'angle en O mesure ${aH(a)}). La hauteur issue de M coupe [OI] en H, qui est donc le milieu de [OI].`,
+    scene:()=>K.scene({gem:pt(a,{name:'M'}),tri:true,eq:true,triLab:{om:'1'}}),
+    parts:[pk(`${fH('c',a)} = OH =`,[{h:frac(1,2),py:'Rational(1,2)',ok:true},{h:vH(V(1,2,3)),py:vPy(V(1,2,3)),why:'H est le milieu de [OI] et OI = 1&nbsp;: OH = OI / 2.'},{h:frac(1,3),py:'Rational(1,3)',why:'H est le milieu de [OI] (hauteur d\'un triangle équilatéral)&nbsp;: OH = OI / 2.'},{h:'1',py:'1',why:'OH n\'est qu\'une partie de OI = 1&nbsp;: H est le milieu de [OI].'}],
+        {grid:'g2',target:fPy('c',a),onOk:async()=>{await K.shadow('c',{c:'1/2'})}}),
+      pk(`${fH('s',a)} = HM = √(1 ${MINUS} OH²) =`,[{h:vH(V(1,2,3)),py:vPy(V(1,2,3)),ok:true},{h:frac(3,4),py:'Rational(3,4)',why:'3/4, c\'est HM²&nbsp;: il reste à prendre la racine carrée.'},{h:frac(1,2),py:'Rational(1,2)',why:'1/2, c\'est OH. Pythagore&nbsp;: HM² = 1 − (1/2)² = 3/4.'},{h:'√3',py:'sqrt(3)',why:'√3 &gt; 1&nbsp;: une ombre ne dépasse jamais 1. HM² = 3/4, donc HM = √3 / √4.'}],
+        {grid:'g2',target:fPy('s',a),onOk:async()=>{await K.shadow('s',{s:'√3/2'})}})],
+    done:`${fH('c',a)} = ${frac(1,2)} et ${fH('s',a)} = √(3/4) = ${frac('√3','2')}.`}}
+LV.push({t:'Le triangle de lumière',s:'Triangle',chap:'Lien avec le triangle rectangle · cos² x + sin² x = 1',
+  rule:`<p>Pour x dans ]0${NBSP};${NBSP}${frac('π','2')}[, le triangle OHM (H sur l'axe (Ox)) est rectangle en H, d'hypoténuse OM = 1&nbsp;: OH = cos x et HM = sin x, comme dans un triangle rectangle (adjacent / hypoténuse, opposé / hypoténuse).</p><p>Pour tout réel x&nbsp;: <b>cos² x + sin² x = 1</b>.</p><p>Démonstrations&nbsp;: triangle rectangle isocèle pour ${frac('π','4')}, triangle équilatéral pour ${frac('π','3')}.</p>`,
+  qs:[l2sides,l2pyth,l2find,l2circle,l2pi4,l2pi3]});
+/* ======================= Niveaux 3 à 6 : les quatre miroirs ======================= */
+function mTap(kind){return()=>{let a=nextF();while(kind==='bis'&&aeq(a,A(1,4)))a=nextF();const b=imgPt(kind,a),D=KD[kind];const cands=ORB(a).filter(z=>!samePt(z,a)).map(z=>cand(z));
+  const okId=cands.find(z=>samePt(z.a,b)).id;
+  return{prompt:`Le joyau M est associé au réel x = ${aH(a)}. ${D.Mn} est allumé.`,
+    scene:()=>K.scene({gem:pt(a,{name:'M'}),mirror:kind}),
+    parts:[tap(`Touche le reflet de M par ${D.mir}.`,cands,okId,id=>{const z=cands.find(c=>c.id===id).a;return 'Ce point&nbsp;: '+relTxt(a,z)+` Le reflet par ${D.m} ${D.rule}.`},
+        {target:`(cos(${aPy(b)}),sin(${aPy(b)}))`,onOk:async()=>{await K.reflect(kind,'','M′')}}),
+      pk('Ce reflet M′ est associé au réel&nbsp;:',shuf(['ox','oy','o','bis']).map(k=>{const z=imgPt(k,a);return{h:aH(z),py:aPy(z),ok:k===kind,why:k===kind?'':`${aH(z)} = ${KD[k].lab.replace('x',aT(a))}&nbsp;: c'est le reflet par ${KD[k].m}, pas par ${D.m}.`}}).filter((c,i,L)=>L.findIndex(d=>d.h===c.h)===i),
+        {grid:'g2',target:aPy(b),onOk:async()=>{K.set({img:Object.assign({},K.S.img,{lab:aT(b)})})}})],
+    done:`Le reflet de M par ${D.m} est associé à ${D.lh.replace('x',aT(a))} = ${aH(b)}.`}}}
+function mForm(kind){return()=>{const D=KD[kind],x=.6,g=ptn(x,{name:'M',lab:'x'}),[ic,is]=K.IMG[kind](g.c,g.s),im={c:ic,s:is,name:'M′',lab:D.lab};
+  const opts=k=>['c','-c','s','-s'].map(e=>({h:EXP[e][0],py:EXP[e][1],ok:e===D[k],why:wf(k,e)}));
+  function wf(k,e){const fn=k==='c'?'cos':'sin';if(e===D[k])return '';const ax=k==='c'?'l\'abscisse (ombre horizontale)':'l\'ordonnée (ombre verticale)';
+    if(e.replace('-','')===D[k].replace('-',''))return `Le signe&nbsp;: ${D.mn} ${D.rule}. Compare ${ax} de M′ avec celle de M.`;
+    return `${fn}(${D.lab}) est ${ax} de M′. ${D.Mn} ${D.rule}.`}
+  return{prompt:`Le joyau M est associé à un réel x. Son reflet M′ par ${D.mir} est associé à ${D.lh}.`,
+    scene:()=>K.scene({gem:g,img:im,mirror:kind,both:true,shOn:'img'}),cap0:`M(<span class="c">cos x</span>${NBSP};${NBSP}<span class="s">sin x</span>)`,
+    parts:[pk(`cos(${D.lh}) =${NBSP}?`,opts('c'),{grid:'g2',target:`cos(${D.py})`,onOk:async()=>{await K.shadow('c',{c:`cos(${D.lab})`})}}),
+      pk(`sin(${D.lh}) =${NBSP}?`,opts('s'),{grid:'g2',target:`sin(${D.py})`,onOk:async()=>{await K.shadow('s',{s:`sin(${D.lab})`})}})],
+    done:`Pour tout réel x&nbsp;: <b>cos(${D.lh}) = ${EXP[D.c][0]}</b> et <b>sin(${D.lh}) = ${EXP[D.s][0]}</b>. ${D.Mn} ${D.rule}.`,
+    capEnd:`<span class="c">cos(${D.lab}) = ${EXP[D.c][0]}</span> <span class="m">·</span> <span class="s">sin(${D.lab}) = ${EXP[D.s][0]}</span>`}}}
+/* écriture « non calculée » pour le miroir y = x : cos(π/2 − π/6) */
+const unev=(kind,a)=>kind==='bis'?`${frac('π','2')} ${MINUS} ${aH(a)}`:aH(imgPt(kind,a));
+const unevT=(kind,a)=>kind==='bis'?`π/2 ${MINUS} ${aT(a)}`:aT(imgPt(kind,a));
+function mVal(kind,fn,pool){return()=>{const D=KD[kind],a=pool?pick(pool):nextF(),b=imgPt(kind,a),t=FV(fn,b),fl=`${nm(fn)}(${unev(kind,a)})`;
+  const parts=[];
+  if(kind==='oy'||kind==='o'){const rest=kind==='oy'?asub(PI,b):asub(b,PI);
+    parts.push(pk(kind==='oy'?`${aH(b)} s'écrit π ${MINUS} a, avec a =`:`${aH(b)} s'écrit π + a, avec a =`,shuf(F3.concat([b]).map(z=>({h:aH(z),py:aPy(z),ok:aeq(z,rest),
+        why:`π ${kind==='oy'?MINUS:'+'} ${aH(z)} = ${aH(kind==='oy'?asub(PI,z):aadd(PI,z))}, pas ${aH(b)}.`}))),{grid:'g2',target:kind==='oy'?`pi-${aPy(b)}`:`${aPy(b)}-pi`}))}
+  parts.push(Object.assign(pickVal(fn,b,{ask:`${fl} =${NBSP}?`,onOk:async()=>{await K.reflect(kind,unevT(kind,a),'');await K.shadow(fn,{[fn]:vT(t)})}}),{target:`${nm(fn)}(${kind==='bis'?`pi/2-${aPy(a)}`:aPy(b)})`}));
+  /* explication adaptée au miroir */
+  const pv=parts[parts.length-1];pv.ch.forEach(c=>{const v=VALS.find(z=>vH(z)===c.h);c.why=()=>{const base=FV(D[fn].replace('-',''),a);
+      if(veq(v,vneg(t))&&!veq(v,t))return `Le signe&nbsp;: ${D.mn} ${D.rule}. ${sideTxt(fn,b).replace(/^./,x=>x.toUpperCase())}`;
+      return `${D.Mn} ${D.rule}&nbsp;: ${nm(fn)}(${D.lab}) = ${EXP[D[fn]][0]}. Ici x = ${aH(a)}&nbsp;: il faut donc ${expAt(D[fn],a)}.`}});
+  return{prompt:`Le joyau M est associé à ${aH(a)}, et ${D.mn} est allumé.`,
+    scene:()=>K.scene({gem:pt(a,{name:'M'}),mirror:kind}),
+    parts,
+    done:`${fl} = ${expAt(D[fn],a)} = ${vH(t)}.`}}}
+function mNum(kind){return()=>{const D=KD[kind],[a,b,c,dec]=pick(TRIPLES),sw=Math.random()<.5,cv=V(sw?b:a,c,1,dec),sv=V(sw?a:b,c,1,dec);
+  const ev=e=>e==='c'?cv:e==='-c'?vneg(cv):e==='s'?sv:vneg(sv);const ans=[ev(D.c),ev(D.s)];const g={c:vnum(cv),s:vnum(sv),name:'M',lab:'x'};
+  return{prompt:`Le joyau M est associé à un réel x avec cos x = ${vH(cv)} et sin x = ${vH(sv)}. ${D.Mn} est allumé.`,
+    scene:()=>K.scene({gem:g,mirror:kind,shC:1,shS:1,labC:vT(cv),labS:vT(sv)}),
+    parts:[fill(`Coordonnées du reflet M′, associé à ${D.lh}&nbsp;:`,`M′( {0} ; {1} )`,ans,`${D.Mn} ${D.rule}&nbsp;: cos(${D.lh}) = ${EXP[D.c][0]} et sin(${D.lh}) = ${EXP[D.s][0]}.`,
+      {targets:[expPy(D.c,cv,sv),expPy(D.s,cv,sv)],
+       onOk:async()=>{K.set({shC:0,shS:0});await K.reflect(kind,D.lab,'M′');await K.shadow('cs',{c:vT(ans[0]),s:vT(ans[1])})}})],
+    done:`M′${pair(vH(ans[0]),vH(ans[1]))}&nbsp;: cos(${D.lh}) = ${EXP[D.c][0]} = ${vH(ans[0])} et sin(${D.lh}) = ${EXP[D.s][0]} = ${vH(ans[1])}.`}}}
+/* petites sommes de valeurs (résultat rationnel) */
+const POOL={ox:[['c',A(-1,3)],['s',A(-1,6)],['s',A(-1,2)],['c',aneg(PI)],['c',A(-1,2)],['c',ZERO]],
+  oy:[['c',A(2,3)],['s',A(5,6)],['c',A(1,3)],['s',A(1,6)],['c',PI],['s',PI]],
+  o:[['s',A(7,6)],['c',A(4,3)],['c',A(1,3)],['s',A(1,6)],['s',A(3,2)],['c',A(3,2)]]};
+function mSum(kind){return()=>{const D=KD[kind];let t1,t2,sg,res;
+  do{[t1,t2]=shuf(POOL[kind].slice()).slice(0,2);sg=pick([1,-1]);const v1=FV(t1[0],t1[1]),v2=FV(t2[0],t2[1]);res=V(v1.n*v2.d+sg*v2.n*v1.d,v1.d*v2.d)}while(false);
+  const h=`${fH(t1[0],t1[1])} ${sg>0?'+':MINUS} ${fH(t2[0],t2[1])}`;
+  const v1=FV(t1[0],t1[1]),v2=FV(t2[0],t2[1]);
+  return{prompt:`Calcule, en lisant le kaléidoscope (${D.mn})&nbsp;:`,
+    scene:()=>K.scene({gem:pt(t1[1],{name:''}),mirror:kind}),
+    parts:[fill('',`${h} = {0}`,[res],`Calcule chaque terme à part. ${routeTxt(t1[1])}${routeTxt(t2[1])}`.trim(),
+      {targets:[`${fPy(t1[0],t1[1])}${sg>0?'+':'-'}${fPy(t2[0],t2[1])}`],onOk:async()=>{await K.shadow(t1[0],{[t1[0]]:vT(v1)})}})],
+    done:`${fH(t1[0],t1[1])} = ${vH(v1)} et ${fH(t2[0],t2[1])} = ${vH(v2)}, donc ${h} = ${vH(res)}.`}}}
+/* niveau 6 : cos(a) = sin(?) */
+function bisSwap(){const a=nextF(),fn=pick(['c','s']),t=FV(fn,a),want=asub(PI2,a),of=other(fn);
+  const L=[];for(const z of [want,a,aneg(want),aadd(PI,want),aadd(PI2,want),aneg(a),A(1,6),A(1,3),ZERO,PI2]){if(L.some(w=>aeq(w,z)||veq(FV(of,w),FV(of,z))))continue;L.push(z)}L.splice(4);
+  const ch=L.map(z=>({h:aH(z),py:`${nm(of)}(${aPy(z)})`,ok:aeq(z,want),why:`${nm(of)}(${aH(z)}) = ${vH(FV(of,z))}, alors que ${fH(fn,a)} = ${vH(t)}.`}));
+  return{prompt:`Le miroir y = x échange les deux ombres&nbsp;: cos(${frac('π','2')} ${MINUS} x) = sin x et sin(${frac('π','2')} ${MINUS} x) = cos x.`,
+    scene:()=>K.scene({gem:pt(a,{name:'M'}),mirror:'bis'}),
+    parts:[pk(`Complète&nbsp;: ${fH(fn,a)} = ${nm(of)}(${NBSP}?${NBSP})`,ch,
+      {grid:'g2',target:`${nm(fn)}(${aPy(a)})`,onOk:async()=>{await K.reflect('bis',aT(want),'M′');await K.shadow('cs',{c:vT(cosA(want)),s:vT(sinA(want))})}})],
+    done:`${fH(fn,a)} = ${nm(of)}(${frac('π','2')} ${MINUS} ${aH(a)}) = ${nm(of)}(${aH(want)}) = ${vH(t)}.`}}
+['ox','oy','o','bis'].forEach((kind,i)=>{const D=KD[kind];
+  const names={ox:['Le miroir (Ox)','(Ox)','Angle associé −x · symétrie par rapport à l\'axe des abscisses'],oy:['Le miroir (Oy)','(Oy)','Angle associé π − x · symétrie par rapport à l\'axe des ordonnées'],
+    o:['Le cœur du kaléidoscope','Centre O','Angle associé π + x · symétrie par rapport au centre O'],bis:['La diagonale','y = x','Angle associé π/2 − x · symétrie par rapport à la droite y = x']}[kind];
+  const qs=[mTap(kind),mForm(kind),mVal(kind,pick(['c','s'])),null,mNum(kind),kind==='bis'?bisSwap:mSum(kind)];
+  qs[3]=()=>mVal(kind,LV[2+i]._f2,kind==='bis'?[A(2,3),A(3,4),A(5,6)]:null)();
+  LV.push({t:names[0],s:names[1],chap:names[2],reset:()=>{bag=[];const f=pick(['c','s']);LV[2+i]._f1=f;LV[2+i]._f2=other(f);LV[2+i].qs[2]=mVal(kind,f)},
+    rule:`<p>Le point associé à <b>${D.lh}</b> est le symétrique du point M associé à x par rapport à ${D.mir}&nbsp;: ce miroir ${D.rule}.</p><p>Pour tout réel x&nbsp;: <b>cos(${D.lh}) = ${EXP[D.c][0]}</b> et <b>sin(${D.lh}) = ${EXP[D.s][0]}</b>.</p>`,qs})});
+/* ======================= Niveau 7 : le grand kaléidoscope ======================= */
+const X7=[A(2,3),A(3,4),A(5,6),A(-2,3),A(-3,4),A(-5,6),A(7,6),A(5,4),A(4,3),A(5,3),A(7,4),A(11,6),A(-1,6),A(-1,3)];
+const X7tap=[A(2,3),A(3,4),A(5,6),A(-2,3),A(-3,4),A(-5,6),A(7,6),A(5,4),A(4,3),A(5,3),A(7,4),A(11,6),A(13,6),A(-7,6)];
+let bag7=[],bag7t=[];const next7=L=>{if(!bag7.length)bag7=shuf(L.slice());return bag7.pop()};const next7t=()=>{if(!bag7t.length)bag7t=shuf(X7tap.slice());return bag7t.pop()};
+function l7tap(){const a=next7t(),r=refOf(a),cands=dedupe(ORB(r).concat(AXES)).map(z=>cand(z));const okId=cands.find(z=>samePt(z.a,a)).id;
+  return{prompt:`Place le joyau au point du cercle trigonométrique associé au réel <b>${aH(a)}</b>.`,
+    scene:()=>K.scene({}),
+    parts:[tap('Touche ce point.',cands,okId,id=>{const z=cands.find(c=>c.id===id).a;const R_=route(a);
+      return `Ce point est associé à ${aH(z)}. `+(R_&&R_.t?(R_.k==='id'?`Pense à ${aT(a)} = ${R_.t}&nbsp;: c'est le même point que celui associé à ${aH(R_.r)} (un tour de plus).`:`Pense à ${aT(a)} = ${R_.t}&nbsp;: c'est le ${SYM[R_.k]} du point associé à ${aH(R_.r)}.`):`Repère d'abord le quart de cercle&nbsp;: ${sideTxt('c',a)}`)},
+      {target:`(cos(${aPy(a)}),sin(${aPy(a)}))`,onOk:async()=>{K.set({gem:pt(a,{name:'M'})});await K.shadow('cs',{c:vT(cosA(a)),s:vT(sinA(a))})}})],
+    done:`Le point associé à ${aH(a)} a pour coordonnées ${pair(vH(cosA(a)),vH(sinA(a)))}.`}}
+function l7mir(){const a=next7(X7),r=refOf(a),R_=route(a),fn=pick(['c','s']),t=FV(fn,a);
+  const ks=['ox','oy','o','bis'],nmK={ox:'l\'axe (Ox)',oy:'l\'axe (Oy)',o:'le centre O',bis:'la droite y = x'};
+  const ch=ks.map(k=>{const im=imgPt(k,r);return{h:nmK[k],py:`(cos(${aPy(im)}),sin(${aPy(im)}))`,ok:samePt(im,a),why:`Le symétrique par rapport à ${nmK[k]} du point associé à ${aH(r)} est associé à ${aH(im)}, pas à ${aH(a)}.`}});
+  const kOk=ks.find(k=>samePt(imgPt(k,r),a));
+  return{prompt:`Le joyau M est associé à ${aH(r)}. On cherche ${fH(fn,a)}.`,
+    scene:()=>K.scene({gem:pt(r,{name:'M'})}),
+    parts:[pk(`Le point associé à ${aH(a)} est le symétrique de M par rapport à&nbsp;:`,ch,{grid:'g2',target:`(cos(${aPy(a)}),sin(${aPy(a)}))`,onOk:async()=>{await K.reflect(kOk,aT(a),'M′')}}),
+      pickVal(fn,a,{ask:`${fH(fn,a)} =${NBSP}?`})],
+    done:`${R_&&R_.t?aT(a)+' = '+R_.t+'&nbsp;: ':''}${fH(fn,a)} = ${vH(t)}.`}}
+function l7val(){const a=next7(X7),fn=pick(['c','s']),t=FV(fn,a);
+  return{prompt:`Sans miroir allumé, lis le kaléidoscope de tête.`,
+    scene:()=>K.scene({}),
+    parts:[pickVal(fn,a,{ask:`${fH(fn,a)} =${NBSP}?`,onOk:async()=>{K.set({gem:pt(a,{name:'M'})});await K.shadow(fn,{[fn]:vT(t)})}})],
+    done:`${routeTxt(a)}${fH(fn,a)} = ${vH(t)}.`}}
+const QUARTS=[{I:`[${frac('π','2')}${'&nbsp;'};${'&nbsp;'}π]`,t:[Math.PI/2,Math.PI],sc:-1,ss:1,mid:A(3,4)},{I:`[π${'&nbsp;'};${'&nbsp;'}${frac('3π','2')}]`,t:[Math.PI,1.5*Math.PI],sc:-1,ss:-1,mid:A(5,4)},
+  {I:`[${MINUS}${frac('π','2')}${'&nbsp;'};${'&nbsp;'}0]`,t:[-Math.PI/2,0],sc:1,ss:-1,mid:A(-1,4)},{I:`[${frac('π','2')}${'&nbsp;'};${'&nbsp;'}π]`,t:[Math.PI/2,Math.PI],sc:-1,ss:1,mid:A(3,4)}];
+function l7pyth(){const Qd=pick(QUARTS.slice(0,3)),[a,b,c,dec]=pick(TRIPLES),sw=Math.random()<.5;const cv=V(Qd.sc*(sw?b:a),c,1,dec),sv=V(Qd.ss*(sw?a:b),c,1,dec);
+  const giv=pick(['c','s']),kv=giv==='c'?cv:sv,uv=giv==='c'?sv:cv,un=other(giv);
+  return{prompt:`x est un réel de l'intervalle ${Qd.I} et ${nm(giv)} x = ${vH(kv)}.`,
+    scene:()=>K.scene({arc:Qd.t}),cap0:'<span class="c">cos² x</span> + <span class="s">sin² x</span> = <span class="k">1</span>',
+    parts:[fill('',`${nm(un)} x = {0}`,[uv],v=>{const x=v[0];if(veq(x,vneg(uv)))return `La valeur absolue est juste, pas le signe&nbsp;: sur ${Qd.I}, le point associé à x est ${un==='c'?(Qd.sc>0?'à droite':'à gauche')+' de l\'axe (Oy)':(Qd.ss>0?'au-dessus':'au-dessous')+' de l\'axe (Ox)'}.`;
+        if(veq(x,V(uv.n*uv.n,uv.d*uv.d)))return `Tu as trouvé ${nm(un)}² x&nbsp;: il reste la racine carrée, puis le signe.`;
+        return `${nm(un)}² x = 1 ${MINUS} ${nm(giv)}² x, puis choisis le signe d'après l'arc en surbrillance (l'intervalle ${Qd.I}).`},
+      {targets:[`${un==='c'?Qd.sc:Qd.ss}*sqrt(1-(${vPy(kv)})**2)`],onOk:async()=>{K.set({gem:{c:vnum(cv),s:vnum(sv),name:'M',lab:'x'}});await K.shadow('cs',{c:vT(cv),s:vT(sv)})}})],
+    done:`${nm(un)}² x = 1 ${MINUS} ${vH(V(kv.n*kv.n,kv.d*kv.d))} = ${vH(V(uv.n*uv.n,uv.d*uv.d))}, et sur ${Qd.I}, ${nm(un)} x ${vnum(uv)>0?'≥':'≤'} 0&nbsp;: ${nm(un)} x = ${vH(uv)}.`}}
+const OPEN=[{I:`]0${'&nbsp;'};${'&nbsp;'}${frac('π','2')}[`,t:[0,Math.PI/2],mid:A(1,4)},{I:`]${frac('π','2')}${'&nbsp;'};${'&nbsp;'}π[`,t:[Math.PI/2,Math.PI],mid:A(3,4)},{I:`]π${'&nbsp;'};${'&nbsp;'}${frac('3π','2')}[`,t:[Math.PI,1.5*Math.PI],mid:A(5,4)},
+  {I:`]${MINUS}${frac('π','2')}${'&nbsp;'};${'&nbsp;'}0[`,t:[-Math.PI/2,0],mid:A(-1,4)},{I:`]${MINUS}π${'&nbsp;'};${'&nbsp;'}${MINUS}${frac('π','2')}[`,t:[-Math.PI,-Math.PI/2],mid:A(-3,4)}];
+const SGN=[[1,1],[-1,1],[-1,-1],[1,-1]],sgH=(p)=>`cos x ${p[0]>0?'&gt;':'&lt;'} 0 et sin x ${p[1]>0?'&gt;':'&lt;'} 0`;
+function l7sign(){const O=pick(OPEN.slice(1)),m=O.mid,tr=[Math.sign(vnum(cosA(m))),Math.sign(vnum(sinA(m)))];
+  return{prompt:`x est un réel de l'intervalle ${O.I}.`,
+    scene:()=>K.scene({arc:O.t}),
+    parts:[pk('Les signes de cos x et sin x&nbsp;:',SGN.map(p=>({h:sgH(p),py:`(${p[0]},${p[1]})`,ok:p[0]===tr[0]&&p[1]===tr[1],
+        why:`Regarde l'arc en surbrillance&nbsp;: il est ${tr[0]>0?'à droite':'à gauche'} de l'axe (Oy) (signe de cos x) et ${tr[1]>0?'au-dessus':'au-dessous'} de l'axe (Ox) (signe de sin x).`.replace(/^/,p[0]!==tr[0]&&p[1]!==tr[1]?'Les deux signes sont faux. ':p[0]!==tr[0]?'Le signe de cos x est faux. ':'Le signe de sin x est faux. ')})),
+      {target:`(sign(cos(${aPy(m)})),sign(sin(${aPy(m)})))`,onOk:async()=>{const t0=O.t[0]+.15,t1=O.t[1]-.15;K.set({gem:{c:Math.cos(t0),s:Math.sin(t0),name:'M',lab:'x'},shC:1,shS:1});await K.travel(t0,t1,1600);await K.travel(t1,(t0+t1)/2,700)}})],
+    done:`Sur ${O.I}, ${sgH(tr)}&nbsp;: les ombres changent de longueur mais restent du même côté.`}}
+const SIMP=[[`cos(π ${MINUS} x) + cos(${MINUS}x)`,'cos(pi-x)+cos(-x)'],[`sin(π ${MINUS} x) ${MINUS} sin(${MINUS}x)`,'sin(pi-x)-sin(-x)'],[`cos(π + x) + sin(${frac('π','2')} ${MINUS} x)`,'cos(pi+x)+sin(pi/2-x)'],
+  [`sin(π + x) + cos(${frac('π','2')} ${MINUS} x)`,'sin(pi+x)+cos(pi/2-x)'],[`cos(${MINUS}x) + cos(π ${MINUS} x) + cos(π + x)`,'cos(-x)+cos(pi-x)+cos(pi+x)'],[`sin(π ${MINUS} x) + sin(π + x)`,'sin(pi-x)+sin(pi+x)'],
+  [`sin(${frac('π','2')} ${MINUS} x) ${MINUS} cos(π + x)`,'sin(pi/2-x)-cos(pi+x)'],[`cos(${frac('π','2')} ${MINUS} x) + sin(π ${MINUS} x)`,'cos(pi/2-x)+sin(pi-x)']];
+const RES=[['0','0'],['2cos x','2*cos(x)'],[`${MINUS}2cos x`,'-2*cos(x)'],['2sin x','2*sin(x)'],[`${MINUS}2sin x`,'-2*sin(x)'],['cos x','cos(x)'],[`${MINUS}cos x`,'-cos(x)'],['sin x','sin(x)'],['1','1']];
+function l7simp(){const [h,py]=pick(SIMP);
+  /* bonne réponse calculée ici par les formules (l'audit la vérifie avec sympy) */
+  const f=new Function('x','const cos=Math.cos,sin=Math.sin,pi=Math.PI;return '+py);const val=x=>f(x);
+  const okR=RES.find(([_,r])=>{const g=new Function('x','const cos=Math.cos,sin=Math.sin;return '+r);return [.3,.9,1.7,2.6].every(x=>Math.abs(g(x)-val(x))<1e-9)});
+  const wrong=shuf(RES.filter(r=>r!==okR)).slice(0,3);
+  return{prompt:`Simplifie, pour tout réel x&nbsp;: <b>A = ${h}</b>.`,
+    scene:()=>K.scene({gem:ptn(.55,{name:'M',lab:'x'}),rose:false}),
+    parts:[pk('A =',[{h:okR[0],py:okR[1],ok:true}].concat(wrong.map(r=>({h:r[0],py:r[1],why:'Remplace chaque terme grâce à son miroir&nbsp;: cos(−x) = cos x, sin(−x) = −sin x&nbsp;; cos(π − x) = −cos x, sin(π − x) = sin x&nbsp;; cos(π + x) = −cos x, sin(π + x) = −sin x&nbsp;; cos(π/2 − x) = sin x, sin(π/2 − x) = cos x.'}))),
+      {grid:'g2',target:py})],
+    done:`A = ${okR[0]}.`}}
+LV.push({t:'Le grand kaléidoscope',s:'Grand final',chap:'Valeurs remarquables et angles associés · tout le cercle',reset:()=>{bag7=[];bag7t=[];bag=[]},
+  rule:`<p>Pour un réel remarquable, on repère son point sur le cercle, puis on le relie à un point du premier quart par un miroir&nbsp;: (Ox) pour ${MINUS}x, (Oy) pour π ${MINUS} x, O pour π + x, y = x pour ${frac('π','2')} ${MINUS} x.</p>`+
+    `<table class="vr"><tr><th></th><th>${MINUS}x</th><th>π ${MINUS} x</th><th>π + x</th><th>${frac('π','2')} ${MINUS} x</th></tr><tr><th>cos</th><td>cos x</td><td>${MINUS}cos x</td><td>${MINUS}cos x</td><td>sin x</td></tr><tr><th>sin</th><td>${MINUS}sin x</td><td>sin x</td><td>${MINUS}sin x</td><td>cos x</td></tr></table><p>Avec cos² x + sin² x = 1, le signe se lit sur le quart de cercle où se trouve le point.</p>`,
+  qs:[l7tap,l7mir,l7val,l7pyth,l7sign,l7simp]});
+Object.assign(K,{fH,fT,fPy,FV,other,nm,pair,F3,refOf,route,routeTxt,KD,EXP,TRIPLES,X7,QUARTS,OPEN,SGN,sgH,SIMP,RES,imgPt,expAt,expPy});
+})();
+</script>
+<script>
+/* ======================= LE KALÉIDOSCOPE — épreuves finales Bronze, Argent, Or ======================= */
+(function(){
+'use strict';
+const K=window.KZK,{V,veq,vnum,vneg,vH,vT,vPy,writes,A,aadd,aneg,asub,aeq,PI,PI2,ZERO,aT,aH,aPy,cosA,sinA,VALS,frac,pick,shuf,ri,MINUS,fH,fPy,FV,other,nm,pair,F3,refOf,route,KD,EXP,TRIPLES,QUARTS,OPEN,SGN,sgH,SIMP,RES,imgPt,expAt,expPy}=K;
+const NBSP='&nbsp;';
+/* QCM : choix dédoublonnés, 3 ou 4 choix, un seul juste ; chk = expressions vérifiées par l'audit */
+function QCM(level,prompt,list,explain,tgt){const out=[];const ok=list.find(c=>c.ok);if(!ok)return null;out.push(ok);
+  for(const c of shuf(list.filter(c=>!c.ok))){if(out.some(d=>d.h===c.h))continue;out.push(c);if(out.length===4)break}
+  if(out.length<3)return null;shuf(out);
+  return{type:'qcm',level,prompt,choices:out.map(c=>c.h),answer:out.findIndex(c=>c.ok),explain,chk:out.map(c=>c.py),tgt}}
+function TR(level,prompt,blanks,explain){return{type:'trous',level,prompt,explain,blanks:blanks.map(b=>({answers:writes(b.v),size:Math.max(3,vT(b.v).length+1),v:vPy(b.v),tgt:b.tgt}))}}
+/* leurres d'une valeur remarquable : erreurs classiques (cos/sin échangés, signe, √ oublié) */
+function vChoices(fn,a){const t=FV(fn,a),u=FV(other(fn),a);const L=[{h:vH(t),py:vPy(t),ok:true}];
+  const add=v=>{if(!veq(v,t)&&Math.abs(vnum(v))<=1)L.push({h:vH(v),py:vPy(v)})};add(u);add(vneg(t));add(vneg(u));
+  if(t.s>1)add(V(t.n,t.d));for(const v of shuf(VALS.slice()))add(v);return L}
+const R1=()=>pick(F3);
+const NR=()=>pick([A(2,3),A(3,4),A(5,6),A(-1,6),A(-1,4),A(-1,3),A(7,6),A(5,4),A(4,3),A(-2,3),A(-3,4),A(-5,6),A(5,3),A(7,4),A(11,6)]);
+/* angles dont le cos (ou le sin) est rationnel : pour les trous */
+const RATS=fn=>[A(1,3),A(2,3),A(4,3),A(5,3),A(-1,3),A(-2,3),ZERO,PI2,PI,A(-1,2),A(3,2),A(1,6),A(5,6),A(7,6),A(11,6),A(-1,6),A(-5,6)].filter(a=>FV(fn,a).s===1);
+const GEN=[];
+/* ---------- 1. cos x, sin x : définition, valeurs du premier quart, axes ---------- */
+GEN[0]=(tier,ty)=>{const fn=pick(['c','s']);
+  if(ty==='qcm'){
+    if(tier==='or'&&Math.random()<.5){const a=pick(F3.concat([PI,aneg(PI2)]));const c=cosA(a),s=sinA(a);
+      const L=[{h:pair(vH(c),vH(s)),py:`(${vPy(c)},${vPy(s)})`,ok:true},{h:pair(vH(s),vH(c)),py:`(${vPy(s)},${vPy(c)})`},{h:pair(vH(c),vH(vneg(s))),py:`(${vPy(c)},${vPy(vneg(s))})`},{h:pair(vH(vneg(c)),vH(s)),py:`(${vPy(vneg(c))},${vPy(s)})`},{h:pair(aH(a),'0'),py:`(${aPy(a)},0)`}];
+      return QCM(1,`Le point du cercle trigonométrique associé au réel ${aH(a)} a pour coordonnées&nbsp;:`,L,`Ce point est M(cos x${NBSP};${NBSP}sin x) = ${pair(vH(c),vH(s))}.`,`(cos(${aPy(a)}),sin(${aPy(a)}))`)}
+    if(tier!=='bronze'&&Math.random()<.35){const okv=pick([V(1,1,3),V(3,2),V(-3,2),V(1,1,2)]);
+      const L=[{h:vH(okv),py:`Abs(${vPy(okv)})>1`,ok:true},{h:frac('π','4'),py:'Abs(pi/4)>1'},{h:vH(V(1,2,3)),py:`Abs(${vPy(V(1,2,3))})>1`},{h:vH(V(-1)),py:'Abs(-1)>1'},{h:vH(V(-1,2,2)),py:`Abs(${vPy(V(-1,2,2))})>1`}];
+      return QCM(1,`Lequel de ces nombres ne peut pas être le ${fn==='c'?'cosinus':'sinus'} d'un réel${NBSP}?`,L,`Pour tout réel x, ${MINUS}1 ≤ ${nm(fn)} x ≤ 1&nbsp;; ${vH(okv)} est en dehors de [${MINUS}1${NBSP};${NBSP}1] (et ${frac('π','4')} ≈ 0,79 est bien dedans).`,'True')}
+    const a=R1();return QCM(1,`${fH(fn,a)} =`,vChoices(fn,a),`${fH(fn,a)} = ${vH(FV(fn,a))}&nbsp;: ${fn==='c'?'abscisse':'ordonnée'} du point associé à ${aH(a)}.`,fPy(fn,a))}
+  if(tier==='or'){const T=shuf([['c',A(1,3)],['s',A(1,6)],['c',PI],['s',aneg(PI2)],['c',ZERO],['s',PI2],['c',PI2]]).slice(0,3),sg=[1,pick([1,-1]),pick([1,-1])];
+    let r=V(0);T.forEach(([f,z],k)=>{const v=FV(f,z);r=V(r.n*v.d+sg[k]*v.n*r.d,r.d*v.d)});
+    const h=T.map(([f,z],k)=>(k?(sg[k]>0?' + ':` ${MINUS} `):'')+fH(f,z)).join('');
+    return TR(1,`${h} = {0}`,[{v:r,tgt:T.map(([f,z],k)=>(sg[k]>0?'+':'-')+fPy(f,z)).join('')}],T.map(([f,z])=>`${fH(f,z)} = ${vH(FV(f,z))}`).join('&nbsp;; ')+'.')}
+  const a=tier==='bronze'?pick([ZERO,PI2,PI,A(1,3),A(1,6)].filter(z=>FV(fn,z).s===1)):pick([PI,aneg(PI2),A(3,2),aneg(PI)]);
+  if(tier==='bronze'||Math.random()<.5)return TR(1,`${fH(fn,a)} = {0}`,[{v:FV(fn,a),tgt:fPy(fn,a)}],`${fH(fn,a)} = ${vH(FV(fn,a))}&nbsp;: c'est ${fn==='c'?'l\'abscisse':'l\'ordonnée'} du point associé à ${aH(a)}.`);
+  return TR(1,`Le point du cercle trigonométrique associé à ${aH(a)} a pour coordonnées ( {0} ; {1} ).`,[{v:cosA(a),tgt:fPy('c',a)},{v:sinA(a),tgt:fPy('s',a)}],`Ce point est ${pair(vH(cosA(a)),vH(sinA(a)))}&nbsp;: il est sur un axe.`)};
+/* ---------- 2. triangle rectangle, cos² x + sin² x = 1 ---------- */
+GEN[1]=(tier,ty)=>{
+  if(ty==='qcm'){
+    if(tier==='bronze'){if(Math.random()<.5)return QCM(2,'Pour tout réel x, cos² x + sin² x =',[{h:'1',py:'1',ok:true},{h:'0',py:'0'},{h:'2',py:'2'},{h:'cos x + sin x',py:'cos(x)+sin(x)'}],'C\'est le théorème de Pythagore dans le triangle OHM d\'hypoténuse 1&nbsp;: cos² x + sin² x = 1.','cos(x)**2+sin(x)**2');
+      const [a,b,c,d]=pick(TRIPLES.filter(t=>t[3]));const p=[V(a,c,1,true),V(b,c,1,true)];
+      const L=[{h:pair(vH(p[0]),vH(p[1])),py:`(${vPy(p[0])})**2+(${vPy(p[1])})**2`,ok:true},{h:pair('0,5','0,5'),py:'Rational(1,2)'},{h:pair('0,4','0,6'),py:'Rational(52,100)'},{h:pair('0,7','0,7'),py:'Rational(98,100)'},{h:pair('0,3','0,9'),py:'Rational(90,100)'}];
+      return QCM(2,'Lequel de ces points est sur le cercle trigonométrique&nbsp;?',L,`${vH(p[0])}² + ${vH(p[1])}² = 1&nbsp;; pour les autres, a² + b² ≠ 1 (0,7² + 0,7² = 0,98 par exemple).`,'1')}
+    if(tier==='or'){const ang=pick([A(1,6),A(1,3)]),hyp=pick([6,8,10,12]),fn=pick(['c','s']);const vv=FV(fn,ang),ans=V(vv.n*hyp,vv.d,vv.s),alt=FV(other(fn),ang),wv=V(alt.n*hyp,alt.d,alt.s);
+      const fr=vv.s>1?V(hyp*vv.n,vv.d):V(2*hyp);const L=[{h:vH(ans)+' cm',py:vPy(ans),ok:true},{h:vH(wv)+' cm',py:vPy(wv)},{h:vH(V(hyp))+' cm',py:String(hyp)},{h:vH(fr)+' cm',py:vPy(fr)}];
+      const side=fn==='c'?'AB':'AC',sideW=fn==='c'?'adjacent':'opposé';
+      return QCM(2,`Le triangle ABC est rectangle en A, BC = ${hyp} cm et l'angle en B mesure ${aH(ang)} rad. Alors ${side} =`,L,`${side} est le côté ${sideW} à l'angle B&nbsp;: ${side} = BC × ${fH(fn,ang)} = ${hyp} × ${vH(vv)} = ${vH(ans)} cm.`,`${hyp}*${fPy(fn,ang)}`)}
+    const [a,b,c,dec]=pick(TRIPLES),fn=pick(['c','s']),kv=V(a,c,1,dec),uv=V(b,c,1,dec);
+    const L=[{h:vH(uv),py:vPy(uv),ok:true},{h:vH(V(c-a,c,1,dec)),py:vPy(V(c-a,c))},{h:vH(V(b*b,c*c,1,dec)),py:vPy(V(b*b,c*c))},{h:vH(vneg(uv)),py:vPy(vneg(uv))}];
+    return QCM(2,`x est un réel de [0${NBSP};${NBSP}${frac('π','2')}] et ${nm(fn)} x = ${vH(kv)}. Alors ${nm(other(fn))} x =`,L,`${nm(other(fn))}² x = 1 ${MINUS} ${vH(V(a*a,c*c,1,dec))} = ${vH(V(b*b,c*c,1,dec))} et ${nm(other(fn))} x ≥ 0 sur [0${NBSP};${NBSP}${frac('π','2')}], donc ${nm(other(fn))} x = ${vH(uv)}.`,`sqrt(1-(${vPy(kv)})**2)`)}
+  if(tier==='bronze')return TR(2,'Pour tout réel x, cos² x + sin² x = {0}',[{v:V(1),tgt:'cos(x)**2+sin(x)**2'}],'Théorème de Pythagore dans le triangle OHM d\'hypoténuse OM = 1.');
+  if(tier==='or'){const Qd=pick(QUARTS.slice(0,3)),[a,b,c,dec]=pick(TRIPLES),giv=pick(['c','s']);const kv=V((giv==='c'?Qd.sc:Qd.ss)*a,c,1,dec),uv=V((giv==='c'?Qd.ss:Qd.sc)*b,c,1,dec);
+    return TR(2,`x est un réel de l'intervalle ${Qd.I} et ${nm(giv)} x = ${vH(kv)}. Alors ${nm(other(giv))} x = {0}`,[{v:uv,tgt:`${giv==='c'?Qd.ss:Qd.sc}*sqrt(1-(${vPy(kv)})**2)`}],
+      `${nm(other(giv))}² x = 1 ${MINUS} ${vH(V(a*a,c*c,1,dec))} = ${vH(V(b*b,c*c,1,dec))}, et sur ${Qd.I}, ${nm(other(giv))} x ${vnum(uv)>0?'≥':'≤'} 0&nbsp;: ${nm(other(giv))} x = ${vH(uv)}.`)}
+  const [a,b,c,dec]=pick(TRIPLES),giv=pick(['c','s']),kv=V(a,c,1,dec),uv=V(b,c,1,dec);
+  return TR(2,`x est un réel de [0${NBSP};${NBSP}${frac('π','2')}] et ${nm(giv)} x = ${vH(kv)}. Alors ${nm(other(giv))} x = {0}`,[{v:uv,tgt:`sqrt(1-(${vPy(kv)})**2)`}],
+    `${nm(other(giv))}² x = 1 ${MINUS} ${vH(V(a*a,c*c,1,dec))} = ${vH(V(b*b,c*c,1,dec))} et ${nm(other(giv))} x ≥ 0, donc ${nm(other(giv))} x = ${vH(uv)}.`)};
+/* ---------- 3 à 6 : les miroirs ---------- */
+const KINDS=['ox','oy','o','bis'];
+function formQ(level,kind){const D=KD[kind],fn=pick(['c','s']);
+  return QCM(level,`Pour tout réel x, ${fn==='c'?'cos':'sin'}(${D.lh}) =`,['c','-c','s','-s'].map(e=>({h:EXP[e][0],py:EXP[e][1],ok:e===D[fn]})),
+    `Le point associé à ${D.lh} est le symétrique du point associé à x par rapport à ${D.mir}&nbsp;: ${fn==='c'?'cos':'sin'}(${D.lh}) = ${EXP[D[fn]][0]}.`,`${fn==='c'?'cos':'sin'}(${D.py})`)}
+function mirVal(level,kind,fn,a){const D=KD[kind],b=imgPt(kind,a),t=FV(fn,b),lab=kind==='bis'?`${frac('π','2')} ${MINUS} ${aH(a)}`:aH(b);
+  const L=vChoices(fn,b);
+  return QCM(level,`${nm(fn)}(${lab}) =`,L,`${kind==='bis'||kind==='ox'?'':aT(b)+' = '+D.lab.replace('x',aT(a))+'&nbsp;: '}${nm(fn)}(${D.lh.replace('x',aH(a))}) = ${expAt(D[fn],a)} = ${vH(t)}.`,
+    `${nm(fn)}(${kind==='bis'?`pi/2-${aPy(a)}`:aPy(b)})`)}
+function mirTrou(level,kind,tier){const D=KD[kind];
+  if(tier==='or'){const [a,b,c,dec]=pick(TRIPLES),sw=Math.random()<.5,cv=V(sw?b:a,c,1,dec),sv=V(sw?a:b,c,1,dec),fn=pick(['c','s']);const e=D[fn],v=e==='c'?cv:e==='-c'?vneg(cv):e==='s'?sv:vneg(sv);
+    return TR(level,`On sait que cos x = ${vH(cv)} et sin x = ${vH(sv)}. Alors ${nm(fn)}(${D.lh}) = {0}`,[{v,tgt:expPy(e,cv,sv)}],
+      `${nm(fn)}(${D.lh}) = ${EXP[e][0]} = ${vH(v)}.`)}
+  const fn=pick(['c','s']);let a,tries=0;do{a=pick(F3);tries++}while(FV(fn,imgPt(kind,a)).s!==1&&tries<30);if(FV(fn,imgPt(kind,a)).s!==1)return null;
+  const b=imgPt(kind,a),t=FV(fn,b),lab=kind==='bis'?`${frac('π','2')} ${MINUS} ${aH(a)}`:aH(b);
+  return TR(level,`${nm(fn)}(${lab}) = {0}`,[{v:t,tgt:`${nm(fn)}(${kind==='bis'?`pi/2-${aPy(a)}`:aPy(b)})`}],`${nm(fn)}(${D.lh.replace('x',aH(a))}) = ${expAt(D[fn],a)} = ${vH(t)}.`)}
+/* Or : deux angles associés combinés, à partir de cos x et sin x connus */
+function mirMix(level,kind,ty){const [a,b,c,dec]=pick(TRIPLES),sw=Math.random()<.5,cv=V(sw?b:a,c,1,dec),sv=V(sw?a:b,c,1,dec);
+  const k2=pick(KINDS.filter(k=>k!==kind)),f1=pick(['c','s']),f2=pick(['c','s']),e1=KD[kind][f1],e2=KD[k2][f2],sg=pick([1,-1]);
+  const ev=e=>e==='c'?cv:e==='-c'?vneg(cv):e==='s'?sv:vneg(sv),v1=ev(e1),v2=ev(e2);
+  const sum=(p,q,g)=>V(p.n*q.d+g*q.n*p.d,p.d*q.d,1,dec);const res=sum(v1,v2,sg);
+  const lab=`${nm(f1)}(${KD[kind].lh}) ${sg>0?'+':MINUS} ${nm(f2)}(${KD[k2].lh})`,tgt=`${expPy(e1,cv,sv)}${sg>0?'+':'-'}(${expPy(e2,cv,sv)})`;
+  const pre=`On sait que cos x = ${vH(cv)} et sin x = ${vH(sv)}.`,ex=`${nm(f1)}(${KD[kind].lh}) = ${EXP[e1][0]} = ${vH(v1)} et ${nm(f2)}(${KD[k2].lh}) = ${EXP[e2][0]} = ${vH(v2)}, donc le résultat est ${vH(res)}.`;
+  if(ty==='qcm')return QCM(level,`${pre} Alors ${lab} =`,[{h:vH(res),py:vPy(res),ok:true},{h:vH(sum(vneg(v1),v2,sg)),py:vPy(sum(vneg(v1),v2,sg))},{h:vH(sum(v1,vneg(v2),sg)),py:vPy(sum(v1,vneg(v2),sg))},{h:vH(sum(vneg(v1),vneg(v2),sg)),py:vPy(sum(vneg(v1),vneg(v2),sg))}],ex,tgt);
+  return TR(level,`${pre} Alors ${lab} = {0}`,[{v:res,tgt}],ex)}
+KINDS.forEach((kind,i)=>{GEN[2+i]=(tier,ty)=>{const level=3+i;
+  if(tier==='or'&&Math.random()<.6)return mirMix(level,kind,ty);
+  if(ty==='qcm'){if(tier==='bronze'||(tier==='argent'&&Math.random()<.4))return formQ(level,kind);
+    if(tier==='or'){const D=KD[kind],a=pick(F3),b=imgPt(kind,a),c1=cosA(b),s1=sinA(b);
+      const L=[{h:pair(vH(c1),vH(s1)),py:`(${vPy(c1)},${vPy(s1)})`,ok:true},{h:pair(vH(s1),vH(c1)),py:`(${vPy(s1)},${vPy(c1)})`},{h:pair(vH(cosA(a)),vH(sinA(a))),py:`(${vPy(cosA(a))},${vPy(sinA(a))})`},{h:pair(vH(vneg(c1)),vH(vneg(s1))),py:`(${vPy(vneg(c1))},${vPy(vneg(s1))})`}];
+      return QCM(level,`M est le point du cercle trigonométrique associé à ${aH(a)}. Son symétrique par rapport à ${D.mir} a pour coordonnées&nbsp;:`,L,`Ce symétrique est associé à ${D.lh.replace('x',aT(a))} = ${aH(b)}&nbsp;: ${pair(vH(c1),vH(s1))}.`,`(cos(${aPy(b)}),sin(${aPy(b)}))`)}
+    return mirVal(level,kind,pick(['c','s']),pick(F3))}
+  return mirTrou(level,kind,tier)}});
+/* ---------- 7 : tout le cercle ---------- */
+GEN[6]=(tier,ty)=>{
+  if(ty==='qcm'){const r=Math.random();
+    if(tier==='bronze'){const a=pick([A(2,3),A(5,6),A(3,4),A(-1,6),A(-1,3)]),fn=pick(['c','s']);return QCM(7,`${fH(fn,a)} =`,vChoices(fn,a),`${route(a)&&route(a).t?aT(a)+' = '+route(a).t+'&nbsp;: ':''}${fH(fn,a)} = ${vH(FV(fn,a))}.`,fPy(fn,a))}
+    if(tier==='or'&&r<.35){const [h,py]=pick(SIMP);const f=new Function('x','const cos=Math.cos,sin=Math.sin,pi=Math.PI;return '+py);
+      const okR=RES.find(([_,e])=>{const g=new Function('x','const cos=Math.cos,sin=Math.sin;return '+e);return [.3,.9,1.7,2.6].every(x=>Math.abs(g(x)-f(x))<1e-9)});
+      return QCM(7,`Pour tout réel x, ${h} =`,[{h:okR[0],py:okR[1],ok:true}].concat(RES.filter(z=>z!==okR).map(z=>({h:z[0],py:z[1]}))),`On remplace chaque terme par sa formule d'angle associé&nbsp;: le résultat est ${okR[0]}.`,py)}
+    if(r<.6){const O=pick(OPEN.slice(1)),m=O.mid,tr=[Math.sign(vnum(cosA(m))),Math.sign(vnum(sinA(m)))];
+      return QCM(7,`x est un réel de l'intervalle ${O.I}. Alors&nbsp;:`,SGN.map(p=>({h:sgH(p),py:`(${p[0]},${p[1]})`,ok:p[0]===tr[0]&&p[1]===tr[1]})),`Sur ${O.I}, le point associé à x est ${tr[0]>0?'à droite':'à gauche'} de (Oy) et ${tr[1]>0?'au-dessus':'au-dessous'} de (Ox)&nbsp;: ${sgH(tr)}.`,`(sign(cos(${aPy(m)})),sign(sin(${aPy(m)})))`)}
+    if(tier==='or'){const a=pick([A(7,6),A(-5,6),A(4,3),A(-3,4),A(5,3),A(11,6),A(-2,3)]),r0=refOf(a);
+      const nmK={ox:'l\'axe (Ox)',oy:'l\'axe (Oy)',o:'le centre O',bis:'la droite y = x'};
+      return QCM(7,`Le point associé à ${aH(a)} est le symétrique du point associé à ${aH(r0)} par rapport à&nbsp;:`,['ox','oy','o','bis'].map(k=>({h:nmK[k],py:`(cos(${aPy(imgPt(k,r0))}),sin(${aPy(imgPt(k,r0))}))`,ok:K.samePt(imgPt(k,r0),a)})),
+        `${aT(a)} = ${route(a).t}.`,`(cos(${aPy(a)}),sin(${aPy(a)}))`)}
+    const a=NR(),fn=pick(['c','s']);return QCM(7,`${fH(fn,a)} =`,vChoices(fn,a),`${route(a)&&route(a).t?aT(a)+' = '+route(a).t+'&nbsp;: ':''}${fH(fn,a)} = ${vH(FV(fn,a))}.`,fPy(fn,a))}
+  if(tier==='or'&&Math.random()<.5){/* grande roue */const ang=pick([A(1,6),A(1,4),A(1,3),A(2,3),A(3,4),A(5,6),A(7,6),A(4,3)]),Rr=pick([10,12,15,20]),Hh=Rr+pick([2,3,4,5]);
+    const val=Hh+Rr*Math.sin(K.aRad(ang)),r1=Math.round(val*10)/10,txt=r1.toFixed(1).replace('.',',');
+    return Object.assign(TR(7,`Pour la fête de fin d'année, une grande roue de rayon ${Rr} m est installée&nbsp;; son centre est à ${Hh} m du sol. Une nacelle part du point le plus à droite de la roue, à hauteur du centre, et la roue tourne de ${aH(ang)} rad dans le sens direct. La nacelle est alors à environ {0} m du sol (au dixième).`,[{v:V(Math.round(r1*10),10,1,true),tgt:`${Hh}+${Rr}*sin(${aPy(ang)})`}],
+      `Hauteur = ${Hh} + ${Rr} × ${fH('s',ang)} = ${Hh} + ${Rr} × ${vH(sinA(ang))} ≈ ${txt} m.`),{approx:{expr:`${Hh}+${Rr}*sin(${aPy(ang)})`,shown:txt,dec:1}})}
+  const fn=pick(['c','s']),a=pick(RATS(fn).filter(z=>tier==='bronze'?[A(2,3),A(5,6),A(1,3),A(-1,6),A(-1,3),PI].some(w=>aeq(w,z)):!aeq(z,ZERO)&&!aeq(z,PI2)));
+  if(tier!=='bronze'&&Math.random()<.4){const b=pick(RATS(fn).filter(z=>!aeq(z,a))),sg=pick([1,-1]),v1=FV(fn,a),v2=FV(fn,b),res=V(v1.n*v2.d+sg*v2.n*v1.d,v1.d*v2.d);
+    return TR(7,`${fH(fn,a)} ${sg>0?'+':MINUS} ${fH(fn,b)} = {0}`,[{v:res,tgt:`${fPy(fn,a)}${sg>0?'+':'-'}${fPy(fn,b)}`}],`${fH(fn,a)} = ${vH(v1)} et ${fH(fn,b)} = ${vH(v2)}.`)}
+  return TR(7,`${fH(fn,a)} = {0}`,[{v:FV(fn,a),tgt:fPy(fn,a)}],`${route(a)&&route(a).t?aT(a)+' = '+route(a).t+'&nbsp;: ':''}${fH(fn,a)} = ${vH(FV(fn,a))}.`)};
+function build(tier){for(let tries=0;tries<80;tries++){
+  const extra=tier==='bronze'?shuf([1,1,2,3,7]).slice(0,3):tier==='or'?shuf([2,4,5,6,7,7]).slice(0,3):shuf([1,2,3,4,5,6,7]).slice(0,3);
+  const lv=shuf([1,2,3,4,5,6,7].concat(extra)),types=shuf(['qcm','qcm','qcm','qcm','qcm','qcm','trous','trous','trous','trous']);
+  const out=[];let ok=true;
+  for(let i=0;i<10;i++){let qn=null;for(let k=0;k<30&&!qn;k++)qn=GEN[lv[i]-1](tier,types[i]);if(!qn){ok=false;break}out.push(qn)}
+  if(ok&&new Set(out.map(x=>x.prompt)).size===10)return out}
+  throw new Error('épreuve impossible à construire')}
+window.KZ_FIN={bronze:()=>(window.KZ_last=build('bronze')),argent:()=>(window.KZ_last=build('argent')),or:()=>(window.KZ_last=build('or')),GEN};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'kaleidoscope',title:'Le Kaléidoscope',levels:7,
+  levelNames:['Les deux ombres','Le triangle de lumière','Le miroir (Ox)','Le miroir (Oy)','Le cœur du kaléidoscope','La diagonale','Le grand kaléidoscope'],
+  music:'aventure',finals:{bronze:KZ_FIN.bronze,argent:KZ_FIN.argent,or:KZ_FIN.or}});
+KZK.goLevel(0);
+</script>
+</body>
+</html>
