@@ -8,6 +8,8 @@ cours:
   pdf: tale-techno/tale-techno-commun-ch4-cours-eleve.pdf
 - titre: Cours — Version professeur
   pdf: tale-techno/tale-techno-commun-ch4-cours-prof.pdf
+- titre: Cours complet
+  fichier: /assets/pdf/tale-techno/tale-techno-commun-ch4-cours.pdf
 planches:
 - num: 1
   pdf: tale-techno/tale-techno-commun-ch4-planche-01.pdf

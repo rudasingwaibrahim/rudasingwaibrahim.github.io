@@ -15,9 +15,17 @@ planches:
   pdf: tale-techno/tale-techno-commun-ch7-planche-01.pdf
 - num: 2
   pdf: tale-techno/tale-techno-commun-ch7-planche-02.pdf
+- num: 1
+  label: Planche 1 · série avec corrigé
+  fichier: /assets/pdf/tale-techno-commun-ch7-planche-01.pdf
+- num: 2
+  label: Planche 2 · série avec corrigé
+  fichier: /assets/pdf/tale-techno-commun-ch7-planche-02.pdf
 - num: 3
+  label: Planche 3 · série avec corrigé
   fichier: /assets/pdf/tale-techno-commun-ch7-planche-03.pdf
 - num: 4
+  label: Planche 4 · série avec corrigé
   fichier: /assets/pdf/tale-techno-commun-ch7-planche-04.pdf
 dm:
 - num: 1
