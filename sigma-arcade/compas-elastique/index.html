@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le Compas élastique · Sigma Arcade</title>
+<meta name="description" content="Produit scalaire (partie 1) en Première spécialité : deux bras de compas reliés par un élastique. On ouvre le compas, la jauge du produit scalaire se vide, s'annule à l'angle droit et passe en négatif ; l'élastique donne le produit scalaire par les longueurs et la formule d'Al-Kashi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* IDÉE : deux vecteurs de même origine sont les deux bras d'un compas, reliés à leurs pointes par un élastique.
+   On ouvre le compas : la jauge du produit scalaire ‖u‖‖v‖cos θ se vide, s'annule exactement à l'angle droit,
+   puis passe en négatif. L'élastique mesure BC : le produit scalaire se lit aussi sur les longueurs
+   (½(AB² + AC² − BC²)), ce qui donne Al-Kashi. On étire, on retourne un bras (bilinéarité), on referme le
+   parallélogramme (identités remarquables). */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);
+--cu:#6fd3c1;--cv:#b79cff;--cw:#f2a65a;--pos:var(--sg-pos);--neg:var(--sg-neg)}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:76ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(340px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:760/440;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#050a16;user-select:none;-webkit-user-select:none}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg text{font-family:var(--sg-font)}
+/* la jauge du produit scalaire */
+.gauge{margin-top:10px;padding:10px 14px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 14px;align-items:center}
+.gl{font-weight:700;font-size:18px;white-space:nowrap}
+.gt{position:relative;height:22px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--soft);overflow:hidden}
+.gt .z{position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;margin-left:-1px;background:rgba(240,244,255,.55)}
+.gt .f{position:absolute;top:3px;bottom:3px;border-radius:999px;transition:background .2s}
+.gt .f.p{background:linear-gradient(90deg,rgba(127,178,255,.55),var(--pos))}
+.gt .f.n{background:linear-gradient(270deg,rgba(255,155,122,.55),var(--neg))}
+.gt.zero{border-color:var(--ok);box-shadow:0 0 0 3px rgba(95,210,124,.18)}
+.gv{font:800 20px var(--sg-font);font-variant-numeric:tabular-nums;min-width:4.6em;text-align:right;white-space:nowrap}
+.gv.p{color:var(--pos)}.gv.n{color:var(--neg)}.gv.z{color:var(--ok)}
+.gs{grid-column:2;display:flex;justify-content:space-between;font-size:13px;color:var(--mut);margin-top:-2px}
+/* la balance des carrés (AB² + AC² face à BC²) */
+.bal{margin-top:8px;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.025);border:1px solid var(--soft);display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;align-items:center;font-variant-numeric:tabular-nums}
+.bal .bl{font-weight:700;font-size:15px;white-space:nowrap}
+.bt{position:relative;height:18px}
+.bt i{position:absolute;top:0;bottom:0;border-radius:4px}
+.bt .s1{background:rgba(111,211,193,.75)}.bt .s2{background:rgba(183,156,255,.75)}.bt .s3{background:repeating-linear-gradient(135deg,rgba(240,244,255,.8) 0 6px,rgba(240,244,255,.45) 6px 10px)}
+.bt .gap{background:none;border:2px solid var(--pos);border-radius:4px}
+.bt .gap.n{border-color:var(--neg)}
+.bal .bx{grid-column:1/-1;font-size:14px;color:var(--mut);text-align:center}
+.bal .bx b{color:var(--ink)}
+.capt{margin-top:8px;min-height:50px;padding:9px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(17px,1.8vw,21px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .35em}
+.capt .k{color:var(--gold2)}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.55;margin:0 0 12px}
+.prompt p{margin:0 0 8px}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1;box-shadow:none}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.45 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(19px,2.2vw,22px)/2.3 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.6em;height:46px;margin:0 3px;padding:0 6px;font:700 20px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}.in.rv{border-color:var(--gold);color:var(--gold2)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+.sl{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 12px;margin:4px 0 10px}
+.sl label{font-weight:600}
+.sl output{font:700 20px var(--sg-font);color:var(--gold2);font-variant-numeric:tabular-nums;min-width:3.2em;text-align:right}
+.sl input[type=range]{grid-column:1/-1;width:100%;height:44px;margin:0;accent-color:var(--ac);cursor:pointer}
+/* notations : vecteur (flèche), angle (chapeau), norme, fraction, racine */
+.vc{display:inline-block;position:relative;padding-top:.36em;line-height:1.05;font-style:normal}
+.vc::before{content:"";position:absolute;left:.06em;right:.2em;top:.17em;height:max(.075em,1.5px);background:currentColor;border-radius:1px}
+.vc::after{content:"";position:absolute;right:.02em;top:.075em;width:0;height:0;border-left:.24em solid currentColor;border-top:.14em solid transparent;border-bottom:.14em solid transparent}
+.ag{display:inline-block;position:relative;padding-top:.32em;line-height:1.05}
+.ag::after{content:"";position:absolute;left:8%;right:8%;top:0;height:.36em;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 10' preserveAspectRatio='none'%3E%3Cpath d='M1 9 L20 1.5 L39 9' fill='none' stroke='black' stroke-width='2.2' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 10' preserveAspectRatio='none'%3E%3Cpath d='M1 9 L20 1.5 L39 9' fill='none' stroke='black' stroke-width='2.2' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat}
+.nw{white-space:nowrap}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.rt{white-space:nowrap}
+.rt>span{border-top:max(.07em,1.5px) solid currentColor;padding:0 .08em 0 .04em;margin-left:-.02em}
+.sq{font-size:.7em;vertical-align:.55em;line-height:0}
+.tu{color:var(--cu)}.tv{color:var(--cv)}.tw{color:var(--cw)}
+.sk-q .fr,.sk-ch .fr{font-size:.92em}
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb.rv{background:rgba(200,168,75,.08);border-left-color:var(--gold)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.fb .sol{display:block;margin-top:6px;color:var(--gold2)}
+.fb .btns{margin-top:10px}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex;flex:none}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:#060d1a;border-bottom:1px solid var(--soft)}
+  .stage{aspect-ratio:700/430;max-height:28svh;margin:auto}
+  .gauge{margin-top:5px;padding:4px 10px;gap:2px 10px;border-radius:10px}
+  .gl{font-size:15px}.gv{font-size:16px;min-width:4em}.gt{height:14px}.gs{display:none}
+  .bal{margin-top:5px;padding:4px 10px;gap:2px 8px;border-radius:10px;grid-template-columns:auto minmax(0,1fr)}.bal .bl{font-size:12px}.bt{height:9px}.bal .bx{font-size:12px;line-height:1.3}
+  .capt{margin-top:5px;min-height:34px;padding:4px 10px;font-size:14px;line-height:1.3;border-radius:10px}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Le Compas élastique</h1>
+<p>Deux vecteurs de même origine sont les deux bras d'un compas, reliés à leurs pointes par un élastique. Ouvre le compas&nbsp;: la jauge du produit scalaire se vide, s'annule pile à l'angle droit, puis passe en négatif. Tends l'élastique, étire un bras, referme le parallélogramme… et le produit scalaire se lit partout.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Le compas : deux vecteurs de même origine, l'angle entre eux et l'élastique qui relie leurs pointes">
+    <svg id="scene" viewBox="120 125 760 440" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+  </div>
+  <div class="gauge" id="gauge"><span class="gl" id="gl"></span><div class="gt" id="gt"><i class="z"></i><i class="f" id="gf"></i></div><output class="gv" id="gv" aria-live="off"></output>
+    <div class="gs"><span>négatif</span><span>0</span><span>positif</span></div></div>
+  <div class="bal" id="bal" hidden></div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p><div id="fbx"></div></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+
+<script>
+/* ======================= nombres exacts (p + q√k), écritures, notations ======================= */
+window.CE_N=(function(){
+'use strict';
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t}return a};
+const R=(n,d)=>{if(d===undefined)d=1;if(d<0){n=-n;d=-d}const g=gcd(n,d)||1;return{n:n/g,d:d/g}};
+const add=(x,y)=>R(x.n*y.d+y.n*x.d,x.d*y.d),sub=(x,y)=>R(x.n*y.d-y.n*x.d,x.d*y.d);
+const mul=(x,y)=>R(x.n*y.n,x.d*y.d),div=(x,y)=>R(x.n*y.d,x.d*y.n),neg=x=>R(-x.n,x.d);
+const cmp=(x,y)=>Math.sign(x.n*y.d-y.n*x.d),eq=(x,y)=>cmp(x,y)===0,val=x=>x.n/x.d,isZ=x=>x.n===0;
+const isDec=r=>{let d=r.d;while(d%2===0)d/=2;while(d%5===0)d/=5;return d===1};
+const ndec=r=>{let k=0;while(k<12&&((Math.abs(r.n)*Math.pow(10,k))%r.d))k++;return k};
+const NB=' ',MI='−';
+function fmtInt(n){const s=String(Math.abs(n));const g=s.length>4?s.replace(/\B(?=(\d{3})+(?!\d))/g,NB):s;return (n<0?MI:'')+g}
+function dec(r,minDig){minDig=minDig||0;const k=ndec(r),kk=Math.max(k,minDig),p=Math.pow(10,kk),v=Math.round(Math.abs(r.n)*p/r.d);
+  const ip=Math.floor(v/p),fp=kk?String(v-ip*p).padStart(kk,'0'):'';return (r.n<0?MI:'')+fmtInt(ip)+(kk?','+fp:'')}
+const frH=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const short=r=>r.d===1||(isDec(r)&&ndec(r)<=2);
+const numH=r=>r.d===1?fmtInt(r.n):short(r)?dec(r):(r.n<0?MI:'')+frH(fmtInt(Math.abs(r.n)),fmtInt(r.d));
+const numT=r=>r.d===1?fmtInt(r.n):short(r)?dec(r):`${r.n<0?MI:''}${Math.abs(r.n)}/${r.d}`;
+/* écritures acceptées d'un rationnel (trous) */
+function ans(r){const out=[];const push=s=>{if(s&&out.indexOf(s)<0)out.push(s)};
+  if(isDec(r)&&ndec(r)<=6)push(dec(r).replace(/ /g,''));
+  if(r.d!==1)push(`${r.n<0?'-':''}${Math.abs(r.n)}/${r.d}`);
+  return out}
+function parse(s){s=String(s).replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.');
+  if(!s)return null;
+  const P=t=>{const m=/^([-+]?)(\d*)(?:\.(\d+))?$/.exec(t);if(!m||!(m[2]||m[3]))return null;const ip=m[2]||'0',fp=m[3]||'';if(fp.length>9)return null;return R(parseInt(ip+fp,10)*(m[1]==='-'?-1:1),Math.pow(10,fp.length))};
+  const m=/^([^/]+)\/([^/]+)$/.exec(s);if(m){const a=P(m[1]),b=P(m[2]);return a&&b&&b.n?div(a,b):null}
+  return P(s)}
+/* nombres p + q√k (k = 1, 2 ou 3) */
+const X=(p,q,k)=>{p=typeof p==='number'?R(p):p;q=q===undefined?R(0):typeof q==='number'?R(q):q;k=k||1;
+  if(k===1){p=add(p,q);q=R(0)}if(isZ(q))k=1;return{p,q,k}};
+const xr=x=>X(x),xI=n=>X(R(n));
+const kk=(x,y)=>{if(x.k!==1&&y.k!==1&&x.k!==y.k)throw new Error('radicaux mélangés');return x.k!==1?x.k:y.k};
+const xadd=(x,y)=>X(add(x.p,y.p),add(x.q,y.q),kk(x,y)),xsub=(x,y)=>X(sub(x.p,y.p),sub(x.q,y.q),kk(x,y));
+const xmul=(x,r)=>{r=typeof r==='number'?R(r):r;return X(mul(x.p,r),mul(x.q,r),x.k)};
+const xmulX=(x,y)=>{const k=kk(x,y);return X(add(mul(x.p,y.p),mul(mul(x.q,y.q),R(k))),add(mul(x.p,y.q),mul(x.q,y.p)),k)};
+const xval=x=>val(x.p)+val(x.q)*Math.sqrt(x.k);
+const xeq=(x,y)=>eq(x.p,y.p)&&eq(x.q,y.q)&&(isZ(x.q)||x.k===y.k);
+const xrat=x=>isZ(x.q);
+const xsign=x=>{const v=xval(x);return Math.abs(v)<1e-12?0:Math.sign(v)};
+const xdist=a=>a.every((x,i)=>a.every((y,j)=>i===j||!xeq(x,y)));
+const xser=x=>[x.p.n,x.p.d,x.q.n,x.q.d,x.k];
+function radH(q,k,html){const a=Math.abs(q.n),s=(q.n<0?MI:'');const top=(a===1?'':fmtInt(a))+'√'+k;
+  if(q.d===1)return s+top;return html?s+frH(top,q.d):`${s}${top}/${q.d}`}
+function xH(x,html){if(html===undefined)html=true;if(xrat(x))return html?numH(x.p):numT(x.p);
+  const r=radH(x.q,x.k,html);if(isZ(x.p))return r;
+  const rp=radH(R(Math.abs(x.q.n),x.q.d),x.k,html);return (html?numH(x.p):numT(x.p))+(x.q.n>0?' + ':' '+MI+' ')+rp}
+const xT=x=>xH(x,false);
+/* cosinus des angles remarquables (en degrés) */
+const COS={0:X(1),30:X(0,R(1,2),3),45:X(0,R(1,2),2),60:X(R(1,2)),90:X(0),120:X(R(-1,2)),135:X(0,R(-1,2),2),150:X(0,R(-1,2),3),180:X(-1)};
+const RADH={0:'0',30:frH('π','6'),45:frH('π','4'),60:frH('π','3'),90:frH('π','2'),120:frH('2π','3'),135:frH('3π','4'),150:frH('5π','6'),180:'π'};
+const cosH=d=>{const c=COS[d];if(!xrat(c))return xH(c);return c.p.d===2?(c.p.n<0?MI:'')+frH(1,2):fmtInt(c.p.n)};
+const cosP=d=>xsign(COS[d])<0?`(${cosH(d)})`:cosH(d);
+const PN=r=>r.n<0?`(${numH(r)})`:numH(r);
+/* racine carrée d'un entier : m√r */
+function sqf(n){let m=1,r=n;for(let f=2;f*f<=r;f++)while(r%(f*f)===0){r/=f*f;m*=f}return{m,r}}
+function sqrtH(n){const {m,r}=sqf(n);return r===1?fmtInt(m):(m===1?'':fmtInt(m))+'√'+r}
+const isSq=n=>n>=0&&Math.round(Math.sqrt(n))**2===n;
+/* arrondi affiché (calcul exact de l'arrondi à 10^-k) */
+function rnd(v,k){const p=Math.pow(10,k);return Math.round(v*p+1e-9)/p}
+function decF(v,k){const s=rnd(v,k).toFixed(k).replace('.',',').replace('-',MI);return s}
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+/* notations */
+const V=(n,c)=>`<span class="vc${c?' '+c:''}">${n}</span>`;
+const Vc=n=>V(n,n==='u'?'tu':n==='v'?'tv':n==='w'?'tw':'');
+const NR=(n,c)=>`‖${c?Vc(n):V(n)}‖`;
+const DOT=(a,b,c)=>`<span class="nw">${c?Vc(a):V(a)}${NB}·${NB}${c?Vc(b):V(b)}</span>`;
+const AG=t=>`<span class="ag">${t}</span>`;
+return{gcd,R,add,sub,mul,div,neg,cmp,eq,val,isZ,isDec,ndec,fmtInt,dec,frH,short,numH,numT,ans,parse,X,xr,xI,xadd,xsub,xmul,xmulX,xval,xeq,xrat,xsign,xdist,xser,xH,xT,
+  COS,RADH,cosH,cosP,PN,sqf,sqrtH,isSq,rnd,decF,ri,pick,shuf,V,Vc,NR,DOT,AG,NB,MI};
+})();
+</script>
+
+<script>
+/* ======================= la scène : le compas, la jauge, la balance des carrés ======================= */
+window.CE_S=(function(){
+'use strict';
+const N=window.CE_N,NS='http://www.w3.org/2000/svg',svg=document.getElementById('scene');
+const O={x:500,y:500},RMAX=290;
+const C={u:'#6fd3c1',v:'#b79cff',w:'#f2a65a',s:'#e8c766',pos:'#7fb2ff',neg:'#ff9b7a',ok:'#5fd27c',ink:'#f0f4ff',mut:'rgba(200,215,255,.72)'};
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let unit=60,cur={},pose={arms:{}},raf=0,moving=false,narrow=false,sliding=false;
+/* ---- décor fixe : ciel, rapporteur ---- */
+function bg(){let h=`<defs><radialGradient id="ce-halo" cx="50%" cy="100%" r="70%"><stop offset="0" stop-color="#6c8eff" stop-opacity=".16"/><stop offset="1" stop-color="#6c8eff" stop-opacity="0"/></radialGradient>
+  <linearGradient id="ce-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#030816"/><stop offset="1" stop-color="#0c1a36"/></linearGradient></defs>
+  <rect x="-200" y="0" width="1400" height="700" fill="url(#ce-sky)"/><ellipse cx="500" cy="520" rx="470" ry="380" fill="url(#ce-halo)"/>`;
+  const st=[[40,140],[120,200],[880,150],[960,230],[70,420],[930,420],[250,130],[760,125],[600,160],[180,320],[830,300],[30,280],[975,330]];
+  h+='<g fill="#cdd8ff">'+st.map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${(i%3)*.4+.8}" opacity="${.35+(i%4)*.12}"/>`).join('')+'</g>';
+  /* rapporteur : demi-cercle gradué tous les 15° */
+  const r0=318;h+=`<path d="M${O.x-r0} ${O.y} A${r0} ${r0} 0 0 1 ${O.x+r0} ${O.y}" fill="none" stroke="rgba(160,190,255,.16)" stroke-width="2"/>`;
+  for(let d=0;d<=180;d+=15){const a=d*Math.PI/180,l=d%45===0?18:9,c=Math.cos(a),s=Math.sin(a);
+    h+=`<line x1="${O.x+r0*c}" y1="${O.y-r0*s}" x2="${O.x+(r0+l)*c}" y2="${O.y-(r0+l)*s}" stroke="rgba(160,190,255,${d===90?.5:.26})" stroke-width="${d===90?2.5:1.6}"/>`}
+  h+=`<text x="${O.x}" y="${O.y-r0-28}" text-anchor="middle" font-size="21" font-weight="700" fill="rgba(160,190,255,.55)">90°</text>`;
+  h+=`<line x1="${O.x-r0-30}" y1="${O.y}" x2="${O.x+r0+30}" y2="${O.y}" stroke="rgba(160,190,255,.12)" stroke-width="1.5"/>`;
+  return h}
+svg.innerHTML=bg()+'<g id="ce-dyn"></g>';
+const dyn=document.getElementById('ce-dyn');
+function layout(){narrow=innerWidth<=860;svg.setAttribute('viewBox',narrow?'150 128 700 430':'120 125 760 440')}
+addEventListener('resize',layout);layout();
+/* ---- géométrie ---- */
+const rad=d=>d*Math.PI/180;
+function vecOf(a){return{x:a.L*Math.cos(rad(a.a)),y:a.L*Math.sin(rad(a.a))}}
+function P(a){const sx=O.x+(a.ox||0)*unit,sy=O.y-(a.oy||0)*unit;return{sx,sy,ex:sx+a.L*unit*Math.cos(rad(a.a)),ey:sy-a.L*unit*Math.sin(rad(a.a))}}
+const dotv=(p,q)=>p.x*q.x+p.y*q.y;
+function angBetween(p,q){const n=Math.hypot(p.x,p.y)*Math.hypot(q.x,q.y);if(n<1e-9)return null;return Math.acos(Math.max(-1,Math.min(1,dotv(p,q)/n)))*180/Math.PI}
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+/* texte avec flèche de vecteur au-dessus (lab = {t, vec}) */
+function label(x,y,lab,col,fs,anchor){if(!lab)return'';fs=fs||30;anchor=anchor||'middle';const t=typeof lab==='string'?{t:lab}:lab;
+  let h=`<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="${fs}" font-weight="700" fill="${col}" paint-order="stroke" stroke="#050a16" stroke-width="6" stroke-linejoin="round">${esc(t.t)}</text>`;
+  if(t.vec){const w=Math.max(.62,t.t.replace(/[ ]/g,'').length*.56)*fs*(t.t.length>2?.92:1),x0=anchor==='middle'?x-w/2:anchor==='end'?x-w:x,yy=y-fs*.86;
+    h+=`<path d="M${x0+2} ${yy}H${x0+w-6}" stroke="#050a16" stroke-width="7" stroke-linecap="round"/><path d="M${x0+2} ${yy}H${x0+w-6}" stroke="${col}" stroke-width="2.6" stroke-linecap="round"/><path d="M${x0+w} ${yy}l-10 -5.5v11z" fill="${col}"/>`}
+  return h}
+function arrow(x1,y1,x2,y2,col,w,dash,op){const L=Math.hypot(x2-x1,y2-y1);if(L<2)return'';const ux=(x2-x1)/L,uy=(y2-y1)/L,hs=Math.min(22,L*.45),bx=x2-ux*hs,by=y2-uy*hs;
+  const d=dash?` stroke-dasharray="${dash}"`:'';
+  return `<g opacity="${op===undefined?1:op}"><line x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}" stroke="${col}" stroke-width="${w+9}" stroke-opacity=".16" stroke-linecap="round"/>`+
+    `<line x1="${x1}" y1="${y1}" x2="${bx+ux*2}" y2="${by+uy*2}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"${d}/>`+
+    `<path d="M${x2} ${y2}L${bx-uy*hs*.5} ${by+ux*hs*.5}L${bx+uy*hs*.5} ${by-ux*hs*.5}Z" fill="${col}"/></g>`}
+const signCol=d=>d===null?C.mut:Math.abs(d-90)<.6?C.ok:d<90?C.pos:C.neg;
+function dseg(px,py,s){const dx=s[2]-s[0],dy=s[3]-s[1],L2=dx*dx+dy*dy;let t=L2?((px-s[0])*dx+(py-s[1])*dy)/L2:0;t=Math.max(0,Math.min(1,t));return Math.hypot(px-s[0]-t*dx,py-s[1]-t*dy)}
+function best(c,segs){let bi=0,bs=-1;c.forEach((p,i)=>{const sc=Math.min(400,...segs.map(s=>dseg(p[0],p[1],s)))-i*.8;if(sc>bs){bs=sc;bi=i}});return c[bi]}
+function draw(){const A=cur,ps={};for(const id in A)ps[id]=P(A[id]);let h='';
+  const segs=[];for(const id in A)if(A[id].op>.05&&A[id].L>.05){const p=ps[id];segs.push([p.sx,p.sy,p.ex,p.ey])}
+  if(pose.el&&A[pose.el.a]&&A[pose.el.b]){const a=ps[pose.el.a],b=ps[pose.el.b];segs.push([a.ex,a.ey,b.ex,b.ey])}
+  if(pose.par&&A[pose.par.a]&&A[pose.par.b]&&pose.par.sum!==false){const a=ps[pose.par.a],b=ps[pose.par.b];segs.push([a.sx,a.sy,a.ex+b.ex-b.sx,a.ey+b.ey-b.sy])}
+  /* parallélogramme */
+  const pr=pose.par;
+  if(pr&&A[pr.a]&&A[pr.b]){const a=ps[pr.a],b=ps[pr.b],op=Math.min(A[pr.a].op,A[pr.b].op)*(pr.op===undefined?1:pr.op),dx=b.ex-b.sx,dy=b.ey-b.sy,Dx=a.ex+dx,Dy=a.ey+dy;
+    h+=`<g opacity="${op}"><path d="M${a.ex} ${a.ey}L${Dx} ${Dy}L${b.ex} ${b.ey}" fill="none" stroke="rgba(240,244,255,.35)" stroke-width="2" stroke-dasharray="7 7"/>`+
+      `<path d="M${a.sx} ${a.sy}L${a.ex} ${a.ey}L${Dx} ${Dy}L${b.ex} ${b.ey}Z" fill="rgba(232,199,102,.06)"/>`;
+    if(pr.sum!==false){h+=arrow(a.sx,a.sy,Dx,Dy,C.s,5);const L=Math.hypot(Dx-a.sx,Dy-a.sy)||1;h+=label(Dx+(Dx-a.sx)/L*34,Dy+(Dy-a.sy)/L*30+10,pr.lab||{t:'u + v',vec:true},C.s,28)}
+    h+='</g>'}
+  /* angle */
+  const ar=pose.arc;let deg=null;
+  if(ar&&A[ar.a]&&A[ar.b]&&A[ar.a].L>.05&&A[ar.b].L>.05){const p=vecOf(A[ar.a]),q=vecOf(A[ar.b]);deg=angBetween(p,q);
+    if(deg!==null){const a1=Math.atan2(p.y,p.x),a2=Math.atan2(q.y,q.x),r=62,col=signCol(deg),op=Math.min(A[ar.a].op,A[ar.b].op);
+      let s=a1,e=a2;let dd=e-s;while(dd>Math.PI)dd-=2*Math.PI;while(dd<-Math.PI)dd+=2*Math.PI;e=s+dd;
+      const pt=(t,rr)=>[O.x+rr*Math.cos(t),O.y-rr*Math.sin(t)];
+      h+=`<g opacity="${op}">`;
+      if(Math.abs(deg-90)<.6){const ux=Math.cos(s),uy=Math.sin(s),vx=Math.cos(e),vy=Math.sin(e),k=30;
+        h+=`<path d="M${O.x+k*ux} ${O.y-k*uy}L${O.x+k*(ux+vx)} ${O.y-k*(uy+vy)}L${O.x+k*vx} ${O.y-k*vy}" fill="rgba(95,210,124,.18)" stroke="${C.ok}" stroke-width="3"/>`}
+      else if(deg>.8){const [x1,y1]=pt(s,r),[x2,y2]=pt(e,r);h+=`<path d="M${O.x} ${O.y}L${x1} ${y1}A${r} ${r} 0 0 ${dd>0?0:1} ${x2} ${y2}Z" fill="${col}" fill-opacity=".16" stroke="${col}" stroke-width="3"/>`}
+      if(ar.lab&&deg>8){const cands=[];[104,136].forEach(rr=>[.5,.34,.66,.22,.78].forEach(f=>cands.push(pt(s+dd*f,rr))));const [lx,ly]=best(cands,segs);
+        const t=ar.lab==='deg'?Math.round(deg)+'°':ar.lab;h+=label(lx,ly+10,t,col,28)}
+      h+='</g>'}}
+  /* élastique */
+  const el=pose.el;
+  if(el&&A[el.a]&&A[el.b]){const a=ps[el.a],b=ps[el.b],op=Math.min(A[el.a].op,A[el.b].op),col=el.col||C.ink;
+    if(el.arrow)h+=arrow(b.ex,b.ey,a.ex,a.ey,col,4,'12 8',op);
+    else h+=`<g opacity="${op}"><line x1="${a.ex}" y1="${a.ey}" x2="${b.ex}" y2="${b.ey}" stroke="${col}" stroke-width="11" stroke-opacity=".12" stroke-linecap="round"/><line x1="${a.ex}" y1="${a.ey}" x2="${b.ex}" y2="${b.ey}" stroke="${col}" stroke-width="3.5" stroke-dasharray="12 8" stroke-linecap="round"/></g>`;
+    if(el.lab){const dx=b.ex-a.ex,dy=b.ey-a.ey,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L,cands=[];
+      [.5,.3,.7].forEach(f=>{const mx=a.ex+dx*f,my=a.ey+dy*f;[1,-1].forEach(sd=>cands.push([mx+nx*sd*40,my+ny*sd*34]))});
+      const [lx,ly]=best(cands,segs);h+=`<g opacity="${op}">`+label(lx,ly+10,el.lab,col,27)+'</g>'}}
+  /* diagonales perpendiculaires : marque d'angle droit au centre */
+  if(pr&&el&&el.arrow&&A[pr.a]&&A[pr.b]){const a=ps[pr.a],b=ps[pr.b],D1=[a.ex+b.ex-b.sx-a.sx,a.ey+b.ey-b.sy-a.sy],D2=[a.ex-b.ex,a.ey-b.ey],n1=Math.hypot(...D1),n2=Math.hypot(...D2);
+    if(n1>1&&n2>1&&Math.abs(D1[0]*D2[0]+D1[1]*D2[1])/(n1*n2)<.004){const mx=a.sx+D1[0]/2,my=a.sy+D1[1]/2,k=17,u1=[D1[0]/n1*k,D1[1]/n1*k],u2=[D2[0]/n2*k,D2[1]/n2*k];
+      h+=`<path d="M${mx+u1[0]} ${my+u1[1]}L${mx+u1[0]+u2[0]} ${my+u1[1]+u2[1]}L${mx+u2[0]} ${my+u2[1]}" fill="rgba(95,210,124,.2)" stroke="${C.ok}" stroke-width="3"/>`}}
+  /* bras */
+  const order=Object.keys(A).sort((x,y)=>(A[x].z||0)-(A[y].z||0));
+  for(const id of order){const a=A[id],p=ps[id];if(a.op<.01||a.L<.01)continue;h+=arrow(p.sx,p.sy,p.ex,p.ey,a.col,a.w||6,a.dash?'14 10':null,a.op)}
+  /* étiquettes */
+  for(const id of order){const a=A[id],p=ps[id];if(a.op<.05||a.L<.05)continue;const dx=Math.cos(rad(a.a)),dy=-Math.sin(rad(a.a)),sd=a.side||(id==='u'?1:-1),nx=-dy*sd,ny=dx*sd;
+    if(a.lab){const mx=(p.sx+p.ex)/2,my=(p.sy+p.ey)/2;h+=`<g opacity="${a.op}">`+label(mx+nx*34,my+ny*34+10,a.lab,a.col,29)+'</g>'}
+    if(a.tip)h+=`<g opacity="${a.op}">`+label(p.ex+dx*30,p.ey+dy*30+10,a.tip,C.ink,30)+'</g>'}
+  /* charnière du compas */
+  h+=`<circle cx="${O.x}" cy="${O.y}" r="13" fill="#0b1630" stroke="${C.s}" stroke-width="3"/><circle cx="${O.x}" cy="${O.y}" r="4.5" fill="${C.s}"/>`;
+  if(pose.o)h+=label(O.x-30,O.y+40,pose.o,C.ink,30);
+  dyn.innerHTML=h;gauge(deg);balance()}
+/* ---- la jauge ---- */
+const $=id=>document.getElementById(id);
+function exactDot(a,b){/* valeur exacte si longueurs « propres » et angle remarquable */
+  const Lr=x=>{const n=Math.round(x*1000);return Math.abs(x*1000-n)<1e-6?N.R(n,1000):null};
+  const la=Lr(a.L),lb=Lr(b.L);if(!la||!lb)return null;const d=Math.round(((b.a-a.a)%360+360)%360),dd=d>180?360-d:d;
+  if(Math.abs(((b.a-a.a)%360+360)%360-d)>1e-6||!N.COS[dd])return null;return N.xmul(N.COS[dd],N.mul(la,lb))}
+function gauge(deg){const g=pose.gauge,box=$('gauge');if(!g){box.hidden=true;return}box.hidden=false;
+  const A=cur;let v=0,ok=true;
+  if(g.f)v=g.f(A);else if(A[g.a]&&A[g.b])v=dotv(vecOf(A[g.a]),vecOf(A[g.b]));else ok=false;
+  $('gl').innerHTML=g.lab;const max=g.max||1,fr=Math.min(1,Math.abs(v)/max)*50,f=$('gf');
+  f.className='f '+(v>=0?'p':'n');f.style.left=(v>=0?50:50-fr)+'%';f.style.width=fr+'%';
+  const z=Math.abs(v)<max*1e-3;$('gt').classList.toggle('zero',z&&ok);
+  const o=$('gv');o.className='gv '+(z?'z':v>0?'p':'n');
+  let txt;
+  if(g.hide)txt='?';
+  else if(!moving&&!sliding&&g.exact!==undefined&&g.exact!==null)txt=g.exact;
+  else{let ex=null;if(!moving&&!g.f&&A[g.a]&&A[g.b])ex=exactDot(A[g.a],A[g.b]);
+    if(!moving&&g.f&&g.fx)ex=g.fx(A);
+    if(!ex&&!moving&&!sliding&&Math.abs(v*2-Math.round(v*2))<1e-6)ex=N.X(N.R(Math.round(v*2),2));
+    txt=ex?N.xH(ex):z?'0':'≈'+N.NB+N.decF(v,1)}
+  o.innerHTML=txt;o.dataset.v=String(v)}
+/* ---- la balance des carrés ---- */
+function balance(){const b=pose.bal,box=$('bal');if(!b||!cur[b.a]||!cur[b.b]){box.hidden=true;return}box.hidden=false;
+  const A=cur,p=vecOf(A[b.a]),q=vecOf(A[b.b]),s1=A[b.a].L**2,s2=A[b.b].L**2,s3=(p.x-q.x)**2+(p.y-q.y)**2,max=b.max||(A[b.a].L+A[b.b].L)**2;
+  const W=x=>(Math.min(1,x/max)*100).toFixed(2)+'%',nm=b.nm;
+  const ex=!moving&&!sliding&&b.exact?b.exact:null;
+  const fm=x=>!moving&&!sliding&&Math.abs(x-Math.round(x))<1e-6?N.fmtInt(Math.round(x)):'≈'+N.NB+N.decF(x,1);
+  const gpos=s3<=s1+s2,lo=Math.min(s3,s1+s2),hi=Math.max(s3,s1+s2);
+  box.innerHTML=`<span class="bl"><span class="tu">${nm[0]}²</span> + <span class="tv">${nm[1]}²</span></span><div class="bt"><i class="s1" style="left:0;width:${W(s1)}"></i><i class="s2" style="left:${W(s1)};width:${W(s2)}"></i></div>`+
+    `<span class="bl">${nm[2]}²</span><div class="bt"><i class="s3" style="left:0;width:${W(s3)}"></i>${hi-lo>max*.004?`<i class="gap${gpos?'':' n'}" style="left:${W(lo)};width:${W(hi-lo)}"></i>`:''}</div>`+
+    `<div class="bx">${nm[0]}² + ${nm[1]}² − ${nm[2]}² = <b>${b.hide?'?':ex?ex[3]:fm(s1+s2-s3)}</b> = 2${N.NB}${N.DOT(nm[0],nm[1])}</div>`}
+/* ---- animation ---- */
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const NUM=['L','a','ox','oy','op'];
+function norm(a){return Object.assign({L:0,a:0,ox:0,oy:0,op:1,col:C.ink},a)}
+function go(np,dur){cancelAnimationFrame(raf);sliding=false;
+  if(dur===undefined)dur=800;if(reduceM)dur=0;
+  const from={},to={};
+  for(const id in np.arms){const t=norm(np.arms[id]);to[id]=t;
+    from[id]=cur[id]?Object.assign({},cur[id]):Object.assign({},t,t.grow===false?{op:0}:{L:0,op:t.op})}
+  for(const id in cur)if(!np.arms[id]){from[id]=Object.assign({},cur[id]);to[id]=Object.assign({},cur[id],{op:0,gone:true})}
+  pose=np;
+  return new Promise(res=>{const t0=performance.now();moving=dur>0;
+    const step=now=>{const t=dur?Math.min(1,(now-t0)/dur):1,e=ease(t);const nx={};
+      for(const id in to){const a=from[id],b=to[id],c=Object.assign({},b);NUM.forEach(k=>{c[k]=a[k]+(b[k]-a[k])*e});nx[id]=c}
+      cur=nx;if(t>=1){for(const id in cur)if(cur[id].gone)delete cur[id];moving=false;draw();res();return}
+      draw();raf=requestAnimationFrame(step)};
+    if(!dur){step(t0)}else raf=requestAnimationFrame(step)})}
+/* réglage direct (curseur) : modifie seulement les champs donnés */
+function set(patch,live){cancelAnimationFrame(raf);moving=false;sliding=!!live;
+  for(const id in patch){if(!cur[id])cur[id]=norm(patch[id]);else Object.assign(cur[id],patch[id]);if(pose.arms[id])Object.assign(pose.arms[id],patch[id])}
+  draw()}
+function release(){sliding=false;draw()}
+function frame(Rm){unit=RMAX/Rm}
+function upd(fn){fn(pose);draw()}
+const wait=ms=>new Promise(r=>setTimeout(r,reduceM?0:ms));
+function clear(){cancelAnimationFrame(raf);cur={};pose={arms:{}};moving=false;sliding=false;draw()}
+function state(){const o={};for(const id in cur)o[id]={L:+cur[id].L.toFixed(4),a:+cur[id].a.toFixed(3),op:+cur[id].op.toFixed(3)};return{arms:o,moving,gauge:+($('gv').dataset.v||0)}}
+/* ---- bruitages (clé partagée avec le kit : sigma-fanfare) ---- */
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+const sound={get(){try{return localStorage.getItem('sigma-fanfare')!=='0'}catch(e){return true}},set(v){try{localStorage.setItem('sigma-fanfare',v?'1':'0')}catch(e){}}};
+function tone(f,d,v,type,w){if(!sound.get())return;const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v||.06,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.02)}
+const SND={pop(){tone(660,.12,.05);tone(990,.1,.03,'sine',.05)},soft(){tone(220,.22,.05,'sine');tone(196,.25,.04,'sine',.08)},
+  win(){[523,659,784,1046].forEach((f,i)=>tone(f,.28,.05,'triangle',i*.08))},
+  swing(){if(!sound.get())return;const a=ac();if(!a)return;const t=a.currentTime,o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.setValueAtTime(300,t);o.frequency.exponentialRampToValueAtTime(620,t+.5);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.04,t+.05);g.gain.exponentialRampToValueAtTime(.0001,t+.6);o.connect(g).connect(a.destination);o.start(t);o.stop(t+.65)},
+  tick(){tone(1200,.04,.02,'square')},zero(){tone(784,.18,.05,'sine');tone(1175,.3,.04,'sine',.09)}};
+return{go,set,release,frame,upd,wait,clear,state,draw,SND,sound,C,reduceM,get busy(){return moving},vecOf,dotv,get cur(){return cur}};
+})();
+</script>
+
+<script>
+/* ======================= moteur : questions en étapes, deuxième essai = réponse donnée ======================= */
+window.CE_G=(function(){
+'use strict';
+const N=window.CE_N,S=window.CE_S,SND=S.SND,$=id=>document.getElementById(id);
+const cap=h=>{$('capt').innerHTML=`<span>${h||'&nbsp;'}</span>`};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const knorm=s=>String(s).toLowerCase().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/°/g,'');
+const GAME='compas-elastique';
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,busy=false;
+function starsOf(i){try{const g=SigmaKit.passport().games[GAME];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function fb(html,kind,extra){if(!html){$('fb').hidden=true;return}
+  $('fb').classList.toggle('rv',kind==='rv');$('fbt').textContent=kind==='rv'?'Voici la réponse.':'Pas tout à fait.';
+  $('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fbx').innerHTML='';if(extra)$('fbx').appendChild(extra);$('fb').hidden=false}
+/* une erreur : 1re fois, on explique ; 2e fois, on explique et on donne la réponse */
+function miss(p,why,reveal){p._e=(p._e||0)+1;errs++;SND.soft();
+  if(p._e<2){fb(why);setTimeout(()=>scrollPart($('fb')),40);return}
+  reveal();const b=document.createElement('div');b.className='btns';b.innerHTML='<button type="button" class="btn or" id="cont">Continuer →</button>';
+  fb(why+(p.solH?`<span class="sol">Réponse&nbsp;: ${p.solH}</span>`:''),'rv',b);
+  b.querySelector('button').onclick=async()=>{if(busy)return;fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()};
+  setTimeout(()=>{const c=$('cont');if(c&&matchMedia('(pointer:fine)').matches)c.focus({preventScroll:true});scrollPart($('fb'))},40)}
+const W={};
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);fb('');nextPart()};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)b.focus({preventScroll:true})},50)};
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):N.shuf(p.ch.map((_,j)=>j));
+  if(!p.solH)p.solH=p.ch.find(c=>c.ok).h;
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  const all=[...box.querySelectorAll('.opt')];
+  const lock=()=>all.forEach(x=>x.disabled=true);
+  all.forEach(b=>b.onclick=async()=>{if(busy||b.disabled)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){lock();b.classList.add('ok');SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+    else{b.classList.add('ko');b.disabled=true;miss(p,c.why,()=>{lock();all.forEach(x=>{if(p.ch[+x.dataset.j].ok)x.classList.add('ok')})})}})};
+function okBlank(b,v){if(b.w)return b.w.some(a=>knorm(a)===knorm(v));const x=N.parse(v);return !!x&&N.eq(x,b.r)}
+const blankT=b=>b.w?b.w[0]:N.numT(b.r);
+W.fill=(p,box)=>{
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const b=p.b[+i];return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" ${b.w?'':'inputmode="decimal"'} aria-label="Case ${+i+1}" style="width:${b.size||4.6}em">`});
+  if(!p.solH)p.solH=p.b.map(b=>b.w?b.w[0]:N.numH(b.r)).join('&nbsp;; ');
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+
+    `<p class="hint">${p.hint||'Entier, décimal (avec une virgule) ou fraction comme 15/2&nbsp;: tout est accepté.'}</p>`;
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy||f.dataset.done)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=v.map((x,i)=>okBlank(p.b[+ins[i].dataset.i],x));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){f.dataset.done=1;ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+    else miss(p,typeof p.why==='function'?p.why(v.map(x=>N.parse(x)),oks):p.why,()=>{f.dataset.done=1;ins.forEach((x,i)=>{if(!oks[i]){x.value=blankT(p.b[+x.dataset.i]);x.classList.remove('ko');x.classList.add('rv')}x.disabled=true});f.querySelector('button').remove()})};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* angle à régler : un curseur qui ouvre le compas */
+W.slide=(p,box)=>{const st=p.step||5,tg=p.target,mn=p.min===undefined?0:p.min,mx=p.max===undefined?180:p.max;let init=p.init===undefined?30:p.init;if(init===tg)init=tg>=90?tg-40:tg+40;
+  if(!p.solH)p.solH=`${p.lab} = ${tg}°`;
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="sl"><label for="sld">${p.lab}</label><output id="sldo">${init}°</output>`+
+    `<input type="range" id="sld" min="${mn}" max="${mx}" step="${st}" value="${init}" aria-label="${p.aria||'Ouverture du compas, en degrés'}"></div><div class="btns"><button class="btn or" type="button" id="sldv">${p.btn||'Valider l\'angle'}</button></div>`;
+  const r=box.querySelector('#sld'),o=box.querySelector('#sldo'),b=box.querySelector('#sldv');let last=init;
+  const upd=live=>{const v=+r.value;o.textContent=v+'°';p.onInput(v,live);if(v!==last){last=v;if(Math.abs(v-90)<.01&&p.zeroSnd!==false)SND.zero();else SND.tick()}};
+  r.addEventListener('input',()=>upd(true));p.onInput(init,true);
+  b.onclick=async()=>{if(busy)return;const v=+r.value;S.release();
+    if(v===tg){r.disabled=true;b.remove();SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+    else miss(p,typeof p.why==='function'?p.why(v):p.why,()=>{r.value=tg;upd(false);S.release();r.disabled=true;b.remove()})}};
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;if(pi<Q.parts.length){const p=Q.parts[pi];if(p.pre)p.pre();const box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860&&box){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top+4||r.bottom>innerHeight-20)scrollTo({top:scrollY+r.top-top-12,behavior:S.reduceM?'auto':'smooth'})}}
+const LV=[];
+async function newQ(){busy=true;Q=LV[lvl].qs[qi]();pi=0;errs=0;
+  S.clear();cap(Q.cap0||'&nbsp;');
+  $('prompt').innerHTML=Q.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  try{if(Q.setup)await Q.setup()}finally{busy=false}
+  const p=Q.parts[0];if(p.pre)p.pre();const box=partEl();W[p.t](p,box)}
+function dots(){const n=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:n},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){fb('');SND.win();run.push(errs===0);dots();
+  const n=LV[lvl].qs.length,lvlDone=run.length>=n;
+  $('winx').textContent=errs===0?N.pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):N.pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=Q.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(Q.onWin)Q.onWin();
+  setTimeout(()=>{scrollPart($('win'));if(matchMedia('(pointer:fine)').matches)$('next').focus({preventScroll:true})},60);renderLv()}
+function endLevel(){const Lnum=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lnum,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lnum)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if(busy)return;if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:S.reduceM?'auto':'smooth'});if(innerWidth<=860)scrollTo({top:0,behavior:S.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];
+  $('chap').textContent=`Niveau ${l+1} sur ${LV.length} · ${LV[l].badge}`;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('cours').open=false;renderLv();newQ()}
+function renderLv(){const snd=S.sound.get();$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;
+  if(b.id==='snd'){S.sound.set(!S.sound.get());renderLv();SND.pop();return}
+  goLevel(+b.dataset.l)});
+/* fabriques */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+const ch=(ask,list,o)=>Object.assign({t:'choice',ask,ch:list},o||{});
+const fill=(ask,tpl,b,why,o)=>Object.assign({t:'fill',ask,tpl,b,why},o||{});
+const slide=(ask,lab,target,onInput,why,o)=>Object.assign({t:'slide',ask,lab,target,onInput,why},o||{});
+const OK=(h,x)=>Object.assign({h,ok:true},x||{}),NO=(h,why,x)=>Object.assign({h,why},x||{});
+/* case à remplir : r = valeur rationnelle attendue, key = clé d'audit */
+const B=(r,key,o)=>Object.assign({r:typeof r==='number'?N.R(r):r,key},o||{});
+window.CE={start(){const m=/[?&]niveau=(\d)/.exec(location.search);goLevel(m?Math.min(+m[1]-1,LV.length-1):0)},
+  state:()=>{const p=Q&&Q.parts[pi];return{lvl,qi,nq:LV[lvl]&&LV[lvl].qs.length,busy:busy||S.busy,pi,win:!$('win').hidden,cont:!!$('cont')&&!$('fb').hidden,
+    part:p?{t:p.t,sol:p.b?p.b.map(blankT):null,choices:p.ch?p.ch.map(c=>({ok:!!c.ok})):null,target:p.target===undefined?null:p.target,step:p.step||5}:null,scene:S.state()}},
+  LV,goLevel,get Q(){return Q}};
+return{LV,W,act,ch,fill,slide,OK,NO,B,cap,MAKI,renderLv};
+})();
+</script>
+
+<script>
+/* ======================= outils communs aux niveaux et aux épreuves ======================= */
+window.CE_T=(function(){
+'use strict';
+const N=window.CE_N;
+const {R,add,sub,mul,div,X,xadd,xmul,COS,isSq,ri,pick,V,NB,MI}=N;
+/* clés d'audit : combinaisons de la base, ex. K('dot',[1,0],[-1,1]) */
+const cs=x=>typeof x==='number'?String(x):x.n+'/'+x.d;
+const K=(t,...c)=>t+':'+c.map(v=>v.map(cs).join(',')).join('|');
+/* matrice de Gram d'une base donnée par normes et angles (en degrés) */
+function gramVec(vs){return vs.map(a=>vs.map(b=>{let d=Math.abs(a[1]-b[1])%360;if(d>180)d=360-d;if(!COS[d])throw new Error('angle '+d);return xmul(COS[d],mul(R(a[0]),R(b[0])))}))}
+/* triangle ABC, base (AB⃗, AC⃗) : a = BC, b = CA, c = AB */
+function gramTri(a,b,c){const m=R(b*b+c*c-a*a,2);return[[X(R(c*c)),X(m)],[X(m),X(R(b*b))]]}
+function gramGiven(g){return g.map(r=>r.map(x=>X(typeof x==='number'?R(x):x)))}
+const toR=x=>typeof x==='number'?R(x):x;
+function dotC(G,p,q){let s=X(0);for(let i=0;i<p.length;i++)for(let j=0;j<q.length;j++){const c=mul(toR(p[i]),toR(q[j]));if(c.n)s=xadd(s,xmul(G[i][j],c))}return s}
+/* écriture d'une combinaison : 2u⃗ − v⃗ */
+function comb(c,names){let h='';c.forEach((k,i)=>{k=toR(k);if(!k.n)return;const a=Math.abs(k.n),f=k.d===1?(a===1?'':String(a)):`${a}/${k.d}`;
+  const t=f+V(names[i]);if(!h)h=(k.n<0?MI:'')+t;else h+=(k.n<0?' '+MI+' ':' + ')+t});return `<span class="nw">${h}</span>`}
+/* triangles à côtés entiers */
+const TRI={t60:[],t120:[],t90:[]};
+for(let b=2;b<=15;b++)for(let c=2;c<=15;c++){if(b===c)continue;
+  const s60=b*b+c*c-b*c,s120=b*b+c*c+b*c,s90=b*b+c*c;
+  if(isSq(s60))TRI.t60.push([Math.round(Math.sqrt(s60)),b,c]);
+  if(isSq(s120))TRI.t120.push([Math.round(Math.sqrt(s120)),b,c]);
+  if(isSq(s90))TRI.t90.push([Math.round(Math.sqrt(s90)),b,c])}
+/* triangle quelconque à côtés entiers (inégalité triangulaire stricte) */
+function triAny(o){o=o||{};for(let n=0;n<4000;n++){const a=ri(o.lo||2,o.hi||10),b=ri(o.lo||2,o.hi||10),c=ri(o.lo||2,o.hi||10);
+    if(a>=b+c||b>=a+c||c>=a+b)continue;const t=b*b+c*c-a*a;if(o.test&&!o.test(a,b,c,t))continue;return[a,b,c]}
+  throw new Error('triAny')}
+const angA=(a,b,c)=>Math.acos((b*b+c*c-a*a)/(2*b*c))*180/Math.PI;
+/* normes et produit scalaire entiers avec ‖u ± v‖ entier */
+function normsSq(o){o=o||{};for(let n=0;n<6000;n++){const a=ri(o.lo||2,o.hi||8),b=ri(o.lo||2,o.hi||8),d=ri(-a*b+1,a*b-1);if(!d&&!o.zero)continue;
+    const s2=a*a+2*d+b*b,e2=a*a-2*d+b*b;if(o.sum&&!isSq(s2))continue;if(o.diff&&!isSq(e2))continue;if(o.test&&!o.test(a,b,d))continue;
+    if(Math.abs(d)>=a*b*.94)continue;return{a,b,d,s2,e2}}
+  throw new Error('normsSq')}
+return{K,gramVec,gramTri,gramGiven,dotC,comb,TRI,triAny,angA,normsSq,toR};
+})();
+</script>
+
+<script>
+/* ======================= les sept niveaux ======================= */
+(function(){
+'use strict';
+const N=window.CE_N,S=window.CE_S,G=window.CE_G,T=window.CE_T;
+const {R,add,sub,mul,div,neg,eq,cmp,val,numH,numT,frH,fmtInt,X,xI,xadd,xsub,xmul,xH,xT,xeq,xdist,xval,xsign,xrat,COS,RADH,cosH,cosP,PN,sqf,sqrtH,isSq,decF,ri,pick,shuf,V,Vc,NR,DOT,AG,NB,MI}=N;
+const {act,ch,fill,slide,OK,NO,B,cap}=G;
+const {K,gramVec,gramTri,gramGiven,dotC,comb,TRI,triAny,angA,normsSq}=T;
+const C=S.C;
+const nb=s=>s;
+const u_=Vc('u'),v_=Vc('v'),w_=Vc('w');
+const UV=DOT('u','v',1);
+const sgn=d=>d<90?'aigu':d>90?'obtus':'droit';
+/* bras du compas */
+const AU=(L,o)=>Object.assign({L,a:0,col:C.u,lab:{t:'u',vec:true}},o||{});
+const AV=(L,a,o)=>Object.assign({L,a,col:C.v,lab:{t:'v',vec:true}},o||{});
+const AW=(L,a,o)=>Object.assign({L,a,col:C.w,lab:{t:'w',vec:true},side:-1},o||{});
+const TBr=(c,o)=>Object.assign({L:c,a:0,col:C.u,tip:'B',lab:String(c)},o||{});
+const TCr=(b,A,o)=>Object.assign({L:b,a:A,col:C.v,tip:'C',lab:String(b)},o||{});
+const gUV=(max,o)=>Object.assign({a:'u',b:'v',lab:UV,max},o||{});
+const gAB=(max,o)=>Object.assign({a:'u',b:'v',lab:DOT('AB','AC'),max},o||{});
+const arc=(lab)=>({a:'u',b:'v',lab:lab===undefined?'deg':lab});
+/* vecteur numérique → bras */
+const vx=(L,d)=>({x:L*Math.cos(d*Math.PI/180),y:L*Math.sin(d*Math.PI/180)});
+const toArm=(p,o)=>Object.assign({L:Math.hypot(p.x,p.y),a:Math.atan2(p.y,p.x)*180/Math.PI},o||{});
+const lin=(c,vs)=>({x:c.reduce((s,k,i)=>s+val(T.toR(k))*vs[i].x,0),y:c.reduce((s,k,i)=>s+val(T.toR(k))*vs[i].y,0)});
+const unhide=()=>S.upd(p=>{if(p.gauge)p.gauge.hide=false;if(p.bal)p.bal.hide=false});
+const rv=x=>xrat(x)?x.p:null;
+
+/* ======================= Niveau 1 · Ouvrir le compas ======================= */
+const L1={t:'Ouvrir le compas',badge:'Définition par le cosinus',
+ rule:`<p>Si ${u_} et ${v_} sont non nuls et si θ est l'angle entre eux&nbsp;: <b>${UV} = ${NR('u',1)} × ${NR('v',1)} × cos θ</b>. C'est un nombre réel, pas un vecteur.</p>
+ <p>Si ${u_} ou ${v_} est nul, ${UV} = 0.</p>
+ <p>${DOT('u','u',1)} = ${NR('u',1)}², noté aussi ${u_}²&nbsp;; en particulier ${DOT('AB','AB')} = AB².</p>
+ <p>Pour ${DOT('AB','AC')}, les deux vecteurs partent du même point A&nbsp;: l'angle est ${AG('BAC')}.</p>
+ <p>Valeurs remarquables&nbsp;: cos 0° = 1, cos 30° = ${cosH(30)}, cos 45° = ${cosH(45)}, cos 60° = ${frH(1,2)}, cos 90° = 0, cos 120° = ${MI}${frH(1,2)}, cos 135° = ${cosH(135)}, cos 150° = ${cosH(150)}, cos 180° = ${MI}1.</p>`,
+ qs:[
+ ()=>{const a=ri(2,9),b=ri(2,9),th=pick([60,120]),Gm=gramVec([[a,0],[b,th]]),d=rv(Gm[0][1]);
+  const pz=t=>({arms:{u:AU(a),v:AV(b,t)},arc:arc(),gauge:gUV(a*b,{hide:true})});
+  return{meta:{B:['u','v'],vec:[[a,0],[b,th]]},setup:()=>{S.frame(Math.max(a,b));return S.go(pz(30),0)},cap0:'Le compas est presque fermé&nbsp;: la jauge est presque pleine',
+   prompt:`<p>Deux vecteurs ${u_} et ${v_} ont pour normes ${NR('u',1)} = ${a} et ${NR('v',1)} = ${b}.</p>`,
+   parts:[slide(`Ouvre le compas pour que l'angle entre ${u_} et ${v_} mesure ${th}°.`,'Angle θ',th,(v,live)=>S.set({v:{a:v}},live),
+      v=>`Le compas est ouvert à ${v}°. Suis l'arc sur le rapporteur&nbsp;: il faut ${th}°${th>90?', au-delà de l\'angle droit':''}.`,{init:30,key:K('deg',[1,0],[0,1])}),
+    fill(null,`${UV} = ${a} × ${b} × cos ${th}° = {0}`,[B(d,K('dot',[1,0],[0,1]))],
+      vs=>vs[0]&&eq(vs[0],R(a*b))?`Tu as pris cos ${th}° = 1&nbsp;: le cosinus n'est égal à 1 que si le compas est fermé. Ici cos ${th}° = ${cosH(th)}.`:
+        vs[0]&&eq(vs[0],neg(d))?`Attention au signe&nbsp;: cos ${th}° = ${cosH(th)}.`:`Multiplie les deux normes, puis multiplie par cos ${th}° = ${cosH(th)}.`,
+      {onOk:async()=>{unhide();cap(`${UV} = ${a} × ${b} × ${cosP(th)} = ${numH(d)}`)}})],
+   done:`${UV} = ${a} × ${b} × ${cosP(th)} = ${numH(d)}&nbsp;: ${th<90?'angle aigu, la jauge reste positive.':'angle obtus, la jauge est passée dans le négatif.'}`}},
+ ()=>{const a=ri(2,8),b=ri(2,8),th=pick([30,45,135,150]),x=gramVec([[a,0],[b,th]])[0][1],half=R((th<90?1:-1)*a*b,2);
+  const vals=[x,xmul(x,2),X(half),xmul(x,-1)];if(!xdist(vals))return L1.qs[1]();
+  const k=th===45||th===135?2:3;
+  return{meta:{B:['u','v'],vec:[[a,0],[b,th]]},setup:()=>{S.frame(Math.max(a,b));return S.go({arms:{u:AU(a),v:AV(b,th<90?0:90)},arc:arc(),gauge:gUV(a*b,{hide:true})},0)},
+   cap0:'Les deux bras du compas',prompt:`<p>${NR('u',1)} = ${a}, ${NR('v',1)} = ${b} et l'angle entre ${u_} et ${v_} mesure ${th}°.</p>`,
+   parts:[act(`Ouvrir le compas à ${th}°`,async()=>{S.SND.swing();await S.go({arms:{u:AU(a),v:AV(b,th)},arc:arc(),gauge:gUV(a*b,{hide:true})});cap(`θ = ${th}°&nbsp;: la jauge est ${th<90?'positive':'négative'}`)}),
+    ch(`${UV} =`,[OK(xH(vals[0]),{v:vals[0]}),NO(xH(vals[1]),`cos ${th}° = ${cosH(th)}&nbsp;: n'oublie pas de diviser par 2.`,{v:vals[1]}),
+      NO(numH(half),`${th<90?frH(1,2)+' est cos 60°':MI+frH(1,2)+' est cos 120°'}, pas cos ${th}°. Ici cos ${th}° = ${cosH(th)}.`,{v:vals[2]}),
+      NO(xH(vals[3]),th<90?'L\'angle est aigu&nbsp;: la jauge est positive, le produit scalaire aussi.':'L\'angle est obtus&nbsp;: cos θ &lt; 0, le produit scalaire est négatif.',{v:vals[3]})],
+     {key:K('dot',[1,0],[0,1]),onOk:async()=>{unhide();cap(`${UV} = ${a} × ${b} × ${cosP(th)} = ${xH(x)}`)}})],
+   done:`${a} × ${b} × ${cosP(th)} = ${xH(x)}. Les valeurs avec √${k} viennent de cos ${th}°.`}},
+ ()=>{const a=ri(2,9),b=ri(2,9);
+  return{meta:{B:['u','v0','v90','v180'],vec:[[a,0],[b,0],[b,90],[b,180]]},setup:()=>{S.frame(Math.max(a,b));return S.go({arms:{u:AU(a),v:AV(b,50)},arc:arc(),gauge:gUV(a*b,{hide:true})},0)},
+   cap0:'Prévois d\'abord, puis vérifie avec le compas',prompt:`<p>${NR('u',1)} = ${a} et ${NR('v',1)} = ${b}. Que vaut ${UV} quand le compas est fermé, à angle droit, puis grand ouvert&nbsp;?</p>`,
+   parts:[fill('Prévois les trois valeurs&nbsp;:',`θ = 0°&nbsp;: {0}<br>θ = 90°&nbsp;: {1}<br>θ = 180°&nbsp;: {2}`,
+      [B(a*b,K('dot',[1,0,0,0],[0,1,0,0])),B(0,K('dot',[1,0,0,0],[0,0,1,0])),B(-a*b,K('dot',[1,0,0,0],[0,0,0,1]))],
+      'cos 0° = 1, cos 90° = 0 et cos 180° = −1&nbsp;: multiplie le produit des normes par ces trois cosinus.'),
+    act('Vérifier avec le compas',async()=>{unhide();for(const [t,m] of [[0,`θ = 0°&nbsp;: ${UV} = ${a} × ${b} = ${a*b}`],[90,`θ = 90°&nbsp;: ${UV} = 0`],[180,`θ = 180°&nbsp;: ${UV} = ${MI}${a*b}`]]){
+      S.SND.swing();await S.go({arms:{u:AU(a),v:AV(b,t)},arc:arc(),gauge:gUV(a*b)},900);cap(m);await S.wait(700)}},{doneLabel:'Vérifié'})],
+   done:`Fermé&nbsp;: ${a*b} (le maximum). Angle droit&nbsp;: 0. Grand ouvert&nbsp;: ${MI}${a*b} (le minimum). Le produit scalaire reste toujours entre ${MI}${a*b} et ${a*b}.`}},
+ ()=>{const n=ri(3,12);
+  const pz=t=>({o:'A',arms:{u:{L:n,a:0,col:C.u,tip:'B',lab:{t:'AB',vec:true}},v:{L:n,a:t,col:C.v,lab:{t:'AB',vec:true},side:-1}},arc:arc(),gauge:{a:'u',b:'v',lab:DOT('AB','AB'),max:n*n,hide:true}});
+  return{meta:{B:['AB'],vec:[[n,0]]},setup:()=>{S.frame(n);return S.go(pz(55),0)},cap0:'Deux fois le même vecteur, de norme AB',
+   prompt:`<p>On a AB = ${n}. On veut calculer ${DOT('AB','AB')}&nbsp;: les deux bras du compas sont le même vecteur.</p>`,
+   parts:[act('Replier le compas',async()=>{S.SND.swing();await S.go(pz(0));cap('Les deux bras se superposent&nbsp;: θ = 0°')}),
+    fill(null,`${DOT('AB','AB')} = {0}`,[B(n*n,K('dot',[1],[1]))],`L'angle vaut 0° et cos 0° = 1&nbsp;: ${n} × ${n} × 1.`,{onOk:async()=>{unhide();cap(`${DOT('AB','AB')} = ${n} × ${n} × 1 = ${n*n}`)}}),
+    ch(`À retenir&nbsp;: ${DOT('AB','AB')} =`,[OK('AB²'),NO('2AB',`${n} × ${n} n'est pas ${n} + ${n}&nbsp;: c'est un carré.`),NO('AB','On multiplie deux normes&nbsp;: on obtient AB × AB.'),NO('0','Le produit scalaire n\'est nul que pour un angle droit (ou un vecteur nul).')])],
+   done:`${DOT('AB','AB')} = AB² = ${n*n}&nbsp;: c'est le carré scalaire, noté aussi ${V('AB')}².`}},
+ ()=>{const c=ri(2,10),d=R(c*c,2);
+  const tri=()=>({o:'A',arms:{u:TBr(c),v:TCr(c,60)},el:{a:'u',b:'v'},arc:arc()});
+  return{meta:{B:['AB','AC'],vec:[[c,0],[c,60]]},setup:()=>{S.frame(c);return S.go(Object.assign(tri(),{gauge:gAB(c*c,{hide:true})}),0)},cap0:'Un triangle équilatéral, vu depuis A',
+   prompt:`<p>ABC est un triangle équilatéral de côté ${c}.</p>`,
+   parts:[fill(null,`${DOT('AB','AC')} = {0}`,[B(d,K('dot',[1,0],[0,1]))],`AB = AC = ${c} et ${AG('BAC')} = 60° (triangle équilatéral)&nbsp;: ${c} × ${c} × ${frH(1,2)}.`,{onOk:async()=>{unhide();cap(`${DOT('AB','AC')} = ${c} × ${c} × ${frH(1,2)} = ${numH(d)}`)}}),
+    act(`Ramener ${V('BC')} au point A`,async()=>{const p=tri();p.arms.w={L:c,a:120,col:C.w,ox:c,oy:0,lab:{t:'BC',vec:true},side:1};p.gauge={a:'u',b:'w',lab:DOT('AB','BC'),max:c*c,hide:true};p.arc=null;
+      await S.go(p,500);await S.wait(300);S.SND.swing();p.arms=Object.assign({},p.arms,{w:Object.assign({},p.arms.w,{ox:0,oy:0})});p.arc={a:'u',b:'w',lab:'deg'};await S.go(p,1100);
+      cap(`Avec la même origine A&nbsp;: l'angle entre ${V('AB')} et ${V('BC')} mesure 120°`)}),
+    ch(`${DOT('AB','BC')} =`,[OK(numH(neg(d)),{v:X(neg(d))}),NO(numH(d),`60° est l'angle du triangle en B, entre ${V('BA')} et ${V('BC')}. Il faut d'abord placer ${V('AB')} et ${V('BC')} à la même origine&nbsp;: l'angle mesure alors 120°.`,{v:X(d)}),
+      NO('0',`${V('AB')} et ${V('BC')} ne sont pas orthogonaux&nbsp;: l'angle entre eux mesure 120°.`,{v:X(0)}),NO(numH(R(-c*c)),`cos 120° = ${MI}${frH(1,2)}&nbsp;: n'oublie pas le ${frH(1,2)}.`,{v:X(R(-c*c))})],
+     {key:K('dot',[1,0],[-1,1]),onOk:async()=>{unhide();cap(`${DOT('AB','BC')} = ${c} × ${c} × cos 120° = ${numH(neg(d))}`)}})],
+   done:`Même triangle, deux résultats opposés&nbsp;: ${DOT('AB','AC')} = ${numH(d)} mais ${DOT('AB','BC')} = ${numH(neg(d))}. On lit l'angle entre deux vecteurs de même origine.`}}]};
+
+/* ======================= Niveau 2 · L'angle droit ======================= */
+const L2={t:'L\'angle droit',badge:'Signe et orthogonalité',
+ rule:`<p>Pour ${u_} et ${v_} non nuls, le signe de ${UV} est celui de cos θ&nbsp;:</p>
+ <p>θ aigu ⇔ ${UV} &gt; 0&nbsp;; θ = 90° ⇔ ${UV} = 0&nbsp;; θ obtus ⇔ ${UV} &lt; 0.</p>
+ <p><b>${u_} et ${v_} sont orthogonaux ⇔ ${UV} = 0</b> (le vecteur nul est orthogonal à tout vecteur).</p>
+ <p>Pour trouver un angle&nbsp;: cos θ = ${frH(UV,NR('u',1)+' × '+NR('v',1))}.</p>`,
+ qs:[
+ ()=>{const a=ri(2,9),b=ri(2,9);
+  return{meta:{B:['u','v'],vec:[[a,0],[b,90]]},setup:()=>{S.frame(Math.max(a,b));return S.go({arms:{u:AU(a),v:AV(b,30)},arc:arc(),gauge:gUV(a*b)},0)},cap0:'La jauge est positive&nbsp;: fais-la tomber à zéro',
+   prompt:`<p>${NR('u',1)} = ${a} et ${NR('v',1)} = ${b}. Fais pivoter ${v_} jusqu'à ce que la jauge ${UV} s'annule.</p>`,
+   parts:[slide(null,'Angle θ',90,(v,live)=>S.set({v:{a:v}},live),v=>v<90?'La jauge est encore positive&nbsp;: l\'angle est aigu. Ouvre davantage.':'La jauge est passée en négatif&nbsp;: l\'angle est obtus. Referme un peu.',{init:30,key:K('deg',[1,0],[0,1]),btn:'La jauge est à zéro',onOk:async()=>cap(`θ = 90°&nbsp;: cos 90° = 0, donc ${UV} = 0`)}),
+    ch(`${UV} = 0 et les deux vecteurs sont non nuls&nbsp;: ${u_} et ${v_} sont`,[OK('orthogonaux'),NO('colinéaires','Colinéaires, ce serait θ = 0° ou θ = 180°&nbsp;: la jauge serait au maximum ou au minimum, pas à zéro.'),NO('de même norme','Les normes n\'y sont pour rien&nbsp;: c\'est cos θ = 0 qui annule le produit scalaire.')])],
+   done:`Produit scalaire nul ⇔ vecteurs orthogonaux&nbsp;: c'est la caractérisation de l'orthogonalité.`}},
+ ()=>{const a=ri(3,8),b=ri(3,8),t1=pick([20,40,50,70,80]),t2=pick([100,110,130,140,160]);const first=Math.random()<.5?[t1,t2]:[t2,t1];
+  const pz=t=>({arms:{u:AU(a),v:AV(b,t)},arc:arc(),gauge:gUV(a*b)});
+  const sgCh=(t,key)=>ch(`Le compas va s'ouvrir à θ = ${t}°. Sans calcul, ${UV} est&nbsp;:`,[OK(t<90?'strictement positif':'strictement négatif',{tag:t<90?'+':'-'}),
+     NO(t<90?'strictement négatif':'strictement positif',t<90?`${t}° &lt; 90°&nbsp;: l'angle est aigu, cos θ &gt; 0.`:`${t}° &gt; 90°&nbsp;: l'angle est obtus, cos θ &lt; 0.`,{tag:t<90?'-':'+'}),
+     NO('nul','Le produit scalaire n\'est nul qu\'à 90° exactement.',{tag:'0'})],{key});
+  const ver=t=>act(`Vérifier&nbsp;: ouvrir à ${t}°`,async()=>{S.SND.swing();await S.go(pz(t));cap(`θ = ${t}°&nbsp;: la jauge est ${t<90?'positive':'négative'}`)});
+  return{meta:{B:['u','va','vb'],vec:[[a,0],[b,first[0]],[b,first[1]]]},setup:()=>{S.frame(Math.max(a,b));return S.go(pz(90),0)},cap0:'Le compas est à angle droit&nbsp;: la jauge est à zéro',
+   prompt:`<p>${NR('u',1)} = ${a} et ${NR('v',1)} = ${b}. Le signe du produit scalaire se lit sur l'angle.</p>`,
+   parts:[sgCh(first[0],K('sign',[1,0,0],[0,1,0])),ver(first[0]),sgCh(first[1],K('sign',[1,0,0],[0,0,1])),ver(first[1])],
+   done:'Aigu&nbsp;: positif. Droit&nbsp;: nul. Obtus&nbsp;: négatif. Le signe du produit scalaire est celui de cos θ.'}},
+ ()=>{const a=ri(2,8),b=ri(2,8),th=pick([60,120,60,120,0,180]),d=rv(gramVec([[a,0],[b,th]])[0][1]),c=rv(COS[th]);
+  return{meta:{B:['u','v'],vec:[[a,0],[b,th]]},setup:()=>{S.frame(Math.max(a,b));return S.go({arms:{u:AU(a),v:AV(b,90)},arc:arc(),gauge:gUV(a*b,{exact:numH(d)})},0)},cap0:'De la valeur du produit scalaire à l\'angle',
+   prompt:`<p>On sait que ${NR('u',1)} = ${a}, ${NR('v',1)} = ${b} et ${UV} = ${numH(d)}. On cherche l'angle θ entre ${u_} et ${v_}.</p>`,
+   parts:[fill(null,`cos θ = ${frH(UV,NR('u',1)+' × '+NR('v',1))} = {0}`,[B(c,K('cos',[1,0],[0,1]))],`On divise le produit scalaire par le produit des normes&nbsp;: ${numH(d)} ÷ ${a*b}.`),
+    slide('Ouvre le compas à cet angle.','Angle θ',th,(v,live)=>S.set({v:{a:v}},live),v=>`cos θ = ${numH(c)}&nbsp;: cherche l'angle remarquable qui a ce cosinus${COS[v]?` (cos ${v}° = ${cosH(v)})`:''}.`,{init:th===90?40:90,key:K('deg',[1,0],[0,1]),onOk:async()=>cap(`cos θ = ${numH(c)}, donc θ = ${th}°`)})],
+   done:`cos θ = ${numH(c)} donc θ = ${th}°&nbsp;: ${th===0?'les vecteurs sont colinéaires de même sens.':th===180?'les vecteurs sont colinéaires de sens contraires.':th<90?'un angle aigu, comme l\'annonçait le signe +.':'un angle obtus, comme l\'annonçait le signe −.'}`}},
+ ()=>{const c=ri(2,8);
+  const pz=g=>({o:'A',arms:{u:{L:c,a:0,col:C.u,tip:'B',lab:{t:'AB',vec:true}},v:{L:c,a:90,col:C.v,tip:'D',lab:{t:'AD',vec:true},side:-1},w:{L:c*Math.SQRT2,a:45,col:C.s,tip:'C',lab:{t:'AC',vec:true},side:-1,z:-1}},
+    par:{a:'u',b:'v',sum:false},arc:g==='w'?{a:'u',b:'w',lab:'deg'}:arc(),gauge:g==='w'?{a:'u',b:'w',lab:DOT('AB','AC'),max:c*c*Math.SQRT2,hide:true}:{a:'u',b:'v',lab:DOT('AB','AD'),max:c*c,hide:true}});
+  return{meta:{B:['AB','AD'],vec:[[c,0],[c,90]]},setup:()=>{S.frame(c*1.45);return S.go(pz('v'),0)},cap0:'Le carré ABCD, compas en A',
+   prompt:`<p>ABCD est un carré de côté ${c}.</p>`,
+   parts:[ch(`${DOT('AB','AD')} =`,[OK('0',{v:X(0)}),NO(String(c*c),`${V('AB')} et ${V('AD')} font un angle droit&nbsp;: cos 90° = 0.`,{v:X(c*c)}),NO(MI+(c*c),`Un angle droit n'est pas obtus&nbsp;: cos 90° = 0, le produit est nul.`,{v:X(-c*c)})],
+      {key:K('dot',[1,0],[0,1]),onOk:async()=>{unhide();await S.wait(400);S.SND.swing();await S.go(pz('w'));cap(`La diagonale AC = ${c}√2 fait un angle de 45° avec AB`)}}),
+    fill(null,`${DOT('AB','AC')} = {0}`,[B(c*c,K('dot',[1,0],[1,1]))],`AC = ${c}√2 (diagonale du carré) et ${AG('BAC')} = 45°&nbsp;: ${c} × ${c}√2 × ${cosH(45)}.`,
+      {onOk:async()=>{unhide();cap(`${DOT('AB','AC')} = ${c} × ${c}√2 × ${cosH(45)} = ${c*c}`)}})],
+   done:`${DOT('AB','AD')} = 0 (côtés perpendiculaires) et ${DOT('AB','AC')} = ${c} × ${c}√2 × ${cosH(45)} = ${c*c}.`}},
+ ()=>{const SETS=[[90,150],[90,135],[90,120],[60,150],[120,30],[45,135],[30,120],[60,150],[135,45]];
+  let [tv,tw]=pick(SETS);if(Math.random()<.5)[tv,tw]=[tw,tv];
+  const a=ri(2,6),b=ri(2,6),c=ri(2,6),Gm=gramVec([[a,0],[b,tv],[c,tw]]);
+  const prs=[['u','v',0,1],['u','w',0,2],['v','w',1,2]],dz=prs.map(p=>Gm[p[2]][p[3]]),zi=dz.findIndex(x=>xsign(x)===0);
+  if(zi<0||dz.filter(x=>xsign(x)===0).length!==1)return L2.qs[4]();
+  const others=prs.filter((_,i)=>i!==zi),oi=prs.indexOf(pick(others)),od=dz[oi],op=prs[oi];
+  const nm=p=>`${Vc(p[0])} et ${Vc(p[1])}`,LL={u:a,v:b,w:c};
+  const tagOf=p=>p[0]+p[1];
+  return{meta:{B:['u','v','w'],vec:[[a,0],[b,tv],[c,tw]]},setup:()=>{S.frame(Math.max(a,b,c));return S.go({arms:{u:AU(a)},gauge:null},0)},cap0:'Trois vecteurs, trois produits scalaires',
+   prompt:`<p>On donne ${DOT('u','v',1)} = ${xH(dz[0])}, ${DOT('u','w',1)} = ${xH(dz[1])} et ${DOT('v','w',1)} = ${xH(dz[2])}. Aucun de ces vecteurs n'est nul.</p>`,
+   parts:[ch('Quels vecteurs sont orthogonaux&nbsp;?',prs.map((p,i)=>i===zi?OK(nm(p),{tag:tagOf(p)}):NO(nm(p),`${DOT(p[0],p[1],1)} = ${xH(dz[i])} ≠ 0&nbsp;: ces deux vecteurs ne sont pas orthogonaux.`,{tag:tagOf(p)})),
+      {key:'orth',onOk:async()=>{S.SND.swing();await S.go({arms:{u:AU(a),v:AV(b,tv),w:AW(c,tw)},arc:{a:prs[zi][0],b:prs[zi][1],lab:'deg'},gauge:{a:prs[zi][0],b:prs[zi][1],lab:DOT(prs[zi][0],prs[zi][1],1),max:LL[prs[zi][0]]*LL[prs[zi][1]]}});cap(`${nm(prs[zi])}&nbsp;: angle droit`)}}),
+    ch(`L'angle entre ${nm(op)} est&nbsp;:`,[OK(xsign(od)>0?'aigu':'obtus',{tag:xsign(od)>0?'aigu':'obtus'}),NO(xsign(od)>0?'obtus':'aigu',`${DOT(op[0],op[1],1)} = ${xH(od)} est ${xsign(od)>0?'positif':'négatif'}&nbsp;: l'angle est donc ${xsign(od)>0?'aigu':'obtus'}.`,{tag:xsign(od)>0?'obtus':'aigu'}),
+      NO('droit',`Un angle droit donnerait un produit scalaire nul. Ici ${DOT(op[0],op[1],1)} = ${xH(od)}.`,{tag:'droit'})],
+      {key:K('nat',[op[0]==='u'?1:0,op[0]==='v'?1:0,0],[0,op[1]==='v'?1:0,op[1]==='w'?1:0]),onOk:async()=>{const g=op;await S.go({arms:{u:AU(a),v:AV(b,tv),w:AW(c,tw)},arc:{a:g[0],b:g[1],lab:'deg'},gauge:{a:g[0],b:g[1],lab:DOT(g[0],g[1],1),max:LL[g[0]]*LL[g[1]],exact:xH(od)}});cap(`L'angle entre ${nm(op)} est ${xsign(od)>0?'aigu':'obtus'}`)}})],
+   done:'Produit scalaire nul&nbsp;: orthogonaux. Sinon, son signe dit si l\'angle est aigu ou obtus.'}}]};
+
+/* ======================= Niveau 3 · L'élastique ======================= */
+const triPose=(a,b,c,o)=>{o=o||{};const A=o.A===undefined?angA(a,b,c):o.A;return Object.assign({o:'A',arms:{u:TBr(c),v:TCr(b,A)},el:{a:'u',b:'v',lab:o.elab===undefined?`BC = ${a}`:o.elab},arc:arc(o.arc===undefined?null:o.arc),
+  gauge:gAB(b*c,{hide:!!o.hide,exact:o.exact}),bal:{a:'u',b:'v',nm:['AB','AC','BC'],hide:!!o.hide,exact:o.balx,max:(b+c)*(b+c)}},o.extra||{})};
+const polH=(a,b,c)=>`${frH(1,2)}(${c}² + ${b}² − ${a}²)`;
+const L3={t:'L\'élastique',badge:'Produit scalaire et longueurs',
+ rule:`<p>Pour tous points A, B, C&nbsp;: <b>${DOT('AB','AC')} = ${frH(1,2)}(AB² + AC² − BC²)</b>. Seules des longueurs interviennent.</p>
+ <p>On ajoute les carrés des deux «&nbsp;bras&nbsp;» issus de A et on retranche le carré de l'élastique BC, le côté opposé à A.</p>
+ <p>Si BC² &lt; AB² + AC²&nbsp;: produit positif, ${AG('BAC')} aigu. Si BC² = AB² + AC²&nbsp;: produit nul, angle droit (Pythagore). Si BC² &gt; AB² + AC²&nbsp;: produit négatif, angle obtus.</p>`,
+ qs:[
+ ()=>{const [a,b,c]=triAny({test:(a,b,c,t)=>t!==0}),d=R(b*b+c*c-a*a,2);
+  return{meta:{B:['AB','AC'],tri:[a,b,c]},setup:()=>{S.frame(Math.max(b,c));return S.go(triPose(a,b,c,{A:20,hide:true,elab:'BC = ?'}),0)},cap0:'L\'élastique relie les pointes B et C',
+   prompt:`<p>Dans un triangle ABC, AB = ${c}, AC = ${b} et BC = ${a}.</p>`,
+   parts:[act(`Tendre l'élastique jusqu'à BC = ${a}`,async()=>{S.SND.swing();await S.go(triPose(a,b,c,{hide:true}),1100);cap('Le compas s\'est ouvert tout seul&nbsp;: l\'élastique impose l\'angle')}),
+    fill(null,`${DOT('AB','AC')} = ${frH(1,2)}(AB² + AC² − BC²) = {0}`,[B(d,K('dot',[1,0],[0,1]))],'Élève chaque longueur au carré, retranche BC² (le côté opposé à A), puis divise par 2.',
+      {onOk:async()=>{unhide();cap(`${DOT('AB','AC')} = ${polH(a,b,c)} = ${numH(d)}`)}})],
+   done:`${polH(a,b,c)} = ${frH(1,2)} × ${b*b+c*c-a*a<0?'('+fmtInt(b*b+c*c-a*a)+')':b*b+c*c-a*a} = ${numH(d)}&nbsp;: ${d.n>0?'positif, l\'angle en A est aigu.':'négatif, l\'angle en A est obtus.'}`}},
+ ()=>{const [a,b,c]=triAny({test:(a,b,c,t)=>t<0}),d=R(b*b+c*c-a*a,2);
+  return{meta:{B:['AB','AC'],tri:[a,b,c]},setup:()=>{S.frame(Math.max(b,c));return S.go(triPose(a,b,c,{A:60,hide:true,elab:'BC = ?'}),0)},cap0:'Compare BC² à AB² + AC²',
+   prompt:`<p>Dans un triangle ABC, AB = ${c}, AC = ${b} et BC = ${a}.</p>`,
+   parts:[ch(`BC² = ${a*a} et AB² + AC² = ${b*b+c*c}. Donc l'angle ${AG('BAC')} est&nbsp;:`,[OK('obtus',{tag:'obtus'}),NO('aigu',`BC² = ${a*a} est plus grand que AB² + AC² = ${b*b+c*c}&nbsp;: le produit scalaire sera négatif, l'angle est obtus.`,{tag:'aigu'}),
+      NO('droit',`L'angle serait droit si BC² = AB² + AC² (Pythagore)&nbsp;: ${a*a} ≠ ${b*b+c*c}.`,{tag:'droit'})],{key:K('nat',[1,0],[0,1]),onOk:async()=>{S.SND.swing();await S.go(triPose(a,b,c,{hide:true}),1100);cap('L\'élastique est long&nbsp;: le compas s\'ouvre au-delà de l\'angle droit')}}),
+    fill(null,`${DOT('AB','AC')} = {0}`,[B(d,K('dot',[1,0],[0,1]))],`${frH(1,2)}(AB² + AC² − BC²), avec BC² le plus grand&nbsp;: le résultat est négatif.`,{onOk:async()=>{unhide();cap(`${DOT('AB','AC')} = ${polH(a,b,c)} = ${numH(d)}`)}})],
+   done:`${polH(a,b,c)} = ${numH(d)} &lt; 0&nbsp;: l'élastique est plus long que dans un triangle rectangle, l'angle est obtus.`}},
+ ()=>{const [a,b,c]=pick([[5,4,3],[5,3,4],[10,8,6],[10,6,8],[13,12,5],[13,5,12],[15,12,9],[15,9,12]]);
+  return{meta:{B:['AB','AC'],tri:[a,b,c]},setup:()=>{S.frame(Math.max(b,c));return S.go(triPose(a,b,c,{A:45,hide:true,elab:'BC = ?'}),0)},cap0:'Un élastique très particulier…',
+   prompt:`<p>Dans un triangle ABC, AB = ${c}, AC = ${b} et BC = ${a}.</p>`,
+   parts:[fill(null,`${DOT('AB','AC')} = {0}`,[B(0,K('dot',[1,0],[0,1]))],`${polH(a,b,c)}&nbsp;: calcule ${c*c} + ${b*b} − ${a*a}.`,
+      {onOk:async()=>{S.SND.swing();await S.go(triPose(a,b,c,{exact:'0'}),1100);S.SND.zero();cap(`${polH(a,b,c)} = 0`)}}),
+    ch('Donc le triangle ABC est&nbsp;:',[OK('rectangle en A'),NO('rectangle en B',`Le produit scalaire nul est ${DOT('AB','AC')}&nbsp;: c'est l'angle en A, entre ${V('AB')} et ${V('AC')}, qui est droit.`),
+      NO('rectangle en C',`Le produit scalaire nul est ${DOT('AB','AC')}&nbsp;: les vecteurs partent de A, l'angle droit est en A.`),NO('on ne peut pas savoir','Produit scalaire nul ⇒ vecteurs orthogonaux&nbsp;: (AB) ⊥ (AC).')])],
+   done:`${c}² + ${b}² = ${a}²&nbsp;: produit scalaire nul, ${V('AB')} ⊥ ${V('AC')}. On retrouve la réciproque de Pythagore.`}},
+ ()=>{const [a,b,c]=triAny({test:(a,b,c)=>{const tb=a*a+c*c-b*b,ta=b*b+c*c-a*a;return tb!==0&&tb!==ta&&a!==b}}),Bdeg=angA(b,a,c),d=R(a*a+c*c-b*b,2);
+  const pB=(h)=>({o:'B',arms:{u:{L:c,a:0,col:C.u,tip:'A',lab:String(c)},v:{L:a,a:Bdeg,col:C.v,tip:'C',lab:String(a)}},el:{a:'u',b:'v',lab:`AC = ${b}`},arc:arc(null),gauge:{a:'u',b:'v',lab:DOT('BA','BC'),max:a*c,hide:h},
+    bal:{a:'u',b:'v',nm:['BA','BC','AC'],hide:h,max:(a+c)*(a+c)}});
+  return{meta:{B:['AB','AC'],tri:[a,b,c]},setup:()=>{S.frame(Math.max(b,c));return S.go(triPose(a,b,c,{hide:true}),0)},cap0:'Le compas a sa charnière en A',
+   prompt:`<p>Dans un triangle ABC, AB = ${c}, AC = ${b} et BC = ${a}. On cherche ${DOT('BA','BC')}.</p>`,
+   parts:[act('Déplacer la charnière en B',async()=>{S.SND.swing();await S.go({arms:{},gauge:null},350);S.frame(Math.max(a,c));await S.go(pB(true),900);cap('Charnière en B&nbsp;: les bras sont BA et BC, l\'élastique est AC')}),
+    ch(`${DOT('BA','BC')} =`,[OK(`${frH(1,2)}(BA² + BC² − AC²)`),NO(`${frH(1,2)}(BA² + AC² − BC²)`,'On retranche le carré du côté opposé à la charnière B&nbsp;: c\'est AC, l\'élastique.'),
+      NO(`${frH(1,2)}(AC² − BA² − BC²)`,'Les signes sont inversés&nbsp;: on ajoute les carrés des deux bras issus de B, on retranche celui de l\'élastique.')]),
+    fill(null,`${DOT('BA','BC')} = {0}`,[B(d,K('dot',[-1,0],[-1,1]))],`${frH(1,2)}(${c}² + ${a}² − ${b}²)&nbsp;: calcule d'abord ${c*c} + ${a*a} − ${b*b}.`,{onOk:async()=>{unhide();cap(`${DOT('BA','BC')} = ${frH(1,2)}(${c}² + ${a}² − ${b}²) = ${numH(d)}`)}})],
+   done:`Charnière en B&nbsp;: ${DOT('BA','BC')} = ${frH(1,2)}(BA² + BC² − AC²) = ${numH(d)}. Toujours «&nbsp;les deux bras moins l'élastique&nbsp;».`}},
+ ()=>{const [a,b,c]=triAny({hi:12,test:(a,b,c,t)=>t%2===0&&t!==0}),d=(b*b+c*c-a*a)/2;
+  return{meta:{B:['AB','AC'],tri:[a,b,c]},setup:()=>{S.frame(Math.max(b,c));return S.go(triPose(a,b,c,{elab:'BC = ?',exact:fmtInt(d),hide:false}),0)},cap0:'On connaît le produit scalaire&nbsp;: retrouve l\'élastique',
+   prompt:`<p>Dans un triangle ABC, AB = ${c}, AC = ${b} et ${DOT('AB','AC')} = ${fmtInt(d)}.</p>`,
+   parts:[fill(`De ${DOT('AB','AC')} = ${frH(1,2)}(AB² + AC² − BC²), on tire BC² = AB² + AC² − 2${NB}${DOT('AB','AC')}&nbsp;:`,'BC² = {0}',[B(a*a,K('n2',[-1,1]))],`${c*c} + ${b*b} − 2 × ${d<0?'('+fmtInt(d)+')':fmtInt(d)}.`),
+    fill(null,'BC = {0}',[B(a,K('n',[-1,1]))],`BC est la racine carrée de ${a*a} (une longueur est positive).`,{onOk:async()=>{S.upd(p=>{p.el.lab=`BC = ${a}`});cap(`BC² = ${a*a}, donc BC = ${a}`)}})],
+   done:`BC² = ${c*c} + ${b*b} − 2 × ${d<0?'('+fmtInt(d)+')':fmtInt(d)} = ${a*a}, donc BC = ${a}.`}}]};
+
+/* ======================= Niveau 4 · Al-Kashi : la longueur ======================= */
+const kPose=(b,c,A,o)=>{o=o||{};return{o:'A',arms:{u:TBr(c),v:TCr(b,A)},el:{a:'u',b:'v',lab:o.elab===undefined?'a = ?':o.elab},arc:arc(o.arc===undefined?'deg':o.arc),
+  gauge:gAB(b*c,{hide:o.hide!==false}),bal:{a:'u',b:'v',nm:['AB','AC','BC'],hide:o.hide!==false,max:(b+c)*(b+c)}}};
+const kas=(b,c,A)=>`${b}² + ${c}² − 2 × ${b} × ${c} × cos ${A}°`;
+const L4={t:'Al-Kashi : la longueur',badge:'Loi des cosinus · une longueur',
+ rule:`<p>Dans un triangle ABC, on note a = BC, b = CA et c = AB. <b>a² = b² + c² − 2bc cos Â</b>.</p>
+ <p>Démonstration&nbsp;: ${DOT('AB','AC')} = bc cos Â (cosinus) et ${DOT('AB','AC')} = ${frH(1,2)}(c² + b² − a²) (longueurs). On égale les deux.</p>
+ <p>Si Â = 90°, cos Â = 0&nbsp;: on retrouve Pythagore, a² = b² + c².</p>`,
+ qs:[
+ ()=>{let b,c,n;do{b=ri(2,10);c=ri(2,10);n=b*b+c*c-b*c}while(b===c||isSq(b*b+c*c));
+  const vals=[n,b*b+c*c,b*b+c*c+b*c,(b-c)*(b-c)];if(new Set(vals).size<4)return L4.qs[0]();
+  const rt=m=>`a = ${sqrtH(m)}${isSq(m)?'':' ≈ '+decF(Math.sqrt(m),2)}`;
+  return{meta:{B:['AB','AC'],vec:[[c,0],[b,60]]},setup:()=>{S.frame(Math.max(b,c));return S.go(kPose(b,c,20),0)},cap0:'Ouvre le compas&nbsp;: l\'élastique s\'allonge',
+   prompt:`<p>Dans un triangle ABC, b = AC = ${b}, c = AB = ${c} et Â = 60°.</p>`,
+   parts:[act('Ouvrir le compas à 60°',async()=>{S.SND.swing();await S.go(kPose(b,c,60));cap('Â = 60°&nbsp;: quelle est la longueur de l\'élastique&nbsp;?')}),
+    fill(null,`a² = ${kas(b,c,60)} = {0}`,[B(n,K('n2',[-1,1]))],`cos 60° = ${frH(1,2)}, donc 2 × ${b} × ${c} × ${frH(1,2)} = ${b*c}&nbsp;: calcule ${b*b} + ${c*c} − ${b*c}.`),
+    ch('Donc&nbsp;:',[OK(rt(n),{v:n,root:1}),NO(rt(vals[1]),'C\'est Pythagore&nbsp;: il ne vaut que pour un angle droit. Ici Â = 60°, on retranche 2bc cos Â.',{v:vals[1],root:1}),
+      NO(rt(vals[2]),`Attention au signe&nbsp;: cos 60° = ${frH(1,2)} est positif, on retranche ${b*c}.`,{v:vals[2],root:1}),NO(rt(vals[3]),'Le cosinus a été oublié&nbsp;: 2bc × cos 60°, et non 2bc.',{v:vals[3],root:1})],
+     {key:K('n',[-1,1]),onOk:async()=>{unhide();S.upd(p=>{p.el.lab=`a = ${sqrtH(n)}`});cap(`a² = ${n}, donc a = ${sqrtH(n)}`)}})],
+   done:`a² = ${b*b} + ${c*c} − ${b*c} = ${n} et a = ${sqrtH(n)}${isSq(n)?'':' ≈ '+decF(Math.sqrt(n),2)}.`}},
+ ()=>{const [a,b,c]=pick(TRI.t120.filter(t=>t[0]<=19));
+  return{meta:{B:['AB','AC'],vec:[[c,0],[b,120]]},setup:()=>{S.frame(Math.max(b,c));return S.go(kPose(b,c,70),0)},cap0:'Un compas très ouvert',
+   prompt:`<p>Dans un triangle ABC, b = AC = ${b}, c = AB = ${c} et Â = 120°.</p>`,
+   parts:[act('Ouvrir le compas à 120°',async()=>{S.SND.swing();await S.go(kPose(b,c,120));cap('Â = 120°&nbsp;: cos Â est négatif, l\'élastique est long')}),
+    fill(null,`a² = ${kas(b,c,120)} = {0}`,[B(a*a,K('n2',[-1,1]))],`cos 120° = ${MI}${frH(1,2)}&nbsp;: − 2 × ${b} × ${c} × (${MI}${frH(1,2)}) = + ${b*c}.`),
+    fill(null,'a = {0}',[B(a,K('n',[-1,1]))],`a est la racine carrée de ${a*a}.`,{onOk:async()=>{unhide();S.upd(p=>{p.el.lab=`a = ${a}`});cap(`a² = ${b*b} + ${c*c} + ${b*c} = ${a*a}, donc a = ${a}`)}})],
+   done:`Angle obtus&nbsp;: cos Â &lt; 0, donc a² = ${b*b} + ${c*c} + ${b*c} = ${a*a}, plus grand que b² + c². a = ${a}.`}},
+ ()=>{const [a,b,c]=pick(TRI.t90.filter(t=>t[0]<=17));
+  return{meta:{B:['AB','AC'],vec:[[c,0],[b,90]]},setup:()=>{S.frame(Math.max(b,c));return S.go(kPose(b,c,90,{hide:true}),0)},cap0:'Â = 90°&nbsp;: la jauge est à zéro',
+   prompt:`<p>Dans un triangle ABC, b = AC = ${b}, c = AB = ${c} et Â = 90°.</p>`,
+   parts:[ch('Ici, la formule d\'Al-Kashi devient&nbsp;:',[OK('a² = b² + c²'),NO('a² = b² + c² − 2bc','Le terme 2bc est multiplié par cos 90° = 0&nbsp;: il disparaît.'),NO('a² = (b + c)²','Ce serait le cas d\'un angle de 180° (cos 180° = −1)&nbsp;: le triangle serait aplati.')],{onOk:async()=>{unhide();cap('cos 90° = 0&nbsp;: Al-Kashi redonne Pythagore')}}),
+    fill(null,'a = {0}',[B(a,K('n',[-1,1]))],`a² = ${b*b} + ${c*c} = ${a*a}.`,{onOk:async()=>{S.upd(p=>{p.el.lab=`a = ${a}`});cap(`a² = ${b*b} + ${c*c} = ${a*a}, donc a = ${a}`)}})],
+   done:`Al-Kashi généralise Pythagore&nbsp;: avec Â = 90°, a² = ${b}² + ${c}² = ${a*a}, a = ${a}.`}},
+ ()=>{const A=pick([45,135,30,150]),b=ri(3,9),c=ri(3,9),k=A===45||A===135?2:3,cs=A<90?1:-1;
+  const n2=X(R(b*b+c*c),R(-cs*b*c),k),bad=[X(R(b*b+c*c-cs*b*c)),X(R(b*b+c*c),R(-2*cs*b*c),k),X(R(b*b+c*c),R(cs*b*c),k)];
+  const vals=[n2].concat(bad);if(!xdist(vals))return L4.qs[3]();const av=Math.sqrt(xval(n2));
+  return{meta:{B:['AB','AC'],vec:[[c,0],[b,A]]},setup:()=>{S.frame(Math.max(b,c));return S.go(kPose(b,c,A),0)},cap0:'Un angle remarquable avec une racine',
+   prompt:`<p>Dans un triangle ABC, b = AC = ${b}, c = AB = ${c} et Â = ${A}°.</p>`,
+   parts:[ch(`a² = ${kas(b,c,A)} =`,[OK(xH(n2),{v:n2}),NO(xH(bad[0]),`cos ${A}° = ${cosH(A)}, pas ${cs>0?'':MI}${frH(1,2)}.`,{v:bad[0]}),
+      NO(xH(bad[1]),`2 × ${b} × ${c} × ${cosP(A)} = ${cs>0?'':MI}${b*c}√${k}&nbsp;: le 2 et le dénominateur 2 se simplifient.`,{v:bad[1]}),
+      NO(xH(bad[2]),`Attention au signe&nbsp;: cos ${A}° est ${cs>0?'positif, on retranche':'négatif, on ajoute'}.`,{v:bad[2]})],{key:K('n2',[-1,1])}),
+    fill(null,'a ≈ {0} (arrondi au dixième)',[B(R(Math.round(av*10),10),K('n',[-1,1]),{round:1})],`a = √(${xH(n2)}) ≈ ${decF(av,3)}&nbsp;: arrondis au dixième.`,{hint:'Écris le nombre avec une virgule, par exemple 5,8.',
+      onOk:async()=>{unhide();S.upd(p=>{p.el.lab=`a ≈ ${decF(av,1)}`});cap(`a² = ${xH(n2)}, donc a ≈ ${decF(av,1)}`)}})],
+   done:`a² = ${xH(n2)} ≈ ${decF(xval(n2),2)}, donc a ≈ ${decF(av,1)}.`}},
+ ()=>{const big=Math.random()<.5,list=(big?TRI.t120:TRI.t60).filter(t=>t[0]<=15),[a,b,c]=pick(list),A=big?120:60;
+  const pp=t=>({o:'P',arms:{u:{L:c,a:0,col:C.u,tip:'M',lab:c+' km'},v:{L:b,a:t,col:C.v,tip:'N',lab:b+' km'}},el:{a:'u',b:'v',lab:'MN = ?'},arc:arc(),gauge:null});
+  return{meta:{B:['PM','PN'],vec:[[c,0],[b,A]]},setup:()=>{S.frame(Math.max(b,c));return S.go(pp(10),0)},cap0:'Deux bateaux quittent le port P',
+   prompt:`<p>Deux bateaux quittent en même temps le port de Longoni (point P). Le premier parcourt PM = ${c} km en ligne droite, le second PN = ${b} km. Leurs deux routes font un angle de ${A}°.</p>`,
+   parts:[act('Lancer les deux bateaux',async()=>{S.SND.swing();await S.go(pp(A),1100);cap(`${AG('MPN')} = ${A}°&nbsp;: la distance MN est l'élastique`)}),
+    fill('Distance entre les deux bateaux&nbsp;:','MN = {0} km',[B(a,K('n',[-1,1]))],`Al-Kashi dans le triangle PMN&nbsp;: MN² = ${c}² + ${b}² − 2 × ${c} × ${b} × cos ${A}°.`,{onOk:async()=>{S.upd(p=>{p.el.lab=`MN = ${a} km`});cap(`MN² = ${a*a}, donc MN = ${a} km`)}})],
+   done:`MN² = ${c*c} + ${b*b} ${A===60?'−':'+'} ${b*c} = ${a*a}, donc les bateaux sont à ${a} km l'un de l'autre.`}}]};
+
+/* ======================= Niveau 5 · Al-Kashi : l'angle ======================= */
+const cosA=(a,b,c)=>R(b*b+c*c-a*a,2*b*c);
+const L5={t:'Al-Kashi : l\'angle',badge:'Loi des cosinus · un angle',
+ rule:`<p>De a² = b² + c² − 2bc cos Â, on tire <b>cos Â = ${frH('b² + c² − a²','2bc')}</b>.</p>
+ <p>Si cos Â est une valeur remarquable, on reconnaît l'angle (${frH(1,2)} → 60°, 0 → 90°, ${MI}${frH(1,2)} → 120°…). Sinon, on conclut sur sa nature&nbsp;: cos Â &gt; 0, angle aigu&nbsp;; cos Â &lt; 0, angle obtus.</p>
+ <p>Le plus grand angle d'un triangle est opposé au plus grand côté.</p>`,
+ qs:[
+ ()=>{const big=Math.random()<.5,[a,b,c]=pick((big?TRI.t120:TRI.t60).filter(t=>t[0]<=15)),A=big?120:60,cv=cosA(a,b,c);
+  return{meta:{B:['AB','AC'],tri:[a,b,c]},setup:()=>{S.frame(Math.max(b,c));return S.go(kPose(b,c,90,{elab:`a = ${a}`}),0)},cap0:'Les trois côtés sont connus&nbsp;: quel est l\'angle en A&nbsp;?',
+   prompt:`<p>Dans un triangle ABC, a = BC = ${a}, b = AC = ${b} et c = AB = ${c}.</p>`,
+   parts:[fill(null,`cos Â = ${frH(`${b}² + ${c}² − ${a}²`,`2 × ${b} × ${c}`)} = {0}`,[B(cv,K('cos',[1,0],[0,1]))],`Numérateur&nbsp;: ${b*b} + ${c*c} − ${a*a} = ${b*b+c*c-a*a}. Dénominateur&nbsp;: ${2*b*c}. Simplifie.`),
+    slide('Ouvre le compas à cet angle.','Angle Â',A,(v,live)=>S.set({v:{a:v}},live),v=>`cos Â = ${numH(cv)}&nbsp;: c'est le cosinus de ${A===60?'60°':'120°'}${COS[v]?`, et non de ${v}° (cos ${v}° = ${cosH(v)})`:''}.`,{init:90,key:K('deg',[1,0],[0,1]),onOk:async()=>{unhide();cap(`cos Â = ${numH(cv)}, donc Â = ${A}°`)}})],
+   done:`cos Â = ${frH(b*b+c*c-a*a,2*b*c)} = ${numH(cv)}, donc Â = ${A}°.`}},
+ ()=>{const [a,b,c]=pick(TRI.t90.filter(t=>t[0]<=17));
+  return{meta:{B:['AB','AC'],tri:[a,b,c]},setup:()=>{S.frame(Math.max(b,c));return S.go(kPose(b,c,60,{elab:`a = ${a}`}),0)},cap0:'Les trois côtés sont connus',
+   prompt:`<p>Dans un triangle ABC, a = BC = ${a}, b = AC = ${b} et c = AB = ${c}.</p>`,
+   parts:[fill(null,`cos Â = ${frH(`${b}² + ${c}² − ${a}²`,`2 × ${b} × ${c}`)} = {0}`,[B(0,K('cos',[1,0],[0,1]))],`Calcule ${b*b} + ${c*c} − ${a*a}.`),
+    ch('Donc Â =',[OK('90°',{tag:90}),NO('0°','cos 0° = 1, pas 0.',{tag:0}),NO('45°',`cos 45° = ${cosH(45)}, pas 0.`,{tag:45})],{key:K('deg',[1,0],[0,1]),onOk:async()=>{S.SND.swing();await S.go(kPose(b,c,90,{elab:`a = ${a}`,hide:false}));S.SND.zero();cap('cos Â = 0&nbsp;: le triangle est rectangle en A')}})],
+   done:`${b}² + ${c}² = ${a}²&nbsp;: cos Â = 0, Â = 90°. Le triangle est rectangle en A.`}},
+ ()=>{const [a,b,c]=triAny({hi:9,test:(a,b,c,t)=>{const r=R(t,2*b*c);return t!==0&&!(r.d===2&&Math.abs(r.n)===1)&&Math.abs(t)!==2*b*c}}),cv=cosA(a,b,c),dg=angA(a,b,c);
+  return{meta:{B:['AB','AC'],tri:[a,b,c]},setup:()=>{S.frame(Math.max(b,c));return S.go(kPose(b,c,90,{elab:`a = ${a}`,arc:null}),0)},cap0:'Un angle qui n\'est pas remarquable',
+   prompt:`<p>Dans un triangle ABC, a = BC = ${a}, b = AC = ${b} et c = AB = ${c}.</p>`,
+   parts:[fill(null,`cos Â = {0}`,[B(cv,K('cos',[1,0],[0,1]))],`cos Â = ${frH(`${b}² + ${c}² − ${a}²`,`2 × ${b} × ${c}`)}&nbsp;: calcule le numérateur, puis simplifie.`,{hint:'Une fraction comme 3/4 ou un décimal&nbsp;: tout est accepté.'}),
+    ch('Donc l\'angle Â est&nbsp;:',[OK(cv.n>0?'aigu':'obtus',{tag:cv.n>0?'aigu':'obtus'}),NO(cv.n>0?'obtus':'aigu',`cos Â = ${numH(cv)} est ${cv.n>0?'positif':'négatif'}&nbsp;: l'angle est ${cv.n>0?'aigu':'obtus'}.`,{tag:cv.n>0?'obtus':'aigu'}),
+      NO('droit','Il faudrait cos Â = 0.',{tag:'droit'})],{key:K('nat',[1,0],[0,1]),onOk:async()=>{S.SND.swing();await S.go(kPose(b,c,dg,{elab:`a = ${a}`,hide:false}));cap(`cos Â = ${numH(cv)}&nbsp;: Â ≈ ${Math.round(dg)}° (à la calculatrice)`)}})],
+   done:`cos Â = ${numH(cv)}&nbsp;: l'angle est ${cv.n>0?'aigu':'obtus'}. Sa mesure, environ ${Math.round(dg)}°, s'obtient à la calculatrice.`}},
+ ()=>{let s;do{s=triAny({hi:12,test:(a,b,c)=>{const m=Math.max(a,b,c),o=a+b+c-m-[a,b,c].sort((x,y)=>x-y)[0];return [a,b,c].filter(x=>x===m).length===1&&m*m>(a*a+b*b+c*c-m*m)}})}while(!s);
+  const [a,b,c]=s,m=Math.max(a,b,c),V0=a===m?'A':b===m?'B':'C';
+  /* angle au sommet V0 : vecteurs issus de V0 (base AB⃗, AC⃗) */
+  const KK={A:K('cos',[1,0],[0,1]),B:K('cos',[-1,0],[-1,1]),C:K('cos',[0,-1],[1,-1])};
+  const sides={A:[a,b,c],B:[b,c,a],C:[c,a,b]};/* [opposé, côté 1, côté 2] : cos = (x² + y² − o²)/2xy */
+  const [o,x,y]=sides[V0],cv=R(x*x+y*y-o*o,2*x*y),nm={A:['B','C'],B:['C','A'],C:['A','B']}[V0];
+  const pV=(h)=>({o:V0,arms:{u:{L:x,a:0,col:C.u,tip:nm[1],lab:String(x)},v:{L:y,a:angA(o,x,y),col:C.v,tip:nm[0],lab:String(y)}},el:{a:'u',b:'v',lab:`${nm[0]}${nm[1]} = ${o}`},arc:arc('deg'),gauge:null});
+  return{meta:{B:['AB','AC'],tri:[a,b,c]},setup:()=>{S.frame(Math.max(b,c));return S.go(kPose(b,c,angA(a,b,c),{elab:`BC = ${a}`,arc:null}),0)},cap0:'Où se cache le plus grand angle&nbsp;?',
+   prompt:`<p>Dans un triangle ABC, BC = ${a}, AC = ${b} et AB = ${c}.</p>`,
+   parts:[ch('Le plus grand angle du triangle est&nbsp;:',['A','B','C'].map(t=>t===V0?OK(AG(t),{tag:t}):NO(AG(t),`Le plus grand angle est en face du plus grand côté, ici ${{A:'BC',B:'AC',C:'AB'}[V0]} = ${m}.`,{tag:t})),
+      {key:'maxang',onOk:async()=>{S.SND.swing();await S.go({arms:{},gauge:null},350);S.frame(Math.max(x,y));await S.go(pV(),900);cap(`Charnière en ${V0}, l'élastique est le plus grand côté`)}}),
+    fill(null,`<span class=\"nw\">cos ${AG(V0)}</span> = {0}`,[B(cv,KK[V0])],`<span class=\"nw\">cos ${AG(V0)}</span> = ${frH(`${x}² + ${y}² − ${o}²`,`2 × ${x} × ${y}`)}&nbsp;: le côté opposé à ${V0} est retranché.`,{onOk:async()=>cap(`<span class=\"nw\">cos ${AG(V0)}</span> = ${numH(cv)} &lt; 0&nbsp;: angle obtus`)})],
+   done:`<span class=\"nw\">cos ${AG(V0)}</span> = ${numH(cv)} est négatif&nbsp;: l'angle ${AG(V0)} est obtus. Les deux autres angles sont forcément aigus.`}},
+ ()=>{const big=Math.random()<.5,[a,b,c]=pick((big?TRI.t120:TRI.t60).filter(t=>t[0]<=15)),A=big?120:60,cv=cosA(a,b,c);
+  const opts=big?[[120,RADH[120]],[60,RADH[60]],[150,RADH[150]],[135,RADH[135]]]:[[60,RADH[60]],[30,RADH[30]],[120,RADH[120]],[45,RADH[45]]];
+  return{meta:{B:['AB','AC'],tri:[a,b,c]},setup:()=>{S.frame(Math.max(b,c));return S.go(kPose(b,c,90,{elab:`a = ${a}`}),0)},cap0:'Même calcul, réponse en radians',
+   prompt:`<p>Dans un triangle ABC, a = BC = ${a}, b = AC = ${b} et c = AB = ${c}.</p>`,
+   parts:[fill(null,`cos Â = {0}`,[B(cv,K('cos',[1,0],[0,1]))],`cos Â = ${frH(`${b}² + ${c}² − ${a}²`,`2 × ${b} × ${c}`)}.`),
+    ch('Une mesure de Â en radians est&nbsp;:',opts.map(([d,h],i)=>i===0?OK(h,{tag:d}):NO(h,`${h} correspond à ${d}°, dont le cosinus vaut ${cosH(d)}. Ici cos Â = ${numH(cv)}.`,{tag:d})),
+      {key:K('deg',[1,0],[0,1]),onOk:async()=>{S.SND.swing();await S.go(kPose(b,c,A,{elab:`a = ${a}`,hide:false}));cap(`Â = ${A}° = ${RADH[A]} rad`)}})],
+   done:`cos Â = ${numH(cv)}, donc Â = ${A}°, soit ${RADH[A]} radian (180° = π rad).`}}]};
+
+/* ======================= Niveau 6 · Étirer, retourner ======================= */
+const L6={t:'Étirer, retourner',badge:'Symétrie et bilinéarité',
+ rule:`<p>Pour tous vecteurs ${u_}, ${v_}, ${w_} et tout réel k&nbsp;:</p>
+ <p>Symétrie&nbsp;: ${UV} = ${DOT('v','u',1)}.</p>
+ <p>Bilinéarité&nbsp;: ${u_}${NB}·${NB}(${v_} + ${w_}) = ${UV} + ${DOT('u','w',1)} et (k${u_})${NB}·${NB}${v_} = ${u_}${NB}·${NB}(k${v_}) = k(${UV}).</p>
+ <p>On développe donc comme en algèbre, avec ${u_}${NB}·${NB}${u_} = ${NR('u',1)}².</p>`,
+ qs:[
+ ()=>{const a=ri(2,5),b=ri(2,7),th=pick([60,120]),k=pick([2,3]),d=rv(gramVec([[a,0],[b,th]])[0][1]);
+  const pz=(L,an,lab,h,ghost)=>({arms:Object.assign({u:AU(L,{a:an,lab:{t:lab,vec:true}}),v:AV(b,th)},ghost?{g:AU(a,{dash:true,op:.45,lab:null,z:-1})}:{}),arc:an?null:arc(),gauge:gUV(k*a*b,{lab:lab==='u'?UV:`(${lab.replace('u','')}${u_})${NB}·${NB}${v_}`,hide:h,exact:h?undefined:numH(mul(d,R(lab==='u'?1:an?-k:k)))})});
+  return{meta:{B:['u','v'],vec:[[a,0],[b,th]]},setup:()=>{S.frame(Math.max(k*a,b));return S.go(pz(a,0,'u',false),0)},cap0:`${UV} = ${numH(d)}`,
+   prompt:`<p>${NR('u',1)} = ${a}, ${NR('v',1)} = ${b}, l'angle entre ${u_} et ${v_} mesure ${th}°, donc ${UV} = ${numH(d)}.</p>`,
+   parts:[act(`Étirer ${u_}&nbsp;: × ${k}`,async()=>{S.SND.swing();await S.go(pz(k*a,0,k+'u',true,true));cap(`Le bras ${u_} est ${k===2?'deux':'trois'} fois plus long, l'angle n'a pas changé`)}),
+    fill(null,`(${k}${u_})${NB}·${NB}${v_} = {0}`,[B(mul(d,R(k)),K('dot',[k,0],[0,1]))],`(k${u_})${NB}·${NB}${v_} = k(${UV})&nbsp;: ${k} × ${PN(d)}.`,{onOk:async()=>{unhide();cap(`(${k}${u_})${NB}·${NB}${v_} = ${k} × ${PN(d)} = ${numH(mul(d,R(k)))}`)}}),
+    act('Retourner le bras',async()=>{S.SND.swing();await S.go(pz(k*a,180,MI+k+'u',true,true),1000);cap(`${MI}${k}${u_} pointe dans l'autre sens&nbsp;: l'angle avec ${v_} devient ${180-th}°`)}),
+    fill(null,`(${MI}${k}${u_})${NB}·${NB}${v_} = {0}`,[B(mul(d,R(-k)),K('dot',[-k,0],[0,1]))],`(${MI}${k}${u_})${NB}·${NB}${v_} = ${MI}${k} × (${UV}).`,{onOk:async()=>{unhide();cap(`(${MI}${k}${u_})${NB}·${NB}${v_} = ${MI}${k} × ${PN(d)} = ${numH(mul(d,R(-k)))}`)}})],
+   done:`Étirer un bras multiplie le produit scalaire&nbsp;; le retourner change son signe&nbsp;: (k${u_})${NB}·${NB}${v_} = k(${UV}).`}},
+ ()=>{const a=ri(2,4),b=ri(2,4),th=pick([60,120]),d=rv(gramVec([[a,0],[b,th]])[0][1]);
+  return{meta:{B:['u','v'],vec:[[a,0],[b,th]]},setup:()=>{S.frame(Math.max(3*a,2*b));return S.go({arms:{u:AU(a),v:AV(b,th)},arc:arc(),gauge:gUV(6*a*b,{exact:numH(d)})},0)},cap0:`${UV} = ${numH(d)}`,
+   prompt:`<p>On sait que ${UV} = ${numH(d)}.</p>`,
+   parts:[ch(`${DOT('v','u',1)} =`,[OK(numH(d),{v:X(d)}),NO(numH(neg(d)),`Échanger les vecteurs ne change pas l'angle entre eux&nbsp;: le produit scalaire est symétrique.`,{v:X(neg(d))}),NO('0','Le produit scalaire est symétrique&nbsp;: '+`${DOT('v','u',1)} = ${UV}.`,{v:X(0)})],{key:K('dot',[0,1],[1,0])}),
+    act(`Étirer&nbsp;: 3${u_} et 2${v_}`,async()=>{S.SND.swing();await S.go({arms:{u:AU(3*a,{lab:{t:'3u',vec:true}}),v:AV(2*b,th,{lab:{t:'2v',vec:true}}),g:AU(a,{dash:true,op:.45,lab:null,z:-1}),h:AV(b,th,{dash:true,op:.45,lab:null,z:-1})},arc:arc(),gauge:gUV(6*a*b,{lab:`(2${v_})${NB}·${NB}(3${u_})`,hide:true})});cap('Les deux bras sont étirés')}),
+    fill(null,`(2${v_})${NB}·${NB}(3${u_}) = {0}`,[B(mul(d,R(6)),K('dot',[0,2],[3,0]))],`On sort les deux coefficients&nbsp;: 2 × 3 × (${DOT('v','u',1)}).`,{onOk:async()=>{unhide();cap(`(2${v_})${NB}·${NB}(3${u_}) = 6 × ${PN(d)} = ${numH(mul(d,R(6)))}`)}})],
+   done:`${DOT('v','u',1)} = ${UV} et (2${v_})${NB}·${NB}(3${u_}) = 6 × ${PN(d)} = ${numH(mul(d,R(6)))}.`}},
+ ()=>{const PAIRS=[[60,120],[60,180],[120,0],[0,120],[180,60],[60,0],[120,180],[0,60],[180,120]];const [tv,tw]=pick(PAIRS);
+  const a=ri(2,5),b=ri(2,5),c=ri(2,5),Gm=gramVec([[a,0],[b,tv],[c,tw]]),p=rv(Gm[0][1]),q=rv(Gm[0][2]);if(!p||!q||eq(p,q)||!p.n||!q.n)return L6.qs[2]();
+  const V_=vx(b,tv),W_=vx(c,tw),Sv={x:V_.x+W_.x,y:V_.y+W_.y};if(Math.hypot(Sv.x,Sv.y)<1)return L6.qs[2]();
+  const Rm=Math.max(a,b,c,Math.hypot(Sv.x,Sv.y));
+  return{meta:{B:['u','v','w'],vec:[[a,0],[b,tv],[c,tw]]},setup:()=>{S.frame(Rm);return S.go({arms:{u:AU(a),v:AV(b,tv),w:AW(c,tw)},gauge:null},0)},cap0:'Trois bras, une seule charnière',
+   prompt:`<p>On donne ${UV} = ${numH(p)} et ${DOT('u','w',1)} = ${numH(q)}.</p>`,
+   parts:[act(`Mettre ${w_} au bout de ${v_}`,async()=>{S.SND.swing();await S.go({arms:{u:AU(a),v:AV(b,tv),w:AW(c,tw,{ox:V_.x,oy:V_.y})},gauge:null},900);
+      await S.go({arms:{u:AU(a),v:AV(b,tv),w:AW(c,tw,{ox:V_.x,oy:V_.y}),s:toArm(Sv,{col:C.s,lab:{t:'v + w',vec:true},side:-1})},arc:{a:'u',b:'s',lab:null},gauge:{a:'u',b:'s',lab:`${u_}${NB}·${NB}(${v_} + ${w_})`,max:a*Math.hypot(Sv.x,Sv.y)+.01,hide:true}},700);cap(`Le bras doré est ${v_} + ${w_}`)}),
+    fill(null,`${u_}${NB}·${NB}(${v_} + ${w_}) = {0}`,[B(add(p,q),K('dot',[1,0,0],[0,1,1]))],`Distributivité&nbsp;: ${UV} + ${DOT('u','w',1)} = ${numH(p)} + ${q.n<0?'('+numH(q)+')':numH(q)}.`,{onOk:async()=>{unhide();S.upd(o=>{o.gauge.exact=numH(add(p,q))});cap(`${u_}${NB}·${NB}(${v_} + ${w_}) = ${numH(p)} + ${q.n<0?'('+numH(q)+')':numH(q)} = ${numH(add(p,q))}`)}}),
+    fill(null,`${u_}${NB}·${NB}(2${v_} − ${w_}) = {0}`,[B(sub(mul(p,R(2)),q),K('dot',[1,0,0],[0,2,-1]))],`2(${UV}) − ${DOT('u','w',1)} = 2 × ${PN(p)} − ${q.n<0?'('+numH(q)+')':numH(q)}.`)],
+   done:`On distribue comme en algèbre&nbsp;: ${u_}${NB}·${NB}(2${v_} − ${w_}) = 2 × ${PN(p)} − ${q.n<0?'('+numH(q)+')':numH(q)} = ${numH(sub(mul(p,R(2)),q))}.`}},
+ ()=>{const CO=[1,2,3,-1,-2];let al,be,ga,de;do{al=pick([1,2,3]);be=pick(CO);ga=pick([1,2]);de=pick(CO)}while(al*de===be*ga);
+  const {a,b,d}=normsSq({lo:2,hi:5,test:(a,b,d)=>Math.abs(d)<=a*b-2}),Gm=gramGiven([[a*a,d],[d,b*b]]);
+  const c1=al*ga,c2=al*de+be*ga,c3=be*de,res=dotC(Gm,[al,be],[ga,de]).p;
+  const th=Math.acos(d/(a*b))*180/Math.PI,U_=vx(a,0),V_=vx(b,th),Pp=lin([al,be],[U_,V_]),Qq=lin([ga,de],[U_,V_]);
+  const pL=comb([al,be],['u','v']),qL=comb([ga,de],['u','v']);
+  const Rm=Math.max(a,b,Math.hypot(Pp.x,Pp.y),Math.hypot(Qq.x,Qq.y));
+  return{meta:{B:['u','v'],gram:[[a*a,d],[d,b*b]]},setup:()=>{S.frame(Rm);return S.go({arms:{u:AU(a),v:AV(b,th)},arc:arc('θ'),gauge:gUV(a*b,{exact:fmtInt(d)})},0)},cap0:`${UV} = ${fmtInt(d)}`,
+   prompt:`<p>${NR('u',1)} = ${a}, ${NR('v',1)} = ${b} et ${UV} = ${fmtInt(d)}. On veut calculer <span class="nw">(${pL})${NB}·${NB}(${qL})</span>.</p>`,
+   parts:[fill('Développe (les coefficients)&nbsp;:',`(${pL})${NB}·${NB}(${qL}) = {0} ${NR('u',1)}² + {1} ${UV} + {2} ${NR('v',1)}²`,[B(c1,`coef0:${al},${be}|${ga},${de}`),B(c2,`coef1:${al},${be}|${ga},${de}`),B(c3,`coef2:${al},${be}|${ga},${de}`)],
+      `Développe terme à terme&nbsp;: ${al}×${ga} pour ${NR('u',1)}², puis ${al}×(${de}) + (${be})×${ga} pour ${UV} (symétrie), puis (${be})×(${de}) pour ${NR('v',1)}².`,{hint:'Des entiers, éventuellement négatifs (−2 ou -2).'}),
+    act('Construire les deux vecteurs',async()=>{S.SND.swing();await S.go({arms:{g:AU(a,{dash:true,op:.4,lab:null,z:-1}),h:AV(b,th,{dash:true,op:.4,lab:null,z:-1}),p:toArm(Pp,{col:C.u,lab:{t:'p',vec:true},side:1}),q:toArm(Qq,{col:C.v,lab:{t:'q',vec:true},side:-1})},
+      arc:{a:'p',b:'q',lab:null},gauge:{a:'p',b:'q',lab:DOT('p','q'),max:Math.hypot(Pp.x,Pp.y)*Math.hypot(Qq.x,Qq.y),hide:true}});cap(`${V('p')} = ${pL} et ${V('q')} = ${qL}`)}),
+    fill(null,`(${pL})${NB}·${NB}(${qL}) = {0}`,[B(res,K('dot',[al,be],[ga,de]))],`${c1} × ${a*a} + ${c2<0?'('+c2+')':c2} × ${d<0?'('+d+')':d} + ${c3<0?'('+c3+')':c3} × ${b*b}.`,{onOk:async()=>{unhide();S.upd(o=>{o.gauge.exact=numH(res)});cap(`${V('p')}${NB}·${NB}${V('q')} = ${numH(res)}`)}})],
+   done:`${c1} × ${a*a} + ${c2<0?'('+c2+')':c2} × ${d<0?'('+d+')':d} + ${c3<0?'('+c3+')':c3} × ${b*b} = ${numH(res)}&nbsp;: la jauge des deux vecteurs construits l'affiche bien.`}},
+ ()=>{const k=pick([-2,-3,2,3]),m=pick([2,3,-2]),n=pick([-1,1,2]);const {a,b,d}=normsSq({lo:2,hi:5});const res=k*m*d+k*n*b*b;
+  const th=Math.acos(d/(a*b))*180/Math.PI,U_=vx(a,0),V_=vx(b,th),Pp=lin([0,k],[U_,V_]),Qq=lin([m,n],[U_,V_]),qL=comb([m,n],['u','v']);
+  const Rm=Math.max(a,b,Math.hypot(Pp.x,Pp.y),Math.hypot(Qq.x,Qq.y));
+  return{meta:{B:['u','v'],gram:[[a*a,d],[d,b*b]]},setup:()=>{S.frame(Rm);return S.go({arms:{u:AU(a),v:AV(b,th)},arc:arc('θ'),gauge:gUV(a*b,{exact:fmtInt(d)})},0)},cap0:`${UV} = ${fmtInt(d)}`,
+   prompt:`<p>${NR('u',1)} = ${a}, ${NR('v',1)} = ${b} et ${UV} = ${fmtInt(d)}.</p>`,
+   parts:[act('Construire les deux vecteurs',async()=>{S.SND.swing();await S.go({arms:{g:AU(a,{dash:true,op:.4,lab:null,z:-1}),h:AV(b,th,{dash:true,op:.4,lab:null,z:-1}),p:toArm(Pp,{col:C.v,lab:{t:fmtInt(k)+'v',vec:true},side:-1}),q:toArm(Qq,{col:C.u,lab:{t:'q',vec:true},side:1})},
+      arc:{a:'p',b:'q',lab:null},gauge:{a:'p',b:'q',lab:`(${fmtInt(k)}${v_})${NB}·${NB}(${qL})`,max:Math.hypot(Pp.x,Pp.y)*Math.hypot(Qq.x,Qq.y),hide:true}});cap(`${V('q')} = ${qL}`)}),
+    fill(null,`(${fmtInt(k)}${v_})${NB}·${NB}(${qL}) = {0}`,[B(res,K('dot',[0,k],[m,n]))],`= ${fmtInt(k*m)}${NB}${DOT('v','u',1)} ${k*n<0?'−':'+'} ${Math.abs(k*n)}${NB}${NR('v',1)}², avec ${DOT('v','u',1)} = ${UV} = ${fmtInt(d)} et ${NR('v',1)}² = ${b*b}.`,
+      {onOk:async()=>{unhide();S.upd(o=>{o.gauge.exact=numH(R(res))});cap(`${fmtInt(k*m)} × ${d<0?'('+fmtInt(d)+')':d} ${k*n<0?'−':'+'} ${Math.abs(k*n)} × ${b*b} = ${fmtInt(res)}`)}})],
+   done:`(${fmtInt(k)}${v_})${NB}·${NB}(${qL}) = ${fmtInt(k*m)} × ${d<0?'('+fmtInt(d)+')':d} ${k*n<0?'−':'+'} ${Math.abs(k*n)} × ${b*b} = ${fmtInt(res)}.`}}]};
+
+/* ======================= Niveau 7 · La diagonale ======================= */
+const parPose=(a,b,th,o)=>{o=o||{};return{arms:{u:AU(a),v:AV(b,th)},arc:o.noArc?null:arc('θ'),par:o.par?{a:'u',b:'v',lab:{t:'u + v',vec:true},sum:o.sum!==false}:null,
+  el:o.diff?{a:'u',b:'v',arrow:true,col:C.s,lab:{t:'u − v',vec:true}}:null,gauge:o.gauge||gUV(a*b,{exact:o.dx})}};
+const L7={t:'La diagonale',badge:'Identités remarquables vectorielles',
+ rule:`<p><b>${NR('u + v')}² = ${NR('u',1)}² + 2${NB}${UV} + ${NR('v',1)}²</b></p>
+ <p><b>${NR('u − v')}² = ${NR('u',1)}² − 2${NB}${UV} + ${NR('v',1)}²</b></p>
+ <p><b>(${u_} + ${v_})${NB}·${NB}(${u_} − ${v_}) = ${NR('u',1)}² − ${NR('v',1)}²</b></p>
+ <p>Dans le parallélogramme construit sur ${u_} et ${v_}, les diagonales représentent ${u_} + ${v_} et ${u_} − ${v_}.</p>`,
+ qs:[
+ ()=>{const {a,b,d,s2}=normsSq({sum:true,lo:2,hi:8}),th=Math.acos(d/(a*b))*180/Math.PI,s=Math.round(Math.sqrt(s2));
+  return{meta:{B:['u','v'],gram:[[a*a,d],[d,b*b]]},setup:()=>{S.frame(Math.max(a,b,s));return S.go(parPose(a,b,th,{dx:fmtInt(d)}),0)},cap0:`${UV} = ${fmtInt(d)}`,
+   prompt:`<p>${NR('u',1)} = ${a}, ${NR('v',1)} = ${b} et ${UV} = ${fmtInt(d)}.</p>`,
+   parts:[act('Refermer le parallélogramme',async()=>{S.SND.swing();await S.go(parPose(a,b,th,{par:true,dx:fmtInt(d)}));cap(`La diagonale dorée représente ${u_} + ${v_}`)}),
+    fill(null,`${NR('u + v')}² = {0}`,[B(s2,K('n2',[1,1]))],`${NR('u',1)}² + 2${NB}${UV} + ${NR('v',1)}² = ${a*a} + 2 × ${d<0?'('+d+')':d} + ${b*b}.`),
+    fill(null,`${NR('u + v')} = {0}`,[B(s,K('n',[1,1]))],`Une norme est positive&nbsp;: c'est la racine carrée de ${s2}.`,{onOk:async()=>cap(`${NR('u + v')} = √${s2} = ${s}`)})],
+   done:`${a*a} + 2 × ${d<0?'('+d+')':d} + ${b*b} = ${s2}, donc la diagonale mesure ${s}.`}},
+ ()=>{const {a,b,d,e2}=normsSq({diff:true,lo:2,hi:8}),th=Math.acos(d/(a*b))*180/Math.PI,e=Math.round(Math.sqrt(e2));
+  return{meta:{B:['u','v'],gram:[[a*a,d],[d,b*b]]},setup:()=>{S.frame(Math.max(a,b));return S.go(parPose(a,b,th,{dx:fmtInt(d)}),0)},cap0:`${UV} = ${fmtInt(d)}`,
+   prompt:`<p>${NR('u',1)} = ${a}, ${NR('v',1)} = ${b} et ${UV} = ${fmtInt(d)}.</p>`,
+   parts:[act('Tendre l\'élastique entre les pointes',async()=>{S.SND.swing();await S.go(parPose(a,b,th,{par:true,sum:false,diff:true,dx:fmtInt(d)}));cap(`L'élastique, de la pointe de ${v_} à celle de ${u_}, représente ${u_} − ${v_}`)}),
+    fill(null,`${NR('u − v')}² = {0}`,[B(e2,K('n2',[1,-1]))],`${NR('u',1)}² − 2${NB}${UV} + ${NR('v',1)}² = ${a*a} − 2 × ${d<0?'('+d+')':d} + ${b*b}.`),
+    fill(null,`${NR('u − v')} = {0}`,[B(e,K('n',[1,-1]))],`C'est la racine carrée de ${e2}.`,{onOk:async()=>cap(`${NR('u − v')} = √${e2} = ${e}`)})],
+   done:`${NR('u − v')}² = ${a*a} − 2 × ${d<0?'('+d+')':d} + ${b*b} = ${e2}&nbsp;: l'élastique mesure ${e}. C'est le «&nbsp;BC&nbsp;» du niveau 3.`}},
+ ()=>{let a,b;do{a=ri(2,8);b=ri(2,8)}while(a===b);const th=pick([50,65,75,105,115]);
+  const f=A=>{const U=S.vecOf(A.u),Vv=S.vecOf(A.v);return (U.x+Vv.x)*(U.x-Vv.x)+(U.y+Vv.y)*(U.y-Vv.y)};
+  const gz=(h,ex)=>({f,lab:`(${u_} + ${v_})${NB}·${NB}(${u_} − ${v_})`,max:Math.max(a,b)**2,hide:h,exact:ex});
+  const dg=(x,y)=>{const U=vx(x,0),W=vx(y,th);return Math.max(x,y,Math.hypot(U.x+W.x,U.y+W.y))};
+  return{meta:{B:['u','v'],vec:[[a,0],[b,th]]},setup:()=>{S.frame(Math.max(dg(a,b),dg(a,a)));return S.go(parPose(a,b,th,{par:true,diff:true,noArc:true,gauge:gz(true)}),0)},cap0:'Les deux diagonales du parallélogramme',
+   prompt:`<p>${NR('u',1)} = ${a} et ${NR('v',1)} = ${b}. On ne connaît pas l'angle entre ${u_} et ${v_}.</p>`,
+   parts:[fill(null,`(${u_} + ${v_})${NB}·${NB}(${u_} − ${v_}) = {0}`,[B(a*a-b*b,K('dot',[1,1],[1,-1]))],`Troisième identité&nbsp;: ${NR('u',1)}² − ${NR('v',1)}² = ${a*a} − ${b*b}. L'angle n'intervient pas&nbsp;!`,
+      {onOk:async()=>{S.upd(p=>{p.gauge.hide=false;p.gauge.exact=fmtInt(a*a-b*b)});cap(`(${u_} + ${v_})${NB}·${NB}(${u_} − ${v_}) = ${a*a} − ${b*b} = ${fmtInt(a*a-b*b)}`)}}),
+    act('Égaliser les bras (losange)',async()=>{S.SND.swing();const p=parPose(a,a,th,{par:true,diff:true,noArc:true,gauge:gz(false,'0')});await S.go(p,1200);S.SND.zero();cap(`${NR('u',1)} = ${NR('v',1)}&nbsp;: la jauge tombe à 0`)}),
+    ch('Dans un losange, les diagonales sont donc&nbsp;:',[OK('perpendiculaires'),NO('de même longueur','Leur produit scalaire est nul&nbsp;: c\'est une affaire d\'angle droit, pas de longueur (c\'est le rectangle qui a des diagonales de même longueur).'),
+      NO('parallèles','Deux diagonales se coupent&nbsp;: elles ne sont pas parallèles. Leur produit scalaire nul dit qu\'elles sont perpendiculaires.')])],
+   done:`(${u_} + ${v_})${NB}·${NB}(${u_} − ${v_}) = ${NR('u',1)}² − ${NR('v',1)}²&nbsp;: nul dès que les normes sont égales. Les diagonales d'un losange sont perpendiculaires.`}},
+ ()=>{const {a,b,d,s2}=normsSq({sum:true,lo:2,hi:8}),th=Math.acos(d/(a*b))*180/Math.PI,s=Math.round(Math.sqrt(s2));
+  return{meta:{B:['u','v'],norms:{a,b,s}},setup:()=>{S.frame(Math.max(a,b,s));return S.go(parPose(a,b,th,{par:true,gauge:gUV(a*b,{hide:true})}),0)},cap0:'On connaît les trois longueurs',
+   prompt:`<p>${NR('u',1)} = ${a}, ${NR('v',1)} = ${b} et ${NR('u + v')} = ${s}.</p>`,
+   parts:[fill(`De ${NR('u + v')}² = ${NR('u',1)}² + 2${NB}${UV} + ${NR('v',1)}², on tire ${UV}&nbsp;:`,`${UV} = {0}`,[B(d,K('dot',[1,0],[0,1]))],`2${NB}${UV} = ${s2} − ${a*a} − ${b*b}, puis on divise par 2.`,
+      {onOk:async()=>{unhide();S.upd(p=>{p.gauge.exact=fmtInt(d)});cap(`${UV} = ${frH(1,2)}(${s}² − ${a}² − ${b}²) = ${fmtInt(d)}`)}}),
+    ch(`L'angle entre ${u_} et ${v_} est donc&nbsp;:`,[OK(d>0?'aigu':'obtus',{tag:d>0?'aigu':'obtus'}),NO(d>0?'obtus':'aigu',`${UV} = ${fmtInt(d)} est ${d>0?'positif':'négatif'}.`,{tag:d>0?'obtus':'aigu'}),NO('droit','Il faudrait un produit scalaire nul.',{tag:'droit'})],{key:K('nat',[1,0],[0,1])})],
+   done:`${UV} = ${frH(1,2)}(${s2} − ${a*a} − ${b*b}) = ${fmtInt(d)}&nbsp;: on calcule un produit scalaire «&nbsp;à l'aide des normes&nbsp;».`}},
+ ()=>{const {a,b,d}=normsSq({lo:2,hi:6}),th=Math.acos(d/(a*b))*180/Math.PI,r1=a*a+d,r2=4*a*a+4*d+b*b;
+  const S2=vx(2*a,0),V_=vx(b,th),D=Math.hypot(S2.x+V_.x,S2.y+V_.y);
+  return{meta:{B:['u','v'],gram:[[a*a,d],[d,b*b]]},setup:()=>{S.frame(Math.max(2*a,b,D));return S.go(parPose(a,b,th,{dx:fmtInt(d)}),0)},cap0:`${UV} = ${fmtInt(d)}`,
+   prompt:`<p>${NR('u',1)} = ${a}, ${NR('v',1)} = ${b} et ${UV} = ${fmtInt(d)}.</p>`,
+   parts:[fill(null,`${u_}${NB}·${NB}(${u_} + ${v_}) = {0}`,[B(r1,K('dot',[1,0],[1,1]))],`${DOT('u','u',1)} + ${UV} = ${NR('u',1)}² + ${UV}.`),
+    act(`Construire 2${u_} + ${v_}`,async()=>{S.SND.swing();await S.go({arms:{u:AU(2*a,{lab:{t:'2u',vec:true}}),v:AV(b,th),g:AU(a,{dash:true,op:.4,lab:null,z:-1})},arc:arc('θ'),par:{a:'u',b:'v',lab:{t:'2u + v',vec:true}},gauge:gUV(2*a*b,{lab:`(2${u_})${NB}·${NB}${v_}`,exact:fmtInt(2*d)})});cap(`La diagonale dorée représente 2${u_} + ${v_}`)}),
+    fill(null,`${NR('2u + v')}² = {0}`,[B(r2,K('n2',[2,1]))],`(2${u_} + ${v_})² = 4${NR('u',1)}² + 4${NB}${UV} + ${NR('v',1)}².`)],
+   done:`${u_}${NB}·${NB}(${u_} + ${v_}) = ${a*a} + ${d<0?'('+d+')':d} = ${r1} et ${NR('2u + v')}² = 4 × ${a*a} + 4 × ${d<0?'('+d+')':d} + ${b*b} = ${r2}.`}}]};
+
+[L1,L2,L3,L4,L5,L6,L7].forEach(L=>G.LV.push(L));
+G.renderLv();
+window.CE_LVX={L1,L2,L3,L4,L5,L6,L7};
+})();
+</script>
+
+<script>
+/* ======================= épreuves finales : Bronze, Argent, Or ======================= */
+(function(){
+'use strict';
+const N=window.CE_N,T=window.CE_T;
+const {R,add,sub,mul,div,neg,eq,numH,numT,frH,fmtInt,X,xadd,xmul,xH,xeq,xdist,xval,xsign,xrat,xser,COS,RADH,cosH,cosP,PN,sqrtH,isSq,decF,ri,pick,shuf,ans,V,NR,DOT,AG,NB,MI}=N;
+const {K,gramVec,gramTri,gramGiven,dotC,comb,TRI,triAny,normsSq}=T;
+const UV=DOT('u','v'),u_=V('u'),v_=V('v'),w_=V('w');
+/* une question QCM : bonne réponse en premier (le kit mélange l'affichage) */
+const qcm=(level,prompt,good,bad,explain,meta)=>({type:'qcm',level,prompt,choices:[good].concat(bad),answer:0,explain,meta});
+const trous=(level,prompt,blanks,explain,meta)=>({type:'trous',level,prompt,blanks,explain,meta});
+const BL=(r,o)=>{o=o||{};r=typeof r==='number'?R(r):r;return{answers:ans(r).concat(o.extra||[]),size:o.size||4}};
+const vs=a=>a.map(x=>xser(typeof x==='number'?X(R(x)):x.p?x:X(x)));
+const rt=m=>`${sqrtH(m)}${isSq(m)?'':' ≈ '+decF(Math.sqrt(m),2)}`;
+const P=x=>x<0?`(${fmtInt(x)})`:fmtInt(x);
+const sideTxt=(a,b,c)=>`Dans un triangle ABC, AB = ${c}, AC = ${b} et BC = ${a}.`;
+
+/* ===================== Bronze · Les bases ===================== */
+const BRONZE={qcm:[
+ {lv:1,f:()=>{const a=ri(2,9),b=ri(2,9),d=R(a*b,2);if(a*b===2)return BRONZE.qcm[0].f();
+   return qcm(1,`${NR('u')} = ${a}, ${NR('v')} = ${b} et l'angle entre ${u_} et ${v_} mesure 60°. Alors ${UV} =`,numH(d),[fmtInt(a*b),numH(neg(d))],
+    `${UV} = ${a} × ${b} × cos 60° = ${a} × ${b} × ${frH(1,2)} = ${numH(d)}.`,{B:['u','v'],vec:[[a,0],[b,60]],key:K('dot',[1,0],[0,1]),vals:vs([d,R(a*b),neg(d)]),steps:1,ops:2})}},
+ {lv:1,f:()=>{const n=ri(3,12);
+   return qcm(1,`AB = ${n}. Alors ${DOT('AB','AB')} =`,fmtInt(n*n),[fmtInt(2*n),fmtInt(n)],`${DOT('AB','AB')} = AB² = ${n}² = ${n*n}.`,{B:['AB'],vec:[[n,0]],key:K('dot',[1],[1]),vals:vs([n*n,2*n,n]),steps:1,ops:1})}},
+ {lv:2,f:()=>qcm(2,`${u_} et ${v_} sont deux vecteurs non nuls tels que ${UV} = 0. Alors ${u_} et ${v_} sont&nbsp;:`,'orthogonaux',['colinéaires','de même norme'],
+    'Pour des vecteurs non nuls, un produit scalaire nul signifie que cos θ = 0, donc θ = 90°&nbsp;: les vecteurs sont orthogonaux.',{steps:1,ops:0})},
+ {lv:2,f:()=>{const a=ri(2,9),b=ri(2,9),t=pick([100,110,130,140,160]);
+   return qcm(2,`${NR('u')} = ${a}, ${NR('v')} = ${b} et l'angle entre ${u_} et ${v_} mesure ${t}°. Le produit scalaire ${UV} est&nbsp;:`,'strictement négatif',['strictement positif','nul'],
+    `${t}° &gt; 90°&nbsp;: l'angle est obtus, cos ${t}° &lt; 0, donc ${UV} &lt; 0.`,{B:['u','v'],vec:[[a,0],[b,t]],key:K('sign',[1,0],[0,1]),tags:['-','+','0'],steps:1,ops:0})}},
+ {lv:3,f:()=>{const [a,b,c]=triAny({hi:7,test:(a,b,c,t)=>t!==0}),d=R(b*b+c*c-a*a,2),vals=[d,R(b*b+c*c-a*a),R(b+c-a,2),R(c*c+a*a-b*b,2)];
+   if(!N.xdist(vals.map(x=>X(x))))return BRONZE.qcm[4].f();
+   return qcm(3,`${sideTxt(a,b,c)} Alors ${DOT('AB','AC')} =`,numH(d),vals.slice(1).map(numH),
+    `${DOT('AB','AC')} = ${frH(1,2)}(AB² + AC² − BC²) = ${frH(1,2)}(${c*c} + ${b*b} − ${a*a}) = ${numH(d)}.`,{B:['AB','AC'],tri:[a,b,c],key:K('dot',[1,0],[0,1]),vals:vs(vals),steps:1,ops:3})}},
+ {lv:4,f:()=>{const b=ri(2,9),c=ri(2,9);if(b===c)return BRONZE.qcm[5].f();const n=b*b+c*c-b*c,vals=[n,b*b+c*c,(b-c)*(b-c)];
+   return qcm(4,`Dans un triangle ABC, AB = ${c}, AC = ${b} et ${AG('BAC')} = 60°. Alors BC² =`,fmtInt(n),[fmtInt(vals[1]),fmtInt(vals[2])],
+    `Al-Kashi&nbsp;: BC² = ${b}² + ${c}² − 2 × ${b} × ${c} × cos 60° = ${b*b} + ${c*c} − ${b*c} = ${n}.`,{B:['AB','AC'],vec:[[c,0],[b,60]],key:K('n2',[-1,1]),vals:vs(vals),steps:1,ops:3})}},
+ {lv:5,f:()=>{const big=Math.random()<.5;
+   return qcm(5,`Dans un triangle ABC, <span class=\"nw\">cos ${AG('BAC')}</span> = ${big?MI:''}${frH(1,2)}. Alors ${AG('BAC')} =`,big?'120°':'60°',big?['60°','150°']:['30°','120°'],
+    `cos ${big?120:60}° = ${big?MI:''}${frH(1,2)}${big?'&nbsp;: un cosinus négatif donne un angle obtus':''}.`,{key:`acos:${big?-1:1}/2`,tags:big?[120,60,150]:[60,30,120],steps:1,ops:0})}},
+ {lv:6,f:()=>{const d=pick([-5,-4,-3,-2,2,3,4,5,6,7]);
+   return qcm(6,`${UV} = ${fmtInt(d)}. Alors (3${u_})${NB}·${NB}${v_} =`,fmtInt(3*d),[fmtInt(d+3),fmtInt(9*d)],`(3${u_})${NB}·${NB}${v_} = 3 × (${UV}) = 3 × ${P(d)} = ${fmtInt(3*d)}.`,
+    {B:['u','v'],gram:[[null,d],[d,null]],key:K('dot',[3,0],[0,1]),vals:vs([3*d,d+3,9*d]),steps:1,ops:1})}},
+ {lv:7,f:()=>{const {a,b,d}=normsSq({lo:2,hi:6}),vals=[a*a+2*d+b*b,a*a+b*b,a*a+d+b*b,(a+b)*(a+b)];if(new Set(vals).size<4)return BRONZE.qcm[8].f();
+   return qcm(7,`${NR('u')} = ${a}, ${NR('v')} = ${b} et ${UV} = ${fmtInt(d)}. Alors ${NR('u + v')}² =`,fmtInt(vals[0]),vals.slice(1).map(fmtInt),
+    `${NR('u + v')}² = ${NR('u')}² + 2${NB}${UV} + ${NR('v')}² = ${a*a} + 2 × ${P(d)} + ${b*b} = ${vals[0]}.`,{B:['u','v'],gram:[[a*a,d],[d,b*b]],key:K('n2',[1,1]),vals:vs(vals),steps:1,ops:3})}}],
+trous:[
+ {lv:1,f:()=>{const a=ri(2,9),b=ri(2,9),d=R(-a*b,2);
+   return trous(1,`${NR('u')} = ${a}, ${NR('v')} = ${b} et l'angle entre ${u_} et ${v_} mesure 120°. Alors ${UV} = {0}.`,[BL(d)],`${a} × ${b} × cos 120° = ${a} × ${b} × (${MI}${frH(1,2)}) = ${numH(d)}.`,
+    {B:['u','v'],vec:[[a,0],[b,120]],keys:[K('dot',[1,0],[0,1])],steps:1,ops:2})}},
+ {lv:1,f:()=>{const n=ri(3,15);
+   return trous(1,`AB = ${n}. Alors ${DOT('AB','AB')} = {0}.`,[BL(n*n)],`${DOT('AB','AB')} = AB² = ${n*n}.`,{B:['AB'],vec:[[n,0]],keys:[K('dot',[1],[1])],steps:1,ops:1})}},
+ {lv:2,f:()=>{const a=ri(2,9),b=ri(2,9);
+   return trous(2,`${NR('u')} = ${a}, ${NR('v')} = ${b} et ${u_} et ${v_} sont orthogonaux. Alors ${UV} = {0}.`,[BL(0)],`Orthogonaux&nbsp;: cos 90° = 0, donc ${UV} = 0.`,{B:['u','v'],vec:[[a,0],[b,90]],keys:[K('dot',[1,0],[0,1])],steps:1,ops:0})}},
+ {lv:3,f:()=>{const [a,b,c]=triAny({hi:7}),d=R(b*b+c*c-a*a,2);
+   return trous(3,`${sideTxt(a,b,c)} Alors ${DOT('AB','AC')} = {0}.`,[BL(d)],`${frH(1,2)}(${c*c} + ${b*b} − ${a*a}) = ${numH(d)}.`,{B:['AB','AC'],tri:[a,b,c],keys:[K('dot',[1,0],[0,1])],steps:1,ops:3})}},
+ {lv:4,f:()=>{const b=ri(2,9),c=ri(2,9),n=b*b+c*c-b*c;
+   return trous(4,`Dans un triangle ABC, AB = ${c}, AC = ${b} et ${AG('BAC')} = 60°. Alors BC² = {0}.`,[BL(n)],`${b*b} + ${c*c} − 2 × ${b} × ${c} × ${frH(1,2)} = ${n}.`,{B:['AB','AC'],vec:[[c,0],[b,60]],keys:[K('n2',[-1,1])],steps:1,ops:3})}},
+ {lv:5,f:()=>{const [a,b,c]=pick(TRI.t60.concat(TRI.t120).filter(t=>t[0]<=13)),cv=R(b*b+c*c-a*a,2*b*c);
+   return trous(5,`${sideTxt(a,b,c)} Alors <span class=\"nw\">cos ${AG('BAC')}</span> = {0}.`,[BL(cv,{extra:[`${b*b+c*c-a*a}/${2*b*c}`]})],`<span class=\"nw\">cos ${AG('BAC')}</span> = ${frH(`${b*b} + ${c*c} − ${a*a}`,2*b*c)} = ${numH(cv)}.`,
+    {B:['AB','AC'],tri:[a,b,c],keys:[K('cos',[1,0],[0,1])],steps:1,ops:3})}},
+ {lv:6,f:()=>{const p=ri(-6,8),q=ri(-6,8);if(!p||!q)return BRONZE.trous[6].f();
+   return trous(6,`${UV} = ${fmtInt(p)} et ${DOT('u','w')} = ${fmtInt(q)}. Alors ${u_}${NB}·${NB}(${v_} + ${w_}) = {0}.`,[BL(p+q)],`Distributivité&nbsp;: ${fmtInt(p)} + ${P(q)} = ${fmtInt(p+q)}.`,
+    {B:['u','v','w'],gram:[[null,p,q],[p,null,null],[q,null,null]],keys:[K('dot',[1,0,0],[0,1,1])],steps:1,ops:1})}},
+ {lv:7,f:()=>{let a,b;do{a=ri(2,9);b=ri(2,9)}while(a===b);
+   return trous(7,`${NR('u')} = ${a} et ${NR('v')} = ${b}. Alors (${u_} + ${v_})${NB}·${NB}(${u_} − ${v_}) = {0}.`,[BL(a*a-b*b)],`(${u_} + ${v_})${NB}·${NB}(${u_} − ${v_}) = ${NR('u')}² − ${NR('v')}² = ${a*a} − ${b*b} = ${fmtInt(a*a-b*b)}.`,
+    {B:['u','v'],gram:[[a*a,null],[null,b*b]],keys:[K('dot',[1,1],[1,-1])],steps:1,ops:2})}}]};
+
+/* ===================== Argent · La maîtrise ===================== */
+const ARGENT={qcm:[
+ {lv:1,f:()=>{const a=ri(2,8),b=ri(2,8),th=pick([30,45,135,150]),x=gramVec([[a,0],[b,th]])[0][1],half=X(R((th<90?1:-1)*a*b,2)),vals=[x,xmul(x,2),half,xmul(x,-1)];
+   if(!xdist(vals))return ARGENT.qcm[0].f();
+   return qcm(1,`${NR('u')} = ${a}, ${NR('v')} = ${b} et l'angle entre ${u_} et ${v_} mesure ${th}°. Alors ${UV} =`,xH(x),vals.slice(1).map(v=>xH(v)),
+    `${UV} = ${a} × ${b} × cos ${th}° = ${a*b} × ${cosP(th)} = ${xH(x)}.`,{B:['u','v'],vec:[[a,0],[b,th]],key:K('dot',[1,0],[0,1]),vals:vs(vals),steps:2,ops:3})}},
+ {lv:1,f:()=>{const c=ri(2,10),d=R(c*c,2);
+   return qcm(1,`ABC est un triangle équilatéral de côté ${c}. Alors ${DOT('AB','BC')} =`,numH(neg(d)),[numH(d),'0',fmtInt(-c*c)],
+    `On place les vecteurs à la même origine&nbsp;: l'angle entre ${V('AB')} et ${V('BC')} mesure 180° − 60° = 120°. Donc ${DOT('AB','BC')} = ${c} × ${c} × (${MI}${frH(1,2)}) = ${numH(neg(d))}.`,
+    {B:['AB','AC'],vec:[[c,0],[c,60]],key:K('dot',[1,0],[-1,1]),vals:vs([neg(d),d,R(0),R(-c*c)]),steps:2,ops:3})}},
+ {lv:2,f:()=>{const a=ri(2,8),b=ri(2,8),big=Math.random()<.5,th=big?120:60,d=R((big?-1:1)*a*b,2);
+   return qcm(2,`${NR('u')} = ${a}, ${NR('v')} = ${b} et ${UV} = ${numH(d)}. L'angle entre ${u_} et ${v_} mesure&nbsp;:`,`${th}°`,big?['60°','150°','30°']:['120°','30°','45°'],
+    `cos θ = ${frH(numH(d),`${a} × ${b}`)} = ${big?MI:''}${frH(1,2)}, donc θ = ${th}°.`,{B:['u','v'],vec:[[a,0],[b,th]],key:K('deg',[1,0],[0,1]),tags:big?[120,60,150,30]:[60,120,30,45],steps:2,ops:2})}},
+ {lv:3,f:()=>{const [a,b,c]=triAny({hi:9,test:(a,b,c)=>a*a+c*c-b*b!==0}),d=R(a*a+c*c-b*b,2),vals=[d,R(b*b+c*c-a*a,2),R(b*b+c*c-a*a),R(a*a+c*c-b*b)];
+   if(!N.xdist(vals.map(x=>X(x))))return ARGENT.qcm[3].f();
+   return qcm(3,`${sideTxt(a,b,c)} Alors ${DOT('BA','BC')} =`,numH(d),vals.slice(1).map(numH),
+    `Les deux vecteurs partent de B&nbsp;: ${DOT('BA','BC')} = ${frH(1,2)}(BA² + BC² − AC²) = ${frH(1,2)}(${c*c} + ${a*a} − ${b*b}) = ${numH(d)}.`,{B:['AB','AC'],tri:[a,b,c],key:K('dot',[-1,0],[-1,1]),vals:vs(vals),steps:2,ops:4})}},
+ {lv:4,f:()=>{const [a,b,c]=pick(TRI.t120.filter(t=>t[0]<=19)),m=[a*a,b*b+c*c,b*b+c*c-b*c];if(new Set(m).size<3)return ARGENT.qcm[4].f();
+   return qcm(4,`Dans un triangle ABC, AB = ${c}, AC = ${b} et ${AG('BAC')} = 120°. Alors BC =`,rt(m[0]),[rt(m[1]),rt(m[2])],
+    `BC² = ${b}² + ${c}² − 2 × ${b} × ${c} × cos 120° = ${b*b} + ${c*c} + ${b*c} = ${a*a}, donc BC = ${a}.`,{B:['AB','AC'],vec:[[c,0],[b,120]],key:K('n',[-1,1]),vals:vs(m),root:1,steps:2,ops:4})}},
+ {lv:5,f:()=>{const [a,b,c]=triAny({hi:9,test:(a,b,c,t)=>t!==0&&Math.abs(t)*2!==2*b*c&&!(R(t,2*b*c).d===2)}),t=b*b+c*c-a*a,cv=R(t,2*b*c);
+   const good=t>0?'aigu':'obtus';
+   return qcm(5,`${sideTxt(a,b,c)} L'angle ${AG('BAC')} est&nbsp;:`,good,[t>0?'obtus':'aigu','droit'],
+    `<span class=\"nw\">cos ${AG('BAC')}</span> = ${frH(`${b*b} + ${c*c} − ${a*a}`,2*b*c)} = ${numH(cv)}, ${t>0?'positif&nbsp;: angle aigu':'négatif&nbsp;: angle obtus'}.`,{B:['AB','AC'],tri:[a,b,c],key:K('nat',[1,0],[0,1]),tags:[good,t>0?'obtus':'aigu','droit'],steps:2,ops:4})}},
+ {lv:6,f:()=>{const CO=[1,2,3,-1,-2];let al,be,ga,de;do{al=pick([1,2]);be=pick(CO);ga=pick([1,2,3]);de=pick(CO)}while(al*de+be*ga===0);
+   const {a,b,d}=normsSq({lo:2,hi:5}),Gm=gramGiven([[a*a,d],[d,b*b]]),res=dotC(Gm,[al,be],[ga,de]).p;
+   const v1=al*ga*a*a+be*de*b*b,v2=al*ga*a*a+al*de*d+be*de*b*b,v3=al*ga*a*a-(al*de+be*ga)*d+be*de*b*b,vals=[res,R(v1),R(v2),R(v3)];
+   if(!N.xdist(vals.map(x=>X(x))))return ARGENT.qcm[6].f();
+   const pL=comb([al,be],['u','v']),qL=comb([ga,de],['u','v']);
+   return qcm(6,`${NR('u')} = ${a}, ${NR('v')} = ${b} et ${UV} = ${fmtInt(d)}. Alors (${pL})${NB}·${NB}(${qL}) =`,numH(res),vals.slice(1).map(numH),
+    `On développe&nbsp;: ${fmtInt(al*ga)}${NB}${NR('u')}² + ${P(al*de+be*ga)}${NB}${UV} + ${P(be*de)}${NB}${NR('v')}² = ${fmtInt(al*ga)} × ${a*a} + ${P(al*de+be*ga)} × ${P(d)} + ${P(be*de)} × ${b*b} = ${numH(res)}.`,
+    {B:['u','v'],gram:[[a*a,d],[d,b*b]],key:K('dot',[al,be],[ga,de]),vals:vs(vals),steps:2,ops:6})}},
+ {lv:7,f:()=>{const {a,b,d}=normsSq({lo:2,hi:7}),vals=[a*a-2*d+b*b,a*a+b*b,a*a+2*d+b*b,a*a-d+b*b];if(new Set(vals).size<4)return ARGENT.qcm[7].f();
+   return qcm(7,`${NR('u')} = ${a}, ${NR('v')} = ${b} et ${UV} = ${fmtInt(d)}. Alors ${NR('u − v')}² =`,fmtInt(vals[0]),vals.slice(1).map(fmtInt),
+    `${NR('u − v')}² = ${NR('u')}² − 2${NB}${UV} + ${NR('v')}² = ${a*a} − 2 × ${P(d)} + ${b*b} = ${vals[0]}.`,{B:['u','v'],gram:[[a*a,d],[d,b*b]],key:K('n2',[1,-1]),vals:vs(vals),steps:2,ops:3})}}],
+trous:[
+ {lv:1,f:()=>{const a=ri(2,9),b=ri(2,9),big=Math.random()<.5,th=big?120:60,d=R((big?-1:1)*a*b,2);
+   return trous(1,`${NR('u')} = ${a}, ${NR('v')} = ${b} et l'angle entre ${u_} et ${v_} mesure ${RADH[th]} radian. Alors ${UV} = {0}.`,[BL(d)],
+    `${RADH[th]} rad = ${th}° et cos ${RADH[th]} = ${big?MI:''}${frH(1,2)}&nbsp;: ${a} × ${b} × ${big?'('+MI+frH(1,2)+')':frH(1,2)} = ${numH(d)}.`,{B:['u','v'],vec:[[a,0],[b,th]],keys:[K('dot',[1,0],[0,1])],steps:2,ops:3})}},
+ {lv:2,f:()=>{const a=ri(2,8),b=ri(2,8),th=pick([60,120,180]),d=R(Math.round(a*b*N.val(COS[th].p)*2),2),cv=COS[th].p;
+   return trous(2,`${NR('u')} = ${a}, ${NR('v')} = ${b} et ${UV} = ${numH(d)}. Alors cos θ = {0} et l'angle θ entre ${u_} et ${v_} mesure {1} degrés.`,[BL(cv),{answers:[String(th),th+'°'],size:3}],
+    `cos θ = ${frH(numH(d),a*b)} = ${numH(cv)}, donc θ = ${th}°.`,{B:['u','v'],vec:[[a,0],[b,th]],keys:[K('cos',[1,0],[0,1]),K('deg',[1,0],[0,1])],steps:2,ops:2})}},
+ {lv:3,f:()=>{const [a,b,c]=triAny({hi:9,test:(a,b,c,t)=>t<0}),d=R(b*b+c*c-a*a,2);
+   return trous(3,`${sideTxt(a,b,c)} Alors ${DOT('AB','AC')} = {0}.`,[BL(d)],`${frH(1,2)}(${c*c} + ${b*b} − ${a*a}) = ${numH(d)}&nbsp;: négatif, l'angle en A est obtus.`,{B:['AB','AC'],tri:[a,b,c],keys:[K('dot',[1,0],[0,1])],steps:2,ops:3})}},
+ {lv:4,f:()=>{const [a,b,c]=pick(TRI.t120.filter(t=>t[0]<=19));
+   return trous(4,`Dans un triangle ABC, AB = ${c}, AC = ${b} et ${AG('BAC')} = 120°. Alors BC² = {0} et BC = {1}.`,[BL(a*a),BL(a)],
+    `BC² = ${b*b} + ${c*c} − 2 × ${b} × ${c} × (${MI}${frH(1,2)}) = ${b*b} + ${c*c} + ${b*c} = ${a*a}, donc BC = ${a}.`,{B:['AB','AC'],vec:[[c,0],[b,120]],keys:[K('n2',[-1,1]),K('n',[-1,1])],steps:2,ops:4})}},
+ {lv:5,f:()=>{const [a,b,c]=triAny({hi:9,test:(a,b,c,t)=>t!==0}),cv=R(b*b+c*c-a*a,2*b*c);
+   return trous(5,`${sideTxt(a,b,c)} Alors <span class=\"nw\">cos ${AG('BAC')}</span> = {0}.`,[BL(cv,{extra:[`${b*b+c*c-a*a}/${2*b*c}`]})],`<span class=\"nw\">cos ${AG('BAC')}</span> = ${frH(`${b*b} + ${c*c} − ${a*a}`,2*b*c)} = ${numH(cv)}.`,
+    {B:['AB','AC'],tri:[a,b,c],keys:[K('cos',[1,0],[0,1])],steps:2,ops:4})}},
+ {lv:6,f:()=>{const b=ri(2,6),d=ri(-8,9);if(!d)return ARGENT.trous[5].f();
+   return trous(6,`${NR('v')} = ${b} et ${UV} = ${fmtInt(d)}. Alors (${u_} + 2${v_})${NB}·${NB}${v_} = {0}.`,[BL(d+2*b*b)],`(${u_} + 2${v_})${NB}·${NB}${v_} = ${UV} + 2${NR('v')}² = ${fmtInt(d)} + 2 × ${b*b} = ${fmtInt(d+2*b*b)}.`,
+    {B:['u','v'],gram:[[null,d],[d,b*b]],keys:[K('dot',[1,2],[0,1])],steps:2,ops:3})}},
+ {lv:7,f:()=>{const {a,b,d,s2}=normsSq({sum:true,lo:2,hi:8}),s=Math.round(Math.sqrt(s2));
+   return trous(7,`${NR('u')} = ${a}, ${NR('v')} = ${b} et ${NR('u + v')} = ${s}. Alors ${UV} = {0}.`,[BL(d)],`${NR('u + v')}² = ${NR('u')}² + 2${NB}${UV} + ${NR('v')}², donc ${UV} = ${frH(1,2)}(${s2} − ${a*a} − ${b*b}) = ${fmtInt(d)}.`,
+    {B:['u','v'],norms:{a,b,s},keys:[K('dot',[1,0],[0,1])],steps:2,ops:4})}},
+ {lv:2,f:()=>{const c=ri(2,9);
+   return trous(2,`ABCD est un carré de côté ${c}. Alors ${DOT('AB','AD')} = {0} et ${DOT('AB','AC')} = {1}.`,[BL(0),BL(c*c)],`(AB) ⊥ (AD), donc ${DOT('AB','AD')} = 0. AC = ${c}√2 et ${AG('BAC')} = 45°&nbsp;: ${c} × ${c}√2 × ${cosH(45)} = ${c*c}.`,
+    {B:['AB','AD'],vec:[[c,0],[c,90]],keys:[K('dot',[1,0],[0,1]),K('dot',[1,0],[1,1])],steps:2,ops:3})}}]};
+
+/* ===================== Or · L'expert ===================== */
+const OR={qcm:[
+ {lv:6,f:()=>{let L,l;do{L=ri(3,9);l=ri(2,8)}while(L===l);const vals=[L*L,L*l,L*L+l*l,0];
+   return qcm(6,`ABCD est un rectangle tel que AB = ${L} et AD = ${l}. Alors ${DOT('AB','AC')} =`,fmtInt(vals[0]),vals.slice(1).map(fmtInt),
+    `${V('AC')} = ${V('AB')} + ${V('AD')}, donc ${DOT('AB','AC')} = ${DOT('AB','AB')} + ${DOT('AB','AD')} = AB² + 0 = ${L*L}.`,{B:['AB','AD'],vec:[[L,0],[l,90]],key:K('dot',[1,0],[1,1]),vals:vs(vals),steps:3,ops:3})}},
+ {lv:2,f:()=>{const F=pick([10,20,25,30,40,50]),dd=pick([2,4,5,6,8,10,12]),big=Math.random()<.5,th=big?120:60,W=R((big?-1:1)*F*dd,2);
+   const vals=[W,neg(W),R((big?-1:1)*F*dd),R(0)];
+   return qcm(2,`Une force constante ${V('F')} d'intensité ${F} N tire un kayak sur un déplacement ${V('AB')} de ${dd} m. L'angle entre ${V('F')} et ${V('AB')} mesure ${th}°. Le travail W = ${DOT('F','AB')} vaut&nbsp;:`,
+    numH(W)+' J',vals.slice(1).map(v=>numH(v)+' J'),
+    `W = ${F} × ${dd} × cos ${th}° = ${numH(W)} J. ${big?'Angle obtus&nbsp;: le travail est négatif, la force freine le déplacement.':'Angle aigu&nbsp;: le travail est positif, la force aide le déplacement.'}`,{B:['F','AB'],vec:[[F,0],[dd,th]],key:K('dot',[1,0],[0,1]),vals:vs(vals),unit:'J',steps:3,ops:3})}},
+ {lv:4,f:()=>{const big=Math.random()<.5,[a,b,c]=pick((big?TRI.t120:TRI.t60).filter(t=>t[0]<=15)),A=big?120:60,m=[a*a,b*b+c*c,big?b*b+c*c-b*c:b*b+c*c+b*c];if(new Set(m).size<3)return OR.qcm[2].f();
+   return qcm(4,`Deux bateaux quittent le port P de Longoni. Le premier parcourt ${c} km en ligne droite, le second ${b} km, et leurs routes font un angle de ${A}°. La distance entre les deux bateaux est&nbsp;:`,
+    rt(m[0])+' km',m.slice(1).map(x=>rt(x)+' km'),
+    `Al-Kashi&nbsp;: d² = ${c}² + ${b}² − 2 × ${c} × ${b} × cos ${A}° = ${c*c} + ${b*b} ${big?'+':'−'} ${b*c} = ${a*a}, donc d = ${a} km.`,{B:['PM','PN'],vec:[[c,0],[b,A]],key:K('n',[-1,1]),vals:vs(m),root:1,unit:'km',steps:3,ops:5})}},
+ {lv:5,f:()=>{const [a,b,c]=pick(TRI.t120.filter(t=>t[0]<=15));
+   return qcm(5,`Les côtés d'un triangle ABC mesurent BC = ${a}, AC = ${b} et AB = ${c}. Une mesure en radians de son plus grand angle est&nbsp;:`,RADH[120],[RADH[60],RADH[150],RADH[135]],
+    `Le plus grand angle est opposé au plus grand côté BC&nbsp;: <span class=\"nw\">cos ${AG('BAC')}</span> = ${frH(`${b*b} + ${c*c} − ${a*a}`,2*b*c)} = ${MI}${frH(1,2)}, donc ${AG('BAC')} = 120° = ${RADH[120]}.`,
+    {B:['AB','AC'],tri:[a,b,c],key:K('deg',[1,0],[0,1]),tags:[120,60,150,135],steps:4,ops:5})}},
+ {lv:7,f:()=>{const {a,b,d,s2,e2}=normsSq({sum:true,diff:true,lo:2,hi:9}),s=Math.round(Math.sqrt(s2)),e=Math.round(Math.sqrt(e2)),m=[e2,s2,a*a+b*b];if(new Set(m).size<3)return OR.qcm[4].f();
+   return qcm(7,`ABCD est un parallélogramme tel que AB = ${a}, AD = ${b} et AC = ${s}. Alors BD =`,rt(m[0]),[rt(m[1]),rt(m[2])],
+    `Avec ${u_} = ${V('AB')} et ${v_} = ${V('AD')}&nbsp;: ${V('AC')} = ${u_} + ${v_} et ${V('DB')} = ${u_} − ${v_}. ${NR('u + v')}² = ${s2} donne ${UV} = ${frH(1,2)}(${s2} − ${a*a} − ${b*b}) = ${fmtInt(d)}, puis BD² = ${a*a} − 2 × ${P(d)} + ${b*b} = ${e2}, BD = ${e}.`,
+    {B:['u','v'],norms:{a,b,s},key:K('n',[1,-1]),vals:vs(m),root:1,steps:4,ops:7})}},
+ {lv:3,f:()=>{const [a,b,c]=triAny({hi:9,test:(a,b,c,t)=>t!==0&&a*a+c*c-b*b!==b*b+c*c-a*a}),d=R(b*b+c*c-a*a,2),vals=[neg(d),d,R(a*a+c*c-b*b,2),R(-(b*b+c*c-a*a))];
+   if(!N.xdist(vals.map(x=>X(x))))return OR.qcm[5].f();
+   return qcm(3,`${sideTxt(a,b,c)} Alors ${DOT('BA','AC')} =`,numH(vals[0]),vals.slice(1).map(numH),
+    `${V('BA')} = ${MI}${V('AB')}, donc ${DOT('BA','AC')} = ${MI}${DOT('AB','AC')} = ${MI}${frH(1,2)}(${c*c} + ${b*b} − ${a*a}) = ${numH(vals[0])}.`,{B:['AB','AC'],tri:[a,b,c],key:K('dot',[-1,0],[0,1]),vals:vs(vals),steps:3,ops:5})}},
+ {lv:6,f:()=>{for(let n=0;n<500;n++){const a=ri(2,8),b=ri(2,6),d=a*a-2*b*b;if(!d||Math.abs(d)>=a*b)continue;const vals=[d,-d,a*a+2*b*b,R(d,2)];if(!N.xdist(vals.map(x=>X(typeof x==='number'?R(x):x))))continue;
+     return qcm(6,`${NR('u')} = ${a}, ${NR('v')} = ${b} et (${u_} + ${v_})${NB}·${NB}(${u_} − 2${v_}) = 0. Alors ${UV} =`,fmtInt(d),[fmtInt(-d),fmtInt(a*a+2*b*b),numH(R(d,2))],
+      `En développant&nbsp;: ${NR('u')}² − ${UV} − 2${NR('v')}² = 0, donc ${UV} = ${a*a} − 2 × ${b*b} = ${fmtInt(d)}.`,{B:['u','v'],gram:[[a*a,d],[d,b*b]],cond:K('dot',[1,1],[1,-2]),key:K('dot',[1,0],[0,1]),vals:vs(vals),steps:3,ops:5})}
+   throw new Error('or6')}}],
+trous:[
+ {lv:1,f:()=>{const c=pick([2,4,6,8,10]),d=R(-c*c,4);
+   return trous(1,`ABC est un triangle équilatéral de côté ${c} et I est le milieu de [AB]. Alors ${DOT('AI','BC')} = {0}.`,[BL(d)],
+    `AI = ${c/2} et, ramenés à la même origine, ${V('AI')} et ${V('BC')} font un angle de 120°&nbsp;: ${c/2} × ${c} × (${MI}${frH(1,2)}) = ${numH(d)}.`,{B:['AB','AC'],vec:[[c,0],[c,60]],keys:[K('dot',[R(1,2),0],[-1,1])],steps:3,ops:4})}},
+ {lv:4,f:()=>{const A=pick([45,135]),b=ri(3,9),c=ri(3,9),cs=A<90?1:-1,n2=X(R(b*b+c*c),R(-cs*b*c),2),av=Math.sqrt(xval(n2));
+   return trous(4,`Dans un triangle ABC, AB = ${c}, AC = ${b} et ${AG('BAC')} = ${A}°. Alors BC ≈ {0} (arrondi au dixième).`,[{answers:[decF(av,1).replace(/\s/g,'')],size:4}],
+    `BC² = ${b*b} + ${c*c} − 2 × ${b} × ${c} × cos ${A}° = ${xH(n2)}, donc BC ≈ ${decF(av,1)}.`,{B:['AB','AC'],vec:[[c,0],[b,A]],keys:[K('n',[-1,1])],round:[1],steps:3,ops:5})}},
+ {lv:5,f:()=>{const big=Math.random()<.5,[a,b,c]=pick((big?TRI.t120:TRI.t60).filter(t=>t[0]<=15)),A=big?120:60,cv=R(b*b+c*c-a*a,2*b*c);
+   return trous(5,`${sideTxt(a,b,c)} Alors <span class=\"nw\">cos ${AG('BAC')}</span> = {0} et ${AG('BAC')} = {1} degrés.`,[BL(cv,{extra:[`${b*b+c*c-a*a}/${2*b*c}`]}),{answers:[String(A),A+'°'],size:3}],
+    `<span class=\"nw\">cos ${AG('BAC')}</span> = ${frH(`${b*b} + ${c*c} − ${a*a}`,2*b*c)} = ${numH(cv)}, donc ${AG('BAC')} = ${A}°.`,{B:['AB','AC'],tri:[a,b,c],keys:[K('cos',[1,0],[0,1]),K('deg',[1,0],[0,1])],steps:3,ops:5})}},
+ {lv:7,f:()=>{const {a,b,d,s2,e2}=normsSq({sum:true,diff:true,lo:2,hi:9}),s=Math.round(Math.sqrt(s2)),e=Math.round(Math.sqrt(e2));
+   return trous(7,`${NR('u')} = ${a}, ${NR('v')} = ${b} et ${NR('u − v')} = ${e}. Alors ${UV} = {0} et ${NR('u + v')} = {1}.`,[BL(d),BL(s)],
+    `${UV} = ${frH(1,2)}(${a*a} + ${b*b} − ${e2}) = ${fmtInt(d)}, puis ${NR('u + v')}² = ${a*a} + 2 × ${P(d)} + ${b*b} = ${s2}, donc ${NR('u + v')} = ${s}.`,
+    {B:['u','v'],normsD:{a,b,e},keys:[K('dot',[1,0],[0,1]),K('n',[1,1])],steps:4,ops:7})}},
+ {lv:6,f:()=>{const {a,b,d}=normsSq({lo:2,hi:6}),r=2*a*a-d-b*b;
+   return trous(6,`${NR('u')} = ${a}, ${NR('v')} = ${b} et ${UV} = ${fmtInt(d)}. Alors (2${u_} + ${v_})${NB}·${NB}(${u_} − ${v_}) = {0}.`,[BL(r)],
+    `On développe&nbsp;: 2${NR('u')}² − 2${NB}${UV} + ${DOT('v','u')} − ${NR('v')}² = 2 × ${a*a} − ${P(d)} − ${b*b} = ${fmtInt(r)}.`,{B:['u','v'],gram:[[a*a,d],[d,b*b]],keys:[K('dot',[2,1],[1,-1])],steps:3,ops:6})}},
+ {lv:3,f:()=>{const [a,b,c]=triAny({hi:12,test:(a,b,c,t)=>t%2===0&&t!==0}),d=(b*b+c*c-a*a)/2;
+   return trous(3,`Dans un triangle ABC, AB = ${c}, AC = ${b} et ${DOT('AB','AC')} = ${fmtInt(d)}. Alors BC = {0}.`,[BL(a)],
+    `BC² = AB² + AC² − 2${NB}${DOT('AB','AC')} = ${c*c} + ${b*b} − 2 × ${P(d)} = ${a*a}, donc BC = ${a}.`,{B:['AB','AC'],tri:[a,b,c],keys:[K('n',[-1,1])],steps:3,ops:5})}},
+ {lv:2,f:()=>{const [a,b,c]=pick([[10,8,6],[10,6,8],[13,12,5],[13,5,12],[15,12,9],[15,9,12],[17,15,8],[17,8,15],[25,24,7]]);
+   return trous(2,`${sideTxt(a,b,c)} Alors ${DOT('AB','AC')} = {0} et ${AG('BAC')} = {1} degrés.`,[BL(0),{answers:['90','90°'],size:3}],
+    `${frH(1,2)}(${c*c} + ${b*b} − ${a*a}) = 0&nbsp;: ${V('AB')} et ${V('AC')} sont orthogonaux, ${AG('BAC')} = 90°.`,{B:['AB','AC'],tri:[a,b,c],keys:[K('dot',[1,0],[0,1]),K('deg',[1,0],[0,1])],steps:3,ops:4})}},
+ {lv:2,f:()=>{const F=pick([10,20,30,40,50]),dd=pick([3,4,5,6,8]),th=pick([60,120,90]),W=R(Math.round(F*dd*N.val(COS[th].p)));
+   return trous(2,`Une force ${V('F')} d'intensité ${F} N s'exerce pendant un déplacement ${V('AB')} de ${dd} m&nbsp;; l'angle entre ${V('F')} et ${V('AB')} mesure ${th}°. Le travail W = ${DOT('F','AB')} vaut {0} J.`,[BL(W)],
+    `W = ${F} × ${dd} × cos ${th}° = ${numH(W)} J${th===90?'&nbsp;: une force perpendiculaire au déplacement ne travaille pas':''}.`,{B:['F','AB'],vec:[[F,0],[dd,th]],keys:[K('dot',[1,0],[0,1])],steps:3,ops:3})}}]};
+
+/* tirage : 6 QCM + 4 trous, mélangés, les sept niveaux représentés */
+function build(Bk){for(let n=0;n<2000;n++){const q=shuf(Bk.qcm.slice()).slice(0,6),t=shuf(Bk.trous.slice()).slice(0,4);
+    if(new Set(q.concat(t).map(x=>x.lv)).size<7)continue;
+    return shuf(q.map(x=>x.f()).concat(t.map(x=>x.f())))}
+  throw new Error('build')}
+window.CE_FIN={bronze:()=>build(BRONZE),argent:()=>build(ARGENT),or:()=>build(OR),banks:{BRONZE,ARGENT,OR}};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'compas-elastique',title:'Le Compas élastique',levels:7,
+  levelNames:['Ouvrir le compas','L\'angle droit','L\'élastique','Al-Kashi : la longueur','Al-Kashi : l\'angle','Étirer, retourner','La diagonale'],
+  music:'aventure',finals:{bronze:()=>(window.CE_lastFinal=CE_FIN.bronze()),argent:()=>(window.CE_lastFinal=CE_FIN.argent()),or:()=>(window.CE_lastFinal=CE_FIN.or())}});
+CE.start();
+(function(){ /* espace insécable avant « : ; ! ? » et après « dans tout le texte affiché */
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|TEXTAREA|INPUT)$/.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>ms.forEach(m=>{m.addedNodes.forEach(fix);if(m.type==='characterData')fix(m.target)})).observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>
