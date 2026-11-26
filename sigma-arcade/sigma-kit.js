@@ -221,7 +221,7 @@
   var TIERS = [
     { id: 'bronze', name: 'Bronze', sub: 'Les bases', desc: 'Les automatismes indispensables : une étape, des nombres simples.', col: '#cd7f32', col2: '#8a4f1c' },
     { id: 'argent', name: 'Argent', sub: 'La maîtrise', desc: 'Toute la notion, avec les pièges classiques.', col: '#c9d2de', col2: '#7d8896' },
-    { id: 'or', name: 'Or', sub: 'L’expert', desc: 'Plusieurs étapes, des notions mélangées, des situations de Seconde.', col: '#e8c766', col2: '#a8862c' }
+    { id: 'or', name: 'Or', sub: 'L’expert', desc: 'Plusieurs étapes, des notions mélangées, des situations concrètes.', col: '#e8c766', col2: '#a8862c' }
   ];
   function tierOf(id) { for (var k = 0; k < TIERS.length; k++) if (TIERS[k].id === id) return TIERS[k]; return TIERS[1]; }
   function medal(id, earned) {

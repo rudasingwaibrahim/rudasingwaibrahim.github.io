@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tours de suite · Sigma Arcade</title>
+<meta name="description" content="Suites numériques en Terminale technologique : suites arithmétiques et géométriques, raison, moyennes, terme de rang n, notation Σ et sommes en Python, somme de termes consécutifs, versements réguliers, croissance linéaire et exponentielle. Chaque terme est une tour : on l'empile d'un pas constant (+r) ou on l'étire d'un facteur constant (×q).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours.
+   IDEA : chaque terme u_n est une tour de la ligne d'horizon. Suite arithmétique : la tour suivante reçoit
+          le même bloc doré (+r), les tours montent en escalier régulier. Suite géométrique : la tour suivante
+          est la précédente étirée du même facteur (×q), le morceau ajouté grandit à chaque fois.
+   PICTURE : tours de verre bleu nuit aux fenêtres allumées, blocs dorés des pas, arcs « +r » / « ×q » entre les tours.
+   COLOUR and TYPE : nuit « océan profond » ; tours bleues (objet), pas en or, retraits en corail hachuré ;
+          violet-bleu pour l'action ; Outfit.
+   LAYOUT : scène et légende à gauche (collées en haut sur téléphone), carnet de questions à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise)}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:76ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button,select{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,#scene:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .labb{border-color:rgba(200,168,75,.6)}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.32fr) minmax(330px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:linear-gradient(175deg,#0b1834 0%,#07101f 62%,#050b16 100%);user-select:none;-webkit-user-select:none}
+#scene{display:block;width:100%;height:auto;touch-action:pan-y}
+#scene.grab{cursor:ns-resize}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,22px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .35em}
+.capt .k{color:var(--gold2)}.capt .m{color:var(--mut);font-weight:600}.capt .c{color:#ff9b8f}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 4px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+pre.code{margin:8px 0;padding:10px 12px;border-radius:10px;background:rgba(0,0,10,.35);border:1px solid var(--soft);font:600 14px/1.5 var(--sg-mono);color:#dfe7ff;overflow-x:auto;white-space:pre}
+code{font:600 .92em var(--sg-mono);color:#dfe7ff}
+pre.code b{color:var(--gold2)}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.5;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(19px,2.1vw,23px)/2.3 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.2em;height:46px;margin:0 3px;padding:0 6px;font:700 21px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+/* réglette (hauteur d'une tour) */
+.dragc{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+.dragc .stp{min-width:54px;min-height:48px;padding:0 10px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:700 16px var(--sg-font);cursor:pointer;font-variant-numeric:tabular-nums}
+.dragc .stp:hover:not(:disabled){border-color:var(--ac)}
+.dragc output{min-width:5.2em;min-height:48px;display:inline-flex;align-items:center;justify-content:center;padding:0 12px;border-radius:12px;background:rgba(108,142,255,.12);border:1.5px solid rgba(108,142,255,.55);color:#dfe6ff;font:800 22px var(--sg-font);font-variant-numeric:tabular-nums}
+/* écritures mathématiques */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.sig{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:.95;margin:0 .1em 0 .05em}
+.sig>span{font-size:.58em;font-weight:600}
+.sig>b{font-size:1.25em;font-weight:500;line-height:1}
+sub,sup{font-size:.68em;line-height:0}
+.sk-q .fr,.sk-ch .fr{font-size:.92em}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex;flex:none}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+/* l'atelier */
+.labf{display:grid;gap:12px;margin:6px 0 14px}
+.labf .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.labf .row>span{min-width:8.5em;font-weight:600}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{min-height:48px;padding:0 14px;border:0;background:transparent;color:var(--ink);font:600 16px var(--sg-font);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--ac);color:var(--on)}
+.step{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:var(--solid)}
+.step button{width:48px;height:48px;font:600 22px var(--sg-font);border:0;background:transparent;color:var(--ink);cursor:pointer}
+.step button:hover{background:var(--sg-hover)}
+.step input{width:4.6em;height:48px;border:0;border-left:1px solid var(--soft);border-right:1px solid var(--soft);background:transparent;color:var(--ink);font:700 20px var(--sg-font);text-align:center;font-variant-numeric:tabular-nums}
+.cbox{margin:12px 0 0;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--soft)}
+.cbox h3{margin:0 0 6px;font-size:14px;color:var(--mut);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.cbox .val{font-weight:700;font-variant-numeric:tabular-nums;line-height:1.7}
+.t{font-family:var(--sg-font)}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .dragc{flex-wrap:nowrap;gap:6px}
+  .dragc .stp{min-width:46px;padding:0 4px;font-size:15px;flex:none}
+  .dragc output{flex:1 1 auto;min-width:0;padding:0 6px;font-size:18px;white-space:nowrap}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Tours de suite</h1>
+<p>Chaque terme d'une suite est une tour. Suite arithmétique&nbsp;: la tour suivante reçoit toujours le même bloc, +&nbsp;r. Suite géométrique&nbsp;: elle est étirée du même facteur, ×&nbsp;q, et le morceau ajouté grandit. Construis, compare… et regarde l'exponentielle dépasser la droite.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage">
+    <svg id="scene" viewBox="0 0 1000 430" role="img" aria-label="Les termes de la suite, dessinés comme des tours" tabindex="-1"></svg>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+</div>
+<section class="panel" id="panel">
+  <div id="game">
+    <div class="chap" id="chap"></div>
+    <h2 id="lvt"></h2>
+    <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+    <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+    <div class="prompt" id="prompt"></div>
+    <div id="work"></div>
+    <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+    <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+      <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+  </div>
+  <div id="labv" hidden>
+    <div class="chap">Atelier libre</div>
+    <h2>L'atelier</h2>
+    <p class="prompt">Choisis la nature de la suite, son premier terme et sa raison&nbsp;: les tours se construisent l'une après l'autre. Compare l'escalier régulier (+&nbsp;r) et l'étirement (×&nbsp;q).</p>
+    <div class="labf">
+      <div class="row"><span>Nature</span><div class="seg" id="lkind"><button type="button" data-k="a" aria-pressed="true">Arithmétique</button><button type="button" data-k="g" aria-pressed="false">Géométrique</button></div></div>
+      <div class="row"><span>u<sub>0</sub></span><div class="step"><button type="button" data-k="u" data-d="-1" aria-label="Diminuer u0">−</button><input id="lu0" inputmode="decimal" aria-label="Premier terme u0" value="10"><button type="button" data-k="u" data-d="1" aria-label="Augmenter u0">+</button></div></div>
+      <div class="row"><span id="lrl">Raison r</span><div class="step"><button type="button" data-k="r" data-d="-1" aria-label="Diminuer la raison">−</button><input id="lr" inputmode="decimal" aria-label="Raison" value="5"><button type="button" data-k="r" data-d="1" aria-label="Augmenter la raison">+</button></div></div>
+    </div>
+    <div class="btns"><button class="btn or" id="lgo" type="button">▶ Construire 8 tours</button></div>
+    <p class="hint" id="lwarn" aria-live="polite"></p>
+    <div class="cbox"><h3>Terme général</h3><div class="val" id="lf">—</div></div>
+    <div class="cbox"><h3>Type de croissance</h3><div class="val" id="lvar">—</div></div>
+    <div class="cbox"><h3>Somme des 8 premiers termes</h3><div class="val" id="lsum">—</div></div>
+  </div>
+</section>
+</main>
+
+<script>
+/* ======================= TOURS DE SUITE — nombres exacts (fractions en BigInt) et écritures ======================= */
+(function(){
+'use strict';
+const ab=x=>x<0n?-x:x;
+const gcd=(a,b)=>{a=ab(a);b=ab(b);while(b){const t=a%b;a=b;b=t}return a||1n};
+class Q{
+  constructor(n,d){n=BigInt(n);d=d===undefined?1n:BigInt(d);if(d<0n){n=-n;d=-d}const g=gcd(n,d);this.n=n/g;this.d=d/g}
+  static of(x){if(x instanceof Q)return x;if(typeof x==='bigint')return new Q(x,1n);if(typeof x==='number'){if(Number.isInteger(x))return new Q(BigInt(x),1n);return Q.parse(String(x))}return Q.parse(x)}
+  static parse(s){s=String(s).trim().replace(/[\s  ]/g,'').replace(/[−–—]/g,'-').replace(',','.').replace(/^\+/,'');
+    const m=/^(-?)(\d+)(?:\.(\d+))?$/.exec(s);if(!m)return null;const f=m[3]||'',den=10n**BigInt(f.length);
+    return new Q((m[1]?-1n:1n)*(BigInt(m[2])*den+(f?BigInt(f):0n)),den)}
+  add(o){o=Q.of(o);return new Q(this.n*o.d+o.n*this.d,this.d*o.d)}
+  sub(o){o=Q.of(o);return new Q(this.n*o.d-o.n*this.d,this.d*o.d)}
+  mul(o){o=Q.of(o);return new Q(this.n*o.n,this.d*o.d)}
+  div(o){o=Q.of(o);return new Q(this.n*o.d,this.d*o.n)}
+  pow(k){let r=new Q(1n);for(let i=0;i<k;i++)r=r.mul(this);return r}
+  eq(o){o=Q.of(o);return o!==null&&this.n===o.n&&this.d===o.d}
+  cmp(o){o=Q.of(o);const a=this.n*o.d,b=o.n*this.d;return a<b?-1:a>b?1:0}
+  neg(){return new Q(-this.n,this.d)}
+  abs(){return new Q(ab(this.n),this.d)}
+  get v(){return Number(this.n)/Number(this.d)}
+  isInt(){return this.d===1n}
+  exact(){let d=this.d;while(d%2n===0n)d/=2n;while(d%5n===0n)d/=5n;return d===1n}
+  /* arrondi à dec décimales, au plus proche (moitié : vers l'extérieur) */
+  round(dec){const m=10n**BigInt(dec),s=this.n<0n?-1n:1n,a=ab(this.n)*m,q=a/this.d,r=a-q*this.d;return new Q(s*(2n*r>=this.d?q+1n:q),m)}
+  dec(){if(!this.exact())return null;let k=0;while(!this.mul(10n**BigInt(k)).isInt())k++;const i=this.mul(10n**BigInt(k)).n,s=i<0n?'-':'',a=String(ab(i)).padStart(k+1,'0');
+    return s+(k?a.slice(0,a.length-k)+'.'+a.slice(a.length-k):a)}
+}
+const NB=' ',NN=' ',MINUS='−';
+/* écriture française : virgule, espace fine des milliers (comme le cours : 3 000), signe − */
+function fr(x,dec){x=Q.of(x);let s=dec===undefined?x.dec():x.round(dec).dec();if(s===null)s=x.round(6).dec();
+  if(dec!==undefined&&dec>0){let [i,f]=s.split('.');f=(f||'').padEnd(dec,'0');s=i+'.'+f}
+  let neg=s[0]==='-';if(neg)s=s.slice(1);let [ip,fp]=s.split('.');if(ip.length>=4)ip=ip.replace(/\B(?=(\d{3})+(?!\d))/g,NN);
+  return (neg?MINUS:'')+ip+(fp?','+fp:'')}
+/* toutes les écritures acceptées d'un nombre décimal (trous du kit) ; la forme française en tête */
+function writes(x,opts){opts=opts||{};x=Q.of(x);const s0=x.dec();const base=[s0];const [ip,fp]=s0.split('.');
+  if(opts.dec){if(fp===undefined)base.push(ip+'.'+'0'.repeat(opts.dec));else if(fp.length<opts.dec)base.push(ip+'.'+fp.padEnd(opts.dec,'0'))}
+  const out=[];const add=v=>{if(!out.includes(v))out.push(v)};
+  for(const b of base){const neg=b[0]==='-',a=neg?b.slice(1):b;
+    for(const f of [a.replace('.',','),a]){if(neg){add(MINUS+f);add('-'+f)}else{add(f);if(opts.plus)add('+'+f)}}}
+  return out}
+const frac=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const U=(i,l)=>`${l||'u'}<sub>${i}</sub>`;
+const SIG=(lo,hi,body)=>`<span class="sig"><span>${hi}</span><b>Σ</b><span>${lo}</span></span>${body}`;
+/* raison signée dans une écriture : « 7 − 4n », « 3 + 5n » */
+function lin(a,b,v){v=v||'n';a=Q.of(a);b=Q.of(b);const bs=b.abs().eq(1)?'':fr(b.abs());
+  if(a.n===0n)return (b.n<0n?MINUS:'')+bs+v;return fr(a)+(b.n<0n?' '+MINUS+' ':' + ')+bs+v}
+window.TQ={Q,fr,writes,frac,U,SIG,lin,NB,NN,MINUS};
+})();
+</script>
+
+<script>
+/* ======================= TOURS DE SUITE — la scène (la ligne d'horizon des termes) ======================= */
+(function(){
+'use strict';
+const {Q,fr,NB}=window.TQ;
+const $=id=>document.getElementById(id);
+const svg=$('scene');
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let L=null,st=null,onDrag=null,drag=null;
+function layout(){const w=svg.getBoundingClientRect().width||1000,ph=w<620;
+  L=ph?{ph,W:600,H:470,X0:64,X1:588,yT:104,yB:400,fs:22,fsS:20,fsL:36,fsT:21,yHead:46,ic:1.15}
+      :{ph,W:1000,H:430,X0:84,X1:976,yT:98,yB:368,fs:20,fsS:17,fsL:40,fsT:19,yHead:48,ic:1.15};
+  svg.setAttribute('viewBox',`0 0 ${L.W} ${L.H}`)}
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const Y=v=>L.yB-((v-(st.vmin||0))/(st.vmax-(st.vmin||0)))*(L.yB-L.yT);
+const VY=y=>(st.vmin||0)+(L.yB-y)/(L.yB-L.yT)*(st.vmax-(st.vmin||0));
+function N(){return Math.max(1,...st.series.map(s=>s.u.length))}
+function sw(){return (L.X1-L.X0)/N()}
+function CX(i){return L.X0+sw()*(i+.5)}
+function TW(){const twin=st.series.length>1;return twin?Math.min(sw()*.36,44):Math.min(sw()*.58,86)}
+function SX(si,i){const twin=st.series.length>1;if(!twin)return CX(i);return CX(i)+(si===0?-1:1)*TW()*.56}
+/* indice écrit en petit sous la ligne de base */
+const sub=(l,n,fs)=>`${l}<tspan font-size="${Math.round(fs*.72)}" dy="${Math.round(fs*.28)}">${n}</tspan>`;
+
+const ICON={
+  run:'<circle cx="14" cy="4" r="2.4" fill="currentColor"/><path d="M8 21 L11 14 L15 16 L17 21 M11 14 L12 9 L17 11 L20 9 M12 9 L7 10 L5 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  coin:'<ellipse cx="11" cy="7" rx="8" ry="3.4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 7 V15 C3 17 7 18.5 11 18.5 C15 18.5 19 17 19 15 V7 M3 11 C3 13 7 14.5 11 14.5 C15 14.5 19 13 19 11" fill="none" stroke="currentColor" stroke-width="2"/>',
+  user:'<circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 20 C3 14 15 14 16 20" fill="none" stroke="currentColor" stroke-width="2"/><path d="M18 6 V12 M15 9 H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  boat:'<path d="M2 14 H20 L17 19 H5 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 14 V9 H15 L17 14 M9 9 V5 H12 V9" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  box:'<path d="M3 7 L11 3 L19 7 V16 L11 20 L3 16 Z M3 7 L11 11 L19 7 M11 11 V20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  play:'<rect x="2" y="4" width="18" height="14" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 8 L15 11 L9 14 Z" fill="currentColor"/>',
+  chart:'<path d="M3 19 H20 M5 15 L9 11 L12 13 L19 5 M15 5 H19 V9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  drop:'<path d="M11 2 C15 8 18 11 18 14.5 A7 7 0 0 1 4 14.5 C4 11 7 8 11 2 Z" fill="none" stroke="currentColor" stroke-width="2"/>',
+  phone:'<rect x="6" y="2" width="11" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 18 H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  city:'<path d="M2 20 H20 M4 20 V9 H9 V20 M9 20 V4 H15 V20 M15 20 V12 H19 V20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  sigma:'<path d="M17 4 H5 L11 11 L5 18 H17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
+  msg:'<path d="M3 4 H19 V15 H9 L5 19 V15 H3 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>'
+};
+
+/* état de la scène
+   series : [{kind:'a'|'g'|'plain', col:'a'|'b', u:[nombres], lab:[textes], vis:[0 caché | 1 visible | 2 inconnu « ? »], n0, name}]
+   dv : {"s:i": hauteur affichée pendant une animation}   ops : [{s,i,txt,col}] arcs entre la tour i−1 et la tour i
+   hi : indices surlignés ; line : relier les sommets ; gauss : {p,n,t} ; acc : {p,k} ; thr : {v,lab} ; cross : indice ; drag */
+function fresh(o){return Object.assign({vmax:10,ctx:null,title:'',led:'',series:[],dv:{},ops:[],hi:[],line:false,gauss:null,acc:null,thr:null,cross:null,cur:null,glow:0,every:0,vals:true},o||{})}
+function set(o){Object.assign(st,o);render()}
+function reset(o){st=fresh(o);render()}
+
+function niceStep(m){const raw=m/5,p=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/p;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p}
+function grid(){let h='';const m0=st.vmin||0,s=st.gstep||niceStep(st.vmax-m0);
+  for(let v=m0;v<=st.vmax+1e-9;v+=s){const y=Y(v);
+    h+=`<line x1="${L.X0-6}" y1="${y.toFixed(1)}" x2="${L.X1}" y2="${y.toFixed(1)}" stroke="rgba(120,160,255,${v===m0?.32:.07})" stroke-width="${v===m0?1.6:1}"/>`;
+    h+=`<text class="t" x="${L.X0-12}" y="${(y+L.fsS*.35).toFixed(1)}" text-anchor="end" font-size="${L.fsS}" font-weight="500" fill="rgba(190,205,255,.62)">${fr(Q.of(+v.toFixed(6)))}</text>`}
+  if(m0>0)h+=`<path d="M${L.X0-14} ${L.yB+4} l6 -6 l6 6 l6 -6" fill="none" stroke="rgba(190,205,255,.7)" stroke-width="1.6"/>`;
+  return h}
+/* une tour : verre bleu nuit, fenêtres allumées */
+function body(x,w,y0,y1,col,dim){if(y1-y0<.5)return '';const g=col==='b'?'url(#gB)':'url(#gA)';
+  return `<rect x="${(x-w/2).toFixed(1)}" y="${y0.toFixed(1)}" width="${w.toFixed(1)}" height="${(y1-y0).toFixed(1)}" fill="${g}" opacity="${dim?0.55:1}"/>`+
+    `<rect x="${(x-w/2).toFixed(1)}" y="${y0.toFixed(1)}" width="${w.toFixed(1)}" height="${(y1-y0).toFixed(1)}" fill="url(#wins)" opacity="${dim?0.25:0.55}"/>`}
+function block(x,w,y0,y1,k,hatch){if(Math.abs(y1-y0)<.5)return '';const a=Math.min(y0,y1),hgt=Math.abs(y1-y0);
+  return hatch?`<rect x="${(x-w/2).toFixed(1)}" y="${a.toFixed(1)}" width="${w.toFixed(1)}" height="${hgt.toFixed(1)}" fill="url(#hatch)" stroke="rgba(255,140,120,.75)" stroke-width="1.2" stroke-dasharray="4 3"/>`
+    :`<rect x="${(x-w/2).toFixed(1)}" y="${a.toFixed(1)}" width="${w.toFixed(1)}" height="${hgt.toFixed(1)}" fill="${k%2?'url(#gS2)':'url(#gS)'}"/>`}
+function valOf(si,i){const k=si+':'+i;return k in st.dv?st.dv[k]:st.series[si].u[i]}
+function tower(S,si,i){
+  const vis=S.vis[i];if(!vis)return '';const x=SX(si,i),w=TW(),y0=L.yB;let h='';
+  const v=valOf(si,i),anim=(si+':'+i) in st.dv,isHi=st.hi.includes(i)&&si===0||(st.acc&&i>=st.acc.p&&i<=st.acc.k);
+  if(vis===2){/* tour inconnue : contour pointillé et « ? » */
+    const yy=Y(S.u[i]);h+=`<rect x="${(x-w/2).toFixed(1)}" y="${(y0-34).toFixed(1)}" width="${w.toFixed(1)}" height="34" rx="4" fill="rgba(108,142,255,.06)" stroke="rgba(160,185,255,.55)" stroke-dasharray="5 4"/>`;
+    h+=`<text class="t" x="${x.toFixed(1)}" y="${(y0-10).toFixed(1)}" text-anchor="middle" font-size="${L.fs+2}" font-weight="800" fill="#c9d6ff">?</text>`;return h}
+  if(isHi)h+=`<rect x="${(x-w/2-7).toFixed(1)}" y="${(Y(v)-7).toFixed(1)}" width="${(w+14).toFixed(1)}" height="${(y0-Y(v)+7).toFixed(1)}" rx="8" fill="rgba(232,199,102,.14)" stroke="rgba(232,199,102,.65)" stroke-width="1.5"/>`;
+  const u=S.u;
+  if(S.kind==='a'&&i>0){const r=u[1]-u[0];
+    if(r>=0){/* socle u0 puis i blocs de r */
+      h+=body(x,w,Y(u[0]),y0,S.col);
+      for(let k=0;k<i;k++){const a=u[0]+k*r,b=Math.min(v,a+r);if(b<=a)break;h+=block(x,w,Y(b),Y(a),k)}
+    }else{/* tour réduite : la hauteur de départ reste en pointillé, les blocs retirés sont hachurés */
+      h+=body(x,w,Y(v),y0,S.col);
+      h+=block(x,w,Y(u[0]),Y(v),0,true);
+      for(let k=1;k<i;k++){const yy=Y(u[0]+k*r);if(yy>Y(v)-.5)break;h+=`<line x1="${(x-w/2).toFixed(1)}" y1="${yy.toFixed(1)}" x2="${(x+w/2).toFixed(1)}" y2="${yy.toFixed(1)}" stroke="rgba(255,140,120,.85)" stroke-width="1.5"/>`}}
+  }else if(S.kind==='g'&&i>0){const p=u[i-1];
+    if(v>=p){h+=body(x,w,Y(p),y0,S.col);h+=block(x,w,Y(v),Y(p),0)}
+    else{h+=body(x,w,Y(v),y0,S.col);h+=block(x,w,Y(p),Y(v),0,true)}
+  }else h+=body(x,w,Y(v),y0,S.col);
+  /* toit lumineux */
+  h+=`<line x1="${(x-w/2).toFixed(1)}" y1="${Y(v).toFixed(1)}" x2="${(x+w/2).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="${S.col==='b'?'#ffe2a0':'#cfe0ff'}" stroke-width="2.4" stroke-linecap="round"/>`;
+  /* valeur au-dessus */
+  const showV=st.vals&&(!anim)&&S.lab&&S.lab[i]&&(sw()>=(L.ph?62:58)||isHi||i===S.u.length-1||(st.every&&((S.n0+i)%st.every===0)))&&st.series.length===1;
+  const lw=String(S.lab[i]||'').length*L.fsS*.56,lxv=Math.max(lw/2+2,Math.min(x,L.W-lw/2-4));
+  if(showV)h+=`<text class="t" x="${lxv.toFixed(1)}" y="${(Y(v)-9).toFixed(1)}" text-anchor="middle" font-size="${L.fsS}" font-weight="700" fill="${isHi?'#ffe39a':'#e6ecff'}" style="font-variant-numeric:tabular-nums">${esc(S.lab[i])}</text>`;
+  return h}
+function labels(){let h='';const S=st.series[0];if(!S)return '';const n=N(),step=st.every||(sw()<34?5:sw()<48?2:1);
+  for(let i=0;i<n;i++){const rank=S.n0+i;if(rank%step!==0&&i!==n-1&&!st.hi.includes(i))continue;
+    const hi=st.hi.includes(i)||(st.acc&&i>=st.acc.p&&i<=st.acc.k)||(st.gauss&&i>=st.gauss.p&&i<=st.gauss.n);
+    h+=`<text class="t" x="${CX(i).toFixed(1)}" y="${(L.yB+L.fs+6).toFixed(1)}" text-anchor="middle" font-size="${L.fs}" font-weight="${hi?800:600}" fill="${hi?'#ffe39a':'rgba(205,218,255,.85)'}" font-style="italic">${st.series.length>1?rank:st.ix==='#'?rank:st.ix?st.ix+' = '+rank:sub('u',rank,L.fs)}</text>`}
+  if(st.series.length>1)h+=`<text class="t" x="${L.X1}" y="${(L.yB+L.fs+6).toFixed(1)}" text-anchor="end" font-size="${L.fsS}" fill="rgba(190,205,255,.6)" dx="0" dy="${L.fs}">n</text>`;
+  return h}
+function arcs(){let h='';
+  for(const o of st.ops){const S=st.series[o.s||0];if(!S||!o.txt||!S.vis[o.i]||!S.vis[o.i-1])continue;
+    const x1=SX(o.s||0,o.i-1),x2=SX(o.s||0,o.i),a=Y(valOf(o.s||0,o.i-1)),b=Y(valOf(o.s||0,o.i));
+    const lift=st.vals&&st.series.length===1?L.fsS+10:5,top=Math.min(a,b)-lift-(L.ph?26:22),mx=(x1+x2)/2,col=o.col||'#e8c766';
+    if(!o.force&&sw()<(L.ph?58:66)&&o.i!==S.u.length-1&&!(st.hi||[]).includes(o.i))continue;
+    h+=`<path d="M${(x1+TW()*.2).toFixed(1)} ${(a-lift).toFixed(1)} Q${mx.toFixed(1)} ${(top-12).toFixed(1)} ${(x2-TW()*.2).toFixed(1)} ${(b-lift).toFixed(1)}" fill="none" stroke="${col}" stroke-width="2" stroke-dasharray="${o.dash?'5 4':'0'}" marker-end="url(#arr)" opacity=".9"/>`;
+    const tw=Math.max(40,o.txt.length*(L.fsS*.56)+16),th=L.fsS+10;
+    h+=`<rect x="${(mx-tw/2).toFixed(1)}" y="${(top-th/2-6).toFixed(1)}" width="${tw.toFixed(1)}" height="${th}" rx="${th/2}" fill="#1a2236" stroke="${col}" stroke-width="1.4"/>`;
+    h+=`<text class="t" x="${mx.toFixed(1)}" y="${(top-6+L.fsS*.36).toFixed(1)}" text-anchor="middle" font-size="${L.fsS}" font-weight="800" fill="${col}" style="font-variant-numeric:tabular-nums">${esc(o.txt)}</text>`}
+  return h}
+function render(){
+  if(!L)layout();const W=L.W,H=L.H;let h='';
+  h+=`<defs><linearGradient id="gA" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2a4bb0"/><stop offset=".55" stop-color="#3c63d6"/><stop offset="1" stop-color="#22398a"/></linearGradient>
+  <linearGradient id="gB" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#a5741f"/><stop offset=".55" stop-color="#d8a443"/><stop offset="1" stop-color="#8f6119"/></linearGradient>
+  <linearGradient id="gS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe39a"/><stop offset="1" stop-color="#d9a640"/></linearGradient>
+  <linearGradient id="gS2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3cf6a"/><stop offset="1" stop-color="#c08d2c"/></linearGradient>
+  <pattern id="wins" width="12" height="14" patternUnits="userSpaceOnUse"><rect x="3" y="4" width="4" height="5" rx="1" fill="#ffe7a8" opacity=".55"/></pattern>
+  <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="rgba(255,120,100,.08)"/><line x1="0" y1="0" x2="0" y2="10" stroke="rgba(255,140,120,.55)" stroke-width="3"/></pattern>
+  <marker id="arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 Z" fill="#e8c766"/></marker>
+  <radialGradient id="moon" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#dfe7ff" stop-opacity=".22"/><stop offset="1" stop-color="#dfe7ff" stop-opacity="0"/></radialGradient></defs>`;
+  /* ciel : étoiles discrètes */
+  h+=`<circle cx="${W-90}" cy="70" r="60" fill="url(#moon)"/>`;
+  for(const [x,y,r] of [[.12,.07,1],[.33,.05,.8],[.52,.11,1.1],[.71,.06,.8],[.9,.13,1],[.44,.2,.7],[.62,.18,.6],[.22,.16,.7]])h+=`<circle cx="${(x*W).toFixed(0)}" cy="${(y*H+40).toFixed(0)}" r="${r}" fill="#dfe7ff" opacity=".45"/>`;
+  h+=grid();
+  /* seuil */
+  if(st.thr){const y=Y(st.thr.v);h+=`<line x1="${L.X0}" y1="${y.toFixed(1)}" x2="${L.X1}" y2="${y.toFixed(1)}" stroke="#ff8f80" stroke-width="2" stroke-dasharray="8 5"/>`+
+    `<text class="t" x="${L.X1}" y="${(y-8).toFixed(1)}" text-anchor="end" font-size="${L.fsS}" font-weight="700" fill="#ffb3a8">${esc(st.thr.lab)}</text>`}
+  /* croisement */
+  if(st.cross!==null&&st.cross!==undefined){const x=CX(st.cross),w=sw();h+=`<rect x="${(x-w/2).toFixed(1)}" y="${L.yT-20}" width="${w.toFixed(1)}" height="${L.yB-L.yT+20}" fill="rgba(232,199,102,.10)" stroke="rgba(232,199,102,.55)" stroke-dasharray="4 4"/>`}
+  /* Gauss : la suite recopiée à l'envers et posée sur chaque tour */
+  st.series.forEach((S,si)=>{for(let i=0;i<S.u.length;i++)h+=tower(S,si,i)});
+  if(st.gauss){const g=st.gauss,S=st.series[0],w=TW(),t=g.t,lift=(1-t)*60;
+    for(let k=g.p;k<=g.n;k++){const c=S.u[g.p+g.n-k],x=CX(k),a=Y(S.u[k])-lift,b=Y(S.u[k]+c)-lift;
+      h+=`<rect x="${(x-w/2).toFixed(1)}" y="${b.toFixed(1)}" width="${w.toFixed(1)}" height="${(a-b).toFixed(1)}" fill="rgba(232,199,102,.2)" stroke="#e8c766" stroke-width="1.6" stroke-dasharray="5 3" opacity="${Math.min(1,t*1.4).toFixed(2)}"/>`;
+      const yo=Y(S.u[k]);if(t>.98&&w>26&&L.yB-yo>L.fsS+6)h+=`<text class="t" x="${x.toFixed(1)}" y="${((yo+L.yB)/2+L.fsS*.35).toFixed(1)}" text-anchor="middle" font-size="${Math.min(L.fsS,w*.42)}" font-weight="700" fill="#f0f4ff" style="font-variant-numeric:tabular-nums;paint-order:stroke" stroke="rgba(10,20,50,.7)" stroke-width="3">${esc(S.lab[k])}</text>`;
+      if(t>.98&&w>26)h+=`<text class="t" x="${x.toFixed(1)}" y="${((a+b)/2+L.fsS*.35).toFixed(1)}" text-anchor="middle" font-size="${Math.min(L.fsS,w*.42)}" font-weight="700" fill="#ffe39a" style="font-variant-numeric:tabular-nums">${esc(S.lab[g.p+g.n-k])}</text>`}
+    if(t>.98){const y=Y(S.u[g.p]+S.u[g.n]);h+=`<line x1="${(CX(g.p)-sw()/2).toFixed(1)}" y1="${y.toFixed(1)}" x2="${(CX(g.n)+sw()/2).toFixed(1)}" y2="${y.toFixed(1)}" stroke="#ffe39a" stroke-width="2.5"/>`+
+      `<text class="t" x="${(CX(g.p)-sw()/2).toFixed(1)}" y="${(y-10).toFixed(1)}" font-size="${L.fsS}" font-weight="800" fill="#ffe39a">${esc(g.lab||'')}</text>`}}
+  /* sommets reliés */
+  if(st.line){st.series.forEach((S,si)=>{const pts=[];for(let i=0;i<S.u.length;i++)if(S.vis[i]===1)pts.push(`${SX(si,i).toFixed(1)},${Y(valOf(si,i)).toFixed(1)}`);
+    if(pts.length>1)h+=`<polyline points="${pts.join(' ')}" fill="none" stroke="${st.series.length>1&&!si?'#9fb4ff':si?'#ffd27a':'#e8c766'}" stroke-width="3" stroke-linejoin="round" stroke-dasharray="${st.line==='dash'?'7 5':'0'}" opacity=".95"/>`+pts.map(p=>`<circle cx="${p.split(',')[0]}" cy="${p.split(',')[1]}" r="${st.series.length>1?3.5:5}" fill="${st.series.length>1&&!si?'#dfe7ff':'#fff3cf'}" stroke="${st.series.length>1&&!si?'#6c8eff':'#c8a84b'}" stroke-width="2"/>`).join('')})}
+  h+=arcs();
+  h+=labels();
+  /* poignée de la tour à régler */
+  if(st.cur){const c=st.cur,x=SX(0,c.i),y=Y(valOf(0,c.i)),w=TW();
+    if(c.guide!==undefined){const gy=Y(c.guide);h+=`<line x1="${(SX(0,c.i-1)-w/2).toFixed(1)}" y1="${gy.toFixed(1)}" x2="${(x+w/2+8).toFixed(1)}" y2="${gy.toFixed(1)}" stroke="rgba(207,224,255,.7)" stroke-width="1.6" stroke-dasharray="6 4"/>`}
+    h+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${L.ph?22:18}" fill="rgba(108,142,255,.25)"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${L.ph?15:12}" fill="#6c8eff" stroke="#e6ecff" stroke-width="2.5"/>`+
+      `<path d="M${x.toFixed(1)} ${(y-6).toFixed(1)} l-4 4 h8 z M${x.toFixed(1)} ${(y+6).toFixed(1)} l-4 -4 h8 z" fill="#071022"/>`;
+    if(c.lab){const lx=Math.min(L.X1-70,x+w/2+12),txt=c.lab;h+=`<text class="t" x="${lx.toFixed(1)}" y="${(y+6).toFixed(1)}" font-size="${L.fsS+1}" font-weight="800" fill="#ffe39a" style="font-variant-numeric:tabular-nums">${esc(txt)}</text>`}}
+  /* en-tête : contexte + afficheur */
+  if(st.ctx){const ic=ICON[st.ctx.icon]||ICON.sigma,bx=Math.round(22*L.ic+16);
+    h+=`<g transform="translate(${L.X0-50} ${L.yHead-bx+8})" color="#aebfff"><rect width="${bx}" height="${bx}" rx="11" fill="rgba(108,142,255,.12)" stroke="rgba(120,160,255,.3)"/><g transform="translate(${(bx-22*L.ic)/2} ${(bx-22*L.ic)/2}) scale(${L.ic})">${ic}</g></g>`;
+    h+=`<text class="t" id="scT" x="${L.X0-50+bx+12}" y="${L.yHead}" font-size="${L.fsT}" font-weight="700" fill="#dfe7ff">${esc(st.title||st.ctx.lab||'')}</text>`;
+    if(st.sub)h+=`<text class="t" x="${L.X0-50+bx+12}" y="${L.yHead+L.fsT+4}" font-size="${L.fsS}" font-weight="500" fill="rgba(190,205,255,.7)">${esc(st.sub)}</text>`}
+  if(st.led)h+=`<text class="t" id="scL" x="${L.X1}" y="${L.yHead+8}" text-anchor="end" font-size="${L.fsL}" font-weight="800" fill="#ffd28a" style="font-variant-numeric:tabular-nums" opacity="${(.75+.25*st.glow).toFixed(2)}">${esc(st.led)}</text>`;
+  if(st.legend){let lx=L.X0;st.legend.forEach((g,k)=>{h+=`<rect x="${lx}" y="${L.yT-38}" width="16" height="16" rx="3" fill="${k?'url(#gB)':'url(#gA)'}"/><text class="t" x="${lx+22}" y="${L.yT-25}" font-size="${L.fsS}" font-weight="700" fill="${k?'#ffd27a':'#bccfff'}">${esc(g)}</text>`;lx+=g.length*L.fsS*.5+52})}
+  svg.innerHTML=h;fitHead()}
+/* titre et afficheur se partagent la largeur : on réduit le titre, puis on le masque si besoin */
+function fitHead(){const t=svg.querySelector('#scT'),l=svg.querySelector('#scL');if(!t||!l)return;
+  let fs=L.fsT;for(let k=0;k<6;k++){const a=t.getBBox(),b=l.getBBox();if(a.x+a.width<=b.x-10)return;fs-=2;t.setAttribute('font-size',fs)}
+  const a=t.getBBox(),b=l.getBBox();if(a.x+a.width>b.x-10)t.setAttribute('display','none')}
+
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?1:ms));
+function anim(ms,fn){return new Promise(res=>{if(reduceM)ms=1;const t0=performance.now();
+  function f(now){const t=Math.min(1,(now-t0)/ms);fn(ease(t),t);render();if(t<1)requestAnimationFrame(f);else res()}requestAnimationFrame(f)})}
+/* faire pousser la tour i (de la hauteur de la précédente jusqu'à sa valeur) */
+async function grow(si,i,o){o=o||{};const S=st.series[si],from=i>0&&S.vis[i-1]===1?S.u[i-1]:0,to=S.u[i],k=si+':'+i;
+  S.vis[i]=1;st.dv[k]=from;if(o.op)st.ops.push(Object.assign({s:si,i},o.op));if(o.led)st.led=o.led;
+  await anim(o.ms||650,e=>{st.dv[k]=from+(to-from)*e});delete st.dv[k];render()}
+function glow(){return anim(650,(e,t)=>{st.glow=Math.sin(Math.PI*t)})}
+
+/* réglage de la hauteur d'une tour : glisser la poignée, flèches du clavier */
+function pt(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const m=svg.getScreenCTM();return m?p.matrixTransform(m.inverse()):{x:0,y:0}}
+function kOf(y){const c=st.cur;return Math.max(c.min,Math.min(c.max,Math.round(VY(y)/c.step)))}
+svg.addEventListener('pointerdown',e=>{if(!st.cur)return;const p=pt(e),c=st.cur,x=SX(0,c.i);
+  if(Math.abs(p.x-x)>Math.max(TW(),60)||p.y<L.yT-50||p.y>L.yB+10)return;
+  drag={id:e.pointerId};svg.setPointerCapture(e.pointerId);e.preventDefault();if(onDrag)onDrag(kOf(p.y))});
+svg.addEventListener('pointermove',e=>{if(!drag||!st.cur)return;e.preventDefault();if(onDrag)onDrag(kOf(pt(e).y))});
+const end=e=>{if(drag){drag=null;try{svg.releasePointerCapture(e.pointerId)}catch(_){}}};
+svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',end);
+svg.addEventListener('keydown',e=>{if(!st.cur)return;const m={ArrowUp:1,ArrowRight:1,ArrowDown:-1,ArrowLeft:-1,PageUp:10,PageDown:-10}[e.key];if(!m)return;e.preventDefault();st.cur.key(m)});
+function cursor(c,cb){st.cur=c;onDrag=cb;svg.tabIndex=c?0:-1;svg.classList.toggle('grab',!!c);render()}
+addEventListener('resize',()=>{const o=L&&L.ph;layout();if(st&&L.ph!==o)render()});
+layout();st=fresh();
+window.TS={get st(){return st},get L(){return L},reset,set,render,anim,grow,glow,sleep,cursor,reduceM,Y,CX,SX,VY};
+})();
+</script>
+
+<script>
+/* ======================= TOURS DE SUITE — le jeu ======================= */
+(function(){
+'use strict';
+const S=window.TS,{Q,fr,writes,frac,U,SIG,lin,NB,NN,MINUS}=window.TQ;
+const $=id=>document.getElementById(id);
+const cap=h=>{$('capt').innerHTML='<span>'+(h||'&nbsp;')+'</span>'};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const sleep=S.sleep;
+const q=x=>Q.of(x);
+
+/* ---------- bruitages ---------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),gn=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(v,t+.015);gn.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(gn);gn.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+let lastTick=0;
+const SND={pop(){if(snd){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)}},
+  tick(){if(!snd)return;const n=performance.now();if(n-lastTick<45)return;lastTick=n;tone(1400,.03,.015,'square')},
+  soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  brick(k){if(snd)tone(440*Math.pow(2,(k%8)/12),.16,.04,'triangle')},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))}};
+
+/* ---------- contextes (aucune marque) ---------- */
+const C={
+  run:{icon:'run',lab:'Distance courue',u:'m'},
+  save:{icon:'coin',lab:'Tirelire',u:'€',money:true},
+  subs:{icon:'user',lab:'Abonnés de la chaîne',u:'abonnés'},
+  barge:{icon:'boat',lab:'Carte de barge',u:'trajets'},
+  water:{icon:'drop',lab:'Packs d\'eau en réserve',u:'packs'},
+  views:{icon:'play',lab:'Vues de la vidéo',u:'vues'},
+  msg:{icon:'msg',lab:'Message transféré',u:'personnes'},
+  drug:{icon:'drop',lab:'Médicament dans le sang',u:'mg'},
+  phone:{icon:'phone',lab:'Smartphone d\'occasion',u:'€',money:true},
+  cap:{icon:'chart',lab:'Placement',u:'€',money:true},
+  city:{icon:'city',lab:'Population',u:'habitants'},
+  abs:{icon:'sigma',lab:'La suite (uₙ)',u:''}
+};
+/* valeur avec unité ; montants : au centime */
+function V(x,c){x=q(x);c=c||C.abs;let s;if(c.money)s=x.isInt()?fr(x):fr(x,2);else s=x.exact()?fr(x):fr(x,2);return c.u?s+NB+c.u:s}
+function Vt(x,c){x=q(x);const ex=c&&c.money?x.mul(100).isInt():x.exact();return (ex?'':'≈ ')+V(x,c)}   /* dans le texte : ≈ si arrondi */
+const sg=x=>{x=q(x);return (x.n<0n?MINUS:'+')+fr(x.abs())};
+const D=x=>{x=q(x);return x.exact()?fr(x):frac(fr(x.n),fr(x.d))};
+const sup=(b,e)=>`${b}<sup>${e}</sup>`;
+const AR=(u0,r,n)=>Array.from({length:n},(_,i)=>q(u0).add(q(r).mul(i)));
+const GE=(u0,k,n)=>Array.from({length:n},(_,i)=>q(u0).mul(q(k).pow(i)));
+function niceMax(m){const p=Math.pow(10,Math.floor(Math.log10(m))),f=m/p;for(const s of [1,1.2,1.5,2,2.5,3,4,5,6,8,10])if(f<=s+1e-9)return s*p;return 10*p}
+/* une série de tours */
+function ser(kind,vals,c,o){o=Object.assign({},o||{});const vf=o.vis;delete o.vis;const n=vals.length;return Object.assign({kind,col:'a',u:vals.map(x=>x.v),lab:vals.map(x=>V(x,c)),vis:Array.from({length:n},(_,i)=>vf?vf(i):1),n0:0},o)}
+function scene(c,title,series,o){const top=Math.max(...series.flatMap(s=>s.u));return Object.assign({ctx:c,title,series,vmax:niceMax(top*1.08)},o||{})}
+
+/* ---------- état ---------- */
+let lvl=0,qi=0,run=[],QN=null,pi=0,errs=0,mode='game',busy=false;
+let partState={};
+function starsOf(i){try{const g=SigmaKit.passport().games['tours-de-suite'];return g&&g.levels[i+1]||0}catch(e){return 0}}
+
+/* ---------- widgets ---------- */
+function fb(html){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fb').hidden=false}
+const api={err(why){errs++;SND.soft();fb(why);partState.errors=(partState.errors||0)+1;const f=$('fb');if(innerWidth<=860&&f.getBoundingClientRect().bottom>innerHeight)setTimeout(()=>f.scrollIntoView({block:'end',behavior:S.reduceM?'auto':'smooth'}),30)},ok(){fb('');nextPart()}};
+const W={};
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);api.ok()}};
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{if(busy)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){box.querySelectorAll('.opt').forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else{b.classList.add('ko');b.disabled=true;api.err(c.why)}})};
+/* trous : comparaison numérique exacte (virgule ou point, signe + facultatif, unités ignorées) */
+function readNum(s){return Q.parse(String(s).replace(/[%€]/g,'').replace(/\s*[a-zA-Zéèàù]+$/,''))}
+W.fill=(p,box)=>{
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const a=p.ans[+i][0];const w=Math.max(2.8,a.length*.62+1.7);return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="${/^[−-]/.test(a)?'text':'decimal'}" aria-label="Case ${+i+1}" style="width:${w.toFixed(1)}em">`});
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+(p.note?`<p class="hint">${p.note}</p>`:'');
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const sets=[p.ans.map(a=>a[0])].concat((p.alt||[]).map(a=>a.map(x=>typeof x==='string'?x:fr(x).replace(/\u202f/g,''))));
+    const okIn=set=>v.map((x,i)=>{const z=readNum(x),k=+ins[i].dataset.i;if(!z)return false;return z.eq(Q.parse(set[k]))});
+    let oks=okIn(sets[0]);for(const st2 of sets.slice(1)){const o2=okIn(st2);if(o2.every(Boolean)){oks=o2;break}}
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else api.err(typeof p.why==='function'?p.why(v.map(readNum),oks):p.why)};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* régler la hauteur d'une tour : poignée dans la scène, boutons, flèches du clavier */
+W.drag=(p,box)=>{const st=S.st,ser0=st.series[0],big=p.big||10,c=p.c||C.abs;
+  const val=k=>q(k).mul(q(p.step));
+  const bl=n=>(n>0?'+':MINUS)+fr(q(Math.abs(n)).mul(q(p.step)));
+  box.innerHTML=`<p class="ask">${p.ask}</p><div class="dragc"><button type="button" class="stp" data-d="${-big}" aria-label="${bl(-big)}">${bl(-big)}</button><button type="button" class="stp" data-d="-1" aria-label="${bl(-1)}">${bl(-1)}</button>`+
+    `<output aria-live="polite"></output><button type="button" class="stp" data-d="1" aria-label="${bl(1)}">${bl(1)}</button><button type="button" class="stp" data-d="${big}" aria-label="${bl(big)}">${bl(big)}</button></div>`+
+    `<div class="btns"><button type="button" class="btn or val">Valider la hauteur</button></div><p class="hint">Fais glisser la poignée bleue de la tour, ou utilise les boutons.</p>`;
+  const out=box.querySelector('output');let k=p.k0;
+  ser0.vis[p.i]=1;
+  function upd(nk,quiet){nk=Math.max(p.min,Math.min(p.max,nk));const moved=nk!==k;if(moved&&!quiet)SND.tick();k=nk;partState.k=k;const v=val(k);out.textContent=V(v,c);
+    st.dv['0:'+p.i]=v.v;st.cur.lab=p.live?p.live(v):'';S.render()}
+  S.cursor({i:p.i,step:q(p.step).v,min:p.min,max:p.max,guide:p.guide,lab:'',key:d=>upd(k+(Math.abs(d)>1?Math.sign(d)*big:d))},nk=>upd(nk));
+  upd(k,true);
+  box.querySelectorAll('.stp').forEach(b=>b.onclick=()=>{if(busy)return;upd(k+ +b.dataset.d)});
+  box.querySelector('.val').onclick=async()=>{if(busy)return;
+    if(k===p.target){S.cursor(null,null);delete st.dv['0:'+p.i];box.querySelectorAll('button').forEach(x=>x.disabled=true);SND.pop();fb('');busy=true;try{S.render();await S.glow();if(p.onOk)await p.onOk()}finally{busy=false}api.ok()}
+    else api.err(p.why(val(k)))}};
+
+/* ---------- déroulé d'une question ---------- */
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;partState={};if(pi<QN.parts.length){const p=QN.parts[pi],box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:S.reduceM?'auto':'smooth'})}}
+const LV=[];
+function newQ(){QN=LV[lvl].qs[qi]();pi=0;errs=0;partState={};
+  S.cursor(null,null);S.reset(QN.scene);cap(QN.cap0||'&nbsp;');
+  $('prompt').innerHTML=QN.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  const box=partEl();W[QN.parts[0].t](QN.parts[0],box)}
+function dots(){const N=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:N},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){fb('');SND.win();run.push(errs===0);dots();
+  const N=LV[lvl].qs.length,lvlDone=run.length>=N;
+  $('winx').textContent=errs===0?pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=QN.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(QN.onWin)QN.onWin();S.glow();
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lv=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lv,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lv||mode!=='game')return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:S.reduceM?'auto':'smooth'})};
+function goLevel(l){mode='game';lvl=l;qi=0;run=[];if(LV[l].mk)LV[l].qs=LV[l].mk();$('game').hidden=false;$('labv').hidden=true;
+  $('chap').textContent=LV[l].chap;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;renderLv();newQ()}
+function renderLv(){$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${mode==='game'&&i===lvl}" title="${l.t}">${i+1}. ${l.s||l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<button type="button" class="labb" data-l="lab" aria-pressed="${mode==='lab'}">★ Atelier</button><span class="sp"></span>`+
+  `<button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;
+  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('sigma-fanfare',snd?'1':'0')}catch(_){}renderLv();SND.pop();return}
+  if(b.dataset.l==='lab'){mode='lab';$('game').hidden=true;$('labv').hidden=false;renderLv();LAB.open();return}
+  goLevel(+b.dataset.l)});
+
+/* ---------- fabriques ---------- */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+/* choix : un texte n'apparaît qu'une fois (un leurre qui coïncide avec la bonne réponse ou un autre leurre est retiré) */
+const ch=(ask,list,o)=>{const seen=new Set(),ok=list.find(c=>c.ok);if(ok)seen.add(ok.h);const out=list.filter(c=>{if(c.ok)return true;if(seen.has(c.h))return false;seen.add(c.h);return true});return Object.assign({t:'choice',ask,ch:out},o||{})};
+const fill=(ask,tpl,ans,why,o)=>Object.assign({t:'fill',ask,tpl,ans:ans.map(x=>[typeof x==='string'?x:fr(x).replace(/ /g,'')]),why},o||{});
+const OK=h=>({h,ok:true}),NO=(h,why)=>({h,why});
+/* faire pousser plusieurs tours, l'une après l'autre */
+async function growAll(from,to,o){o=o||{};const st=S.st,s0=st.series[o.s||0];
+  for(let i=from;i<=to;i++){SND.brick(i);const tx=o.op?o.op(i):null;await S.grow(o.s||0,i,{ms:o.ms||520,op:tx?{txt:tx,col:o.col}:null});
+    if(o.led)S.set({led:o.led(i)});if(o.capf)cap(o.capf(i));if(o.gap)await sleep(o.gap)}}
+const opA=r=>sg(r);
+const opG=k=>'×'+NB+fr(k);
+const ledU=(i,x,c,n0)=>`${'u'}${subTxt((n0||0)+i)} = ${V(x,c)}`;
+function subTxt(n){const m='₀₁₂₃₄₅₆₇₈₉';return String(n).split('').map(d=>m[+d]).join('')}
+const uT=n=>'u'+subTxt(n);
+
+/* =================================================================== */
+/* NIVEAU 1 · Le pas constant (suites arithmétiques, récurrence)        */
+/* =================================================================== */
+const CA={
+  run:()=>{const u0=pick([2000,2500,3000]),r=pick([100,150,200,250]);return{c:C.run,u0,r,step:50,big:10,title:'Distance courue le jour n',
+    txt:`Pour préparer un trail, Nadia court <b>${V(u0,C.run)}</b> le jour 0, puis chaque jour <b>${V(r,C.run)}</b> de plus que la veille. On note ${U('n')} la distance courue le jour n.`}},
+  save:()=>{const u0=pick([20,30,40,50]),r=pick([10,15,20,25]);return{c:C.save,u0,r,step:5,big:5,title:'Somme dans la tirelire',
+    txt:`Ylan a <b>${V(u0,C.save)}</b> de côté et ajoute <b>${V(r,C.save)}</b> chaque semaine. On note ${U('n')} la somme après n semaines.`}},
+  subs:()=>{const u0=pick([120,150,200,240]),r=pick([30,40,50,60]);return{c:C.subs,u0,r,step:10,big:5,title:'Abonnés après n mois',
+    txt:`La chaîne de musique de Kenza compte <b>${u0} abonnés</b> et en gagne <b>${r}</b> chaque mois. On note ${U('n')} le nombre d'abonnés après n mois.`}},
+  barge:()=>{const u0=pick([40,50,60]),r=-pick([4,5,6]);return{c:C.barge,u0,r,step:1,big:5,title:'Trajets restants',
+    txt:`Une carte de barge Petite-Terre ↔ Grande-Terre contient <b>${u0} trajets</b>&nbsp;; Anli en utilise <b>${-r}</b> par semaine. On note ${U('n')} le nombre de trajets restants après n semaines.`}},
+  water:()=>{const u0=pick([72,84,96]),r=-pick([6,8,12]);return{c:C.water,u0,r,step:2,big:5,title:'Packs d\'eau restants',
+    txt:`Pendant une coupure d'eau, une association dispose de <b>${u0} packs</b> d'eau et en distribue <b>${-r}</b> par jour. On note ${U('n')} le nombre de packs restants au bout de n jours.`}}
+};
+const ruleA=`<p>Une suite (u<sub>n</sub>) est <b>arithmétique</b> de raison r si, pour tout entier naturel n&nbsp;: u<sub>n+1</sub> = u<sub>n</sub> + r.</p><p>La raison est la <b>différence constante</b>&nbsp;: r = u<sub>n+1</sub> − u<sub>n</sub>. Chaque tour reçoit le même bloc&nbsp;; si r &lt; 0, on retire le même bloc.</p>`;
+function whyA(v,prev,r,c,n){const d=q(v).sub(prev);return `Ta tour mesure ${V(v,c)}, soit un écart de ${sg(d)} avec ${uT(n-1)}. Or ${U(n)} = ${U(n-1)} + r&nbsp;: il faut ajouter exactement r = ${fr(r)} à ${V(prev,c)}.`}
+/* Q1 : construire, lire la raison, régler la tour suivante */
+function q1a(){const K=pick([CA.run,CA.save,CA.subs])(),{c,u0,r}=K,u=AR(u0,r,5);
+  const scn=scene(c,K.title,[ser('a',u,c,{vis:i=>i?0:1})],{led:'u₀ = '+V(u0,c)});scn.vmax=niceMax(u[4].v*1.1);
+  return{scene:scn,prompt:K.txt+' La suite (u<sub>n</sub>) est arithmétique.',cap0:`${U(0)} = <span class="k">${V(u0,c)}</span>`,parts:[
+    act('Construire '+uT(1),async()=>{await S.grow(0,1,{op:{txt:opA(r)},ms:800,led:ledU(1,u[1],c)});cap(`${U(1)} = ${U(0)} + r = ${fr(u0)} + ${fr(r)} = <span class="k">${V(u[1],c)}</span>`)},{ask:'Observe&nbsp;: la tour suivante, c\'est la précédente plus un bloc doré.'}),
+    ch('Quelle est la raison r de cette suite&nbsp;?',[OK(V(r,c)),NO(V(u[1],c),`${V(u[1],c)}, c'est ${U(1)}, un terme. La raison est l'écart entre deux termes consécutifs&nbsp;: ${U(1)} − ${U(0)}.`),
+      NO(V(u0,c),`${V(u0,c)}, c'est le premier terme ${U(0)}. La raison est le bloc ajouté&nbsp;: ${U(1)} − ${U(0)}.`)]),
+    {t:'drag',ask:`Fais monter la tour ${U(2)} jusqu'à sa hauteur.`,i:2,step:K.step,big:K.big,c,min:0,max:Math.round(scn.vmax/K.step),k0:Math.round(u[1].v/K.step),target:Math.round(u[2].v/K.step),guide:u[1].v,
+      live:v=>sg(q(v).sub(u[1])),why:v=>whyA(v,u[1],r,c,2),onOk:async()=>{S.st.ops.push({s:0,i:2,txt:opA(r)});S.set({led:ledU(2,u[2],c)});cap(`${U(2)} = ${U(1)} + r = <span class="k">${V(u[2],c)}</span>`)}},
+    fill('Continue sans la scène&nbsp;:',`${U(3)} = {0} et ${U(4)} = {1}`,[u[3],u[4]],`On ajoute r = ${fr(r)} à chaque fois&nbsp;: ${U(3)} = ${U(2)} + r, puis ${U(4)} = ${U(3)} + r.`,
+      {onOk:()=>growAll(3,4,{op:()=>opA(r),led:i=>ledU(i,u[i],c)})})],
+    done:`Toutes les tours ont reçu le même bloc de ${V(r,c)}&nbsp;: c'est ça, une suite arithmétique, u<sub>n+1</sub> = u<sub>n</sub> + ${fr(r)}.`}}
+/* Q2 : raison négative */
+function q1b(){const K=pick([CA.barge,CA.water])(),{c,u0,r}=K,u=AR(u0,r,6);
+  const scn=scene(c,K.title,[ser('a',u,c,{vis:i=>i<3?1:0})],{ops:[{s:0,i:1,txt:opA(r)},{s:0,i:2,txt:opA(r)}],led:ledU(2,u[2],c)});
+  return{scene:scn,prompt:K.txt,cap0:`${fr(u0)} → ${fr(u[1])} → ${fr(u[2])}`,parts:[
+    fill('Calcule la raison&nbsp;:',`r = ${U(1)} − ${U(0)} = {0}`,[r],`r = ${U(1)} − ${U(0)} = ${fr(u[1])} − ${fr(u0)}. La suite diminue, donc la raison est négative.`),
+    {t:'drag',ask:`Règle la tour ${U(3)}&nbsp;: on retire encore le même bloc.`,i:3,step:K.step,big:K.big,c,min:0,max:Math.round(scn.vmax/K.step),k0:Math.round(u[2].v/K.step),target:Math.round(u[3].v/K.step),guide:u[2].v,
+      live:v=>sg(q(v).sub(u[2])),why:v=>whyA(v,u[2],r,c,3),onOk:async()=>{S.st.ops.push({s:0,i:3,txt:opA(r)});S.set({led:ledU(3,u[3],c)})}},
+    act(`Construire ${uT(4)} et ${uT(5)}`,()=>growAll(4,5,{op:()=>opA(r),led:i=>ledU(i,u[i],c),capf:i=>`${U(i)} = ${U(i-1)} ${MINUS} ${-r} = <span class="k">${V(u[i],c)}</span>`}))],
+    done:`Raison négative&nbsp;: chaque semaine on retire le même bloc de ${-r}. Les tours descendent en escalier régulier.`}}
+/* Q3 : récurrence abstraite, compter les blocs */
+function q1c(){const u0=ri(2,9),r=ri(3,8),u=AR(u0,r,4),c=C.abs;
+  const scn=scene(c,'La suite (uₙ)',[ser('a',u,c,{vis:i=>i?0:1})],{led:'u₀ = '+u0});
+  return{scene:scn,prompt:`On considère la suite définie par ${U(0)} = ${u0} et, pour tout entier naturel n, ${U('n+1')} = ${U('n')} + ${r}.`,cap0:`${U(0)} = <span class="k">${u0}</span>`,parts:[
+    fill('Calcule les trois termes suivants&nbsp;:',`${U(1)} = {0} ; ${U(2)} = {1} ; ${U(3)} = {2}`,[u[1],u[2],u[3]],`Chaque terme s'obtient en ajoutant ${r} au précédent&nbsp;: ${U(1)} = ${u0} + ${r}, puis ${U(2)} = ${U(1)} + ${r}…`,
+      {onOk:()=>growAll(1,3,{op:()=>opA(r),led:i=>ledU(i,u[i],c)})}),
+    ch(`Combien de blocs de ${r} a-t-on empilés sur ${U(0)} pour obtenir ${U(3)}&nbsp;?`,[OK('3 blocs'),NO('4 blocs',`Compte les blocs dorés de la tour ${U(3)}&nbsp;: un par étape, de ${U(0)} à ${U(1)}, à ${U(2)}, à ${U(3)}.`),NO('2 blocs',`Il y a une étape de ${U(0)} à ${U(1)}, une de ${U(1)} à ${U(2)}, une de ${U(2)} à ${U(3)}.`)],
+      {keep:true,onOk:async()=>{S.set({hi:[3]});cap(`${U(3)} = ${U(0)} + 3 × ${r} = ${u0} + ${3*r} = <span class="k">${fr(u[3])}</span>`)}})],
+    done:`${U(3)} = ${U(0)} + 3r&nbsp;: autant de blocs que d'étapes. C'est l'idée du terme général que tu verras au niveau 4.`}}
+/* Q4 : marche arrière */
+function q1d(){const K=pick([CA.run,CA.save,CA.subs])(),{c,u0,r}=K,u=AR(u0,r,4);
+  const scn=scene(c,K.title,[ser('a',u,c,{vis:i=>i===1?1:i===0?2:0})],{led:ledU(1,u[1],c)});scn.vmax=niceMax(u[3].v*1.1);
+  return{scene:scn,prompt:`La suite (u<sub>n</sub>) est arithmétique de raison r = ${fr(r)} et ${U(1)} = ${V(u[1],c)}. On a perdu ${U(0)}&nbsp;: on fait la «&nbsp;marche arrière&nbsp;».`,cap0:`${U(1)} = <span class="k">${V(u[1],c)}</span>`,parts:[
+    fill('Retrouve le premier terme&nbsp;:',`${U(0)} = ${U(1)} − r = {0}`,[u0],`${U(1)} = ${U(0)} + r, donc ${U(0)} = ${U(1)} − r = ${fr(u[1])} − ${fr(r)}.`,
+      {onOk:async()=>{S.st.series[0].vis[0]=0;await S.grow(0,0,{ms:600,led:ledU(0,u0,c)});S.st.ops.push({s:0,i:1,txt:opA(r)});S.render();cap(`${U(0)} = ${fr(u[1])} − ${fr(r)} = <span class="k">${V(u0,c)}</span>`)}}),
+    {t:'drag',ask:`Règle maintenant la tour ${U(2)}.`,i:2,step:K.step,big:K.big,c,min:0,max:Math.round(scn.vmax/K.step),k0:Math.round(u[1].v/K.step),target:Math.round(u[2].v/K.step),guide:u[1].v,
+      live:v=>sg(q(v).sub(u[1])),why:v=>whyA(v,u[1],r,c,2),onOk:async()=>{S.st.ops.push({s:0,i:2,txt:opA(r)});S.set({led:ledU(2,u[2],c)})}}],
+    done:`Pour reculer d'un rang, on retire la raison&nbsp;; pour avancer, on l'ajoute.`}}
+/* Q5 : descendre de plusieurs rangs */
+function q1e(){const K=pick([CA.water,CA.barge])(),{c,u0,r}=K,u=AR(u0,r,6);
+  const scn=scene(c,K.title,[ser('a',u,c,{vis:i=>i<2?1:0})],{ops:[{s:0,i:1,txt:opA(r)}],led:ledU(1,u[1],c)});
+  return{scene:scn,prompt:K.txt+' La suite est arithmétique.',cap0:`${U(0)} = ${fr(u0)}, ${U(1)} = ${fr(u[1])}`,parts:[
+    {t:'drag',ask:`Règle la tour ${U(2)}.`,i:2,step:K.step,big:K.big,c,min:0,max:Math.round(scn.vmax/K.step),k0:Math.round(u[1].v/K.step),target:Math.round(u[2].v/K.step),guide:u[1].v,
+      live:v=>sg(q(v).sub(u[1])),why:v=>whyA(v,u[1],r,c,2),onOk:async()=>{S.st.ops.push({s:0,i:2,txt:opA(r)});S.set({led:ledU(2,u[2],c)})}},
+    fill(`Sans construire les tours, combien en restera-t-il au rang 5&nbsp;?`,`${U(5)} = {0}`,[u[5]],`De ${U(2)} à ${U(5)}, il y a 3 étapes&nbsp;: on retire 3 fois ${-r}, soit ${3*-r}.`,
+      {onOk:()=>growAll(3,5,{op:()=>opA(r),led:i=>ledU(i,u[i],c)})})],
+    done:`De ${U(2)} à ${U(5)} : 3 blocs de ${-r} retirés, ${fr(u[2])} ${MINUS} ${-3*r} = ${fr(u[5])}.`}}
+LV.push({t:'Le pas constant',s:'Pas +r',chap:'Suites arithmétiques',rule:ruleA,qs:[q1a,q1b,q1c,q1d,q1e]});
+
+/* =================================================================== */
+/* NIVEAU 2 · Le facteur constant (suites géométriques, récurrence)     */
+/* =================================================================== */
+const CG={
+  views:()=>{const k=pick([2,3]),u0=k===2?pick([100,150,200]):pick([50,100]);return{c:C.views,u0,k,step:k===2?u0/2:u0,big:k===2?4:3,title:'Vues de la vidéo, jour n',
+    txt:`La vidéo de danse de Saïd a <b>${u0} vues</b> le jour 0&nbsp;; chaque jour, le nombre de vues est <b>multiplié par ${k}</b>. On note ${U('n')} le nombre de vues le jour n.`}},
+  msg:()=>{const k=pick([2,3]),u0=pick([2,3,4,5]);return{c:C.msg,u0,k,step:u0,big:3,title:'Personnes qui ont reçu l\'info',
+    txt:`Une info circule sur un réseau&nbsp;: <b>${u0} personnes</b> la reçoivent le jour 0, puis chaque jour <b>${k} fois plus</b> de personnes que la veille. On note ${U('n')} ce nombre le jour n.`}},
+  drug:()=>{const u0=pick([80,96,160]);return{c:C.drug,u0,k:'0.5',step:u0>=160?5:2,big:5,title:'Médicament restant (mg)',
+    txt:`Après une injection de <b>${u0} mg</b>, la quantité de médicament dans le sang est <b>multipliée par 0,5</b> toutes les 6 heures. On note ${U('n')} la quantité au bout de n périodes de 6 heures.`}},
+  phone:()=>{const u0=pick([500,1000]);return{c:C.phone,u0,k:'0.8',step:10,big:5,title:'Cote du smartphone',
+    txt:`Un smartphone d'occasion vaut <b>${V(u0,C.phone)}</b>&nbsp;; sa cote <b>baisse de 20&nbsp;%</b> chaque année. On note ${U('n')} sa valeur après n années.`}}
+};
+const ruleG=`<p>Une suite (u<sub>n</sub>) est <b>géométrique</b> de raison q (q ≠ 0) si, pour tout entier naturel n&nbsp;: u<sub>n+1</sub> = q × u<sub>n</sub>.</p><p>La raison est le <b>rapport constant</b>&nbsp;: q = ${frac('u<sub>n+1</sub>','u<sub>n</sub>')}. Chaque tour est la précédente étirée du même facteur&nbsp;: le morceau ajouté grandit avec la tour.</p><p>Une hausse de t&nbsp;% revient à multiplier par 1 + ${frac('t','100')}&nbsp;; une baisse de t&nbsp;%, par 1 − ${frac('t','100')}.</p>`;
+const ratioTxt=(v,p)=>{const x=q(v).div(p);return '×'+NB+(x.exact()?fr(x):'≈ '+fr(x,2))};
+function whyG(v,prev,k,c,n){const x=q(v).div(prev);return `Ta tour mesure ${V(v,c)}&nbsp;: elle vaut ${x.exact()?fr(x):'environ '+fr(x,2)} fois ${uT(n-1)}. Or ${U(n)} = q × ${U(n-1)}&nbsp;: il faut multiplier ${V(prev,c)} par q = ${fr(k)}.`}
+function q2a(){const K=pick([CG.views,CG.msg])(),{c,u0,k}=K,u=GE(u0,k,5);
+  const scn=scene(c,K.title,[ser('g',u,c,{vis:i=>i?0:1})],{led:ledU(0,u0,c)});
+  return{scene:scn,prompt:K.txt,cap0:`${U(0)} = <span class="k">${V(u0,c)}</span>`,parts:[
+    act('Construire '+uT(1),async()=>{await S.grow(0,1,{op:{txt:opG(k)},ms:900,led:ledU(1,u[1],c)});cap(`${U(1)} = q × ${U(0)} = ${fr(k)} × ${fr(u0)} = <span class="k">${V(u[1],c)}</span>`)},{ask:'Observe&nbsp;: la tour est étirée, le morceau doré est ce qui s\'ajoute.'}),
+    ch('Quelle est la raison q de cette suite&nbsp;?',[OK(fr(k)),NO(fr(u[1].sub(u0)),`${fr(u[1].sub(u0))}, c'est l'écart ${U(1)} − ${U(0)}. Une suite géométrique se reconnaît au rapport&nbsp;: q = ${U(1)} ÷ ${U(0)}.`),
+      NO(D(q(1).div(k)),`C'est ${U(0)} ÷ ${U(1)}, le rapport à l'envers. La raison est q = ${U(1)} ÷ ${U(0)}.`),NO(fr(u[1]),`${fr(u[1])}, c'est le terme ${U(1)}, pas la raison.`)]),
+    {t:'drag',ask:`Étire la tour ${U(2)} jusqu'à sa hauteur.`,i:2,step:K.step,big:K.big,c,min:0,max:Math.round(scn.vmax/K.step),k0:Math.round(u[1].v/K.step),target:Math.round(u[2].v/K.step),guide:u[1].v,
+      live:v=>ratioTxt(v,u[1]),why:v=>whyG(v,u[1],k,c,2),onOk:async()=>{S.st.ops.push({s:0,i:2,txt:opG(k)});S.set({led:ledU(2,u[2],c)});cap(`${U(2)} = ${fr(k)} × ${fr(u[1])} = <span class="k">${V(u[2],c)}</span>`)}},
+    fill('Continue sans la scène&nbsp;:',`${U(3)} = {0} et ${U(4)} = {1}`,[u[3],u[4]],`On multiplie par ${fr(k)} à chaque fois&nbsp;: ${U(3)} = ${fr(k)} × ${U(2)}, puis ${U(4)} = ${fr(k)} × ${U(3)}.`,
+      {onOk:()=>growAll(3,4,{op:()=>opG(k),led:i=>ledU(i,u[i],c),ms:700})})],
+    done:`Regarde les morceaux dorés&nbsp;: ils grandissent à chaque tour. Multiplier par ${k} chaque fois, c'est la croissance exponentielle.`}}
+function q2b(){const K=pick([CG.drug,CG.phone])(),{c,u0,k}=K,u=GE(u0,k,5);
+  const scn=scene(c,K.title,[ser('g',u,c,{vis:i=>i<2?1:0})],{ops:[{s:0,i:1,txt:opG(k)}],led:ledU(1,u[1],c)});
+  return{scene:scn,prompt:K.txt,cap0:`${U(0)} = ${V(u0,c)} et ${U(1)} = ${V(u[1],c)}`,parts:[
+    fill('Calcule la raison&nbsp;:',`q = ${U(1)} ÷ ${U(0)} = {0}`,[q(k)],`q = ${fr(u[1])} ÷ ${fr(u0)}. La suite diminue&nbsp;: la raison est comprise entre 0 et 1.`),
+    ch('Comment passe-t-on d\'une tour à la suivante&nbsp;?',[OK(`On multiplie par ${fr(k)}.`),NO(`On retire toujours ${V(u[0].sub(u[1]),c)}.`,`Le morceau retiré n'est pas toujours le même&nbsp;: il est proportionnel à la tour. Ici ${V(u[0].sub(u[1]),c)} la première fois, puis ${V(u[1].sub(u[2]),c)}.`),
+      NO(`On divise par ${fr(k)}.`,`Diviser par ${fr(k)} ferait grandir la tour. Ici ${U(1)} = ${fr(k)} × ${U(0)}.`)]),
+    {t:'drag',ask:`Règle la tour ${U(2)}.`,i:2,step:K.step,big:K.big,c,min:0,max:Math.round(scn.vmax/K.step),k0:Math.round(u[1].v/K.step),target:Math.round(u[2].v/K.step),guide:u[1].v,
+      live:v=>ratioTxt(v,u[1]),why:v=>whyG(v,u[1],k,c,2),onOk:async()=>{S.st.ops.push({s:0,i:2,txt:opG(k)});S.set({led:ledU(2,u[2],c)})}},
+    act(`Construire ${uT(3)} et ${uT(4)}`,()=>growAll(3,4,{op:()=>opG(k),led:i=>ledU(i,u[i],c),ms:700}))],
+    done:`Les morceaux hachurés rétrécissent&nbsp;: on retire toujours la même <b>proportion</b>, pas la même quantité.`}}
+function q2c(){const t=pick([2,3,4,5]),u0=pick([500,1000,2000]),k=q(100+t).div(100),c=C.cap,u=GE(u0,k,6);
+  const scn=scene(c,'Capital après n années',[ser('g',u,c,{vis:i=>i?0:1})],{led:ledU(0,u0,c)});
+  return{scene:scn,prompt:`Un capital de <b>${V(u0,c)}</b> est placé au taux de <b>${t}&nbsp;%</b> par an, à intérêts composés (les intérêts s'ajoutent au capital chaque année). On note ${U('n')} le capital après n années.`,cap0:`${U(0)} = <span class="k">${V(u0,c)}</span>`,parts:[
+    ch('Chaque année, le capital est multiplié par…',[OK(fr(k)),NO(fr(q(t).div(100)),`Multiplier par ${fr(q(t).div(100))} donne seulement les intérêts. On garde le capital et on ajoute ${t}&nbsp;%&nbsp;: 1 + ${fr(q(t).div(100))}.`),
+      NO(fr(q(10+t).div(10)),`${t}&nbsp;% = ${fr(q(t).div(100))}, pas ${fr(q(t).div(10))}&nbsp;: le coefficient est 1 + ${fr(q(t).div(100))}.`),NO(String(t),`On ne multiplie pas par ${t}&nbsp;: ${t}&nbsp;% = ${frac(t,100)}, et augmenter de ${t}&nbsp;% revient à multiplier par 1 + ${frac(t,100)}.`)]),
+    act('Construire '+uT(1),async()=>{await S.grow(0,1,{op:{txt:opG(k)},ms:900,led:ledU(1,u[1],c)});cap(`${U(1)} = ${fr(k)} × ${fr(u0)} = <span class="k">${V(u[1],c)}</span>`)}),
+    fill('Calcule le capital au bout de deux ans&nbsp;:',`${U(2)} = {0} €`,[u[2]],`${U(2)} = ${fr(k)} × ${U(1)} = ${fr(k)} × ${fr(u[1])}.`,{onOk:()=>growAll(2,5,{op:()=>opG(k),led:i=>ledU(i,u[i],c),ms:500})})],
+    done:`La suite est géométrique de raison q = ${fr(k)}&nbsp;: le petit morceau doré (les intérêts) grossit chaque année, car il est calculé sur un capital plus grand.`}}
+function q2d(){const u0=ri(1,4),k=u0===1?pick([3,4]):pick([2,3]),u=GE(u0,k,4),c=C.abs;
+  const scn=scene(c,'La suite (uₙ)',[ser('g',u,c,{vis:i=>i?0:1})],{led:'u₀ = '+u0});
+  return{scene:scn,prompt:`On considère la suite définie par ${U(0)} = ${u0} et, pour tout entier naturel n, ${U('n+1')} = ${k} × ${U('n')}.`,cap0:`${U(0)} = <span class="k">${u0}</span>`,parts:[
+    fill('Calcule les trois termes suivants&nbsp;:',`${U(1)} = {0} ; ${U(2)} = {1} ; ${U(3)} = {2}`,[u[1],u[2],u[3]],`Chaque terme s'obtient en multipliant le précédent par ${k}&nbsp;: ${U(1)} = ${k} × ${u0}…`,
+      {onOk:()=>growAll(1,3,{op:()=>opG(k),led:i=>ledU(i,u[i],c),ms:700})}),
+    ch('Le morceau doré ajouté d\'une tour à la suivante est-il toujours le même&nbsp;?',[OK(`Non&nbsp;: il est multiplié par ${k} à chaque étape.`),NO(`Oui&nbsp;: il vaut toujours ${k}.`,`Regarde les morceaux&nbsp;: ${fr(u[1].sub(u[0]))}, puis ${fr(u[2].sub(u[1]))}, puis ${fr(u[3].sub(u[2]))}. Ils changent.`),
+      NO(`Oui&nbsp;: il vaut toujours ${fr(u[1].sub(u[0]))}.`,`${fr(u[1].sub(u[0]))} n'est que le premier morceau&nbsp;; le suivant vaut ${fr(u[2].sub(u[1]))}.`)],
+      {onOk:async()=>cap(`morceaux : ${fr(u[1].sub(u[0]))} ; ${fr(u[2].sub(u[1]))} ; ${fr(u[3].sub(u[2]))} <span class="m">— chacun</span> <span class="k">× ${k}</span>`)})],
+    done:`Arithmétique&nbsp;: le bloc ajouté est constant. Géométrique&nbsp;: c'est le <b>rapport</b> qui est constant, et le bloc ajouté grandit.`}}
+function q2e(){const t=pick([10,20,25]),u0=t===25?pick([256,512]):pick([500,1000]),k=q(100-t).div(100),c=C.phone,u=GE(u0,k,4);
+  const scn=scene(c,'Cote du smartphone',[ser('g',u,c,{vis:i=>i?0:1})],{led:ledU(0,u0,c)});
+  const step=u0%10===0?10:4;
+  return{scene:scn,prompt:`Un smartphone d'occasion vaut <b>${V(u0,c)}</b>. Sa cote <b>baisse de ${t}&nbsp;%</b> chaque année. On note ${U('n')} sa valeur après n années.`,cap0:`${U(0)} = <span class="k">${V(u0,c)}</span>`,parts:[
+    ch('La suite (u<sub>n</sub>) est géométrique de raison…',[OK(fr(k)),NO(fr(q(t).div(100)),`Multiplier par ${fr(q(t).div(100))} ne garde que la baisse. On garde ${100-t}&nbsp;%&nbsp;: q = 1 − ${fr(q(t).div(100))}.`),
+      NO(fr(q(100+t).div(100)),`${fr(q(100+t).div(100))} correspond à une hausse de ${t}&nbsp;%. Pour une baisse&nbsp;: 1 − ${fr(q(t).div(100))}.`),NO(MINUS+fr(q(t).div(100)),`La raison d'une suite géométrique à termes positifs est positive&nbsp;: baisser de ${t}&nbsp;%, c'est garder ${100-t}&nbsp;%.`)]),
+    {t:'drag',ask:`Règle la tour ${U(1)}&nbsp;: la valeur après un an.`,i:1,step,big:5,c,min:0,max:Math.round(scn.vmax/step),k0:Math.round(u0/step),target:Math.round(u[1].v/step),guide:u[0].v,
+      live:v=>ratioTxt(v,u[0]),why:v=>whyG(v,u[0],k,c,1),onOk:async()=>{S.st.ops.push({s:0,i:1,txt:opG(k)});S.set({led:ledU(1,u[1],c)})}},
+    fill('Valeur au bout de trois ans&nbsp;:',`${U(3)} = {0} €`,[u[3]],`Encore deux étapes&nbsp;: ${U(2)} = ${fr(k)} × ${fr(u[1])}, puis ${U(3)} = ${fr(k)} × ${U(2)}.`,{onOk:()=>growAll(2,3,{op:()=>opG(k),led:i=>ledU(i,u[i],c),ms:650})})],
+    done:`Baisse de ${t}&nbsp;% chaque année&nbsp;: suite géométrique de raison ${fr(k)}, comprise entre 0 et 1.`}}
+LV.push({t:'Le facteur constant',s:'Facteur ×q',chap:'Suites géométriques',rule:ruleG,qs:[q2a,q2b,q2c,q2d,q2e]});
+
+/* =================================================================== */
+/* NIVEAU 3 · Reconnaître (différences, rapports, moyennes)            */
+/* =================================================================== */
+const ruleN=`<p>Pour reconnaître une suite, on calcule les <b>différences</b> u<sub>n+1</sub> − u<sub>n</sub> et les <b>rapports</b> ${frac('u<sub>n+1</sub>','u<sub>n</sub>')}.</p><p>Différences constantes&nbsp;: arithmétique. Rapports constants&nbsp;: géométrique. Sinon&nbsp;: ni l'un ni l'autre.</p><p>Moyenne arithmétique de a et b&nbsp;: ${frac('a + b','2')}&nbsp;; moyenne géométrique de a &gt; 0 et b &gt; 0&nbsp;: √(ab). Dans une suite arithmétique, chaque terme est la moyenne arithmétique de ses voisins&nbsp;; dans une suite géométrique (à termes positifs), leur moyenne géométrique.</p>`;
+function seqOf(t){
+  if(t==='a'){const neg=Math.random()<.35,r=neg?-ri(2,5):ri(2,7),u0=neg?ri(5*-r,40):ri(2,15);return{t,u:AR(u0,r,5),r:q(r)}}
+  if(t==='g'){const o=pick([[1,3],[2,2],[3,2],[1,2],[2,3],[5,2],[64,'0.5'],[80,'0.5'],[625,'0.8']]);return{t,u:GE(o[0],o[1],5),k:q(o[1])}}
+  const o=pick([[1,4,9,16,25],[4,9,16,25,36],[1,3,6,10,15],[2,3,5,8,12],[1,2,4,7,11],[3,4,6,9,13]]);return{t:'x',u:o.map(x=>q(x))}}
+const dTxt=(a,b)=>sg(q(b).sub(a));
+const rTxt=(a,b)=>{const x=q(b).div(a);return '×'+NB+(x.exact()?fr(x):'≈'+NB+fr(x,2))};
+function qNat(t){return()=>{const Sq=seqOf(t),u=Sq.u,c=C.abs,list=u.map(x=>fr(x)).join(' ; ');
+  const d1=u[1].sub(u[0]),k1=u[1].div(u[0]);
+  const scn=scene(c,'Quelle suite ?',[ser('plain',u,c)],{led:'',sub:list});
+  const ok={a:`arithmétique de raison ${fr(d1)}`,g:`géométrique de raison ${D(k1)}`,x:'ni arithmétique, ni géométrique'};
+  const why={a:t==='a'?'':`Les différences ne sont pas toutes égales&nbsp;: ${u.slice(1).map((x,i)=>fr(x.sub(u[i]))).join(' ; ')}.`,
+    g:t==='g'?'':`Les rapports ne sont pas tous égaux&nbsp;: regarde les arcs, ${u.slice(1).map((x,i)=>rTxt(u[i],x)).join(' ; ')}.`,
+    x:t==='x'?'':`Regarde les arcs&nbsp;: ${t==='a'?'les différences':'les rapports'} sont toutes égales, la suite est donc ${t==='a'?'arithmétique':'géométrique'}.`};
+  const parts=[
+    act('Mesurer les différences u<sub>n+1</sub> − u<sub>n</sub>',async()=>{for(let i=1;i<u.length;i++){S.st.ops.push({s:0,i,txt:dTxt(u[i-1],u[i]),col:'#e8c766'});SND.brick(i);S.render();await sleep(260)}
+      cap('différences : '+u.slice(1).map((x,i)=>`<span class="k">${fr(x.sub(u[i]))}</span>`).join(' ; '))}),
+    act('Mesurer les rapports u<sub>n+1</sub> ÷ u<sub>n</sub>',async()=>{S.st.ops=[];for(let i=1;i<u.length;i++){S.st.ops.push({s:0,i,txt:rTxt(u[i-1],u[i]),col:'#9fb4ff'});SND.brick(i+3);S.render();await sleep(260)}
+      cap('rapports : '+u.slice(1).map((x,i)=>{const z=x.div(u[i]);return `<span class="k">${z.exact()?fr(z):'≈ '+fr(z,2)}</span>`}).join(' ; '))}),
+    ch('Conclusion&nbsp;: la suite est…',['a','g','x'].map(z=>z===t?OK(ok[z]):NO(ok[z],why[z])),{keep:true})];
+  if(t!=='x'){const nxt=t==='a'?u[4].add(Sq.r):u[4].mul(Sq.k),all=u.concat([nxt]);
+    parts.push(act('Prolonger&nbsp;: construire '+uT(5),async()=>{const s0=ser(t,all,c,{vis:i=>i<5?1:0});S.set({series:[s0],ops:u.slice(1).map((x,i)=>({s:0,i:i+1,txt:t==='a'?dTxt(u[i],x):rTxt(u[i],x)})),vmax:niceMax(Math.max(...all.map(x=>x.v))*1.08)});
+      await sleep(300);await S.grow(0,5,{op:{txt:t==='a'?sg(Sq.r):'×'+NB+fr(Sq.k)},ms:800});cap(`${U(5)} = <span class="k">${fr(nxt)}</span>`)}))}
+  return{scene:scn,prompt:`Voici les cinq premiers termes d'une suite&nbsp;: <b>${list}</b>. Calcule les différences, puis les rapports, et conclus.`,cap0:list,parts,
+    done:t==='a'?`Différences toutes égales à ${fr(Sq.r)}&nbsp;: suite arithmétique, les tours montent en escalier régulier.`:t==='g'?`Rapports tous égaux à ${fr(Sq.k)}&nbsp;: suite géométrique.`:`Ni les différences ni les rapports ne sont constants&nbsp;: cette suite n'est ni arithmétique, ni géométrique.`}}}
+function qMeanA(){const r=ri(2,9),a=ri(3,20),p=ri(2,6),u=AR(a,r,3),c=C.abs;
+  const scn=scene(c,'Le terme du milieu',[Object.assign(ser('plain',u,c,{vis:i=>i===1?0:1}),{n0:p-1})],{led:''});scn.vmax=niceMax(u[2].v*1.15);
+  return{scene:scn,prompt:`(u<sub>n</sub>) est une suite arithmétique avec ${U(p-1)} = ${fr(u[0])} et ${U(p+1)} = ${fr(u[2])}. Règle la tour ${U(p)}.`,cap0:`${U(p-1)} = ${fr(u[0])} ; ${U(p+1)} = ${fr(u[2])}`,parts:[
+    {t:'drag',ask:`Règle ${U(p)}&nbsp;: les deux écarts doivent être égaux.`,i:1,step:1,big:5,c,min:0,max:Math.round(scn.vmax),k0:u[0].n>0n?Number(u[0].n):0,target:Number(u[1].n),guide:u[0].v,
+      live:v=>`${dTxt(u[0],v)} puis ${dTxt(v,u[2])}`,why:v=>`Écarts&nbsp;: ${dTxt(u[0],v)} puis ${dTxt(v,u[2])}. Dans une suite arithmétique, ils sont égaux&nbsp;: le terme du milieu est la moyenne ${frac(`${fr(u[0])} + ${fr(u[2])}`,'2')}.`,
+      onOk:async()=>{S.st.ops=[{s:0,i:1,txt:sg(r)},{s:0,i:2,txt:sg(r)}];S.render();cap(`${U(p)} = ${frac(`${fr(u[0])} + ${fr(u[2])}`,2)} = <span class="k">${fr(u[1])}</span>`)}},
+    ch(`${U(p)} est la … de ${U(p-1)} et ${U(p+1)}.`,[OK('moyenne arithmétique'),NO('moyenne géométrique',`La moyenne géométrique serait √(${fr(u[0])} × ${fr(u[2])}). Ici on a ajouté le même écart&nbsp;: c'est ${frac('a + b','2')}.`),NO('somme',`La somme ${fr(u[0])} + ${fr(u[2])} = ${fr(u[0].add(u[2]))} est deux fois trop grande.`)],{keep:true}),
+    act('Relier les sommets',async()=>{S.set({line:true});cap('Les trois sommets sont <span class="k">alignés</span>')})],
+    done:`Dans une suite arithmétique, chaque terme est la moyenne arithmétique de ses voisins&nbsp;: ${U('n')} = ${frac(`${U('n−1')} + ${U('n+1')}`,'2')}.`}}
+function qMeanG(){const o=pick([[4,6,9],[2,6,18],[4,10,25],[1,3,9],[8,12,18],[16,20,25],[3,6,12],[5,10,20],[25,20,16]]),u=o.map(x=>q(x)),k=u[1].div(u[0]),c=C.abs,p=ri(2,6);
+  const scn=scene(c,'Le terme du milieu',[Object.assign(ser('plain',u,c,{vis:i=>i===1?0:1}),{n0:p-1})],{led:''});scn.vmax=niceMax(Math.max(o[0],o[2])*1.15);
+  return{scene:scn,prompt:`(u<sub>n</sub>) est une suite géométrique à termes positifs avec ${U(p-1)} = ${o[0]} et ${U(p+1)} = ${o[2]}. Règle la tour ${U(p)}.`,cap0:`${U(p-1)} = ${o[0]} ; ${U(p+1)} = ${o[2]}`,parts:[
+    {t:'drag',ask:`Règle ${U(p)}&nbsp;: les deux rapports doivent être égaux.`,i:1,step:1,big:5,c,min:1,max:Math.round(scn.vmax),k0:o[0],target:o[1],guide:o[0],
+      live:v=>`${rTxt(u[0],v)} puis ${rTxt(v,u[2])}`,why:v=>`Rapports&nbsp;: ${rTxt(u[0],v)} puis ${rTxt(v,u[2])}. Ils doivent être égaux&nbsp;: le terme du milieu est la moyenne géométrique √(${o[0]} × ${o[2]}).`,
+      onOk:async()=>{S.st.ops=[{s:0,i:1,txt:'×'+NB+fr(k)},{s:0,i:2,txt:'×'+NB+fr(k)}];S.render();cap(`${U(p)} = √(${o[0]} × ${o[2]}) = √${o[0]*o[2]} = <span class="k">${o[1]}</span>`)}},
+    fill('Raison de la suite&nbsp;:',`q = ${U(p)} ÷ ${U(p-1)} = {0}`,[k],`q = ${o[1]} ÷ ${o[0]}.`),
+    ch(`${U(p)} est la … de ${U(p-1)} et ${U(p+1)}.`,[OK('moyenne géométrique'),NO('moyenne arithmétique',`La moyenne arithmétique serait ${frac(`${o[0]} + ${o[2]}`,2)} = ${fr(q(o[0]+o[2]).div(2))}, pas ${o[1]}.`),NO('différence',`${o[2]} − ${o[0]} = ${fr(o[2]-o[0])}, ce n'est pas ${o[1]}.`)],{keep:true})],
+    done:`${o[1]}<sup>2</sup> = ${o[0]} × ${o[2]} = ${o[1]*o[1]}&nbsp;: dans une suite géométrique, chaque terme est la moyenne géométrique de ses voisins.`}}
+LV.push({t:'Arithmétique ou géométrique ?',s:'Reconnaître',chap:'Reconnaître une suite',rule:ruleN,qs:null,mk:()=>{const T=shuf(['a','g','x']);return [qNat(T[0]),qNat(T[1]),qNat(T[2]),qMeanA,qMeanG]}});
+
+/* =================================================================== */
+/* NIVEAU 4 · Le terme de rang n                                        */
+/* =================================================================== */
+const ruleT=`<p>Suite arithmétique de premier terme u<sub>0</sub> et de raison r&nbsp;: <b>u<sub>n</sub> = u<sub>0</sub> + n r</b> (ou u<sub>n</sub> = u<sub>1</sub> + (n − 1) r).</p><p>Suite géométrique de premier terme u<sub>0</sub> et de raison q&nbsp;: <b>u<sub>n</sub> = u<sub>0</sub> × q<sup>n</sup></b> (ou u<sub>n</sub> = u<sub>1</sub> × q<sup>n−1</sup>).</p><p>Plus généralement, si on connaît u<sub>p</sub>&nbsp;: u<sub>n</sub> = u<sub>p</sub> + (n − p) r.</p><p>Méthode&nbsp;: 1. identifier la nature&nbsp;; 2. lire u<sub>0</sub> (ou le calculer par «&nbsp;marche arrière&nbsp;»)&nbsp;; 3. lire r ou q&nbsp;; 4. appliquer la formule.</p>`;
+const eqn=(rhs)=>`${U('n')} = ${rhs}`;
+function q4a(){const ctx=Math.random()<.4;let u0,r,c;if(ctx){u0=pick([2000,2500,3000]);r=pick([100,150,200]);c=C.run}else{const neg=Math.random()<.4;r=neg?-ri(2,4):ri(2,6);u0=neg?ri(-11*r,60):ri(2,12);c=C.abs}
+  const n=10,u=AR(u0,r,n+1);
+  const scn=scene(c,ctx?'Distance courue le jour n':'La suite (uₙ)',[ser('a',u,c,{vis:i=>i<5?1:0})],{ops:[1,2,3,4].map(i=>({s:0,i,txt:opA(r)})),led:'',vals:true});
+  const swp=lin(r,u0),bad1=`${fr(u0)} + ${r<0?'('+fr(r)+')':fr(r)}(n − 1)`;
+  return{scene:scn,prompt:ctx?`Nadia court ${V(u0,c)} le jour 0, puis chaque jour ${V(r,c)} de plus que la veille. ${U('n')} est la distance courue le jour n&nbsp;: suite arithmétique de premier terme ${U(0)} = ${fr(u0)} et de raison r = ${fr(r)}.`
+      :`(u<sub>n</sub>) est la suite arithmétique de premier terme ${U(0)} = ${fr(u0)} et de raison r = ${fr(r)}.`,cap0:`${U(0)} = ${fr(u0)} ; r = ${fr(r)}`,parts:[
+    ch('Exprime u<sub>n</sub> en fonction de n&nbsp;:',[OK(eqn(lin(u0,r))),NO(eqn(swp),`Tu as échangé ${U(0)} et r. La formule est ${U('n')} = ${U(0)} + n r&nbsp;: le premier terme seul, la raison devant n.`),
+      NO(eqn(bad1),`Cette écriture part de ${U(1)}. Ici on connaît ${U(0)}&nbsp;: ${U('n')} = ${U(0)} + n r.`)]),
+    act('Sauter directement à '+uT(n),async()=>{await growAll(5,n,{ms:260,op:i=>i===n?opA(r):null});S.set({hi:[n],led:ledU(n,u[n],c)});
+      cap(`${U(n)} = ${U(0)} + ${n} r <span class="m">: ${n} blocs empilés</span>`)}),
+    fill('Calcule&nbsp;:',`${U(n)} = {0}`,[u[n]],`${U(n)} = ${fr(u0)} + ${n} × ${r<0?'('+fr(r)+')':fr(r)}.`)],
+    done:`${U('n')} = ${lin(u0,r)}&nbsp;: pas besoin de construire chaque tour, on empile directement n blocs.`}}
+function q4b(){const u0=ri(2,5),k=pick([2,3]),n=k===2?pick([5,6]):pick([4,5]),u=GE(u0,k,n+1),c=C.abs;
+  const scn=scene(c,'La suite (uₙ)',[ser('g',u,c,{vis:i=>i<3?1:0})],{ops:[1,2].map(i=>({s:0,i,txt:opG(k)})),led:''});
+  return{scene:scn,prompt:`(u<sub>n</sub>) est la suite géométrique de premier terme ${U(0)} = ${u0} et de raison q = ${k}.`,cap0:`${U(0)} = ${u0} ; q = ${k}`,parts:[
+    ch('Exprime u<sub>n</sub> en fonction de n&nbsp;:',[OK(eqn(`${u0} × ${sup(k,'n')}`)),NO(eqn(sup(u0*k,'n')),`On ne multiplie pas ${u0} par ${k} avant d'élever à la puissance&nbsp;: seule la raison est à la puissance n, ${U('n')} = ${U(0)} × q<sup>n</sup>.`),
+      NO(eqn(lin(u0,k)),`${lin(u0,k)} serait une suite arithmétique (on ajouterait ${k}). Ici on multiplie par ${k} à chaque étape.`),NO(eqn(`${k} × ${sup(u0,'n')}`),`Tu as échangé ${U(0)} et q&nbsp;: ${U('n')} = ${U(0)} × q<sup>n</sup>.`)]),
+    act('Monter jusqu\'à '+uT(n),async()=>{await growAll(3,n,{ms:520,op:()=>opG(k)});S.set({hi:[n],led:ledU(n,u[n],c)});cap(`${U(n)} = ${u0} × ${sup(k,n)} <span class="m">: ${n} étirements</span>`)}),
+    fill('Calcule&nbsp;:',`${U(n)} = {0}`,[u[n]],`${U(n)} = ${u0} × ${sup(k,n)} = ${u0} × ${fr(q(k).pow(n))}.`)],
+    done:`${U('n')} = ${u0} × ${sup(k,'n')}&nbsp;: ${n} multiplications par ${k}, d'un seul coup.`}}
+function q4c(){const u1=pick([2000,2500,3000]),r=pick([100,150,200]),c=C.run,N=10,u=AR(u1,r,N);
+  const scn=scene(c,'Distance courue le jour n',[Object.assign(ser('a',u,c,{vis:i=>i<3?1:0}),{n0:1})],{ops:[1,2].map(i=>({s:0,i,txt:opA(r)})),led:''});
+  const m=30,u30=q(u1).add(q(r).mul(m-1));
+  return{scene:scn,prompt:`Un athlète s'entraîne pour un marathon. Le premier jour, il parcourt ${V(u1,c)}&nbsp;; chaque jour, il parcourt ${V(r,c)} de plus que la veille. On note ${U('n')} la distance du n-ième jour&nbsp;: ${U(1)} = ${fr(u1)}.`,cap0:`${U(1)} = ${fr(u1)} ; r = ${r}`,parts:[
+    ch('Exprime u<sub>n</sub> en fonction de n&nbsp;:',[OK(eqn(`${fr(u1)} + ${r}(n − 1)`)),NO(eqn(lin(u1,r)),`Attention, le premier terme est ${U(1)}, pas ${U(0)}&nbsp;: de ${U(1)} à ${U('n')}, il y a n − 1 pas. ${U('n')} = ${U(1)} + (n − 1) r.`),
+      NO(eqn(`${r} + ${fr(u1)}(n − 1)`),`Tu as échangé ${U(1)} et r&nbsp;: ${U('n')} = ${U(1)} + (n − 1) r.`)]),
+    act('Construire jusqu\'au jour 10',async()=>{await growAll(3,N-1,{ms:300,op:()=>opA(r)});S.set({hi:[N-1],led:ledU(N-1,u[N-1],c,1)});cap(`${U(10)} = ${U(1)} + 9 r <span class="m">: 9 blocs sur ${U(1)}</span>`)}),
+    fill('Calcule&nbsp;:',`${U(10)} = {0} m et ${U(30)} = {1} m`,[u[N-1],u30],`${U(10)} = ${fr(u1)} + 9 × ${r} et ${U(30)} = ${fr(u1)} + 29 × ${r}.`)],
+    done:`Le 30<sup>e</sup> jour, il parcourt ${V(u30,c)}&nbsp;: ${U(30)} = ${U(1)} + 29 r.`}}
+function q4d(){const t=pick([2,3,4,5]),u0=pick([500,1000,2000]),k=q(100+t).div(100),c=C.cap,u=GE(u0,k,6);
+  const scn=scene(c,'Capital après n années',[ser('g',u,c,{vis:i=>i?0:1})],{led:ledU(0,u0,c)});
+  return{scene:scn,prompt:`Un capital de ${V(u0,c)} est placé à ${t}&nbsp;% par an, à intérêts composés. On note ${U('n')} le capital après n années.`,cap0:`${U(0)} = ${V(u0,c)}`,parts:[
+    fill('Terme général&nbsp;:',`${U('n')} = {0} × {1}<sup>n</sup>`,[q(u0),k],`Suite géométrique de premier terme ${U(0)} = ${fr(u0)} et de raison q = 1 + ${frac(t,100)} = ${fr(k)}&nbsp;: ${U('n')} = ${U(0)} × q<sup>n</sup>.`),
+    act('Construire les cinq premières années',()=>growAll(1,5,{op:()=>opG(k),led:i=>ledU(i,u[i],c),ms:480})),
+    fill('À la calculatrice, arrondi au centime&nbsp;:',`${U(5)} ≈ {0} €`,[u[5].round(2)],`${U(5)} = ${fr(u0)} × ${sup(fr(k),5)}&nbsp;: tape la puissance à la calculatrice, puis arrondis au centième.`,{onOk:async()=>{S.set({hi:[5]});cap(`${U(5)} = ${fr(u0)} × ${sup(fr(k),5)} ≈ <span class="k">${fr(u[5],2)} €</span>`)}})],
+    done:`${U('n')} = ${fr(u0)} × ${sup(fr(k),'n')}&nbsp;: croissance exponentielle, même si elle reste lente au début.`}}
+function q4e(){const [p,m]=pick([[2,7],[1,5],[3,8],[2,6]]),r=ri(2,6),u0=ri(1,10),N=m-p+1,u=AR(u0,r,m+1),w=u.slice(p,m+1),c=C.abs;
+  const scn=scene(c,'Deux termes connus',[Object.assign(ser('a',w,c,{vis:i=>i===0||i===N-1?1:2}),{n0:p,kind:'plain'})],{led:''});
+  return{scene:scn,prompt:`(u<sub>n</sub>) est une suite arithmétique avec ${U(p)} = ${fr(u[p])} et ${U(m)} = ${fr(u[m])}.`,cap0:`${U(p)} = ${fr(u[p])} ; ${U(m)} = ${fr(u[m])}`,parts:[
+    ch(`Combien de pas +r séparent ${U(p)} de ${U(m)}&nbsp;?`,[OK(String(m-p)),NO(String(m-p+1),`${m-p+1}, c'est le nombre de tours de ${U(p)} à ${U(m)}. Les pas sont entre les tours&nbsp;: un de moins.`),NO(String(m),`On part de ${U(p)}, pas de ${U(0)}&nbsp;: ${m} − ${p} pas.`)],{keep:true}),
+    fill('Calcule la raison&nbsp;:',`r = ${frac(`${U(m)} − ${U(p)}`,`${m} − ${p}`)} = {0}`,[q(r)],`${U(m)} = ${U(p)} + ${m-p} r, donc r = (${fr(u[m])} − ${fr(u[p])}) ÷ ${m-p}.`,
+      {onOk:async()=>{const s0=S.st.series[0];s0.kind='a';for(let i=1;i<N-1;i++)s0.vis[i]=0;S.render();await growAll(1,N-1,{ms:380,op:()=>opA(r)})}}),
+    fill('Marche arrière jusqu\'au premier terme&nbsp;:',`${U(0)} = ${U(p)} − ${p} r = {0}`,[q(u0)],`${U(0)} = ${fr(u[p])} − ${p} × ${r}.`)],
+    done:`${U('n')} = ${U(p)} + (n − ${p}) r, et ici ${U('n')} = ${lin(u0,r)}.`}}
+LV.push({t:'Le terme de rang n',s:'Rang n',chap:'Forme explicite',rule:ruleT,qs:[q4a,q4b,q4c,q4d,q4e]});
+
+/* =================================================================== */
+/* NIVEAU 5 · La notation Σ et Python (carrés, cubes, inverses)         */
+/* =================================================================== */
+const ruleP=`<p>Notation&nbsp;: 1<sup>2</sup> + 2<sup>2</sup> + … + n<sup>2</sup> = ${SIG('k=1','n','k<sup>2</sup>')}&nbsp;; de même ${SIG('k=1','n','k<sup>3</sup>')} pour les cubes et ${SIG('k=1','n',frac(1,'k'))} pour les inverses.</p><p>En Python, la somme se calcule avec une boucle&nbsp;:</p><pre class="code">def somme_carres(n):
+    S = 0                    # initialisation
+    for k in range(1, n+1):  # compteur
+        S = S + k**2         # accumulateur
+    return S                 # sortie</pre>`;
+const POW={2:{nm:'carrés',fn:'somme_carres',ex:'k**2',t:k=>q(k*k),sym:'k<sup>2</sup>',w:k=>`${k}<sup>2</sup>`},3:{nm:'cubes',fn:'somme_cubes',ex:'k**3',t:k=>q(k*k*k),sym:'k<sup>3</sup>',w:k=>`${k}<sup>3</sup>`},
+  1:{nm:'inverses',fn:'somme_inverses',ex:'1/k',t:k=>q(1).div(k),sym:frac(1,'k'),w:k=>frac(1,k)}};
+const SK=(n,P)=>SIG('k=1',String(n),POW[P].sym);
+const fx=x=>x.exact()?fr(x):'≈ '+fr(x,2);
+function code(P,line){return `<pre class="code">def ${POW[P].fn}(n):
+    S = 0
+    for k in range(1, n+1):
+        ${line||'S = S + '+POW[P].ex}
+    return S</pre>`}
+function sumScene(P,n,title){const vals=Array.from({length:n},(_,i)=>POW[P].t(i+1));
+  return scene(C.abs,title,[Object.assign(ser('plain',vals,C.abs),{n0:1,lab:vals.map(fx)})],{led:'S = 0',ix:'k'})}
+async function runSum(P,n){let s=q(0);for(let k=1;k<=n;k++){s=s.add(POW[P].t(k));S.set({acc:{p:0,k:k-1},led:'S = '+fx(s)});SND.brick(k);await sleep(Math.max(180,1400/n))}
+  cap(`S = ${Array.from({length:Math.min(n,4)},(_,i)=>POW[P].w(i+1)).join(' + ')}${n>4?' + … + '+POW[P].w(n):''} = <span class="k">${fx(s)}</span>`);return s}
+const sumOf=(P,n)=>{let s=q(0);for(let k=1;k<=n;k++)s=s.add(POW[P].t(k));return s};
+function q5a(){const n=ri(4,7),P=2,Sv=sumOf(P,n),T=n*(n+1)/2;
+  return{scene:sumScene(P,n,'Somme des carrés'),prompt:`On veut calculer S = ${SK(n,P)}.`,cap0:`S = ${SK(n,P)}`,parts:[
+    ch('Que signifie cette écriture&nbsp;?',[OK(`S = 1<sup>2</sup> + 2<sup>2</sup> + … + ${n}<sup>2</sup>`),NO(`S = (1 + 2 + … + ${n})<sup>2</sup>`,`On élève chaque terme au carré <b>avant</b> d'additionner&nbsp;: le terme général est k<sup>2</sup>, pour k allant de 1 à ${n}.`),
+      NO(`S = ${n}<sup>2</sup>`,`Le symbole Σ additionne tous les termes k<sup>2</sup>, de k = 1 jusqu'à k = ${n}, pas seulement le dernier.`)]),
+    act('Empiler les carrés un à un',()=>runSum(P,n)),
+    fill('Résultat&nbsp;:',`S = {0}`,[Sv],`Additionne 1 + 4 + 9 + … + ${n*n}.`)],
+    done:`${SK(n,P)} = ${fr(Sv)}, alors que (1 + 2 + … + ${n})<sup>2</sup> = ${T*T}&nbsp;: l'ordre des opérations compte.`}}
+function q5b(){const n=ri(3,5),P=3,Sv=sumOf(P,n);
+  return{scene:sumScene(P,n,'Somme des cubes'),prompt:`On complète la fonction Python qui calcule ${SK('n',P)}&nbsp;:${code(P,'S = <b>?</b>')}`,cap0:`${SK('n',P)}`,parts:[
+    ch('Que faut-il écrire dans la boucle&nbsp;?',[OK('<code>S = S + k**3</code>'),NO('<code>S = k**3</code>',`Sans «&nbsp;S +&nbsp;», S est écrasé à chaque tour&nbsp;: il ne garderait que le dernier cube. L'accumulateur ajoute le terme à ce qui est déjà dans S.`),
+      NO('<code>S = S + k*3</code>',`<code>k*3</code> est le triple de k, pas son cube&nbsp;: le cube s'écrit <code>k**3</code>.`)],{keep:true}),
+    act(`Exécuter ${POW[P].fn}(${n})`,()=>runSum(P,n)),
+    fill('Valeur renvoyée&nbsp;:',`${POW[P].fn}(${n}) renvoie {0}`,[Sv],`S prend successivement les valeurs ${Array.from({length:n},(_,i)=>fr(sumOf(P,i+1))).join(', ')}.`)],
+    done:`S = 0 (initialisation), k compte de 1 à n (compteur), S = S + k**3 (accumulateur), return S (sortie).`}}
+function q5c(){const P=pick([2,3]),n=P===2?ri(6,9):ri(4,6),Sv=sumOf(P,n);
+  return{scene:sumScene(P,n,'Somme des '+POW[P].nm),prompt:`La fonction <code>${POW[P].fn}(n)</code> doit calculer ${SK('n',P)}, de k = 1 jusqu'à k = n inclus.`,cap0:`${SK(n,P)}`,parts:[
+    ch('Quelle boucle convient&nbsp;?',[OK('<code>for k in range(1, n+1):</code>'),NO('<code>for k in range(n):</code>',`<code>range(n)</code> donne k = 0, 1, …, n − 1&nbsp;: il manque le terme k = n.`),
+      NO('<code>for k in range(1, n):</code>',`<code>range(1, n)</code> s'arrête à n − 1&nbsp;: le dernier terme serait oublié. Il faut aller jusqu'à n + 1 exclu.`)],{keep:true}),
+    act(`Exécuter ${POW[P].fn}(${n})`,()=>runSum(P,n)),
+    fill('Valeur renvoyée&nbsp;:',`${POW[P].fn}(${n}) = {0}`,[Sv],`Additionne les ${POW[P].nm} de 1 à ${n}.`)],
+    done:`La boucle compte ${n} tours, un par terme de la somme ${SK(n,P)}.`}}
+function q5d(){const n=pick([3,4,5,6]),P=1,Sv=sumOf(P,n);
+  return{scene:sumScene(P,n,'Somme des inverses'),prompt:`On veut calculer S = ${SK(n,P)} = 1 + ${frac(1,2)} + … + ${frac(1,n)}.`,cap0:`S = ${SK(n,P)}`,parts:[
+    ch('Dans <code>somme_inverses(n)</code>, l\'accumulateur s\'écrit…',[OK('<code>S = S + 1/k</code>'),NO('<code>S = S + k</code>',`Cela additionnerait 1 + 2 + 3 + …&nbsp;: le terme est l'inverse de k, ${frac(1,'k')}.`),NO('<code>S = 1/S + k</code>',`On ajoute le terme ${frac(1,'k')} à la somme déjà calculée&nbsp;: S = S + 1/k.`)],{keep:true}),
+    act('Empiler les inverses',()=>runSum(P,n)),
+    fill(Sv.mul(100).isInt()?'Valeur exacte en écriture décimale&nbsp;:':'Arrondi au centième&nbsp;:',`S ${Sv.mul(100).isInt()?'=':'≈'} {0}`,[Sv.round(2)],`S = ${fr(Sv.n)}/${fr(Sv.d)}${Sv.mul(100).isInt()?'':', puis arrondis au centième'}.`)],
+    done:`Les tours rétrécissent, mais la somme continue de grandir&nbsp;: S = ${frac(fr(Sv.n),fr(Sv.d))} ${Sv.mul(100).isInt()?'=':'≈'} ${fr(Sv,2)}.`}}
+function q5e(){const P=pick([2,3]),m=P===2?pick([8,9,10,12]):pick([5,6,10]),n=5;
+  return{scene:sumScene(P,n,'Les composantes de l\'algorithme'),prompt:`Voici la fonction qui calcule ${SK('n',P)}&nbsp;:${code(P)}`,cap0:'',parts:[
+    ch('Dans ce programme, <code>S = 0</code> est…',[OK('l\'initialisation'),NO('le compteur',`Le compteur est k, qui parcourt 1, 2, …, n. <code>S = 0</code> met la somme à zéro avant la boucle.`),NO('l\'accumulateur',`L'accumulateur est la ligne <code>S = S + …</code> qui ajoute un terme à chaque tour.`)],{keep:true}),
+    ch('Et la variable k joue le rôle…',[OK('du compteur'),NO('de l\'accumulateur',`k ne garde pas la somme&nbsp;: il compte les tours de boucle, de 1 à n.`),NO('de la sortie',`La sortie est <code>return S</code>.`)],{keep:true}),
+    fill(`La somme 1${P===2?'<sup>2</sup>':'<sup>3</sup>'} + 2${P===2?'<sup>2</sup>':'<sup>3</sup>'} + … + ${m}${P===2?'<sup>2</sup>':'<sup>3</sup>'} s'écrit ${SK('n',P)} avec…`,`n = {0}`,[q(m)],`Le dernier terme est ${m}${P===2?'<sup>2</sup>':'<sup>3</sup>'}&nbsp;: k va de 1 à ${m}.`,{onOk:()=>runSum(P,n)})],
+    done:`Initialisation S = 0, compteur k, accumulateur S = S + …, sortie return S&nbsp;: c'est exactement l'écriture ${SK('n',P)}.`}}
+LV.push({t:'Σ et Python',s:'Σ et Python',chap:'Notation Σ et algorithmes',rule:ruleP,qs:[q5a,q5b,q5c,q5d,q5e]});
+
+/* =================================================================== */
+/* NIVEAU 6 · La somme des termes                                       */
+/* =================================================================== */
+const ruleS=`<p>Notation&nbsp;: u<sub>p</sub> + u<sub>p+1</sub> + … + u<sub>n</sub> = ${SIG('k=p','n','u<sub>k</sub>')}. Cette somme compte <b>n − p + 1</b> termes.</p><p>Suite arithmétique&nbsp;: ${SIG('k=p','n','u<sub>k</sub>')} = (n − p + 1) × ${frac('u<sub>p</sub> + u<sub>n</sub>','2')} (nombre de termes × demi-somme des extrêmes).</p><p>Suite géométrique (q ≠ 1)&nbsp;: ${SIG('k=p','n','u<sub>k</sub>')} = u<sub>p</sub> × ${frac('1 − q<sup>n−p+1</sup>','1 − q')}.</p>`;
+const Sg=(p,n)=>SIG('k='+p,String(n),'u<sub>k</sub>');
+const sumQ=a=>a.reduce((s,x)=>s.add(x),q(0));
+function q6a(){const u0=ri(1,6),r=ri(2,4),u=AR(u0,r,10),c=C.abs,p=ri(1,4),n=ri(p+3,9);
+  const scn=scene(c,'Les termes de la somme',[ser('a',u,c)],{led:''});
+  return{scene:scn,prompt:`(u<sub>n</sub>) est arithmétique&nbsp;: ${U(0)} = ${u0}, r = ${r}. On s'intéresse à S&nbsp;=&nbsp;${Sg(p,n)}.`,cap0:`S&nbsp;=&nbsp;${Sg(p,n)}`,parts:[
+    act('Allumer les termes de la somme',async()=>{for(let k=p;k<=n;k++){S.set({acc:{p,k}});SND.brick(k);await sleep(220)}}),
+    fill('Compte-les&nbsp;:',`S compte {0} termes.`,[q(n-p+1)],`De ${U(p)} à ${U(n)}&nbsp;: n − p + 1 = ${n} − ${p} + 1 termes. On compte les deux bouts&nbsp;!`),
+    ch('S est égale à…',[OK(`${U(p)} + ${U(p+1)} + … + ${U(n)}`),NO(`${U(p)} + ${U(n)}`,`Le symbole Σ additionne <b>tous</b> les termes de ${U(p)} à ${U(n)}, pas seulement les deux bouts.`),NO(`${n-p+1} × ${U(n)}`,`Les termes ne sont pas tous égaux à ${U(n)}&nbsp;: Σ les additionne un par un.`)])],
+    done:`S&nbsp;=&nbsp;${Sg(p,n)} = ${fr(sumQ(u.slice(p,n+1)))}&nbsp;: ${n-p+1} tours allumées.`}}
+function gaussParts(u,p,n,c,lab){const N=n-p+1,top=u[p].add(u[n]),Ssum=top.mul(N).div(2);
+  return[
+    act('Poser la même suite à l\'envers sur les tours',async()=>{S.set({vmax:niceMax(top.v*1.12)});S.st.vals=false;await S.anim(1100,e=>{S.st.gauss={p,n,t:e,lab:''}});S.st.gauss.lab=`${uT(p)} + ${uT(n)} = ${fr(top)}`;S.render();
+      cap(`Chaque colonne mesure ${U(p)} + ${U(n)} = <span class="k">${V(top,c)}</span>`)},{ask:'Astuce&nbsp;: recopie la suite à l\'envers et pose-la sur les tours.'}),
+    fill('Toutes les colonnes ont la même hauteur&nbsp;:',`${U(p)} + ${U(n)} = {0}`,[top],`${U(p)} + ${U(n)} = ${fr(u[p])} + ${fr(u[n])}.`),
+    fill('Le rectangle obtenu vaut deux fois S&nbsp;:',`2S = {0} × {1}, donc S = {2}`,[q(N),top,Ssum],(z,oks)=>!oks[0]?`Compte les colonnes&nbsp;: de ${U(p)} à ${U(n)}, il y en a n − p + 1.`:!oks[1]?`Chaque colonne mesure ${U(p)} + ${U(n)}.`:`S est la moitié du rectangle&nbsp;: ${N} × ${fr(top)} ÷ 2.`,
+      {alt:[[top,q(N),Ssum]],onOk:async()=>cap(`S = ${N} × ${frac(fr(top),2)} = <span class="k">${V(Ssum,c)}</span>`)})]}
+function q6b(){const u0=ri(1,8),r=ri(2,5),n=ri(4,7),u=AR(u0,r,n+1),c=C.abs;
+  const scn=scene(c,'S = u₀ + u₁ + … + u'+subTxt(n),[ser('a',u,c)],{led:''});scn.vmax=niceMax(u[0].add(u[n]).v*1.12);
+  return{scene:scn,prompt:`(u<sub>n</sub>) est arithmétique&nbsp;: ${U(0)} = ${u0}, r = ${r}. Calcule S&nbsp;=&nbsp;${Sg(0,n)} sans tout additionner.`,cap0:`S = ${U(0)} + ${U(1)} + … + ${U(n)}`,parts:gaussParts(u,0,n,c),
+    done:`(n − p + 1) × ${frac('u<sub>p</sub> + u<sub>n</sub>','2')}&nbsp;: nombre de termes × demi-somme des extrêmes.`}}
+function q6c(){const u0=pick([2000,2500,3000]),r=pick([100,150,200]),n=pick([9,11,15]),u=AR(u0,r,n+1),c=C.run,top=u[0].add(u[n]),Ssum=top.mul(n+1).div(2);
+  const scn=scene(c,'Distance totale',[ser('a',u,c)],{led:''});scn.vmax=niceMax(top.v*1.12);
+  return{scene:scn,prompt:`Nadia court ${V(u0,c)} le jour 0, puis chaque jour ${V(r,c)} de plus. Quelle distance totale aura-t-elle parcourue du jour 0 au jour ${n} inclus&nbsp;?`,cap0:`${Sg(0,n)}`,parts:[
+    fill('Dernier terme&nbsp;:',`${U(n)} = {0} m`,[u[n]],`${U(n)} = ${U(0)} + ${n} r = ${fr(u0)} + ${n} × ${r}.`,{onOk:async()=>S.set({hi:[n]})}),
+    act('Poser la suite à l\'envers',async()=>{S.set({hi:[],vals:false});await S.anim(1100,e=>{S.st.gauss={p:0,n,t:e,lab:''}});S.st.gauss.lab=`${uT(0)} + ${uT(n)} = ${V(top,c)}`;S.render();cap(`${n+1} colonnes de <span class="k">${V(top,c)}</span>`)}),
+    fill('Distance totale&nbsp;:',`${Sg(0,n)} = {0} m`,[Ssum],`${n+1} termes × ${frac(`${fr(u0)} + ${fr(u[n])}`,2)}.`,{onOk:async()=>cap(`${n+1} × ${frac(fr(top),2)} = <span class="k">${V(Ssum,c)}</span>`)})],
+    done:`${V(Ssum,c)} en ${n+1} jours&nbsp;: nombre de termes × demi-somme des extrêmes.`}}
+function geomSumParts(u,p,n,k,c){const N=n-p+1,Ssum=sumQ(u.slice(p,n+1)),bad=u[p].mul(q(1).sub(q(k).pow(N-1))).div(q(1).sub(k));
+  const pw=e=>sup(fr(k),e),F=(a,e)=>`${a} × ${frac('1 − '+pw(e),'1 − '+fr(k))}`;
+  return{Ssum,parts:[
+    act('Empiler les tours une à une',async()=>{let s=q(0);for(let i=p;i<=n;i++){s=s.add(u[i]);S.set({acc:{p,k:i},led:'S = '+fr(s)});SND.brick(i);await sleep(330)}}),
+    ch('Quelle formule donne cette somme&nbsp;?',[OK(F(U(p),N)),NO(F(U(p),N-1),`L'exposant est le <b>nombre de termes</b>&nbsp;: n − p + 1 = ${N}.`),NO(F(U(n),N),`On part du <b>premier</b> terme de la somme, ${U(p)}, pas du dernier.`)]),
+    fill('Calcule&nbsp;:',`${Sg(p,n)} = {0}`,[Ssum],`${fr(u[p])} × ${frac('1 − '+fr(q(k).pow(N)),'1 − '+fr(k))}.`)]}}
+function q6d(){const u0=ri(1,5),k=pick([2,3]),n=k===2?5:4,u=GE(u0,k,n+1),c=C.abs;
+  const scn=scene(c,'Somme d\'une suite géométrique',[ser('g',u,c)],{led:'S = 0'});const G=geomSumParts(u,0,n,k,c);
+  return{scene:scn,prompt:`(u<sub>n</sub>) est géométrique&nbsp;: ${U(0)} = ${u0}, q = ${k}. On veut S&nbsp;=&nbsp;${Sg(0,n)}.`,cap0:`S&nbsp;=&nbsp;${Sg(0,n)}`,parts:G.parts,
+    done:`S = ${fr(G.Ssum)}&nbsp;: la formule évite d'additionner, et elle reste rapide même pour cent termes.`}}
+function q6e(){const u0=ri(1,4),k=pick([2,2,3]),p=pick([1,2,3]),n=p+(k===2?4:3),u=GE(u0,k,n+1),c=C.abs;
+  const scn=scene(c,'Somme à partir du rang '+p,[ser('g',u,c,{vis:i=>i>=p?1:0})],{led:'S = 0'});const G=geomSumParts(u,p,n,k,c);
+  return{scene:scn,prompt:`(u<sub>n</sub>) est géométrique&nbsp;: ${U(0)} = ${u0}, q = ${k}. On veut S&nbsp;=&nbsp;${Sg(p,n)}.`,cap0:`S&nbsp;=&nbsp;${Sg(p,n)}`,parts:[
+    fill('D\'abord le premier terme de la somme&nbsp;:',`${U(p)} = {0}`,[u[p]],`${U(p)} = ${U(0)} × q<sup>${p}</sup> = ${u0} × ${sup(k,p)}.`),...G.parts],
+    done:`On part de ${U(p)} = ${fr(u[p])}, avec n − p + 1 = ${n-p+1} termes&nbsp;: S = ${fr(G.Ssum)}.`}}
+LV.push({t:'La somme des termes',s:'Somme Σ',chap:'Somme de termes consécutifs',rule:ruleS,qs:[q6a,q6b,q6c,q6d,q6e]});
+
+/* =================================================================== */
+/* NIVEAU 7 · Linéaire contre exponentielle                             */
+/* =================================================================== */
+const ruleL=`<p>Croissance <b>linéaire</b> (suite arithmétique)&nbsp;: u<sub>n</sub> = u<sub>0</sub> + n r. Croissance <b>exponentielle</b> (suite géométrique)&nbsp;: u<sub>n</sub> = u<sub>0</sub> × q<sup>n</sup>.</p><p>«&nbsp;+ t&nbsp;% du montant initial chaque année&nbsp;»&nbsp;: on ajoute toujours la même somme, suite arithmétique. «&nbsp;+ t&nbsp;% du montant de l'année&nbsp;»&nbsp;: on multiplie par 1 + ${frac('t','100')}, suite géométrique.</p><p>À long terme, la croissance exponentielle (q &gt; 1) dépasse toujours la croissance linéaire.</p><p>Placement à intérêts composés avec <b>versements réguliers</b>&nbsp;: la valeur acquise est une somme de termes consécutifs d'une suite géométrique.</p>`;
+/* rang à partir duquel u0 × q^n dépasse strictement u0 + r n (calcul exact) */
+function crossN(u0,r,k){for(let n=1;n<400;n++)if(q(u0).mul(q(k).pow(n)).cmp(q(u0).add(q(r).mul(n)))>0)return n;return null}
+const PAIRS=[[4,3],[6,4],[6,5],[8,5],[8,6],[10,6],[10,8]];
+function twin(u0,r,k,N,c,vis){const A=AR(u0,r,N),B=GE(u0,k,N);
+  return [Object.assign(ser('plain',A,c,{vis:i=>vis?vis(i):0}),{col:'a'}),Object.assign(ser('plain',B,c,{vis:i=>vis?vis(i):0}),{col:'b'})]}
+async function growTwin(from,to,ms){for(let i=from;i<=to;i++){S.st.series[0].vis[i]=1;S.st.series[1].vis[i]=1;S.render();if(i%2===0)SND.brick(i);await sleep(ms)}S.set({line:true})}
+/* zoom vertical : on part juste sous la valeur de départ pour voir l'écart se creuser */
+function zoom(u0,top){const s=niceStep(top-u0),vmin=Math.max(0,u0-s);return{vmin,gstep:s,vmax:vmin+Math.ceil((top*1.02-vmin)/s)*s}}
+function niceStep(m){const raw=m/5,p=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/p;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p}
+function q7a(){const [a,b]=pick(PAIRS),u0=pick([200,500,1000]),r=q(u0).mul(a).div(100),k=q(100+b).div(100),c=C.cap,N=6;
+  const scn=scene(c,'Placements A et B',twin(u0,r,k,N,c),Object.assign({legend:['A','B'],led:''},zoom(u0,Math.max(GE(u0,k,N)[N-1].v,AR(u0,r,N)[N-1].v))));
+  return{scene:scn,prompt:`On place ${V(u0,c)}. <b>Placement A</b>&nbsp;: chaque année, + ${a}&nbsp;% du capital <b>initial</b>. <b>Placement B</b>&nbsp;: chaque année, + ${b}&nbsp;% du capital <b>de l'année</b>.`,cap0:'',parts:[
+    ch('Le capital du placement A est une suite…',[OK(`arithmétique de raison r = ${fr(r)}`),NO(`géométrique de raison q = ${fr(q(100+a).div(100))}`,`${a}&nbsp;% du capital <b>initial</b>, c'est toujours ${a}&nbsp;% de ${fr(u0)}&nbsp;: on ajoute la même somme, ${fr(r)}&nbsp;€, chaque année.`),
+      NO(`arithmétique de raison r = ${a}`,`On n'ajoute pas ${a}&nbsp;€ mais ${a}&nbsp;% de ${fr(u0)}&nbsp;€, soit ${frac(a,100)} × ${fr(u0)}.`)]),
+    ch('Le capital du placement B est une suite…',[OK(`géométrique de raison q = ${fr(k)}`),NO(`arithmétique de raison r = ${fr(q(u0).mul(b).div(100))}`,`${fr(q(u0).mul(b).div(100))}&nbsp;€ ne vaut que la première année&nbsp;: ensuite ${b}&nbsp;% s'applique à un capital plus grand. On multiplie par 1 + ${frac(b,100)}.`),
+      NO(`géométrique de raison q = ${fr(q(b).div(100))}`,`Multiplier par ${fr(q(b).div(100))} ne donnerait que les intérêts. On garde le capital&nbsp;: q = 1 + ${fr(q(b).div(100))}.`)]),
+    act('Construire les cinq premières années',async()=>{await growTwin(0,N-1,300);cap(`A : ${U('n')} = ${lin(u0,r)} <span class="m">·</span> B : ${U('n','v')} = ${fr(u0)} × ${sup(fr(k),'n')}`)})],
+    done:`A ajoute ${fr(r)}&nbsp;€ chaque année (linéaire)&nbsp;; B multiplie par ${fr(k)} (exponentielle). Pour l'instant A mène… mais pas pour toujours.`}}
+function q7b(){const [a,b]=pick(PAIRS),u0=pick([200,500,1000]),r=q(u0).mul(a).div(100),k=q(100+b).div(100),c=C.cap,n=crossN(u0,r,k),N=n+4;
+  const A=AR(u0,r,N),B=GE(u0,k,N);
+  const scn=scene(c,'Qui mène ?',twin(u0,r,k,N,c,i=>i===0?1:0),Object.assign({legend:['A : '+lin(u0,r),'B : '+fr(u0)+' × '+fr(k)+'ⁿ'],led:'',every:5},zoom(u0,B[N-1].v)));
+  const why=`Regarde les années ${n-1} et ${n}&nbsp;: ${U(n-1)} = ${fr(A[n-1])} et ${U(n-1,'v')} ≈ ${fr(B[n-1],2)}, puis ${U(n)} = ${fr(A[n])} et ${U(n,'v')} ≈ ${fr(B[n],2)}.`;
+  return{scene:scn,prompt:`Capital de ${V(u0,c)}. Placement A&nbsp;: ${U('n')} = ${lin(u0,r)}. Placement B&nbsp;: ${U('n','v')} = ${fr(u0)} × ${sup(fr(k),'n')}. À partir de quelle année B dépasse-t-il A&nbsp;?`,cap0:'',parts:[
+    act('Faire défiler les années',async()=>{await growTwin(1,N-1,Math.max(110,1400/N));cap('A : une <span class="k">droite</span> <span class="m">·</span> B : une <span class="k">courbe</span>')}),
+    fill('Lis la réponse sur les tours (ou à la calculatrice)&nbsp;:',`B dépasse A à partir de n = {0}`,[q(n)],why,{onOk:async()=>{S.set({cross:n,led:'n = '+n});cap(`${U(n)} = ${fr(A[n])} € <span class="m">et</span> ${U(n,'v')} ≈ <span class="k">${fr(B[n],2)} €</span>`)}}),
+    ch('Et si on continue encore 50 ans&nbsp;?',[OK('B reste devant et l\'écart se creuse.'),NO('A repasse devant.',`Une croissance exponentielle (q = ${fr(k)} &gt; 1) finit toujours par dépasser une croissance linéaire, et ne se fait plus rattraper.`),NO('Les deux finissent par être égaux.',`L'écart se creuse&nbsp;: B ajoute ${b}&nbsp;% d'un capital de plus en plus grand, A toujours ${fr(r)}&nbsp;€.`)])],
+    done:`À partir de n = ${n}, le placement B dépasse le placement A&nbsp;: l'exponentielle finit toujours par l'emporter.`}}
+function q7c(){const M0=pick([300,500,1000]),t=pick([2,3,4]),N=pick([5,6,7,8]),k=q(100+t).div(100),c=C.cap,u=Array.from({length:N},(_,i)=>q(M0).mul(k.pow(N-i))),Sv=sumQ(u);
+  const scn=scene(c,'Valeur acquise par versement',[Object.assign(ser('plain',u,c),{n0:1,lab:u.map(x=>fr(x,0))})],{led:'S = 0',ix:'#',every:1});
+  const good=`${SIG('k=1',N,`${fr(M0)} × ${sup(fr(k),'k')}`)}`;
+  return{scene:scn,prompt:`Le 1<sup>er</sup> janvier de chaque année, pendant ${N} ans, Inès verse ${V(M0,c)} sur un compte rémunéré à ${t}&nbsp;% par an (intérêts composés). Au 31 décembre de la ${N}<sup>e</sup> année, le premier versement est devenu ${fr(M0)} × ${sup(fr(k),N)}&nbsp;€ et le dernier ${fr(M0)} × ${fr(k)}&nbsp;€. Chaque tour est la valeur acquise par un versement.`,cap0:'',parts:[
+    ch('La valeur acquise totale S est…',[OK(good),NO(`${N} × ${fr(M0)}`,`${N} × ${fr(M0)} = ${fr(N*M0)}&nbsp;€, c'est seulement ce qu'Inès a versé, sans les intérêts.`),NO(`${fr(M0)} × ${sup(fr(k),N)}`,`C'est la valeur du seul premier versement. Il faut additionner les ${N} versements.`)]),
+    act('Empiler les versements',async()=>{let s0=q(0);for(let i=0;i<N;i++){s0=s0.add(u[i]);S.set({acc:{p:0,k:i},led:'S ≈ '+fr(s0,0)+NB+'€'});SND.brick(i);await sleep(300)}cap(`S = somme des ${N} tours <span class="m">: suite géométrique de raison</span> <span class="k">${fr(k)}</span>`)}),
+    fill('Avec la formule de la somme géométrique, à l\'euro près&nbsp;:',`S ≈ {0} €`,[Sv.round(0)],`S = ${fr(M0)} × ${fr(k)} × ${frac('1 − '+sup(fr(k),N),'1 − '+fr(k))}&nbsp;: premier terme ${fr(M0)} × ${fr(k)}, raison ${fr(k)}, ${N} termes.`,
+      {onOk:async()=>cap(`S = ${fr(M0)} × ${fr(k)} × ${frac('1 − '+sup(fr(k),N),'1 − '+fr(k))} ≈ <span class="k">${fr(Sv,0)} €</span>`)})],
+    done:`Versements réguliers à intérêts composés&nbsp;: somme de ${N} termes consécutifs d'une suite géométrique de raison ${fr(k)}. Inès a versé ${fr(N*M0)}&nbsp;€ et dispose d'environ ${fr(Sv,0)}&nbsp;€.`}}
+function q7d(){const u0=pick([100,200,500]),[a,b]=pick([[10,8],[8,6],[6,5]]),r=q(u0).mul(a).div(100),k=q(100+b).div(100),c=C.cap,n=10,A=AR(u0,r,n+1),B=GE(u0,k,n+1),win=B[n].cmp(A[n])>0;
+  const scn=scene(c,'Année 10',twin(u0,r,k,n+1,c,()=>1),Object.assign({legend:['A','B'],led:'',line:true},zoom(u0,Math.max(A[n].v,B[n].v))));
+  return{scene:scn,prompt:`${U('n')} = ${lin(u0,r)} (placement A) et ${U('n','v')} = ${fr(u0)} × ${sup(fr(k),'n')} (placement B). Compare les deux capitaux au bout de 10 ans.`,cap0:'',parts:[
+    fill('Calcule (arrondi à l\'unité pour B)&nbsp;:',`${U(10)} = {0} € et ${U(10,'v')} ≈ {1} €`,[A[n],B[n].round(0)],`${U(10)} = ${fr(u0)} + 10 × ${fr(r)}&nbsp;; ${U(10,'v')} = ${fr(u0)} × ${sup(fr(k),10)} à la calculatrice.`,
+      {onOk:async()=>{S.set({hi:[n],cross:n});cap(`${U(10)} = ${fr(A[n])} € <span class="m">;</span> ${U(10,'v')} ≈ <span class="k">${fr(B[n],0)} €</span>`)}}),
+    ch('Au bout de 10 ans…',[win?OK('B est devant.'):NO('B est devant.',`${fr(A[n])} &gt; ${fr(B[n],0)}&nbsp;: A est encore devant au bout de 10 ans.`),!win?OK('A est encore devant.'):NO('A est encore devant.',`${fr(B[n],0)} &gt; ${fr(A[n])}&nbsp;: B est déjà passé devant.`)],{keep:true})],
+    done:win?`Au bout de 10 ans, l'exponentielle a déjà dépassé la droite.`:`A mène encore à 10 ans, mais B finira par passer devant&nbsp;: c'est une croissance exponentielle.`}}
+function q7e(){const P=pick([5000,10000,20000]),r=P/50,k=q('1.015'),c=C.city,n=crossN(P,r,k),N=n+5;
+  const scn=scene(c,'Population',twin(P,r,k,N,c,i=>i===0?1:0),Object.assign({legend:['A','B'],led:'',every:10},zoom(P,GE(P,k,N)[N-1].v)));
+  const A=AR(P,r,N),B=GE(P,k,N);
+  return{scene:scn,prompt:`Une commune compte ${fr(P)} habitants. Scénario A&nbsp;: + ${fr(r)} habitants par an. Scénario B&nbsp;: + 1,5&nbsp;% par an. On note ${U('n')} et ${U('n','v')} les populations dans n années.`,cap0:'',parts:[
+    fill('Exprime les deux suites&nbsp;:',`${U('n')} = {0} + {1} n &nbsp;et&nbsp; ${U('n','v')} = {2} × {3}<sup>n</sup>`,[q(P),q(r),q(P),k],`A ajoute ${fr(r)} chaque année&nbsp;: ${U('n')} = ${fr(P)} + ${fr(r)}n. B multiplie par 1 + ${frac('1,5',100)} = 1,015.`),
+    act('Faire défiler '+(N-1)+' ans',async()=>{await growTwin(1,N-1,Math.max(60,1600/N));cap('A : une <span class="k">droite</span> <span class="m">·</span> B : une <span class="k">courbe</span> qui finit par passer au-dessus')}),
+    fill('À partir de quelle année B dépasse-t-il A&nbsp;?',`n = {0}`,[q(n)],`Compare les tours autour de l'année ${n}&nbsp;: ${U(n-1)} = ${fr(A[n-1])} et ${U(n-1,'v')} ≈ ${fr(B[n-1],0)}&nbsp;; ${U(n)} = ${fr(A[n])} et ${U(n,'v')} ≈ ${fr(B[n],0)}.`,
+      {onOk:async()=>{S.set({cross:n});cap(`${U(n)} = ${fr(A[n])} <span class="m">et</span> ${U(n,'v')} ≈ <span class="k">${fr(B[n],0)}</span>`)}})],
+    done:`Il faut ${n} ans, mais la croissance exponentielle finit par dépasser la croissance linéaire.`}}
+LV.push({t:'Linéaire ou exponentielle ?',s:'Lin. ou exp.',chap:'Comparer les croissances',rule:ruleL,qs:[q7a,q7b,q7c,q7d,q7e]});
+LV.forEach(l=>{if(l.mk)l.qs=l.mk()});
+
+/* =================================================================== */
+/* L'ATELIER                                                            */
+/* =================================================================== */
+const LAB=(()=>{let kind='a',running=false;
+  const rd=id=>Q.parse($(id).value);
+  function sync(){$('lkind').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===kind));$('lrl').textContent=kind==='a'?'Raison r':'Raison q'}
+  function check(){const u0=rd('lu0'),r=rd('lr');if(!u0||!r)return 'Écris des nombres (virgule ou point).';
+    if(kind==='g'){if(u0.cmp(0)<=0)return 'Pour une suite géométrique, choisis ici u₀ &gt; 0.';if(r.cmp(0)<=0)return 'Choisis une raison q &gt; 0 (suite à termes positifs).';
+      if(u0.mul(r.pow(7)).v>1e7)return 'Les tours dépasseraient l\'écran&nbsp;: choisis une raison plus petite.'}
+    else{if(u0.cmp(0)<0||u0.add(r.mul(7)).cmp(0)<0)return 'Les tours ne descendent pas sous le sol&nbsp;: choisis u₀ et r pour que u₀ et u₇ soient positifs.';if(Math.abs(u0.add(r.mul(7)).v)>1e7)return 'Nombres trop grands pour la scène.'}
+    return ''}
+  function idle(){const u0=rd('lu0')||q(10);S.cursor(null,null);S.reset(scene(C.abs,'L\'atelier',[ser(kind,[u0.cmp(0)>0?u0:q(1)],C.abs)],{led:''}));S.set({series:[Object.assign(ser(kind,AR(u0.cmp(0)>0?u0:1,0,8),C.abs),{vis:Array(8).fill(0).map((_,i)=>i?0:1)})]});cap('Choisis, puis lance la construction.')}
+  async function go(){if(running)return;const w=check();$('lwarn').innerHTML=w;if(w)return;running=true;busy=true;$('lgo').disabled=true;
+    const u0=rd('lu0'),r=rd('lr'),u=kind==='a'?AR(u0,r,8):GE(u0,r,8),c=C.abs;
+    S.reset(scene(c,kind==='a'?'Suite arithmétique':'Suite géométrique',[ser(kind,u,c,{vis:i=>i?0:1})],{led:'u₀ = '+fr(u0)}));
+    $('lf').innerHTML=kind==='a'?`${U('n')} = ${lin(u0,r)}`:`${U('n')} = ${fr(u0)} × ${sup(r.cmp(0)<0?'('+fr(r)+')':fr(r),'n')}`;
+    $('lvar').textContent=kind==='a'?'Linéaire : on ajoute toujours '+fr(r)+', les sommets sont alignés.':'Exponentielle : on multiplie toujours par '+fr(r)+'.';
+    const Ssum=sumQ(u);$('lsum').innerHTML=`${Sg(0,7)} = ${Ssum.exact()?fr(Ssum):'≈ '+fr(Ssum,2)}`;
+    try{await growAll(1,7,{ms:420,op:()=>kind==='a'?opA(r):'×'+NB+fr(r),led:i=>'u'+subTxt(i)+' = '+(u[i].exact()?fr(u[i]):'≈ '+fr(u[i],2))});S.set({line:'dash'});cap(kind==='g'&&r.eq(1)?'q = 1 : toutes les tours sont égales, <span class="k">suite constante</span>':kind==='a'?'Marches égales : <span class="k">points alignés</span>':'Marches de plus en plus '+(r.cmp(1)<0?'petites':'hautes')+' : <span class="k">courbe exponentielle</span>')}finally{running=false;busy=false;$('lgo').disabled=false}}
+  $('lkind').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||running)return;if(kind===b.dataset.k)return;kind=b.dataset.k;$('lu0').value='10';$('lr').value=kind==='a'?'5':'2';sync();SND.pop();idle()});
+  document.querySelectorAll('#labv .step button').forEach(b=>b.onclick=()=>{if(running)return;const id=b.dataset.k==='u'?'lu0':'lr',x=rd(id)||q(0),d=b.dataset.k==='r'&&kind==='g'?q(b.dataset.d).div(10):q(b.dataset.d);$(id).value=fr(x.add(d)).replace(/ /g,'');SND.tick()});
+  $('lgo').onclick=go;
+  return{open(){sync();idle();$('lf').textContent='—';$('lvar').textContent='—';$('lsum').textContent='—';$('lwarn').textContent=''}}})();
+
+/* =================================================================== */
+/* ÉPREUVES FINALES : Bronze, Argent, Or                                */
+/* =================================================================== */
+function qcm(level,prompt,good,bad,explain,meta){const seen=new Set([good]);const w=[];for(const b of bad){if(!seen.has(b)){seen.add(b);w.push(b)}}
+  if(w.length<2)return null;const choices=[good,...w.slice(0,3)];return{type:'qcm',level,prompt,choices,answer:0,explain,meta}}
+function trous(level,prompt,blanks,explain,meta){return{type:'trous',level,prompt,blanks,explain,meta}}
+const B=(x,o)=>({answers:writes(x,o),size:Math.max(3,fr(x).length+1)});
+const BW=words=>({answers:words,size:Math.max(...words.map(w=>w.length))+1});
+const par=x=>{x=q(x);return x.n<0n?'('+fr(x)+')':fr(x)};
+const pw=(b,e)=>sup(fr(b),e);
+
+/* ---------- BRONZE : une étape, nombres simples ---------- */
+const bq={
+ 1:()=>{const u0=ri(2,15),r=ri(2,9),u1=u0+r;return qcm(1,`(u<sub>n</sub>) est arithmétique de premier terme ${U(0)} = ${u0} et de raison r = ${r}. Que vaut ${U(1)}&nbsp;?`,String(u1),[String(u0*r),fr(u0-r),String(r)],
+   `${U(1)} = ${U(0)} + r = ${u0} + ${r} = ${u1}.`,{steps:1,mx:u1})},
+ 2:()=>{const u0=ri(2,9),k=pick([2,3,4,5]),u1=u0*k;return qcm(2,`(u<sub>n</sub>) est géométrique de premier terme ${U(0)} = ${u0} et de raison q = ${k}. Que vaut ${U(1)}&nbsp;?`,String(u1),[String(u0+k),String(Math.pow(u0,k)),String(k)],
+   `${U(1)} = q × ${U(0)} = ${k} × ${u0} = ${u1}.`,{steps:1,mx:u1})},
+ 3:()=>{const o=pick([[3,2],[2,3],[5,2],[1,4],[4,2]]),u=GE(o[0],o[1],4).map(x=>fr(x)),k=o[1],d=Number(GE(o[0],o[1],2)[1].sub(o[0]).n);
+   return qcm(3,`La suite ${u.join(' ; ')} ; … est…`,`géométrique de raison ${k}`,[`arithmétique de raison ${d}`,`arithmétique de raison ${k}`,...(d!==k?[`géométrique de raison ${d}`]:[`géométrique de raison ${k+1}`])],
+   `Les rapports sont tous égaux à ${k}&nbsp;: ${u[1]} ÷ ${u[0]} = ${u[2]} ÷ ${u[1]} = ${k}. Les différences, elles, changent.`,{steps:1,mx:Number(GE(o[0],o[1],4)[3].n)})},
+ 4:()=>{const u0=ri(2,12),r=ri(2,7);return qcm(4,`(u<sub>n</sub>) est arithmétique de premier terme ${U(0)} = ${u0} et de raison r = ${r}. Pour tout n&nbsp;:`,eqn(lin(u0,r)),[eqn(lin(r,u0)),eqn(`${u0} × ${sup(r,'n')}`),eqn(lin(u0+r,r))],
+   `${U('n')} = ${U(0)} + n r = ${lin(u0,r)}.`,{steps:1,mx:u0})},
+ 5:()=>{const P=pick([2,3]),n=P===2?pick([3,4,5]):pick([3,4]),Sv=sumOf(P,n),T=n*(n+1)/2;return qcm(5,`Que vaut ${SK(n,P)}&nbsp;?`,fr(Sv),[fr(T**P),fr(T),fr(Math.pow(n,P))],
+   `On additionne les ${POW[P].nm}&nbsp;: ${Array.from({length:n},(_,i)=>fr(POW[P].t(i+1))).join(' + ')} = ${fr(Sv)}.`,{steps:1,mx:n})},
+ 6:()=>{const p=ri(0,5),n=ri(p+3,p+12);return qcm(6,`Combien de termes compte la somme ${Sg(p,n)}&nbsp;?`,String(n-p+1),[String(n-p),String(n+p),String(n)],
+   `De ${U(p)} à ${U(n)}, il y a n − p + 1 = ${n} − ${p} + 1 = ${n-p+1} termes.`,{steps:1,mx:n})},
+ 7:()=>{const t=pick([2,3,4,5,6]),k=q(100+t).div(100);return qcm(7,`Un capital augmente de ${t}&nbsp;% chaque année (intérêts composés). Les capitaux successifs forment une suite…`,`géométrique de raison ${fr(k)}`,[`arithmétique de raison ${t}`,`géométrique de raison ${fr(q(t).div(100))}`,`géométrique de raison ${fr(q(10+t).div(10))}`],
+   `+ ${t}&nbsp;% du capital de l'année&nbsp;: on multiplie par 1 + ${frac(t,100)} = ${fr(k)}.`,{steps:1,mx:t})}
+};
+const bt={
+ 1:()=>{const u0=ri(2,15),r=ri(2,9),u=AR(u0,r,4);return trous(1,`La suite ${u.map(x=>fr(x)).join(' ; ')} ; … est arithmétique de raison r = {0}.`,[B(r)],`r = ${fr(u[1])} − ${fr(u[0])} = ${r}.`,{steps:1,mx:Number(u[3].n)})},
+ 2:()=>{const u0=ri(1,6),k=pick([2,3,5]),u=GE(u0,k,4);return trous(2,`La suite ${u.map(x=>fr(x)).join(' ; ')} ; … est géométrique de raison q = {0}.`,[B(k)],`q = ${fr(u[1])} ÷ ${fr(u[0])} = ${k}.`,{steps:1,mx:Number(u[3].n)})},
+ 3:()=>{let a=ri(2,30),b=ri(2,30);if((a+b)%2)b++;return trous(3,`La moyenne arithmétique de ${a} et ${b} est {0}.`,[B((a+b)/2)],`${frac(`${a} + ${b}`,2)} = ${frac(a+b,2)} = ${(a+b)/2}.`,{steps:1,mx:Math.max(a,b)})},
+ 4:()=>{const u0=ri(2,9),k=pick([2,3,4,5]);return trous(4,`(u<sub>n</sub>) est géométrique de premier terme ${U(0)} = ${u0} et de raison q = ${k}. Pour tout n, ${U('n')} = {0} × {1}<sup>n</sup>.`,[B(u0),B(k)],`${U('n')} = ${U(0)} × q<sup>n</sup> = ${u0} × ${sup(k,'n')}.`,{steps:1,mx:u0})},
+ 5:()=>{const P=pick([2,3]),m=ri(6,15);return trous(5,`La somme 1${P===2?'<sup>2</sup>':'<sup>3</sup>'} + 2${P===2?'<sup>2</sup>':'<sup>3</sup>'} + … + ${m}${P===2?'<sup>2</sup>':'<sup>3</sup>'} s'écrit ${SK('n',P)} avec n = {0}.`,[B(m)],
+   `Le dernier terme est ${m}${P===2?'<sup>2</sup>':'<sup>3</sup>'}&nbsp;: k va de 1 à ${m}.`,{steps:1,mx:m})},
+ 6:()=>{const p=ri(1,6),n=ri(p+3,p+15);return trous(6,`La somme ${U(p)} + ${U(p+1)} + … + ${U(n)} compte {0} termes.`,[B(n-p+1)],`n − p + 1 = ${n} − ${p} + 1 = ${n-p+1}.`,{steps:1,mx:n})},
+ 7:()=>{const u0=pick([100,200,500,1000]),a=pick([2,3,5,6,10]),r=u0*a/100;return trous(7,`Un capital de ${fr(u0)}&nbsp;€ augmente chaque année de ${a}&nbsp;% du capital <b>initial</b>. Le capital est une suite arithmétique de raison r = {0}&nbsp;€.`,[B(r)],
+   `${a}&nbsp;% de ${fr(u0)}&nbsp;€, c'est ${frac(a,100)} × ${fr(u0)} = ${fr(r)}&nbsp;€, ajoutés chaque année.`,{steps:1,mx:u0})}
+};
+/* ---------- ARGENT : toute la notion, pièges classiques ---------- */
+const aq={
+ 1:()=>{const u0=ri(20,60),r=-ri(2,7),n=3,u=u0+n*r;return qcm(1,`On définit ${U(0)} = ${u0} et, pour tout n, ${U('n+1')} = ${U('n')} ${MINUS} ${-r}. Que vaut ${U(3)}&nbsp;?`,fr(u),[fr(u0+2*r),fr(u0+4*r),fr(u0-3*r)],
+   `On retire ${-r} trois fois&nbsp;: ${U(3)} = ${u0} ${MINUS} 3 × ${-r} = ${fr(u)}.`,{steps:2,mx:u0})},
+ 2:()=>{const t=pick([5,8,10,15,20,25]),up=Math.random()<.5,k=q(up?100+t:100-t).div(100);return qcm(2,`Une quantité ${up?'augmente':'diminue'} de ${t}&nbsp;% chaque année. Elle est modélisée par une suite géométrique de raison…`,fr(k),[fr(q(t).div(100)),fr(q(up?100-t:100+t).div(100)),up?String(t):MINUS+fr(q(t).div(100))],
+   `${up?'Augmenter':'Diminuer'} de ${t}&nbsp;% revient à multiplier par 1 ${up?'+':MINUS} ${frac(t,100)} = ${fr(k)}.`,{steps:1,mx:t})},
+ 3:()=>{const typ=pick(['a','g','x']);let u,good;
+   if(typ==='a'){const r=ri(3,9),u0=ri(1,12);u=AR(u0,r,4);good=`arithmétique de raison ${r}`}else if(typ==='g'){const o=pick([[2,3],[3,2],[1,4],[5,2],[81,'1/3']].slice(0,4));u=GE(o[0],o[1],4);good=`géométrique de raison ${o[1]}`}
+   else{u=pick([[1,4,9,16],[4,9,16,25],[1,3,6,10],[2,3,5,8]]).map(x=>q(x));good='ni arithmétique ni géométrique'}
+   const d=u[1].sub(u[0]),k=u[1].div(u[0]),cand=[`arithmétique de raison ${fr(d)}`,`géométrique de raison ${D(k)}`,'ni arithmétique ni géométrique'].filter(x=>x!==good);
+   return qcm(3,`La suite ${u.map(x=>fr(x)).join(' ; ')} ; … est…`,good,cand.concat(typ==='x'?[]:[typ==='a'?`géométrique de raison ${fr(d)}`:`arithmétique de raison ${D(k)}`]),
+   typ==='a'?`Différences constantes (${fr(d)})&nbsp;: suite arithmétique.`:typ==='g'?`Rapports constants (${fr(k)})&nbsp;: suite géométrique.`:`Les différences (${u.slice(1).map((x,i)=>fr(x.sub(u[i]))).join(', ')}) et les rapports changent&nbsp;: ni l'une ni l'autre.`,{steps:2,mx:Number(u[3].n)})},
+ 4:()=>{const u0=ri(2,5),k=2,n=ri(5,7),v=u0*Math.pow(2,n);return qcm(4,`(u<sub>n</sub>) est géométrique, ${U(0)} = ${u0} et q = 2. Que vaut ${U(n)}&nbsp;?`,fr(v),[fr(u0*Math.pow(2,n-1)),fr(u0*2*n),fr(Math.pow(2*u0,n))],
+   `${U(n)} = ${u0} × ${sup(2,n)} = ${u0} × ${Math.pow(2,n)} = ${fr(v)}.`,{steps:2,mx:v})},
+ 5:()=>{const P=pick([2,3]);return qcm(5,`On complète la fonction qui calcule ${SK('n',P)}&nbsp;:${code(P,'S = <b>?</b>')}Quelle instruction faut-il écrire&nbsp;?`,`<code>S = S + ${POW[P].ex}</code>`,[`<code>S = ${POW[P].ex}</code>`,`<code>S = S + k*${P}</code>`,`<code>S = S + k</code>`],
+   `L'accumulateur ajoute à S le terme ${POW[P].sym}&nbsp;: S = S + ${POW[P].ex}. Sans «&nbsp;S +&nbsp;», S serait écrasé à chaque tour.`,{steps:2,mx:P})},
+ 6:()=>{const u0=ri(1,6),r=ri(2,5),n=pick([9,10,11,14]),u=AR(u0,r,n+1),Ssum=u[0].add(u[n]).mul(n+1).div(2);return qcm(6,`(u<sub>n</sub>) est arithmétique, ${U(0)} = ${u0}, r = ${r}. Que vaut ${Sg(0,n)}&nbsp;?`,fr(Ssum),[fr(u[0].add(u[n]).mul(n).div(2)),fr(u[0].add(u[n]).mul(n+1)),fr(u[n])],
+   `${U(n)} = ${u0} + ${n} × ${r} = ${fr(u[n])}, puis S = ${n+1} × ${frac(`${u0} + ${fr(u[n])}`,2)} = ${fr(Ssum)}.`,{steps:3,mx:Number(Ssum.n)})},
+ 7:()=>{const u0=pick([1000,2000,5000]),a=pick([5,8,10]),b=pick([3,4]);return qcm(7,`À long terme, que dire de ${U('n')} = ${lin(u0,u0*a/100)} et ${U('n','v')} = ${fr(u0)} × ${pw(q(100+b).div(100),'n')}&nbsp;?`,`${U('n','v')} finit par dépasser ${U('n')} et reste devant.`,
+   [`${U('n')} reste toujours devant, car ${a} &gt; ${b}.`,`Les deux suites finissent par être égales.`,`${U('n','v')} est devant dès le départ.`],
+   `Une croissance exponentielle (q &gt; 1) finit toujours par dépasser une croissance linéaire.`,{steps:2,mx:u0})}
+};
+const at={
+ 1:()=>{const u5=ri(20,60),r=-ri(2,6);return trous(1,`(u<sub>n</sub>) est arithmétique de raison r = ${fr(r)} et ${U(5)} = ${u5}. Alors ${U(6)} = {0} et ${U(4)} = {1}.`,[B(u5+r),B(u5-r)],
+   `${U(6)} = ${U(5)} + r = ${u5} ${MINUS} ${-r}&nbsp;; marche arrière&nbsp;: ${U(4)} = ${U(5)} − r = ${u5} + ${-r}.`,{steps:2,mx:u5})},
+ 2:()=>{const o=pick([[80,'0.5'],[200,'0.5'],[500,'0.8'],[1000,'0.9'],[400,'0.75']]),u=GE(o[0],o[1],3);return trous(2,`${U(0)} = ${fr(o[0])} et, pour tout n, ${U('n+1')} = ${fr(o[1])} × ${U('n')}. Alors ${U(1)} = {0} et ${U(2)} = {1}.`,[B(u[1]),B(u[2])],
+   `${U(1)} = ${fr(o[1])} × ${fr(o[0])} = ${fr(u[1])}, puis ${U(2)} = ${fr(o[1])} × ${fr(u[1])} = ${fr(u[2])}.`,{steps:2,mx:o[0]})},
+ 3:()=>{const o=pick([[4,9],[2,18],[4,25],[1,9],[8,18],[16,25],[3,12],[5,20],[9,16]]),g=Math.sqrt(o[0]*o[1]);return trous(3,`La moyenne géométrique de ${o[0]} et ${o[1]} est {0}.`,[B(g)],`√(${o[0]} × ${o[1]}) = √${o[0]*o[1]} = ${g}.`,{steps:2,mx:o[1]})},
+ 4:()=>{const u1=ri(2,9),r=ri(2,6),a=u1-r;return trous(4,`(u<sub>n</sub>) est arithmétique avec ${U(1)} = ${u1} et r = ${r}. Pour tout n, ${U('n')} = {0} + {1}n.`,[B(a),B(r)],
+   `${U('n')} = ${U(1)} + (n − 1) r = ${u1} + ${r}(n − 1) = ${lin(a,r)}.`,{steps:2,mx:u1})},
+ 5:()=>{const P=pick([2,3]),n=P===2?ri(4,6):ri(3,4),Sv=sumOf(P,n);return trous(5,`${code(P)}L'appel <code>${POW[P].fn}(${n})</code> renvoie {0}.`,[B(Sv)],
+   `La boucle va de k = 1 à k = ${n}&nbsp;: S = ${Array.from({length:n},(_,i)=>fr(POW[P].t(i+1))).join(' + ')} = ${fr(Sv)}.`,{steps:2,mx:Number(Sv.n)})},
+ 6:()=>{const u1=ri(2,5),k=2,n=5,Ssum=u1*(Math.pow(2,n)-1);return trous(6,`(u<sub>n</sub>) est géométrique, ${U(1)} = ${u1} et q = 2. Alors ${U(1)} + ${U(2)} + … + ${U(5)} = {0}.`,[B(Ssum)],
+   `${U(1)} × ${frac('1 − 2<sup>5</sup>','1 − 2')} = ${u1} × ${frac(MINUS+'31',MINUS+'1')} = ${Ssum}.`,{steps:3,mx:Ssum})},
+ 7:()=>{const [a,b]=pick(PAIRS),u0=pick([200,500,1000]),r=q(u0).mul(a).div(100),k=q(100+b).div(100),n=crossN(u0,r,k),A=q(u0).add(r.mul(n)),Bv=q(u0).mul(k.pow(n));
+   return trous(7,`${U('n')} = ${lin(u0,r)} et ${U('n','v')} = ${fr(u0)} × ${pw(k,'n')}. Au rang n = ${n}&nbsp;: ${U(n)} = {0} et ${U(n,'v')} ≈ {1} (au centième).`,[B(A),B(Bv.round(2),{dec:2})],
+   `${U(n)} = ${fr(u0)} + ${n} × ${fr(r)} = ${fr(A)}&nbsp;; ${U(n,'v')} = ${fr(u0)} × ${pw(k,n)} ≈ ${fr(Bv,2)}&nbsp;: c'est le premier rang où B dépasse A.`,{steps:2,mx:u0})}
+};
+/* ---------- OR : plusieurs étapes, situations concrètes ---------- */
+const oq={
+ 1:()=>{const u0=pick([30,40,50]),d=pick([2,3,4]);return qcm(1,`Une carte de barge contient ${u0} trajets&nbsp;; on en utilise ${d} par semaine. ${U('n')} est le nombre de trajets restants après n semaines. Pour tout n&nbsp;:`,`${U('n+1')} = ${U('n')} ${MINUS} ${d}`,
+   [`${U('n+1')} = ${u0} ${MINUS} ${d}`,`${U('n+1')} = ${MINUS}${d} × ${U('n')}`,`${U('n+1')} = ${U('n')} + ${d}`],`Chaque semaine, on retire ${d} au nombre de la semaine précédente&nbsp;: suite arithmétique de raison ${MINUS}${d}.`,{steps:2,mx:u0})},
+ 2:()=>{const u0=pick([1000,1500,2000]),t=pick([10,20,25]),k=q(100-t).div(100),v2=k.mul(k).mul(u0);return qcm(2,`Un scooter vaut ${fr(u0)}&nbsp;€ et perd ${t}&nbsp;% de sa valeur chaque année. Que vaut-il au bout de 2 ans&nbsp;?`,fr(v2)+NB+'€',
+   [fr(q(u0).mul(100-2*t).div(100))+NB+'€',fr(k.mul(u0))+NB+'€',fr(k.pow(3).mul(u0))+NB+'€'],`On multiplie deux fois par ${fr(k)}&nbsp;: ${fr(u0)} × ${pw(k,2)} = ${fr(v2)}&nbsp;€. Ce n'est pas une baisse de ${2*t}&nbsp;%.`,{steps:2,mx:u0})},
+ 3:()=>{const g=Math.random()<.5;let a,b,c,good,bad;
+   if(g){[a,b,c]=pick([[4,6,9],[8,12,18],[16,20,25],[25,20,16],[12,18,27],[2,6,18]]);good=`géométrique de raison ${fr(q(b).div(a))}`;bad=[`arithmétique de raison ${fr(b-a)}`,`géométrique de raison ${fr(q(c).div(a))}`,'ni arithmétique ni géométrique']}
+   else{a=ri(3,15);const r=ri(4,9);b=a+r;c=b+r;good=`arithmétique de raison ${r}`;bad=[`géométrique de raison ${D(q(b).div(a))}`,`arithmétique de raison ${c-a}`,'ni arithmétique ni géométrique']}
+   return qcm(3,`Les nombres ${a}, ${b} et ${c} sont, dans cet ordre, trois termes consécutifs d'une suite…`,good,bad,
+   g?`${b}<sup>2</sup> = ${b*b} = ${a} × ${c}&nbsp;: ${b} est la moyenne géométrique de ${a} et ${c}, et q = ${fr(q(b).div(a))}.`:`${b} − ${a} = ${c} − ${b} = ${b-a}&nbsp;: ${b} est la moyenne arithmétique de ${a} et ${c}.`,{steps:3,mx:c})},
+ 4:()=>{const [p,m]=pick([[2,7],[3,8],[1,6],[4,9]]),r=ri(2,7),u0=ri(1,9),up=u0+p*r,um=u0+m*r;return qcm(4,`(u<sub>n</sub>) est arithmétique, ${U(p)} = ${up} et ${U(m)} = ${um}. Sa raison est…`,String(r),[String(um-up),String(m-p),...(q(um-up).div(m-p+1).exact()?[fr(q(um-up).div(m-p+1))]:[])],
+   `${U(m)} = ${U(p)} + ${m-p} r, donc r = ${frac(`${um} − ${up}`,m-p)} = ${r}.`,{steps:3,mx:um})},
+ 5:()=>{const P=pick([2,3]),n=P===2?ri(5,7):ri(4,5),Sv=sumOf(P,n),Sm=sumOf(P,n-1),T=n*(n+1)/2;return qcm(5,`${code(P).replace('range(1, n+1)','range(1, n)')}Que renvoie l'appel <code>${POW[P].fn}(${n})</code>&nbsp;? (attention à la boucle)`,fr(Sm),[fr(Sv),fr(T**P),fr(sumOf(P,n+1))],
+   `<code>range(1, ${n})</code> s'arrête à k = ${n-1}&nbsp;: la fonction renvoie ${SK(n-1,P)} = ${fr(Sm)}, et non ${SK(n,P)}.`,{steps:3,mx:Number(Sv.n)})},
+ 6:()=>{const k=pick([2,3]),u0=ri(1,4),p=pick([2,3,4]),n=p+pick([5,6,7]),N=n-p+1,up=q(u0).mul(q(k).pow(p)),un=q(u0).mul(q(k).pow(n)),F=(a,e)=>`${a} × ${frac('1 − '+sup(k,e),'1 − '+k)}`;
+   return qcm(6,`(u<sub>n</sub>) est géométrique de raison q = ${k}. Quelle expression est égale à ${Sg(p,n)}&nbsp;?`,F(U(p),N),[F(U(p),N-1),F(U(n),N),F(U(0),N)],
+   `On part du premier terme de la somme, ${U(p)}, et l'exposant est le nombre de termes&nbsp;: ${n} − ${p} + 1 = ${N}.`,{steps:3,mx:n})},
+ 7:()=>{const [a,b]=pick(PAIRS),u0=pick([200,500,1000]),r=q(u0).mul(a).div(100),k=q(100+b).div(100),n=crossN(u0,r,k);return qcm(7,`Capital de ${fr(u0)}&nbsp;€. Placement A&nbsp;: + ${a}&nbsp;% du capital initial par an. Placement B&nbsp;: + ${b}&nbsp;% du capital de l'année. B dépasse A pour la première fois au rang…`,`n = ${n}`,[`n = ${n-1}`,`n = ${n+1}`,`n = ${n+2}`],
+   `${U('n')} = ${lin(u0,r)} et ${U('n','v')} = ${fr(u0)} × ${pw(k,'n')}&nbsp;: ${U(n-1,'v')} ≈ ${fr(q(u0).mul(k.pow(n-1)),2)} ≤ ${fr(q(u0).add(r.mul(n-1)))} mais ${U(n,'v')} ≈ ${fr(q(u0).mul(k.pow(n)),2)} &gt; ${fr(q(u0).add(r.mul(n)))}.`,{steps:4,mx:u0})}
+};
+const ot={
+ 1:()=>{const r=-ri(3,8),u3=ri(15,40),u2=u3-r,u0=u3-3*r;return trous(1,`Une suite arithmétique vérifie ${U(2)} = ${u2} et ${U(3)} = ${u3}. Alors r = {0} et ${U(0)} = {1}.`,[B(r),B(u0)],
+   `r = ${U(3)} − ${U(2)} = ${fr(r)}&nbsp;; marche arrière&nbsp;: ${U(0)} = ${U(2)} − 2r = ${u2} + ${-2*r} = ${u0}.`,{steps:3,mx:u0})},
+ 2:()=>{const o=pick([[8,'1.5'],[4,'2.5'],[16,'1.25'],[20,'1.5'],[50,'0.8'],[64,'0.75']]),u=GE(o[0],o[1],3);return trous(2,`Une suite géométrique vérifie ${U(1)} = ${fr(u[1])} et ${U(2)} = ${fr(u[2])}. Alors q = {0} et ${U(0)} = {1}.`,[B(q(o[1])),B(o[0])],
+   `q = ${fr(u[2])} ÷ ${fr(u[1])} = ${fr(o[1])}&nbsp;; ${U(0)} = ${U(1)} ÷ q = ${fr(u[1])} ÷ ${fr(o[1])} = ${o[0]}.`,{steps:3,mx:Number(u[2].v)})},
+ 3:()=>{const o=pick([[2,10,50],[4,12,36],[3,15,75],[1,7,49],[5,20,80],[2,14,98]]),p=ri(3,8);return trous(3,`(u<sub>n</sub>) est géométrique à termes positifs, ${U(p-1)} = ${o[0]} et ${U(p+1)} = ${o[2]}. Alors ${U(p)} = {0} et q = {1}.`,[B(o[1]),B(q(o[1]).div(o[0]))],
+   `${U(p)} = √(${o[0]} × ${o[2]}) = √${o[0]*o[2]} = ${o[1]}, puis q = ${o[1]} ÷ ${o[0]} = ${fr(q(o[1]).div(o[0]))}.`,{steps:3,mx:o[2]})},
+ 4:()=>{const t=pick([2,3,4,5]),u0=pick([500,800,1000,1500]),k=q(100+t).div(100),n=pick([8,10,12]),v=q(u0).mul(k.pow(n));return trous(4,`Un capital de ${fr(u0)}&nbsp;€ est placé à ${t}&nbsp;% par an (intérêts composés). ${U('n')} = {0} × {1}<sup>n</sup>, et au bout de ${n} ans, ${U(n)} ≈ {2}&nbsp;€ (au centime).`,[B(u0),B(k),B(v.round(2),{dec:2})],
+   `Suite géométrique de raison 1 + ${frac(t,100)} = ${fr(k)}&nbsp;: ${U(n)} = ${fr(u0)} × ${pw(k,n)} ≈ ${fr(v,2)}&nbsp;€.`,{steps:3,mx:u0})},
+ 5:()=>{const n=pick([3,4,5]),Sv=sumOf(1,n);return trous(5,`${SK(n,1)} = 1 + ${frac(1,2)} + … + ${frac(1,n)} = {0}/{1} (fraction irréductible).`,[B(Sv.n),B(Sv.d)],
+   `On réduit au même dénominateur ${fr(Sv.d)}&nbsp;: la somme vaut ${frac(fr(Sv.n),fr(Sv.d))}.`,{steps:3,mx:n})},
+ 6:()=>{const u0=pick([2000,2500,3000]),r=pick([100,150,200,250]),n=pick([9,14,15,19]),un=u0+n*r,Ssum=(u0+un)*(n+1)/2;return trous(6,`Un athlète court ${fr(u0)}&nbsp;m le jour 0, puis ${r}&nbsp;m de plus chaque jour. Le jour ${n}, il court {0}&nbsp;m&nbsp;; du jour 0 au jour ${n} inclus, il parcourt au total {1}&nbsp;m.`,[B(un),B(Ssum)],
+   `${U(n)} = ${fr(u0)} + ${n} × ${r} = ${fr(un)}&nbsp;; ${Sg(0,n)} = ${n+1} × ${frac(`${fr(u0)} + ${fr(un)}`,2)} = ${fr(Ssum)}&nbsp;m.`,{steps:4,mx:Ssum})},
+ 7:()=>{const M0=pick([300,500,1000]),t=pick([2,3,4,5]),N=pick([5,6,7,8,10]),k=q(100+t).div(100),Sv=q(M0).mul(k).mul(q(1).sub(k.pow(N))).div(q(1).sub(k));
+   return trous(7,`Le 1<sup>er</sup> janvier de chaque année, pendant ${N} ans, on verse ${fr(M0)}&nbsp;€ sur un compte à ${t}&nbsp;% par an (intérêts composés). Au 31 décembre de la ${N}<sup>e</sup> année, la valeur acquise est ${SIG('k=1',N,`${fr(M0)} × ${sup(fr(k),'k')}`)} ≈ {0}&nbsp;€ (à l'euro près).`,[B(Sv.round(0))],
+   `Somme de ${N} termes d'une suite géométrique de premier terme ${fr(M0)} × ${fr(k)} = ${fr(k.mul(M0))} et de raison ${fr(k)}&nbsp;: ${fr(k.mul(M0))} × ${frac('1 − '+sup(fr(k),N),'1 − '+fr(k))} ≈ ${fr(Sv,0)}&nbsp;€.`,{steps:4,mx:M0})},
+};
+
+/* ---------- assemblage : 6 QCM + 4 trous, les 7 niveaux couverts ---------- */
+function build(Pq,Pt,weights){let out;
+  do{const lv=shuf([1,2,3,4,5,6,7]),tl=lv.slice(0,4),ql=lv.slice(4);
+    while(ql.length<6){const l=pick(weights);if(ql.filter(x=>x===l).length<2)ql.push(l)}
+    out=[...tl.map(l=>Pt[l]()),...ql.map(l=>{let z=null,g=0;while(!z&&g++<30)z=Pq[l]();return z})];
+  }while(out.some(z=>!z)||new Set(out.map(z=>z.prompt)).size<10);
+  return shuf(out)}
+window.TDS_FIN={bronze:()=>build(bq,bt,[1,1,2,2,4,4,3,5,6,7]),argent:()=>build(aq,at,[1,2,3,4,5,6,7]),or:()=>build(oq,ot,[3,4,6,7,1,2,5])};
+
+window.TDS={start(){renderLv();goLevel(0)},
+  state:()=>{const p=QN&&QN.parts[pi];return{lvl,qi,pi,busy,nq:LV[lvl].qs.length,ps:partState,
+    part:p?{t:p.t,k0:p.k0,target:p.target,min:p.min,max:p.max,big:p.big||10,ans:p.ans,alt:p.alt,choices:p.ch?p.ch.map(c=>({ok:!!c.ok})):null}:null}},
+  gen:(l,i)=>{const L0=LV[l];if(L0.mk)L0.qs=L0.mk();const z=L0.qs[i]();return z},LV};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'tours-de-suite',title:'Tours de suite',levels:7,
+  levelNames:['Le pas constant','Le facteur constant','Arithmétique ou géométrique ?','Le terme de rang n','Σ et Python','La somme des termes','Linéaire ou exponentielle ?'],
+  music:'aventure',finals:{bronze:()=>(window.TDS_last=TDS_FIN.bronze()),argent:()=>(window.TDS_last=TDS_FIN.argent()),or:()=>(window.TDS_last=TDS_FIN.or())}});
+TDS.start();
+(function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)
+  const re=/ ([:;!?»%])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|INPUT|TEXTAREA|CODE|svg)$/i.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(fix)}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>
