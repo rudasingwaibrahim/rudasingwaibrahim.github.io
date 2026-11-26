@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La Partition · Sigma Arcade</title>
+<meta name="description" content="Dérivation, point de vue global, variations et extremums (Première spécialité) : fonctions dérivées des fonctions de référence, somme, produit, inverse, quotient, xⁿ pour n entier relatif, signe de f′ et sens de variation, fonctions constantes, extremums, tableau de variations. La fonction dérivée est une partition : la tête de lecture la joue, et la mélodie f monte quand f′ est positive, descend quand elle est négative.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours, la réponse est donnée au deuxième essai.
+   IDEA : un studio de musique, la nuit. La courbe de f est une MÉLODIE (la hauteur de la note est f(x)) ; la fonction
+          dérivée f′ est sa PARTITION, écrite sur la piste du dessous. La tête de lecture avance de gauche à droite et,
+          à chaque petit pas h, fait monter la note de f′(x) × h. Si la partition écrite par l'élève est la bonne
+          dérivée, la mélodie jouée se pose exactement sur la mélodie écrite (« synchro ») ; sinon elle décroche,
+          on la voit et on l'entend. Ensuite, la partition se simplifie en bandes de signe : + la note monte,
+          − elle descend ; quand le signe change, la note la plus haute ou la plus basse s'allume : un extremum.
+   PICTURE : portée nocturne bleu nuit, mélodie lumineuse ; barres de partition bleues (f′ > 0) et saumon (f′ < 0) ;
+          tête de lecture violet-bleu ; notes extrêmes dorées.
+   COLOUR and TYPE : « océan profond » du site ; violet-bleu pour l'action ; or pour la synchro et les extremums ;
+          corail pour les erreurs ; Outfit partout.
+   LAYOUT : studio et légende à gauche (collés en haut sur téléphone), carnet de questions à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);--pos:var(--sg-pos);--neg:var(--sg-neg)}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:80ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button,select,input{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(340px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:linear-gradient(175deg,#0b1834 0%,#07101f 62%,#050b16 100%);user-select:none;-webkit-user-select:none}
+#scene{display:block;width:100%;height:auto}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(17px,1.8vw,21px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .4em}
+.capt .k{color:var(--gold2)}.capt .m{color:var(--mut);font-weight:600}.capt .s{color:#a9bbff}.capt .p{color:var(--pos)}.capt .n{color:var(--neg)}.capt .x{color:var(--ko)}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 4px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.cours table.tv{font-size:15px}.cours table.tv th,.cours table.tv td{height:auto;padding:4px 8px;white-space:normal;text-align:left}.cours .tvw{overflow-x:visible}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.6;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.part.done.keep{opacity:1}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.45 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(18px,2vw,21px)/2.4 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.2em;height:46px;margin:0 3px;padding:0 6px;font:700 20px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.fill .fr .in{margin:3px}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+/* tableau de signes et de variations */
+.tvw{overflow-x:auto;max-width:100%;padding-bottom:2px}
+table.tv{border-collapse:collapse;margin:4px 0;font-variant-numeric:tabular-nums;font-size:17px}
+table.tv th,table.tv td{border:1px solid var(--line);padding:3px 6px;text-align:center;height:46px}
+table.tv th{color:var(--mut);font-weight:600;text-align:left;white-space:nowrap;padding:3px 10px}
+table.tv td.b{color:#dfe6ff;font-weight:700;white-space:nowrap;border-left:0;border-right:0}
+table.tv td.c{border-left:0;border-right:0;min-width:52px}
+table.tv tr.vr td{height:76px}
+table.tv tr.vr td.b{vertical-align:middle}
+table.tv .z{color:var(--gold2);font-weight:800}
+.tc{min-width:48px;min-height:44px;padding:0 6px;border-radius:10px;border:1.5px dashed var(--line);background:var(--solid);color:var(--mut);font:800 22px var(--sg-font);cursor:pointer;transition:border-color .15s,background .15s}
+.tc:hover:not(:disabled){border-color:var(--ac)}
+.tc[data-v="+"]{color:var(--pos);border-style:solid;border-color:rgba(127,178,255,.6);background:rgba(127,178,255,.1)}
+.tc[data-v="-"]{color:var(--neg);border-style:solid;border-color:rgba(255,155,122,.6);background:rgba(255,155,122,.1)}
+.tc[data-v="u"],.tc[data-v="d"]{color:#e6ebff;border-style:solid;border-color:rgba(108,142,255,.6);background:rgba(108,142,255,.12)}
+.tc.ok{border-color:var(--ok)!important}.tc.ko{border-color:var(--ko)!important;background:rgba(255,107,107,.12)!important}
+.tc:disabled{cursor:default;opacity:1}
+.tvv{font-weight:700;color:var(--gold2)}
+.sg{font-weight:800}.sg.p{color:var(--pos)}.sg.n{color:var(--neg)}
+/* écritures mathématiques */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em;align-self:stretch;text-align:center}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.fr>span:last-child{padding-top:.42em}
+.fr>span:first-child{padding-bottom:.06em}
+sub,sup{font-size:.68em;line-height:0}
+.sk-q .fr,.sk-ch .fr{font-size:.92em}
+.nw{white-space:normal}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb.rv{background:rgba(200,168,75,.09);border-left-color:var(--gold)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex;flex:none}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:15px;border-radius:10px}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 12px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  table.tv{font-size:15px}
+  table.tv th{padding:3px 6px}
+  table.tv th,table.tv td{padding:2px 3px}
+  table.tv td.c{min-width:46px}
+  .tc{min-width:44px;font-size:20px;padding:0 4px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>La Partition</h1>
+<p>La courbe de f est une mélodie&nbsp;; sa fonction dérivée f′ en est la partition. La tête de lecture avance et, à chaque petit pas, fait monter la note de f′(x) × pas&nbsp;: écris la bonne partition et la mélodie jouée se pose pile sur la mélodie écrite. Quand f′ est positive la note monte, négative elle descend… et quand f′ change de signe, la note la plus haute ou la plus basse s'allume.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage">
+    <svg id="scene" viewBox="0 0 1000 560" role="img" aria-label="Le studio : en haut la mélodie f, en bas sa partition f′, et la tête de lecture"></svg>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+<script>
+/* ======================= LA PARTITION — noyau : nombres exacts, expressions, studio, son ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const NB=' ',MINUS='−';
+const ab=x=>x<0n?-x:x;
+const gcd=(a,b)=>{a=ab(a);b=ab(b);while(b){const t=a%b;a=b;b=t}return a||1n};
+/* rationnels exacts */
+class Q{
+  constructor(n,d){n=BigInt(n);d=d===undefined?1n:BigInt(d);if(d===0n)throw new Error('division par 0');if(d<0n){n=-n;d=-d}const g=gcd(n,d);this.n=n/g;this.d=d/g}
+  static of(x){if(x instanceof Q)return x;if(typeof x==='bigint')return new Q(x,1n);if(typeof x==='number'){if(Number.isInteger(x))return new Q(BigInt(x),1n);return Q.parse(String(x))}return Q.parse(x)}
+  static parse(s){s=String(s).trim().replace(/[\s  ]/g,'').replace(/[−–—]/g,'-').replace(',','.').replace(/^\+/,'');
+    let m=/^(-?)(\d+)\/(\d+)$/.exec(s);if(m){if(m[3]==='0')return null;return new Q((m[1]?-1n:1n)*BigInt(m[2]),BigInt(m[3]))}
+    m=/^(-?)(\d*)(?:\.(\d+))?$/.exec(s);if(!m||(!m[2]&&!m[3]))return null;const f=m[3]||'',den=10n**BigInt(f.length);
+    return new Q((m[1]?-1n:1n)*(BigInt(m[2]||'0')*den+(f?BigInt(f):0n)),den)}
+  add(o){o=Q.of(o);return new Q(this.n*o.d+o.n*this.d,this.d*o.d)}
+  sub(o){o=Q.of(o);return new Q(this.n*o.d-o.n*this.d,this.d*o.d)}
+  mul(o){o=Q.of(o);return new Q(this.n*o.n,this.d*o.d)}
+  div(o){o=Q.of(o);return new Q(this.n*o.d,this.d*o.n)}
+  eq(o){o=Q.of(o);return o!==null&&this.n===o.n&&this.d===o.d}
+  cmp(o){o=Q.of(o);const a=this.n*o.d,b=o.n*this.d;return a<b?-1:a>b?1:0}
+  neg(){return new Q(-this.n,this.d)}
+  abs(){return new Q(ab(this.n),this.d)}
+  sgn(){return this.n<0n?-1:this.n>0n?1:0}
+  get v(){return Number(this.n)/Number(this.d)}
+  isInt(){return this.d===1n}
+  exact(){let d=this.d;while(d%2n===0n)d/=2n;while(d%5n===0n)d/=5n;return d===1n}
+  dec(){if(!this.exact())return null;let k=0;while(!this.mul(10n**BigInt(k)).isInt())k++;const i=this.mul(10n**BigInt(k)).n,s=i<0n?'-':'',a=String(ab(i)).padStart(k+1,'0');
+    return s+(k?a.slice(0,a.length-k)+'.'+a.slice(a.length-k):a)}
+  toString(){return this.d===1n?String(this.n):this.n+'/'+this.d}
+}
+const q=x=>Q.of(x);
+function frS(s){let neg=s[0]==='-';if(neg)s=s.slice(1);let [ip,fp]=s.split('.');if(ip.length>=5)ip=ip.replace(/\B(?=(\d{3})+(?!\d))/g,NB);return (neg?MINUS:'')+ip+(fp?','+fp:'')}
+const frac=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+/* nombre exact → HTML : décimal si court, sinon fraction */
+function D(x){x=q(x);const s=x.dec();if(s!==null&&(s.split('.')[1]||'').length<=3)return frS(s);return (x.n<0n?MINUS:'')+frac(String(ab(x.n)),String(x.d))}
+/* nombre exact → texte (scène) */
+function Dt(x){x=q(x);const s=x.dec();if(s!==null&&(s.split('.')[1]||'').length<=3)return frS(s);return (x.n<0n?MINUS:'')+ab(x.n)+'/'+x.d}
+/* nombre exact → fraction (expressions) */
+function DF(x){x=q(x);return x.isInt()?(x.n<0n?MINUS:'')+ab(x.n):(x.n<0n?MINUS:'')+frac(String(ab(x.n)),String(x.d))}
+const par=x=>{x=q(x);return x.sgn()<0?`(${D(x)})`:D(x)};
+/* écritures acceptées pour un trou */
+function writes(x){x=q(x);const out=[];const add=s=>{if(!out.includes(s))out.push(s)};const s=x.dec();
+  if(s!==null){add(frS(s).replace(/ /g,''));add(s);if(s[0]==='-')add(frS(s).replace(MINUS,'-').replace(/ /g,''))}
+  if(!x.isInt()){const f=(x.n<0n?MINUS:'')+ab(x.n)+'/'+x.d;add(f);add(f.replace(MINUS,'-'))}
+  return out}
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const nz=(a,b)=>{let v;do v=ri(a,b);while(v===0);return v};
+
+/* ---------------- expressions : sommes de termes c·xⁿ (n ∈ ℤ), c·√x, c/√x ---------------- */
+const tm=(c,n,k)=>({c:q(c),n:n||0,k:k||'p'});
+const P=(...cs)=>cs.map(([c,n])=>tm(c,n)).filter(t=>t.c.sgn()!==0);
+const RQ=x=>`(${q(x)})`;                 /* rationnel lisible par Python (sympy) et par JavaScript */
+function Tpy(ts){const a=ts.filter(t=>t.c.sgn()!==0).map(t=>t.k==='p'?(t.n===0?RQ(t.c):`${RQ(t.c)}*x**(${t.n})`):t.k==='s'?`${RQ(t.c)}*sqrt(x)`:`${RQ(t.c)}/sqrt(x)`);return a.length?a.join('+'):'(0)'}
+function Td(ts){const o=[];for(const t of ts){if(t.k==='p'){if(t.n!==0)o.push(tm(t.c.mul(t.n),t.n-1))}else if(t.k==='s')o.push(tm(t.c.div(2),0,'is'));else throw new Error('dérivée de 1/√x')}return o}
+const cfH=a=>a.eq(1)?'':a.isInt()?String(a.n):frac(String(a.n),String(a.d));
+const xp=(n,v)=>(v||'x')+(n!==1?`<sup>${n<0?MINUS+(-n):n}</sup>`:'');
+function t1(t,o){const a=t.c.abs(),v=(o&&o.v)||'x';
+  if(t.k==='p'){if(t.n===0)return a.isInt()?String(a.n):frac(String(a.n),String(a.d));
+    if(t.n>0||(o&&o.xneg))return cfH(a)+xp(t.n,v);
+    return frac(String(a.n),(a.d!==1n?String(a.d):'')+xp(-t.n,v))}
+  if(t.k==='s')return cfH(a)+'√'+v;
+  return frac(String(a.n),(a.d!==1n?String(a.d):'')+'√'+v)}
+function Th(ts,o){let s='';for(const t of ts){if(t.c.sgn()===0)continue;const neg=t.c.sgn()<0,u=t1(t,o);s+=s?(neg?` ${MINUS} `:' + ')+u:(neg?MINUS:'')+u}return s||'0'}
+const Tneg=ts=>ts.map(t=>tm(t.c.neg(),t.n,t.k));
+const Tsc=(ts,k)=>ts.map(t=>tm(t.c.mul(k),t.n,t.k)).filter(t=>t.c.sgn()!==0);
+/* produit de deux polynômes (termes 'p', n ≥ 0) */
+function Pmul(A,B){const m=new Map();for(const a of A)for(const b of B){const n=a.n+b.n;m.set(n,(m.get(n)||q(0)).add(a.c.mul(b.c)))}
+  return [...m.entries()].sort((u,w)=>w[0]-u[0]).map(([n,c])=>tm(c,n)).filter(t=>t.c.sgn()!==0)}
+const Padd=(A,B)=>{const m=new Map();for(const t of A.concat(B)){if(t.k!=='p')throw new Error('Padd');m.set(t.n,(m.get(t.n)||q(0)).add(t.c))}
+  return [...m.entries()].sort((u,w)=>w[0]-u[0]).map(([n,c])=>tm(c,n)).filter(t=>t.c.sgn()!==0)};
+const Pval=(A,x)=>{x=q(x);let s=q(0);for(const t of A){if(t.k!=='p')throw new Error('Pval');let p=q(1);for(let i=0;i<Math.abs(t.n);i++)p=p.mul(x);s=s.add(t.n<0?t.c.div(p):t.c.mul(p))}return s};
+const paren=ts=>{const h=Th(ts);return ts.length>1||(ts[0]&&ts[0].c.sgn()<0)?`(${h})`:h};
+const cmp=py=>new Function('x','return '+py.replace(/sqrt\(/g,'Math.sqrt('));
+/* une fonction de la scène : py (lisible par sympy et JS), h (écriture), I = fenêtre de lecture */
+function mkF(o){const F={py:o.py,h:o.h,dpy:o.dpy,dh:o.dh||'',I:o.I.map(Number),fn:cmp(o.py),dn:cmp(o.dpy),roots:o.roots||[]};return F}
+/* fonction somme de termes */
+function FT(ts,I,o){o=o||{};const d=Td(ts);return mkF({py:Tpy(ts),h:Th(ts,o),dpy:Tpy(d),dh:Th(d,o),I})}
+/* deux expressions numériquement égales sur I ? (pour écarter les leurres en double) */
+function same(py1,py2,I){const f=cmp(py1),g=cmp(py2);for(const t of [.13,.37,.61,.89]){const x=I[0]+(I[1]-I[0])*t,a=f(x),b=g(x);if(!isFinite(a)||!isFinite(b))return false;if(Math.abs(a-b)>1e-9*(1+Math.abs(a)))return false}return true}
+
+/* ---------------- bruitages et voix ---------------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),gn=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(v,t+.015);gn.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(gn);gn.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+let lastTick=0;
+const SND={pop(){if(snd){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)}},
+  tick(){if(!snd)return;const n=performance.now();if(n-lastTick<45)return;lastTick=n;tone(1250,.035,.016,'square')},
+  soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  ding(f){if(snd){tone(f||1046.5,.6,.05,'sine');tone((f||1046.5)*1.5,.4,.02,'sine',.02)}},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))},
+  get on(){return snd},set on(v){snd=v}};
+/* voix continue : la mélodie jouée (et la mélodie écrite, en second plan, quand elles diffèrent) */
+function voice(two){const a=ac();if(!a||!snd)return null;const g=a.createGain();g.gain.value=.0001;g.connect(a.destination);
+  const o1=a.createOscillator();o1.type='triangle';o1.connect(g);let o2=null,g2=null;
+  if(two){g2=a.createGain();g2.gain.value=.0001;g2.connect(a.destination);o2=a.createOscillator();o2.type='sine';o2.connect(g2);o2.start()}
+  o1.start();const t=a.currentTime;g.gain.linearRampToValueAtTime(.055,t+.06);if(g2)g2.gain.linearRampToValueAtTime(.035,t+.06);
+  return{set(f1,f2){const n=a.currentTime;o1.frequency.setTargetAtTime(f1,n,.012);if(o2&&f2)o2.frequency.setTargetAtTime(f2,n,.012)},
+    stop(){const n=a.currentTime;g.gain.cancelScheduledValues(n);g.gain.setTargetAtTime(.0001,n,.05);if(g2){g2.gain.cancelScheduledValues(n);g2.gain.setTargetAtTime(.0001,n,.05)}
+      setTimeout(()=>{try{o1.stop();if(o2)o2.stop()}catch(e){}},400)}}}
+
+/* ---------------- studio (scène) ---------------- */
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?1:ms));
+function anim(ms,fn){return new Promise(res=>{if(reduceM)ms=1;const t0=performance.now();
+  const step=t=>{let k=Math.max(0,Math.min(1,(t-t0)/ms));fn(k);if(k<1)requestAnimationFrame(step);else res()};requestAnimationFrame(step)})}
+const svg=$('scene');
+const VW=1000,PL=74,PR=972,MT=28,MB=330,BT=372,BB=526,BZ=449,BH=66;
+let st=null;
+const X=x=>PL+(x-st.I[0])/(st.I[1]-st.I[0])*(PR-PL);
+const Y=y=>MB-12-(y-st.y0)/(st.y1-st.y0)*(MB-MT-24);
+function niceStep(r,n){n=n||10;for(const s of [0.1,0.2,0.25,0.5,1,2,5,10,20,25,50,100,200,500,1000,2000,5000])if(r/s<=n)return s;return 10000}
+function tickLab(x,s){const d=s>=1?0:s>=.1?(Math.abs(s-.25)<1e-9?2:1):2;let t=(Math.round(x/s)*s).toFixed(d);if(t.includes('.'))t=t.replace(/0+$/,'').replace(/\.$/,'');if(/^-0(\.0+)?$/.test(t))t=t.slice(1);return t.replace('-',MINUS).replace('.',',')}
+const fmt=(v,d)=>{let t=v.toFixed(d===undefined?2:d);if(t.includes('.'))t=t.replace(/0+$/,'').replace(/\.$/,'');if(/^-0$/.test(t))t='0';return t.replace('-',MINUS).replace('.',',')};
+/* état : F (fonction), mode 'deriv' (partition = barres de f′) ou 'sign' (partition = bandes de signe) */
+function reset(o){st=Object.assign({F:null,mode:'deriv',g:null,gl:'',melody:'show',signs:null,zeros:[],marks:[],markAll:false,pl:null,done:false,label:''},o||{});
+  const F=st.F;st.I=F.I.slice();const N=240;let lo=1e9,hi=-1e9,gm=0;
+  for(let i=0;i<=N;i++){const x=st.I[0]+(st.I[1]-st.I[0])*i/N,y=F.fn(x),d=F.dn(x);if(isFinite(y)){lo=Math.min(lo,y);hi=Math.max(hi,y)}if(isFinite(d))gm=Math.max(gm,Math.abs(d))}
+  if(hi-lo<1e-9){lo-=1;hi+=1}const pad=(hi-lo)*.1;st.y0=lo-pad;st.y1=hi+pad;st.gm=gm>1e-9?gm:1;
+  render()}
+function set(o){Object.assign(st,o);render()}
+function sample(g){const F=st.F,[x0,x1]=st.I,N=360,xs=[],gs=[],yp=[],yt=[];const gf=g?cmp(g):F.dn;
+  let y=F.fn(x0);for(let i=0;i<=N;i++){const x=x0+(x1-x0)*i/N;xs.push(x);gs.push(gf(x));yt.push(F.fn(x));
+    if(i>0){const a=xs[i-1],hh=x-a;y+=hh*(gf(a)+4*gf(a+hh/2)+gf(x))/6}yp.push(y)}
+  let dev=0;for(let i=0;i<=N;i++)dev=Math.max(dev,Math.abs(yp[i]-yt[i]));return{xs,gs,yp,yt,dev:dev/(st.y1-st.y0),N}}
+const TOL=.012;let lastGood=null;
+function hz(y){const t=Math.max(-.3,Math.min(1.3,(y-st.y0)/(st.y1-st.y0)));return 196*Math.pow(2,2*t)}
+/* jouer : la tête de lecture avance, la note monte de g(x) × pas ; g = partition proposée (par défaut, la vraie f′) */
+async function play(o){o=o||{};const S=sample(o.g||null);const good=S.dev<TOL;S.k=0;S.g=o.g||null;S.good=null;st.pl=S;st.done=false;
+  const two=!good;const vc=voice(two);try{if(window.SigmaMusic&&SigmaMusic.duck)SigmaMusic.duck(true)}catch(e){}
+  const passed=new Set();
+  await anim(o.ms||2600,k=>{S.k=k;const i=Math.round(k*S.N);render();if(vc)vc.set(hz(S.yp[i]),hz(S.yt[i]));
+    const xh=S.xs[i];for(const m of st.marks){if(!passed.has(m)&&xh>=m.x-1e-9&&m.t!=='flat'){passed.add(m);SND.ding(m.t==='max'?1318.5:784)}}});
+  if(vc)vc.stop();try{if(window.SigmaMusic&&SigmaMusic.duck)setTimeout(()=>SigmaMusic.duck(false),300)}catch(e){}
+  S.good=good;st.done=good;lastGood=good;render();return good}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function path(pts){let s='',pen=false;for(const p of pts){if(!p||!isFinite(p[1])){pen=false;continue}s+=(pen?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);pen=true}return s}
+const clampY=y=>Math.max(MT-40,Math.min(MB+40,y));
+function render(){if(!st)return;const F=st.F,[x0,x1]=st.I;let s='';const w=svg.clientWidth||1000,FK=Math.min(1.9,Math.max(1,560/w)),fz=(n,c)=>(n*Math.min(FK,c||1.9)).toFixed(1);
+  s+=`<defs><linearGradient id="lp-trk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f2246" stop-opacity=".55"/><stop offset="1" stop-color="#081228" stop-opacity=".25"/></linearGradient>`+
+     `<filter id="lp-glow" x="-10%" y="-30%" width="120%" height="160%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`+
+     `<clipPath id="lp-cm"><rect x="${PL-6}" y="${MT}" width="${PR-PL+12}" height="${MB-MT}"/></clipPath><clipPath id="lp-cb"><rect x="${PL-6}" y="${BT}" width="${PR-PL+12}" height="${BB-BT}"/></clipPath></defs>`;
+  s+=`<rect x="${PL-14}" y="${MT}" width="${PR-PL+28}" height="${MB-MT}" rx="12" fill="url(#lp-trk)" stroke="rgba(120,160,255,.14)"/>`;
+  s+=`<rect x="${PL-14}" y="${BT}" width="${PR-PL+28}" height="${BB-BT}" rx="12" fill="url(#lp-trk)" stroke="rgba(120,160,255,.14)"/>`;
+  /* portée */
+  s+='<g stroke="rgba(200,215,255,.07)" stroke-width="1.5">';for(let i=0;i<5;i++){const y=MT+36+i*(MB-MT-72)/4;s+=`<path d="M${PL-6} ${y.toFixed(1)}H${PR+6}"/>`}s+='</g>';
+  /* graduations en x */
+  const sx=niceStep(x1-x0,8);s+='<g stroke="rgba(120,160,255,.13)" stroke-width="1">';
+  for(let t=Math.ceil(x0/sx-1e-9)*sx;t<=x1+1e-9;t+=sx){const px=X(t).toFixed(1);s+=`<path d="M${px} ${MT+4}V${MB-4}M${px} ${BT+4}V${BB-4}"/>`}s+='</g>';
+  s+=`<g fill="rgba(200,215,255,.62)" font-size="${fz(22)}" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">`;
+  for(let t=Math.ceil(x0/sx-1e-9)*sx;t<=x1+1e-9;t+=sx)s+=`<text x="${X(t).toFixed(1)}" y="550">${tickLab(t,sx)}</text>`;s+='</g>';
+  /* graduations en y (mélodie) */
+  if(st.melody!=='hide'||st.pl){const sy=niceStep(st.y1-st.y0,5);s+='<g fill="rgba(200,215,255,.5)" font-size="${fz(19,1.45)}" font-family="Outfit,system-ui,sans-serif" text-anchor="end">';
+    for(let t=Math.ceil(st.y0/sy-1e-9)*sy;t<=st.y1+1e-9;t+=sy){const py=Y(t);if(py<MT+12||py>MB-6)continue;s+=`<text x="${PL-20}" y="${(py+6).toFixed(1)}">${tickLab(t,sy)}</text><path d="M${PL-14} ${py.toFixed(1)}h6" stroke="rgba(200,215,255,.4)"/>`}s+='</g>'}
+  /* étiquettes des pistes */
+  s+=`<g font-family="Outfit,system-ui,sans-serif" font-weight="700" font-size="${fz(19)}" letter-spacing="1.5"><text x="${PL+4}" y="${MT+24}" fill="rgba(174,191,255,.85)">MÉLODIE · f(x)</text>`+
+     `<text x="${PL+4}" y="${BT+24}" fill="rgba(174,191,255,.85)">PARTITION · f′(x)</text></g>`;
+  if(st.label)s+=`<text x="${PR}" y="${MT+24}" text-anchor="end" font-family="Outfit,system-ui,sans-serif" font-weight="600" font-size="${fz(20,1.6)}" fill="rgba(232,199,102,.9)">${esc(st.label)}</text>`;
+  /* zéro de la partition */
+  s+=`<path d="M${PL-6} ${BZ}H${PR+6}" stroke="rgba(200,215,255,.35)" stroke-width="1.5"/><text x="${PL-20}" y="${BZ+7}" text-anchor="end" font-size="${fz(20)}" fill="rgba(200,215,255,.6)" font-family="Outfit,system-ui,sans-serif">0</text>`;
+  const S=st.pl,iK=S?Math.round(S.k*S.N):-1;
+  /* partition */
+  s+='<g clip-path="url(#lp-cb)">';
+  if(st.mode==='deriv'){
+    const showBars=(gs,upto)=>{let b='';const step=6;for(let i=0;i<=upto;i+=step){const v=gs[i];if(!isFinite(v))continue;let hgt=v/st.gm*BH;hgt=Math.max(-BH-8,Math.min(BH+8,hgt));
+        if(Math.abs(hgt)<1.2)continue;const px=X(S?S.xs[i]:st.I[0]+(st.I[1]-st.I[0])*i/360);
+        b+=`<rect x="${(px-3.4).toFixed(1)}" y="${(hgt>0?BZ-hgt:BZ).toFixed(1)}" width="6.8" height="${Math.abs(hgt).toFixed(1)}" rx="2.4" fill="${hgt>0?'#7fb2ff':'#ff9b7a'}" opacity=".9"/>`}return b};
+    if(S)s+=showBars(S.gs,iK);
+    else if(st.g){const gf=cmp(st.g),gs=[];for(let i=0;i<=360;i++)gs.push(gf(st.I[0]+(st.I[1]-st.I[0])*i/360));s+=showBars(gs,360)}
+    else s+=`<text x="${(PL+PR)/2}" y="${BZ+12}" text-anchor="middle" font-family="Outfit,system-ui,sans-serif" font-weight="700" font-size="${fz(34,1.3)}" fill="rgba(200,215,255,.3)">f′(x) = ?</text>`;
+  }else if(st.signs){
+    for(const sg of st.signs){const a=X(sg.a),b=X(sg.b),c=sg.s==='+'?'127,178,255':sg.s==='-'?'255,155,122':'200,215,255';
+      s+=`<rect x="${(a+3).toFixed(1)}" y="${BT+36}" width="${Math.max(0,b-a-6).toFixed(1)}" height="${BB-BT-50}" rx="10" fill="rgba(${c},${sg.s==='?'?.06:.16})" stroke="rgba(${c},${sg.s==='?'?.25:.55})" stroke-width="2"${sg.s==='?'?' stroke-dasharray="6 6"':''}/>`;
+      if(b-a>40)s+=`<text x="${((a+b)/2).toFixed(1)}" y="${BZ+19}" text-anchor="middle" font-family="Outfit,system-ui,sans-serif" font-weight="800" font-size="${fz(56,1.25)}" fill="rgba(${c},${sg.s==='?'?.5:.95})">${sg.s==='+'?'+':sg.s==='-'?MINUS:'?'}</text>`}
+    for(const z of st.zeros){const px=X(z).toFixed(1);s+=`<path d="M${px} ${BT+30}V${BB-8}" stroke="#e8c766" stroke-width="2.5" stroke-dasharray="5 5"/><circle cx="${px}" cy="${BZ}" r="15" fill="#0b1630" stroke="#e8c766" stroke-width="2.5"/><text x="${px}" y="${BZ+7}" text-anchor="middle" font-family="Outfit,system-ui,sans-serif" font-weight="800" font-size="${fz(19)}" fill="#e8c766">0</text>`}
+  }
+  s+='</g>';
+  /* mélodie écrite (pointillés) */
+  s+='<g clip-path="url(#lp-cm)">';
+  if(st.melody==='hide'&&!S&&!st.done)s+=`<text x="${(PL+PR)/2}" y="${(MT+MB)/2+12}" text-anchor="middle" font-family="Outfit,system-ui,sans-serif" font-weight="700" font-size="${fz(30,1.3)}" fill="rgba(200,215,255,.28)">mélodie cachée</text>`;
+  if(st.melody!=='hide'){const pts=[];for(let i=0;i<=300;i++){const x=x0+(x1-x0)*i/300;pts.push([X(x),clampY(Y(F.fn(x)))])}
+    s+=`<path d="${path(pts)}" fill="none" stroke="rgba(214,224,255,.42)" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"/>`}
+  /* mélodie jouée */
+  if(S){const col=S.good===true?'#e8c766':'#9fb4ff';const pts=[],bad=[];
+    for(let i=0;i<=iK;i++){const px=X(S.xs[i]),py=clampY(Y(S.yp[i]));pts.push([px,py]);bad.push(Math.abs(S.yp[i]-S.yt[i])/(st.y1-st.y0)>TOL)}
+    s+=`<path d="${path(pts)}" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" filter="url(#lp-glow)"/>`;
+    /* parties qui décrochent */
+    let seg=[];const segs=[];for(let i=0;i<pts.length;i++){if(bad[i])seg.push(pts[i]);else if(seg.length){segs.push(seg);seg=[]}}if(seg.length)segs.push(seg);
+    for(const g of segs)if(g.length>1)s+=`<path d="${path(g)}" fill="none" stroke="#ff6b6b" stroke-width="5" stroke-linecap="round"/>`}
+  else if(st.done){const pts=[];for(let i=0;i<=300;i++){const x=x0+(x1-x0)*i/300;pts.push([X(x),clampY(Y(F.fn(x)))])}
+    s+=`<path d="${path(pts)}" fill="none" stroke="#e8c766" stroke-width="5" stroke-linecap="round" filter="url(#lp-glow)"/>`}
+  s+='</g>';
+  /* notes extrêmes */
+  const xh=S?S.xs[iK]:null;
+  for(const m of st.marks){if(!(st.markAll||(S&&xh>=m.x-1e-9)||st.done))continue;const px=X(m.x),py=Y(F.fn(m.x));
+    if(m.t==='flat'){s+=`<g><circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="9" fill="#0b1630" stroke="#c9d6ff" stroke-width="3"/><text x="${px.toFixed(1)}" y="${(py-20).toFixed(1)}" text-anchor="middle" font-family="Outfit,system-ui,sans-serif" font-weight="700" font-size="${fz(19)}" fill="#c9d6ff">note tenue</text></g>`;continue}
+    const up=m.t==='max',ly=up?py-52:py+44;
+    s+=`<g filter="url(#lp-glow)"><ellipse cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" rx="13" ry="9.5" transform="rotate(-22 ${px.toFixed(1)} ${py.toFixed(1)})" fill="#e8c766"/>`+
+       `<path d="M${(px+11.5).toFixed(1)} ${(py-3).toFixed(1)}V${(py-40).toFixed(1)}q10 6 14 16" stroke="#e8c766" stroke-width="3" fill="none" stroke-linecap="round"/></g>`+
+       `<text x="${px.toFixed(1)}" y="${Math.max(MT+20,Math.min(MB-6,ly)).toFixed(1)}" text-anchor="middle" font-family="Outfit,system-ui,sans-serif" font-weight="800" font-size="${fz(20)}" fill="#e8c766">${up?'max':'min'}${m.lab?' '+esc(m.lab):''}</text>`}
+  /* tête de lecture */
+  if(S&&S.k<1){const px=X(S.xs[iK]),py=clampY(Y(S.yp[iK])),gv=S.gs[iK];
+    s+=`<path d="M${px.toFixed(1)} ${MT+2}V${BB-2}" stroke="#6c8eff" stroke-width="3" opacity=".9"/>`;
+    s+=`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="11" fill="#dfe6ff" stroke="#6c8eff" stroke-width="4" filter="url(#lp-glow)"/>`;
+    if(isFinite(gv)){const hgt=Math.max(-BH-8,Math.min(BH+8,gv/st.gm*BH));s+=`<circle cx="${px.toFixed(1)}" cy="${(BZ-hgt).toFixed(1)}" r="7" fill="#dfe6ff"/>`;
+      const tx=Math.min(PR-70,Math.max(PL+70,px));s+=`<text x="${tx.toFixed(1)}" y="${BT+56}" text-anchor="middle" font-family="Outfit,system-ui,sans-serif" font-weight="800" font-size="${fz(22)}" fill="${gv>1e-9?'#7fb2ff':gv<-1e-9?'#ff9b7a':'#e8c766'}">${gv>1e-9?'↗ monte':gv<-1e-9?'↘ descend':'→ tenue'}</text>`}}
+  svg.innerHTML=s}
+addEventListener('resize',()=>render());
+
+window.LPK={Q,q,D,Dt,DF,frS,frac,par,writes,ri,pick,shuf,nz,tm,P,RQ,Tpy,Td,Th,t1,cfH,xp,Tneg,Tsc,Pmul,Padd,Pval,paren,cmp,mkF,FT,same,SND,sleep,anim,reduceM,$,MINUS,NB,
+  reset,set,render,play,sample,get st(){return st},get lastGood(){return lastGood},set lastGood(v){lastGood=v},X,Y,TOL,fmt};
+})();
+</script>
+<script>
+/* ======================= LA PARTITION — déroulé des questions ======================= */
+(function(){
+'use strict';
+const K=window.LPK,{Q,q,D,Dt,frac,ri,pick,shuf,SND,sleep,$,MINUS}=K;
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+let lvl=0,qi=0,run=[],QN=null,pi=0,errs=0,busy=false,partState={};
+const LV=window.LP_LV=[];
+function starsOf(i){try{const g=SigmaKit.passport().games['la-partition'];return g&&g.levels[i+1]||0}catch(e){return 0}}
+const cap=h=>{$('capt').innerHTML=h?'<span>'+h+'</span>':'&nbsp;'};
+K.cap=cap;
+
+/* ---------- retours ---------- */
+function fb(html,rv){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI(rv?'neutre':'pense');$('fbt').textContent=rv?'Voici la réponse.':'Pas tout à fait.';
+  $('fbp').innerHTML=html;$('fb').classList.toggle('rv',!!rv);$('fb').hidden=false;
+  const f=$('fb');if(innerWidth<=860&&f.getBoundingClientRect().bottom>innerHeight)setTimeout(()=>f.scrollIntoView({block:'end',behavior:K.reduceM?'auto':'smooth'}),30)}
+/* erreur : 1er essai → explication ; 2e essai → la réponse est donnée, on continue */
+function err(why,box,reveal,sol){errs++;partState.errors=(partState.errors||0)+1;SND.soft();
+  if(partState.errors>=2&&reveal){reveal();fb((why?why+' ':'')+(sol?'<br>'+sol:''),true);
+    const b=document.createElement('div');b.className='btns';b.style.marginTop='10px';b.innerHTML='<button type="button" class="btn or cont">Continuer →</button>';box.appendChild(b);
+    const c=b.querySelector('.cont');c.onclick=async()=>{if(busy)return;c.disabled=true;await finish(QN.parts[pi])};setTimeout(()=>c.focus({preventScroll:true}),30)}
+  else fb(why)}
+async function finish(p){fb('');busy=true;try{if(p&&p.play){K.set({g:null});await K.play();K.set({g:K.st.F.dpy})}if(p&&p.onOk)await p.onOk()}finally{busy=false}nextPart()}
+/* jouer une partition fausse : la mélodie décroche */
+async function drift(g){busy=true;try{K.set({g:null});await K.play({g})}finally{busy=false}}
+const W={};
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);nextPart()}};
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  const all=[...box.querySelectorAll('.opt')];
+  all.forEach(b=>b.onclick=async()=>{if(busy||b.disabled)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){all.forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();await finish(p)}
+    else{b.classList.add('ko');b.disabled=true;all.forEach(x=>x.disabled=true);
+      if(p.play&&c.g)await drift(c.g);
+      all.forEach(x=>{if(!x.classList.contains('ko'))x.disabled=false});
+      const why=typeof c.why==='function'?c.why():c.why;
+      err(why+(p.play&&c.g?' <span class="nw">La mélodie jouée décroche (en corail).</span>':''),box,()=>{all.forEach(x=>{x.disabled=true;if(p.ch[+x.dataset.j].ok)x.classList.add('ok')})},'La bonne réponse est en vert.')}})};
+/* trous : comparaison numérique exacte (virgule ou point, signe + facultatif, fractions a/b) */
+function readNum(s){return Q.parse(String(s).replace(/[%€]/g,''))}
+W.fill=(p,box)=>{
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const a=p.ans[+i],s=Dt(a.v);const w=Math.max(2.8,s.length*.62+1.7);
+    return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="${a.v.sgn()<0||!a.v.isInt()?'text':'decimal'}" aria-label="Case ${+i+1}" style="width:${w.toFixed(1)}em">`});
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+(p.note?`<p class="hint">${p.note}</p>`:'');
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy||f.dataset.done)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const nums=v.map(readNum);if(nums.some(z=>!z)){fb('Écris des nombres&nbsp;: entiers, décimaux (avec une virgule) ou fractions comme 3/4.');return}
+    const oks=nums.map((z,i)=>z.eq(p.ans[+ins[i].dataset.i].v));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){f.dataset.done=1;ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();await finish(p)}
+    else{const byI=[];ins.forEach((x,i)=>byI[+x.dataset.i]=nums[i]);
+      if(p.gOf){const g=p.gOf(byI);if(g){f.querySelector('button').disabled=true;await drift(g);f.querySelector('button').disabled=false}}
+      const why=(typeof p.why==='function'?p.why(byI):p.why)+(p.gOf&&p.gOf(byI)?' <span class="nw">La mélodie jouée décroche.</span>':'');
+      err(why,box,()=>{f.dataset.done=1;ins.forEach(x=>{x.value=Dt(p.ans[+x.dataset.i].v).replace(/ /g,'');x.classList.remove('ko');x.classList.add('ok');x.disabled=true});f.querySelector('button').remove()},
+      'Réponse&nbsp;: '+p.ans.map(a=>'<b style="display:inline">'+D(a.v)+'</b>').join(' ; ')+'.')}};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* tableau de signes / de variations : chaque case se règle d'une touche (+ / − ; ↗ / ↘) */
+const GL={'?':'?','+':'+','-':MINUS,u:'↗',d:'↘'};
+function tabHTML(p,vals){const n=p.xs.length;let r1='<tr><th>x</th>',r2='<tr><th>f′(x)</th>',r3='<tr class="vr"><th>f(x)</th>';
+  for(let i=0;i<n;i++){r1+=`<td class="b">${p.xs[i]}</td>`;r2+=`<td class="b">${p.zeros.includes(i)?'<span class="z">0</span>':''}</td>`;
+    r3+=`<td class="b"><div class="vb" data-vi="${i}" style="display:flex;flex-direction:column;justify-content:${p.pos&&p.pos[i]==='h'?'flex-start':p.pos&&p.pos[i]==='b'?'flex-end':'center'};height:68px"><span class="tvv">${vals[i]||''}</span></div></td>`;
+    if(i<n-1){r1+='<td class="c"></td>';
+      r2+=`<td class="c">${p.sgGiven?`<span class="sg ${p.sg[i]==='+'?'p':'n'}">${GL[p.sg[i]]}</span>`:`<button type="button" class="tc" data-r="s" data-j="${i}" data-v="?" aria-label="Signe de f′ sur l'intervalle ${i+1}">?</button>`}</td>`;
+      r3+=`<td class="c">${p.ar?`<button type="button" class="tc" data-r="a" data-j="${i}" data-v="?" aria-label="Sens de variation de f sur l'intervalle ${i+1}">?</button>`:''}</td>`}}
+  return `<div class="tvw"><table class="tv">${r1}</tr>${r2}</tr>${p.ar||p.vals?r3+'</tr>':''}</table></div>`}
+W.tab=(p,box)=>{const vals=(p.vals||[]).slice();
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+tabHTML(p,vals)+`<div class="btns" style="margin-top:10px"><button type="button" class="btn or val">Valider le tableau</button></div>`+
+    `<p class="hint">${p.note||'Touche une case pour la régler&nbsp;: + ou −'+(p.ar?', puis ↗ ou ↘':'')+'.'}</p>`;
+  box.classList.add('keep');
+  const cells=[...box.querySelectorAll('.tc')];
+  const syncScene=()=>{if(p.sgGiven)return;const sg=K.st.signs;if(!sg)return;cells.filter(c=>c.dataset.r==='s').forEach(c=>{sg[+c.dataset.j].s=c.dataset.v});K.render()};
+  cells.forEach(c=>c.onclick=()=>{if(busy||c.disabled)return;const v=c.dataset.v,r=c.dataset.r;const nv=r==='s'?(v==='+'?'-':'+'):(v==='u'?'d':'u');
+    c.dataset.v=nv;c.textContent=GL[nv];c.classList.remove('ok','ko');SND.tick();syncScene()});
+  const bt=box.querySelector('.val');
+  bt.onclick=async()=>{if(busy||bt.disabled)return;if(cells.some(c=>c.dataset.v==='?')){fb('Règle toutes les cases (aucun «&nbsp;?&nbsp;») avant de valider.');return}
+    let bs=[],ba=[];cells.forEach(c=>{const j=+c.dataset.j,good=c.dataset.r==='s'?c.dataset.v===p.sg[j]:c.dataset.v===p.ar[j];c.classList.toggle('ok',good);c.classList.toggle('ko',!good);if(!good)(c.dataset.r==='s'?bs:ba).push(j)});
+    const done=()=>{cells.forEach(c=>c.disabled=true);bt.remove()};
+    if(!bs.length&&!ba.length){done();SND.pop();await finish(p);return}
+    let why='';if(bs.length){const j=bs[0];why=p.whyS?p.whyS(j):'Regarde le signe de f′ sur cet intervalle.'}
+    else{why='La partition commande la mélodie&nbsp;: sur un intervalle où f′(x) &gt; 0, f est croissante (↗)&nbsp;; où f′(x) &lt; 0, f est décroissante (↘).'+(p.whyA?' '+p.whyA:'')}
+    err(why,box,()=>{cells.forEach(c=>{const j=+c.dataset.j,v=c.dataset.r==='s'?p.sg[j]:p.ar[j];c.dataset.v=v;c.textContent=GL[v];c.classList.remove('ko');c.classList.add('ok')});syncScene();done()},'Le tableau est maintenant rempli correctement.')};
+};
+/* écrire une valeur dans la dernière ligne f(x) affichée */
+K.tabVal=(i,html,pos)=>{const all=document.querySelectorAll('#work .vb[data-vi="'+i+'"]');const el=all[all.length-1];if(!el)return;el.querySelector('.tvv').innerHTML=html;if(pos)el.style.justifyContent=pos==='h'?'flex-start':'flex-end'};
+
+/* ---------- déroulé ---------- */
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;partState={};if(pi<QN.parts.length){const p=QN.parts[pi];if(p.on)p.on();const box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:K.reduceM?'auto':'smooth'})}}
+function newQ(){QN=LV[lvl].qs[qi]();pi=0;errs=0;partState={};
+  QN.scene();cap(QN.cap0||'&nbsp;');
+  $('prompt').innerHTML=QN.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  const p=QN.parts[0];if(p.on)p.on();const box=partEl();W[p.t](p,box)}
+function dots(){const N=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:N},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+async function win(){fb('');SND.win();run.push(errs===0);dots();
+  const N=LV[lvl].qs.length,lvlDone=run.length>=N;
+  $('winx').textContent=errs===0?pick(['Synchro parfaite !','Bravo !','Exactement !','Juste !']):pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=QN.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(QN.onWin){busy=true;try{await QN.onWin()}finally{busy=false}}
+  if(QN.capEnd)cap(QN.capEnd);else if(K.st&&K.st.mode==='sign'&&K.st.done)cap('<span class="k">La mélodie suit sa partition</span> <span class="m">·</span> <span class="p">+ elle monte</span> <span class="m">·</span> <span class="n">− elle descend</span>');
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lv=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lv,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lv)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if(busy)return;if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:K.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];$('chap').textContent=LV[l].chap;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('cours').open=false;renderLv();newQ()}
+function renderLv(){$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}" title="${l.t}">${i+1}. ${l.s||l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${SND.on}">♪ Bruitages : ${SND.on?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;
+  if(b.id==='snd'){SND.on=!SND.on;try{localStorage.setItem('sigma-fanfare',SND.on?'1':'0')}catch(_){}renderLv();SND.pop();return}
+  goLevel(+b.dataset.l)});
+
+/* ---------- fabriques de parties ---------- */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+/* choix : leurres en double retirés (même partition numérique, ou même texte) */
+const ch=(ask,list,o)=>{o=o||{};const I=o.I;const out=[];const ok=list.find(c=>c.ok);if(ok)out.push(ok);
+  for(const c of list){if(c.ok)continue;if(out.some(d=>d.h===c.h||(I&&c.g&&d.g&&K.same(c.g,d.g,I))))continue;out.push(c)}
+  const keep=out.slice(0,o.max||4);if(o.keep){keep.sort((a,b)=>list.indexOf(a)-list.indexOf(b))}
+  return Object.assign({t:'choice',ask,ch:keep},o)};
+const fill=(ask,tpl,ans,why,o)=>Object.assign({t:'fill',ask,tpl,ans:ans.map(a=>Object.assign({},a,{v:q(a.v)})),why},o||{});
+const tab=(o)=>Object.assign({t:'tab'},o);
+const OK=(h,x)=>Object.assign({h,ok:true},x||{}),NO=(h,why,x)=>Object.assign({h,why},x||{});
+Object.assign(K,{act,ch,fill,tab,OK,NO,goLevel,renderLv});
+
+/* ---------- crochets de test ---------- */
+function ser(p){const o={t:p.t,ask:p.ask||'',label:p.label||'',play:!!p.play};
+  if(p.t==='choice')o.choices=p.ch.map(c=>({h:c.h,ok:!!c.ok,why:typeof c.why==='function'?c.why():c.why||'',claim:c.claim||null,g:c.g||null}));
+  if(p.t==='fill'){o.tpl=p.tpl;o.ans=p.ans.map(a=>({v:String(a.v),txt:Dt(a.v).replace(/ /g,'')}));o.verify=p.verify||null;o.why=typeof p.why==='function'?p.why(p.ans.map(()=>q(12345))):p.why||''}
+  if(p.t==='tab'){o.xs=p.xs;o.xq=p.xq;o.zeros=p.zeros;o.sg=p.sg;o.ar=p.ar||null;o.sgGiven=!!p.sgGiven;o.valq=(p.valq||[]).map(v=>v===null||v===undefined?null:String(v))}
+  return o}
+window.LP={state(){const p=QN&&QN.parts[pi];return{lvl,qi,nq:LV[lvl].qs.length,pi,busy,np:QN?QN.parts.length:0,part:p?ser(p):null}},
+  sample(L,i){const Qx=LV[L].qs[i]();return{prompt:Qx.prompt,done:Qx.done,cap0:Qx.cap0||'',spec:Qx.spec||{},parts:Qx.parts.map(ser)}},
+  get busy(){return busy}};
+})();
+</script>
+<script>
+/* ======================= LA PARTITION — les sept niveaux ======================= */
+(function(){
+'use strict';
+const K=window.LPK,{Q,q,D,Dt,DF,frac,par,ri,pick,shuf,nz,tm,P,RQ,Tpy,Td,Th,cfH,xp,Tneg,Tsc,Pmul,Padd,Pval,paren,cmp,mkF,FT,act,ch,fill,tab,OK,NO,cap,MINUS,fmt}=K;
+const LV=window.LP_LV;
+/* ---------- outils communs (exportés pour les épreuves) ---------- */
+const R=x=>`R('${q(x)}')`;                                  /* rationnel pour l'audit Python */
+const cE=g=>`eq(d,S('${g}'))`;                              /* affirmation : f′ = g */
+const xm=r=>{r=q(r);return r.sgn()===0?'x':r.sgn()>0?`x ${MINUS} ${D(r)}`:`x + ${D(r.abs())}`};
+const fpc=r=>q(r).sgn()===0?'x':`(${xm(r)})`;
+const kH=k=>{k=q(k);return k.eq(1)?'':k.eq(-1)?MINUS:DF(k)};
+/* k(x − r1)(x − r2)… : écriture et Python */
+const fac=(k,rs)=>{const o=rs.slice().sort((a,b)=>(q(a).sgn()===0?-1:0)-(q(b).sgn()===0?-1:0));return kH(k)+o.map(fpc).join('')};
+const facpy=(k,rs)=>`${RQ(k)}`+rs.map(r=>`*(x-${RQ(r)})`).join('');
+const SUP={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','−':'⁻'};
+/* HTML → texte (étiquette de la scène) */
+function txt(h){let s=h;for(let k=0;k<4;k++)s=s.replace(/<span class="fr"><span>([^<]*(?:<sup>[^<]*<\/sup>[^<]*)*)<\/span><span>([^<]*(?:<sup>[^<]*<\/sup>[^<]*)*)<\/span><\/span>/g,(_,a,b)=>{const w=t=>/[ +−]/.test(t.replace(/^−/,''))?`(${t})`:t;return w(a)+'/'+w(b)});
+  s=s.replace(/<sup>([^<]*)<\/sup>/g,(_,e)=>[...e].map(c=>SUP[c]||c).join('')).replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ');return s}
+const num=v=>v==='-oo'?-Infinity:v==='oo'?Infinity:q(v).v;
+const xsH=v=>v==='-oo'?MINUS+'∞':v==='oo'?'+∞':D(v);
+function testPt(a,b){if(!isFinite(a))return Math.floor(b)-1;if(!isFinite(b))return Math.ceil(a)+1;const m=(a+b)/2;if(Number.isInteger(m))return m;
+  const c=Math.ceil(a+1e-9);if(c<b-1e-9)return c;return m}
+const vS=v=>{const r=Math.round(v*1000)/1000;return Math.abs(v-r)<1e-9?'= '+fmt(r,3):'≈ '+fmt(v,2)};
+function wS(F,xq,extra){return j=>{const a=num(xq[j]),b=num(xq[j+1]),m=testPt(a,b),v=F.dn(m);
+  return `Sur cet intervalle, f′(x) garde le même signe&nbsp;: teste une valeur, par exemple f′(${fmt(m,3)}) ${vS(v)}, qui est ${v>0?'positif':'négatif'}.${extra?' '+extra:''}`}}
+const posOf=(ar,i)=>{const l=i>0?ar[i-1]:null,r=i<ar.length?ar[i]:null;const top=(l==='u'||r==='d'),bot=(l==='d'||r==='u');return top&&!bot?'h':bot&&!top?'b':'c'};
+/* scènes */
+const sceneD=(F,o)=>()=>K.reset(Object.assign({F,mode:'deriv',label:txt('f(x) = '+F.h)},o||{}));
+function segs(F,xq,sg){const out=[];for(let j=0;j<xq.length-1;j++){const a=Math.max(F.I[0],num(xq[j])),b=Math.min(F.I[1],num(xq[j+1]));out.push({a,b,s:sg?sg[j]:'?'})}return out}
+const sceneS=(F,xq,o)=>()=>{o=o||{};K.reset(Object.assign({F,mode:'sign',melody:o.melody||'hide',signs:segs(F,xq,o.sg),zeros:o.zeros||[],marks:o.marks||[],label:o.label||''},o.extra||{}))};
+const synchro=F=>`f′(x) = ${F.dh} <span class="m">·</span> <span class="k">synchro&nbsp;!</span>`;
+/* tableau : bornes xq (chaînes exactes ou ±oo), zéros, signes attendus, flèches attendues */
+function TAB(F,xq,zeros,sg,o){o=o||{};const ar=o.ar===false?null:(o.ar||sg.map(v=>v==='+'?'u':'d'));
+  const valq=o.valq||xq.map(()=>null);
+  return tab(Object.assign({xs:xq.map(xsH),xq,zeros,sg,ar,valq,vals:valq.some(v=>v!==null)?valq.map(v=>v===null?'':D(v)):null,pos:ar?xq.map((_,i)=>posOf(ar,i)):null,whyS:wS(F,xq,o.hint),play:o.play!==false,
+    ask:o.ask||(ar?'Complète le tableau&nbsp;: signe de f′(x), puis sens de variation de f.':'Complète la ligne du signe de f′(x).')},o.x||{}))}
+const tabSet=(xq,ar,vals)=>{vals.forEach((v,i)=>{if(v!==null&&v!==undefined)K.tabVal(i,D(v),ar?posOf(ar,i):null)})};
+const sq=h=>`(${h})<sup>2</sup>`,sqX=a=>q(a).sgn()===0?'x<sup>2</sup>':sq(xm(a));
+const iv=(a,b)=>`[${D(a)}&nbsp;; ${D(b)}]`;
+Object.assign(K,{sq,sqX,R,cE,xm,fpc,kH,fac,facpy,txt,num,xsH,wS,posOf,sceneD,sceneS,segs,TAB,iv,synchro});
+
+/* =================================================================== */
+/* NIVEAU 1 · Les notes de base : dérivées des fonctions de référence   */
+/* =================================================================== */
+const rule1=`<p>Une fonction f est <b>dérivable sur un intervalle</b> I si elle est dérivable en tout réel de I. La fonction x ↦ f′(x) est sa <b>fonction dérivée</b>&nbsp;: c'est la partition de la mélodie f.</p>
+<div class="tvw"><table class="tv"><tr><th>f(x)</th><th>f′(x)</th><th>f est dérivable sur</th></tr>
+<tr><td>k (constante)</td><td>0</td><td>ℝ</td></tr><tr><td>ax</td><td>a</td><td>ℝ</td></tr><tr><td>x<sup>2</sup></td><td>2x</td><td>ℝ</td></tr><tr><td>x<sup>3</sup></td><td>3x<sup>2</sup></td><td>ℝ</td></tr>
+<tr><td>x<sup>n</sup> (n entier, n ⩾ 1)</td><td>nx<sup>n−1</sup></td><td>ℝ</td></tr><tr><td>${frac(1,'x')}</td><td>${MINUS}${frac(1,'x<sup>2</sup>')}</td><td>]−∞&nbsp;; 0[ et ]0&nbsp;; +∞[</td></tr>
+<tr><td>x<sup>n</sup> (n entier, n ⩽ −1)</td><td>nx<sup>n−1</sup></td><td>]−∞&nbsp;; 0[ et ]0&nbsp;; +∞[</td></tr><tr><td>√x</td><td>${frac(1,'2√x')}</td><td>]0&nbsp;; +∞[</td></tr></table></div>
+<p>Par exemple ${frac(1,'x<sup>3</sup>')} = x<sup>−3</sup> a pour dérivée −3x<sup>−4</sup> = ${MINUS}${frac(3,'x<sup>4</sup>')}. La fonction racine carrée n'est pas dérivable en 0.</p>
+<p>Dans le studio, la tête de lecture monte la note de f′(x) × pas à chaque petit pas&nbsp;: c'est l'approximation f(x + h) ≈ f(x) + f′(x)h.</p>`;
+const ASK_D='Écris la partition&nbsp;: f′(x) =';
+function l1q1(){const n=ri(2,5),F=FT(P([1,n]),[-1.4,1.4]);const C=(ts,why)=>NO(Th(ts),why,{g:Tpy(ts),claim:cE(Tpy(ts))});
+  const ok=P([n,n-1]),a=pick([-1,1,2]),fa=q(n).mul(q(a).v**(n-1));
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F),prompt:`On considère la fonction f définie sur ℝ par f(x) = ${F.h}.`,cap0:'La mélodie f est écrite en pointillés. Quelle partition la joue&nbsp;?',
+    parts:[ch(ASK_D,[OK(Th(ok),{g:Tpy(ok),claim:cE(Tpy(ok))}),C(P([1,n-1]),`L'exposant ${n} descend devant&nbsp;: (x<sup>n</sup>)′ = nx<sup>n−1</sup>, ici le coefficient est ${n}.`),
+        C(P([n,n]),`L'exposant diminue de 1&nbsp;: (x<sup>${n}</sup>)′ = ${Th(P([n,n-1]))}.`),
+        NO(frac(xp(n+1),n+1),`L'exposant ne monte pas&nbsp;: l'ancien exposant passe devant et l'exposant diminue de 1, (x<sup>${n}</sup>)′ = ${Th(P([n,n-1]))}.`,{g:`x**(${n+1})/${n+1}`,claim:cE(`x**(${n+1})/${n+1}`)})],{play:true,I:F.I,onOk:()=>cap(synchro(F))}),
+      fill('Le nombre dérivé en a se lit sur la partition&nbsp;:',`f′(${D(a)}) = {0}`,[{v:fa}],`f′(${D(a)}) = ${n} × ${n-1>1?par(a)+'<sup>'+(n-1)+'</sup>':par(a)}.`,{verify:`eqv(Dv(${R(a)}),{0})`})],
+    done:`(x<sup>${n}</sup>)′ = ${Th(P([n,n-1]))}&nbsp;: la mélodie jouée se pose exactement sur la mélodie écrite. Et f′(${D(a)}) = ${D(fa)}.`}}
+function l1q2(){const n=pick([1,2,3]),ts=P([1,-n]),F=FT(ts,[[.5,3],[.6,3],[.7,3]][n-1]);
+  const C=(t,why)=>NO(Th(t),why,{g:Tpy(t),claim:cE(Tpy(t))});const ok=P([-n,-n-1]);
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F),prompt:`On considère la fonction f définie sur ]0&nbsp;; +∞[ par f(x) = ${F.h}.`,cap0:'Sur ]0&nbsp;; +∞[, la mélodie ne fait que descendre.',
+    parts:[ch(ASK_D,[OK(Th(ok),{g:Tpy(ok),claim:cE(Tpy(ok))}),C(P([n,-n-1]),`La mélodie descend&nbsp;: la partition est négative. ${frac(1,xp(n))} = x<sup>−${n}</sup> a pour dérivée ${Th(P([-n,-n-1]),{xneg:true})}.`),
+        C(P([-n,-n+1]),`x<sup>−${n}</sup> a pour dérivée ${kH(-n)}x<sup>−${n}−1</sup> = ${Th(P([-n,-n-1]),{xneg:true})}&nbsp;: au dénominateur, l'exposant augmente de 1.`),
+        C(P([-1,-n-1]),`Le coefficient −${n} vient de l'exposant&nbsp;: (x<sup>−${n}</sup>)′ = ${Th(P([-n,-n-1]),{xneg:true})}.`),
+        C(P([-1,-n]),`On ne recopie pas la fonction avec un signe moins&nbsp;: (x<sup>−${n}</sup>)′ = ${Th(P([-n,-n-1]),{xneg:true})}.`)],{play:true,I:F.I,onOk:()=>cap(synchro(F))}),
+      fill(`Avec les puissances&nbsp;: f(x) = x<sup>−${n}</sup>.`,`f′(x) = {0} × x<sup>m</sup> avec m = {1}`,[{v:-n},{v:-n-1}],`(x<sup>n</sup>)′ = nx<sup>n−1</sup> vaut aussi pour n entier négatif&nbsp;: ici n = −${n}, donc n − 1 = −${n+1}.`,{verify:'eq(d,{0}*x**({1}))'})],
+    done:`${frac(1,xp(n))} = x<sup>−${n}</sup> a pour dérivée ${Th(P([-n,-n-1]),{xneg:true})} = ${Th(ok)}&nbsp;: négative, la mélodie descend sur ]0&nbsp;; +∞[.`}}
+function l1q3(){const F=FT([tm(1,0,'s')],[.25,4]),a=pick([1,4,9,16,25]),r=Math.sqrt(a),fa=q(1).div(2*r);
+  const ok=frac(1,'2√x');
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F),prompt:`On considère la fonction racine carrée&nbsp;: f(x) = √x.`,cap0:'La mélodie monte de moins en moins vite.',
+    parts:[ch(ASK_D,[OK(ok,{g:'1/(2*sqrt(x))',claim:cE('1/(2*sqrt(x))')}),NO(frac(1,'√x'),'Il manque le 2 du dénominateur&nbsp;: (√x)′ = 1/(2√x).',{g:'1/sqrt(x)',claim:cE('1/sqrt(x)')}),
+        NO('2√x','La partition de √x n\'est pas une racine multipliée&nbsp;: (√x)′ = 1/(2√x), qui diminue quand x augmente.',{g:'2*sqrt(x)',claim:cE('2*sqrt(x)')}),
+        NO(frac('√x',2),'√x est au dénominateur&nbsp;: (√x)′ = 1/(2√x).',{g:'sqrt(x)/2',claim:cE('sqrt(x)/2')})],{play:true,I:F.I,onOk:()=>cap(synchro(F))}),
+      fill('Calcule un nombre dérivé&nbsp;:',`f′(${a}) = {0}`,[{v:fa}],`f′(${a}) = ${frac(1,`2√${a}`)} = ${frac(1,`2 × ${r}`)}.`,{verify:`eqv(Dv(${R(a)}),{0})`}),
+      ch('La fonction racine carrée est dérivable sur&nbsp;:',[OK(']0&nbsp;; +∞[',{claim:"fact('sqrt_open')"}),NO('[0&nbsp;; +∞[',`Elle est définie en 0, mais pas dérivable en 0&nbsp;: pour h &gt; 0, le taux ${frac('√h','h')} = ${frac(1,'√h')} ne se rapproche d'aucun nombre.`,{claim:"fact('sqrt_closed')"}),
+        NO('ℝ','√x n\'est même pas définie pour x &lt; 0.',{claim:"fact('sqrt_R')"})],{keep:true})],
+    done:`(√x)′ = ${frac(1,'2√x')} sur ]0&nbsp;; +∞[&nbsp;: positive mais de plus en plus petite, la mélodie monte de moins en moins vite. f′(${a}) = ${D(fa)}.`}}
+function l1q4(){let a,b;do{a=nz(-4,4);b=nz(-6,6)}while(Math.abs(a)===Math.abs(b));const F=FT(P([a,1],[b,0]),[-3,3]),k=nz(-7,7),G=FT(P([k,0]),[-3,3]);
+  const C=(h,g,why)=>NO(h,why,{g,claim:cE(g)});
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F),prompt:`Deux mélodies très simples&nbsp;: f(x) = ${F.h}, puis g(x) = ${k<0?MINUS+(-k):k}.`,cap0:'Une mélodie affine monte (ou descend) toujours au même rythme.',
+    parts:[ch(ASK_D,[OK(D(a),{g:RQ(a),claim:cE(RQ(a))}),C(Th(P([a,1])),`${RQ(a)}*x`,`La partition d'une fonction affine est constante&nbsp;: (ax)′ = a et la constante ${D(b)} a pour dérivée 0.`),
+        C(D(a+b),RQ(a+b),`La constante ${D(b)} ne fait ni monter ni descendre la note&nbsp;: sa dérivée est 0.`),C(D(b),RQ(b),`C'est le terme ${D(b)} qui disparaît&nbsp;: (ax + b)′ = a.`)],{play:true,I:F.I,onOk:()=>cap(synchro(F))}),
+      ch(`Et la partition de g(x) = ${k<0?MINUS+(-k):k}&nbsp;: g′(x) =`,[OK('0',{g:'(0)',claim:"eq(diff(S('"+G.py+"'),x),0)"}),NO(D(k),'Une constante ne monte ni ne descend&nbsp;: sa partition est muette, g′(x) = 0.',{g:RQ(k),claim:"eq(diff(S('"+G.py+"'),x),"+R(k)+")"}),
+        NO('x','La dérivée de x est 1, mais g ne contient pas x&nbsp;: g′(x) = 0.',{g:'x',claim:"eq(diff(S('"+G.py+"'),x),x)"}),NO(Th(P([k,1])),'g ne dépend pas de x&nbsp;: sa partition est muette, g′(x) = 0.',{g:`${RQ(k)}*x`,claim:"eq(diff(S('"+G.py+"'),x),"+R(k)+"*x)"})],
+        {on:()=>K.reset({F:G,mode:'deriv',label:'g(x) = '+txt(G.h)}),play:true,I:G.I,onOk:()=>cap('g′(x) = 0 <span class="m">·</span> <span class="k">une note tenue</span>')})],
+    done:`(ax + b)′ = a, ici f′(x) = ${D(a)}&nbsp;; et une constante a pour dérivée 0&nbsp;: sa mélodie est une seule note tenue.`}}
+function l1q5(){const n=pick([-4,-3,-2,4,5,6]),F=FT(P([1,n]),n<0?[.6,2.5]:[-1.3,1.3],{xneg:true});
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F),prompt:`On considère la fonction f définie par f(x) = x<sup>${n<0?MINUS+(-n):n}</sup>${n<0?' sur ]0&nbsp;; +∞[':' sur ℝ'}.`,cap0:'Écris la partition avec la formule (x<sup>n</sup>)′ = nx<sup>n−1</sup>.',
+    parts:[fill('Complète&nbsp;:',`f′(x) = {0} × x<sup>m</sup> avec m = {1}`,[{v:n},{v:n-1}],`(x<sup>n</sup>)′ = nx<sup>n−1</sup> avec n = ${n<0?MINUS+(-n):n}&nbsp;: le coefficient est ${n<0?MINUS+(-n):n} et l'exposant ${n<0?MINUS+(-n):n} − 1 = ${n-1<0?MINUS+(1-n):n-1}.`,
+        {verify:'eq(d,{0}*x**({1}))',gOf:v=>v[0]&&v[1]&&v[1].isInt()?`(${v[0]})*x**(${v[1]})`:null,play:true,onOk:()=>cap(synchro(F))}),
+      ch('La fonction f est dérivable&nbsp;:',n<0?[OK('sur ]−∞&nbsp;; 0[ et sur ]0&nbsp;; +∞[',{claim:'pole0()'}),NO('sur ℝ',`x<sup>${MINUS}${-n}</sup> = ${frac(1,xp(-n))} n'est pas définie en 0.`,{claim:'not pole0()'})]:
+        [OK('sur ℝ',{claim:'not pole0()'}),NO('seulement sur ]0&nbsp;; +∞[',`Pour n entier positif, x<sup>n</sup> est dérivable sur ℝ tout entier.`,{claim:'pole0()'})],{keep:true})],
+    done:`(x<sup>${n}</sup>)′ = ${n}x<sup>${n-1}</sup>`.replace(/-/g,MINUS)+(n<0?`, sur ]−∞&nbsp;; 0[ et sur ]0&nbsp;; +∞[ (0 est une valeur interdite).`:', sur ℝ.')}}
+LV.push({t:'Les notes de base',s:'Notes',chap:'Fonctions dérivées de référence',rule:rule1,qs:[l1q1,l1q2,l1q3,l1q4,l1q5]});
+
+/* =================================================================== */
+/* NIVEAU 2 · L'accord : somme, produit par un réel                      */
+/* =================================================================== */
+const rule2=`<p>Si u et v sont dérivables sur I et k est un réel&nbsp;: <b>(u + v)′ = u′ + v′</b> et <b>(ku)′ = ku′</b>.</p><p>Une somme se dérive terme à terme, le coefficient reste devant, et une constante ajoutée disparaît de la partition (sa dérivée est 0).</p><p>Exemple&nbsp;: (2x<sup>3</sup> − 5x<sup>2</sup> + 7x − 3)′ = 6x<sup>2</sup> − 10x + 7.</p>`;
+function l2q1(){let a,b,c,d0;do{a=pick([1,-1,2,-2]);b=ri(-6,6);c=ri(-6,6);d0=nz(-9,9)}while(!b||!c);const ts=P([a,3],[b,2],[c,1],[d0,0]),F=FT(ts,[-2.6,2.6]);
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F),prompt:`On considère f(x) = ${F.h} sur ℝ.`,cap0:'Dérive terme à terme&nbsp;: un accord, c\'est une somme de notes.',
+    parts:[fill(ASK_D.replace(' =',''),`f′(x) = {0}x<sup>2</sup> + {1}x + {2}`,[{v:3*a},{v:2*b},{v:c}],
+      v=>{let m=`(x<sup>3</sup>)′ = 3x<sup>2</sup>, (x<sup>2</sup>)′ = 2x, (x)′ = 1, et la constante ${D(d0)} a pour dérivée 0.`;if(v[0]&&v[0].eq(a))m=`Le coefficient ${D(a)} est multiplié par l'exposant 3&nbsp;: ${par(a)} × 3x<sup>2</sup>. `+m;if(v[2]&&v[2].eq(c+d0))m='La constante ne compte pas&nbsp;: sa dérivée est 0. '+m;return m},
+      {verify:'eq(d,{0}*x**2+{1}*x+{2})',gOf:v=>`(${v[0]})*x**2+(${v[1]})*x+(${v[2]})`,play:true,note:'Les coefficients peuvent être négatifs.',onOk:()=>cap(synchro(F))})],
+    done:`f′(x) = ${F.dh}&nbsp;: chaque terme est dérivé séparément, et ${D(d0)} disparaît.`}}
+function l2q2(){let n,a,b,c;do{n=pick([2,3]);a=nz(-3,3);b=nz(-4,4);c=nz(-5,5)}while(false);const ts=P([a,n],[b,-1],[c,0]),F=FT(ts,[.5,3]);
+  const C=(t,why)=>NO(Th(t),why,{g:Tpy(t),claim:cE(Tpy(t))});const ok=Td(ts);
+  const L=[OK(Th(ok),{g:Tpy(ok),claim:cE(Tpy(ok))}),C(P([a*n,n-1],[-b,-2],[c,0]),`La constante ${D(c)} est une note tenue&nbsp;: sa dérivée est 0, elle disparaît de la partition.`),
+    C(P([a*n,n-1],[b,-2]),`(${frac(1,'x')})′ = ${MINUS}${frac(1,'x<sup>2</sup>')}, donc (${Th(P([b,-1]))})′ = ${Th(P([-b,-2]))}.`),
+    C(P([a*n,n-1],[-b,-1]),`(${frac(1,'x')})′ = ${MINUS}${frac(1,'x<sup>2</sup>')}&nbsp;: le x passe au carré.`)];
+  if(Math.abs(a)!==1)L.push(C(P([n,n-1],[-b,-2]),`(ku)′ = ku′&nbsp;: le coefficient ${D(a)} reste devant, ${par(a)} × ${n}x${n-1>1?'<sup>'+(n-1)+'</sup>':''}.`));
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F),prompt:`On considère f(x) = ${F.h} sur ]0&nbsp;; +∞[.`,cap0:'Trois notes dans l\'accord&nbsp;: une puissance, un inverse, une constante.',
+    parts:[ch(ASK_D,L,{play:true,I:F.I,onOk:()=>cap(synchro(F))})],done:`f′(x) = ${F.dh}&nbsp;: (u + v)′ = u′ + v′ et (ku)′ = ku′.`}}
+function l2q3(){const a=pick([2,4,6,-2,-4]),b=nz(-3,3),c=nz(-5,5),ts=[tm(a,0,'s'),tm(b,1),tm(c,0)],F=FT(ts,[.25,4]);const ok=Td(ts);
+  const C=(t,why)=>NO(Th(t),why,{g:Tpy(t),claim:cE(Tpy(t))});
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F),prompt:`On considère f(x) = ${F.h} sur ]0&nbsp;; +∞[.`,cap0:'Une racine carrée, une note affine et une constante.',
+    parts:[ch(ASK_D,[OK(Th(ok),{g:Tpy(ok),claim:cE(Tpy(ok))}),C([tm(a,0,'is'),tm(b,0)],`(√x)′ = ${frac(1,'2√x')}&nbsp;: il manque la division par 2, ${par(a)} × ${frac(1,'2√x')} = ${Th([tm(q(a).div(2),0,'is')])}.`),
+        C([tm(q(a).div(2),0,'s'),tm(b,0)],`(√x)′ n'est pas √x divisé par 2&nbsp;: c'est ${frac(1,'2√x')}, la racine passe au dénominateur.`),C([tm(q(a).div(2),0,'is'),tm(b,0),tm(c,0)],`La constante ${D(c)} a pour dérivée 0.`)],{play:true,I:F.I,onOk:()=>cap(synchro(F))})],
+    done:`f′(x) = ${par(a)} × ${frac(1,'2√x')} + ${par(b)} = ${F.dh}.`}}
+function l2q4(){let p,c,r,a;do{p=nz(-3,3);c=ri(-6,6);r=ri(-5,5);a=ri(-3,3)}while(!c||2*p*a+c===0);const ts=P([p,2],[c,1],[r,0]),F=FT(ts,[-3.5,3.5]),da=2*p*a+c;
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F),prompt:`On considère f(x) = ${F.h} sur ℝ.`,cap0:'Une mélodie du second degré&nbsp;: sa partition est affine.',
+    parts:[fill('Écris la partition, puis lis un nombre dérivé&nbsp;:',`f′(x) = {0}x + {1}, donc f′(${D(a)}) = {2}`,[{v:2*p},{v:c},{v:da}],
+      v=>`(${Th(P([p,2]))})′ = ${par(p)} × 2x et (${Th(P([c,1]))})′ = ${D(c)}&nbsp;; puis on remplace x par ${D(a)} dans f′(x).`,{verify:`eq(d,{0}*x+{1}) and eqv(Dv(${R(a)}),{2})`,gOf:v=>`(${v[0]})*x+(${v[1]})`,play:true,onOk:()=>cap(synchro(F))})],
+    done:`f′(x) = ${F.dh} et f′(${D(a)}) = ${D(da)}.`}}
+function l2q5(){const a=nz(-2,2),b=nz(-4,4),ts=P([a,3],[b,-2]),F=FT(ts,[.6,2.5]);const ok=Td(ts);
+  const C=(t,why)=>NO(Th(t),why,{g:Tpy(t),claim:cE(Tpy(t))});
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F),prompt:`On considère f(x) = ${F.h} sur ]0&nbsp;; +∞[.`,cap0:`${Th(P([b,-2]))} = ${D(b)}x<sup>−2</sup>&nbsp;: utilise (x<sup>n</sup>)′ = nx<sup>n−1</sup> avec n = −2.`.replace('1x','x'),
+    parts:[ch(ASK_D,[OK(Th(ok),{g:Tpy(ok),claim:cE(Tpy(ok))}),C(P([3*a,2],[2*b,-3]),`(x<sup>−2</sup>)′ = −2x<sup>−3</sup>&nbsp;: le signe change.`),C(P([3*a,2],[-2*b,-1]),`(x<sup>−2</sup>)′ = −2x<sup>−3</sup> = ${MINUS}${frac(2,'x<sup>3</sup>')}&nbsp;: au dénominateur l'exposant passe de 2 à 3.`),
+        C(P([3*a,2],[-b,-3]),`Le coefficient −2 vient de l'exposant&nbsp;: (${Th(P([b,-2]))})′ = ${par(b)} × (−2)x<sup>−3</sup>.`),C(P([a,2],[-2*b,-3]),`(x<sup>3</sup>)′ = 3x<sup>2</sup>&nbsp;: n'oublie pas l'exposant 3 qui descend devant.`)],{play:true,I:F.I,onOk:()=>cap(synchro(F))})],
+    done:`f′(x) = ${F.dh}&nbsp;: (x<sup>3</sup>)′ = 3x<sup>2</sup> et (x<sup>−2</sup>)′ = −2x<sup>−3</sup>.`}}
+LV.push({t:'L\'accord',s:'Accord',chap:'Somme et produit par un réel',rule:rule2,qs:[l2q1,l2q2,l2q3,l2q4,l2q5]});
+
+/* =================================================================== */
+/* NIVEAU 3 · Le duo : produit                                           */
+/* =================================================================== */
+const rule3=`<p>Si u et v sont dérivables sur I&nbsp;: <b>(uv)′ = u′v + uv′</b>. Attention&nbsp;: (uv)′ n'est pas u′v′.</p>
+<p>Démonstration (au programme)&nbsp;: ${frac('u(a+h)v(a+h) − u(a)v(a)','h')} = ${frac('u(a+h) − u(a)','h')} × v(a+h) + u(a) × ${frac('v(a+h) − v(a)','h')}, qui se rapproche de u′(a)v(a) + u(a)v′(a) quand h tend vers 0.</p>
+<p>Exemple&nbsp;: (x<sup>2</sup> + 1)(3x − 2) a pour dérivée 2x(3x − 2) + 3(x<sup>2</sup> + 1) = 9x<sup>2</sup> − 4x + 3.</p>`;
+function prodF(U,V,I,o){const E=Pmul(U,V);return mkF({py:`(${Tpy(U)})*(${Tpy(V)})`,h:(o&&o.h)||paren(U)+paren(V),dpy:Tpy(Td(E)),dh:Th(Td(E)),I})}
+function l3q1(){const k=nz(-4,4),a=pick([1,2,3,-1,-2,-3]),b=nz(-4,4),U=P([1,2],[k,0]),V=P([a,1],[b,0]),F=prodF(U,V,[-2.5,2.5]);
+  const Uh=Th(U),Vh=Th(V),aU=`${kH(a)}(${Uh})`;const ok=`2x(${Vh}) ${a<0?MINUS:'+'} ${Math.abs(a)===1?'':Math.abs(a)}(${Uh})`;
+  const gU=Tpy(U),gV=Tpy(V);
+  return{spec:{f:F.py,fh:F.h,u:gU,v:gV,I:F.I},scene:sceneD(F),prompt:`On considère f(x) = ${F.h} sur ℝ, produit de u(x) = ${Uh} et v(x) = ${Vh}.`,cap0:'Un duo&nbsp;: deux voix u et v jouées ensemble, multipliées.',
+    parts:[fill('Les deux voix&nbsp;:',`u′(x) = {0}x et v′(x) = {1}`,[{v:2},{v:a}],`(x<sup>2</sup>)′ = 2x et la constante disparaît&nbsp;; (${Vh})′ = ${D(a)}.`,{verify:'eq(diff(U,x),{0}*x) and eq(diff(V,x),{1})'}),
+      ch(ASK_D,[OK(ok,{g:`2*x*(${gV})+${RQ(a)}*(${gU})`,claim:cE(`2*x*(${gV})+${RQ(a)}*(${gU})`)}),
+        NO(`2x × ${par(a)}`,`(uv)′ n'est pas u′v′&nbsp;: c'est u′v + uv′, deux morceaux qui s'ajoutent.`,{g:`2*x*${RQ(a)}`,claim:cE(`2*x*${RQ(a)}`)}),
+        NO(`2x(${Vh}) ${a<0?'+':MINUS} ${Math.abs(a)===1?'':Math.abs(a)}(${Uh})`,`Pour un produit, les deux morceaux s'<b>ajoutent</b>&nbsp;: u′v + uv′ (le signe − apparaît dans la formule du quotient).`,{g:`2*x*(${gV})-${RQ(a)}*(${gU})`,claim:cE(`2*x*(${gV})-${RQ(a)}*(${gU})`)}),
+        NO(`2x(${Vh})`,`Il manque le second morceau uv′ = ${aU.replace(/^1\(/,'(')}.`,{g:`2*x*(${gV})`,claim:cE(`2*x*(${gV})`)})],{play:true,I:F.I,onOk:()=>cap(synchro(F))})],
+    done:`f′(x) = u′v + uv′ = ${ok} = ${F.dh}.`}}
+function l3q2(){const a=pick([1,2,3,-1,-2]),b=nz(-4,4),V=P([a,1],[b,0]),Vh=Th(V),gV=Tpy(V);
+  const F=mkF({py:`(${gV})*sqrt(x)`,h:`(${Vh})√x`,dpy:`${RQ(a)}*sqrt(x)+(${gV})/(2*sqrt(x))`,dh:`${kH(a)}√x + ${frac(Vh,'2√x')}`,I:[.25,4]});
+  return{spec:{f:F.py,fh:F.h,u:gV,v:'sqrt(x)',I:F.I},scene:sceneD(F),prompt:`On considère f(x) = ${F.h} sur ]0&nbsp;; +∞[, produit de u(x) = ${Vh} et v(x) = √x.`,cap0:`u′(x) = ${D(a)} et v′(x) = ${frac(1,'2√x')}.`,
+    parts:[ch(ASK_D,[OK(F.dh,{g:F.dpy,claim:cE(F.dpy)}),NO(frac(D(a),'2√x'),`C'est u′v′. Pour un produit&nbsp;: (uv)′ = u′v + uv′ = ${D(a)} × √x + (${Vh}) × ${frac(1,'2√x')}.`,{g:`${RQ(a)}/(2*sqrt(x))`,claim:cE(`${RQ(a)}/(2*sqrt(x))`)}),
+        NO(`${kH(a)}√x ${MINUS} ${frac(Vh,'2√x')}`,`Les deux morceaux s'ajoutent&nbsp;: u′v <b>+</b> uv′.`,{g:`${RQ(a)}*sqrt(x)-(${gV})/(2*sqrt(x))`,claim:cE(`${RQ(a)}*sqrt(x)-(${gV})/(2*sqrt(x))`)}),
+        NO(`${kH(a)}√x + ${frac(Vh,'√x')}`,`(√x)′ = ${frac(1,'2√x')}&nbsp;: il manque le 2 au dénominateur.`,{g:`${RQ(a)}*sqrt(x)+(${gV})/sqrt(x)`,claim:cE(`${RQ(a)}*sqrt(x)+(${gV})/sqrt(x)`)})],{play:true,I:F.I,onOk:()=>cap(synchro(F))})],
+    done:`f′(x) = ${D(a)} × √x + (${Vh}) × ${frac(1,'2√x')} = ${F.dh}.`}}
+function l3q3(){let a,b,c,d0;do{a=nz(-3,3);b=nz(-5,5);c=nz(-3,3);d0=nz(-5,5)}while(a*d0+b*c===0);const U=P([a,1],[b,0]),V=P([c,1],[d0,0]),F=prodF(U,V,[-3,3]);
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F),prompt:`On considère f(x) = ${F.h} sur ℝ.`,cap0:'Dérive le produit, puis développe et réduis.',
+    parts:[fill('Écris la partition sous forme réduite&nbsp;:',`f′(x) = {0}x + {1}`,[{v:2*a*c},{v:a*d0+b*c}],
+      `u(x) = ${Th(U)}, u′(x) = ${D(a)}&nbsp;; v(x) = ${Th(V)}, v′(x) = ${D(c)}. Donc f′(x) = ${D(a)}(${Th(V)}) ${c<0?MINUS:'+'} ${Math.abs(c)===1?'':Math.abs(c)}(${Th(U)}), puis développe.`,
+      {verify:'eq(d,{0}*x+{1})',gOf:v=>`(${v[0]})*x+(${v[1]})`,play:true,onOk:()=>cap(synchro(F))})],
+    done:`f′(x) = ${D(a)}(${Th(V)}) ${c<0?MINUS:'+'} ${Math.abs(c)===1?'':Math.abs(c)}(${Th(U)}) = ${F.dh}.`}}
+function l3q4(){const n=pick([2,3]),F=FT(P([1,n+1]),[-1.3,1.3]),bad=Tpy(P([n,n-1])),okg=`x**(${n})+x*${n}*x**(${n-1})`;
+  return{spec:{f:F.py,fh:F.h,u:'x',v:`x**(${n})`,I:F.I},scene:sceneD(F,{label:'f(x) = x × x'+(n===2?'²':'³')}),prompt:`Avec u(x) = x et v(x) = x<sup>${n}</sup>, on a f(x) = u(x)v(x) = x<sup>${n+1}</sup>. Un élève propose (uv)′ = u′v′.`,cap0:'Mettons la proposition à l\'épreuve du studio.',
+    parts:[fill('Calcule les deux partitions&nbsp;:',`u′(x)v′(x) = {0}x${n-1>1?'<sup>'+(n-1)+'</sup>':''} et (x<sup>${n+1}</sup>)′ = {1}x<sup>${n}</sup>`,[{v:n},{v:n+1}],`u′(x) = 1, v′(x) = ${n}x${n-1>1?'<sup>'+(n-1)+'</sup>':''}, et (x<sup>${n+1}</sup>)′ = ${n+1}x<sup>${n}</sup>.`,
+        {verify:`eq(diff(U,x)*diff(V,x),{0}*x**(${n-1})) and eq(d,{1}*x**(${n}))`}),
+      ch('Quelle partition joue la mélodie f&nbsp;?',[OK(`u′v + uv′ = 1 × x<sup>${n}</sup> + x × ${n}x${n-1>1?'<sup>'+(n-1)+'</sup>':''}`,{g:okg,claim:cE(okg)}),
+        NO(`u′v′ = ${Th(P([n,n-1]))}`,`Écoute&nbsp;: u′v′ décroche. La bonne formule est (uv)′ = u′v + uv′.`,{g:bad,claim:cE(bad)})],{play:true,I:F.I,onOk:()=>cap(synchro(F))})],
+    done:`u′v + uv′ = x<sup>${n}</sup> + ${n}x<sup>${n}</sup> = ${n+1}x<sup>${n}</sup> = (x<sup>${n+1}</sup>)′, alors que u′v′ = ${Th(P([n,n-1]))}&nbsp;: (uv)′ ≠ u′v′.`}}
+function l3q5(){let p,r,a;do{p=nz(-4,4);r=nz(-3,3);a=ri(-2,2)}while(false);const U=P([1,2],[p,0]),V=P([1,1],[r,0]),F=prodF(U,V,[-3,3]);
+  const ua=Pval(U,a),va=Pval(V,a),dua=q(2*a),fa=dua.mul(va).add(ua);
+  return{spec:{f:F.py,fh:F.h,u:Tpy(U),v:Tpy(V),I:F.I},scene:sceneD(F),prompt:`On considère f(x) = ${F.h}, avec u(x) = ${Th(U)} et v(x) = ${Th(V)}.`,cap0:`On cherche le nombre dérivé f′(${D(a)}).`,
+    parts:[fill('Les quatre ingrédients&nbsp;:',`u(${D(a)}) = {0}, u′(${D(a)}) = {1}, v(${D(a)}) = {2}, v′(${D(a)}) = {3}`,[{v:ua},{v:dua},{v:va},{v:1}],`u′(x) = 2x et v′(x) = 1&nbsp;; remplace x par ${D(a)}.`,
+        {verify:`eqv(U.subs(x,${R(a)}),{0}) and eqv(diff(U,x).subs(x,${R(a)}),{1}) and eqv(V.subs(x,${R(a)}),{2}) and eqv(diff(V,x).subs(x,${R(a)}),{3})`}),
+      fill('Assemble&nbsp;:',`f′(${D(a)}) = u′(${D(a)})v(${D(a)}) + u(${D(a)})v′(${D(a)}) = {0}`,[{v:fa}],`${par(dua)} × ${par(va)} + ${par(ua)} × 1.`,{verify:`eqv(Dv(${R(a)}),{0})`,play:true,onOk:()=>cap(`f′(${Dt(a)}) = <span class="k">${Dt(fa)}</span>`)})],
+    done:`f′(${D(a)}) = ${par(dua)} × ${par(va)} + ${par(ua)} × 1 = ${D(fa)}.`}}
+LV.push({t:'Le duo',s:'Duo',chap:'Dérivée d\'un produit',rule:rule3,qs:[l3q1,l3q2,l3q3,l3q4,l3q5]});
+
+/* =================================================================== */
+/* NIVEAU 4 · Le contre-chant : inverse et quotient                      */
+/* =================================================================== */
+const rule4=`<p>Si v est dérivable et ne s'annule pas sur I&nbsp;: <b>(${frac(1,'v')})′ = ${MINUS}${frac('v′','v<sup>2</sup>')}</b>.</p><p>Si u et v sont dérivables sur I et v ne s'annule pas sur I&nbsp;: <b>(${frac('u','v')})′ = ${frac('u′v − uv′','v<sup>2</sup>')}</b>.</p><p>L'ordre compte au numérateur (u′v d'abord), et le dénominateur est <b>au carré</b>.</p>`;
+function l4q1(){const k=pick([1,2,3,4]),V=P([1,2],[k,0]),Vh=Th(V),gV=Tpy(V);const F=mkF({py:`1/(${gV})`,h:frac(1,Vh),dpy:`-2*x/(${gV})**2`,dh:MINUS+frac('2x',sq(Vh)),I:[-3,3]});
+  const C=(h,g,why)=>NO(h,why,{g,claim:cE(g)});
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F),prompt:`On considère f(x) = ${F.h} sur ℝ (le dénominateur v(x) = ${Vh} ne s'annule pas).`,cap0:'Le contre-chant&nbsp;: la mélodie de 1/v est l\'inverse de celle de v.',
+    parts:[ch(ASK_D,[OK(F.dh,{g:F.dpy,claim:cE(F.dpy)}),C(frac('2x',sq(Vh)),`2*x/(${gV})**2`,`(${frac(1,'v')})′ = ${MINUS}${frac('v′','v<sup>2</sup>')}&nbsp;: n'oublie pas le signe −.`),
+        C(MINUS+frac(1,sq(Vh)),`-1/(${gV})**2`,`Il manque v′(x) = 2x au numérateur.`),C(MINUS+frac('2x',Vh),`-2*x/(${gV})`,`Le dénominateur est v<sup>2</sup>, au carré.`)],{play:true,I:F.I,onOk:()=>cap(synchro(F))})],
+    done:`v′(x) = 2x, donc f′(x) = ${MINUS}${frac('v′(x)','v(x)<sup>2</sup>')} = ${F.dh}&nbsp;: la note monte tant que x &lt; 0, puis redescend.`}}
+function l4q2(){let a,b;do{a=pick([2,3,-2,-3]);b=nz(-5,5)}while(b%a===0&&false);const V=P([a,1],[b,0]),Vh=Th(V),gV=Tpy(V),x0=q(-b).div(a);
+  const F=mkF({py:`1/(${gV})`,h:frac(1,Vh),dpy:`${RQ(-a)}/(${gV})**2`,dh:(a>0?MINUS:'')+frac(Math.abs(a),sq(Vh)),I:[x0.v+.5,x0.v+4]});
+  const C=(h,g,why)=>NO(h,why,{g,claim:cE(g)});
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F),prompt:`On considère f(x) = ${F.h} sur ]${D(x0)}&nbsp;; +∞[, où v(x) = ${Vh} ne s'annule pas.`,cap0:`(${frac(1,'v')})′ = ${MINUS}${frac('v′','v<sup>2</sup>')} avec v′(x) = ${D(a)}.`,
+    parts:[ch(ASK_D,[OK(F.dh,{g:F.dpy,claim:cE(F.dpy)}),C((a<0?MINUS:'')+frac(Math.abs(a),sq(Vh)),`${RQ(a)}/(${gV})**2`,`Le signe − de la formule a disparu&nbsp;: ${MINUS}${frac('v′','v<sup>2</sup>')} avec v′ = ${D(a)}.`),
+        C(MINUS+frac(1,sq(Vh)),`-1/(${gV})**2`,`Ce serait juste pour v(x) = x + …&nbsp;; ici v′(x) = ${D(a)}, il va au numérateur.`),C((a>0?MINUS:'')+frac(Math.abs(a),Vh),`${RQ(-a)}/(${gV})`,'Le dénominateur est v<sup>2</sup>, au carré.')],{play:true,I:F.I,onOk:()=>cap(synchro(F))})],
+    done:`f′(x) = ${MINUS}${frac(D(a),sq(Vh))} = ${F.dh}.`}}
+function quoF(U,V,I){const u=Tpy(U),v=Tpy(V);const N=Padd(Pmul(Td(U),V),Tneg(Pmul(U,Td(V))));const Nh=Th(N);
+  return Object.assign(mkF({py:`(${u})/(${v})`,h:frac(Th(U),Th(V)),dpy:`(${Tpy(N)})/(${v})**2`,dh:frac(Nh,sq(Th(V))),I}),{N,U,V})}
+function l4q3(){let a,b,c,d0;do{a=nz(-3,3);b=nz(-5,5);c=pick([1,2]);d0=nz(-5,5)}while(a*d0-b*c===0);const U=P([a,1],[b,0]),V=P([c,1],[d0,0]),x0=q(-d0).div(c),F=quoF(U,V,[x0.v+.5,x0.v+4.5]);
+  const Vh=Th(V),gV=Tpy(V),N=a*d0-b*c;
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F),prompt:`On considère f(x) = ${F.h} sur ]${D(x0)}&nbsp;; +∞[.`,cap0:`u(x) = ${Th(U)}, v(x) = ${Vh}&nbsp;: u′(x) = ${D(a)}, v′(x) = ${D(c)}.`,
+    parts:[fill('Le numérateur u′v − uv′ se réduit à un nombre&nbsp;:',`f′(x) = ${frac('{0}',sq(Vh))}`,[{v:N}],`u′v − uv′ = ${D(a)}(${Vh}) − (${Th(U)}) × ${D(c)}&nbsp;: développe, les termes en x s'annulent.`,
+      {verify:`eq(d,({0})/(${gV})**2)`,gOf:v=>`(${v[0]})/(${gV})**2`,play:true,onOk:()=>cap(`f′(x) = ${frac(D(N),sq(Vh))} <span class="m">·</span> <span class="k">synchro&nbsp;!</span>`)})],
+    done:`u′v − uv′ = ${D(a)}(${Vh}) ${MINUS} ${c===1?'':c}(${Th(U)}) = ${D(N)}, donc f′(x) = ${frac(D(N),sq(Vh))}&nbsp;: de signe constant, la mélodie ${N>0?'monte':'descend'} sans s'arrêter.`}}
+function l4q4(){const k=nz(-3,3),U=P([1,2]),V=P([1,1],[k,0]),F=quoF(U,V,[-k+.5,-k+4]),Vh=Th(V),gV=Tpy(V);
+  const C=(nh,g,why)=>NO(nh,why,{g,claim:cE(g)});
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F),prompt:`On considère f(x) = ${F.h} sur ]${D(-k)}&nbsp;; +∞[.`,cap0:`u(x) = x<sup>2</sup>, u′(x) = 2x&nbsp;; v(x) = ${Vh}, v′(x) = 1.`,
+    parts:[ch(ASK_D,[OK(F.dh,{g:F.dpy,claim:cE(F.dpy)}),C(frac(Th(P([3,2],[2*k,1])),sq(Vh)),`(3*x**2+${RQ(2*k)}*x)/(${gV})**2`,`Au numérateur, c'est u′v <b>−</b> uv′ = 2x(${Vh}) − x<sup>2</sup>.`),
+        C(frac(Th(P([-1,2],[-2*k,1])),sq(Vh)),`((-1)*x**2-${RQ(2*k)}*x)/(${gV})**2`,`L'ordre compte&nbsp;: u′v − uv′, et non uv′ − u′v.`),C('2x','2*x',`On ne divise pas u′ par v′&nbsp;: (${frac('u','v')})′ = ${frac('u′v − uv′','v<sup>2</sup>')}.`),
+        C(frac(Th(P([1,2],[2*k,1])),Vh),`(x**2+${RQ(2*k)}*x)/(${gV})`,'Le dénominateur est v<sup>2</sup>, au carré.')],{play:true,I:F.I,onOk:()=>cap(synchro(F))})],
+    done:`f′(x) = ${frac(`2x(${Vh}) − x<sup>2</sup>`,sq(Vh))} = ${F.dh}.`}}
+function l4q5(){let a,b,d0,x1;do{a=nz(-3,3);b=nz(-5,5);d0=nz(-4,4);x1=-d0+ri(1,3)}while(a*d0-b===0);const U=P([a,1],[b,0]),V=P([1,1],[d0,0]),F=quoF(U,V,[-d0+.5,-d0+4.5]);
+  const N=a*d0-b,val=q(N).div((x1+d0)*(x1+d0));
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F),prompt:`On considère f(x) = ${F.h} sur ]${D(-d0)}&nbsp;; +∞[.`,cap0:`On cherche f′(${D(x1)}).`,
+    parts:[fill('Calcule&nbsp;:',`f′(${D(x1)}) = {0}`,[{v:val}],`f′(x) = ${frac(`${D(a)}(${Th(V)}) − (${Th(U)}) × 1`,sq(Th(V)))} = ${frac(D(N),sq(Th(V)))}&nbsp;; remplace x par ${D(x1)}&nbsp;: ${frac(D(N),`${par(x1+d0)}<sup>2</sup>`)}. Une fraction comme 3/4 est acceptée.`,
+      {verify:`eqv(Dv(${R(x1)}),{0})`,play:true,onOk:()=>cap(`f′(${Dt(x1)}) = <span class="k">${Dt(val)}</span>`)})],
+    done:`f′(x) = ${frac(D(N),sq(Th(V)))}, donc f′(${D(x1)}) = ${frac(D(N),(x1+d0)*(x1+d0))} = ${D(val)}.`}}
+LV.push({t:'Le contre-chant',s:'Contre-chant',chap:'Inverse et quotient',rule:rule4,qs:[l4q1,l4q2,l4q3,l4q4,l4q5]});
+
+/* =================================================================== */
+/* NIVEAU 5 · La partition des signes : signe de f′ et variations        */
+/* =================================================================== */
+const rule5=`<p><b>Théorème (admis).</b> Soit f dérivable sur un intervalle I.</p><p>• Si f′(x) &gt; 0 pour tout x de I, f est strictement croissante sur I.<br>• Si f′(x) &lt; 0 pour tout x de I, f est strictement décroissante sur I.<br>• Si f′(x) = 0 pour tout x de I, f est constante sur I.</p><p>Pour le signe de f′(x)&nbsp;: une expression affine ax + b a le signe de a à droite de sa racine&nbsp;; un trinôme a le signe de son coefficient a à l'extérieur des racines&nbsp;; un carré est positif.</p>`;
+const ptsI=(F,xq)=>xq.map(v=>v==='-oo'||v==='oo'?v:String(q(v)));
+function l5q1(){let a,r,c;a=nz(-3,3);r=ri(-3,3);c=ri(-3,3);const b=-a*r,ts=P([q(a).div(2),2],[b,1],[c,0]),F=FT(ts,[r-3,r+3]),fh=Th(P([a,1],[b,0]));
+  const xq=['-oo',String(r),'oo'],sg=a>0?['-','+']:['+','-'];
+  return{spec:{f:F.py,dh:fh,I:F.I},scene:sceneS(F,xq,{marks:[{x:r,t:a>0?'min':'max'}]}),prompt:`Une fonction f est dérivable sur ℝ et f′(x) = ${fh}. La mélodie est cachée&nbsp;: seule la partition est connue.`,cap0:'La partition se résume à son signe&nbsp;: + la note monte, − elle descend.',
+    parts:[fill('Où la partition passe-t-elle par 0&nbsp;?',`f′(x) = 0 ⇔ x = {0}`,[{v:r}],`Résous ${fh} = 0&nbsp;: x = ${frac(D(-b),D(a))}.`,{verify:'roots()==[{0}]',onOk:()=>K.set({zeros:[r]})}),
+      TAB(F,xq,[1],sg,{ar:false,hint:'Pour ax + b, le signe de a est à droite de la racine.'}),
+      ch('La mélodie le confirme&nbsp;: f est…',[OK(a>0?`décroissante sur ]−∞&nbsp;; ${D(r)}], puis croissante sur [${D(r)}&nbsp;; +∞[`:`croissante sur ]−∞&nbsp;; ${D(r)}], puis décroissante sur [${D(r)}&nbsp;; +∞[`,{claim:a>0?`sgn(-oo,${R(r)})==-1 and sgn(${R(r)},oo)==1`:`sgn(-oo,${R(r)})==1 and sgn(${R(r)},oo)==-1`}),
+        NO(a>0?`croissante sur ]−∞&nbsp;; ${D(r)}], puis décroissante sur [${D(r)}&nbsp;; +∞[`:`décroissante sur ]−∞&nbsp;; ${D(r)}], puis croissante sur [${D(r)}&nbsp;; +∞[`,'Lis ton tableau&nbsp;: un signe + fait monter la note (f croissante), un signe − la fait descendre.',{claim:a>0?`sgn(-oo,${R(r)})==1 and sgn(${R(r)},oo)==-1`:`sgn(-oo,${R(r)})==-1 and sgn(${R(r)},oo)==1`}),
+        NO(a>0?'croissante sur ℝ':'décroissante sur ℝ','La partition change de signe en '+D(r)+'&nbsp;: la mélodie change de sens.',{claim:a>0?'sgn(-oo,oo)==1':'sgn(-oo,oo)==-1'})],{keep:true})],
+    done:`f′(x) = ${fh} est ${a>0?'négative puis positive':'positive puis négative'}&nbsp;: f est ${a>0?'décroissante sur ]−∞&nbsp;; '+D(r)+'] puis croissante':'croissante sur ]−∞&nbsp;; '+D(r)+'] puis décroissante'} sur [${D(r)}&nbsp;; +∞[.`}}
+function l5q2(){let k,r1,r2;do{k=nz(-3,3);r1=ri(-3,2);r2=ri(r1+2,4)}while(false);const c=ri(-3,3);
+  const ts=P([q(k).div(3),3],[q(-k*(r1+r2)).div(2),2],[k*r1*r2,1],[c,0]),F=FT(ts,[r1-1.5,r2+1.5]);const fh=fac(k,[r1,r2]);
+  const xq=['-oo',String(r1),String(r2),'oo'],sg=k>0?['+','-','+']:['-','+','-'];
+  return{spec:{f:F.py,dh:fh,I:F.I},scene:sceneS(F,xq,{zeros:[r1,r2],marks:[{x:r1,t:k>0?'max':'min'},{x:r2,t:k>0?'min':'max'}]}),prompt:`Une fonction f est dérivable sur ℝ et f′(x) = ${fh}.`,cap0:'Deux zéros sur la partition&nbsp;: trois bandes de signe.',
+    parts:[TAB(F,xq,[1,2],sg,{ar:false,hint:k<0?'Ici le coefficient devant est négatif&nbsp;: il change tout.':'Un produit est positif quand ses facteurs ont le même signe.'}),
+      ch(`Sur [${D(r1)}&nbsp;; ${D(r2)}], f est…`,[OK(k>0?'strictement décroissante':'strictement croissante',{claim:`sgn(${R(r1)},${R(r2)})==${k>0?-1:1}`}),NO(k>0?'strictement croissante':'strictement décroissante','Regarde la bande du milieu de la partition.',{claim:`sgn(${R(r1)},${R(r2)})==${k>0?1:-1}`}),
+        NO('constante','f′ ne s\'annule qu\'en deux valeurs, pas sur tout l\'intervalle.',{claim:'isconst()'})],{keep:true})],
+    done:`f′ a le signe de ${k} à l'extérieur des racines ${D(r1)} et ${D(r2)}&nbsp;: f est ${k>0?'croissante, décroissante puis croissante':'décroissante, croissante puis décroissante'}.`}}
+function l5q3(){let k,r1,r2;do{k=pick([1,-1,2]);r1=ri(-4,2);r2=ri(r1+1,5)}while(r1+r2===0&&false);const c=ri(-2,4);
+  const D2=P([k,2],[-k*(r1+r2),1],[k*r1*r2,0]),ts=P([q(k).div(3),3],[q(-k*(r1+r2)).div(2),2],[k*r1*r2,1],[c,0]),F=FT(ts,[r1-1.5,r2+1.5]),fh=Th(D2);
+  const xq=['-oo',String(r1),String(r2),'oo'],sg=k>0?['+','-','+']:['-','+','-'],De=k*k*(r2-r1)*(r2-r1);
+  return{spec:{f:F.py,dh:fh,I:F.I},scene:sceneS(F,xq,{marks:[{x:r1,t:k>0?'max':'min'},{x:r2,t:k>0?'min':'max'}]}),prompt:`Une fonction f est dérivable sur ℝ et f′(x) = ${fh}.`,cap0:'Trouve d\'abord où la partition s\'annule.',
+    parts:[fill('Racines de f′(x), dans l\'ordre croissant&nbsp;:',`x<sub>1</sub> = {0} et x<sub>2</sub> = {1}`,[{v:r1},{v:r2}],`Δ = b<sup>2</sup> − 4ac = ${De} et √Δ = ${Math.sqrt(De)}&nbsp;; x = ${frac('−b ± √Δ','2a')} avec a = ${D(k)} et b = ${D(-k*(r1+r2))}. Range les deux racines dans l'ordre croissant.`,
+        {verify:'roots()==[{0},{1}]',onOk:()=>K.set({zeros:[r1,r2]})}),
+      TAB(F,xq,[1,2],sg,{ar:false,hint:`Le trinôme a le signe de son coefficient ${D(k)} à l'extérieur des racines.`})],
+    done:`f′ s'annule en ${D(r1)} et ${D(r2)} et a le signe de ${D(k)} à l'extérieur&nbsp;: la mélodie ${k>0?'monte, descend puis remonte':'descend, monte puis redescend'}.`}}
+function l5q4(){const N=nz(-6,6),m=ri(-2,2),c=ri(-3,3);const F=mkF({py:`${RQ(-N)}/(x-${RQ(m)})+${RQ(c)}`,h:'',dpy:`${RQ(N)}/(x-${RQ(m)})**2`,dh:(N<0?MINUS:'')+frac(Math.abs(N),sqX(m)),I:[m+.4,m+4]});
+  const xq=[String(m),'oo'],sg=[N>0?'+':'-'];
+  return{spec:{f:F.py,dh:F.dh,I:F.I},scene:sceneS(F,xq),prompt:`Une fonction f est dérivable sur ]${D(m)}&nbsp;; +∞[ et f′(x) = ${F.dh}.`,cap0:'Une partition sans zéro&nbsp;: une seule bande.',
+    parts:[ch(`Sur ]${D(m)}&nbsp;; +∞[&nbsp;:`,[OK(N>0?'f′(x) &gt; 0 pour tout x':'f′(x) &lt; 0 pour tout x',{claim:`sgn(${R(m)},oo)==${N>0?1:-1}`}),NO(N>0?'f′(x) &lt; 0 pour tout x':'f′(x) &gt; 0 pour tout x',`Un carré non nul est strictement positif&nbsp;: f′(x) a le signe de ${D(N)}.`,{claim:`sgn(${R(m)},oo)==${N>0?-1:1}`}),
+        NO(`f′ change de signe en ${D(m+1)}`,`Le dénominateur ${sqX(m)} est un carré, strictement positif sur ]${D(m)}&nbsp;; +∞[&nbsp;; le numérateur ${D(N)} est constant.`,{claim:`sgn(${R(m)},oo) is None`})],{keep:true}),
+      TAB(F,xq,[],sg,{ask:'Complète le tableau&nbsp;: signe de f′(x), puis sens de variation de f.'})],
+    done:`${sqX(m)} &gt; 0 sur ]${D(m)}&nbsp;; +∞[, donc f′(x) a le signe de ${D(N)}&nbsp;: f est strictement ${N>0?'croissante':'décroissante'} sur ]${D(m)}&nbsp;; +∞[.`}}
+function l5q5(){let a,c;do{a=nz(-4,4);c=ri(-5,5)}while(a*a+c===0);const F=mkF({py:`(x+${RQ(a)})**2-x*(x+${RQ(2*a)})+${RQ(c)}`,h:`${sq(Th(P([1,1],[a,0])))} ${MINUS} x(${Th(P([1,1],[2*a,0]))}) ${c<0?MINUS:'+'} ${Math.abs(c)}`,dpy:'(0)',dh:'0',I:[-3,3]});
+  const val=a*a+c;
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:()=>K.reset({F,mode:'deriv',melody:'hide',label:''}),prompt:`On considère f(x) = ${F.h} sur ℝ.`,cap0:'Une drôle de mélodie&nbsp;: écoute sa partition.',
+    parts:[fill('Dérive (développe (x + a)<sup>2</sup>, utilise la formule du produit pour x(x + 2a))&nbsp;:',`f′(x) = {0} pour tout réel x`,[{v:0}],`(${Th(P([1,1],[a,0]))})<sup>2</sup> = ${Th(P([1,2],[2*a,1],[a*a,0]))} a pour dérivée ${Th(P([2,1],[2*a,0]))}&nbsp;; x(${Th(P([1,1],[2*a,0]))}) a pour dérivée 1 × (${Th(P([1,1],[2*a,0]))}) + x × 1 = ${Th(P([2,1],[2*a,0]))}. La différence vaut…`,
+        {verify:'eq(d,{0})',gOf:v=>v[0]&&!v[0].eq(0)?`(${v[0]})`:null}),
+      ch('Donc, d\'après le théorème, f est…',[OK('constante sur ℝ',{claim:'isconst()'}),NO('nulle sur ℝ',`f′ = 0 signifie que f ne varie pas, pas qu'elle vaut 0&nbsp;: calcule par exemple f(0).`,{claim:'eq(f,0)'}),
+        NO('strictement croissante sur ℝ','Une partition nulle ne fait ni monter ni descendre la note.',{claim:'sgn(-oo,oo)==1'})],{keep:true}),
+      fill('Quelle est la note tenue&nbsp;?',`f(x) = {0} pour tout réel x`,[{v:val}],`f étant constante, f(x) = f(0) = ${par(a)}<sup>2</sup> ${c<0?MINUS:'+'} ${Math.abs(c)}.`,{verify:'eq(f,{0})',play:true,onOk:()=>cap(`f′(x) = 0 <span class="m">·</span> <span class="k">une seule note tenue&nbsp;: f(x) = ${Dt(val)}</span>`)})],
+    done:`f′(x) = 0 sur ℝ, donc f est constante&nbsp;: f(x) = f(0) = ${D(val)} pour tout x (et non 0&nbsp;!).`}}
+LV.push({t:'La partition des signes',s:'Signes',chap:'Signe de f′ et sens de variation',rule:rule5,qs:[l5q1,l5q2,l5q3,l5q4,l5q5]});
+
+/* =================================================================== */
+/* NIVEAU 6 · Les notes extrêmes : extremums                             */
+/* =================================================================== */
+const rule6=`<p>f admet un <b>maximum local</b> en a s'il existe un intervalle ouvert contenant a sur lequel f(x) ⩽ f(a)&nbsp;; un <b>minimum local</b> si f(x) ⩾ f(a). Un extremum est un maximum ou un minimum.</p>
+<p><b>Théorème (admis).</b> Soit f dérivable sur un intervalle ouvert I et a un réel de I. Si f′ s'annule en a <b>en changeant de signe</b>, alors f admet un extremum local en a&nbsp;: + puis −, c'est un maximum local&nbsp;; − puis +, un minimum local.</p>
+<p>En un extremum local d'une fonction dérivable (a intérieur à I), f′(a) = 0&nbsp;: la tangente y est horizontale.</p><p><b>Attention&nbsp;:</b> f′(a) = 0 ne suffit pas. Pour f(x) = x<sup>3</sup>, f′(0) = 0 mais f′ ne change pas de signe&nbsp;: pas d'extremum en 0.</p>`;
+/* cubique f = s(2x³ − 3(r1+r2)x² + 6r1r2x) + c, f′ = 6s(x − r1)(x − r2) */
+function cub(s,r1,r2,c,I){const ts=P([2*s,3],[-3*s*(r1+r2),2],[6*s*r1*r2,1],[c,0]);const F=FT(ts,I);F.ts=ts;return F}
+function l6q1(){const p=pick([1,-1,2,-2]),h=ri(-2,3),k=ri(-5,5),A=h-2,B=h+3,ts=P([p,2],[-2*p*h,1],[p*h*h+k,0]),F=FT(ts,[A,B]);F.ts=ts;
+  const xq=[String(A),String(h),String(B)],sg=p>0?['-','+']:['+','-'],ar=sg.map(v=>v==='+'?'u':'d');
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneS(F,xq,{zeros:[h],marks:[{x:h,t:p>0?'min':'max',lab:Dt(k)}]}),prompt:`On considère f(x) = ${F.h} sur ${iv(A,B)}. On a calculé f′(x) = ${F.dh}.`,cap0:`f′ s'annule en ${D(h)}.`,
+    parts:[TAB(F,xq,[1],sg,{valq:[Pval(ts,A),null,Pval(ts,B)]}),
+      fill('La note du changement de sens&nbsp;:',`f(${D(h)}) = {0}`,[{v:k}],`Remplace x par ${D(h)} dans f(x).`,{verify:`eqv(F(${R(h)}),{0})`,onOk:()=>tabSet(xq,ar,[null,k,null])}),
+      ch(`En ${D(h)}, f admet…`,[OK(`un ${p>0?'minimum':'maximum'} local, égal à ${D(k)}`,{claim:`${p>0?'minloc':'maxloc'}(${R(h)}) and eqv(F(${R(h)}),${R(k)})`}),
+        NO(`un ${p>0?'maximum':'minimum'} local, égal à ${D(k)}`,`f′ passe de ${p>0?'− à +':'+ à −'}&nbsp;: la mélodie ${p>0?'descend puis remonte, c\'est la note la plus basse':'monte puis redescend, c\'est la note la plus haute'}.`,{claim:`${p>0?'maxloc':'minloc'}(${R(h)})`}),
+        NO(`un ${p>0?'minimum':'maximum'} local, égal à ${D(h)}`,`L'extremum est atteint <b>en</b> x = ${D(h)}&nbsp;; sa valeur est f(${D(h)}) = ${D(k)}.`,{claim:`eqv(F(${R(h)}),${R(h)})`})],{keep:true})],
+    done:`f′ s'annule en ${D(h)} en changeant de signe (${p>0?'− puis +':'+ puis −'})&nbsp;: f admet un ${p>0?'minimum':'maximum'} local f(${D(h)}) = ${D(k)}.`}}
+function l6q2(){let s,r1,r2,c,F;do{s=pick([1,-1]);r1=ri(-2,1);r2=ri(r1+1,r1+3);c=ri(-5,5);F=cub(s,r1,r2,c,[r1-1,r2+1])}while(false);
+  const A=r1-1,B=r2+1,xq=[A,r1,r2,B].map(String),sg=s>0?['+','-','+']:['-','+','-'],ar=sg.map(v=>v==='+'?'u':'d'),f1=Pval(F.ts,r1),f2=Pval(F.ts,r2),hi=s>0?r1:r2,fhi=s>0?f1:f2;
+  const confus=fhi.eq(r1)||fhi.eq(r2)||fhi.eq(hi);
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneS(F,xq,{zeros:[r1,r2],marks:[{x:r1,t:s>0?'max':'min',lab:Dt(f1)},{x:r2,t:s>0?'min':'max',lab:Dt(f2)}]}),prompt:`On considère f(x) = ${F.h} sur ${iv(A,B)}. On a f′(x) = ${fac(6*s,[r1,r2])}.`,cap0:'Deux zéros, deux changements de sens.',
+    parts:[TAB(F,xq,[1,2],sg,{valq:[Pval(F.ts,A),null,null,Pval(F.ts,B)]}),
+      fill('Les deux notes extrêmes&nbsp;:',`f(${D(r1)}) = {0} et f(${D(r2)}) = {1}`,[{v:f1},{v:f2}],'Remplace x dans f(x), en respectant les priorités.',{verify:`eqv(F(${R(r1)}),{0}) and eqv(F(${R(r2)}),{1})`,onOk:()=>tabSet(xq,ar,[null,f1,f2,null])}),
+      ch('Laquelle de ces phrases est juste&nbsp;?',[OK(`f admet un maximum local en ${D(hi)}, égal à ${D(fhi)}`,{claim:`maxloc(${R(hi)}) and eqv(F(${R(hi)}),${R(fhi)})`}),
+        NO(`f admet un minimum local en ${D(hi)}, égal à ${D(fhi)}`,'En x = '+D(hi)+', f′ passe de + à −&nbsp;: la note monte puis descend, c\'est un maximum.',{claim:`minloc(${R(hi)})`}),
+        NO(`f admet un maximum local en ${D(s>0?r2:r1)}, égal à ${D(s>0?f2:f1)}`,'En x = '+D(s>0?r2:r1)+', f′ passe de − à +&nbsp;: c\'est un minimum local.',{claim:`maxloc(${R(s>0?r2:r1)})`}),
+        ...(confus?[]:[NO(`f admet un maximum local en ${D(fhi)}`,`${D(fhi)} est la <b>valeur</b> du maximum&nbsp;; il est atteint <b>en</b> x = ${D(hi)}.`,{claim:`maxloc(${R(fhi)})`})])],{keep:true})],
+    done:`Maximum local f(${D(hi)}) = ${D(fhi)}, minimum local f(${D(s>0?r2:r1)}) = ${D(s>0?f2:f1)}&nbsp;: les deux notes dorées.`}}
+function l6q3(){const s=pick([1,-1]),a=ri(-2,2),c=ri(-4,4),ts=P([s,3],[-3*s*a,2],[3*s*a*a,1],[c,0]),F=FT(ts,[a-2,a+2]);F.ts=ts;
+  const xq=[a-2,a,a+2].map(String),sg=s>0?['+','+']:['-','-'];
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneS(F,xq,{zeros:[a],marks:[{x:a,t:'flat'}]}),prompt:`On considère f(x) = ${F.h} sur ${iv(a-2,a+2)}. On a f′(x) = ${kH(3*s)}${sqX(a)}.`,cap0:`f′(${D(a)}) = 0… mais la partition change-t-elle de signe&nbsp;?`,
+    parts:[TAB(F,xq,[1],sg,{valq:[Pval(ts,a-2),Pval(ts,a),Pval(ts,a+2)],hint:'Un carré est positif ou nul.'}),
+      ch(`En ${D(a)}, f…`,[OK(`n'admet pas d'extremum local&nbsp;: f′ s'annule sans changer de signe`,{claim:`noext(${R(a)})`}),NO('admet un maximum local','La note se tient un instant en '+D(a)+' mais continue de '+(s>0?'monter':'descendre')+'&nbsp;: pas d\'extremum.',{claim:`maxloc(${R(a)})`}),
+        NO('admet un minimum local','f′ garde le même signe de part et d\'autre de '+D(a)+'&nbsp;: f ne change pas de sens.',{claim:`minloc(${R(a)})`})],{keep:true}),
+      ch(`La tangente à 𝒞<sub>f</sub> au point d'abscisse ${D(a)} est…`,[OK('horizontale',{claim:`eqv(Dv(${R(a)}),0)`}),NO(`de pente ${D(3*s)}`,`Sa pente est le nombre dérivé f′(${D(a)}) = 0.`,{claim:`eqv(Dv(${R(a)}),${R(3*s)})`}),
+        NO('inexistante','f est dérivable en '+D(a)+'&nbsp;: la tangente existe, de pente f′('+D(a)+') = 0.',{claim:`not Dv(${R(a)}).is_finite`})],{keep:true})],
+    done:`f′(${D(a)}) = 0&nbsp;: tangente horizontale, «&nbsp;note tenue&nbsp;»… mais f reste ${s>0?'croissante':'décroissante'}&nbsp;: f′(a) = 0 ne suffit pas pour un extremum.`}}
+function l6q4(){let s,r1,r2,c,F;s=pick([1,-1]);r1=ri(-2,1);r2=ri(r1+1,r1+3);c=ri(-5,5);F=cub(s,r1,r2,c,[r1-1,r2+1]);
+  const A=r1-1,B=r2+1,xq=[A,r1,r2,B].map(String),sg=s>0?['+','-','+']:['-','+','-'],e=pick([r1,r2]),fe=Pval(F.ts,e),kind=(e===r1)===(s>0)?'max':'min';
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneS(F,xq,{sg,zeros:[r1,r2],marks:[{x:e,t:kind,lab:Dt(fe)}],melody:'hide'}),prompt:`On considère f(x) = ${F.h} sur ${iv(A,B)}, avec f′(x) = ${fac(6*s,[r1,r2])}. Le signe de f′ est donné.`,cap0:'La partition est écrite&nbsp;: déduis-en la mélodie.',
+    parts:[TAB(F,xq,[1,2],sg,{x:{sgGiven:true},ask:'Complète la ligne des variations de f.',note:'Touche une case pour la régler&nbsp;: ↗ ou ↘.'}),
+      fill(`Au ${kind==='max'?'maximum':'minimum'} local, en ${D(e)}&nbsp;:`,`f′(${D(e)}) = {0} et la tangente à 𝒞<sub>f</sub> en ce point a pour équation y = {1}`,[{v:0},{v:fe}],`En un extremum, f′(${D(e)}) = 0&nbsp;: la tangente y = f′(${D(e)})(x − ${par(e)}) + f(${D(e)}) est horizontale, y = f(${D(e)}).`,
+        {verify:`eqv(Dv(${R(e)}),{0}) and eqv(F(${R(e)}),{1})`})],
+    done:`f′(${D(e)}) = 0&nbsp;: au ${kind==='max'?'maximum':'minimum'} local la tangente est horizontale, d'équation y = ${D(fe)}.`}}
+function l6q5(){let a,h,c;do{a=nz(-3,3);h=ri(-3,3);c=ri(-6,6)}while(h===0&&false);const b=-2*a*h,ts=P([a,2],[b,1],[c,0]),F=FT(ts,[h-3,h+3]),ext=Pval(ts,h);
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneD(F,{marks:[{x:h,t:a>0?'min':'max',lab:Dt(ext)}]}),prompt:`On considère la fonction polynôme du second degré f(x) = ${F.h} sur ℝ.`,cap0:'Une parabole se joue comme une seule vague.',
+    parts:[fill('Sa partition, et son zéro&nbsp;:',`f′(x) = {0}x + {1}, qui s'annule en x = {2}`,[{v:2*a},{v:b},{v:h}],`(ax<sup>2</sup> + bx + c)′ = 2ax + b&nbsp;; puis 2ax + b = 0 ⇔ x = ${frac('−b','2a')}.`,{verify:'eq(d,{0}*x+{1}) and roots()==[{2}]',gOf:v=>`(${v[0]})*x+(${v[1]})`,play:true,onOk:()=>cap(synchro(F))}),
+      ch(`Comme a = ${D(a)} ${a>0?'&gt;':'&lt;'} 0, f′ passe de ${a>0?'− à +':'+ à −'} en ${D(h)}&nbsp;: f admet…`,[OK(`un ${a>0?'minimum':'maximum'} en ${D(h)}`,{claim:`${a>0?'minloc':'maxloc'}(${R(h)})`}),NO(`un ${a>0?'maximum':'minimum'} en ${D(h)}`,`Avec a ${a>0?'&gt;':'&lt;'} 0, la parabole est tournée vers le ${a>0?'haut':'bas'}&nbsp;: la note ${a>0?'descend puis remonte':'monte puis redescend'}.`,{claim:`${a>0?'maxloc':'minloc'}(${R(h)})`}),
+        NO('aucun extremum','f′ s\'annule en changeant de signe&nbsp;: il y a bien un extremum.',{claim:`noext(${R(h)})`})],{keep:true}),
+      fill('Sa valeur&nbsp;:',`f(${D(h)}) = {0}`,[{v:ext}],`Remplace x par ${D(h)} dans f(x).`,{verify:`eqv(F(${R(h)}),{0})`,onOk:()=>K.set({markAll:true})})],
+    done:`f′(x) = ${F.dh} change de signe en ${D(h)}&nbsp;: ${a>0?'minimum':'maximum'} f(${D(h)}) = ${D(ext)}, parabole tournée vers le ${a>0?'haut':'bas'} car a ${a>0?'&gt;':'&lt;'} 0.`}}
+LV.push({t:'Les notes extrêmes',s:'Extremums',chap:'Extremums et tableau de variations',rule:rule6,qs:[l6q1,l6q2,l6q3,l6q4,l6q5]});
+
+/* =================================================================== */
+/* NIVEAU 7 · Le morceau complet : étude de variations sur [A ; B]       */
+/* =================================================================== */
+const rule7=`<p><b>Étudier les variations</b> d'une fonction f sur un intervalle&nbsp;:</p><p>1. calculer f′(x)&nbsp;;<br>2. étudier le signe de f′(x) (racines, signe d'un trinôme, carré…)&nbsp;;<br>3. dresser le tableau de variations, avec les valeurs de f aux bornes et aux extremums&nbsp;;<br>4. conclure&nbsp;: extremums locaux, et plus grande ou plus petite valeur sur l'intervalle.</p><p>Sur [A&nbsp;; B], la plus grande valeur de f se cherche parmi les maximums locaux <b>et</b> les valeurs aux bornes.</p>`;
+function l7q1(){let s,r1,r2,c,F,A,B,vs;do{s=pick([1,-1]);r1=ri(-2,1);r2=ri(r1+1,r1+3);c=ri(-6,6);A=r1-1;B=r2+2;if(s<0){A=r1-2;B=r2+1}F=cub(s,r1,r2,c,[A,B]);vs=[A,r1,r2,B].map(t=>Pval(F.ts,t))}while(new Set(vs.map(String)).size<4);
+  const xq=[A,r1,r2,B].map(String),sg=s>0?['+','-','+']:['-','+','-'],ar=sg.map(v=>v==='+'?'u':'d');const dts=Td(F.ts),M=vs.reduce((m,v)=>v.cmp(m)>0?v:m);
+  const C=(t,why)=>NO(Th(t),why,{g:Tpy(t),claim:cE(Tpy(t))});
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneS(F,xq,{marks:[{x:r1,t:s>0?'max':'min',lab:Dt(vs[1])},{x:r2,t:s>0?'min':'max',lab:Dt(vs[2])}]}),prompt:`Étude complète de f(x) = ${F.h} sur ${iv(A,B)}.`,cap0:'Étape 1&nbsp;: la partition.',
+    parts:[ch(ASK_D,[OK(Th(dts),{g:Tpy(dts),claim:cE(Tpy(dts))}),C(P([6*s,2],[-6*s*(r1+r2),1],[6*s*r1*r2+c,0]),`La constante ${D(c)} a pour dérivée 0.`),
+        C(P([6*s,2],[-3*s*(r1+r2),1],[6*s*r1*r2,0]),`(x<sup>2</sup>)′ = 2x&nbsp;: le terme en x<sup>2</sup> donne ${par(-3*s*(r1+r2))} × 2x.`),C(P([2*s,2],[-6*s*(r1+r2),1],[6*s*r1*r2,0]),`(x<sup>3</sup>)′ = 3x<sup>2</sup>&nbsp;: ${par(2*s)} × 3x<sup>2</sup>.`)],{I:F.I}),
+      fill('Étape 2&nbsp;: racines de f′(x), dans l\'ordre croissant',`x<sub>1</sub> = {0} et x<sub>2</sub> = {1}`,[{v:r1},{v:r2}],`f′(x) = ${Th(dts)} = ${fac(6*s,[r1,r2])}&nbsp;: factorise par ${D(6*s)}, ou calcule Δ.`,{verify:'roots()==[{0},{1}]',onOk:()=>K.set({zeros:[r1,r2]})}),
+      TAB(F,xq,[1,2],sg,{valq:[vs[0],null,null,vs[3]],ask:'Étape 3&nbsp;: le tableau de variations.'}),
+      fill('Étape 4&nbsp;: les notes extrêmes',`f(${D(r1)}) = {0} et f(${D(r2)}) = {1}`,[{v:vs[1]},{v:vs[2]}],'Remplace x dans f(x).',{verify:`eqv(F(${R(r1)}),{0}) and eqv(F(${R(r2)}),{1})`,onOk:()=>tabSet(xq,ar,[null,vs[1],vs[2],null])}),
+      ch(`Sur ${iv(A,B)}, la plus grande valeur de f est…`,[OK(D(M),{claim:`gmax(${R(A)},${R(B)},${R(M)})`}),...vs.filter(v=>!v.eq(M)).map(v=>NO(D(v),`Compare toutes les valeurs du tableau&nbsp;: le maximum local et les valeurs aux bornes. La plus grande est ${D(M)}.`,{claim:`gmax(${R(A)},${R(B)},${R(v)})`}))],{keep:true})],
+    done:`f′(x) = ${fac(6*s,[r1,r2])}&nbsp;; sur ${iv(A,B)}, f a pour plus grande valeur ${D(M)}${M.eq(vs[s>0?1:2])?' (le maximum local)':' , atteinte à une borne&nbsp;: plus haute que le maximum local'}.`.replace(' ,',',')}}
+function l7q2(){const r=pick([1,2,3]),a=pick([1,2,4]),b=a*r*r,A=q(r).div(2),B=q(4*r),ts=P([a,1],[b,-1]),F=FT(ts,[A.v,B.v]);F.ts=ts;
+  const xq=[String(A),String(r),String(B)],vs=[Pval(ts,A),Pval(ts,r),Pval(ts,B)],C=(t,why)=>NO(Th(t),why,{g:Tpy(t),claim:cE(Tpy(t))}),dts=Td(ts);
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneS(F,xq,{marks:[{x:r,t:'min',lab:Dt(vs[1])}]}),prompt:`Étude de f(x) = ${F.h} sur ${iv(A,B)}.`,cap0:'Une note qui descend puis remonte&nbsp;?',
+    parts:[ch(ASK_D,[OK(Th(dts),{g:Tpy(dts),claim:cE(Tpy(dts))}),C(P([a,0],[b,-2]),`(${frac(1,'x')})′ = ${MINUS}${frac(1,'x<sup>2</sup>')}&nbsp;: attention au signe.`),C(P([a,0],[-b,-1]),`(${frac(1,'x')})′ = ${MINUS}${frac(1,'x<sup>2</sup>')}&nbsp;: le x passe au carré.`),C(P([-b,-2]),`(${Th(P([a,1]))})′ = ${D(a)}&nbsp;: ce terme ne disparaît pas.`)],{I:F.I}),
+      fill(`Sur ${iv(A,B)}, f′(x) = ${frac(`${kH(a)}(x<sup>2</sup> − ${r*r})`,'x<sup>2</sup>')}. Elle s'annule en&nbsp;:`,'x = {0}',[{v:r}],`x<sup>2</sup> &gt; 0, donc f′(x) a le signe de x<sup>2</sup> − ${r*r}, nul pour x = ${r} (et −${r}, hors de l'intervalle).`,{verify:`roots_in(${R(A)},${R(B)})==[{0}]`,onOk:()=>K.set({zeros:[r]})}),
+      TAB(F,xq,[1],['-','+'],{valq:[vs[0],null,vs[2]]}),
+      fill('La note la plus basse&nbsp;:',`f(${D(r)}) = {0}`,[{v:vs[1]}],`f(${D(r)}) = ${D(a*r)} + ${frac(b,r)}.`,{verify:`eqv(F(${R(r)}),{0}) and minloc(${R(r)})`,onOk:()=>tabSet(xq,['d','u'],[null,vs[1],null])})],
+    done:`f est décroissante sur [${D(A)}&nbsp;; ${D(r)}] puis croissante&nbsp;: son minimum sur ${iv(A,B)} est f(${D(r)}) = ${D(vs[1])}.`}}
+function l7q3(){const s=pick([1,-1]),a=nz(-2,2),c=ri(-4,4),A=a-2,B=a+1,ts=P([s,3],[-3*s*a,2],[3*s*a*a,1],[c,0]),F=FT(ts,[A,B]);F.ts=ts;
+  const xq=[A,a,B].map(String),sg=s>0?['+','+']:['-','-'],dts=Td(ts),C=(t,why)=>NO(Th(t),why,{g:Tpy(t),claim:cE(Tpy(t))}),top=s>0?B:A;
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneS(F,xq,{marks:[{x:a,t:'flat'}]}),prompt:`Étude de f(x) = ${F.h} sur ${iv(A,B)}.`,cap0:'Étape 1&nbsp;: la partition.',
+    parts:[ch(ASK_D,[OK(Th(dts),{g:Tpy(dts),claim:cE(Tpy(dts))}),C(P([3*s,2],[-3*s*a,1],[3*s*a*a,0]),`(x<sup>2</sup>)′ = 2x&nbsp;: le terme en x<sup>2</sup> donne ${par(-3*s*a)} × 2x.`),C(P([3*s,2],[-6*s*a,1]),`Le terme ${Th(P([3*s*a*a,1]))} a pour dérivée ${D(3*s*a*a)}, il ne disparaît pas.`),C(P([3*s,2],[-6*s*a,1],[3*s*a*a+c,0]),`La constante ${D(c)} a pour dérivée 0.`)],{I:F.I}),
+      fill('Reconnais une identité remarquable&nbsp;:',`f′(x) = {0}${sqX(a)}`,[{v:3*s}],`Factorise par ${D(3*s)}&nbsp;: il reste ${Th(P([1,2],[-2*a,1],[a*a,0]))} = ${sqX(a)}.`,{verify:`eq(d,{0}*(x-${R(a)})**2)`,onOk:()=>K.set({zeros:[a]})}),
+      TAB(F,xq,[1],sg,{valq:[Pval(ts,A),Pval(ts,a),Pval(ts,B)],hint:'Un carré est positif ou nul.'}),
+      ch(`Sur ${iv(A,B)}, la plus grande valeur de f est atteinte en…`,[OK(`x = ${D(top)}`,{claim:`argmax(${R(A)},${R(B)})==${R(top)}`}),NO(`x = ${D(a)}`,`En ${D(a)}, f′ s'annule sans changer de signe&nbsp;: pas d'extremum. f est ${s>0?'croissante':'décroissante'} sur tout l'intervalle.`,{claim:`argmax(${R(A)},${R(B)})==${R(a)}`}),
+        NO(`x = ${D(s>0?A:B)}`,`f est ${s>0?'croissante':'décroissante'} sur ${iv(A,B)}&nbsp;: sa plus grande valeur est à ${s>0?'droite':'gauche'}.`,{claim:`argmax(${R(A)},${R(B)})==${R(s>0?A:B)}`})],{keep:true})],
+    done:`f′(x) = ${kH(3*s)}${sqX(a)} ${s>0?'⩾':'⩽'} 0&nbsp;: f est ${s>0?'croissante':'décroissante'} sur ${iv(A,B)}, sans extremum en ${D(a)}&nbsp;; maximum en ${D(top)}.`}}
+function l7q4(){let a,b,d0,A,B;do{a=nz(-3,3);b=nz(-6,6);d0=nz(-3,3);A=-d0+ri(1,2);B=A+ri(2,4)}while(a*d0-b===0);const U=P([a,1],[b,0]),V=P([1,1],[d0,0]),F=quoF(U,V,[A,B]);
+  const N=a*d0-b,xq=[String(A),String(B)],val=t=>q(a*t+b).div(t+d0),vA=val(A),vB=val(B),mn=N>0?vA:vB,mx=N>0?vB:vA;
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneS(F,xq),prompt:`Étude de f(x) = ${F.h} sur ${iv(A,B)}.`,cap0:'Étape 1&nbsp;: la partition, par la formule du quotient.',
+    parts:[fill('Le numérateur de f′&nbsp;:',`f′(x) = ${frac('{0}',sq(Th(V)))}`,[{v:N}],`u′v − uv′ = ${D(a)}(${Th(V)}) − (${Th(U)}) × 1&nbsp;: développe et réduis.`,{verify:`eq(d,({0})/(${Tpy(V)})**2)`}),
+      TAB(F,xq,[],[N>0?'+':'-'],{valq:[vA,vB],hint:'Le dénominateur est un carré non nul.'}),
+      fill(`Sur ${iv(A,B)}&nbsp;:`,'le minimum de f vaut {0} et le maximum vaut {1}',[{v:mn},{v:mx}],`f est ${N>0?'croissante':'décroissante'}&nbsp;: les extremums sont aux bornes, f(${D(A)}) = ${D(vA)} et f(${D(B)}) = ${D(vB)}.`,{verify:`gmin(${R(A)},${R(B)},{0}) and gmax(${R(A)},${R(B)},{1})`})],
+    done:`f′(x) = ${frac(D(N),sq(Th(V)))} est de signe constant&nbsp;: f est ${N>0?'croissante':'décroissante'}, minimum ${D(mn)} et maximum ${D(mx)}, aux bornes.`}}
+function l7q5(){const k=pick([3,6,-3]),U=P([1,2]),V=P([1,1],[-k,0]),ts=Pmul(U,V),r=2*k/3,r1=Math.min(0,r),r2=Math.max(0,r),A=r1-1,B=r2+1,F=mkF({py:`x**2*(${Tpy(V)})`,h:`x<sup>2</sup>(${Th(V)})`,dpy:Tpy(Td(ts)),dh:Th(Td(ts)),I:[A,B]});
+  const xq=[A,r1,r2,B].map(String),vs=[A,r1,r2,B].map(t=>Pval(ts,t)),sg=['+','-','+'],ar=['u','d','u'];
+  return{spec:{f:F.py,fh:F.h,I:F.I},scene:sceneS(F,xq,{marks:[{x:r1,t:'max',lab:Dt(vs[1])},{x:r2,t:'min',lab:Dt(vs[2])}]}),prompt:`Étude de f(x) = ${F.h} sur ${iv(A,B)}.`,cap0:'Un duo&nbsp;: x<sup>2</sup> et '+Th(V)+'.',
+    parts:[fill('Étape 1 (formule du produit, puis réduis)&nbsp;:','f′(x) = {0}x<sup>2</sup> + {1}x',[{v:3},{v:-2*k}],`u′v + uv′ = 2x(${Th(V)}) + x<sup>2</sup> × 1.`,{verify:'eq(d,{0}*x**2+{1}*x)'}),
+      fill('Étape 2&nbsp;: racines de f′(x), dans l\'ordre croissant',`x<sub>1</sub> = {0} et x<sub>2</sub> = {1}`,[{v:r1},{v:r2}],`Factorise par x&nbsp;: f′(x) = x(3x ${k>0?MINUS:'+'} ${Math.abs(2*k)}).`,{verify:'roots()==[{0},{1}]',onOk:()=>K.set({zeros:[r1,r2]})}),
+      TAB(F,xq,[1,2],sg,{valq:[vs[0],null,null,vs[3]]}),
+      fill('Étape 4&nbsp;:',`f(${D(r1)}) = {0} et f(${D(r2)}) = {1}`,[{v:vs[1]},{v:vs[2]}],'Remplace x dans x<sup>2</sup>(x − …).',{verify:`eqv(F(${R(r1)}),{0}) and eqv(F(${R(r2)}),{1})`,onOk:()=>tabSet(xq,ar,[null,vs[1],vs[2],null])}),
+      ch('Conclusion&nbsp;:',[OK(`f admet un maximum local en ${D(r1)} et un minimum local en ${D(r2)}`,{claim:`maxloc(${R(r1)}) and minloc(${R(r2)})`}),NO(`f admet un minimum local en ${D(r1)} et un maximum local en ${D(r2)}`,'Lis les flèches&nbsp;: ↗ puis ↘ donne un maximum.',{claim:`minloc(${R(r1)}) and maxloc(${R(r2)})`}),
+        NO(`f admet un maximum local en ${D(vs[1])} et un minimum local en ${D(vs[2])}`,`${D(vs[1])} et ${D(vs[2])} sont les <b>valeurs</b>&nbsp;; les extremums sont atteints <b>en</b> ${D(r1)} et ${D(r2)}.`,{claim:`maxloc(${R(vs[1])}) and minloc(${R(vs[2])})`})],{keep:true})],
+    done:`f′(x) = x(3x ${k>0?MINUS:'+'} ${Math.abs(2*k)})&nbsp;: maximum local f(${D(r1)}) = ${D(vs[1])}, minimum local f(${D(r2)}) = ${D(vs[2])}.`}}
+LV.push({t:'Le morceau complet',s:'Morceau',chap:'Étude complète des variations',rule:rule7,qs:[l7q1,l7q2,l7q3,l7q4,l7q5]});
+})();
+</script>
+<script>
+/* ======================= LA PARTITION — épreuves finales Bronze, Argent, Or ======================= */
+(function(){
+'use strict';
+const K=window.LPK,{Q,q,D,Dt,DF,frac,par,writes,ri,pick,shuf,nz,tm,P,RQ,Tpy,Td,Th,xp,Tneg,Pmul,Padd,Pval,paren,mkF,FT,MINUS,R,cE,xm,kH,fac,sq,sqX,iv}=K;
+/* QCM : choix dédoublonnés (même texte), 3 ou 4 choix, un seul juste */
+function QCM(level,prompt,list,explain,o){const out=[];for(const c of list){if(out.some(d=>d.h===c.h))continue;out.push(c);if(out.length===4)break}
+  if(out.length<3||out.filter(c=>c.ok).length!==1)return null;
+  return Object.assign({type:'qcm',level,prompt,choices:out.map(c=>c.h),answer:out.findIndex(c=>c.ok),explain,chk:out.map(c=>c.claim)},o||{})}
+const OK=(h,claim)=>({h,ok:true,claim}),NO=(h,claim)=>({h,claim});
+function TR(level,prompt,blanks,explain,o){return Object.assign({type:'trous',level,prompt,explain,
+  blanks:blanks.map(b=>({answers:(b.extra||[]).concat(writes(b.v)).filter((x,i,a)=>a.indexOf(x)===i),size:Math.max(3,Dt(b.v).length+1),v:String(q(b.v))}))},o||{})}
+const SP=(F,o)=>Object.assign({f:F.py,fh:F.h},o||{});
+const dq=(ts,I)=>FT(ts,I||[-3,3]);
+const fd=(F,v)=>`f(x) = ${F.h}`;
+
+/* ---------- niveau 1 : dérivées de référence ---------- */
+function G1(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){const n=ri(2,6),F=dq(P([1,n]));const L=[P([n,n-1]),P([1,n-1]),P([n,n]),P([n-1,n-1])];
+      return QCM(1,`Soit f la fonction définie sur ℝ par f(x) = x<sup>${n}</sup>. Alors f′(x) est égal à&nbsp;:`,L.map((ts,i)=>(i?NO:OK)(Th(ts),cE(Tpy(ts)))),`(x<sup>n</sup>)′ = nx<sup>n−1</sup>&nbsp;: f′(x) = ${n}x<sup>${n-1}</sup>.`.replace('x<sup>1</sup>','x'),{spec:SP(F),steps:1})}
+    const n=ri(3,7),F=dq(P([1,n]));return TR(1,`Si f(x) = x<sup>${n}</sup>, alors f′(x) = {0}x<sup>${n-1}</sup>.`,[{v:n}],`(x<sup>n</sup>)′ = nx<sup>n−1</sup>, donc le coefficient est ${n}.`,{spec:SP(F),verify:`eq(d,{0}*x**(${n-1}))`,steps:1})}
+  if(t==='argent'){
+    if(ty==='qcm'){if(Math.random()<.5){const n=pick([1,2,3]),F=FT(P([1,-n]),[.5,3]);const L=[P([-n,-n-1]),P([n,-n-1]),P([-n,-n+1]),P([-1,-n-1]),P([-1,-n])];
+        return QCM(1,`Soit f(x) = ${F.h} sur ]0&nbsp;; +∞[. Alors f′(x) est égal à&nbsp;:`,L.map((ts,i)=>(i?NO:OK)(Th(ts),cE(Tpy(ts)))),`${F.h} = x<sup>−${n}</sup>, donc f′(x) = ${Th(P([-n,-n-1]),{xneg:true})} = ${Th(L[0])}.`,{spec:SP(F),steps:2})}
+      const F=FT([tm(1,0,'s')],[.25,4]);return QCM(1,'Soit f(x) = √x sur ]0&nbsp;; +∞[. Alors f′(x) est égal à&nbsp;:',[OK(frac(1,'2√x'),cE('1/(2*sqrt(x))')),NO(frac(1,'√x'),cE('1/sqrt(x)')),NO('2√x',cE('2*sqrt(x)')),NO(frac('√x',2),cE('sqrt(x)/2'))],
+        `(√x)′ = ${frac(1,'2√x')} sur ]0&nbsp;; +∞[.`,{spec:SP(F),steps:2})}
+    const n=pick([2,3,4]),F=FT(P([1,-n]),[.5,3]);return TR(1,`Soit f(x) = ${F.h} = x<sup>−${n}</sup> sur ]0&nbsp;; +∞[. Alors f′(x) = {0} × x<sup>m</sup> avec m = {1}.`,[{v:-n},{v:-n-1}],`(x<sup>n</sup>)′ = nx<sup>n−1</sup> avec n = −${n}&nbsp;: f′(x) = ${Th(P([-n,-n-1]),{xneg:true})}.`,{spec:SP(F),verify:'eq(d,{0}*x**({1}))',steps:2})}
+  if(ty==='qcm'){if(Math.random()<.35)return QCM(1,'La fonction racine carrée est dérivable sur&nbsp;:',[OK(']0&nbsp;; +∞[',"fact('sqrt_open')"),NO('[0&nbsp;; +∞[',"fact('sqrt_closed')"),NO('ℝ',"fact('sqrt_R')")],
+      'Elle est définie sur [0&nbsp;; +∞[ mais n\'est pas dérivable en 0&nbsp;: pour h &gt; 0, '+frac('√h','h')+' = '+frac(1,'√h')+' ne se rapproche d\'aucun nombre.',{spec:{f:'sqrt(x)',fh:'√x'},steps:3});
+    const n=pick([1,2,3]),a=pick([2,-1,-2,3]),F=FT(P([1,-n]),[.5,3]);const pw=k=>{let p=q(1);for(let i=0;i<k;i++)p=p.mul(a);return p};
+    const v=q(-n).div(pw(n+1)),L=[v,v.neg(),q(-n).div(pw(n-1)),q(-1).div(pw(n+1)),q(-n).div(pw(n))];
+    return QCM(1,`Soit f(x) = ${F.h} sur ]−∞&nbsp;; 0[ et sur ]0&nbsp;; +∞[. Le nombre dérivé f′(${D(a)}) est égal à&nbsp;:`,L.map((w,i)=>(i?NO:OK)(D(w),`eqv(Dv(${R(a)}),${R(w)})`)).filter((c,i,arr)=>arr.findIndex(z=>z.h===c.h)===i),
+      `f′(x) = ${Th(P([-n,-n-1]))}, donc f′(${D(a)}) = ${frac(`${MINUS}${n}`,`${par(a)}<sup>${n+1}</sup>`)} = ${D(v)}.`,{spec:SP(F),steps:3})}
+  const a=pick([9,16,25,36,'1/4','1/9']),r=K.Q.of(a),rt={'9':3,'16':4,'25':5,'36':6,'1/4':'1/2','1/9':'1/3'}[String(r)],v=q(1).div(q(2).mul(rt));
+  return TR(1,`Soit f(x) = √x. Le nombre dérivé de f en ${D(a)} est f′(${D(a)}) = {0}.`,[{v}],`f′(x) = ${frac(1,'2√x')}, donc f′(${D(a)}) = ${frac(1,`2 × ${D(rt)}`)} = ${D(v)}.`,{spec:{f:'sqrt(x)',fh:'√x'},verify:`eqv(Dv(${R(a)}),{0})`,steps:3})}
+
+/* ---------- niveau 2 : somme, produit par un réel ---------- */
+function G2(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){let a,b,c;do{a=nz(-5,5);b=nz(-6,6);c=nz(-7,7)}while(Math.abs(a)===1);const F=dq(P([a,2],[b,1],[c,0]));
+      const L=[P([2*a,1],[b,0]),P([2*a,1],[b+c,0]),P([a,1],[b,0]),P([2*a,1])];
+      return QCM(2,`Soit f(x) = ${F.h}. Alors f′(x) est égal à&nbsp;:`,L.map((ts,i)=>(i?NO:OK)(Th(ts),cE(Tpy(ts)))),`On dérive terme à terme&nbsp;: ${par(a)} × 2x + ${par(b)} + 0 = ${F.dh}.`,{spec:SP(F),steps:1})}
+    const a=nz(-5,5),b=nz(-9,9),F=dq(P([a,3],[b,1]));return TR(2,`Si f(x) = ${F.h}, alors f′(x) = {0}x<sup>2</sup> + {1}.`,[{v:3*a},{v:b}],`(x<sup>3</sup>)′ = 3x<sup>2</sup> et (x)′ = 1&nbsp;: f′(x) = ${F.dh}.`,{spec:SP(F),verify:'eq(d,{0}*x**2+{1})',steps:1})}
+  if(t==='argent'){
+    if(ty==='qcm'){const a=nz(-3,3),b=nz(-5,5),c=nz(-6,6),F=FT(P([a,3],[b,2],[c,-1]),[.5,3]);const L=[P([3*a,2],[2*b,1],[-c,-2]),P([3*a,2],[2*b,1],[c,-2]),P([3*a,2],[2*b,1],[-c,-1]),P([a,2],[b,1],[-c,-2])];
+      return QCM(2,`Soit f(x) = ${F.h} sur ]0&nbsp;; +∞[. Alors f′(x) est égal à&nbsp;:`,L.map((ts,i)=>(i?NO:OK)(Th(ts),cE(Tpy(ts)))),`(x<sup>3</sup>)′ = 3x<sup>2</sup>, (x<sup>2</sup>)′ = 2x et (${frac(1,'x')})′ = ${MINUS}${frac(1,'x<sup>2</sup>')}&nbsp;: f′(x) = ${F.dh}.`,{spec:SP(F),steps:2})}
+    let a,b,c,d0;do{a=nz(-4,4);b=nz(-6,6);c=nz(-8,8);d0=nz(-9,9)}while(false);const F=dq(P([a,3],[b,2],[c,1],[d0,0]));
+    return TR(2,`Si f(x) = ${F.h}, alors f′(x) = {0}x<sup>2</sup> + {1}x + {2}.`,[{v:3*a},{v:2*b},{v:c}],`Terme à terme&nbsp;: f′(x) = ${F.dh} (la constante disparaît).`,{spec:SP(F),verify:'eq(d,{0}*x**2+{1}*x+{2})',steps:2})}
+  if(ty==='qcm'){const a=pick([2,4,6,8,-4]),b=nz(-8,8),F=FT([tm(a,0,'s'),tm(b,-1)],[.25,4]);const v=q(a).div(4).sub(q(b).div(16));
+    const L=[v,q(a).div(2).sub(q(b).div(16)),q(a).div(4).add(q(b).div(16)),q(a).div(4).sub(q(b).div(4))];
+    return QCM(2,`Soit f(x) = ${F.h} sur ]0&nbsp;; +∞[. Le nombre dérivé f′(4) est égal à&nbsp;:`,L.map((w,i)=>(i?NO:OK)(D(w),`eqv(Dv(R(4)),${R(w)})`)),`f′(x) = ${par(a)} × ${frac(1,'2√x')} ${MINUS} ${frac(b<0?MINUS+(-b):b,'x<sup>2</sup>')}, donc f′(4) = ${frac(D(a),4)} ${MINUS} ${frac(D(b),16)} = ${D(v)}.`,{spec:SP(F),steps:3})}
+  const a=nz(-4,4),b=nz(-6,6),c=nz(-9,9),F=FT(P([a,3],[b,-2],[c,0]),[.5,3]),v=q(3*a-2*b);
+  return TR(2,`Soit f(x) = ${F.h} sur ]0&nbsp;; +∞[. Alors f′(1) = {0}.`,[{v}],`f′(x) = ${F.dh}, donc f′(1) = ${D(3*a)} ${-2*b<0?MINUS:'+'} ${Math.abs(2*b)} = ${D(v)}.`,{spec:SP(F),verify:'eqv(Dv(R(1)),{0})',steps:3})}
+
+/* ---------- niveau 3 : produit ---------- */
+function G3(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){const k=nz(-4,4),a=nz(-3,3),b=nz(-4,4),U=P([1,2],[k,0]),V=P([a,1],[b,0]),u=Tpy(U),v=Tpy(V),F=mkF({py:`(${u})*(${v})`,h:paren(U)+paren(V),dpy:Tpy(Td(Pmul(U,V))),I:[-3,3]});
+      const fx=["diff(U,x)*V+U*diff(V,x)",'diff(U,x)*diff(V,x)','diff(U,x)*V-U*diff(V,x)','(diff(U,x)*V-U*diff(V,x))/V**2'];
+      return QCM(3,`On veut dériver f(x) = ${F.h}, avec u(x) = ${Th(U)} et v(x) = ${Th(V)}. On utilise&nbsp;:`,['u′v + uv′','u′v′','u′v − uv′',frac('u′v − uv′','v<sup>2</sup>')].map((h,i)=>(i?NO:OK)(h,`eq(d,${fx[i]})`)),
+        'Pour un produit&nbsp;: (uv)′ = u′v + uv′ (et non u′v′).',{spec:{f:F.py,fh:F.h,u,v},steps:1})}
+    const a=nz(-6,6),b=nz(-6,6),U=P([1,1],[a,0]),V=P([1,1],[b,0]),F=mkF({py:`(${Tpy(U)})*(${Tpy(V)})`,h:paren(U)+paren(V),dpy:Tpy(Td(Pmul(U,V))),I:[-3,3]});
+    return TR(3,`Si f(x) = ${F.h}, alors f′(x) = 2x + {0}.`,[{v:a+b}],`f′(x) = 1 × (${Th(V)}) + (${Th(U)}) × 1 = 2x ${a+b<0?MINUS:'+'} ${Math.abs(a+b)}.`,{spec:{f:F.py,fh:F.h},verify:'eq(d,2*x+{0})',steps:1})}
+  if(t==='argent'){
+    if(ty==='qcm'){const k=nz(-4,4),a=pick([2,3,-2]),b=nz(-4,4),U=P([1,2],[k,0]),V=P([a,1],[b,0]),E=Pmul(U,V),F=mkF({py:`(${Tpy(U)})*(${Tpy(V)})`,h:paren(U)+paren(V),dpy:Tpy(Td(E)),I:[-3,3]});
+      const L=[Td(E),P([2*a,1]),Padd(Pmul(P([2,1]),V),Tneg(Pmul(U,P([a,0])))),Pmul(P([2,1]),V)];
+      return QCM(3,`Soit f(x) = ${F.h}. Alors f′(x) est égal à&nbsp;:`,L.map((ts,i)=>(i?NO:OK)(Th(ts),cE(Tpy(ts)))),`f′(x) = 2x(${Th(V)}) ${a<0?MINUS:'+'} ${Math.abs(a)}(${Th(U)}) = ${Th(Td(E))}.`,{spec:{f:F.py,fh:F.h},steps:2})}
+    let a,b,c,d0;do{a=nz(-3,3);b=nz(-5,5);c=nz(-3,3);d0=nz(-5,5)}while(a*d0+b*c===0);const U=P([a,1],[b,0]),V=P([c,1],[d0,0]),F=mkF({py:`(${Tpy(U)})*(${Tpy(V)})`,h:paren(U)+paren(V),dpy:Tpy(Td(Pmul(U,V))),I:[-3,3]});
+    return TR(3,`Si f(x) = ${F.h}, alors f′(x) = {0}x + {1}.`,[{v:2*a*c},{v:a*d0+b*c}],`f′(x) = ${D(a)}(${Th(V)}) + ${par(c)}(${Th(U)}), puis on développe et on réduit.`,{spec:{f:F.py,fh:F.h},verify:'eq(d,{0}*x+{1})',steps:2})}
+  if(ty==='qcm'){const a=pick([1,2,3,-1,-2]),b=nz(-4,4),V=P([a,1],[b,0]),Vh=Th(V),gV=Tpy(V),F=mkF({py:`(${gV})*sqrt(x)`,h:`(${Vh})√x`,dpy:`${RQ(a)}*sqrt(x)+(${gV})/(2*sqrt(x))`,I:[.25,4]});
+    return QCM(3,`Soit f(x) = ${F.h} sur ]0&nbsp;; +∞[. Alors f′(x) est égal à&nbsp;:`,[OK(`${kH(a)}√x + ${frac(Vh,'2√x')}`,cE(F.dpy)),NO(frac(D(a),'2√x'),cE(`${RQ(a)}/(2*sqrt(x))`)),NO(`${kH(a)}√x ${MINUS} ${frac(Vh,'2√x')}`,cE(`${RQ(a)}*sqrt(x)-(${gV})/(2*sqrt(x))`)),NO(`${kH(a)}√x + ${frac(Vh,'√x')}`,cE(`${RQ(a)}*sqrt(x)+(${gV})/sqrt(x)`))],
+      `(uv)′ = u′v + uv′ avec u′(x) = ${D(a)} et v′(x) = ${frac(1,'2√x')}.`,{spec:{f:F.py,fh:F.h},steps:3})}
+  let p,r,a;p=nz(-4,4);r=nz(-3,3);a=pick([-2,-1,1,2,3]);const U=P([1,2],[p,0]),V=P([1,1],[r,0]),F=mkF({py:`(${Tpy(U)})*(${Tpy(V)})`,h:paren(U)+paren(V),dpy:Tpy(Td(Pmul(U,V))),I:[-3,3]});
+  const v=q(2*a).mul(Pval(V,a)).add(Pval(U,a));
+  return TR(3,`Soit f(x) = ${F.h}. Le nombre dérivé f′(${D(a)}) est égal à {0}.`,[{v}],`f′(${D(a)}) = u′(${D(a)})v(${D(a)}) + u(${D(a)})v′(${D(a)}) = ${D(2*a)} × ${par(Pval(V,a))} + ${par(Pval(U,a))} × 1 = ${D(v)}.`,{spec:{f:F.py,fh:F.h},verify:`eqv(Dv(${R(a)}),{0})`,steps:3})}
+
+/* ---------- niveau 4 : inverse, quotient ---------- */
+function G4(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){const k=pick([1,2,3,4,5]),V=P([1,2],[k,0]),Vh=Th(V),gV=Tpy(V),F={py:`1/(${gV})`,h:frac(1,Vh)};
+      return QCM(4,`Soit f(x) = ${F.h} sur ℝ. Alors f′(x) est égal à&nbsp;:`,[OK(MINUS+frac('2x',sq(Vh)),cE(`-2*x/(${gV})**2`)),NO(frac('2x',sq(Vh)),cE(`2*x/(${gV})**2`)),NO(MINUS+frac(1,sq(Vh)),cE(`-1/(${gV})**2`)),NO(MINUS+frac('2x',Vh),cE(`-2*x/(${gV})`))],
+        `(${frac(1,'v')})′ = ${MINUS}${frac('v′','v<sup>2</sup>')} avec v′(x) = 2x.`,{spec:{f:F.py,fh:F.h},steps:1})}
+    const a=pick([2,3,4,5,-2,-3]),b=nz(-6,6),V=P([a,1],[b,0]),F={py:`1/(${Tpy(V)})`,h:frac(1,Th(V))};
+    return TR(4,`Soit f(x) = ${F.h} là où le dénominateur ne s'annule pas. Alors f′(x) = ${frac('{0}',sq(Th(V)))}.`,[{v:-a}],`(${frac(1,'v')})′ = ${MINUS}${frac('v′','v<sup>2</sup>')} et v′(x) = ${D(a)}&nbsp;: le numérateur est ${D(-a)}.`,{spec:{f:F.py,fh:F.h},verify:`eq(d,({0})/(${Tpy(V)})**2)`,steps:1})}
+  if(t==='argent'){
+    let a,b,c,d0;do{a=nz(-4,4);b=nz(-6,6);c=pick([1,2,3]);d0=nz(-6,6)}while(a*d0-b*c===0||a*d0+b*c===0||b*c-a*d0===a*d0+b*c);const U=P([a,1],[b,0]),V=P([c,1],[d0,0]),u=Tpy(U),v=Tpy(V),Vh=Th(V),F={py:`(${u})/(${v})`,h:frac(Th(U),Vh)};
+    const N=a*d0-b*c;
+    if(ty==='qcm')return QCM(4,`Soit f(x) = ${F.h} là où le dénominateur ne s'annule pas. Alors f′(x) est égal à&nbsp;:`,[OK(frac(D(N),sq(Vh)),cE(`${RQ(N)}/(${v})**2`)),NO(frac(D(-N),sq(Vh)),cE(`${RQ(-N)}/(${v})**2`)),NO(frac(D(a*d0+b*c),sq(Vh)),cE(`${RQ(a*d0+b*c)}/(${v})**2`)),NO(DF(q(a).div(c)),cE(RQ(q(a).div(c))))],
+      `u′v − uv′ = ${D(a)}(${Vh}) − ${c===1?'':c}(${Th(U)}) = ${D(N)}, donc f′(x) = ${frac(D(N),sq(Vh))}.`,{spec:{f:F.py,fh:F.h},steps:2});
+    return TR(4,`Soit f(x) = ${F.h} là où le dénominateur ne s'annule pas. Alors f′(x) = ${frac('{0}',sq(Vh))}.`,[{v:N}],`u′v − uv′ = ${D(a)}(${Vh}) − ${c===1?'':c}(${Th(U)}) = ${D(N)}.`,{spec:{f:F.py,fh:F.h},verify:`eq(d,({0})/(${v})**2)`,steps:2})}
+  if(ty==='qcm'){const k=nz(-4,4),V=P([1,1],[k,0]),Vh=Th(V),gV=Tpy(V),F={py:`x**2/(${gV})`,h:frac('x<sup>2</sup>',Vh)};
+    return QCM(4,`Soit f(x) = ${F.h} sur ]${D(-k)}&nbsp;; +∞[. Alors f′(x) est égal à&nbsp;:`,[OK(frac(Th(P([1,2],[2*k,1])),sq(Vh)),cE(`(x**2+${RQ(2*k)}*x)/(${gV})**2`)),NO(frac(Th(P([3,2],[2*k,1])),sq(Vh)),cE(`(3*x**2+${RQ(2*k)}*x)/(${gV})**2`)),
+      NO(frac(Th(P([-1,2],[-2*k,1])),sq(Vh)),cE(`((-1)*x**2-${RQ(2*k)}*x)/(${gV})**2`)),NO('2x',cE('2*x'))],`f′(x) = ${frac(`2x(${Vh}) − x<sup>2</sup> × 1`,sq(Vh))} = ${frac(Th(P([1,2],[2*k,1])),sq(Vh))}.`,{spec:{f:F.py,fh:F.h},steps:3})}
+  let a,b,d0,x1;do{a=nz(-3,3);b=nz(-6,6);d0=nz(-4,4);x1=-d0+ri(1,3)}while(a*d0-b===0);const U=P([a,1],[b,0]),V=P([1,1],[d0,0]),F={py:`(${Tpy(U)})/(${Tpy(V)})`,h:frac(Th(U),Th(V))},N=a*d0-b,v=q(N).div((x1+d0)*(x1+d0));
+  return TR(4,`Soit f(x) = ${F.h} sur ]${D(-d0)}&nbsp;; +∞[. Alors f′(${D(x1)}) = {0} (valeur exacte).`,[{v}],`f′(x) = ${frac(D(N),sq(Th(V)))}, donc f′(${D(x1)}) = ${frac(D(N),(x1+d0)*(x1+d0))} = ${D(v)}.`,{spec:{f:F.py,fh:F.h},verify:`eqv(Dv(${R(x1)}),{0})`,steps:3})}
+
+/* ---------- niveau 5 : signe de f′ et sens de variation ---------- */
+function G5(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){const k=pick([1,2,3,4,5]),c=ri(-4,4),f=`x**3/3+${k}*x+${RQ(c)}`;
+      return QCM(5,`Une fonction f est dérivable sur ℝ et, pour tout réel x, f′(x) = x<sup>2</sup> + ${k}. Alors&nbsp;:`,[OK('f est strictement croissante sur ℝ','sgn(-oo,oo)==1'),NO('f est strictement décroissante sur ℝ','sgn(-oo,oo)==-1'),NO('f est constante sur ℝ','isconst()'),NO('f admet un minimum en 0','minloc(R(0))')],
+        `x<sup>2</sup> + ${k} &gt; 0 pour tout x&nbsp;: f′ est strictement positive, donc f est strictement croissante sur ℝ.`,{spec:{f,dh:`x<sup>2</sup> + ${k}`},steps:1})}
+    const a=pick([1,2,3,4]),r=nz(-5,5),b=-a*r,c=ri(-3,3),f=Tpy(P([q(a).div(2),2],[b,1],[c,0]));
+    return TR(5,`Une fonction f est dérivable sur ℝ avec f′(x) = ${Th(P([a,1],[b,0]))}. Alors f est décroissante sur ]−∞&nbsp;; {0}] et croissante ensuite.`,[{v:r}],`f′(x) = 0 ⇔ x = ${D(r)}&nbsp;; f′(x) &lt; 0 avant (le coefficient ${a} est positif).`,{spec:{f,dh:Th(P([a,1],[b,0]))},verify:'roots()==[{0}] and sgn(-oo,{0})==-1',steps:1})}
+  if(t==='argent'){
+    if(ty==='qcm'){const k=nz(-3,3),r1=ri(-4,1),r2=ri(r1+1,4),f=Tpy(P([q(k).div(3),3],[q(-k*(r1+r2)).div(2),2],[k*r1*r2,1])),dh=fac(k,[r1,r2]);
+      return QCM(5,`Une fonction f est dérivable sur ℝ avec f′(x) = ${dh}. Sur [${D(r1)}&nbsp;; ${D(r2)}], f est&nbsp;:`,[OK(k>0?'décroissante':'croissante',`sgn(${R(r1)},${R(r2)})==${k>0?-1:1}`),NO(k>0?'croissante':'décroissante',`sgn(${R(r1)},${R(r2)})==${k>0?1:-1}`),NO('constante','isconst()')],
+        `Entre les racines ${D(r1)} et ${D(r2)}, f′(x) a le signe contraire de ${D(k)}&nbsp;: f′(x) ${k>0?'&lt;':'&gt;'} 0, f est ${k>0?'décroissante':'croissante'}.`,{spec:{f,dh},steps:2})}
+    const c=nz(-9,9),xv=pick([2,5,-3,10]);return TR(5,`Une fonction f est dérivable sur ℝ, f′(x) = 0 pour tout réel x, et f(0) = ${D(c)}. Alors f(${D(xv)}) = {0}.`,[{v:c}],`f′ est nulle sur ℝ, donc f est constante&nbsp;: f(${D(xv)}) = f(0) = ${D(c)}.`,{spec:{f:RQ(c)},verify:`isconst() and eqv(F(${R(xv)}),{0})`,steps:2})}
+  if(ty==='qcm'){let p,qq;do{p=ri(-4,4);qq=ri(1,6)}while(p*p-4*qq>=0);const dh=Th(P([-1,2],[-p,1],[-qq,0])),f=Tpy(P([q(-1).div(3),3],[q(-p).div(2),2],[-qq,1]));
+    return QCM(5,`Une fonction f est dérivable sur ℝ avec f′(x) = ${dh}. Alors f est&nbsp;:`,[OK('strictement décroissante sur ℝ','sgn(-oo,oo)==-1'),NO('strictement croissante sur ℝ','sgn(-oo,oo)==1'),NO('croissante puis décroissante','sgn(-oo,oo) is None'),NO('constante sur ℝ','isconst()')],
+      `Δ = ${p*p-4*qq} &lt; 0&nbsp;: f′(x) garde le signe de son coefficient −1, f′(x) &lt; 0 pour tout x, donc f est strictement décroissante.`,{spec:{f,dh},steps:3})}
+  const k=pick([1,2,3]),r1=ri(-4,1),r2=ri(r1+1,5),D2=P([k,2],[-k*(r1+r2),1],[k*r1*r2,0]),f=Tpy(P([q(k).div(3),3],[q(-k*(r1+r2)).div(2),2],[k*r1*r2,1]));
+  return TR(5,`Une fonction f est dérivable sur ℝ avec f′(x) = ${Th(D2)}. Alors f est décroissante sur [{0}&nbsp;; {1}] et croissante ailleurs.`,[{v:r1},{v:r2}],`Δ = ${k*k*(r2-r1)*(r2-r1)}, racines ${D(r1)} et ${D(r2)}&nbsp;; f′(x) &lt; 0 entre les racines (coefficient ${k} &gt; 0).`,{spec:{f,dh:Th(D2)},verify:'roots()==[{0},{1}] and sgn({0},{1})==-1',steps:3})}
+
+/* ---------- niveau 6 : extremums ---------- */
+function G6(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){const a=ri(-2,3),k=ri(-4,6),s=pick([1,-1]),A=a-3,B=a+2,f=Tpy(P([-s,2],[2*s*a,1],[-s*a*a+k,0]));
+      const tb=`<div class="tvw"><table class="tv"><tr><th>x</th><td class="b">${D(A)}</td><td class="c"></td><td class="b">${D(a)}</td><td class="c"></td><td class="b">${D(B)}</td></tr><tr><th>f′(x)</th><td class="b"></td><td class="c">${s>0?'+':MINUS}</td><td class="b">0</td><td class="c">${s>0?MINUS:'+'}</td><td class="b"></td></tr></table></div>`;
+      return QCM(6,`Une fonction f est dérivable sur ${iv(A,B)}, et le signe de f′ est donné&nbsp;:${tb}En ${D(a)}, f admet&nbsp;:`,[OK(s>0?'un maximum local':'un minimum local',`${s>0?'maxloc':'minloc'}(${R(a)})`),NO(s>0?'un minimum local':'un maximum local',`${s>0?'minloc':'maxloc'}(${R(a)})`),NO('aucun extremum',`noext(${R(a)})`)],
+        `f′ s'annule en ${D(a)} en changeant de signe (${s>0?'+ puis −':'− puis +'})&nbsp;: c'est un ${s>0?'maximum':'minimum'} local.`,{spec:{f},steps:1})}
+    const a=nz(-5,5),c=ri(-6,6),F=dq(P([1,2],[-2*a,1],[c,0]));return TR(6,`Soit f(x) = ${F.h}. Alors f′(x) = 2x ${a>0?MINUS:'+'} ${Math.abs(2*a)} s'annule en x = {0}, où f admet son minimum.`,[{v:a}],`2x ${a>0?MINUS:'+'} ${Math.abs(2*a)} = 0 ⇔ x = ${D(a)}.`,{spec:SP(F),verify:'roots()==[{0}] and minloc({0})',steps:1})}
+  if(t==='argent'){
+    if(ty==='qcm'){const a=ri(-3,3),s=pick([1,-1]),c=ri(-5,5),F=dq(P([s,3],[-3*s*a,2],[3*s*a*a,1],[c,0]));
+      return QCM(6,`Soit f(x) = ${F.h} sur ℝ. On a f′(x) = ${kH(3*s)}${sqX(a)}, donc f′(${D(a)}) = 0. En ${D(a)}, f admet&nbsp;:`,[OK('aucun extremum',`noext(${R(a)})`),NO('un maximum local',`maxloc(${R(a)})`),NO('un minimum local',`minloc(${R(a)})`)],
+        `f′(${D(a)}) = 0 mais f′ ne change pas de signe (un carré est positif)&nbsp;: f est ${s>0?'croissante':'décroissante'} sur ℝ, sans extremum.`,{spec:SP(F),steps:2})}
+    const s=pick([1,-1]),r1=ri(-2,1),r2=ri(r1+1,r1+3),c=ri(-5,5),F=dq(P([2*s,3],[-3*s*(r1+r2),2],[6*s*r1*r2,1],[c,0])),hi=s>0?r1:r2,v=Pval(P([2*s,3],[-3*s*(r1+r2),2],[6*s*r1*r2,1],[c,0]),hi);
+    return TR(6,`Soit f(x) = ${F.h}, avec f′(x) = ${fac(6*s,[r1,r2])}. f admet un maximum local en x = {0}, égal à {1}.`,[{v:hi},{v}],`f′ passe de + à − en ${D(hi)}&nbsp;: maximum local f(${D(hi)}) = ${D(v)}.`,{spec:SP(F),verify:'maxloc({0}) and eqv(F({0}),{1})',steps:2})}
+  if(ty==='qcm'){const a=ri(-3,3),m=nz(-6,6),F=dq(P([1,2],[-2*a,1],[a*a+m,0]));
+    const C=[[0,m],[q(m),0],[q(a),0]];
+    return QCM(6,`Soit f(x) = ${F.h}, qui admet un minimum en ${D(a)}, égal à ${D(m)}. La tangente à 𝒞<sub>f</sub> au point d'abscisse ${D(a)} a pour équation&nbsp;:`,[OK(`y = ${D(m)}`,`tan_eq(${R(a)},R(0),${R(m)})`),NO(`x = ${D(a)}`,`tanvert(${R(a)})`),NO(`y = ${D(m)}x`.replace(/^y = 1x/,'y = x').replace(/^y = −1x/,'y = −x'),`tan_eq(${R(a)},${R(m)},R(0))`),NO(`y = ${D(a)}x`.replace(/^y = 1x/,'y = x').replace(/^y = −1x/,'y = −x').replace(/^y = 0x/,'y = 0'),`tan_eq(${R(a)},${R(a)},R(0))`)],
+      `En un extremum, f′(${D(a)}) = 0&nbsp;: la tangente est horizontale, y = f(${D(a)}) = ${D(m)}.`,{spec:SP(F),steps:3})}
+  const a=pick([-1,-2,-3]),h=ri(-3,3),c=ri(-6,6),F=dq(P([a,2],[-2*a*h,1],[c,0])),v=Pval(P([a,2],[-2*a*h,1],[c,0]),h);
+  return TR(6,`Soit f(x) = ${F.h} sur ℝ. f admet un maximum égal à {0}, atteint en x = {1}.`,[{v},{v:h}],`f′(x) = ${F.dh} s'annule en ${D(h)} et passe de + à − (a = ${a} &lt; 0)&nbsp;: maximum f(${D(h)}) = ${D(v)}.`,{spec:SP(F),verify:'maxloc({1}) and eqv(F({1}),{0})',steps:3})}
+
+/* ---------- niveau 7 : étude complète ---------- */
+function G7(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){let h,c,A,B,ts,vs;do{h=ri(-2,3);c=ri(-5,5);A=h-ri(1,3);B=h+ri(1,3);ts=P([1,2],[-2*h,1],[c,0]);vs=[A,h,B].map(t=>Pval(ts,t))}while(vs[0].eq(vs[2]));const F=FT(ts,[A,B]);
+      return QCM(7,`Soit f(x) = ${F.h} sur ${iv(A,B)}. Le minimum de f sur cet intervalle est&nbsp;:`,[OK(D(vs[1]),`gmin(${R(A)},${R(B)},${R(vs[1])})`),NO(D(vs[0]),`gmin(${R(A)},${R(B)},${R(vs[0])})`),NO(D(vs[2]),`gmin(${R(A)},${R(B)},${R(vs[2])})`),NO(D(c),`gmin(${R(A)},${R(B)},${R(c)})`)],
+        `f′(x) = 2x ${h>0?MINUS:'+'} ${Math.abs(2*h)} s'annule en ${D(h)} en passant de − à +&nbsp;: le minimum est f(${D(h)}) = ${D(vs[1])}.`.replace('2x + 0 ','2x ').replace('2x − 0 ','2x '),{spec:SP(F),steps:1})}
+    const a=pick([1,2,3]),c=ri(-5,5),F=dq(P([1,3],[-3*a*a,1],[c,0]));return TR(7,`Soit f(x) = ${F.h}. Alors f′(x) = 3x<sup>2</sup> − ${3*a*a} s'annule en x = ${MINUS}${a} et en x = {0}.`,[{v:a}],`3x<sup>2</sup> − ${3*a*a} = 3(x<sup>2</sup> − ${a*a}) = 0 ⇔ x = ${MINUS}${a} ou x = ${a}.`,{spec:SP(F),verify:`roots()==[R(${-a}),{0}]`,steps:1})}
+  if(t==='argent'){
+    if(ty==='qcm'){let s,r1,r2,c,A,B,ts,vs;do{s=pick([1,-1]);r1=ri(-2,1);r2=ri(r1+1,r1+3);c=ri(-6,6);A=s>0?r1-1:r1-2;B=s>0?r2+2:r2+1;ts=P([2*s,3],[-3*s*(r1+r2),2],[6*s*r1*r2,1],[c,0]);vs=[A,r1,r2,B].map(t=>Pval(ts,t))}while(new Set(vs.map(String)).size<4);
+      const F=FT(ts,[A,B]),M=vs.reduce((m,v)=>v.cmp(m)>0?v:m);
+      return QCM(7,`Soit f(x) = ${F.h} sur ${iv(A,B)}, avec f′(x) = ${fac(6*s,[r1,r2])}. La plus grande valeur de f sur cet intervalle est&nbsp;:`,[OK(D(M),`gmax(${R(A)},${R(B)},${R(M)})`),...vs.filter(v=>!v.eq(M)).map(v=>NO(D(v),`gmax(${R(A)},${R(B)},${R(v)})`))],
+        `Tableau de variations&nbsp;: f(${D(A)}) = ${D(vs[0])}, f(${D(r1)}) = ${D(vs[1])}, f(${D(r2)}) = ${D(vs[2])}, f(${D(B)}) = ${D(vs[3])}&nbsp;; la plus grande est ${D(M)}.`,{spec:SP(F),steps:2})}
+    const r=pick([1,2,3]),a=pick([1,2,4]),F=FT(P([a,1],[a*r*r,-1]),[r/2,4*r]);return TR(7,`Soit f(x) = ${F.h} sur ]0&nbsp;; +∞[. Le minimum de f sur ]0&nbsp;; +∞[ vaut {0}.`,[{v:2*a*r}],`f′(x) = ${F.dh} = ${frac(`${kH(a)}(x<sup>2</sup> − ${r*r})`,'x<sup>2</sup>')}, négative puis positive (annulation en ${r})&nbsp;: minimum f(${r}) = ${D(2*a*r)}.`,{spec:SP(F),verify:`minloc(R(${r})) and eqv(F(R(${r})),{0}) and roots_in(R(0),oo)==[R(${r})]`,steps:2})}
+  if(ty==='qcm'){const k=pick([1,2]),L=pick([50,60,70]),f=`-x**3+${3*k}*x**2+${L}`;
+    return QCM(7,`Pendant un concert sur le front de mer de Mamoudzou, le niveau sonore (en dB) au bout de t minutes est f(t) = −t<sup>3</sup> + ${3*k}t<sup>2</sup> + ${L}, pour t ∈ [0&nbsp;; ${3*k}]. Le niveau est maximal au bout de&nbsp;:`,[OK(`${2*k} min`,`argmax(R(0),R(${3*k}))==R(${2*k})`),NO(`${3*k} min`,`argmax(R(0),R(${3*k}))==R(${3*k})`),NO(`${k} min`,`argmax(R(0),R(${3*k}))==R(${k})`),NO('0 min',`argmax(R(0),R(${3*k}))==R(0)`)],
+      `f′(t) = −3t<sup>2</sup> + ${6*k}t = −3t(t − ${2*k})&nbsp;: positive sur ]0&nbsp;; ${2*k}[, négative ensuite. Maximum en t = ${2*k}&nbsp;: f(${2*k}) = ${4*k*k*k+L} dB.`,{spec:{f,fh:`-x<sup>3</sup> + ${3*k}x<sup>2</sup> + ${L}`.replace('-','−')},steps:3})}
+  const k=pick([3,6]),r=2*k/3,ts=Pmul(P([1,2]),P([1,1],[-k,0])),v=Pval(ts,r),F={py:`x**2*(x-${k})`,h:`x<sup>2</sup>(x − ${k})`};
+  return TR(7,`Soit f(x) = ${F.h} sur ℝ. f admet un minimum local en x = {0}, égal à {1}.`,[{v:r},{v}],`f′(x) = 2x(x − ${k}) + x<sup>2</sup> = 3x<sup>2</sup> − ${2*k}x = x(3x − ${2*k})&nbsp;: + puis − puis +, minimum local en ${r}, f(${r}) = ${D(v)}.`,{spec:{f:F.py,fh:F.h},verify:'minloc({0}) and eqv(F({0}),{1})',steps:3})}
+
+const GEN=[G1,G2,G3,G4,G5,G6,G7];
+function build(tier){for(let tries=0;tries<60;tries++){
+  const extra=tier==='bronze'?shuf([1,2,3,5,6]).slice(0,3):tier==='or'?shuf([3,4,5,6,7]).slice(0,3):shuf([1,2,3,4,5,6,7]).slice(0,3);
+  const lv=shuf([1,2,3,4,5,6,7].concat(extra)),types=shuf(['qcm','qcm','qcm','qcm','qcm','qcm','trous','trous','trous','trous']);
+  const out=[];let ok=true;
+  for(let i=0;i<10;i++){let qn=null;for(let k=0;k<30&&!qn;k++)qn=GEN[lv[i]-1](tier,types[i]);if(!qn){ok=false;break}out.push(qn)}
+  if(ok&&new Set(out.map(x=>x.prompt)).size===10)return out}
+  throw new Error('épreuve impossible à construire')}
+window.LP_FIN={bronze:()=>(window.LP_last=build('bronze')),argent:()=>(window.LP_last=build('argent')),or:()=>(window.LP_last=build('or')),GEN};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'la-partition',title:'La Partition',levels:7,
+  levelNames:['Les notes de base','L\'accord','Le duo','Le contre-chant','La partition des signes','Les notes extrêmes','Le morceau complet'],
+  music:'aventure',finals:{bronze:LP_FIN.bronze,argent:LP_FIN.argent,or:LP_FIN.or}});
+LPK.goLevel(0);
+</script>
+</body>
+</html>
