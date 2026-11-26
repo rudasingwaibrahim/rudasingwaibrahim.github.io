@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le Monorail · Sigma Arcade</title>
+<meta name="description" content="Suites arithmétiques et géométriques en Première spécialité mathématiques : terme général, sens de variation, sommes 1 + 2 + … + n et 1 + q + … + qⁿ, croissance linéaire ou exponentielle. Un monorail de nuit roule sur un rail gradué : + r, c'est toujours le même pas ; × q, c'est un zoom depuis 0.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours, la réponse est donnée au deuxième essai.
+   IDEA : une suite, c'est la rame d'un monorail de nuit qui s'arrête de station en station sur un rail gradué.
+          Suite arithmétique : la rame avance toujours du même pas, + r (une flèche de même longueur à chaque fois).
+          Suite géométrique : la rame ne fait pas un pas, elle « zoome » depuis le moyeu 0 : sa distance à 0 est
+          multipliée par q (le rayon s'étire, se contracte, ou bascule de l'autre côté de 0 si q < 0).
+          Sommes : les termes deviennent des wagons mis bout à bout ; la longueur du train est la somme.
+          Gauss : le train et son reflet s'intercalent en n blocs de longueur n + 1. Somme géométrique : le train
+          zoomé × q, décalé de 1, recouvre le train d'origine sauf le premier wagon et le dernier.
+   PICTURE : baie de nuit, collines, rail d'acier lumineux, rame aux fenêtres dorées, flèches bleues (+) ou
+          saumon (−), rayon doré depuis 0, wagons bleus, repères dorés.
+   LAYOUT : scène et légende à gauche (collées en haut sur téléphone), carnet de bord à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);--pos:var(--sg-pos);--neg:var(--sg-neg)}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:74ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible,.stage:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:1000/560;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#040914;user-select:none;-webkit-user-select:none}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg text{font-family:var(--sg-font)}
+.badge{position:absolute;left:10px;top:10px;z-index:2;font:600 13px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--mut);border:1px solid var(--soft);pointer-events:none;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge:empty{display:none}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,23px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .45em}
+.capt .k{color:var(--gold2)}.capt .b{color:#9fb4ff}.capt .p{color:var(--pos)}.capt .n{color:var(--neg)}.capt .g{color:var(--ok)}.capt .m{color:var(--mut);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin:8px 0 0;font-size:14px;color:var(--mut)}
+.legend i{display:inline-block;margin-right:6px;vertical-align:-1px}
+.legend .ls i{width:11px;height:11px;border-radius:50%;background:var(--gold2);box-shadow:0 0 6px rgba(232,199,102,.7)}
+.legend .lp i{width:18px;height:3px;border-radius:2px;background:var(--pos);vertical-align:4px}
+.legend .ln i{width:18px;height:3px;border-radius:2px;background:var(--neg);vertical-align:4px}
+.legend .lz i{width:18px;height:3px;border-radius:2px;background:linear-gradient(90deg,rgba(232,199,102,.2),var(--gold2));vertical-align:4px}
+.legend .lw i{width:16px;height:10px;border-radius:3px;background:#3d66c4;border:1px solid #9fb4ff;vertical-align:0}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.5;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+.ask+.btns,.ask+.opts{margin-top:0}
+.opts{display:grid;gap:10px}
+.opts.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr))}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt.rv{border-color:var(--gold);background:rgba(200,168,75,.12)}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(19px,2.2vw,23px)/2.2 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.4em;height:46px;margin:0 3px;padding:0 6px;font:700 21px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}.in.rv{border-color:var(--gold);color:var(--gold2)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+.v{font-style:italic}
+.nw{white-space:nowrap}
+sup{font-size:.7em;line-height:0}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+/* tableaux de valeurs */
+.tbw{overflow-x:auto;margin:4px 0 10px;-webkit-overflow-scrolling:touch}
+.tb{border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:17px}
+.tb th,.tb td{padding:5px 11px;border:1px solid var(--soft);text-align:center;white-space:nowrap}
+.tb th{font-weight:700;color:#aebfff;background:rgba(108,142,255,.08)}
+.sk-q .tb{font-size:17px;margin:6px 0}
+/* code Python */
+.code{margin:4px 0 12px;border-radius:14px;background:linear-gradient(160deg,#0c1426,#070d1b);border:1px solid rgba(127,178,255,.25);padding:12px 0;
+  font:500 15.5px/1.6 var(--sg-mono);color:#dbe6ff;overflow-x:auto;white-space:pre;tab-size:4}
+.code .ln{display:block;padding:0 14px;border-left:3px solid transparent;min-width:max-content}
+.code .ln.on{background:rgba(108,142,255,.16);border-left-color:var(--ac)}
+.code .kw{color:#c3a6ff;font-weight:600}.code .fn{color:#7fd8ff}.code .nb{color:#f3d98a}.code .op{color:#ff9bb0}
+.sk-q .code{font-size:14.5px;line-height:1.55;margin:8px 0 4px}
+.console{margin:-4px 0 12px;border-radius:10px;background:#03060e;border:1px solid var(--soft);padding:8px 14px;font:600 15px var(--sg-mono);color:#bff5d6;min-height:40px;white-space:pre-wrap;word-break:break-word}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb.rv{background:rgba(200,168,75,.09);border-left-color:var(--gold)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+#fbt{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex}
+.fb .mk,.win .mk{flex:none}.fb>div{min-width:0;flex:1}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:#060d1a;border-bottom:1px solid var(--soft)}
+  .stage{aspect-ratio:600/400;max-height:36svh;margin:auto}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+  .legend{display:none}
+}
+@media (max-width:520px){
+  .badge{display:none}
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .tb{font-size:15.5px}.tb th,.tb td{padding:4px 8px}
+  .code{font-size:14px}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Le Monorail</h1>
+<p>La nuit, une rame de monorail glisse sur un rail gradué. Chaque station est un terme de la suite. Suite arithmétique&nbsp;: la rame avance toujours du même pas, +&nbsp;<span class="v">r</span>. Suite géométrique&nbsp;: elle zoome depuis 0, ×&nbsp;<span class="v">q</span>. Mets les termes bout à bout et le train mesure leur somme.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Baie de nuit : rail gradué, rame de monorail, stations des termes de la suite" tabindex="-1">
+    <svg id="scene" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+    <span class="badge" id="badge"></span>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+  <div class="legend" id="legend"><span class="ls"><i></i>station&nbsp;: un terme</span><span class="lp"><i></i>pas + <span class="v">r</span> (positif)</span><span class="ln"><i></i>pas négatif</span><span class="lz"><i></i>zoom × <span class="v">q</span> depuis 0</span><span class="lw"><i></i>wagon&nbsp;: un terme d'une somme</span></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p><div class="btns" id="fbgo" hidden><button class="btn or" id="fbnext" type="button">Continuer →</button></div></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+<script>
+/* ======================= LE MONORAIL — nombres exacts (rationnels BigInt), écriture française ======================= */
+window.MN=(function(){
+'use strict';
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function bg(a,b){a=a<0n?-a:a;b=b<0n?-b:b;while(b){const t=a%b;a=b;b=t}return a||1n}
+function mk(n,d){if(d<0n){n=-n;d=-d}const g=bg(n,d);return{n:n/g,d:d/g,_q:1}}
+function parse(s){s=String(s).trim().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.');
+  let m=/^(-?\d+(?:\.\d+)?)\/(-?\d+(?:\.\d+)?)$/.exec(s);if(m){const b=parse(m[2]);if(!b||b.n===0n)return null;return div(parse(m[1]),b)}
+  m=/^([+-]?)(\d*)(?:\.(\d+))?$/.exec(s);if(!m||(m[2]===''&&!m[3]))return null;const dec=m[3]||'';
+  let n=BigInt((m[2]||'0')+dec);if(m[1]==='-')n=-n;return mk(n,10n**BigInt(dec.length))}
+function Q(x,y){let r;if(x&&x._q)r=x;else if(typeof x==='bigint')r=mk(x,1n);else if(typeof x==='number'){if(Number.isInteger(x))r=mk(BigInt(x),1n);else r=parse(x.toPrecision(12).replace(/0+$/,'').replace(/\.$/,''))}else r=parse(x);
+  return y===undefined?r:div(r,Q(y))}
+const add=(a,b)=>{a=Q(a);b=Q(b);return mk(a.n*b.d+b.n*a.d,a.d*b.d)};
+const sub=(a,b)=>{a=Q(a);b=Q(b);return mk(a.n*b.d-b.n*a.d,a.d*b.d)};
+const mul=(a,b)=>{a=Q(a);b=Q(b);return mk(a.n*b.n,a.d*b.d)};
+function div(a,b){a=Q(a);b=Q(b);if(b.n===0n)throw new Error('division par 0');return mk(a.n*b.d,a.d*b.n)}
+function pow(a,k){a=Q(a);if(k<0)return pow(div(1,a),-k);let r=mk(1n,1n);for(let i=0;i<k;i++)r=mul(r,a);return r}
+const neg=a=>{a=Q(a);return mk(-a.n,a.d)};
+const cmp=(a,b)=>{const d=sub(a,b);return d.n>0n?1:d.n<0n?-1:0};
+const eq=(a,b)=>cmp(a,b)===0;
+const sgn=a=>{a=Q(a);return a.n>0n?1:a.n<0n?-1:0};
+const val=a=>{a=Q(a);return Number(a.n)/Number(a.d)};
+const isInt=a=>Q(a).d===1n;
+const abs=a=>{a=Q(a);return a.n<0n?neg(a):a};
+function decs(a){a=Q(a);let d=a.d,i=0,j=0;while(d%2n===0n){d/=2n;i++}while(d%5n===0n){d/=5n;j++}return d===1n?Math.max(i,j):-1}
+function round(a,d){a=Q(a);const sc=10n**BigInt(d);const num=a.n*sc;let q=num/a.d;const rem=num%a.d;const r2=(rem<0n?-rem:rem)*2n;if(r2>=a.d)q+=num<0n?-1n:1n;return mk(q,sc)}
+/* chaîne décimale française d'un décimal exact ; fixed : nombre de décimales imposé */
+function dstr(a,fixed){a=Q(a);let k=fixed!==undefined?fixed:decs(a);if(k<0)k=6;const r=round(a,k);const sc=10n**BigInt(k);let n=r.n*(sc/r.d);const ng=n<0n;if(ng)n=-n;
+  let s=n.toString().padStart(k+1,'0');let ip=s.slice(0,s.length-k),fp=k?s.slice(s.length-k):'';
+  if(ip.length>=4)ip=ip.replace(/\B(?=(\d{3})+(?!\d))/g,' ');return (ng&&(n!==0n)?'−':'')+ip+(fp?','+fp:'')}
+/* écriture exacte : entier, décimal (≤ 6 décimales) ou fraction */
+function fq(a){a=Q(a);const k=decs(a);if(k>=0&&k<=6)return dstr(a);return (a.n<0n?'−':'')+`<span class="fr"><span>${(a.n<0n?-a.n:a.n)}</span><span>${a.d}</span></span>`}
+function fqt(a){a=Q(a);const k=decs(a);if(k>=0&&k<=6)return dstr(a);return (a.n<0n?'−':'')+(a.n<0n?-a.n:a.n)+'/'+a.d}
+const f=(x)=>dstr(Q(x));
+/* valeur approchée à d décimales : « = 12,5 » si exact, « ≈ 1 343,92 » sinon */
+function ap(a,d,fixed){a=Q(a);const r=round(a,d);const ex=eq(r,a);return{s:dstr(r,fixed?d:undefined),ex,r}}
+const eqs=(a,d,fixed)=>{const o=ap(a,d,fixed);return (o.ex?' = ':' ≈ ')+o.s};
+/* écritures acceptées dans un trou */
+function ans(a){a=Q(a);const out=[];const k=decs(a);if(k>=0&&k<=6){const s=dstr(a);out.push(s.replace(/ /g,''),s)}
+  if(!isInt(a))out.push((a.n<0n?'−':'')+(a.n<0n?-a.n:a.n)+'/'+a.d);return [...new Set(out)]}
+const pnum=s=>{try{return parse(s)}catch(e){return null}};
+/* lettres et indices */
+const v=s=>`<span class="v">${s}</span>`;
+const sb=s=>String(s).replace(/[a-z]/g,m=>v(m)).replace(/-/g,'−');
+const U=(k,L)=>`${v(L||'u')}<sub>${sb(k)}</sub>`;
+const nw=s=>`<span class="nw">${s}</span>`;
+/* rang en exposant */
+const P=(base,e)=>e===1?`${base}`:`${base}<sup>${sb(e)}</sup>`;
+/* coefficient devant un produit : « 3 × », « » pour 1, « − » pour −1 */
+const cx=a=>{a=Q(a);return eq(a,1)?'':eq(a,-1)?'−':fq(a)+' × '};
+/* nombre entre parenthèses s'il est négatif */
+const par=x=>sgn(x)<0?'('+fq(x)+')':fq(x);
+/* « + 3 » / « − 3 » */
+const sg=x=>sgn(x)<0?' − '+fq(abs(x)):' + '+fq(x);
+/* expression affine u0 + n r écrite proprement : 4 − 3n, 5 + 2n, −3n… */
+function aff(u0,r,X){X=X||v('n');u0=Q(u0);r=Q(r);const rr=eq(abs(r),1)?'':fq(abs(r));
+  if(sgn(r)===0)return fq(u0);if(sgn(u0)===0)return (sgn(r)<0?'−':'')+rr+X;return fq(u0)+(sgn(r)<0?' − ':' + ')+rr+X}
+/* espace insécable typographique dans les textes générés */
+function mf(h){if(typeof h!=='string')return h;return h.split(/(<code>[\s\S]*?<\/code>|<div class="code"[\s\S]*?<\/div>|<svg[\s\S]*?<\/svg>)/).map((s,i)=>i%2?s:s.replace(/(^|[\s(>;=,:\[{×])-(?=\d)/g,'$1−')).join('')}
+return{cx,ri,pick,shuf,Q,add,sub,mul,div,pow,neg,cmp,eq,sgn,val,isInt,abs,decs,round,dstr,fq,fqt,f,ap,eqs,ans,pnum,v,sb,U,nw,P,par,sg,aff,mf};
+})();
+
+/* ======================= sons et animations ======================= */
+window.MS=(function(){
+'use strict';
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let ac=null;
+function ctx(){if(!snd)return null;try{if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();return ac}catch(e){return null}}
+function tone(fq,d,vol,type,w){const a=ctx();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.value=fq;
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol||.05,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+function slide(f1,f2,d,vol,type,w){const a=ctx();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),g=a.createGain();o.type=type||'sine';
+  o.frequency.setValueAtTime(f1,t);o.frequency.exponentialRampToValueAtTime(Math.max(40,f2),t+d);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol||.035,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+let last=0;
+const SND={pop(){tone(660,.12,.05);tone(990,.14,.035,'sine',.05)},soft(){tone(220,.22,.05,'sine');tone(185,.25,.04,'sine',.08)},
+  glide(){slide(300,520,.32,.03,'sine')},back(){slide(520,300,.32,.03,'sine')},
+  zoom(q){const up=q>1;slide(up?260:640,up?640:260,.45,.035,'triangle')},flip(){slide(500,180,.2,.03,'triangle');slide(180,500,.2,.03,'triangle',.2)},
+  ding(){const n=performance.now();if(n-last<45)return;last=n;tone(1318,.25,.035,'sine');tone(1975,.18,.015,'sine',.02)},
+  clack(){const n=performance.now();if(n-last<35)return;last=n;tone(140,.06,.05,'square');tone(90,.08,.04,'triangle',.03)},
+  win(){[523.25,659.25,783.99,1046.5].forEach((fq,i)=>tone(fq,.22,.05,'triangle',i*.08))},
+  gold(){[783.99,987.77,1174.66].forEach((fq,i)=>tone(fq,.35,.05,'sine',i*.06))}};
+const sound={get:()=>snd,set:x=>{snd=x;try{localStorage.setItem('sigma-fanfare',x?'1':'0')}catch(_){}}};
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?Math.min(ms,30):ms));
+function tween(ms,fn,ease){ease=ease||(t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2);
+  if(reduceM||ms<=0){fn(1);return Promise.resolve()}
+  return new Promise(res=>{const t0=performance.now();function step(n){const t=Math.max(0,Math.min(1,(n-t0)/ms));try{fn(ease(t))}catch(e){console.error(e);res();return}if(t<1)requestAnimationFrame(step);else res()}requestAnimationFrame(step)})}
+return{SND,sound,sleep,tween,reduceM};
+})();
+</script>
+<script>
+/* ======================= LE MONORAIL — la scène : baie de nuit, rail gradué, rame, stations, wagons ======================= */
+window.MV=(function(){
+'use strict';
+const N=window.MN,S=window.MS;
+const svg=document.getElementById('scene'),stage=document.getElementById('stage');
+let W=1000,H=560,mob=false,bgCache=null;
+const st={};
+function reset(){Object.assign(st,{fr:{x0:-2,x1:20},tracks:[{name:''}],stations:[],caps:[],arcs:[],beams:[],wagons:[],marks:[],gate:null,note:null,hub:false,unit:'',hideTicks:false})}
+reset();
+function layout(){const w=stage.clientWidth||1000;const m=w<620;if(m!==mob||!svg.dataset.l){mob=m;W=mob?600:1000;H=mob?400:560;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.dataset.l='1';bgCache=null}}
+const L=()=>mob?30:56,R=()=>W-(mob?26:46);
+function ty(t){const n=st.tracks.length;if(n===1)return Math.round(H*.58);return Math.round(t===0?H*(mob?.40:.40):H*(mob?.78:.78))}
+const X=x=>L()+(x-st.fr.x0)/(st.fr.x1-st.fr.x0)*(R()-L());
+const FS=k=>Math.round((mob?1.75:1.38)*k);
+/* pas de graduation « joli » */
+function step(span,want){const p=Math.pow(10,Math.floor(Math.log10(span/want)));for(const m of [1,2,2.5,5,10]){if(span/(m*p)<=want)return m*p}return 10*p}
+function frameFor(vals,o){o=o||{};vals=vals.map(Number);if(o.zero!==false)vals.push(0);let lo=Math.min(...vals),hi=Math.max(...vals);if(hi-lo<1e-9){hi=lo+1}
+  const span=hi-lo,pad=span*(o.pad||.08);return{x0:lo-pad,x1:hi+pad}}
+function setFrame(fr){st.fr={x0:fr.x0,x1:fr.x1}}
+async function zoomTo(fr,ms){const a={...st.fr};await S.tween(ms===undefined?800:ms,t=>{st.fr={x0:a.x0+(fr.x0-a.x0)*t,x1:a.x1+(fr.x1-a.x1)*t};draw()})}
+/* ---- décor ---- */
+function background(){if(bgCache)return bgCache;let seed=11;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
+  let s=`<defs><linearGradient id="mo-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#030716"/><stop offset=".62" stop-color="#0a1836"/><stop offset="1" stop-color="#10264d"/></linearGradient>
+<linearGradient id="mo-sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1d3c"/><stop offset="1" stop-color="#040a18"/></linearGradient>
+<linearGradient id="mo-rail" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5d78b8"/><stop offset=".35" stop-color="#2a3d68"/><stop offset="1" stop-color="#121d36"/></linearGradient>
+<linearGradient id="mo-cap" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef3ff"/><stop offset=".55" stop-color="#b7c6ea"/><stop offset="1" stop-color="#6d7fae"/></linearGradient>
+<linearGradient id="mo-beam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="rgba(232,199,102,.15)"/><stop offset="1" stop-color="#ffe08a"/></linearGradient>
+<linearGradient id="mo-beamn" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="rgba(232,199,102,.15)"/><stop offset="1" stop-color="#ffe08a"/></linearGradient>
+<radialGradient id="mo-glow"><stop offset="0" stop-color="rgba(255,215,106,.6)"/><stop offset="1" stop-color="rgba(255,215,106,0)"/></radialGradient>
+<radialGradient id="mo-moon" cx=".4" cy=".4" r=".6"><stop offset="0" stop-color="#fffbe8"/><stop offset="1" stop-color="#d8cfa8"/></radialGradient>
+<filter id="mo-bl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter></defs>`;
+  s+=`<rect width="${W}" height="${H}" fill="url(#mo-sky)"/>`;
+  for(let i=0;i<(mob?45:80);i++){const x=rnd()*W,y=rnd()*H*.55,r=rnd()*1.1+.3;s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}" fill="#fff" opacity="${(.15+rnd()*.5).toFixed(2)}"/>`}
+  s+=`<circle cx="${W-70}" cy="48" r="${mob?17:20}" fill="url(#mo-moon)" opacity=".9"/><circle cx="${W-62}" cy="43" r="${mob?15:18}" fill="#071230" opacity=".55"/>`;
+  /* collines (silhouettes) */
+  const hy=H*.80;let d=`M0 ${hy}`;for(let i=0;i<=24;i++){const x=i*W/24,y=hy-(Math.sin(i*.7)*.5+.5)*H*.10-(i>=8&&i<=11?H*.06*(1-Math.abs(i-9.5)/2):0)-rnd()*H*.02;d+=` L${x.toFixed(1)} ${y.toFixed(1)}`}
+  s+=`<path d="${d} L${W} ${H} L0 ${H}Z" fill="#081329" opacity=".95"/>`;
+  for(let i=0;i<(mob?10:18);i++){const x=rnd()*W,y=hy-rnd()*H*.05;s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.4" fill="#ffd98a" opacity="${(.35+rnd()*.4).toFixed(2)}"/>`}
+  s+=`<rect y="${(H*.9).toFixed(1)}" width="${W}" height="${(H*.1+1).toFixed(1)}" fill="url(#mo-sea)"/>`;
+  for(let i=0;i<(mob?8:14);i++){const x=rnd()*W,y=H*.92+rnd()*H*.07,w=10+rnd()*40;s+=`<path d="M${x.toFixed(1)} ${y.toFixed(1)}h${w.toFixed(1)}" stroke="rgba(159,180,255,.18)" stroke-width="1.2" stroke-linecap="round"/>`}
+  bgCache=s;return s}
+function ticksOf(){const span=st.fr.x1-st.fr.x0,s=step(span,mob?5:9),k0=Math.ceil(st.fr.x0/s-1e-9),k1=Math.floor(st.fr.x1/s+1e-9),out=[];for(let k=k0;k<=k1;k++)out.push(Number((k*s).toPrecision(12)));return{s,out}}
+function fmtTick(x){return N.dstr(N.Q(Number(x.toPrecision(10))))}
+const tw=s=>String(s).replace(/<[^>]+>/g,'').length;
+/* ---- rendu ---- */
+function draw(){layout();const Lx=L(),Rx=R();let h=background();const T=st.tracks.length;
+  const tk=ticksOf();
+  for(let t=0;t<T;t++){const y=ty(t);
+    /* piliers */
+    const np=mob?4:6;for(let i=0;i<=np;i++){const x=Lx+(Rx-Lx)*i/np;h+=`<path d="M${(x-5).toFixed(1)} ${y+6}L${(x-9).toFixed(1)} ${H*.9}M${(x+5).toFixed(1)} ${y+6}L${(x+9).toFixed(1)} ${H*.9}" stroke="rgba(70,96,150,.32)" stroke-width="3"/>`}
+    h+=`<rect x="${Lx-14}" y="${y-5}" width="${Rx-Lx+28}" height="11" rx="5" fill="url(#mo-rail)" stroke="rgba(159,180,255,.45)" stroke-width="1"/>`;
+    h+=`<path d="M${Lx-12} ${y-4}H${Rx+12}" stroke="rgba(214,228,255,.55)" stroke-width="1.2"/>`;
+    if(st.tracks[t].name)h+=`<text x="${Lx-6}" y="${y-(mob?70:84)}" font-size="${FS(15)}" font-weight="800" fill="${st.tracks[t].col||'#c9d6ff'}">${st.tracks[t].name}</text>`;
+    if(!st.hideTicks){tk.out.forEach(x=>{const px=X(x);h+=`<path d="M${px.toFixed(1)} ${y+6}V${y+13}" stroke="rgba(200,215,255,.6)" stroke-width="1.4"/>`;
+      h+=`<text x="${px.toFixed(1)}" y="${y+(mob?40:36)}" text-anchor="middle" font-size="${FS(13)}" font-weight="600" fill="rgba(200,215,255,.78)" style="font-variant-numeric:tabular-nums">${fmtTick(x)}</text>`})}
+    if(st.hub&&st.fr.x0<=0&&st.fr.x1>=0){const hx=X(0);h+=`<circle cx="${hx.toFixed(1)}" cy="${y}" r="${mob?15:13}" fill="#0b1630" stroke="#e8c766" stroke-width="2.5"/><circle cx="${hx.toFixed(1)}" cy="${y}" r="3.2" fill="#ffe08a"/>`}
+  }
+  /* repères et seuil */
+  st.marks.forEach(m=>{const y=ty(m.t),x=X(m.x);h+=`<g opacity="${m.op===undefined?1:m.op}"><path d="M${x.toFixed(1)} ${y-(mob?74:66)}V${y+12}" stroke="${m.col||'#e8c766'}" stroke-width="2" stroke-dasharray="5 4"/>`+
+    (m.lab?`<text x="${x.toFixed(1)}" y="${y-(mob?80:72)}" text-anchor="middle" font-size="${FS(13)}" font-weight="800" fill="${m.col||'#f3d98a'}">${m.lab}</text>`:'')+`</g>`});
+  if(st.gate){const g=st.gate,y=ty(g.t),x=X(g.x),gh=mob?92:84;h+=`<g><path d="M${(x-3).toFixed(1)} ${y+8}V${y-gh}M${(x+3).toFixed(1)} ${y+8}V${y-gh}" stroke="#e8c766" stroke-width="3"/><rect x="${(x-(mob?46:37)).toFixed(1)}" y="${y-gh-(mob?32:28)}" width="${mob?92:74}" height="${mob?30:26}" rx="6" fill="rgba(200,168,75,.2)" stroke="#e8c766" stroke-width="1.5"/>`+
+    `<text x="${x.toFixed(1)}" y="${y-gh-(mob?10:9)}" text-anchor="middle" font-size="${FS(12)}" font-weight="800" fill="#ffe08a">${g.lab}</text></g>`}
+  /* rayons (zoom depuis 0) */
+  st.beams.forEach(b=>{const y=ty(b.t)-(mob?19:17),x0=X(0),x1=X(b.b);if(Math.abs(x1-x0)<1)return;const op=b.op===undefined?1:b.op;
+    if(b.ghost)h+=`<path d="M${x0.toFixed(1)} ${y}H${x1.toFixed(1)}" stroke="rgba(232,199,102,.55)" stroke-width="2" stroke-dasharray="6 5" opacity="${op}"/>`;
+    else h+=`<path d="M${x0.toFixed(1)} ${y}H${x1.toFixed(1)}" stroke="url(#${x1>=x0?'mo-beam':'mo-beamn'})" stroke-width="${mob?6:5}" stroke-linecap="round" opacity="${op}"/><path d="M${x0.toFixed(1)} ${y}H${x1.toFixed(1)}" stroke="#ffe08a" stroke-width="10" opacity="${(.18*op).toFixed(2)}" filter="url(#mo-bl)"/>`;
+    if(b.lab)h+=`<text x="${((x0+x1)/2).toFixed(1)}" y="${y-(mob?12:10)}" text-anchor="middle" font-size="${FS(15)}" font-weight="800" fill="${b.ghost?'rgba(243,217,138,.75)':'#ffe08a'}" opacity="${op}">${b.lab}</text>`});
+  /* wagons */
+  st.wagons.forEach(w=>{const y=(w.yy!==undefined?w.yy:ty(w.t))-(mob?38:34),xa=X(w.a),xb=X(w.b),x=Math.min(xa,xb)+1.2,ww=Math.max(1,Math.abs(xb-xa)-2.4),hh=mob?32:28;
+    const C={b:['#24438a','#9fb4ff'],c:['#2c5bb5','#cfe0ff'],g:['rgba(200,168,75,.42)','#ffe08a'],t:['#17605d','#7fe0d0'],k:['rgba(255,107,107,.35)','#ff9b9b'],v:['#3f2f7a','#c3a6ff']}[w.col||'b'];
+    h+=`<g opacity="${w.op===undefined?1:w.op}"><rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${ww.toFixed(1)}" height="${hh}" rx="${Math.min(5,ww/3).toFixed(1)}" fill="${C[0]}" stroke="${C[1]}" stroke-width="1.3"/>`;
+    if(w.lab&&ww>tw(w.lab)*FS(8.4)+8)h+=`<text x="${(x+ww/2).toFixed(1)}" y="${(y+hh/2+FS(5)).toFixed(1)}" text-anchor="middle" font-size="${FS(14)}" font-weight="800" fill="#f0f4ff">${w.lab}</text>`;
+    h+=`</g>`});
+  /* flèches des pas */
+  st.arcs.forEach(a=>{const y=ty(a.t)-(mob?50:46),xa=X(a.a),xb=X(a.b),dx=xb-xa;if(Math.abs(dx)<2)return;const hh=Math.max(16,Math.min(mob?52:70,Math.abs(dx)*.38)),k=a.k===undefined?1:a.k;
+    const c=a.col||(dx>=0?'#7fb2ff':'#ff9b7a');const d=`M${xa.toFixed(1)} ${y}Q${((xa+xb)/2).toFixed(1)} ${(y-2*hh).toFixed(1)} ${xb.toFixed(1)} ${y}`;
+    h+=`<g opacity="${a.op===undefined?1:a.op}"><path d="${d}" pathLength="1" stroke="${c}" stroke-width="${mob?4:3}" fill="none" stroke-linecap="round" stroke-dasharray="${k.toFixed(3)} 2"/>`;
+    if(k>.97){const s=dx>0?1:-1;h+=`<path d="M${xb.toFixed(1)} ${y+1}l${(-s*11).toFixed(1)} -9l${(s*2).toFixed(1)} 9l${(-s*2).toFixed(1)} 3z" fill="${c}"/>`}
+    if(a.lab&&k>.5)h+=`<text x="${((xa+xb)/2).toFixed(1)}" y="${(y-hh-(mob?10:8)).toFixed(1)}" text-anchor="middle" font-size="${FS(15)}" font-weight="800" fill="${c}">${a.lab}</text>`;h+='</g>'});
+  /* stations */
+  const rows={};st.stations.filter(s=>s.x>=st.fr.x0-1e-9&&s.x<=st.fr.x1+1e-9).sort((a,b)=>a.x-b.x).forEach(s=>{const y=ty(s.t),x=X(s.x),c=s.col==='ko'?'#ff8f8f':s.col==='blue'?'#9fb4ff':'#ffd76a';
+    const k=s.k===undefined?1:s.k;h+=`<g opacity="${(s.op===undefined?1:s.op)}"><circle cx="${x.toFixed(1)}" cy="${y}" r="${(22*k).toFixed(1)}" fill="url(#mo-glow)"/><circle cx="${x.toFixed(1)}" cy="${y}" r="${((mob?9:7.5)*k).toFixed(1)}" fill="${c}" stroke="#fff6d6" stroke-width="1.4"/></g>`;
+    if(s.lab&&!st.noLabels){const key=s.t;rows[key]=rows[key]||[];const wpx=tw(s.lab)*FS(8.3)+10;let row=0;while((rows[key][row]||-1e9)>x-wpx/2&&row<3)row++;if(row>2)return;rows[key][row]=x+wpx/2;
+      const ly=y+(mob?72:62)+row*(mob?30:25);h+=`<text x="${x.toFixed(1)}" y="${ly}" text-anchor="middle" font-size="${FS(14)}" font-weight="800" fill="${c}" opacity="${(s.op===undefined?1:s.op)}" style="font-variant-numeric:tabular-nums">${s.lab}</text>`}});
+  /* rames */
+  st.caps.forEach(c=>{if(c.hide)return;const y=ty(c.t),x=X(c.x),w=mob?84:76,hh=mob?34:29,top=y-5-hh;const col=c.col||'#ffd76a';
+    h+=`<g opacity="${c.op===undefined?1:c.op}"><path d="M${(x-w/2).toFixed(1)} ${y-5}h${w}l-4 -${hh-6}q-3 -6 -10 -6h-${w-28}q-7 0 -10 6z" fill="url(#mo-cap)" stroke="#e8eeff" stroke-width="1"/>`;
+    for(let i=0;i<3;i++)h+=`<rect x="${(x-w/2+11+i*(w-22)/3).toFixed(1)}" y="${top+6}" width="${((w-22)/3-4).toFixed(1)}" height="${hh-14}" rx="2" fill="${col}" opacity=".92"/>`;
+    h+=`<path d="M${x.toFixed(1)} ${y-6}l-6 -6h12z" fill="#e8c766"/><circle cx="${(x+(c.dir<0?-w/2+3:w/2-3)).toFixed(1)}" cy="${y-12}" r="3.4" fill="#fff6d6"/>`;
+    if(c.lab)h+=`<text x="${x.toFixed(1)}" y="${top-6}" text-anchor="middle" font-size="${FS(13)}" font-weight="800" fill="#e8eeff">${c.lab}</text>`;h+='</g>'});
+  /* bandeau */
+  if(st.note){const n=st.note,fs=FS(15),w=Math.min(W-40,tw(n.txt)*fs*.56+40);h+=`<g opacity="${n.op===undefined?1:n.op}"><rect x="${((W-w)/2).toFixed(1)}" y="${mob?12:14}" width="${w.toFixed(1)}" height="${fs+16}" rx="${(fs+16)/2}" fill="rgba(4,9,20,.85)" stroke="rgba(232,199,102,.55)"/>`+
+    `<text x="${W/2}" y="${(mob?12:14)+fs+4}" text-anchor="middle" font-size="${fs}" font-weight="800" fill="#f6dc8a">${n.txt}</text></g>`}
+  svg.innerHTML=h;const bd=document.getElementById('badge');const bt=st.unit?'Rail gradué en '+st.unit:'';if(bd.textContent!==bt)bd.textContent=bt}
+let raf=0;function redraw(){if(raf)return;raf=requestAnimationFrame(()=>{raf=0;draw()})}
+window.addEventListener('resize',()=>{svg.dataset.l='';draw()});
+/* ---- outils de scène ---- */
+function tracks(list){st.tracks=list.map(x=>typeof x==='string'?{name:x}:x)}
+function cap(t,x,o){let c=st.caps.find(c=>c.t===t);if(!c){c={t};st.caps.push(c)}Object.assign(c,{x:Number(x)},o||{});draw();return c}
+function station(t,x,lab,o){o=o||{};const s=Object.assign({t,x:Number(x),lab,k:o.instant?1:.01},o);st.stations.push(s);
+  if(o.instant){s.k=1;draw();return Promise.resolve(s)}S.SND.ding();return S.tween(260,e=>{s.k=e;draw()},e=>1+2.7*Math.pow(e-1,3)+1.7*Math.pow(e-1,2)).then(()=>s)}
+function stationAt(t,x){return st.stations.find(s=>s.t===t&&Math.abs(s.x-Number(x))<1e-9)}
+/* pas + r : la rame suit la flèche */
+async function hop(t,a,b,o){o=o||{};a=Number(a);b=Number(b);const c=cap(t,a,{dir:b>=a?1:-1});const arc={t,a,b,lab:o.lab,col:o.col,k:0};st.arcs.push(arc);
+  (b>=a?S.SND.glide:S.SND.back)();await S.tween(o.ms||650,e=>{arc.k=e;c.x=a+(b-a)*e;draw()});
+  if(o.keep===false)st.arcs.splice(st.arcs.indexOf(arc),1);if(o.lab2!==undefined)await station(t,b,o.lab2,o.st||{});return arc}
+/* zoom × q depuis 0 */
+async function zoom(t,a,b,o){o=o||{};a=Number(a);b=Number(b);const c=cap(t,a);const gh={t,b:a,ghost:true,op:.9};const bm={t,b:a,lab:o.lab};st.beams=st.beams.filter(x=>x.t!==t);st.beams.push(gh,bm);
+  const q=a!==0?b/a:1;if(q<0)S.SND.flip();else S.SND.zoom(Math.abs(q));await S.tween(o.ms||800,e=>{bm.b=a+(b-a)*e;c.x=bm.b;c.dir=bm.b>=0?1:-1;draw()});
+  if(o.lab2!==undefined)await station(t,b,o.lab2,o.st||{});if(o.keepGhost!==true){await S.tween(250,e=>{gh.op=.9*(1-e);draw()});st.beams.splice(st.beams.indexOf(gh),1)}draw();return bm}
+function note(txt,ms){st.note={txt,op:1};draw();if(ms){const me=st.note;setTimeout(()=>{if(st.note===me){S.tween(300,e=>{if(st.note===me){me.op=1-e;draw()}}).then(()=>{if(st.note===me){st.note=null;draw()}})}},ms)}}
+/* wagons : train de longueurs données, posé à partir de x0 */
+function train(t,lens,o){o=o||{};let x=o.x0||0;const out=[];lens.forEach((l,i)=>{const L1=Number(l);const w={t,a:x,b:x+L1,lab:o.labs?o.labs[i]:'',col:o.cols?o.cols[i]:(o.col||(i%2?'c':'b')),op:o.instant===false?0:1};out.push(w);st.wagons.push(w);x+=L1});draw();return out}
+async function trainIn(t,lens,o){o=o||{};const ws=train(t,lens,Object.assign({},o,{instant:false}));for(const w of ws){S.SND.clack();await S.tween(o.ms||170,e=>{w.op=e;draw()})}return ws}
+async function moveW(moves,ms){const from=moves.map(m=>({a:m.w.a,b:m.w.b,y:m.w.yy!==undefined?m.w.yy:ty(m.w.t)}));
+  await S.tween(ms||900,e=>{moves.forEach((m,i)=>{const len=from[i].b-from[i].a;const a=from[i].a+(m.a-from[i].a)*e;m.w.a=a;m.w.b=a+(m.len!==undefined?from[i].b-from[i].a+(m.len-len)*e:len);
+    if(m.t!==undefined){const y2=ty(m.t);m.w.yy=from[i].y+(y2-from[i].y)*e-(Math.sin(Math.PI*e)*(m.lift||0))}});draw()});
+  moves.forEach(m=>{if(m.t!==undefined){m.w.t=m.t;delete m.w.yy}});draw()}
+async function pulse(list){for(let i=0;i<2;i++){await S.tween(180,e=>{list.forEach(o=>o.op=1-.6*e);draw()});await S.tween(180,e=>{list.forEach(o=>o.op=.4+.6*e);draw()})}}
+return{st,reset,draw,redraw,frameFor,setFrame,zoomTo,tracks,cap,station,stationAt,hop,zoom,note,train,trainIn,moveW,pulse,ty,get mob(){return mob}};
+})();
+</script>
+<script>
+/* ======================= LE MONORAIL — moteur des niveaux (questions en étapes, réponse donnée au 2e essai) ======================= */
+window.MG=(function(){
+'use strict';
+const N=window.MN,S=window.MS,V=window.MV,SND=S.SND,$=id=>document.getElementById(id);
+const cap=h=>{$('capt').innerHTML=N.mf(h||'&nbsp;')};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const knorm=s=>String(s).toLowerCase().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/[×*·]/g,'x').replace(/^\+/,'').normalize('NFD').replace(/[̀-ͯ]/g,'');
+const GAME='le-monorail';
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,busy=false;
+function starsOf(i){try{const g=SigmaKit.passport().games[GAME];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function fb(html,mode,onGo){if(!html){$('fb').hidden=true;$('fbgo').hidden=true;return}
+  $('fb').classList.toggle('rv',mode==='rv');$('fbt').textContent=mode==='rv'?'Voici la réponse.':'Pas tout à fait.';
+  $('fbmk').innerHTML=MAKI(mode==='rv'?'neutre':'pense');$('fbp').innerHTML=N.mf(html);$('fb').hidden=false;
+  $('fbgo').hidden=!onGo;if(onGo){const b=$('fbnext');b.onclick=async()=>{if(busy)return;b.disabled=true;await onGo();b.disabled=false};setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)b.focus({preventScroll:true})},60)}
+  setTimeout(()=>scrollPart($('fb')),40)}
+const api={ok(){fb('');nextPart()}};
+const W={};
+const head=p=>(p.ask?`<p class="ask">${N.mf(p.ask)}</p>`:'')+N.mf(p.html||'');
+/* action : un bouton qui lance une animation */
+W.act=(p,box)=>{box.innerHTML=head(p)+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run(box)}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);api.ok()};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)b.focus({preventScroll:true})},50)};
+/* choix : une erreur → explication ; deuxième erreur → la réponse est montrée */
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):N.shuf(p.ch.map((_,j)=>j));let tries=0;
+  box.innerHTML=head(p)+`<div class="opts${p.grid?' g2':''}">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${N.mf(p.ch[j].h)}</button>`).join('')}</div>`;
+  const good=()=>box.querySelector(`.opt[data-j="${p.ch.findIndex(c=>c.ok)}"]`);
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{if(busy)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){box.querySelectorAll('.opt').forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else{b.classList.add('ko');b.disabled=true;tries++;errs++;SND.soft();if(p.onBad){busy=true;try{await p.onBad(c)}finally{busy=false}}
+      if(tries>=2||box.querySelectorAll('.opt:not(:disabled)').length<=1){box.querySelectorAll('.opt').forEach(x=>x.disabled=true);const g=good();g.classList.add('rv');
+        fb(c.why+(p.sol?`<br>${p.sol}`:''),'rv',async()=>{fb('');busy=true;try{if(p.onOk)await p.onOk()}finally{busy=false}api.ok()})}
+      else fb(c.why)}})};
+/* trous : nombres (valeur exacte ou arrondie) ou mots */
+const okBlank=(b,x)=>{if(b.r!==undefined){const y=N.pnum(x);return !!y&&N.eq(y,b.r)}return b.w.some(a=>knorm(a)===knorm(x))};
+W.fill=(p,box)=>{let tries=0;
+  const t=N.mf(p.tpl).replace(/\{(\d)\}/g,(_,i)=>{const b=p.b[+i];return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="${b.r!==undefined?'decimal':'text'}" aria-label="Case ${+i+1}" style="width:${b.size||4.4}em">`});
+  box.innerHTML=head(p)+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">${p.go||'Valider'}</button></div></form>`+(p.hint?`<p class="hint">${N.mf(p.hint)}</p>`:'');
+  const fm=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  /* les claviers décimaux de téléphone n'ont pas toujours le signe moins : on garde le clavier texte si une réponse est négative */
+  ins.forEach(x=>{const b=p.b[+x.dataset.i];if(b.r!==undefined&&N.sgn(b.r)<0)x.setAttribute('inputmode','text')});
+  fm.onsubmit=async e=>{e.preventDefault();if(busy)return;const vals=ins.map(x=>x.value.trim());
+    if(vals.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=vals.map((x,i)=>okBlank(p.b[+ins[i].dataset.i],x));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    const all=oks.every(Boolean);
+    if(p.onTry){busy=true;fm.querySelector('button').disabled=true;try{await p.onTry(vals.map(N.pnum),oks,all)}finally{busy=false;fm.querySelector('button').disabled=false}}
+    if(all){ins.forEach(x=>x.disabled=true);fm.querySelector('button').remove();SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else{tries++;errs++;SND.soft();const why=typeof p.why==='function'?p.why(vals.map(N.pnum),oks,vals):p.why;
+      if(tries>=2){ins.forEach((x,i)=>{const b=p.b[+x.dataset.i];x.value=b.sol;x.classList.remove('ok','ko');x.classList.add(oks[i]?'ok':'rv');x.disabled=true});fm.querySelector('button').remove();
+        fb(why+(p.sol?`<br>${p.sol}`:''),'rv',async()=>{fb('');busy=true;try{if(p.onOk)await p.onOk()}finally{busy=false}api.ok()})}
+      else fb(why)}};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* ---------- déroulé d'une question ---------- */
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function startPart(p,box){if(p.pre){busy=true;Promise.resolve(p.pre()).finally(()=>{busy=false;W[p.t](p,box);scrollPart(box)})}else{W[p.t](p,box);scrollPart(box)}}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');pi++;if(pi<Q.parts.length)startPart(Q.parts[pi],partEl());else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:S.reduceM?'auto':'smooth'})}}
+const LV=[];
+function newQ(){V.reset();Q=LV[lvl].qs[qi]();pi=0;errs=0;
+  if(Q.setup)Q.setup();V.draw();cap(Q.cap0||'&nbsp;');
+  $('prompt').innerHTML=N.mf(Q.prompt);$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  const box=partEl();if(Q.parts[0].pre){busy=true;Promise.resolve(Q.parts[0].pre()).finally(()=>{busy=false;W[Q.parts[0].t](Q.parts[0],box)})}else W[Q.parts[0].t](Q.parts[0],box)}
+function dots(){const n=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:n},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){fb('');SND.win();run.push(errs===0);dots();
+  const n=LV[lvl].qs.length,lvlDone=run.length>=n;
+  $('winx').textContent=errs===0?N.pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):N.pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=N.mf(Q.done);
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(Q.onWin)Q.onWin();
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lnum=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lnum,score:sc,total:tot}).then(x=>{renderLv();if(lvl+1!==Lnum)return;if(x==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(x==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if(busy)return;if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:S.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];
+  $('chap').textContent=`Suites arithmétiques et géométriques · Niveau ${l+1} sur ${LV.length}`;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=N.mf(LV[l].rule);$('cours').open=false;renderLv();newQ()}
+function renderLv(){const snd=S.sound.get();$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){S.sound.set(!S.sound.get());renderLv();SND.pop();return}
+  if(busy)return;goLevel(+b.dataset.l)});
+/* ---------- fabriques ---------- */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+const ch=(ask,list,o)=>Object.assign({t:'choice',ask,ch:list},o||{});
+const fill=(ask,tpl,b,why,o)=>Object.assign({t:'fill',ask,tpl,b,why},o||{});
+const OK=h=>({h,ok:true}),NO=(h,why)=>({h,why});
+const BR=(r,size)=>{r=N.Q(r);return{r,sol:N.ans(r)[0],size}};   // trou numérique (valeur exacte)
+const BW=(w,size)=>({w,sol:w[0],size});                         // trou en mots
+window.MO={start(){const m=/[?&]niveau=(\d)/.exec(location.search);goLevel(m?Math.min(+m[1]-1,LV.length-1):0)},
+  state:()=>{const p=Q&&Q.parts[pi];return{lvl,qi,nq:LV[lvl]&&LV[lvl].qs.length,busy,pi,np:Q&&Q.parts.length,win:!$('win').hidden,reveal:!$('fbgo').hidden,au:Q&&Q.au,
+    part:p?{t:p.t,sol:p.b?p.b.map(b=>b.sol):null,choices:p.ch?p.ch.map(c=>({ok:!!c.ok})):null}:null}},
+  LV,goLevel,renderLv,get Q(){return Q}};
+return{LV,W,act,ch,fill,OK,NO,BR,BW,cap,MAKI};
+})();
+</script>
+<script>
+/* ======================= LE MONORAIL — contenu des niveaux 1 à 4 ======================= */
+(function(){
+'use strict';
+const N=window.MN,S=window.MS,V=window.MV,G=window.MG,SND=S.SND,st=V.st;
+const {LV,act,ch,fill,OK,NO,BR,BW,cap}=G;
+const {ri,pick,shuf,Q,add,sub,mul,div,pow,neg,eq,sgn,val,abs,fq,f,U,v,nw,P,par,sg,aff}=N;
+const sleep=S.sleep;
+const un=U('n'),un1=U('n+1');
+/* ---------- outils partagés (aussi utilisés par les niveaux 5 à 7) ---------- */
+const ar=(u0,r,n)=>add(u0,mul(n,r));
+const ge=(u0,q,n)=>mul(u0,pow(q,n));
+const SUB='₀₁₂₃₄₅₆₇₈₉';
+const sv=(k,L)=>`<tspan font-style="italic">${L||'u'}</tspan><tspan font-size="72%" dy="5">${k}</tspan>`;
+const frm=(vals,o)=>V.setFrame(V.frameFor(vals.map(x=>val(x)),o));
+const zf=(vals,ms,o)=>V.zoomTo(V.frameFor(vals.map(x=>val(x)),o),ms);
+const plus=r=>(sgn(r)<0?'− ':'+ ')+fq(abs(r));
+const plusT=r=>(sgn(r)<0?'− ':'+ ')+N.fqt(abs(r));
+const times=q=>'× '+N.fqt(q);
+const tb=(rows)=>`<div class="tbw"><table class="tb">${rows.map(r=>`<tr>${r.map((c,i)=>i===0?`<th>${c}</th>`:`<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
+const lst=a=>a.map(x=>fq(x)).join(' ; ');
+const VAR=['strictement croissante','strictement décroissante','constante','ni croissante ni décroissante'];
+function clear(){st.stations=[];st.arcs=[];st.beams=[];st.caps=[];st.wagons=[];st.marks=[];st.gate=null;st.note=null}
+async function walkA(t,u0,r,k0,k1,o){o=o||{};for(let k=k0;k<k1;k++)await V.hop(t,val(ar(u0,r,k)),val(ar(u0,r,k+1)),{lab:plusT(r),lab2:o.nolab?'':sv(k+1,o.L),ms:o.ms,keep:o.keep});}
+async function walkG(t,u0,q,k0,k1,o){o=o||{};for(let k=k0;k<k1;k++)await V.zoom(t,val(ge(u0,q,k)),val(ge(u0,q,k+1)),{lab:times(q),lab2:o.nolab?'':sv(k+1,o.L),ms:o.ms});}
+/* montre une liste de nombres comme une suite de pas (étiquettes = différences) */
+async function showSteps(list,o){o=o||{};clear();await zf(list,500);V.station(0,val(list[0]),sv(0),{instant:true});V.cap(0,val(list[0]));
+  for(let i=1;i<list.length;i++)await V.hop(0,val(list[i-1]),val(list[i]),{lab:plusT(sub(list[i],list[i-1])),lab2:sv(i),ms:o.ms||420})}
+/* montre une liste comme une suite de zooms (étiquettes = quotients) */
+async function showZooms(list,o){o=o||{};clear();st.hub=true;await zf(list,500);V.station(0,val(list[0]),sv(0),{instant:true});V.cap(0,val(list[0]));
+  for(let i=1;i<list.length;i++)await V.zoom(0,val(list[i-1]),val(list[i]),{lab:times(div(list[i],list[i-1])),lab2:sv(i),ms:o.ms||520})}
+window.MO_T={ar,ge,sv,frm,zf,plus,plusT,times,tb,lst,VAR,clear,walkA,walkG,showSteps,showZooms};
+
+/* =============== Niveau 1 · Toujours le même pas (définition d'une suite arithmétique) =============== */
+const L1={t:'Toujours le même pas',rule:`<p>Une suite (${un}) est <b>arithmétique</b> s'il existe un réel ${v('r')} tel que, pour tout entier naturel ${v('n')}, ${nw(`${un1} = ${un} + ${v('r')}`)}. Le nombre ${v('r')} est la <b>raison</b>.</p>
+<p>Sur le rail&nbsp;: on passe d'une station à la suivante en avançant <b>toujours du même pas</b> ${v('r')} (vers la droite si ${v('r')} &gt; 0, vers la gauche si ${v('r')} &lt; 0).</p>
+<p>Pour <b>démontrer</b> qu'une suite est arithmétique, on calcule ${nw(`${un1} − ${un}`)}&nbsp;: si cette différence est une constante (elle ne dépend pas de ${v('n')}), c'est la raison.</p>`,qs:[]};
+/* Q1 : playlist */
+L1.qs.push(()=>{const u0=pick([8,10,12,15]),r=pick([2,3,4,5]),nm=pick(['Lina','Kélian','Anissa','Moussa']);const u=k=>u0+k*r;
+  return{au:{k:'L1-play',u0,r},prompt:`${nm} a ${u0} titres dans sa playlist. Chaque semaine, ${nm==='Lina'||nm==='Anissa'?'elle':'il'} en ajoute ${r}. On note ${un} le nombre de titres au bout de ${v('n')} semaines&nbsp;: ${U(0)} = ${u0}.`,
+    setup(){st.unit='titres';frm([0,u(5)+r]);V.station(0,u0,sv(0),{instant:true});V.cap(0,u0)},cap0:`<span class="k">${U(0)} = ${u0}</span><span class="m">· chaque semaine&nbsp;: + ${r}</span>`,
+    parts:[fill(`Où s'arrête la rame les deux semaines suivantes&nbsp;?`,`${U(1)} = {0} &nbsp; ${U(2)} = {1}`,[BR(u(1),3),BR(u(2),3)],
+        x=>x[0]&&eq(x[0],u0*r)?`On ne multiplie pas&nbsp;: chaque semaine, on <b>ajoute</b> ${r} titres. ${U(1)} = ${u0} + ${r}.`:`Chaque semaine, la playlist gagne ${r} titres&nbsp;: ${U(1)} = ${u0} + ${r}, puis ${U(2)} = ${U(1)} + ${r}.`,
+        {sol:`${U(1)} = ${u0} + ${r} = ${u(1)} et ${U(2)} = ${u(1)} + ${r} = ${u(2)}.`,onOk:async()=>{await walkA(0,u0,r,0,2);cap(`<span class="k">${U(0)} → ${U(1)} → ${U(2)}</span><span class="p">+ ${r}, + ${r}</span>`)}}),
+      ch(`Quelle relation relie ${un1} à ${un}&nbsp;?`,[OK(`${un1} = ${un} + ${r}`),NO(`${un1} = ${r}${un}`,`Multiplier par ${r} ferait passer de ${u0} à ${u0*r} titres en une semaine. Ici on <b>ajoute</b> ${r}&nbsp;: le pas est constant.`),
+        NO(`${un1} = ${un} + ${r}${v('n')}`,`Le nombre de titres ajoutés ne dépend pas de la semaine&nbsp;: c'est toujours ${r}, pas ${r}${v('n')}.`),NO(`${un} = ${un1} + ${r}`,`Dans ce sens, on <b>reculerait</b>&nbsp;: ${un} serait plus grand que ${un1}. Or la playlist grandit.`)],{sol:`${un1} = ${un} + ${r}.`}),
+      act(`Lancer la rame jusqu'à ${U(5)}`,async()=>{await walkA(0,u0,r,2,5,{ms:480});V.note(`Toujours le même pas : + ${r}`,2200);cap(`<span class="k">${un1} = ${un} + ${r}</span><span class="m">· suite arithmétique de raison ${r}</span>`)},{ask:'Regardons la rame rouler encore trois semaines.'})],
+    done:`Chaque semaine on ajoute le même nombre&nbsp;: (${un}) est <b>arithmétique de raison ${r}</b> et de premier terme ${U(0)} = ${u0}. Sur le rail, toutes les flèches ont la même longueur.`}});
+/* Q2 : reconnaître une suite arithmétique dans des listes */
+L1.qs.push(()=>{const a=pick([-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9]),r=pick([3,4,5,-3,-4,6]),A=[0,1,2,3,4].map(k=>Q(a+k*r));
+  const b=ri(1,6),B=[0,1,3,6,10].map(k=>Q(b+k));const c=pick([1,2,3]),C=[1,2,4,8,16].map(k=>Q(c*k));const d=ri(0,5),D=[d,d+r,d+2*r,d+2*r+r+1,d+4*r+1].map(x=>Q(x));
+  const opts=[OK(lst(A)),NO(lst(B),`Les écarts sont ${[1,2,3,4].map(i=>plus(sub(B[i],B[i-1]))).join(', ')}&nbsp;: ils grandissent. Une suite arithmétique avance toujours du même pas.`),
+    NO(lst(C),`Ici on <b>double</b> à chaque fois&nbsp;: les écarts ${[1,2,3,4].map(i=>plus(sub(C[i],C[i-1]))).join(', ')} ne sont pas constants.`),
+    NO(lst(D),`Les deux premiers écarts valent ${plus(r)}, mais le troisième vaut ${plus(sub(D[3],D[2]))}&nbsp;: le pas n'est pas constant jusqu'au bout.`)];
+  return{au:{k:'L1-list',A:A.map(N.fqt),r},prompt:`Voici quatre listes de nombres. Une seule peut être le début d'une suite arithmétique. La rame va tester chaque liste&nbsp;: une flèche par écart.`,
+    setup(){st.unit='';frm([...A,...B,...C,...D]);},cap0:`<span class="m">Arithmétique ⇔ écart</span><span class="b">${un1} − ${un}</span><span class="m">constant</span>`,
+    parts:[ch(`Laquelle&nbsp;?`,opts,{sol:`La liste ${lst(A)} avance de ${plus(r)} à chaque fois.`,onOk:async()=>{await showSteps(A);V.note('Cinq flèches identiques',1800)},onBad:async c=>{const L=[B,C,D].find(x=>lst(x)===c.h);if(L)await showSteps(L,{ms:300})}}),
+      fill(`Quelle est sa raison&nbsp;?`,`${v('r')} = {0}`,[BR(r,3)],x=>x[0]&&eq(x[0],-r)?`Attention au sens&nbsp;: ${v('r')} = ${U(1)} − ${U(0)} = ${fq(A[1])} − ${par(A[0])}, le terme suivant moins le terme précédent.`:`Calcule ${U(1)} − ${U(0)} = ${fq(A[1])} − ${par(A[0])}.`,{sol:`${v('r')} = ${fq(A[1])} − ${par(A[0])} = ${fq(r)}.`,
+        onOk:async()=>{cap(`<span class="k">${v('r')} = ${fq(r)}</span><span class="m">· ${r>0?'chaque flèche va vers la droite':'chaque flèche va vers la gauche'}</span>`)}})],
+    done:`La raison est l'écart constant ${v('r')} = ${un1} − ${un} = ${fq(r)}${r<0?'&nbsp;: une raison négative fait reculer la rame':''}.`}});
+/* Q3 : démontrer qu'une suite est arithmétique (et qu'une autre ne l'est pas) */
+L1.qs.push(()=>{const a=pick([2,3,4,5,-2,-3,-4]);let b;do{b=pick([-5,-3,-1,1,2,4,5,7])}while(b===a||b===a+b);const c=ri(-3,3);const u=k=>a*k+b,w=k=>k*k+c;
+  const ex=`${un} = ${aff(b,a)}`;
+  return{au:{k:'L1-proof',a,b,c},prompt:`La suite (${un}) est définie pour tout entier naturel ${v('n')} par ${nw(ex)}.`,
+    setup(){frm([u(0),u(4),0]);V.station(0,u(0),sv(0),{instant:true});V.cap(0,u(0))},cap0:`<span class="b">${ex}</span>`,
+    parts:[fill(`Calcule ${nw(`${un1} − ${un}`)} pour tout ${v('n')}.`,`${un1} − ${un} = {0}`,[BR(a,3)],x=>x[0]&&eq(x[0],b)?`${b} est le premier terme. Développe&nbsp;: ${un1} − ${un} = ${a}(${v('n')} + 1) ${b<0?'−':'+'} ${Math.abs(b)} − (${aff(b,a)}).`:
+        x[0]&&eq(x[0],-a)?`Tu as calculé ${un} − ${un1}. On fait le terme <b>suivant</b> moins le terme précédent.`:`${un1} = ${aff(b+a,a)} (on remplace ${v('n')} par ${v('n')} + 1). Soustrais ${un}&nbsp;: les termes en ${v('n')} s'en vont.`,
+        {sol:`${un1} − ${un} = ${a}(${v('n')} + 1) ${b<0?'−':'+'} ${Math.abs(b)} − (${aff(b,a)}) = ${a}.`,onOk:async()=>{await walkA(0,b,a,0,4,{ms:380})}}),
+      ch(`Que peut-on conclure&nbsp;?`,[OK(`(${un}) est arithmétique de raison ${fq(a)} et de premier terme ${fq(b)}`),NO(`(${un}) est arithmétique de raison ${fq(b)} et de premier terme ${fq(a)}`,`La raison est la différence constante ${un1} − ${un} = ${a}&nbsp;; le premier terme est ${U(0)} = ${b}.`),
+        NO(`On ne peut pas conclure sans calculer tous les termes`,`La différence vaut ${a} <b>pour tout</b> ${v('n')}&nbsp;: c'est exactement la définition, pas besoin d'autres calculs.`),NO(`(${un}) est arithmétique de raison ${fq(a+b)}`,`${a+b} = ${U(1)}, pas la raison. La raison est la différence ${un1} − ${un}.`)],{sol:`Raison ${a}, premier terme ${U(0)} = ${b}.`}),
+      ch(`Et la suite définie par ${nw(`${U('n','v')} = ${v('n')}² ${c<0?'− '+(-c):c>0?'+ '+c:''}`.replace(/ $/,''))}&nbsp;?`,[OK(`Elle n'est pas arithmétique&nbsp;: ${U(1,'v')} − ${U(0,'v')} = 1 mais ${U(2,'v')} − ${U(1,'v')} = 3`),
+        NO(`Elle est arithmétique de raison 1`,`${U(1,'v')} − ${U(0,'v')} = 1, mais ${U(2,'v')} − ${U(1,'v')} = 3&nbsp;: les pas ne sont pas égaux.`),NO(`Elle est arithmétique de raison 2`,`Calcule les écarts&nbsp;: 1, puis 3, puis 5… ils ne sont pas constants.`)],
+        {sol:`${U(0,'v')} = ${w(0)}, ${U(1,'v')} = ${w(1)}, ${U(2,'v')} = ${w(2)}&nbsp;: les écarts 1 et 3 sont différents.`,onOk:async()=>{await showSteps([0,1,2,3,4].map(k=>Q(w(k))),{ms:360});V.note('Des pas qui grandissent : pas arithmétique',2200)}})],
+    done:`${un1} − ${un} = ${a} ne dépend pas de ${v('n')}&nbsp;: (${un}) est arithmétique de raison ${a}. Pour (${U('n','v')}), les écarts 1, 3, 5… changent&nbsp;: un seul contre-exemple suffit à prouver qu'elle n'est pas arithmétique.`}});
+/* Q4 : avancer et reculer d'une station */
+L1.qs.push(()=>{const k=ri(3,7),A=ri(-8,20),r=pick([-7,-5,-4,-3,3,4,6,2.5,-1.5]);const R=Q(r);
+  return{au:{k:'L1-move',kk:k,A,r:N.fqt(R)},prompt:`(${un}) est une suite arithmétique de raison ${fq(R)}, et ${U(k)} = ${A}. La rame est à la station ${U(k)}.`,
+    setup(){frm([A,val(add(A,mul(2,R))),val(sub(A,mul(2,R)))]);V.station(0,A,sv(k),{instant:true});V.cap(0,A)},cap0:`<span class="k">${U(k)} = ${A}</span><span class="m">· pas&nbsp;:</span><span class="${r<0?'n':'p'}">${plus(R)}</span>`,
+    parts:[fill(`Station suivante&nbsp;:`,`${U(k+1)} = {0}`,[BR(add(A,R),3.4)],x=>x[0]&&eq(x[0],sub(A,R))?`Tu as reculé. Pour la station suivante, on ajoute la raison&nbsp;: ${A} + (${fq(R)}).`:`${U(k+1)} = ${U(k)} + ${v('r')} = ${A} + ${par(R)}.`,
+        {sol:`${U(k+1)} = ${A} + ${par(R)} = ${fq(add(A,R))}.`,onOk:async()=>{await V.hop(0,A,val(add(A,R)),{lab:plusT(R),lab2:sv(k+1)})}}),
+      fill(`Station précédente&nbsp;:`,`${U(k-1)} = {0}`,[BR(sub(A,R),3.4)],x=>x[0]&&eq(x[0],add(A,R))?`C'est ${U(k+1)}. Pour revenir d'une station en arrière, on <b>retire</b> la raison&nbsp;: ${U(k-1)} = ${U(k)} − ${v('r')}.`:`${U(k)} = ${U(k-1)} + ${v('r')}, donc ${U(k-1)} = ${U(k)} − ${v('r')} = ${A} − ${par(R)}.`,
+        {sol:`${U(k-1)} = ${A} − ${par(R)} = ${fq(sub(A,R))}.`,onOk:async()=>{V.cap(0,A);await V.hop(0,A,val(sub(A,R)),{lab:plusT(neg(R)),lab2:sv(k-1)});cap(`<span class="k">${U(k-1)} = ${fq(sub(A,R))}</span><span class="m">·</span><span class="k">${U(k)} = ${A}</span><span class="m">·</span><span class="k">${U(k+1)} = ${fq(add(A,R))}</span>`)}})],
+    done:`On avance d'une station en ajoutant ${v('r')}, on recule en retirant ${v('r')}&nbsp;: ${U(k-1)} = ${fq(sub(A,R))} et ${U(k+1)} = ${fq(add(A,R))}.`}});
+LV.push(L1);
+
+/* =============== Niveau 2 · Le grand saut (terme général d'une suite arithmétique) =============== */
+const L2={t:'Le grand saut',rule:`<p>Si (${un}) est arithmétique de raison ${v('r')}, pour aller de ${U(0)} à ${un} on fait ${v('n')} pas de ${v('r')}&nbsp;:</p><p style="text-align:center"><b>${un} = ${U(0)} + ${v('n')}${v('r')}</b>&nbsp; et plus généralement &nbsp;<b>${un} = ${U('p')} + (${v('n')} − ${v('p')})${v('r')}</b>.</p>
+<p>C'est le lien avec les <b>fonctions affines</b>&nbsp;: ${un} = ${v('f')}(${v('n')}) avec ${v('f')}(${v('x')}) = ${v('r')}${v('x')} + ${U(0)}. Les points (${v('n')}&nbsp;; ${un}) sont alignés.</p>
+<p>Pour trouver ${v('r')} à partir de deux termes, on divise l'écart par le nombre de pas&nbsp;: ${v('r')} = <span class="fr"><span>${un} − ${U('p')}</span><span>${v('n')} − ${v('p')}</span></span>.</p>`,qs:[]};
+/* Q1 : formule explicite et grand saut */
+L2.qs.push(()=>{const u0=pick([4,5,7,10,-2,12]);let r;do{r=pick([-3,-2,2,3,4,5])}while(r===u0);const k=pick([15,20,25,30]);const uk=u0+k*r;
+  return{au:{k:'L2-expl',u0,r,kk:k},prompt:`(${un}) est la suite arithmétique de premier terme ${U(0)} = ${u0} et de raison ${v('r')} = ${r}.`,
+    setup(){frm([u0,u0+3*r]);V.station(0,u0,sv(0),{instant:true});V.cap(0,u0)},cap0:`<span class="k">${U(0)} = ${u0}</span><span class="m">· pas</span><span class="${r<0?'n':'p'}">${plus(r)}</span>`,
+    parts:[ch(`Pour tout ${v('n')}, ${un} est égal à&nbsp;:`,[OK(aff(u0,r)),NO(aff(r,u0),`Tu as échangé les rôles&nbsp;: on part de ${U(0)} = ${u0} et on ajoute ${v('n')} fois la raison ${r}.`),
+        NO(`${u0} + ${par(r)}(${v('n')} + 1)`,`Ça, c'est ${un1}&nbsp;: de ${U(0)} à ${un}, il y a exactement ${v('n')} pas, pas ${v('n')} + 1.`),NO(`${u0} × ${par(r)}<sup>${v('n')}</sup>`,`Les puissances, c'est pour les zooms (suites géométriques). Ici on <b>ajoute</b> ${r} à chaque pas.`)],
+        {sol:`${un} = ${U(0)} + ${v('n')}${v('r')} = ${aff(u0,r)}.`,onOk:async()=>{await walkA(0,u0,r,0,3,{ms:380})}}),
+      fill(`Grand saut&nbsp;: calcule directement ${U(k)}.`,`${U(k)} = {0}`,[BR(uk,4)],x=>x[0]&&eq(x[0],u0+(k-1)*r)?`De ${U(0)} à ${U(k)}, il y a ${k} pas, pas ${k-1}.`:x[0]&&eq(x[0],k*r)?`N'oublie pas le point de départ ${U(0)} = ${u0}.`:`${U(k)} = ${u0} + ${k} × ${par(r)}.`,
+        {sol:`${U(k)} = ${u0} + ${k} × ${par(r)} = ${uk}.`,onOk:async()=>{await zf([u0,uk],700);for(let j=3;j<k;j++){await V.hop(0,u0+j*r,u0+(j+1)*r,{ms:70,keep:true,lab:''})}st.arcs=[];await V.hop(0,u0,uk,{lab:`${k} × ${par(r)}`});V.station(0,uk,sv(k));cap(`<span class="k">${U(k)} = ${u0} + ${k} × ${par(r)} = ${uk}</span>`)}}),
+      ch(`Les points (${v('n')}&nbsp;; ${un}) sont alignés sur la droite d'équation&nbsp;:`,[OK(`${v('y')} = ${aff(u0,r,v('x'))}`),NO(`${v('y')} = ${aff(r,u0,v('x'))}`,`Le coefficient directeur est la raison ${r} (ce qu'on ajoute quand ${v('n')} augmente de 1), l'ordonnée à l'origine est ${U(0)} = ${u0}.`),
+        NO(`${v('y')} = ${r === 1 ? '' : r === -1 ? '−' : fq(r)}${v('x')}`,`Cette droite passe par l'origine&nbsp;; or le point de rang 0 est (0&nbsp;; ${u0}).`)],{sol:`${v('y')} = ${aff(u0,r,v('x'))}&nbsp;: c'est la fonction affine ${v('x')} ↦ ${aff(u0,r,v('x'))}.`})],
+    done:`${un} = ${aff(u0,r)}, donc ${U(k)} = ${uk} sans calculer les termes intermédiaires. Suite arithmétique ⇔ croissance <b>linéaire</b>&nbsp;: c'est une fonction affine évaluée en ${v('n')}.`}});
+/* Q2 : forfait mobile et années */
+L2.qs.push(()=>{const d0=pick([10,15,20,25]),r=pick([2,3,4,5]),k=ri(6,12),m=ri(13,20);const Y=2024+k,T=d0+m*r;
+  return{au:{k:'L2-year',d0,r,kk:k,m,T},prompt:`En 2024, un forfait mobile offre ${d0} Go par mois. Chaque année, l'opérateur ajoute ${r} Go. On note ${un} le volume (en Go) en 2024 + ${v('n')}&nbsp;: ${U(0)} = ${d0}.`,
+    setup(){st.unit='Go';frm([d0,T+r]);V.station(0,d0,sv(0),{instant:true});V.cap(0,d0)},cap0:`<span class="k">${un} = ${d0} + ${r}${v('n')}</span>`,
+    parts:[ch(`Quel terme donne le volume en ${Y}&nbsp;?`,[OK(U(k)),NO(U(k+1),`2024 correspond à ${U(0)}&nbsp;: ${Y} = 2024 + ${k}, c'est donc ${U(k)}.`),NO(U(Y),`Le rang compte les années <b>depuis 2024</b>, pas l'année elle-même.`),NO(U(k-1),`${Y} − 2024 = ${k}&nbsp;: c'est le rang ${k}.`)],{sol:`${Y} = 2024 + ${k}&nbsp;: c'est ${U(k)}.`}),
+      fill(`Volume en ${Y}&nbsp;:`,`${U(k)} = {0} Go`,[BR(d0+k*r,3)],x=>x[0]&&eq(x[0],d0+(k+1)*r)?`Un pas de trop&nbsp;: ${k} années séparent 2024 et ${Y}.`:`${U(k)} = ${d0} + ${k} × ${r}.`,{sol:`${U(k)} = ${d0} + ${k} × ${r} = ${d0+k*r} Go.`,
+        onOk:async()=>{await V.hop(0,d0,d0+k*r,{lab:`${k} × ${r}`,lab2:sv(k)});cap(`<span class="k">${U(k)} = ${d0+k*r} Go</span><span class="m">en ${Y}</span>`)}}),
+      fill(`En quelle année le forfait atteindra-t-il ${T} Go&nbsp;?`,`En {0}`,[BR(2024+m,4)],x=>x[0]&&eq(x[0],m)?`${m} est le <b>rang</b>&nbsp;: l'année correspondante est 2024 + ${m}.`:`Résous ${d0} + ${r}${v('n')} = ${T}&nbsp;: ${r}${v('n')} = ${T-d0}, donc ${v('n')} = ${m}. Puis ajoute ${v('n')} à 2024.`,
+        {sol:`${d0} + ${r}${v('n')} = ${T} ⇔ ${v('n')} = ${m}, soit l'année 2024 + ${m} = ${2024+m}.`,onOk:async()=>{st.arcs=[];V.cap(0,d0+k*r);await V.hop(0,d0+k*r,T,{lab:`${m-k} × ${r}`,lab2:sv(m)});cap(`<span class="k">${U(m)} = ${T} Go</span><span class="m">en ${2024+m}</span>`)}})],
+    done:`Le rang ${v('n')} compte les années depuis 2024. ${U(k)} = ${d0+k*r} Go en ${Y}, et ${U(m)} = ${T} Go en ${2024+m}.`}});
+/* Q3 : partir de u_p */
+L2.qs.push(()=>{let p,gap;do{p=ri(3,8);gap=ri(4,9)}while(p===gap+1);const n=p+gap,A=ri(-10,20),r=pick([-4,-3,-2,2,3,5]);const B=A+gap*r;
+  return{au:{k:'L2-up',p,n,A,r},prompt:`(${un}) est arithmétique de raison ${r} et ${U(p)} = ${A}. On veut ${U(n)}, sans repasser par ${U(0)}.`,
+    setup(){frm([A,B]);V.station(0,A,sv(p),{instant:true});V.cap(0,A)},cap0:`<span class="k">${U(p)} = ${A}</span><span class="m">→</span><span class="b">${U(n)}&nbsp;?</span>`,
+    parts:[ch(`Combien de pas de ${r} séparent ${U(p)} et ${U(n)}&nbsp;?`,[OK(`${n} − ${p} = ${gap}`),NO(`${n}`,`${n} pas, ce serait depuis ${U(0)}. On part ici de ${U(p)}.`),NO(`${gap+1}`,`On compte les <b>pas</b> (les flèches), pas les stations&nbsp;: de ${U(p)} à ${U(n)}, il y a ${n} − ${p} = ${gap} flèches.`),NO(`${p}`,`${p} est le rang de départ, pas le nombre de pas.`)],
+        {sol:`${n} − ${p} = ${gap} pas.`,onOk:async()=>{await walkA(0,A,r,0,gap,{ms:260,nolab:true})}}),
+      fill(`Alors&nbsp;:`,`${U(n)} = {0}`,[BR(B,4)],x=>x[0]&&eq(x[0],A+n*r)?`Tu as compté ${n} pas&nbsp;: depuis ${U(p)}, il n'y en a que ${gap}.`:`${U(n)} = ${U(p)} + (${n} − ${p}) × ${par(r)} = ${A} + ${gap} × ${par(r)}.`,
+        {sol:`${U(n)} = ${A} + ${gap} × ${par(r)} = ${B}.`,onOk:async()=>{V.station(0,B,sv(n));cap(`<span class="k">${U(n)} = ${U(p)} + (${n} − ${p})${v('r')} = ${B}</span>`)}})],
+    done:`${un} = ${U('p')} + (${v('n')} − ${v('p')})${v('r')}&nbsp;: ici ${U(n)} = ${A} + ${gap} × ${par(r)} = ${B}.`}});
+/* Q4 : retrouver r et u0 à partir de deux termes */
+L2.qs.push(()=>{let p,gap,n,r,u0,A,B;do{p=ri(2,6);gap=pick([5,6,8,10,12,15]);n=p+gap;r=pick([-3,-2,-1,2,3,4]);u0=ri(-6,25);A=u0+p*r;B=u0+n*r}while(A===0||B===0||u0===0);
+  return{au:{k:'L2-two',p,n,A,B},prompt:`(${un}) est une suite arithmétique avec ${U(p)} = ${A} et ${U(n)} = ${B}.`,
+    setup(){frm([A,B,u0]);V.station(0,A,sv(p),{instant:true});V.station(0,B,sv(n),{instant:true});V.cap(0,A)},cap0:`<span class="k">${U(p)} = ${A}</span><span class="m">… ${gap} pas …</span><span class="k">${U(n)} = ${B}</span>`,
+    parts:[fill(`Quelle est la raison&nbsp;?`,`${v('r')} = {0}`,[BR(r,3)],x=>x[0]&&eq(x[0],B-A)?`${B-A} est l'écart total. Il est réparti en ${n} − ${p} = ${gap} pas égaux.`:x[0]&&eq(x[0],-r)?`Attention au signe&nbsp;: ${v('r')} = (${U(n)} − ${U(p)}) ÷ ${gap} = (${B} − ${par(A)}) ÷ ${gap}.`:`${U(n)} = ${U(p)} + ${gap}${v('r')}, donc ${gap}${v('r')} = ${B} − ${par(A)}.`,
+        {sol:`${gap}${v('r')} = ${B} − ${par(A)} = ${B-A}, donc ${v('r')} = ${r}.`,onOk:async()=>{await walkA(0,A,r,0,gap,{ms:240,nolab:true});cap(`<span class="k">${v('r')} = ${r}</span><span class="m">· ${gap} pas égaux</span>`)}}),
+      fill(`Quel est le premier terme&nbsp;?`,`${U(0)} = {0}`,[BR(u0,3)],x=>x[0]&&eq(x[0],A+p*r)?`Pour revenir de ${U(p)} à ${U(0)}, on <b>recule</b> de ${p} pas&nbsp;: on retire ${p}${v('r')}.`:`${U(0)} = ${U(p)} − ${p}${v('r')} = ${A} − ${p} × ${par(r)}.`,
+        {sol:`${U(0)} = ${A} − ${p} × ${par(r)} = ${u0}.`,onOk:async()=>{st.arcs=[];V.cap(0,A);await V.hop(0,A,u0,{lab:`− ${p} × ${par(r)}`,lab2:sv(0)});cap(`<span class="k">${U(0)} = ${u0}</span><span class="m">·</span><span class="b">${un} = ${aff(u0,r)}</span>`)}})],
+    done:`${v('r')} = (${B} − ${par(A)}) ÷ ${gap} = ${r} et ${U(0)} = ${u0}&nbsp;: ${un} = ${aff(u0,r)}.`}});
+LV.push(L2);
+
+/* =============== Niveau 3 · Le zoom depuis 0 (suites géométriques) =============== */
+const L3={t:'Le zoom depuis 0',rule:`<p>Une suite (${un}) est <b>géométrique</b> s'il existe un réel non nul ${v('q')} tel que, pour tout entier naturel ${v('n')}, ${nw(`${un1} = ${v('q')} × ${un}`)}. Le nombre ${v('q')} est la <b>raison</b>.</p>
+<p>Sur le rail, ce n'est pas un pas&nbsp;: c'est un <b>zoom depuis 0</b>. La distance de la rame à 0 est multipliée par ${v('q')}.</p>
+<p><b>Évolution à taux fixe</b>&nbsp;: augmenter de ${v('t')}&nbsp;%, c'est multiplier par 1 + <span class="fr"><span>${v('t')}</span><span>100</span></span>&nbsp;; diminuer de ${v('t')}&nbsp;%, c'est multiplier par 1 − <span class="fr"><span>${v('t')}</span><span>100</span></span>.</p>
+<p><b>Terme général</b>&nbsp;: ${un} = ${U(0)} × ${P(v('q'),'n')} et ${un} = ${U('p')} × ${P(v('q'),'n−p')}. Quand les termes sont non nuls, ${v('q')} = <span class="fr"><span>${un1}</span><span>${un}</span></span>.</p>`,qs:[]};
+/* Q1 : abonnés + t % */
+L3.qs.push(()=>{const u0=pick([1000,2000,2500,4000,5000]),t=pick([10,20,50]),q=add(1,Q(t,100)),nm=pick(['Naïma','Soilihi','Chaïma','Ylan']);const u=k=>ge(u0,q,k);
+  return{au:{k:'L3-up',u0,t},prompt:`La chaîne de vidéos de ${nm} compte ${N.dstr(Q(u0))} abonnés. Leur nombre augmente de ${t}&nbsp;% chaque mois. On note ${un} le nombre d'abonnés au bout de ${v('n')} mois.`,
+    setup(){st.unit='abonnés';st.hub=true;frm([u0,u(5)]);V.station(0,u0,sv(0),{instant:true});V.cap(0,u0)},cap0:`<span class="k">${U(0)} = ${N.dstr(Q(u0))}</span><span class="m">· + ${t}&nbsp;% par mois</span>`,
+    parts:[ch(`Augmenter de ${t}&nbsp;%, c'est multiplier par&nbsp;:`,[OK(fq(q)),NO(fq(Q(t,100)),`Multiplier par ${fq(Q(t,100))} donnerait seulement ${t}&nbsp;% du nombre de départ. On garde 100&nbsp;% et on ajoute ${t}&nbsp;%&nbsp;: 1 + ${fq(Q(t,100))}.`),
+        NO(fq(1+t),`On ne multiplie pas par 1 + ${t}&nbsp;: ${t}&nbsp;%, c'est <span class="fr"><span>${t}</span><span>100</span></span> = ${fq(Q(t,100))}.`),NO(fq(add(1,Q(t,1000))),`${fq(add(1,Q(t,1000)))} correspondrait à ${fq(Q(t,10))}&nbsp;%. Ici ${t}&nbsp;% = ${fq(Q(t,100))}.`)],{sol:`Le coefficient multiplicateur est 1 + ${fq(Q(t,100))} = ${fq(q)}.`}),
+      fill(`Combien d'abonnés après 1 mois, puis 2 mois&nbsp;?`,`${U(1)} = {0} &nbsp; ${U(2)} = {1}`,[BR(u(1),4.6),BR(u(2),4.6)],x=>x[1]&&eq(x[1],add(u(1),mul(u0,Q(t,100))))?`Le 2<sup>e</sup> mois, on gagne ${t}&nbsp;% de ${N.dstr(u(1))}, pas de ${N.dstr(Q(u0))}&nbsp;: ${U(2)} = ${fq(q)} × ${U(1)}.`:`${U(1)} = ${fq(q)} × ${N.dstr(Q(u0))}, puis ${U(2)} = ${fq(q)} × ${U(1)}.`,
+        {sol:`${U(1)} = ${fq(q)} × ${N.dstr(Q(u0))} = ${N.dstr(u(1))} et ${U(2)} = ${fq(q)} × ${N.dstr(u(1))} = ${N.dstr(u(2))}.`,onOk:async()=>{await walkG(0,u0,q,0,2)}}),
+      act(`Zoomer jusqu'à ${U(5)}`,async()=>{await walkG(0,u0,q,2,5,{ms:620});const d1=sub(u(1),u0),d5=sub(u(5),u(4));V.note('Même zoom, des écarts qui grandissent',2400);
+        cap(`<span class="m">gain du 1<sup>er</sup> mois&nbsp;:</span><span class="p">${N.dstr(d1)}</span><span class="m">· du 5<sup>e</sup>&nbsp;:</span><span class="p">${N.ap(d5,0).ex?'':'≈ '}${N.ap(d5,0).s}</span>`)},{ask:'Continuons trois mois de plus.'})],
+    done:`+ ${t}&nbsp;% chaque mois&nbsp;: (${un}) est <b>géométrique de raison ${fq(q)}</b> et ${un} = ${N.dstr(Q(u0))} × ${P(fq(q),'n')}. Le facteur est constant, mais le gain mensuel grandit.`}});
+/* Q2 : baisse − t % */
+L3.qs.push(()=>{const V0=pick([1000,1600,2000,2400]),t=pick([10,20,25]),q=sub(1,Q(t,100)),obj=pick(['un scooter électrique','une console de jeu','un vélo électrique']);const u=k=>ge(V0,q,k);
+  return{au:{k:'L3-down',V0,t},prompt:`Neuf, ${obj} vaut ${N.dstr(Q(V0))}&nbsp;€. Sa valeur baisse de ${t}&nbsp;% par an. On note ${U('n','v')} sa valeur (en euros) au bout de ${v('n')} années.`,
+    setup(){st.unit='€';st.hub=true;frm([V0,0]);V.station(0,V0,sv(0,'v'),{instant:true});V.cap(0,V0)},cap0:`<span class="k">${U(0,'v')} = ${N.dstr(Q(V0))}</span><span class="m">· − ${t}&nbsp;% par an</span>`,
+    parts:[ch(`Par quel nombre multiplie-t-on la valeur chaque année&nbsp;?`,[OK(fq(q)),NO(fq(Q(t,100)),`Multiplier par ${fq(Q(t,100))}, c'est garder seulement ${t}&nbsp;%. On perd ${t}&nbsp;%, il reste ${100-t}&nbsp;%&nbsp;: 1 − ${fq(Q(t,100))}.`),
+        NO(fq(add(1,Q(t,100))),`${fq(add(1,Q(t,100)))} correspond à une <b>hausse</b> de ${t}&nbsp;%.`),NO(fq(Q(-t,100)),`Un coefficient multiplicateur négatif changerait le signe de la valeur. Il reste ${100-t}&nbsp;%&nbsp;: on multiplie par ${fq(q)}.`)],{sol:`Il reste ${100-t}&nbsp;%&nbsp;: ${v('q')} = 1 − ${fq(Q(t,100))} = ${fq(q)}.`,onOk:async()=>{await walkG(0,V0,q,0,1,{L:'v'})}}),
+      ch(`Pour tout ${v('n')}, ${U('n','v')} est égal à&nbsp;:`,[OK(`${N.dstr(Q(V0))} × ${P(fq(q),'n')}`),NO(`${N.dstr(Q(V0))} − ${t}${v('n')}`,`Baisser de ${t}&nbsp;% n'est pas retirer ${t}&nbsp;€&nbsp;: c'est multiplier par ${fq(q)} chaque année.`),
+        NO(`${N.dstr(Q(V0))} × ${fq(q)} × ${v('n')}`,`Multiplier par ${v('n')} ne correspond à rien ici&nbsp;: on multiplie ${v('n')} fois par ${fq(q)}, d'où la puissance ${P(fq(q),'n')}.`),NO(`${N.dstr(Q(V0))} × ${P(fq(Q(t,100)),'n')}`,`Le coefficient est ${fq(q)} (ce qui reste), pas ${fq(Q(t,100))}.`)],{sol:`${U('n','v')} = ${U(0,'v')} × ${P(v('q'),'n')} = ${N.dstr(Q(V0))} × ${P(fq(q),'n')}.`}),
+      fill(`Valeur au bout de 3 ans&nbsp;:`,`${U(3,'v')} = {0} €`,[BR(u(3),5)],x=>x[0]&&eq(x[0],V0-3*V0*t/100)?`Tu as retiré 3 fois ${t}&nbsp;% de ${N.dstr(Q(V0))}&nbsp;€. Mais chaque année, la baisse porte sur la valeur de l'année précédente&nbsp;: ${N.dstr(Q(V0))} × ${P(fq(q),3)}.`:`Calcule ${N.dstr(Q(V0))} × ${P(fq(q),3)}.`,
+        {sol:`${U(3,'v')} = ${N.dstr(Q(V0))} × ${P(fq(q),3)} = ${N.dstr(u(3))}&nbsp;€.`,onOk:async()=>{await walkG(0,V0,q,1,3,{L:'v'});V.note('Le zoom rapproche la rame de 0',2200);cap(`<span class="k">${U(3,'v')} = ${N.dstr(u(3))} €</span>`)}})],
+    done:`Baisse de ${t}&nbsp;% par an&nbsp;: suite géométrique de raison ${fq(q)}, ${U('n','v')} = ${N.dstr(Q(V0))} × ${P(fq(q),'n')}, et ${U(3,'v')} = ${N.dstr(u(3))}&nbsp;€.`}});
+/* Q3 : reconnaître par les quotients, puis terme général */
+L3.qs.push(()=>{const b=pick([1,2,3,5]),q=pick([2,3,-2]),A=[0,1,2,3,4].map(k=>ge(b,q,k)),kk=pick([6,7]);
+  const B=[0,1,2,3,4].map(k=>Q(b+k*Math.abs(q)*2)),C=[1,2,3,4,5].map(k=>Q(b*k*k)),D=[A[0],A[1],A[2],add(A[3],sgn(A[3])),mul(add(A[3],sgn(A[3])),q)];
+  const rat=L=>[1,2,3,4].map(i=>times(div(L[i],L[i-1]))).join(', ');
+  return{au:{k:'L3-list',b,q,kk},prompt:`Une seule de ces listes peut être le début d'une suite géométrique. La rame teste chaque liste&nbsp;: un zoom par terme.`,
+    setup(){st.hub=true;frm([...A,...B,...C,...D])},cap0:`<span class="m">Géométrique ⇔ quotient</span><span class="b"><span class="fr"><span>${un1}</span><span>${un}</span></span></span><span class="m">constant</span>`,
+    parts:[ch(`Laquelle&nbsp;?`,[OK(lst(A)),NO(lst(B),`Ici on <b>ajoute</b> toujours ${2*Math.abs(q)}&nbsp;: les quotients ${rat(B)} ne sont pas constants. C'est une suite arithmétique.`),NO(lst(C),`Les quotients valent ${rat(C)}&nbsp;: le zoom change à chaque fois.`),
+        NO(lst(D),`Les premiers quotients valent ${times(q)}, mais pas tous&nbsp;: ${rat(D)}.`)],{sol:`${lst(A)}&nbsp;: on multiplie toujours par ${fq(q)}.`,onOk:async()=>{await showZooms(A)},onBad:async c=>{const L=[B,C,D].find(x=>lst(x)===c.h);if(L)await showZooms(L,{ms:360})}}),
+      fill(`Sa raison&nbsp;:`,`${v('q')} = {0}`,[BR(q,3)],x=>x[0]&&eq(x[0],sub(A[1],A[0]))?`${fq(sub(A[1],A[0]))} est un écart (une différence). La raison d'une suite géométrique est un <b>quotient</b>&nbsp;: ${U(1)} ÷ ${U(0)}.`:`${v('q')} = ${U(1)} ÷ ${U(0)} = ${fq(A[1])} ÷ ${fq(A[0])}.`,{sol:`${v('q')} = ${fq(A[1])} ÷ ${fq(A[0])} = ${fq(q)}.`}),
+      fill(`Avec ${un} = ${b===1?'':fq(b)+' × '}${P(par(q),'n')}, calcule ${U(kk)}.`,`${U(kk)} = {0}`,[BR(ge(b,q,kk),4.4)],x=>x[0]&&eq(x[0],ge(b,q,kk-1))?`C'est ${U(kk-1)}&nbsp;: l'exposant est le rang, ${kk}.`:x[0]&&eq(x[0],mul(b,mul(q,kk)))?`${P(v('q'),kk)} n'est pas ${v('q')} × ${kk}&nbsp;: c'est ${v('q')} multiplié ${kk} fois par lui-même.`:x[0]&&q<0&&eq(x[0],neg(ge(b,q,kk)))?`Attention au signe&nbsp;: ${P('(−'+Math.abs(q)+')',kk)} est ${kk%2?'négatif':'positif'} (exposant ${kk%2?'impair':'pair'}).`:`Calcule ${b===1?'':fq(b)+' × '}${P(par(q),kk)}.`,
+        {sol:`${U(kk)} = ${b===1?'':fq(b)+' × '}${P(par(q),kk)} = ${fq(ge(b,q,kk))}.`,onOk:async()=>{await zf([...A,ge(b,q,kk-1),ge(b,q,kk)],700);await walkG(0,b,q,4,kk,{ms:600})}})],
+    done:`Quotient constant ${fq(q)}&nbsp;: (${un}) est géométrique, ${un} = ${b===1?'':fq(b)+' × '}${P(par(q),'n')} et ${U(kk)} = ${fq(ge(b,q,kk))}.${q<0?' Avec une raison négative, la rame bascule d\'un côté de 0 à l\'autre.':''}`}});
+/* Q4 : deux termes → q puis u0 */
+L3.qs.push(()=>{const q=pick([2,3,-2,-3,0.5]),Qq=Q(q),p=ri(1,3);const u0=eq(Qq,Q(0.5))?pick([64,128,96]):pick([1,2,3,5,-2]);const A=ge(u0,Qq,p),B=ge(u0,Qq,p+3);
+  return{au:{k:'L3-two',q:N.fqt(Qq),p,u0},prompt:`(${un}) est une suite géométrique avec ${U(p)} = ${fq(A)} et ${U(p+3)} = ${fq(B)}.`,
+    setup(){st.hub=true;frm([A,B,u0,ge(u0,Qq,p+1),ge(u0,Qq,p+2)]);V.station(0,val(A),sv(p),{instant:true});V.station(0,val(B),sv(p+3),{instant:true});V.cap(0,val(A))},cap0:`<span class="k">${U(p)} = ${fq(A)}</span><span class="m">… trois zooms …</span><span class="k">${U(p+3)} = ${fq(B)}</span>`,
+    parts:[ch(`${U(p+3)} = ${U(p)} × &nbsp;?`,[OK(P(v('q'),3)),NO(`3${v('q')}`,`Trois zooms successifs multiplient par ${v('q')} × ${v('q')} × ${v('q')} = ${P(v('q'),3)}, pas par 3${v('q')}.`),NO(P(v('q'),p+3),`On part de ${U(p)}, pas de ${U(0)}&nbsp;: il y a ${p+3} − ${p} = 3 zooms.`),NO(`${v('q')} + 3`,`Un zoom multiplie par ${v('q')}&nbsp;; trois zooms multiplient par ${P(v('q'),3)}.`)],{sol:`${U(p+3)} = ${U(p)} × ${P(v('q'),3)}.`}),
+      fill(`Quelle est la raison&nbsp;?`,`${v('q')} = {0}`,[BR(Qq,3)],x=>x[0]&&eq(x[0],div(B,A))?`${fq(div(B,A))} = ${P(v('q'),3)}. Cherche le nombre dont le cube vaut ${fq(div(B,A))}.`:x[0]&&eq(x[0],neg(Qq))?`Vérifie le signe&nbsp;: ${P(par(neg(Qq)),3)} = ${fq(pow(neg(Qq),3))}, pas ${fq(div(B,A))}.`:`${P(v('q'),3)} = ${fq(B)} ÷ ${par(A)} = ${fq(div(B,A))}.`,
+        {sol:`${P(v('q'),3)} = ${fq(div(B,A))} et ${P(par(Qq),3)} = ${fq(div(B,A))}, donc ${v('q')} = ${fq(Qq)}.`,onOk:async()=>{await walkG(0,A,Qq,0,3,{nolab:true});cap(`<span class="k">${v('q')} = ${fq(Qq)}</span><span class="m">· ${P(v('q'),3)} = ${fq(div(B,A))}</span>`)}}),
+      fill(`Quel est le premier terme&nbsp;?`,`${U(0)} = {0}`,[BR(u0,3)],x=>x[0]&&eq(x[0],mul(A,pow(Qq,p)))?`Pour revenir en arrière, on <b>divise</b> par ${v('q')}&nbsp;: ${U(0)} = ${U(p)} ÷ ${P(v('q'),p)}.`:`${U(p)} = ${U(0)} × ${P(v('q'),p)}, donc ${U(0)} = ${fq(A)} ÷ ${P(par(Qq),p)}.`,
+        {sol:`${U(0)} = ${fq(A)} ÷ ${P(par(Qq),p)} = ${fq(u0)}.`,onOk:async()=>{V.cap(0,val(A));for(let k=p;k>0;k--)await V.zoom(0,val(ge(u0,Qq,k)),val(ge(u0,Qq,k-1)),{lab:'÷ '+N.fqt(Qq),lab2:k===1?sv(0):''});cap(`<span class="b">${un} = ${N.cx(u0)}${P(par(Qq),'n')}</span>`)}})],
+    done:`${P(v('q'),3)} = ${fq(div(B,A))} donne ${v('q')} = ${fq(Qq)}, puis ${U(0)} = ${fq(u0)}&nbsp;: ${un} = ${N.cx(u0)}${P(par(Qq),'n')}.`}});
+LV.push(L3);
+
+/* =============== Niveau 4 · Le sens de la marche (sens de variation, intuition de la limite) =============== */
+const L4={t:'Le sens de la marche',rule:`<p><b>Arithmétique</b> de raison ${v('r')}&nbsp;: ${un1} − ${un} = ${v('r')}. Si ${v('r')} &gt; 0, la suite est strictement croissante&nbsp;; si ${v('r')} &lt; 0, strictement décroissante&nbsp;; si ${v('r')} = 0, constante.</p>
+<p><b>Géométrique</b> de raison ${v('q')}&nbsp;: ${un1} − ${un} = ${U(0)} × ${P(v('q'),'n')} × (${v('q')} − 1). Avec ${U(0)} &gt; 0 et ${v('q')} &gt; 0&nbsp;: croissante si ${v('q')} &gt; 1, décroissante si 0 &lt; ${v('q')} &lt; 1, constante si ${v('q')} = 1. Si ${U(0)} &lt; 0, les sens s'inversent. Si ${v('q')} &lt; 0 (et ${U(0)} ≠ 0), les termes changent de signe à chaque rang&nbsp;: la suite n'est ni croissante ni décroissante.</p>
+<p><b>Vers où file la rame&nbsp;?</b> Avec 0 &lt; ${v('q')} &lt; 1 (ou −1 &lt; ${v('q')} &lt; 0), les termes se rapprochent de 0&nbsp;; avec ${v('q')} &gt; 1 et ${U(0)} &gt; 0, ils deviennent aussi grands qu'on veut, comme ceux d'une suite arithmétique de raison positive.</p>`,qs:[]};
+const BIG='devient aussi grand qu\'on veut',SMALL='finit par passer sous n\'importe quel nombre, aussi négatif soit-il',ZERO='se rapproche de 0';
+/* Q1 : arithmétique */
+L4.qs.push(()=>{const c=pick([-5,-4,-3,-2,-1,1,2,3,4,5,6,8,10,12,15,20,25,30]),r=pick([-5,-4,-3,-2,2,3,4,0.5,-1.5]);const R=Q(r),good=r>0?VAR[0]:VAR[1];const ex=`${un} = ${aff(c,R)}`;const t=k=>ar(c,R,k);
+  return{au:{k:'L4-ar',c,r:N.fqt(R)},prompt:`La suite (${un}) est définie pour tout entier naturel ${v('n')} par ${nw(ex)}.`,
+    setup(){frm([t(0),t(5)]);V.station(0,val(t(0)),sv(0),{instant:true});V.cap(0,val(t(0)))},cap0:`<span class="b">${ex}</span>`,
+    parts:[ch(`Sens de variation de (${un})&nbsp;:`,VAR.map(w=>w===good?OK(w):NO(w,w==='constante'?`Les termes changent&nbsp;: ${U(0)} = ${fq(t(0))}, ${U(1)} = ${fq(t(1))}.`:w===VAR[3]?`Une suite arithmétique va toujours dans le même sens&nbsp;: ${un1} − ${un} = ${fq(R)} garde le même signe.`:`${un1} − ${un} = ${fq(R)}, qui est ${r>0?'positif':'négatif'}&nbsp;: chaque pas va ${r>0?'vers la droite':'vers la gauche'}.`)),
+        {keep:true,sol:`(${un}) est arithmétique de raison ${fq(R)} ${r>0?'&gt;':'&lt;'} 0&nbsp;: elle est ${good}.`,onOk:async()=>{await walkA(0,c,R,0,5,{ms:330})}}),
+      ch(`Quand ${v('n')} devient très grand, ${un}&nbsp;:`,[r>0?OK(BIG):OK(SMALL),r>0?NO(SMALL,`Les pas vont vers la droite&nbsp;: les termes augmentent sans fin.`):NO(BIG,`Les pas vont vers la gauche&nbsp;: les termes diminuent sans fin.`),NO(ZERO,`Les pas gardent tous la même longueur ${fq(abs(R))}&nbsp;: la rame ne ralentit jamais, elle ne peut pas s'approcher d'un nombre fixe.`),NO(`se rapproche de ${fq(c)}`,`${fq(c)} est le point de départ ${U(0)}&nbsp;; la rame s'en éloigne d'un pas à chaque rang.`)],
+        {sol:`Avec ${v('r')} ${r>0?'&gt;':'&lt;'} 0, ${un} = ${aff(c,R)} ${r>0?BIG:SMALL}.`,onOk:async()=>{await zf([t(0),t(40)],900);V.cap(0,val(t(40)));V.note(r>0?'… et la rame file vers la droite':'… et la rame file vers la gauche',2000);cap(`<span class="k">${U(40)} = ${fq(t(40))}</span><span class="m">· ${U(1000)} = ${fq(t(1000))}</span>`)}})],
+    done:`Raison ${fq(R)} ${r>0?'&gt;':'&lt;'} 0&nbsp;: (${un}) est ${good} et ${r>0?BIG:SMALL}.`}});
+/* Q2 : géométrique u0 > 0 */
+L4.qs.push(()=>{const u0=pick([2,5,8,10,20]),q=pick([2,1.5,0.5,0.8,1.2,0.6]);const Qq=Q(q),good=q>1?VAR[0]:VAR[1];const t=k=>ge(u0,Qq,k);
+  return{au:{k:'L4-geo',u0,q:N.fqt(Qq)},prompt:`(${un}) est la suite géométrique de premier terme ${U(0)} = ${u0} et de raison ${fq(Qq)}.`,
+    setup(){st.hub=true;frm([t(0),t(1),t(4),0]);V.station(0,u0,sv(0),{instant:true});V.cap(0,u0)},cap0:`<span class="b">${un} = ${u0} × ${P(fq(Qq),'n')}</span>`,
+    parts:[ch(`Sens de variation de (${un})&nbsp;:`,VAR.map(w=>w===good?OK(w):NO(w,w==='constante'?`La raison n'est pas 1&nbsp;: les termes changent.`:w===VAR[3]?`La raison est positive et ${U(0)} &gt; 0&nbsp;: tous les termes sont positifs, la rame reste du même côté de 0 et va toujours dans le même sens.`:q>1?`${fq(Qq)} &gt; 1 et ${U(0)} &gt; 0&nbsp;: chaque zoom éloigne la rame de 0, vers la droite.`:`0 &lt; ${fq(Qq)} &lt; 1 et ${U(0)} &gt; 0&nbsp;: chaque zoom rapproche la rame de 0.`)),
+        {keep:true,sol:`${U(0)} &gt; 0 et ${q>1?`${fq(Qq)} &gt; 1`:`0 &lt; ${fq(Qq)} &lt; 1`}&nbsp;: (${un}) est ${good}.`,onOk:async()=>{await walkG(0,u0,Qq,0,4,{ms:520})}}),
+      ch(`Quand ${v('n')} devient très grand, ${un}&nbsp;:`,q>1?[OK(BIG),NO(ZERO,`Un zoom de facteur ${fq(Qq)} &gt; 1 éloigne la rame de 0 à chaque fois.`),NO(`se rapproche de ${u0}`,`La rame s'éloigne de ${U(0)} = ${u0} à chaque zoom.`),NO(`devient négatif`,`${U(0)} &gt; 0 et ${v('q')} &gt; 0&nbsp;: tous les termes restent positifs.`)]
+        :[OK(ZERO),NO(BIG,`Un zoom de facteur ${fq(Qq)} &lt; 1 rapproche la rame de 0.`),NO(`devient négatif`,`Multiplier un nombre positif par ${fq(Qq)} &gt; 0 donne un nombre positif&nbsp;: la rame ne franchit jamais 0.`),NO(`se rapproche de ${u0}`,`La rame s'éloigne de ${U(0)} = ${u0} pour se rapprocher de 0.`)],
+        {sol:q>1?`Les termes ${BIG}.`:`Les termes ${ZERO}, sans jamais l'atteindre.`,onOk:async()=>{if(q>1){await zf([0,t(12)],900);V.cap(0,val(t(12)));cap(`<span class="k">${U(12)}${N.eqs(t(12),2)}</span>`)}else{await walkG(0,u0,Qq,4,8,{ms:380,nolab:true});cap(`<span class="k">${U(8)}${N.eqs(t(8),4)}</span><span class="m">· ${U(20)}${N.eqs(t(20),6)}</span>`)}V.note(q>1?'Le zoom emporte la rame toujours plus loin':'La rame se colle au moyeu 0',2200)}})],
+    done:`${U(0)} &gt; 0 et ${q>1?`${v('q')} &gt; 1&nbsp;: la suite est strictement croissante et ses termes ${BIG}`:`0 &lt; ${v('q')} &lt; 1&nbsp;: la suite est strictement décroissante et ses termes ${ZERO}`}.`}});
+/* Q3 : géométrique u0 < 0 et q > 1 (le piège) */
+L4.qs.push(()=>{const u0=pick([-2,-3,-5,-1]),q=pick([2,3,1.5]),Qq=Q(q);const t=k=>ge(u0,Qq,k);
+  return{au:{k:'L4-neg',u0,q:N.fqt(Qq)},prompt:`(${un}) est la suite géométrique de premier terme ${U(0)} = ${u0} et de raison ${fq(Qq)}.`,
+    setup(){st.hub=true;frm([t(0),t(3),0]);V.station(0,u0,sv(0),{instant:true});V.cap(0,u0,{dir:-1})},cap0:`<span class="b">${un} = ${par(Q(u0))} × ${P(fq(Qq),'n')}</span>`,
+    parts:[fill(`Calcule les premiers termes&nbsp;:`,`${U(1)} = {0} &nbsp; ${U(2)} = {1}`,[BR(t(1),3.4),BR(t(2),3.4)],x=>x[0]&&sgn(x[0])>0?`Un nombre négatif multiplié par ${fq(Qq)} &gt; 0 reste négatif.`:`${U(1)} = ${par(Q(u0))} × ${fq(Qq)}, puis ${U(2)} = ${U(1)} × ${fq(Qq)}.`,
+        {sol:`${U(1)} = ${fq(t(1))} et ${U(2)} = ${fq(t(2))}.`,onOk:async()=>{await walkG(0,u0,Qq,0,3,{ms:560})}}),
+      ch(`Sens de variation de (${un})&nbsp;:`,VAR.map(w=>w===VAR[1]?OK(w):NO(w,w===VAR[0]?`${fq(Qq)} &gt; 1, mais ${U(0)} &lt; 0&nbsp;: le zoom éloigne la rame de 0 <b>vers la gauche</b>. ${U(0)} = ${u0} &gt; ${U(1)} = ${fq(t(1))}&nbsp;: les termes diminuent.`:w==='constante'?`Les termes changent&nbsp;: ${u0}, ${fq(t(1))}, ${fq(t(2))}…`:`La raison est positive&nbsp;: les termes gardent le même signe et varient toujours dans le même sens.`)),
+        {keep:true,sol:`${un1} − ${un} = ${un}(${v('q')} − 1)&nbsp;: ${un} &lt; 0 et ${v('q')} − 1 &gt; 0, donc la différence est négative. La suite est strictement décroissante.`,onOk:async()=>{V.note('q > 1 mais u₀ < 0 : la rame file vers la gauche',2600)}})],
+    done:`Avec ${U(0)} &lt; 0, les sens s'inversent&nbsp;: ${v('q')} = ${fq(Qq)} &gt; 1 donne une suite <b>strictement décroissante</b> (${un1} − ${un} = ${un}(${v('q')} − 1) &lt; 0).`}});
+/* Q4 : raison négative */
+L4.qs.push(()=>{const u0=pick([2,3,4,6,8]),q=pick([-2,-0.5,-3]),Qq=Q(q);const t=k=>ge(u0,Qq,k);
+  return{au:{k:'L4-alt',u0,q:N.fqt(Qq)},prompt:`(${un}) est la suite géométrique de premier terme ${U(0)} = ${u0} et de raison ${fq(Qq)}.`,
+    setup(){st.hub=true;frm([t(0),t(1),t(2),t(3)]);V.station(0,u0,sv(0),{instant:true});V.cap(0,u0)},cap0:`<span class="b">${un} = ${u0} × ${P(par(Qq),'n')}</span>`,
+    parts:[ch(`Sens de variation de (${un})&nbsp;:`,VAR.map(w=>w===VAR[3]?OK(w):NO(w,w==='constante'?`Les termes changent de signe&nbsp;: ${u0}, ${fq(t(1))}, ${fq(t(2))}…`:`${U(0)} = ${u0}, ${U(1)} = ${fq(t(1))}, ${U(2)} = ${fq(t(2))}&nbsp;: ça ${w===VAR[0]?'descend puis remonte':'descend puis remonte'}. Avec ${v('q')} &lt; 0, le zoom fait basculer la rame de l'autre côté de 0 à chaque rang.`)),
+        {keep:true,sol:`Les termes alternent de signe&nbsp;: (${un}) n'est ni croissante ni décroissante.`,onOk:async()=>{await walkG(0,u0,Qq,0,3,{ms:650})}}),
+      ch(`Quand ${v('n')} devient très grand, la distance de ${un} à 0&nbsp;:`,Math.abs(q)<1?[OK(`se rapproche de 0&nbsp;: les termes se rapprochent de 0 en changeant de signe`),NO(`devient aussi grande qu'on veut`,`|${fq(Qq)}| &lt; 1&nbsp;: chaque zoom divise la distance à 0 par 2.`),NO(`reste égale à ${u0}`,`La distance est multipliée par ${fq(abs(Qq))} à chaque rang.`)]
+        :[OK(`devient aussi grande qu'on veut, avec un signe qui alterne`),NO(`se rapproche de 0`,`|${fq(Qq)}| &gt; 1&nbsp;: chaque zoom multiplie la distance à 0 par ${fq(abs(Qq))}.`),NO(`reste égale à ${u0}`,`La distance est multipliée par ${fq(abs(Qq))} à chaque rang.`)],
+        {sol:Math.abs(q)<1?`Les termes se rapprochent de 0 en alternant de signe.`:`Les termes s'éloignent de 0 en alternant de signe&nbsp;: la suite n'a pas de limite.`,onOk:async()=>{if(Math.abs(q)<1){await walkG(0,u0,Qq,3,7,{ms:420,nolab:true})}else{await zf([t(5),t(6)],800);await walkG(0,u0,Qq,3,6,{ms:520,nolab:true})}}})],
+    done:`Raison négative&nbsp;: la rame passe d'un côté de 0 à l'autre à chaque rang. (${un}) n'est ni croissante ni décroissante${Math.abs(q)<1?' et ses termes se rapprochent de 0':'&nbsp;; ses termes s\'éloignent de 0 en alternant de signe'}.`}});
+LV.push(L4);
+})();
+</script>
+<script>
+/* ======================= LE MONORAIL — contenu des niveaux 5 à 7 ======================= */
+(function(){
+'use strict';
+const N=window.MN,S=window.MS,V=window.MV,G=window.MG,SND=S.SND,st=V.st;
+const {LV,act,ch,fill,OK,NO,BR,BW,cap}=G;
+const {ri,pick,shuf,Q,add,sub,mul,div,pow,neg,eq,sgn,val,abs,fq,f,U,v,nw,P,par,sg,aff}=N;
+const {ar,ge,sv,frm,zf,plus,plusT,times,tb,lst,VAR,clear,walkA,walkG}=window.MO_T;
+const sleep=S.sleep;
+const un=U('n'),un1=U('n+1');
+const fr2=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const dots='+ … +';
+
+/* =============== Niveau 5 · Bout à bout (sommes de termes d'une suite arithmétique) =============== */
+const L5={t:'Bout à bout',rule:`<p>On met les termes <b>bout à bout</b>, comme des wagons&nbsp;: la longueur du train est leur somme.</p>
+<p><b>Somme des entiers</b>&nbsp;: pour tout entier ${v('n')} ≥ 1, ${nw(`1 + 2 + … + ${v('n')} = ${fr2(`${v('n')}(${v('n')} + 1)`,'2')}`)}. Démonstration (Gauss)&nbsp;: le train 1, 2, …, ${v('n')} et le même train retourné, intercalés, forment ${v('n')} blocs de longueur ${v('n')} + 1, donc 2${v('S')} = ${v('n')}(${v('n')} + 1).</p>
+<p><b>Suite arithmétique</b>&nbsp;: une somme de termes consécutifs vaut ${nw(`(nombre de termes) × ${fr2('premier + dernier','2')}`)}. De ${U('p')} à ${un}, il y a ${v('n')} − ${v('p')} + 1 termes (de ${U(0)} à ${un}&nbsp;: ${v('n')} + 1 termes).</p>`,qs:[]};
+/* Q1 : la démonstration de Gauss, en wagons */
+L5.qs.push(()=>{const n=pick([6,7,8,9,10]),Sx=n*(n+1)/2;const lens=Array.from({length:n},(_,i)=>i+1);
+  return{au:{k:'L5-gauss',n},prompt:`On attelle des wagons de longueurs 1, 2, 3, …, ${n}. Combien mesure le train&nbsp;? Autrement dit, que vaut ${nw(`${v('S')} = 1 + 2 + … + ${n}`)}&nbsp;?`,
+    setup(){st.tracks=[{name:'Train'},{name:'Train retourné',col:'#7fe0d0'}];frm([0,Sx*1.04],{pad:.03})},cap0:`<span class="b">${v('S')} = 1 + 2 + … + ${n}</span>`,
+    parts:[act(`Atteler les wagons 1, 2, …, ${n}`,async()=>{await V.trainIn(0,lens,{labs:lens.map(String),ms:150});st.marks.push({t:0,x:Sx,lab:'S'});V.draw();cap(`<span class="m">longueur du train&nbsp;:</span><span class="b">${v('S')} = 1 + 2 + … + ${n}</span>`)}),
+      act(`Retourner le train, puis intercaler les deux`,async()=>{const B=await V.trainIn(1,lens.slice().reverse(),{labs:lens.slice().reverse().map(String),col:'t',ms:120});st.marks.push({t:1,x:Sx,lab:'S',col:'#7fe0d0'});V.draw();await sleep(500);
+        st.marks=[];await zf([0,n*(n+1)],900,{pad:.02});const A=st.wagons.filter(w=>w.t===0);const mv=[];
+        for(let k=1;k<=n;k++){mv.push({w:A[k-1],a:(k-1)*(n+1)});mv.push({w:B[k-1],a:(k-1)*(n+1)+k,t:0,lift:40})}
+        await V.moveW(mv,1300);for(let k=1;k<=n;k++)st.marks.push({t:0,x:k*(n+1),lab:k===n?`2S`:'',op:.8});st.marks.push({t:0,x:0,lab:'',op:.8});V.draw();
+        V.note(`${n} blocs, chacun de longueur ${n} + 1 = ${n+1}`,3000);cap(`<span class="m">2${v('S')} =</span><span class="k">${n} × ${n+1}</span>`)},{ask:'Le même train, dans l\'autre sens, a la même longueur S.'}),
+      fill(`Conclus.`,`2${v('S')} = {0} × {1}, donc ${v('S')} = {2}`,[BR(n,2.4),BR(n+1,2.4),BR(Sx,3)],x=>x[2]&&eq(x[2],n*(n+1))?`${n*(n+1)}, c'est 2${v('S')} (les deux trains). Divise par 2.`:`Chaque bloc associe un wagon ${v('k')} et un wagon ${n+1} − ${v('k')}&nbsp;: il mesure ${n+1}, et il y a ${n} blocs.`,
+        {sol:`2${v('S')} = ${n} × ${n+1} = ${n*(n+1)}, donc ${v('S')} = ${Sx}.`,onOk:async()=>{cap(`<span class="k">1 + 2 + … + ${n} = ${fr2(`${n} × ${n+1}`,'2')} = ${Sx}</span>`)}})],
+    done:`1 + 2 + … + ${n} = ${fr2(`${n} × ${n+1}`,'2')} = ${Sx}. En général, 1 + 2 + … + ${v('n')} = ${fr2(`${v('n')}(${v('n')} + 1)`,'2')}.`}});
+/* Q2 : compter les termes, puis la formule */
+L5.qs.push(()=>{const a=pick([2,3]),b=pick([1,2,3,5]),Nn=pick([12,15,20,24]);const u=k=>a*k+b,Sx=(Nn+1)*(u(0)+u(Nn))/2;const ex=`${un} = ${aff(b,a)}`;
+  return{au:{k:'L5-count',a,b,N:Nn},prompt:`(${un}) est la suite arithmétique définie par ${nw(ex)}. On veut ${nw(`${v('S')} = ${U(0)} + ${U(1)} ${dots} ${U(Nn)}`)}.`,
+    setup(){frm([0,Sx*1.04],{pad:.03})},cap0:`<span class="b">${v('S')} = ${U(0)} + ${U(1)} ${dots} ${U(Nn)}</span>`,
+    parts:[ch(`Combien de termes compte cette somme&nbsp;?`,[OK(String(Nn+1)),NO(String(Nn),`On compte ${U(0)} aussi&nbsp;: de 0 à ${Nn} inclus, il y a ${Nn} + 1 = ${Nn+1} rangs.`),NO(String(Nn-1),`De 0 à ${Nn} inclus, il y a ${Nn+1} rangs.`)],
+        {sol:`De ${U(0)} à ${U(Nn)}&nbsp;: ${Nn} + 1 = ${Nn+1} termes.`,onOk:async()=>{await V.trainIn(0,Array.from({length:Nn+1},(_,k)=>u(k)),{labs:Array.from({length:Nn+1},(_,k)=>String(u(k))),ms:60});cap(`<span class="m">${Nn+1} wagons de longueurs</span><span class="b">${u(0)}, ${u(1)}, …, ${u(Nn)}</span>`)}}),
+      fill(`Premier et dernier termes&nbsp;:`,`${U(0)} = {0} &nbsp; ${U(Nn)} = {1}`,[BR(u(0),2.6),BR(u(Nn),3)],x=>x[1]&&eq(x[1],u(Nn+1))?`C'est ${U(Nn+1)}&nbsp;: remplace ${v('n')} par ${Nn}.`:`Remplace ${v('n')} par 0, puis par ${Nn}, dans ${aff(b,a)}.`,{sol:`${U(0)} = ${u(0)} et ${U(Nn)} = ${a} × ${Nn} + ${b} = ${u(Nn)}.`}),
+      fill(`Alors&nbsp;:`,`${v('S')} = {0}`,[BR(Sx,4)],x=>x[0]&&eq(x[0],Nn*(u(0)+u(Nn))/2)?`Tu as compté ${Nn} termes au lieu de ${Nn+1}.`:x[0]&&eq(x[0],(Nn+1)*(u(0)+u(Nn)))?`N'oublie pas de diviser par 2.`:`${v('S')} = ${Nn+1} × ${fr2(`${u(0)} + ${u(Nn)}`,'2')}.`,
+        {sol:`${v('S')} = ${Nn+1} × ${fr2(`${u(0)} + ${u(Nn)}`,'2')} = ${Sx}.`,onOk:async()=>{st.marks.push({t:0,x:Sx,lab:`S = ${N.dstr(Q(Sx))}`});V.draw();cap(`<span class="k">${v('S')} = ${Nn+1} × ${fr2(`${u(0)} + ${u(Nn)}`,'2')} = ${N.dstr(Q(Sx))}</span>`)}})],
+    done:`${Nn+1} termes, premier ${u(0)}, dernier ${u(Nn)}&nbsp;: ${v('S')} = ${Nn+1} × ${fr2(`${u(0)} + ${u(Nn)}`,'2')} = ${N.dstr(Q(Sx))}.`}});
+/* Q3 : course à pied, semaine après semaine */
+L5.qs.push(()=>{const d0=pick([3,4,5]),r=pick([1,2]),Nn=pick([8,10,12]),nm=pick(['Ayan','Faïza','Mahamoud','Inès']);const u=k=>d0+(k-1)*r,uN=u(Nn),Sx=Nn*(d0+uN)/2;
+  return{au:{k:'L5-run',d0,r,N:Nn},prompt:`Pour préparer un trail, ${nm} court ${d0} km la 1<sup>re</sup> semaine, puis ${r} km de plus chaque semaine. On note ${un} la distance courue la ${v('n')}-ième semaine&nbsp;: ${U(1)} = ${d0}.`,
+    setup(){st.unit='km';frm([0,Sx*1.04],{pad:.03})},cap0:`<span class="k">${U(1)} = ${d0}</span><span class="m">· chaque semaine</span><span class="p">+ ${r}</span>`,
+    parts:[fill(`Distance courue la ${Nn}<sup>e</sup> semaine&nbsp;:`,`${U(Nn)} = {0} km`,[BR(uN,3)],x=>x[0]&&eq(x[0],d0+Nn*r)?`De ${U(1)} à ${U(Nn)}, il y a ${Nn} − 1 = ${Nn-1} augmentations, pas ${Nn}.`:`${U(Nn)} = ${U(1)} + (${Nn} − 1) × ${r}.`,
+        {sol:`${U(Nn)} = ${d0} + ${Nn-1} × ${r} = ${uN} km.`,onOk:async()=>{await V.trainIn(0,Array.from({length:Nn},(_,k)=>u(k+1)),{labs:Array.from({length:Nn},(_,k)=>String(u(k+1))),ms:90})}}),
+      fill(`Distance totale sur ${Nn} semaines&nbsp;:`,`{0} km`,[BR(Sx,3.4)],x=>x[0]&&eq(x[0],Nn*(d0+uN))?`Divise par 2&nbsp;: la moyenne du premier et du dernier terme est ${fr2(`${d0} + ${uN}`,'2')}.`:x[0]&&eq(x[0],(Nn+1)*(d0+uN)/2)?`Il y a ${Nn} semaines, donc ${Nn} termes (de ${U(1)} à ${U(Nn)}).`:`Total = ${Nn} × ${fr2(`${d0} + ${uN}`,'2')}.`,
+        {sol:`${Nn} × ${fr2(`${d0} + ${uN}`,'2')} = ${Sx} km.`,onOk:async()=>{st.marks.push({t:0,x:Sx,lab:`${Sx} km`});V.draw();cap(`<span class="k">${U(1)} ${dots} ${U(Nn)} = ${Sx} km</span>`)}})],
+    done:`${U(Nn)} = ${uN} km et le total vaut ${Nn} × ${fr2(`${d0} + ${uN}`,'2')} = ${Sx} km. Attention&nbsp;: ici la suite commence à ${U(1)}.`}});
+/* Q4 : à l'envers, et les nombres pairs */
+L5.qs.push(()=>{const n=pick([12,15,20,24]),T=n*(n+1)/2,m=pick([10,20,30,50]);const tri=k=>k*(k+1)/2;const d=Math.round(T/2);
+  return{au:{k:'L5-inv',n,m},prompt:`Le train 1, 2, 3, …, ${v('n')} mesure ${N.dstr(Q(T))}.`,
+    setup(){frm([0,T*1.04],{pad:.03})},cap0:`<span class="b">1 + 2 + … + ${v('n')} = ${N.dstr(Q(T))}</span>`,
+    parts:[ch(`Combien de wagons compte-t-il&nbsp;?`,[OK(String(n)),NO(String(n+1),`1 + 2 + … + ${n+1} = ${tri(n+1)}, pas ${T}.`),NO(String(n-1),`1 + 2 + … + ${n-1} = ${tri(n-1)}, pas ${T}.`),NO(String(d),`Avec ${d} wagons, le train mesurerait ${N.dstr(Q(tri(d)))}.`)],
+        {sol:`${fr2(`${n} × ${n+1}`,'2')} = ${T}&nbsp;: il y a ${n} wagons.`,onOk:async()=>{await V.trainIn(0,Array.from({length:n},(_,k)=>k+1),{labs:Array.from({length:n},(_,k)=>String(k+1)),ms:45});cap(`<span class="k">${v('n')} = ${n}</span><span class="m">· ${n}(${n} + 1) = ${n*(n+1)} = 2 × ${T}</span>`)}}),
+      fill(`Et la somme des ${m} premiers nombres pairs&nbsp;?`,`2 + 4 + 6 + … + ${2*m} = {0}`,[BR(m*(m+1),4)],x=>x[0]&&eq(x[0],tri(m))?`C'est 1 + 2 + … + ${m}. Chaque terme pair est le double&nbsp;: 2 + 4 + … + ${2*m} = 2 × (1 + 2 + … + ${m}).`:x[0]&&eq(x[0],tri(2*m))?`1 + 2 + … + ${2*m} compte aussi les impairs. Factorise 2&nbsp;: 2 × (1 + 2 + … + ${m}).`:`2 + 4 + … + ${2*m} = 2 × (1 + 2 + … + ${m}).`,
+        {sol:`2 × ${fr2(`${m} × ${m+1}`,'2')} = ${m*(m+1)}.`,onOk:async()=>{cap(`<span class="k">2 + 4 + … + ${2*m} = ${m} × ${m+1} = ${N.dstr(Q(m*(m+1)))}</span>`)}})],
+    done:`${fr2(`${v('n')}(${v('n')} + 1)`,'2')} = ${T} donne ${v('n')} = ${n}. Et 2 + 4 + … + ${2*m} = 2 × (1 + … + ${m}) = ${N.dstr(Q(m*(m+1)))}.`}});
+LV.push(L5);
+
+/* =============== Niveau 6 · Le train des zooms (somme 1 + q + … + qⁿ) =============== */
+const L6={t:'Le train des zooms',rule:`<p>Pour tout réel ${v('q')} ≠ 1 et tout entier naturel ${v('n')}&nbsp;: ${nw(`1 + ${v('q')} + ${P(v('q'),2)} + … + ${P(v('q'),'n')} = ${fr2(`1 − ${P(v('q'),'n+1')}`,`1 − ${v('q')}`)}`)}. Cette somme compte ${v('n')} + 1 termes.</p>
+<p><b>Démonstration</b>&nbsp;: ${v('S')} = 1 + ${v('q')} + … + ${P(v('q'),'n')} et ${v('q')}${v('S')} = ${v('q')} + ${P(v('q'),2)} + … + ${P(v('q'),'n+1')}. Sur le rail, le train zoomé × ${v('q')} et décalé de 1 recouvre le train de départ, sauf le wagon 1 et le wagon ${P(v('q'),'n+1')}&nbsp;: ${v('S')} − ${v('q')}${v('S')} = 1 − ${P(v('q'),'n+1')}, donc (1 − ${v('q')})${v('S')} = 1 − ${P(v('q'),'n+1')}.</p>
+<p>Pour une suite géométrique de raison ${v('q')} ≠ 1&nbsp;: ${nw(`${U(0)} + ${U(1)} + … + ${un} = ${U(0)} × ${fr2(`1 − ${P(v('q'),'n+1')}`,`1 − ${v('q')}`)}`)}.</p>`,qs:[]};
+/* Q1 : la démonstration en wagons */
+L6.qs.push(()=>{const q=2,n=pick([3,4]);const lens=Array.from({length:n+1},(_,k)=>Math.pow(q,k)),Sx=lens.reduce((s,x)=>s+x,0);const lab=k=>k===0?'1':k===1?String(q):`${q}<tspan dy="-7" font-size="11">${k}</tspan>`;
+  return{au:{k:'L6-proof',q,n},prompt:`On attelle les wagons 1, ${q}, ${P(q,2)}, …, ${P(q,n)}. Le train mesure ${nw(`${v('S')} = 1 + ${q} + … + ${P(q,n)}`)}. Le monorail va le calculer sans additionner.`,
+    setup(){st.tracks=[{name:'S'},{name:'zoom × '+q,col:'#7fe0d0'}];st.hub=true;frm([0,Sx*1.05],{pad:.03})},cap0:`<span class="b">${v('S')} = 1 + ${q} + … + ${P(q,n)}</span>`,
+    parts:[act(`Atteler les ${n+1} wagons`,async()=>{await V.trainIn(0,lens,{labs:lens.map((_,k)=>lab(k)),ms:220});st.marks.push({t:0,x:Sx,lab:'S'});V.draw()}),
+      act(`Zoomer une copie × ${q}, puis la décaler de 1`,async()=>{const B=V.train(1,lens,{labs:lens.map((_,k)=>lab(k)),col:'t'});await sleep(350);await zf([0,1+q*Sx],800,{pad:.02});
+        await V.moveW(B.map(w=>({w,a:w.a*q,len:(w.b-w.a)*q})),1100);B.forEach((w,k)=>w.lab=lab(k+1));V.draw();st.marks.push({t:1,x:q*Sx,lab:`${q}S`,col:'#7fe0d0'});V.draw();await sleep(500);
+        st.marks=st.marks.filter(m=>m.t===0);await V.moveW(B.map(w=>({w,a:w.a+1})),900);
+        const A=st.wagons.filter(w=>w.t===0);A[0].col='g';B[n].col='g';st.marks.push({t:1,x:1+q*Sx,lab:`1 + ${q}S`,col:'#7fe0d0'});V.draw();await V.pulse([A[0],B[n]]);
+        V.note(`S + ${q}${n+1<10?String(n+1).replace(/\d/g,d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]):''} = 1 + ${q}S`,3200);cap(`<span class="m">mêmes wagons, sauf deux&nbsp;:</span><span class="k">${v('S')} + ${P(q,n+1)} = 1 + ${q}${v('S')}</span>`)},{ask:`Chaque wagon de la copie est ${q} fois plus long&nbsp;: le wagon ${P(q,'k')} devient ${P(q,'k+1')}.`}),
+      fill(`Isole ${v('S')}.`,`${v('S')} = {0}`,[BR(Sx,3.4)],x=>x[0]&&eq(x[0],(Math.pow(q,n)-1)/(q-1))?`Il y a ${n+1} wagons&nbsp;: l'exposant est ${n} + 1 = ${n+1}.`:`${v('S')} + ${P(q,n+1)} = 1 + ${q}${v('S')} donne ${q-1===1?'':`(${q} − 1)`}${v('S')} = ${P(q,n+1)} − 1.`,
+        {sol:`${q===2?'':`(${q} − 1)`}${v('S')} = ${P(q,n+1)} − 1 = ${Math.pow(q,n+1)-1}, donc ${v('S')} = ${Sx}.`,onOk:async()=>{cap(`<span class="k">1 + ${q} + … + ${P(q,n)} = ${fr2(`1 − ${P(q,n+1)}`,`1 − ${q}`)} = ${Sx}</span>`)}})],
+    done:`Le zoom décale tout d'un cran&nbsp;: ${v('S')} − ${q}${v('S')} = 1 − ${P(q,n+1)}, d'où ${v('S')} = ${fr2(`1 − ${P(q,n+1)}`,`1 − ${q}`)} = ${Sx}. C'est la démonstration de la formule.`}});
+/* Q2 : la formule et le nombre de termes */
+L6.qs.push(()=>{const q=pick([3,4,5]),n=pick([3,4,5]);const Sx=(Math.pow(q,n+1)-1)/(q-1);const lens=Array.from({length:n+1},(_,k)=>Math.pow(q,k));
+  return{au:{k:'L6-form',q,n},prompt:`On veut calculer ${nw(`${v('S')} = 1 + ${q} + ${P(q,2)} + … + ${P(q,n)}`)}.`,
+    setup(){frm([0,Sx*1.04],{pad:.03})},cap0:`<span class="b">${v('S')} = 1 + ${q} + … + ${P(q,n)}</span>`,
+    parts:[ch(`Combien de termes compte ${v('S')}&nbsp;?`,[OK(String(n+1)),NO(String(n),`Les exposants vont de 0 (car 1 = ${P(q,0)}) à ${n}&nbsp;: cela fait ${n} + 1 termes.`),NO(String(Math.pow(q,n)),`${Math.pow(q,n)} est la valeur du dernier terme, pas le nombre de termes.`)],{sol:`De ${P(q,0)} à ${P(q,n)}&nbsp;: ${n+1} termes.`,onOk:async()=>{await V.trainIn(0,lens,{labs:lens.map(String),ms:200})}}),
+      ch(`Quelle formule utiliser&nbsp;?`,[OK(fr2(`1 − ${P(q,n+1)}`,`1 − ${q}`)),NO(fr2(`1 − ${P(q,n)}`,`1 − ${q}`),`Il y a ${n+1} termes&nbsp;: l'exposant du numérateur est ${n} + 1.`),NO(fr2(`1 − ${P(q,n+1)}`,`1 + ${q}`),`Le dénominateur est 1 − ${v('q')}&nbsp;: il vient de ${v('S')} − ${v('q')}${v('S')} = (1 − ${v('q')})${v('S')}.`),
+        NO(fr2(`${P(q,n+1)} − 1`,`1 − ${q}`),`Numérateur et dénominateur doivent être « dans le même sens »&nbsp;: ${fr2(`1 − ${P(q,n+1)}`,`1 − ${q}`)} ou ${fr2(`${P(q,n+1)} − 1`,`${q} − 1`)}. Ici le signe est faux&nbsp;: le résultat serait négatif.`)],{sol:`${v('S')} = ${fr2(`1 − ${P(q,n+1)}`,`1 − ${q}`)}.`}),
+      fill(`Calcule.`,`${v('S')} = {0}`,[BR(Sx,4)],x=>x[0]&&eq(x[0],(Math.pow(q,n)-1)/(q-1))?`L'exposant est ${n+1}, pas ${n}.`:x[0]&&eq(x[0],-Sx)?`Attention aux signes&nbsp;: ${fr2(`1 − ${Math.pow(q,n+1)}`,`1 − ${q}`)} = ${fr2(String(1-Math.pow(q,n+1)),String(1-q))}, quotient de deux négatifs.`:`${P(q,n+1)} = ${Math.pow(q,n+1)}&nbsp;; calcule ${fr2(`1 − ${Math.pow(q,n+1)}`,`1 − ${q}`)}.`,
+        {sol:`${v('S')} = ${fr2(`1 − ${Math.pow(q,n+1)}`,`1 − ${q}`)} = ${fr2(String(1-Math.pow(q,n+1)),String(1-q))} = ${Sx}.`,onOk:async()=>{st.marks.push({t:0,x:Sx,lab:`S = ${N.dstr(Q(Sx))}`});V.draw();cap(`<span class="k">${v('S')} = ${N.dstr(Q(Sx))}</span>`)}})],
+    done:`${n+1} termes&nbsp;: ${v('S')} = ${fr2(`1 − ${P(q,n+1)}`,`1 − ${q}`)} = ${N.dstr(Q(Sx))}.`}});
+/* Q3 : la raison 0,5 et l'horizon 2 */
+L6.qs.push(()=>{const n=pick([4,5,6]),h=Q(1,2);const lens=Array.from({length:n+1},(_,k)=>pow(h,k)),Sx=sub(2,pow(h,n));
+  return{au:{k:'L6-half',n},prompt:`On attelle des wagons de longueurs 1&nbsp;; 0,5&nbsp;; 0,25&nbsp;; …&nbsp;: chaque wagon mesure la moitié du précédent. Le dernier mesure ${P('0,5',n)}.`,
+    setup(){st.hub=true;V.setFrame({x0:-.12,x1:2.25})},cap0:`<span class="b">${v('S')} = 1 + 0,5 + ${P('0,5',2)} + … + ${P('0,5',n)}</span>`,
+    parts:[act(`Atteler les ${n+1} wagons`,async()=>{await V.trainIn(0,lens.map(val),{labs:lens.map(x=>val(x)>=.25?N.fqt(x):''),ms:220});st.marks.push({t:0,x:2,lab:'2'});V.draw()}),
+      fill(`Longueur du train (valeur exacte)&nbsp;:`,`${v('S')} = {0}`,[BR(Sx,4.6)],x=>x[0]&&eq(x[0],sub(2,pow(h,n-1)))?`Il y a ${n+1} termes&nbsp;: l'exposant du numérateur est ${n+1}.`:`${v('S')} = ${fr2(`1 − ${P('0,5',n+1)}`,'1 − 0,5')} = ${fr2(`1 − ${N.fqt(pow(h,n+1))}`,'0,5')}.`,
+        {sol:`${v('S')} = ${fr2(`1 − ${P('0,5',n+1)}`,'1 − 0,5')} = 2 × (1 − ${N.fqt(pow(h,n+1))}) = ${N.fqt(Sx)}.`}),
+      ch(`Si l'on ajoute toujours plus de wagons, la longueur du train&nbsp;:`,[OK(`se rapproche de 2 sans jamais l'atteindre`),NO(`finit par dépasser 2`,`${v('S')} = 2 − ${P('0,5','n')}&nbsp;: il manque toujours ${P('0,5','n')} &gt; 0 pour atteindre 2.`),NO(`devient aussi grande qu'on veut`,`Chaque wagon ajouté comble la moitié de ce qui manque pour atteindre 2&nbsp;: le train ne dépasse jamais 2.`),NO(`se rapproche de 1`,`Le train mesure déjà plus de 1 dès le deuxième wagon.`)],
+        {sol:`${v('S')} = 2 − ${P('0,5','n')}&nbsp;: la longueur se rapproche de 2.`,onOk:async()=>{const more=[];for(let k=n+1;k<=12;k++)more.push(val(pow(h,k)));await V.trainIn(0,more,{x0:val(Sx),ms:110});V.note('Il manque toujours une moitié de ce qui reste',2600);cap(`<span class="k">1 + 0,5 + … + ${P('0,5',12)}${N.eqs(sub(2,pow(h,12)),5)}</span>`)}})],
+    done:`1 + 0,5 + … + ${P('0,5',n)} = ${N.fqt(Sx)} = 2 − ${P('0,5',n)}. Plus on ajoute de wagons, plus le train se rapproche de 2, sans l'atteindre&nbsp;: c'est l'idée de limite.`}});
+/* Q4 : un message relayé */
+L6.qs.push(()=>{const q=pick([2,3,4]),n=q===4?pick([4,5]):pick([4,5,6]),nm=pick(['Faïza','Zayd','Kélian','Chaïma']);const Sx=(Math.pow(q,n+1)-1)/(q-1);const lens=Array.from({length:n+1},(_,k)=>Math.pow(q,k));
+  return{au:{k:'L6-relay',q,n},prompt:`${nm} lance un défi sur un réseau social. Au départ, 1 personne le connaît. À chaque relais, chaque personne qui vient de le recevoir le transmet à ${q} personnes qui ne le connaissaient pas.`,
+    setup(){st.unit='personnes';frm([0,Sx*1.04],{pad:.03})},cap0:`<span class="m">relais 0&nbsp;:</span><span class="k">1</span><span class="m">· chaque relais&nbsp;:</span><span class="k">× ${q}</span>`,
+    parts:[fill(`Nouvelles personnes touchées au relais ${n}&nbsp;:`,`{0}`,[BR(Math.pow(q,n),4)],x=>x[0]&&eq(x[0],Math.pow(q,n-1))?`C'est le relais ${n-1}. Au relais ${v('k')}, il y a ${P(q,'k')} nouvelles personnes.`:x[0]&&eq(x[0],q*n)?`On ne multiplie pas ${q} par ${n}&nbsp;: le nombre est multiplié par ${q} à chaque relais, d'où ${P(q,n)}.`:`Relais 1&nbsp;: ${q}, relais 2&nbsp;: ${q*q}… au relais ${n}&nbsp;: ${P(q,n)}.`,
+        {sol:`${P(q,n)} = ${Math.pow(q,n)} nouvelles personnes.`,onOk:async()=>{await V.trainIn(0,lens,{labs:lens.map(String),ms:200})}}),
+      fill(`Nombre total de personnes qui connaissent le défi après le relais ${n}&nbsp;:`,`{0}`,[BR(Sx,4)],x=>x[0]&&eq(x[0],(Math.pow(q,n)-1)/(q-1))?`N'oublie pas un terme&nbsp;: de ${P(q,0)} = 1 à ${P(q,n)}, il y a ${n+1} termes.`:x[0]&&eq(x[0],Math.pow(q,n))?`C'est seulement le dernier relais. Il faut additionner tous les relais&nbsp;: 1 + ${q} + … + ${P(q,n)}.`:`1 + ${q} + … + ${P(q,n)} = ${fr2(`1 − ${P(q,n+1)}`,`1 − ${q}`)}.`,
+        {sol:`1 + ${q} + … + ${P(q,n)} = ${fr2(`1 − ${P(q,n+1)}`,`1 − ${q}`)} = ${N.dstr(Q(Sx))}.`,onOk:async()=>{st.marks.push({t:0,x:Sx,lab:N.dstr(Q(Sx))});V.draw();cap(`<span class="k">1 + ${q} + … + ${P(q,n)} = ${N.dstr(Q(Sx))}</span>`)}})],
+    done:`Au relais ${n}&nbsp;: ${P(q,n)} = ${N.dstr(Q(Math.pow(q,n)))} nouvelles personnes&nbsp;; au total ${fr2(`1 − ${P(q,n+1)}`,`1 − ${q}`)} = ${N.dstr(Q(Sx))}.`}});
+LV.push(L6);
+
+/* =============== Niveau 7 · Linéaire ou exponentielle ? (modéliser, comparer, seuils) =============== */
+const L7={t:'Linéaire ou exponentielle ?',rule:`<p><b>Accroissements constants</b> (on ajoute toujours la même quantité)&nbsp;: suite arithmétique, croissance <b>linéaire</b>. <b>Taux d'évolution constant</b> (on multiplie toujours par le même coefficient)&nbsp;: suite géométrique, croissance <b>exponentielle</b>.</p>
+<p>Avec ${U(0)} &gt; 0 et ${v('q')} &gt; 1, une suite géométrique finit toujours par dépasser une suite arithmétique, même si elle part de beaucoup plus bas.</p>
+<p><b>Seuil</b>&nbsp;: pour trouver le premier rang où ${un} dépasse une valeur, on calcule les termes un par un, à la main ou avec une boucle <code>while</code>.</p>`,qs:[]};
+/* Q1 : modéliser */
+L7.qs.push(()=>{const X=pick([30,40,50,80]),t=pick([2,3,4,5]);const q=add(1,Q(t,100));
+  return{au:{k:'L7-model',X,t},prompt:`Deux situations. <b>A</b>&nbsp;: un club de basket compte 400 licenciés et en gagne ${X} chaque année. <b>B</b>&nbsp;: une ville compte 20&nbsp;000 habitants et sa population augmente de ${t}&nbsp;% par an.`,
+    setup(){st.tracks=[{name:'A'}];st.unit='licenciés';frm([0,400+3*X]);V.station(0,400,sv(0),{instant:true});V.cap(0,400)},cap0:`<span class="m">A&nbsp;: + ${X} par an · B&nbsp;: + ${t}&nbsp;% par an</span>`,
+    parts:[ch(`Situation A&nbsp;: le nombre de licenciés est modélisé par une suite&nbsp;:`,[OK(`arithmétique de raison ${X}`),NO(`géométrique de raison ${X}`,`Multiplier par ${X} chaque année serait énorme&nbsp;! On <b>ajoute</b> ${X}&nbsp;: c'est un pas constant.`),NO(`géométrique de raison ${fq(add(1,Q(X,100)))}`,`On ne gagne pas ${X}&nbsp;% mais ${X} licenciés&nbsp;: même nombre ajouté chaque année.`)],
+        {sol:`On ajoute ${X} chaque année&nbsp;: suite arithmétique de raison ${X}.`,onOk:async()=>{await walkA(0,400,X,0,3,{ms:420})}}),
+      ch(`Situation B&nbsp;: la population est modélisée par une suite&nbsp;:`,[OK(`géométrique de raison ${fq(q)}`),NO(`arithmétique de raison ${t}`,`+ ${t}&nbsp;% n'est pas + ${t} habitants&nbsp;: c'est une multiplication par ${fq(q)}.`),NO(`géométrique de raison ${fq(Q(t,100))}`,`Multiplier par ${fq(Q(t,100))} ferait presque disparaître la ville&nbsp;! On garde 100&nbsp;% et on ajoute ${t}&nbsp;%&nbsp;: × ${fq(q)}.`),NO(`arithmétique de raison ${fq(q)}`,`Ajouter ${fq(q)} habitant par an n'a pas de sens ici&nbsp;: on <b>multiplie</b> par ${fq(q)}.`)],
+        {sol:`Taux constant de ${t}&nbsp;%&nbsp;: suite géométrique de raison ${fq(q)}.`,onOk:async()=>{await sleep(300);clear();st.tracks=[{name:'B',col:'#7fe0d0'}];st.hub=true;st.unit='habitants';st.fr={x0:-1500,x1:val(ge(20000,q,3))*1.05};
+          V.station(0,20000,sv(0),{instant:true});V.cap(0,20000);await walkG(0,20000,q,0,3,{ms:560});cap(`<span class="m">A&nbsp;:</span><span class="p">+ ${X}</span><span class="m">· B&nbsp;:</span><span class="k">× ${fq(q)}</span>`)}})],
+    done:`A&nbsp;: + ${X} chaque année → arithmétique de raison ${X} (croissance linéaire). B&nbsp;: + ${t}&nbsp;% chaque année → géométrique de raison ${fq(q)} (croissance exponentielle).`}});
+/* Q2 : la course linéaire contre exponentielle */
+function race(){for(let g=0;g<400;g++){const a0=pick([100,150,200]),r=pick([20,30,50]),b0=pick([5,10,20]),q=pick([2,1.5]);const Qq=Q(q);if(b0>=a0)continue;
+  let n=1;while(n<40&&N.cmp(ge(b0,Qq,n),Q(a0+r*n))<=0)n++;let tie=false;for(let k=0;k<=n;k++)if(eq(ge(b0,Qq,k),a0+r*k))tie=true;if(!tie&&n>=4&&n<=9)return{a0,r,b0,q:Qq,n}}return{a0:100,r:30,b0:5,q:Q(2),n:6}}
+L7.qs.push(()=>{const R=race(),{a0,r,b0,q,n}=R;const A=k=>Q(a0+r*k),B=k=>ge(b0,q,k);
+  const rows=[[`semaine ${v('n')}`,0,1,2,3],[`${un} (A)`,...[0,1,2,3].map(k=>N.dstr(A(k)))],[`${U('n','v')} (B)`,...[0,1,2,3].map(k=>N.dstr(B(k)))]];
+  return{au:{k:'L7-race',a0,r,b0,q:N.fqt(q),n},prompt:`Deux chaînes de vidéos démarrent. La chaîne A a ${a0} abonnés et en gagne ${r} par semaine&nbsp;: ${un} = ${a0} + ${r}${v('n')}. La chaîne B n'en a que ${b0}, mais leur nombre est multiplié par ${fq(q)} chaque semaine&nbsp;: ${U('n','v')} = ${b0} × ${P(fq(q),'n')}.${tb(rows)}`,
+    setup(){st.tracks=[{name:'A'},{name:'B',col:'#7fe0d0'}];st.hub=true;frm([0,a0+r*2]);V.cap(0,a0);V.cap(1,b0,{col:'#7fe0d0'})},cap0:`<span class="p">A&nbsp;: + ${r}</span><span class="m">contre</span><span class="k">B&nbsp;: × ${fq(q)}</span>`,
+    parts:[fill(`À partir de quelle semaine la chaîne B a-t-elle plus d'abonnés que A&nbsp;? (calculatrice)`,`${v('n')} = {0}`,[BR(n,2.4)],x=>{const y=x[0];if(!y||!N.isInt(y)||val(y)<0)return `Calcule ${un} et ${U('n','v')} pour ${v('n')} = 4, 5, 6… et compare.`;const k=val(y);
+        return k<n?`Pour ${v('n')} = ${k}&nbsp;: A a ${N.dstr(A(k))} abonnés et B ${N.dstr(B(k))}${N.cmp(B(k),A(k))<=0?'&nbsp;: B n\'est pas encore devant.':'.'}`:`Pour ${v('n')} = ${k}, B est bien devant, mais regarde la semaine ${k-1}&nbsp;: A ${N.dstr(A(k-1))}, B ${N.dstr(B(k-1))}.`},
+        {sol:`Semaine ${n-1}&nbsp;: A ${N.dstr(A(n-1))}, B ${N.dstr(B(n-1))}. Semaine ${n}&nbsp;: A ${N.dstr(A(n))}, B ${N.dstr(B(n))}. B passe devant à la semaine ${n}.`}),
+      act(`Lancer la course`,async()=>{for(let k=0;k<n+2;k++){const nx=Math.max(val(A(k+1)),val(B(k+1)));if(nx>st.fr.x1-(st.fr.x1-st.fr.x0)*.04)await zf([0,nx],380,{pad:.05});
+          await Promise.all([V.hop(0,val(A(k)),val(A(k+1)),{lab:'',ms:420}),V.zoom(1,val(B(k)),val(B(k+1)),{ms:420})]);st.arcs=[];
+          const ahead=N.cmp(B(k+1),A(k+1))>0;cap(`<span class="m">semaine ${k+1}&nbsp;:</span><span class="p">A ${N.dstr(A(k+1))}</span><span class="k">B ${N.ap(B(k+1),0).ex?'':'≈ '}${N.ap(B(k+1),0).s}</span>${ahead?'<span class="g">B devant</span>':''}`);if(k+1===n)V.note(`Semaine ${n} : B passe devant`,1600);await sleep(260)}},{ask:'Vérifions sur le rail.'}),
+      ch(`À long terme&nbsp;:`,[OK(`B reste devant pour toujours&nbsp;: une croissance exponentielle finit par dépasser toute croissance linéaire`),NO(`A finit par repasser devant, car elle gagne des abonnés plus régulièrement`,`L'écart ne fait que se creuser&nbsp;: B gagne ${fq(sub(q,1))} fois son nombre d'abonnés chaque semaine, alors que A gagne toujours ${r}.`),NO(`Les deux chaînes finissent à égalité`,`Le zoom × ${fq(q)} éloigne B de plus en plus vite&nbsp;: l'écart grandit sans cesse.`)],
+        {sol:`Une suite géométrique de raison ${fq(q)} &gt; 1 (premier terme positif) finit toujours par dépasser une suite arithmétique.`})],
+    done:`B part de ${b0} contre ${a0}, mais passe devant dès la semaine ${n}&nbsp;: la croissance exponentielle l'emporte toujours sur la croissance linéaire.`}});
+/* Q3 : l'algorithme de seuil */
+const KW=/\b(def|while|return)\b/g;
+function pyLine(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\b\d+(\.\d+)?\b/g,'\u0001$&\u0002').replace(KW,'\u0003$&\u0004').replace(/\u0001/g,'<span class="nb">').replace(/\u0003/g,'<span class="kw">').replace(/[\u0002\u0004]/g,'</span>')}
+const pyHtml=(lines,on)=>`<div class="code" translate="no">${lines.map((l,i)=>`<span class="ln${on===i?' on':''}" data-l="${i}">${pyLine(l)||' '}</span>`).join('')}</div>`;
+function seuilP(){for(;;){const u0=pick([1000,2000,5000]),q=pick([1.1,1.2,1.05]),m=pick([1.5,2,3]);const Qq=Q(q),Sx=mul(u0,m);let n=0,u=Q(u0),tie=false;while(N.cmp(u,Sx)<0){u=mul(u,Qq);n++;if(eq(u,Sx))tie=true}
+  /* calcul en flottants, comme Python */let fu=u0,fn=0;while(fu<val(Sx)){fu=fu*q;fn++}if(!tie&&fn===n&&n<=25)return{u0,q:Qq,qf:q,Sx,n}}}
+window.MO_PY={pyLine,pyHtml,seuilP};
+L7.qs.push(()=>{const P0=seuilP(),{u0,q,qf,Sx,n}=P0;const S0=N.dstr(Sx).replace(/ /g,'');const lines=['def seuil():',`    u = ${u0}`,'    n = 0',`    while u < ${S0}:`,`        u = u * ${String(qf)}`,'        n = n + 1','    return n'];
+  return{au:{k:'L7-py',u0,q:N.fqt(q),S:N.fqt(Sx),n,code:lines.join('\n')},prompt:`Un placement de ${N.dstr(Q(u0))}&nbsp;€ rapporte ${N.dstr(mul(sub(q,1),100))}&nbsp;% d'intérêts composés par an. On cherche au bout de combien d'années le capital atteint ${N.dstr(Sx)}&nbsp;€.${pyHtml(lines)}`,
+    setup(){st.unit='€';st.hub=true;frm([0,u0,val(Sx)*1.1]);st.gate={t:0,x:val(Sx),lab:N.dstr(Sx)};V.station(0,u0,sv(0),{instant:true});V.cap(0,u0)},cap0:`<span class="k">${un} = ${N.dstr(Q(u0))} × ${P(fq(q),'n')}</span><span class="m">· seuil ${N.dstr(Sx)}</span>`,
+    parts:[fill(`Que renvoie <code>seuil()</code>&nbsp;? (calculatrice)`,`<code>seuil()</code> renvoie {0}`,[BR(n,2.4)],x=>{const y=x[0];if(!y||!N.isInt(y))return `Calcule ${N.dstr(Q(u0))} × ${P(fq(q),'n')} pour ${v('n')} = 1, 2, 3… jusqu'à atteindre ${N.dstr(Sx)}.`;const k=val(y);
+        return k<n?`Pour ${v('n')} = ${k}, u${N.eqs(ge(u0,q,k),2)} &lt; ${N.dstr(Sx)}&nbsp;: la boucle continue.`:`Pour ${v('n')} = ${n}, u${N.eqs(ge(u0,q,n),2)} ≥ ${N.dstr(Sx)}&nbsp;: la boucle s'arrête dès ce rang, pas après.`},
+        {sol:`u${N.eqs(ge(u0,q,n-1),2)} &lt; ${N.dstr(Sx)} au rang ${n-1}, puis u${N.eqs(ge(u0,q,n),2)} ≥ ${N.dstr(Sx)} au rang ${n}&nbsp;: la fonction renvoie ${n}.`}),
+      act(`Exécuter le programme sur le rail`,async box=>{const con=document.createElement('div');con.className='console';box.insertBefore(con,box.querySelector('.btns'));let u=Q(u0);
+        for(let k=0;k<n;k++){const u2=mul(u,q);if(val(u2)>st.fr.x1)await zf([0,val(u2)*1.08],300);await V.zoom(0,val(u),val(u2),{lab:times(q),ms:n>12?220:420});u=u2;con.textContent=`n = ${k+1}   u ${N.ap(u,2).ex?'=':'≈'} ${N.ap(u,2).s}`}
+        con.textContent+=`\n>>> seuil()\n${n}`;V.note(`La boucle s'arrête : n = ${n}`,2200)},{ask:'Chaque tour de boucle, c\'est un zoom × '+N.fqt(q)+' de la rame.'}),
+      ch(`Que représente le nombre renvoyé&nbsp;?`,[OK(`le plus petit entier ${v('n')} tel que ${un} ≥ ${N.dstr(Sx)}`),NO(`le plus grand entier ${v('n')} tel que ${un} &lt; ${N.dstr(Sx)}`,`Celui-là vaut ${n-1}&nbsp;: la boucle fait encore un tour et renvoie ${n}.`),NO(`le capital au moment où il dépasse ${N.dstr(Sx)}&nbsp;€`,`La fonction renvoie <code>n</code>, le nombre d'années, pas <code>u</code>.`)],{sol:`C'est le premier rang à partir duquel le capital atteint ${N.dstr(Sx)}&nbsp;€.`})],
+    done:`La boucle tourne tant que u &lt; ${N.dstr(Sx)}&nbsp;: elle s'arrête au premier rang où le seuil est atteint, ici ${v('n')} = ${n} (${n} ans).`}});
+/* Q4 : décroissance et seuil */
+function decayP(){for(;;){const q0=pick([100,200,500]),t=pick([10,20,30,50]),p=pick([0.2,0.1,0.25,0.3]);const q=sub(1,Q(t,100)),Sx=mul(q0,p);let n=0,u=Q(q0),tie=false;while(N.cmp(u,Sx)>=0){if(eq(u,Sx))tie=true;u=mul(u,q);n++}
+  if(!tie&&n>=2&&n<=22)return{q0,t,q,Sx,n}}}
+window.MO_DEC=decayP;
+L7.qs.push(()=>{const {q0,t,q,Sx,n}=decayP();const u=k=>ge(q0,q,k);
+  return{au:{k:'L7-decay',q0,t,S:N.fqt(Sx),n},prompt:`Un patient reçoit ${q0} mg d'un médicament. Chaque heure, la quantité présente dans le sang diminue de ${t}&nbsp;%. On note ${un} la quantité (en mg) au bout de ${v('n')} heures&nbsp;: ${U(0)} = ${q0}.`,
+    setup(){st.unit='mg';st.hub=true;frm([0,q0]);st.gate={t:0,x:val(Sx),lab:N.dstr(Sx)};V.station(0,q0,sv(0),{instant:true});V.cap(0,q0,{dir:-1})},cap0:`<span class="k">${U(0)} = ${q0}</span><span class="m">· − ${t}&nbsp;% par heure · seuil ${N.dstr(Sx)} mg</span>`,
+    parts:[fill(`Raison de la suite géométrique (${un})&nbsp;:`,`${v('q')} = {0}`,[BR(q,3)],x=>x[0]&&eq(x[0],Q(t,100))?`Il ne reste pas ${t}&nbsp;% mais ${100-t}&nbsp;%&nbsp;: 1 − ${fq(Q(t,100))}.`:`Diminuer de ${t}&nbsp;%, c'est multiplier par 1 − ${fq(Q(t,100))}.`,{sol:`${v('q')} = 1 − ${fq(Q(t,100))} = ${fq(q)}.`,onOk:async()=>{await walkG(0,q0,q,0,1)}}),
+      fill(`Au bout de combien d'heures reste-t-il pour la première fois moins de ${N.dstr(Sx)} mg&nbsp;? (calculatrice)`,`{0} heures`,[BR(n,2.4)],x=>{const y=x[0];if(!y||!N.isInt(y))return `Calcule ${q0} × ${P(fq(q),'n')} pour ${v('n')} = 1, 2, 3…`;const k=val(y);
+        return k<n?`Au bout de ${k} h, il reste ${N.ap(u(k),2).ex?'':'environ '}${N.ap(u(k),2).s} mg, ce n'est pas moins de ${N.dstr(Sx)} mg.`:`Au bout de ${k} h, c'est bien moins de ${N.dstr(Sx)} mg, mais c'était déjà le cas une heure plus tôt&nbsp;: ${N.ap(u(k-1),2).s} mg.`},
+        {sol:`${U(n-1)}${N.eqs(u(n-1),2)} ≥ ${N.dstr(Sx)} et ${U(n)}${N.eqs(u(n),2)} &lt; ${N.dstr(Sx)}&nbsp;: ${n} heures.`,onOk:async()=>{for(let k=1;k<n;k++)await V.zoom(0,val(u(k)),val(u(k+1)),{ms:n>8?220:380});V.note(`Sous le seuil au rang ${n}`,2000);cap(`<span class="k">${U(n)}${N.eqs(u(n),2)} mg</span><span class="m">&lt; ${N.dstr(Sx)}</span>`)}})],
+    done:`${un} = ${q0} × ${P(fq(q),'n')} est décroissante et se rapproche de 0&nbsp;: elle passe sous ${N.dstr(Sx)} mg au bout de ${n} heures.`}});
+LV.push(L7);
+})();
+</script>
+<script>
+/* ======================= LE MONORAIL — Épreuves finales (Bronze, Argent, Or) ======================= */
+window.MO_FIN=(function(){
+'use strict';
+const N=window.MN;const {ri,pick,shuf,Q,add,sub,mul,div,pow,neg,eq,sgn,val,abs,fq,fqt,U,v,nw,P,par,aff,ans,ap}=N;
+const T=window.MO_T,PY=window.MO_PY;const {ar,ge,VAR}=T;
+const un=U('n'),un1=U('n+1'),fr2=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const txt=h=>String(h).replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();
+function qcm(level,prompt,good,bads,explain,au){const seen=new Set([txt(good)]),c=[good];for(const b of bads){const t=txt(b);if(!seen.has(t)){seen.add(t);c.push(b)}if(c.length===4)break}
+  if(c.length<3)throw new Error('leurres insuffisants '+au.k);return{type:'qcm',level,prompt,choices:c,answer:0,explain,au}}
+const tr=(level,prompt,blanks,explain,au)=>({type:'trous',level,prompt,blanks,explain,au});
+const bk=(x,size)=>({answers:ans(x),size:size||4});
+const bw=(w,size)=>({answers:w,size:size||8});
+/* trou arrondi : valeur arrondie à d décimales, écrite avec exactement d décimales */
+const bkr=(x,d,size)=>{const r=N.round(x,d),s=N.dstr(r,d);return{answers:[...new Set([s.replace(/ /g,''),s,N.dstr(r).replace(/ /g,'')])],size:size||5}};
+const noTie=(x,d)=>{const y=mul(x,pow(10,d+1));return !(N.isInt(y)&&Math.abs(Number(N.round(y,0).n%10n))===5)};
+const def=`pour tout entier naturel ${v('n')}`;
+const W=['décroissante','decroissante'],Cr=['croissante'];
+const varOf=(u0,q)=>{u0=Q(u0);q=Q(q);if(eq(q,1))return VAR[2];if(sgn(q)<0)return VAR[3];const up=N.cmp(q,1)>0;return (sgn(u0)>0)===up?VAR[0]:VAR[1]};
+/* ================= niveau 1 : définition d'une suite arithmétique ================= */
+const L1={
+  b:{qcm(){const a=ri(3,12),r=pick([2,3,4,5,6,-2,-3,-4,-5]);
+      return qcm(1,`(${un}) est une suite arithmétique de premier terme ${U(0)} = ${a} et de raison ${r}. Que vaut ${U(1)}&nbsp;?`,fq(a+r),[fq(a*r),fq(a-r),fq(a+2*r)],
+        `${U(1)} = ${U(0)} + ${v('r')} = ${a} + ${par(r)} = ${a+r}&nbsp;: on ajoute la raison.`,{k:'F1-next',u0:a,r,steps:1})},
+    trous(){const A=ri(-5,30),r=pick([2,3,4,5,-2,-3,-4,-6]);
+      return tr(1,`(${un}) est une suite arithmétique de raison ${r} et ${U(5)} = ${A}. Alors ${U(6)} = {0}.`,[bk(A+r,3)],`${U(6)} = ${U(5)} + ${v('r')} = ${A} + ${par(r)} = ${A+r}.`,{k:'F1-step',A,r,steps:1})}},
+  a:{qcm(){const a=pick([2,3,4,5,-2,-3,-4,-5]);let c;do{c=ri(-6,9)}while(c===a||c===0);
+      return qcm(1,`La suite (${un}) est définie ${def} par ${nw(`${un} = ${aff(c,a)}`)}. Alors (${un}) est&nbsp;:`,`arithmétique de raison ${fq(a)}`,[`arithmétique de raison ${fq(c)}`,`géométrique de raison ${fq(a)}`,`ni arithmétique ni géométrique`],
+        `${un1} − ${un} = ${a}(${v('n')} + 1) ${c<0?'−':'+'} ${Math.abs(c)} − (${aff(c,a)}) = ${a}&nbsp;: la différence est constante, la suite est arithmétique de raison ${a}.`,{k:'F1-kind',c,a,steps:2})},
+    trous(){const a=pick([3,4,5,-2,-3,-4,-7]);let c;do{c=ri(-6,12)}while(c===0||c===a);
+      return tr(1,`La suite (${un}) est définie ${def} par ${nw(`${un} = ${aff(c,a)}`)}. Alors ${un1} − ${un} = {0}, donc (${un}) est arithmétique de raison {1}.`,[bk(a,3),bk(a,3)],
+        `${un1} − ${un} = ${a}(${v('n')} + 1) ${c<0?'−':'+'} ${Math.abs(c)} − (${aff(c,a)}) = ${a}, constante&nbsp;: c'est la raison.`,{k:'F1-diff',c,a,steps:2})}},
+  o:{qcm(){const a=pick([3,4,5]);
+      return qcm(1,`La suite (${U('n','v')}) est définie ${def} par ${nw(`${U('n','v')} = (${v('n')} + ${a})² − ${v('n')}²`)}. Alors (${U('n','v')}) est&nbsp;:`,`arithmétique de raison ${2*a}`,[`arithmétique de raison ${a*a}`,`arithmétique de raison ${a}`,`ni arithmétique ni géométrique`],
+        `En développant, ${U('n','v')} = ${v('n')}² + ${2*a}${v('n')} + ${a*a} − ${v('n')}² = ${2*a}${v('n')} + ${a*a}. Donc ${U('n+1','v')} − ${U('n','v')} = ${2*a}&nbsp;: arithmétique de raison ${2*a} (et de premier terme ${a*a}).`,{k:'F1-sq',a,steps:3})},
+    trous(){let p,r,u0,A,B;do{p=ri(3,7);r=pick([-5,-4,-3,3,4,6,7]);u0=ri(-10,25);A=u0+p*r;B=A+r}while(A===0||u0===0);
+      return tr(1,`(${un}) est une suite arithmétique telle que ${U(p)} = ${A} et ${U(p+1)} = ${B}. Sa raison est ${v('r')} = {0} et son premier terme est ${U(0)} = {1}.`,[bk(r,3),bk(u0,3)],
+        `${v('r')} = ${U(p+1)} − ${U(p)} = ${B} − ${par(A)} = ${r}, puis on recule de ${p} pas&nbsp;: ${U(0)} = ${A} − ${p} × ${par(r)} = ${u0}.`,{k:'F1-back',p,A,B,steps:3})}}};
+/* ================= niveau 2 : terme général d'une suite arithmétique ================= */
+const L2={
+  b:{qcm(){const a=pick([2,4,5,7,10]);let r;do{r=pick([-3,-2,2,3,4,6])}while(r===a);
+      return qcm(2,`(${un}) est la suite arithmétique de premier terme ${U(0)} = ${a} et de raison ${r}. Pour tout ${v('n')}, ${un} =`,aff(a,r),[aff(r,a),`${a} × ${P(par(r),'n')}`,aff(a+r,r)],
+        `${un} = ${U(0)} + ${v('n')}${v('r')} = ${aff(a,r)}.`,{k:'F2-expl',u0:a,r,steps:1})},
+    trous(){const a=ri(-5,15),r=pick([2,3,4,5,-2,-3]),k=pick([10,20]);
+      return tr(2,`(${un}) est la suite arithmétique de premier terme ${U(0)} = ${a} et de raison ${r}. Alors ${U(k)} = {0}.`,[bk(a+k*r,4)],`${U(k)} = ${U(0)} + ${k}${v('r')} = ${a} + ${k} × ${par(r)} = ${a+k*r}.`,{k:'F2-uk',u0:a,r,kk:k,steps:1})}},
+  a:{qcm(){const p=ri(3,8),n=p+ri(5,12),A=ri(-10,30),r=pick([2,3,4,-2,-3,-5]);
+      return qcm(2,`(${un}) est arithmétique de raison ${r} et ${U(p)} = ${A}. Que vaut ${U(n)}&nbsp;?`,fq(A+(n-p)*r),[fq(A+n*r),fq(A+(n-p+1)*r),fq((n-p)*r),fq(A+(n-p-1)*r)],
+        `${U(n)} = ${U(p)} + (${n} − ${p})${v('r')} = ${A} + ${n-p} × ${par(r)} = ${A+(n-p)*r}.`,{k:'F2-up',p,n,A,r,steps:2})},
+    trous(){const p=ri(2,6),gap=pick([4,5,6,8,10]),n=p+gap,r=pick([-3,-2,2,3,4]),u0=ri(-8,20);const A=u0+p*r,B=u0+n*r;
+      return tr(2,`(${un}) est arithmétique avec ${U(p)} = ${A} et ${U(n)} = ${B}. Sa raison est {0} et ${U(0)} = {1}.`,[bk(r,3),bk(u0,3)],
+        `${gap}${v('r')} = ${U(n)} − ${U(p)} = ${B-A}, donc ${v('r')} = ${r}&nbsp;; puis ${U(0)} = ${U(p)} − ${p}${v('r')} = ${u0}.`,{k:'F2-two',p,n,A,B,steps:2})}},
+  o:{qcm(){const d0=pick([10,15,20,25]),r=pick([3,4,6,7]);let T;do{T=d0+ri(30,90)}while((T-d0)%r===0);const n=Math.floor((T-d0)/r)+1;
+      return qcm(2,`En 2024, un forfait mobile offre ${d0} Go. Chaque année, l'opérateur ajoute ${r} Go. En quelle année le forfait dépassera-t-il ${T} Go pour la première fois&nbsp;?`,String(2024+n),[String(2023+n),String(2025+n),String(2024+Math.ceil(T/r))],
+        `Le volume en 2024 + ${v('n')} est ${d0} + ${r}${v('n')}. ${d0} + ${r}${v('n')} &gt; ${T} ⇔ ${v('n')} &gt; ${fq(Q(T-d0,r))}, donc ${v('n')} = ${n}&nbsp;: l'année ${2024+n}.`,{k:'F2-year',d0,r,T,steps:3})},
+    trous(){let p,gap,n,m,r,u0,A,B;do{p=ri(2,5);gap=pick([3,4,5,6]);n=p+gap;m=n+ri(5,15);r=pick([-4,-3,-2,2,3,5]);u0=ri(-10,20);A=u0+p*r;B=u0+n*r}while(A===0||B===0);
+      return tr(2,`(${un}) est arithmétique avec ${U(p)} = ${A} et ${U(n)} = ${B}. Alors ${U(m)} = {0}.`,[bk(u0+m*r,4)],
+        `${v('r')} = (${B} − ${par(A)}) ÷ ${gap} = ${r}, puis ${U(m)} = ${U(n)} + (${m} − ${n})${v('r')} = ${B} + ${m-n} × ${par(r)} = ${u0+m*r}.`,{k:'F2-um',p,n,m,A,B,steps:3})}}};
+/* ================= niveau 3 : suites géométriques ================= */
+const L3={
+  b:{qcm(){const t=pick([3,4,5,8,12,15,25]);if(Math.random()<.5)
+        return qcm(3,`Augmenter une quantité de ${t}&nbsp;%, c'est la multiplier par&nbsp;:`,fq(add(1,Q(t,100))),[fq(Q(t,100)),fq(1+t),fq(sub(1,Q(t,100)))],`Augmenter de ${t}&nbsp;%, c'est multiplier par 1 + ${fq(Q(t,100))} = ${fq(add(1,Q(t,100)))}.`,{k:'F3-coef',t,s:1,steps:1});
+      return qcm(3,`Diminuer une quantité de ${t}&nbsp;%, c'est la multiplier par&nbsp;:`,fq(sub(1,Q(t,100))),[fq(Q(t,100)),fq(add(1,Q(t,100))),fq(Q(-t,100))],`Diminuer de ${t}&nbsp;%, c'est multiplier par 1 − ${fq(Q(t,100))} = ${fq(sub(1,Q(t,100)))}.`,{k:'F3-coef',t,s:-1,steps:1})},
+    trous(){const a=pick([2,3,5,10]),q=pick([2,3,4,-2]);
+      return tr(3,`(${un}) est la suite géométrique de premier terme ${U(0)} = ${a} et de raison ${q}. Alors ${U(1)} = {0} et ${U(2)} = {1}.`,[bk(a*q,3),bk(a*q*q,3)],`On multiplie par ${q} à chaque rang&nbsp;: ${U(1)} = ${a} × ${par(q)} = ${a*q} et ${U(2)} = ${a*q} × ${par(q)} = ${a*q*q}.`,{k:'F3-terms',u0:a,q,steps:1})}},
+  a:{qcm(){const V0=pick([800,1200,1500,2000]),t=pick([5,10,15,20]);const q=sub(1,Q(t,100)),d=Q(t,100);
+      return qcm(3,`La valeur d'un téléphone neuf est ${N.dstr(Q(V0))}&nbsp;€. Elle baisse de ${t}&nbsp;% par an. Sa valeur au bout de ${v('n')} années est&nbsp;:`,`${N.dstr(Q(V0))} × ${P(fq(q),'n')}`,[`${N.dstr(Q(V0))} × ${P(fq(d),'n')}`,`${N.dstr(Q(V0))} − ${t}${v('n')}`,`${N.dstr(Q(V0))} × ${P(fq(add(1,d)),'n')}`],
+        `Chaque année on multiplie par 1 − ${fq(d)} = ${fq(q)}&nbsp;: suite géométrique de raison ${fq(q)}, de terme général ${N.dstr(Q(V0))} × ${P(fq(q),'n')}.`,{k:'F3-model',V0,t,steps:2})},
+    trous(){let C0,t,n,x;do{C0=pick([500,1000,1500,2000]);t=pick([2,3,4,5]);n=pick([8,10,12]);x=ge(C0,add(1,Q(t,100)),n)}while(!noTie(x,2));
+      return tr(3,`On place ${N.dstr(Q(C0))}&nbsp;€ à ${t}&nbsp;% par an, à intérêts composés. Le capital au bout de ${v('n')} années est ${U('n','C')} = ${N.dstr(Q(C0))} × {0}<sup>${v('n')}</sup>, et ${U(n,'C')} ≈ {1}&nbsp;€ (au centime près).`,[bk(add(1,Q(t,100)),3),bkr(x,2,5.2)],
+        `Chaque année, × ${fq(add(1,Q(t,100)))}&nbsp;: ${U(n,'C')} = ${N.dstr(Q(C0))} × ${P(fq(add(1,Q(t,100))),n)} ≈ ${N.dstr(N.round(x,2),2)}&nbsp;€.`,{k:'F3-cap',C0,t,n,steps:2})}},
+  o:{qcm(){const q=pick([2,3,-2,-3]),p=ri(1,3),u0=pick([1,2,3,5]);const A=ge(u0,q,p),B=ge(u0,q,p+3);
+      return qcm(3,`(${un}) est une suite géométrique telle que ${U(p)} = ${fq(A)} et ${U(p+3)} = ${fq(B)}. Sa raison est&nbsp;:`,fq(q),[fq(div(B,A)),fq(div(sub(B,A),3)),fq(div(div(B,A),3)),fq(neg(q))],
+        `${U(p+3)} = ${U(p)} × ${P(v('q'),3)}, donc ${P(v('q'),3)} = ${fq(B)} ÷ ${par(A)} = ${fq(div(B,A))}, et ${v('q')} = ${q} car ${P(par(q),3)} = ${fq(div(B,A))}.`,{k:'F3-two',q,p,u0,steps:3})},
+    trous(){const q=pick([2,3,-2,0.5]),Qq=Q(q),p=ri(1,3);const u0=q===0.5?pick([64,128]):pick([1,2,3,5,-2]);const A=ge(u0,Qq,p),B=ge(u0,Qq,p+3);
+      return tr(3,`(${un}) est une suite géométrique telle que ${U(p)} = ${fq(A)} et ${U(p+3)} = ${fq(B)}. Sa raison est {0} et son premier terme est ${U(0)} = {1}.`,[bk(Qq,3),bk(u0,3)],
+        `${P(v('q'),3)} = ${fq(B)} ÷ ${par(A)} = ${fq(div(B,A))}, donc ${v('q')} = ${fq(Qq)}&nbsp;; puis ${U(0)} = ${U(p)} ÷ ${P(v('q'),p)} = ${fq(u0)}.`,{k:'F3-two2',q:fqt(Qq),p,u0,steps:3})}}};
+/* ================= niveau 4 : sens de variation, intuition de la limite ================= */
+const L4={
+  b:{qcm(){const r=pick([-5,-3,-2,-0.5,2,3,4,1.5]);const g=r>0?VAR[0]:VAR[1];
+      return qcm(4,`Une suite arithmétique de raison ${fq(r)} est&nbsp;:`,g,VAR.filter(w=>w!==g),`${un1} − ${un} = ${fq(r)} ${r>0?'&gt;':'&lt;'} 0&nbsp;: la suite est ${g}.`,{k:'F4-ar',r:fqt(Q(r)),steps:1})},
+    trous(){const a=pick([2,5,10,100]),q=pick([3,1.5,0.5,0.2,2,0.9]);const up=q>1;
+      return tr(4,`(${un}) est la suite géométrique de premier terme ${U(0)} = ${a} et de raison ${fq(q)}. Elle est strictement {0}.`,[bw(up?Cr:W,9)],`${U(0)} &gt; 0 et ${up?`${v('q')} = ${fq(q)} &gt; 1`:`0 &lt; ${v('q')} = ${fq(q)} &lt; 1`}&nbsp;: la suite est strictement ${up?'croissante':'décroissante'}.`,{k:'F4-geo',u0:a,q:fqt(Q(q)),steps:1})}},
+  a:{qcm(){const a=pick([-2,-3,-5,-10]),q=pick([2,3,1.5,0.5,0.8]);const g=varOf(a,q);
+      return qcm(4,`La suite (${un}) est définie ${def} par ${nw(`${un} = ${a} × ${P(fq(q),'n')}`)}. Elle est&nbsp;:`,g,VAR.filter(w=>w!==g),
+        `${U(0)} = ${a} &lt; 0, donc les sens s'inversent&nbsp;: ${un1} − ${un} = ${un}(${fq(q)} − 1) est ${g===VAR[1]?'négatif':'positif'}. La suite est ${g}.`,{k:'F4-neg',u0:a,q:fqt(Q(q)),steps:2})},
+    trous(){const a=pick([3,5,8,20,100]),q=pick([0.5,0.8,0.9,0.25]);
+      return tr(4,`La suite (${un}) est définie ${def} par ${nw(`${un} = ${a} × ${P(fq(q),'n')}`)}. Elle est strictement {0} et, quand ${v('n')} devient très grand, ${un} se rapproche de {1}.`,[bw(W,9),bk(0,2.5)],
+        `${U(0)} &gt; 0 et 0 &lt; ${fq(q)} &lt; 1&nbsp;: la suite est strictement décroissante, et chaque terme est une fraction ${fq(q)} du précédent&nbsp;: les termes se rapprochent de 0.`,{k:'F4-lim0',u0:a,q:fqt(Q(q)),steps:2})}},
+  o:{qcm(){const a=pick([2,3,5]),q=pick([1.05,0.95,-0.5,-2,-1]);const Qq=Q(q);
+      const S0='se rapproche de 0',SB='devient aussi grand qu\'on veut',SA='prend des valeurs alternativement positives et négatives, de plus en plus éloignées de 0',SC='prend alternativement deux valeurs opposées',SN=`se rapproche de ${a}`;
+      const good=q===1.05?SB:q===0.95?S0:q===-0.5?S0:q===-2?SA:SC;
+      return qcm(4,`La suite (${un}) est définie ${def} par ${nw(`${un} = ${a} × ${P(par(Qq),'n')}`)}. Quand ${v('n')} devient très grand, ${un}&nbsp;:`,good,[S0,SB,SA,SC,SN].filter(x=>x!==good),
+        q===1.05?`La raison ${fq(Qq)} &gt; 1 (même proche de 1) et ${U(0)} &gt; 0&nbsp;: les termes finissent par dépasser n'importe quel nombre.`:q===0.95?`0 &lt; ${fq(Qq)} &lt; 1&nbsp;: chaque terme vaut 95&nbsp;% du précédent, les termes se rapprochent de 0.`:
+        q===-0.5?`La distance à 0 est divisée par 2 à chaque rang (en changeant de signe)&nbsp;: les termes se rapprochent de 0.`:q===-2?`La distance à 0 double à chaque rang et le signe alterne&nbsp;: pas de limite.`:`${un} vaut ${a} si ${v('n')} est pair et −${a} si ${v('n')} est impair&nbsp;: pas de limite.`,{k:'F4-lim',u0:a,q:fqt(Qq),steps:3})},
+    trous(){const a=pick([3,5,-4,-2,10]),q=pick([1.2,0.8,1.5,0.5]);const Qq=Q(q),c=mul(a,sub(Qq,1));const up=sgn(c)>0;
+      return tr(4,`La suite (${un}) est définie ${def} par ${nw(`${un} = ${a} × ${P(fq(Qq),'n')}`)}. Alors ${un1} − ${un} = {0} × ${P(fq(Qq),'n')}, donc la suite est strictement {1}.`,[bk(c,3),bw(up?Cr:W,9)],
+        `${un1} − ${un} = ${a} × ${P(fq(Qq),'n')} × (${fq(Qq)} − 1) = ${N.cx(c)}${P(fq(Qq),'n')}&nbsp;; ${P(fq(Qq),'n')} &gt; 0, donc le signe est celui de ${fq(c)}&nbsp;: strictement ${up?'croissante':'décroissante'}.`,{k:'F4-diff',u0:a,q:fqt(Qq),steps:3})}}};
+/* ================= niveau 5 : sommes de termes d'une suite arithmétique ================= */
+const L5={
+  b:{qcm(){const n=pick([10,20,30,40,50]);
+      return qcm(5,`1 + 2 + 3 + … + ${n} =`,fq(n*(n+1)/2),[fq(n*(n-1)/2),fq(n*(n+1)),fq(n*n/2)],`1 + 2 + … + ${v('n')} = ${fr2(`${v('n')}(${v('n')} + 1)`,'2')}, donc 1 + … + ${n} = ${fr2(`${n} × ${n+1}`,'2')} = ${n*(n+1)/2}.`,{k:'F5-tri',n,steps:1})},
+    trous(){const n=pick([12,15,25,100]);
+      return tr(5,`1 + 2 + 3 + … + ${n} = {0}.`,[bk(n*(n+1)/2,4)],`${fr2(`${n} × ${n+1}`,'2')} = ${N.dstr(Q(n*(n+1)/2))}.`,{k:'F5-tri2',n,steps:1})}},
+  a:{qcm(){const a=pick([2,3,4]),b=pick([1,3,5]),Nn=pick([10,15,20]);const u=k=>a*k+b;const S=(Nn+1)*(u(0)+u(Nn))/2;
+      return qcm(5,`(${un}) est définie ${def} par ${nw(`${un} = ${aff(b,a)}`)}. La somme ${U(0)} + ${U(1)} + … + ${U(Nn)} vaut&nbsp;:`,fq(S),[fq(Nn*(u(0)+u(Nn))/2),fq((Nn+1)*(u(0)+u(Nn))),fq((Nn+1)*(u(0)+u(Nn+1))/2),fq(Nn*(u(0)+u(Nn-1))/2)],
+        `Il y a ${Nn+1} termes (de ${U(0)} à ${U(Nn)}), le premier vaut ${u(0)} et le dernier ${u(Nn)}&nbsp;: ${Nn+1} × ${fr2(`${u(0)} + ${u(Nn)}`,'2')} = ${N.dstr(Q(S))}.`,{k:'F5-sum',a,b,N:Nn,steps:2})},
+    trous(){const p=ri(2,5),n=p+pick([7,9,11]),r=pick([2,3,4,-2]),u0=ri(0,15);const A=u0+p*r,B=u0+n*r,c=n-p+1;
+      return tr(5,`(${un}) est arithmétique avec ${U(p)} = ${A} et ${U(n)} = ${B}. La somme ${U(p)} + ${U(p+1)} + … + ${U(n)} compte {0} termes et vaut {1}.`,[bk(c,2.5),bk(Q(c*(A+B),2),4)],
+        `De ${U(p)} à ${U(n)}, il y a ${n} − ${p} + 1 = ${c} termes&nbsp;; la somme vaut ${c} × ${fr2(`${A} + ${par(B)}`,'2')} = ${fq(Q(c*(A+B),2))}.`,{k:'F5-range',p,n,A,B,steps:2})}},
+  o:{qcm(){const f=pick([2,3,4,5]),r=pick([3,4,5]),c=pick([15,20,25]);const L=f+(c-1)*r,S=c*(f+L)/2;
+      return qcm(5,`Combien vaut la somme ${nw(`${f} + ${f+r} + ${f+2*r} + … + ${L}`)} (on ajoute ${r} d'un terme au suivant)&nbsp;?`,fq(S),[fq((c-1)*(f+L)/2),fq((c+1)*(f+L)/2),fq(c*(f+L))],
+        `C'est une suite arithmétique de raison ${r}&nbsp;: ${L} = ${f} + ${c-1} × ${r}, donc il y a ${c-1} + 1 = ${c} termes. Somme = ${c} × ${fr2(`${f} + ${L}`,'2')} = ${N.dstr(Q(S))}.`,{k:'F5-list',f,r,L,steps:3})},
+    trous(){const d0=pick([2,3,4,5]),r=pick([1,2,3]),Nn=pick([10,12,16]),uN=d0+(Nn-1)*r;
+      return tr(5,`Pour préparer une course, Inès court ${d0} km la 1<sup>re</sup> semaine, puis ${r} km de plus chaque semaine. La ${Nn}<sup>e</sup> semaine, elle court {0} km, et en ${Nn} semaines elle parcourt {1} km au total.`,[bk(uN,3),bk(Nn*(d0+uN)/2,4)],
+        `La ${Nn}<sup>e</sup> semaine&nbsp;: ${d0} + ${Nn-1} × ${r} = ${uN} km (${Nn-1} augmentations). Total&nbsp;: ${Nn} × ${fr2(`${d0} + ${uN}`,'2')} = ${Nn*(d0+uN)/2} km.`,{k:'F5-run',d0,r,N:Nn,steps:3})}}};
+/* ================= niveau 6 : somme 1 + q + … + qⁿ ================= */
+const L6={
+  b:{qcm(){const q=v('q'),n=v('n');
+      return qcm(6,`Pour tout réel ${q} ≠ 1 et tout entier naturel ${n}, ${nw(`1 + ${q} + ${P(q,2)} + … + ${P(q,'n')}`)} =`,fr2(`1 − ${P(q,'n+1')}`,`1 − ${q}`),[fr2(`1 − ${P(q,'n')}`,`1 − ${q}`),fr2(`1 − ${P(q,'n+1')}`,`1 + ${q}`),fr2(`${P(q,'n+1')} − 1`,`1 − ${q}`)],
+        `La somme compte ${n} + 1 termes et vaut ${fr2(`1 − ${P(q,'n+1')}`,`1 − ${q}`)} (en soustrayant ${q}${v('S')} à ${v('S')}).`,{k:'F6-form',steps:1})},
+    trous(){const n=pick([5,6,7,8,10]);
+      return tr(6,`1 + 2 + 4 + … + ${P(2,n)} = {0}.`,[bk(Math.pow(2,n+1)-1,4)],`${fr2(`1 − ${P(2,n+1)}`,'1 − 2')} = ${P(2,n+1)} − 1 = ${N.dstr(Q(Math.pow(2,n+1)-1))}.`,{k:'F6-pow2',n,steps:1})}},
+  a:{qcm(){const q=pick([3,4,5]),n=pick([3,4]);const S=(Math.pow(q,n+1)-1)/(q-1);
+      return qcm(6,`${nw(`1 + ${q} + ${P(q,2)} + … + ${P(q,n)}`)} =`,fq(S),[fq((Math.pow(q,n)-1)/(q-1)),fq(Math.pow(q,n+1)),fq(div(Math.pow(q,n+1)-1,q+1)),fq(Math.pow(q,n+1)-1)],
+        `${n+1} termes&nbsp;: ${fr2(`1 − ${P(q,n+1)}`,`1 − ${q}`)} = ${fr2(String(1-Math.pow(q,n+1)),String(1-q))} = ${N.dstr(Q(S))}.`,{k:'F6-num',q,n,steps:2})},
+    trous(){const q=pick([2,3]),n=q===2?pick([5,6,7]):pick([4,5]);const S=(Math.pow(q,n+1)-1)/(q-1);
+      return tr(6,`La somme ${nw(`1 + ${q} + ${P(q,2)} + … + ${P(q,n)}`)} compte {0} termes et vaut {1}.`,[bk(n+1,2.5),bk(S,4)],
+        `Exposants de 0 à ${n}&nbsp;: ${n+1} termes. Somme = ${fr2(`1 − ${P(q,n+1)}`,`1 − ${q}`)} = ${N.dstr(Q(S))}.`,{k:'F6-count',q,n,steps:2})}},
+  o:{qcm(){const a=pick([3,5,10]),q=pick([2,3]),n=q===2?pick([5,6,7]):pick([4,5]);const s=k=>(Math.pow(q,k)-1)/(q-1);
+      return qcm(6,`Que vaut la somme ${nw(`${a} + ${a*q} + ${a*q*q} + … + ${N.dstr(Q(a*Math.pow(q,n)))}`)}, où chaque terme est ${q} fois le précédent&nbsp;?`,fq(a*s(n+1)),[fq(a*s(n)),fq(a*Math.pow(q,n+1)),fq(s(n+1)),fq(a*s(n+2))],
+        `C'est ${a} × (1 + ${q} + … + ${P(q,n)}), soit ${a} × ${fr2(`${P(q,n+1)} − 1`,`${q} − 1`)} = ${a} × ${N.dstr(Q(s(n+1)))} = ${N.dstr(Q(a*s(n+1)))}.`,{k:'F6-a',a,q,n,steps:3})},
+    trous(){let a,t,Nn,x;do{a=pick([20,50,100]);t=pick([5,10,20]);Nn=pick([6,8,10,12]);const q=add(1,Q(t,100));x=mul(a,div(sub(1,pow(q,Nn)),sub(1,q)))}while(!noTie(x,2));
+      return tr(6,`Zayd épargne ${a}&nbsp;€ le 1<sup>er</sup> mois, puis chaque mois ${t}&nbsp;% de plus que le mois précédent. Au total, sur ${Nn} mois, il épargne environ {0}&nbsp;€ (au centime près).`,[bkr(x,2,5.4)],
+        `Les montants forment une suite géométrique de premier terme ${a} et de raison ${fq(add(1,Q(t,100)))}&nbsp;; ${Nn} termes&nbsp;: ${a} × ${fr2(`1 − ${P(fq(add(1,Q(t,100))),Nn)}`,`1 − ${fq(add(1,Q(t,100)))}`)} ≈ ${N.dstr(N.round(x,2),2)}&nbsp;€.`,{k:'F6-save',a,t,N:Nn,steps:3})}}};
+/* ================= niveau 7 : modéliser, linéaire ou exponentielle, seuils ================= */
+const L7={
+  b:{qcm(){const X=pick([20,30,50,80]);
+      return qcm(7,`Un service de streaming compte ${N.dstr(Q(1000+X*10))} abonnés à Mayotte et en gagne ${X} chaque mois. Le nombre d'abonnés est modélisé par une suite&nbsp;:`,`arithmétique de raison ${X}`,[`géométrique de raison ${X}`,`géométrique de raison ${fq(add(1,Q(X,100)))}`,`arithmétique de raison ${fq(Q(X,100))}`],
+        `On ajoute le même nombre, ${X}, chaque mois&nbsp;: suite arithmétique de raison ${X} (croissance linéaire).`,{k:'F7-model',X,steps:1})},
+    trous(){const t=pick([2,3,4,6,8]);
+      return tr(7,`Une population augmente de ${t}&nbsp;% par an. Elle est modélisée par une suite {0} de raison {1}.`,[bw(['géométrique','geometrique'],9),bk(add(1,Q(t,100)),3)],`Taux constant&nbsp;: on multiplie chaque année par 1 + ${fq(Q(t,100))} = ${fq(add(1,Q(t,100)))}&nbsp;: suite géométrique.`,{k:'F7-model2',t,steps:1})}},
+  a:{qcm(){let a0,r,b0,q,n;for(;;){a0=pick([100,150,200]);r=pick([20,30,50]);b0=pick([5,10,20]);q=pick([2,1.5]);n=1;while(N.cmp(ge(b0,q,n),Q(a0+r*n))<=0)n++;let tie=false;for(let k=0;k<=n;k++)if(eq(ge(b0,q,k),a0+r*k))tie=true;if(!tie&&n>=4&&n<=9)break}
+      return qcm(7,`On pose ${un} = ${a0} + ${r}${v('n')} et ${U('n','v')} = ${b0} × ${P(fq(q),'n')}. Le plus petit entier ${v('n')} tel que ${U('n','v')} &gt; ${un} est&nbsp;:`,String(n),[String(n-1),String(n+1),String(n+2)],
+        `${U(n-1)} = ${a0+r*(n-1)} et ${U(n-1,'v')}${N.eqs(ge(b0,q,n-1),2)}&nbsp;; ${U(n)} = ${a0+r*n} et ${U(n,'v')}${N.eqs(ge(b0,q,n),2)}&nbsp;: c'est ${v('n')} = ${n}.`,{k:'F7-race',a0,r,b0,q:fqt(Q(q)),steps:2})},
+    trous(){const P0=PY.seuilP(),{u0,q,qf,Sx,n}=P0;const S0=N.dstr(Sx).replace(/ /g,'');const lines=['def seuil():',`    u = ${u0}`,'    n = 0',`    while u < ${S0}:`,`        u = u * ${String(qf)}`,'        n = n + 1','    return n'];
+      return tr(7,`On considère la fonction Python suivante.${PY.pyHtml(lines)}<code>seuil()</code> renvoie {0}.`,[bk(n,2.5)],
+        `La boucle multiplie u par ${fq(q)} tant que u &lt; ${N.dstr(Sx)}&nbsp;: au rang ${n-1}, u${N.eqs(ge(u0,q,n-1),2)}&nbsp;; au rang ${n}, u${N.eqs(ge(u0,q,n),2)}. Elle renvoie ${n}.`,{k:'F7-py',code:lines.join('\n'),n,steps:2})}},
+  o:{qcm(){const {q0,t,q,Sx,n}=window.MO_DEC();const lin=Math.ceil((q0-val(Sx))/(q0*t/100)+1e-9);
+      return qcm(7,`Un patient reçoit ${q0} mg d'un médicament, dont la quantité dans le sang diminue de ${t}&nbsp;% par heure. Au bout de combien d'heures reste-t-il, pour la première fois, moins de ${N.dstr(Sx)} mg&nbsp;?`,String(n),[String(n-1),String(n+1),String(lin),String(n+2)],
+        `${un} = ${q0} × ${P(fq(q),'n')}&nbsp;: ${U(n-1)}${N.eqs(ge(q0,q,n-1),2)} ≥ ${N.dstr(Sx)} et ${U(n)}${N.eqs(ge(q0,q,n),2)} &lt; ${N.dstr(Sx)}. La baisse est de ${t}&nbsp;% de la quantité restante, pas de ${t}&nbsp;% de la dose initiale.`,{k:'F7-decay',q0,t,S:fqt(Sx),steps:3})},
+    trous(){let a0,r,b0,q,n;for(;;){a0=pick([100,150,200]);r=pick([20,30,50]);b0=pick([5,10,20]);q=pick([2,1.5]);n=1;while(N.cmp(ge(b0,q,n),Q(a0+r*n))<=0)n++;let tie=false;for(let k=0;k<=n;k++)if(eq(ge(b0,q,k),a0+r*k))tie=true;if(!tie&&n>=4&&n<=9&&noTie(ge(b0,q,n),0))break}
+      return tr(7,`La chaîne A a ${un} = ${a0} + ${r}${v('n')} abonnés au bout de ${v('n')} semaines, la chaîne B en a ${U('n','v')} = ${b0} × ${P(fq(q),'n')}. Pour ${v('n')} = ${n}&nbsp;: ${un} = {0} et ${U('n','v')} ≈ {1} (à l'unité). B dépasse A pour la première fois la semaine ${v('n')} = {2}.`,[bk(a0+r*n,3.4),bkr(ge(b0,q,n),0,3.6),bk(n,2.4)],
+        `${U(n)} = ${a0+r*n}, ${U(n,'v')}${N.eqs(ge(b0,q,n),2)}&nbsp;; et au rang ${n-1}&nbsp;: ${U(n-1)} = ${a0+r*(n-1)} ≥ ${U(n-1,'v')}${N.eqs(ge(b0,q,n-1),2)}. Croissance exponentielle contre croissance linéaire&nbsp;: B finit toujours par passer devant.`,{k:'F7-race2',a0,r,b0,q:fqt(Q(q)),n,steps:3})}}};
+const LVF=[L1,L2,L3,L4,L5,L6,L7];
+function build(tier){for(let tries=0;tries<80;tries++){try{
+  const pool=tier==='b'?[0,1,2,3]:[0,1,2,3,4,5,6];const ex=shuf(pool.slice()).slice(0,3),single=[0,1,2,3,4,5,6].filter(i=>!ex.includes(i)),tro=pick(single);
+  const Qs=[];ex.forEach(i=>{Qs.push(LVF[i][tier].qcm(),LVF[i][tier].trous())});single.forEach(i=>Qs.push(i===tro?LVF[i][tier].trous():LVF[i][tier].qcm()));
+  return shuf(Qs).map(q=>{q.prompt=N.mf(q.prompt);q.explain=N.mf(q.explain);if(q.choices)q.choices=q.choices.map(N.mf);return q})}catch(e){if(tries>70)throw e}}}
+return{bronze:()=>build('b'),argent:()=>build('a'),or:()=>build('o'),LVF};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'le-monorail',title:'Le Monorail',levels:7,
+  levelNames:['Toujours le même pas','Le grand saut','Le zoom depuis 0','Le sens de la marche','Bout à bout','Le train des zooms','Linéaire ou exponentielle ?'],
+  music:'aventure',finals:{bronze:()=>(window.MO_lastFinal=MO_FIN.bronze()),argent:()=>(window.MO_lastFinal=MO_FIN.argent()),or:()=>(window.MO_lastFinal=MO_FIN.or())}});
+MO.start();
+(function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit), sauf le code
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const x=n.nodeValue,w=x.replace(re,' $1').replace(re2,'« ');if(w!==x)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|INPUT|TEXTAREA|svg|CODE|PRE)$/i.test(n.nodeName)&&!(n.classList&&(n.classList.contains('code')||n.classList.contains('console'))))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData'){if(!m.target.parentNode||!m.target.parentNode.closest||!m.target.parentNode.closest('.code,.console,code,svg'))fix(m.target)}else m.addedNodes.forEach(fix)}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>
