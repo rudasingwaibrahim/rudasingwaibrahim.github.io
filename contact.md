@@ -19,6 +19,7 @@ description: "Contacter M. Ibrahim Rudasingwa, professeur de mathématiques au l
     <p><a class="btn btn--ghost btn--sm" href="https://9760127j.index-education.net/pronote/?login=true" target="_blank" rel="noopener">Ouvrir PRONOTE<span class="sr-only"> (nouvel onglet)</span></a></p>
   </section>
   <section class="contact-card" aria-labelledby="c-qui">
+    <img class="contact-photo" src="/assets/images/ibrahim-rudasingwa.webp" width="340" height="450" alt="Portrait de M. Ibrahim Rudasingwa" loading="lazy">
     <h2 id="c-qui">Ibrahim Rudasingwa</h2>
     <p>Professeur de mathématiques<br>Lycée Younoussa Bamana, Mamoudzou<br>Académie de Mayotte</p>
   </section>
