@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le Clip · Sigma Arcade</title>
+<meta name="description" content="Arithmétique en Seconde : multiples, diviseurs, parité, nombres premiers, décomposition en facteurs premiers, fractions irréductibles. Tu es chorégraphe : la notion, c'est la formation des danseurs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours.
+   IDEA : l'élève est chorégraphe d'un clip ; n danseurs se rangent en rangées égales.
+   PICTURE : une scène nocturne (cour du lycée, plage, plateau télé, grand concert) et une troupe qui glisse en rythme.
+   COLOUR and TYPE : nuit « océan profond », accent violet-bleu pour l'action, or pour les réussites, corail pour le reste ; Outfit.
+   LAYOUT : scène et bandeau à gauche (collés en haut sur téléphone), carnet du chorégraphe à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise)}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:72ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .clipb{border-color:rgba(200,168,75,.6)}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#050a16;user-select:none;-webkit-user-select:none}
+.stage .decor,.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage .decor{transition:opacity .5s}
+.stage .decor.fade{opacity:0}
+.badge{position:absolute;left:10px;top:10px;z-index:2;font:600 13px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--mut);border:1px solid var(--soft);pointer-events:none}
+.badge{max-width:calc(100% - 150px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.count{position:absolute;right:10px;top:10px;z-index:2;font:700 14px var(--sg-font);font-variant-numeric:tabular-nums;padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--gold2);border:1px solid rgba(200,168,75,.35);pointer-events:none}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,23px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .35em}
+.capt .k{color:var(--gold2)}.capt .r{color:var(--ko)}.capt .m{color:var(--mut);font-weight:600}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.5;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(20px,2.3vw,25px)/2.1 var(--sg-font);font-variant-numeric:tabular-nums}
+.fill sup{font-size:.6em;vertical-align:.9em;line-height:0}
+.in{width:3.4em;height:46px;margin:0 3px;padding:0 6px;font:700 21px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+sup .in{width:2.4em;height:44px;font-size:18px;vertical-align:baseline}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-width:48px;min-height:46px;padding:0 10px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:700 18px var(--sg-font);font-variant-numeric:tabular-nums;cursor:pointer;transition:border-color .15s,background .15s}
+.chip:hover:not(:disabled){border-color:var(--ac)}
+.chip.yes{border-color:var(--gold);background:rgba(200,168,75,.16);color:var(--gold2)}
+.chip.no{border-color:rgba(255,107,107,.45);color:rgba(255,160,150,.8);background:transparent}
+.chip.cur{box-shadow:0 0 0 3px var(--acsoft);border-color:var(--ac)}
+.chip:disabled{cursor:default}
+.pairs{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0;min-height:36px}
+.pair{padding:4px 12px;border-radius:999px;background:rgba(200,168,75,.13);border:1px solid rgba(200,168,75,.45);font-weight:700;font-variant-numeric:tabular-nums;animation:pop .35s cubic-bezier(.2,1.5,.4,1)}
+.pair.todo{background:transparent;border:1px dashed var(--line);color:var(--mut);animation:none}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+.step{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:var(--solid)}
+.step button{width:48px;height:48px;font:600 24px var(--sg-font);border:0;background:transparent;color:var(--ink);cursor:pointer}
+.step button:hover{background:var(--sg-hover)}
+.step input{width:3.6em;height:48px;border:0;border-left:1px solid var(--soft);border-right:1px solid var(--soft);background:transparent;color:var(--ink);font:700 22px var(--sg-font);text-align:center;font-variant-numeric:tabular-nums}
+/* démonstration à étiquettes */
+.proof .ln{padding:6px 12px;margin:6px 0;border-left:4px solid var(--line);border-radius:8px;background:rgba(255,255,255,.025);font:600 17px/2.15 var(--sg-font);transition:border-color .3s,background .3s}
+.proof .ln.lit{border-color:var(--gold);background:rgba(200,168,75,.09)}
+.proof .ln{position:relative;padding-right:34px}.proof .ln.lit::after{content:"✓";position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--gold2);font-weight:800}
+.slot{display:inline-flex;align-items:center;justify-content:center;min-width:4.4em;min-height:44px;padding:0 10px;margin:0 2px;border:1.5px dashed var(--ac);border-radius:10px;background:rgba(108,142,255,.06);color:var(--mut);font:700 17px var(--sg-font);vertical-align:middle;cursor:pointer;line-height:1.2}
+.slot.hot{background:rgba(108,142,255,.22);border-style:solid}
+.slot.ok{border:1.5px solid rgba(95,210,124,.7);background:rgba(95,210,124,.1);color:var(--ink);cursor:default}
+.slot.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0;padding:10px;border-radius:12px;background:rgba(0,0,0,.18);border:1px dashed var(--soft)}
+.tile{min-height:44px;padding:0 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:700 17px var(--sg-font);cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none}
+.tile[aria-pressed=true]{border-color:var(--ac);box-shadow:0 0 0 3px var(--acsoft);background:#1a3260}
+.ghost{position:fixed;z-index:30000;pointer-events:none;transform:translate(-50%,-60%) scale(1.06);box-shadow:0 12px 30px -10px rgba(0,0,0,.6);opacity:.95}
+/* échelle de divisions */
+.ladder{border-collapse:collapse;font:700 22px var(--sg-font);font-variant-numeric:tabular-nums;margin:4px 0 10px}
+.ladder td{padding:2px 14px;min-width:3.2em}
+.ladder td:first-child{text-align:right;border-right:2.5px solid var(--ink)}
+.ladder tr.cur td:first-child{color:var(--gold2)}
+.ladder td.p{color:#9fb4ff}
+.ladder tr.new{animation:pop .35s ease-out}
+.wr{font:700 22px var(--sg-font);margin:6px 0;color:var(--gold2)}
+/* test de primalité */
+.tt{border-collapse:collapse;width:100%;font-size:16px;font-variant-numeric:tabular-nums;margin:8px 0}
+.tt th,.tt td{padding:5px 8px;border-bottom:1px solid var(--soft);text-align:left;white-space:nowrap}
+.tt th{font-size:13px;color:var(--mut);font-weight:600}
+.tt td.z{color:var(--gold2);font-weight:800}
+.ttw{overflow-x:auto}
+/* barrer */
+.barr{display:inline-flex;flex-direction:column;align-items:center;gap:6px;margin:6px 0}
+.barr .row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px}
+.barr .bar{align-self:stretch;height:3px;background:var(--ink);border-radius:2px}
+.barr .x{color:var(--mut);font-weight:600;margin:0 2px}
+.fct{min-width:46px;min-height:46px;border-radius:10px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:700 21px var(--sg-font);cursor:pointer;position:relative}
+.fct:hover:not(:disabled){border-color:var(--ac)}
+.fct.cut{opacity:.45;cursor:default;border-style:dashed}
+.fct.cut::after{content:"";position:absolute;left:6px;right:6px;top:50%;height:3px;background:var(--ko);transform:rotate(-28deg);border-radius:2px}
+.fct.cut:not(.anim)::after{transition:none}
+.fct.anim::after{animation:cut .35s ease-out}
+@keyframes cut{from{right:100%}}
+/* fractions */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.sk-q .fr,.sk-ch .fr{font-size:.95em}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex}
+/* Mon clip */
+.clipf{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:6px 0 12px}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.quick button{min-height:44px;min-width:52px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 16px var(--sg-font);cursor:pointer}
+.quick button:hover{border-color:var(--ac)}
+.cbox{margin:12px 0 0;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--soft)}
+.cbox h3{margin:0 0 6px;font-size:14px;color:var(--mut);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.cbox .val{font-weight:700;font-variant-numeric:tabular-nums;line-height:1.6}
+.verdict{margin-top:12px;padding:12px 14px;border-radius:12px;font-weight:700;font-size:19px}
+.verdict.p{background:rgba(200,168,75,.14);border:1.5px solid rgba(200,168,75,.6);color:var(--gold2)}
+.verdict.np{background:rgba(108,142,255,.12);border:1.5px solid var(--line)}
+/* mode vidéoprojecteur */
+.projbar{display:none}
+body.proj{overflow:hidden}
+body.proj .scol{position:fixed;inset:0;z-index:15000;display:flex;flex-direction:column;background:#020611;padding:0;margin:0}
+body.proj .stage{flex:1;aspect-ratio:auto;height:auto;border-radius:0;border:0}
+body.proj .capt{margin:0;border-radius:0;font-size:clamp(24px,3.4vw,48px);min-height:80px;border:0;border-top:1px solid var(--soft)}
+body.proj .projbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:#060d1a;border-top:1px solid var(--soft)}
+body.proj .badge{font-size:16px}body.proj .count{font-size:18px}
+.projbar .pn{font:600 15px var(--sg-font);color:var(--mut);font-variant-numeric:tabular-nums;min-width:7ch;text-align:center}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .stage{aspect-ratio:auto;height:clamp(200px,35svh,320px);border-radius:14px}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+  body.proj .stage{height:auto}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .ladder{font-size:20px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.pair,.win,.ladder tr.new{animation:none}.stage .decor{transition:none}.fct.anim::after{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Le Clip</h1>
+<p>Tu es chorégraphe. Tes danseurs doivent se ranger en rangées égales&nbsp;: quand la formation tombe pile, la troupe danse. Multiples, diviseurs, parité, nombres premiers… chaque notion se voit sur scène.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Scène du clip et formation des danseurs">
+    <svg class="decor" id="decor" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+    <canvas id="cv" aria-hidden="true"></canvas>
+    <span class="badge" id="badge"></span>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+  <div class="projbar" id="projbar">
+    <div class="step"><button type="button" data-pd="-1" aria-label="Un danseur de moins">−</button><input id="pn" inputmode="numeric" aria-label="Nombre de danseurs" value="60"><button type="button" data-pd="1" aria-label="Un danseur de plus">+</button></div>
+    <button class="btn gh" id="pprev" type="button">◀ Précédent</button>
+    <span class="pn" id="pstep"></span>
+    <button class="btn or" id="pnext" type="button">Suivant ▶</button>
+    <button class="btn gh" id="pquit" type="button">Quitter le vidéoprojecteur</button>
+  </div>
+</div>
+<section class="panel" id="panel">
+  <div id="game">
+    <div class="chap" id="chap"></div>
+    <h2 id="lvt"></h2>
+    <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+    <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+    <div class="prompt" id="prompt"></div>
+    <div id="work"></div>
+    <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+    <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+      <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+  </div>
+  <div id="clipv" hidden>
+    <div class="chap">Le final</div>
+    <h2>Mon clip</h2>
+    <p class="prompt">Choisis ton nombre de danseurs, de 2 à 400. Le clip enchaîne toutes ses formations, puis la décomposition en facteurs premiers et le verdict&nbsp;: premier ou pas premier&nbsp;?</p>
+    <div class="clipf">
+      <div class="step"><button type="button" data-cd="-1" aria-label="Un danseur de moins">−</button><input id="cn" inputmode="numeric" aria-label="Nombre de danseurs" value="36"><button type="button" data-cd="1" aria-label="Un danseur de plus">+</button></div>
+      <button class="btn or" id="cgo" type="button">▶ Lancer mon clip</button>
+      <button class="btn gh" id="cskip" type="button" hidden>Passer à la suite</button>
+    </div>
+    <div class="quick" id="quick"></div>
+    <p class="hint" id="cwarn" aria-live="polite"></p>
+    <div class="cbox"><h3>Formations (b × k)</h3><div class="val" id="cforms">—</div></div>
+    <div class="cbox"><h3>Diviseurs</h3><div class="val" id="cdivs">—</div></div>
+    <div class="cbox"><h3>Décomposition en facteurs premiers</h3><div class="val" id="cdec">—</div></div>
+    <div id="cverd"></div>
+  </div>
+</section>
+</main>
+<script>
+/* ======================= LE CLIP — moteur de scène ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- arithmétique (entiers) ---------- */
+const A={
+  divisors(n){const d=[];for(let i=1;i*i<=n;i++)if(n%i===0){d.push(i);if(i*i!==n)d.push(n/i)}return d.sort((a,b)=>a-b)},
+  isPrime(n){if(n<2)return false;for(let d=2;d*d<=n;d++)if(n%d===0)return false;return true},
+  fact(n){const f=[];let m=n;for(let p=2;p*p<=m;p++){let e=0;while(m%p===0){m/=p;e++}if(e)f.push([p,e])}if(m>1)f.push([m,1]);return f},
+  flat(n){const r=[];A.fact(n).forEach(([p,e])=>{for(let i=0;i<e;i++)r.push(p)});return r},
+  common(a,b){let x=a,y=b;while(y){[x,y]=[y,x%y]}return x},   /* plus grand diviseur commun (usage interne) */
+  isqrtLe(n){let d=1;while((d+1)*(d+1)<=n)d++;return d}
+};
+const SUP='⁰¹²³⁴⁵⁶⁷⁸⁹';
+const sup=e=>String(e).split('').map(c=>SUP[+c]).join('');
+const fmt=n=>{const s=String(n);return n>=10000?s.replace(/\B(?=(\d{3})+(?!\d))/g,' '):s};
+const factStr=n=>A.fact(n).map(([p,e])=>p+(e>1?sup(e):'')).join(' × ');
+const frac=(a,b)=>`<span class="fr" data-f="${a}/${b}"><span>${a}</span><span>${b}</span></span>`;
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* ---------- décors (SVG originaux, nocturnes) ---------- */
+function stars(n,seed,ymax){let s='',r=seed;const R=()=>{r=(r*9301+49297)%233280;return r/233280};
+  for(let i=0;i<n;i++)s+=`<circle cx="${(R()*1600).toFixed(0)}" cy="${(R()*ymax).toFixed(0)}" r="${(R()*1.8+.6).toFixed(1)}" fill="#fff" opacity="${(R()*.6+.25).toFixed(2)}"/>`;return s}
+function palm(x,y,sc,flip,col){const f=flip?-1:1;
+  return `<g transform="translate(${x} ${y}) scale(${sc*f} ${sc})" fill="${col}"><path d="M0 0 C6 -90 -4 -180 14 -260 L22 -258 C8 -180 16 -90 12 0Z"/>
+  <path d="M18 -262 C-30 -290 -80 -270 -110 -235 C-70 -262 -30 -262 14 -252Z"/><path d="M18 -262 C60 -300 120 -290 150 -250 C110 -275 60 -275 20 -252Z"/>
+  <path d="M18 -262 C0 -310 -40 -330 -70 -330 C-30 -318 -6 -295 12 -258Z"/><path d="M18 -262 C50 -320 90 -330 120 -322 C80 -312 50 -290 24 -256Z"/>
+  <path d="M16 -262 C-10 -240 -40 -200 -50 -160 C-30 -200 -6 -232 20 -254Z"/><path d="M20 -262 C50 -240 80 -205 88 -170 C68 -206 44 -236 18 -254Z"/></g>`}
+const DECOR=[
+ /* 0 · cour du lycée */
+ ()=>`<defs><linearGradient id="d0s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#030816"/><stop offset=".55" stop-color="#0f1f3f"/><stop offset="1" stop-color="#1b2c52"/></linearGradient>
+ <linearGradient id="d0g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16213a"/><stop offset="1" stop-color="#0a1222"/></linearGradient>
+ <radialGradient id="d0m"><stop offset="0" stop-color="#e9edf7" stop-opacity=".45"/><stop offset="1" stop-color="#e9edf7" stop-opacity="0"/></radialGradient>
+ <radialGradient id="d0l" cx=".5" cy="0" r="1"><stop offset="0" stop-color="#f3cf6a" stop-opacity=".22"/><stop offset="1" stop-color="#f3cf6a" stop-opacity="0"/></radialGradient></defs>
+ <rect width="1600" height="1000" fill="url(#d0s)"/>${stars(70,7,380)}
+ <circle cx="1330" cy="120" r="90" fill="url(#d0m)"/><circle cx="1330" cy="120" r="34" fill="#eef1f8"/><circle cx="1346" cy="110" r="30" fill="#0c1a36"/>
+ <path d="M0 330 C180 260 300 300 420 270 C560 235 640 300 760 290 C900 280 980 220 1120 250 C1260 280 1380 240 1600 290 V420 H0Z" fill="#0b1830"/>
+ <rect x="230" y="250" width="1140" height="220" fill="#14213b"/><rect x="210" y="236" width="1180" height="18" rx="4" fill="#26365a"/>
+ <rect x="690" y="180" width="220" height="70" rx="6" fill="#1a2946"/><text x="800" y="228" text-anchor="middle" font-family="Outfit,system-ui,sans-serif" font-weight="800" font-size="34" letter-spacing="8" fill="#e8c766" opacity=".9">LYCÉE</text>
+ ${Array.from({length:22},(_,i)=>{const x=258+i*50;return [0,1].map(r=>`<rect x="${x}" y="${282+r*80}" width="30" height="44" rx="3" fill="${(i*7+r*3)%5<2?'#f3cf6a':'#2a4370'}" opacity="${(i*7+r*3)%5<2?.85:1}"/>`).join('')}).join('')}
+ <rect x="770" y="380" width="60" height="90" fill="#0a1426"/>
+ <rect x="0" y="470" width="1600" height="530" fill="url(#d0g)"/>
+ <g stroke="#2f4675" stroke-width="3" fill="none" opacity=".55"><path d="M120 560 H1480"/><path d="M800 560 V1000"/><ellipse cx="800" cy="760" rx="170" ry="70"/><path d="M60 1000 L180 560 M1540 1000 L1420 560"/></g>
+ <path d="M0 470 H1600" stroke="#2a3c63" stroke-width="2"/>
+ ${palm(110,480,1.15,false,'#0a1a2c')}${palm(1500,485,1.05,true,'#0a1a2c')}
+ <path d="M0 70 Q400 150 800 80 T1600 90" stroke="#3a4766" stroke-width="2" fill="none"/>
+ ${Array.from({length:16},(_,i)=>{const x=50+i*100;const y=i<8?70+75*Math.sin(Math.PI*(x/800))*.9:80+70*Math.sin(Math.PI*((x-800)/800))*.9;return `<circle cx="${x}" cy="${(y).toFixed(0)}" r="7" fill="${i%3?'#f3cf6a':'#9fb4ff'}"/><circle cx="${x}" cy="${y.toFixed(0)}" r="22" fill="url(#d0l)"/>`}).join('')}`,
+ /* 1 · plage au coucher de soleil */
+ ()=>`<defs><linearGradient id="d1s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050b22"/><stop offset=".45" stop-color="#1f2350"/><stop offset=".72" stop-color="#6b3a5c"/><stop offset=".86" stop-color="#d07a45"/><stop offset="1" stop-color="#f0b45a"/></linearGradient>
+ <linearGradient id="d1w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2f55"/><stop offset="1" stop-color="#0b1730"/></linearGradient>
+ <linearGradient id="d1b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a2f3e"/><stop offset="1" stop-color="#1a1524"/></linearGradient>
+ <radialGradient id="d1g" cy=".9"><stop offset="0" stop-color="#ffd27a" stop-opacity=".55"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient></defs>
+ <rect width="1600" height="470" fill="url(#d1s)"/>${stars(40,3,200)}
+ <circle cx="980" cy="470" r="260" fill="url(#d1g)"/><path d="M890 470 A90 90 0 0 1 1070 470Z" fill="#ffcf6e"/>
+ <path d="M1150 470 C1210 400 1260 370 1320 380 C1380 390 1420 430 1470 470Z" fill="#241a35"/>
+ <path d="M0 470 C120 440 220 450 320 470Z" fill="#241a35"/>
+ <rect y="470" width="1600" height="150" fill="url(#d1w)"/>
+ <g fill="#ffcf6e">${Array.from({length:9},(_,i)=>`<rect x="${980-110+i*8+(i%2)*30}" y="${480+i*14}" width="${190-i*16}" height="3" rx="1.5" opacity="${(.8-i*.07).toFixed(2)}" transform="translate(${(i%3-1)*14} 0)"/>`).join('')}</g>
+ <g stroke="#9fb4ff" stroke-width="2" opacity=".25" fill="none"><path d="M80 520 q30 -8 60 0 t60 0"/><path d="M1280 560 q30 -8 60 0 t60 0"/><path d="M380 590 q30 -8 60 0 t60 0"/></g>
+ <path d="M0 610 C300 590 600 630 900 605 C1200 585 1400 615 1600 600 V1000 H0Z" fill="url(#d1b)"/>
+ <path d="M0 612 C300 592 600 632 900 607 C1200 587 1400 617 1600 602" stroke="#f0d9b0" stroke-width="3" opacity=".35" fill="none"/>
+ ${palm(150,640,1.25,false,'#120c1c')}${palm(1460,650,1.1,true,'#120c1c')}`,
+ /* 2 · plateau télé */
+ ()=>`<defs><linearGradient id="d2w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050916"/><stop offset="1" stop-color="#0c1530"/></linearGradient>
+ <linearGradient id="d2f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101b36"/><stop offset="1" stop-color="#060b18"/></linearGradient>
+ <linearGradient id="d2b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8c766" stop-opacity=".22"/><stop offset="1" stop-color="#e8c766" stop-opacity="0"/></linearGradient>
+ <linearGradient id="d2c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6c8eff" stop-opacity=".2"/><stop offset="1" stop-color="#6c8eff" stop-opacity="0"/></linearGradient></defs>
+ <rect width="1600" height="1000" fill="url(#d2w)"/>
+ <g>${Array.from({length:12*5},(_,i)=>{const c=i%12,r=Math.floor(i/12),on=(c*3+r*5)%7===0;return `<rect x="${120+c*114}" y="${120+r*62}" width="104" height="54" rx="4" fill="${on?'#24407a':'#0f1d3c'}" stroke="#1d2f57" stroke-width="2"/>`}).join('')}</g>
+ <text x="800" y="290" text-anchor="middle" font-family="Outfit,system-ui,sans-serif" font-weight="800" font-size="120" fill="#6c8eff" opacity=".16">Σ</text>
+ <rect x="0" y="40" width="1600" height="22" fill="#1b2744"/><g fill="#2c3a5e">${Array.from({length:32},(_,i)=>`<rect x="${i*50}" y="40" width="4" height="22" transform="skewX(30)"/>`).join('')}</g>
+ ${[220,560,1040,1380].map((x,i)=>`<path d="M${x-14} 64 L${x+14} 64 L${x+210*(i<2?1:-1)} 1000 L${x-210*(i<2?-1:1)} 1000Z" fill="url(#${i%2?'d2c':'d2b'})"/><rect x="${x-18}" y="58" width="36" height="30" rx="6" fill="#36456b"/><circle cx="${x}" cy="88" r="9" fill="#f3cf6a"/>`).join('')}
+ <rect y="440" width="1600" height="560" fill="url(#d2f)"/>
+ <g stroke="#22345f" stroke-width="2" opacity=".7">${Array.from({length:9},(_,i)=>`<path d="M${800+(i-4)*120} 440 L${800+(i-4)*420} 1000"/>`).join('')}${[520,620,760,940].map(y=>`<path d="M0 ${y} H1600"/>`).join('')}</g>
+ <path d="M0 440 H1600" stroke="#6c8eff" stroke-width="3" opacity=".5"/>`,
+ /* 3 · grand concert */
+ ()=>`<defs><linearGradient id="d3s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#02050f"/><stop offset="1" stop-color="#0c1736"/></linearGradient>
+ <linearGradient id="d3f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#141c34"/><stop offset="1" stop-color="#070b18"/></linearGradient>
+ <linearGradient id="d3a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6c8eff" stop-opacity=".3"/><stop offset="1" stop-color="#6c8eff" stop-opacity="0"/></linearGradient>
+ <linearGradient id="d3b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8c766" stop-opacity=".28"/><stop offset="1" stop-color="#e8c766" stop-opacity="0"/></linearGradient>
+ <linearGradient id="d3e" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2c58"/><stop offset="1" stop-color="#0b1430"/></linearGradient></defs>
+ <rect width="1600" height="1000" fill="url(#d3s)"/>${stars(50,11,260)}
+ <rect x="60" y="40" width="1480" height="26" fill="#2a3656"/><rect x="60" y="40" width="26" height="420" fill="#2a3656"/><rect x="1514" y="40" width="26" height="420" fill="#2a3656"/>
+ <g stroke="#3f4d72" stroke-width="3">${Array.from({length:37},(_,i)=>`<path d="M${60+i*40} 40 l20 26"/>`).join('')}</g>
+ <rect x="110" y="110" width="300" height="190" rx="10" fill="url(#d3e)" stroke="#3a4f86" stroke-width="4"/><rect x="1190" y="110" width="300" height="190" rx="10" fill="url(#d3e)" stroke="#3a4f86" stroke-width="4"/>
+ <text x="260" y="238" text-anchor="middle" font-family="Outfit,system-ui,sans-serif" font-weight="800" font-size="110" fill="#e8c766" opacity=".75">Σ</text>
+ <text x="1340" y="238" text-anchor="middle" font-family="Outfit,system-ui,sans-serif" font-weight="800" font-size="110" fill="#9fb4ff" opacity=".75">Σ</text>
+ ${[300,620,980,1300].map((x,i)=>`<path d="M${x-10} 66 L${x+10} 66 L${x+(i%2?-1:1)*260+160} 1000 L${x+(i%2?-1:1)*260-160} 1000Z" fill="url(#${i%2?'d3b':'d3a'})"/><circle cx="${x}" cy="74" r="11" fill="${i%2?'#e8c766':'#9fb4ff'}"/>`).join('')}
+ <rect y="420" width="1600" height="580" fill="url(#d3f)"/>
+ <path d="M0 420 H1600" stroke="#e8c766" stroke-width="3" opacity=".45"/>
+ <g fill="#e8c766" opacity=".6">${Array.from({length:40},(_,i)=>`<circle cx="${20+i*40}" cy="428" r="3"/>`).join('')}</g>
+ <g fill="#03060e">${Array.from({length:46},(_,i)=>{const x=i*36-10+(i%3)*6,h=22+(i*13)%16;return `<circle cx="${x}" cy="${1000-h}" r="15"/><rect x="${x-20}" y="${1000-h+8}" width="40" height="${h}" rx="12"/>`}).join('')}</g>`
+];
+const CHAPTERS=['Chapitre 1 · La cour du lycée','Chapitre 2 · La plage au coucher du soleil','Chapitre 3 · Le plateau télé','Chapitre 4 · Le grand concert'];
+let chapNow=-1;
+function setChapter(c){if(c===chapNow)return;chapNow=c;const d=$('decor');$('badge').textContent=CHAPTERS[c];
+  if(reduceM||!d.innerHTML){d.innerHTML=DECOR[c]();return}
+  d.classList.add('fade');setTimeout(()=>{d.innerHTML=DECOR[c]();d.classList.remove('fade')},300)}
+
+/* ---------- danseurs : sprites dessinés une fois ---------- */
+const COST=[['#6c8eff','#3b56b8'],['#e8c766','#9c7a22'],['#ff8a7a','#b9493f'],['#4fd1c5','#25857c'],['#b79cff','#7656cf'],['#eef2ff','#8f9bc2'],['#ff9ecf','#b85b8c'],['#7fe0a4','#33915a']];
+const C_BLUE=0,C_GOLD=1,C_CORAL=2,C_TEAL=3,C_VIOLET=4,C_WHITE=5,C_PINK=6,C_GREEN=7;
+const SKIN=['#5a3825','#7a4a2c','#9a6440','#c48a5c','#3e2618'];
+const VAR=[{b:'dress',h:'puff',s:0},{b:'pants',h:'short',s:1},{b:'dress',h:'wrap',s:2},{b:'pants',h:'bun',s:3},
+  {b:'pants',h:'braids',s:4},{b:'dress',h:'pony',s:1},{b:'pants',h:'puff',s:2},{b:'pants',h:'short',s:0}];
+const POSE=[ /* coude g, main g, coude d, main d, genou g, pied g, genou d, pied d */
+  [[10,30],[11,39],[30,30],[29,39],[16.5,57],[16,69],[23.5,57],[24,69]],
+  [[8,13],[7,2],[32,13],[33,2],[15,57],[13,69],[25,57],[27,69]],
+  [[6,16],[4,5],[33,24],[38.5,30],[11,53],[6,61],[23.5,57],[24,69]],
+  null];
+POSE[3]=POSE[2].map(p=>[40-p[0],p[1]]);POSE[3]=[POSE[3][2],POSE[3][3],POSE[3][0],POSE[3][1],POSE[3][6],POSE[3][7],POSE[3][4],POSE[3][5]];
+const SPR=2,SW=40,SH=72,sprites=new Map();
+function sprite(col,v,pose){const key=col*100+v*10+pose;let c=sprites.get(key);if(c)return c;
+  c=document.createElement('canvas');c.width=SW*SPR;c.height=SH*SPR;const g=c.getContext('2d');g.scale(SPR,SPR);
+  const C=COST[col],V=VAR[v],sk=SKIN[V.s],P=POSE[pose],hair='#140d08';
+  g.lineCap='round';g.lineJoin='round';
+  g.fillStyle='rgba(0,0,0,.38)';g.beginPath();g.ellipse(20,70,11,2.6,0,0,7);g.fill();
+  if(V.h==='puff'){g.fillStyle=hair;g.beginPath();g.arc(20,7.6,8.4,0,7);g.fill()}
+  g.strokeStyle=V.b==='dress'?sk:C[1];g.lineWidth=4.4;g.beginPath();g.moveTo(17,44);g.quadraticCurveTo(P[4][0],P[4][1],P[5][0],P[5][1]);g.moveTo(23,44);g.quadraticCurveTo(P[6][0],P[6][1],P[7][0],P[7][1]);g.stroke();
+  g.fillStyle='#0b0e18';[P[5],P[7]].forEach(p=>{g.beginPath();g.ellipse(p[0],p[1]+.3,3,1.9,0,0,7);g.fill()});
+  if(V.b==='pants'){g.fillStyle=C[1];g.beginPath();g.moveTo(14.5,36);g.lineTo(25.5,36);g.lineTo(26.5,46);g.lineTo(13.5,46);g.fill()}
+  g.fillStyle=C[0];g.beginPath();g.moveTo(12.5,20);g.quadraticCurveTo(20,17.6,27.5,20);g.lineTo(25.6,38);g.lineTo(14.4,38);g.closePath();g.fill();
+  if(V.b==='dress'){g.beginPath();g.moveTo(14.4,35);g.lineTo(25.6,35);g.lineTo(31.5,53);g.quadraticCurveTo(20,56.5,8.5,53);g.closePath();g.fill();
+    g.strokeStyle=C[1];g.lineWidth=1.4;g.beginPath();g.moveTo(9.6,51.6);g.quadraticCurveTo(20,55,30.4,51.6);g.stroke()}
+  g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=1.3;g.beginPath();g.moveTo(14.8,22);g.lineTo(15.6,35);g.stroke();
+  g.strokeStyle=v%2?C[0]:sk;g.lineWidth=3.5;g.beginPath();g.moveTo(13.6,21.6);g.quadraticCurveTo(P[0][0],P[0][1],P[1][0],P[1][1]);g.moveTo(26.4,21.6);g.quadraticCurveTo(P[2][0],P[2][1],P[3][0],P[3][1]);g.stroke();
+  g.fillStyle=sk;[P[1],P[3]].forEach(p=>{g.beginPath();g.arc(p[0],p[1],2.1,0,7);g.fill()});
+  g.fillRect(18.4,14.5,3.2,5);g.beginPath();g.arc(20,10.4,6.1,0,7);g.fill();
+  g.fillStyle=hair;
+  if(V.h==='short'||V.h==='bun'||V.h==='pony'||V.h==='braids'){g.beginPath();g.arc(20,9.8,6.5,Math.PI*.92,Math.PI*2.08);g.fill()}
+  if(V.h==='bun'){g.beginPath();g.arc(20,2.4,3.4,0,7);g.fill()}
+  if(V.h==='pony'){g.strokeStyle=hair;g.lineWidth=3;g.beginPath();g.moveTo(25,7);g.quadraticCurveTo(31,11,28.5,19);g.stroke()}
+  if(V.h==='braids'){g.strokeStyle=hair;g.lineWidth=2.2;g.beginPath();g.moveTo(14.4,10);g.lineTo(13,21);g.moveTo(25.6,10);g.lineTo(27,21);g.stroke()}
+  if(V.h==='wrap'){g.fillStyle=C[1];g.beginPath();g.arc(20,9.2,7,Math.PI*.9,Math.PI*2.1);g.fill();g.beginPath();g.arc(25.5,3.6,2.6,0,7);g.fill();
+    g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=1;g.beginPath();g.arc(20,9.2,5.4,Math.PI*1.15,Math.PI*1.7);g.stroke()}
+  sprites.set(key,c);return c}
+
+/* ---------- état de la troupe ---------- */
+const MAX=420;
+const D={n:0,x:new Float32Array(MAX),y:new Float32Array(MAX),s:new Float32Array(MAX),fx:new Float32Array(MAX),fy:new Float32Array(MAX),fs:new Float32Array(MAX),
+  tx:new Float32Array(MAX),ty:new Float32Array(MAX),ts:new Float32Array(MAX),t0:new Float64Array(MAX),du:new Float32Array(MAX),
+  col:new Uint8Array(MAX),v:new Uint8Array(MAX),fl:new Uint8Array(MAX),ph:new Float32Array(MAX)};
+const F_REST=1,F_SPOT=2,F_DIM=4;
+for(let i=0;i<MAX;i++){D.v[i]=(i*5+Math.floor(i/8))%8;D.ph[i]=((i*37)%11)/11}
+const BEAT=60/116;
+const cv=$('cv'),g=cv.getContext('2d');
+let W=0,H=0,dpr=1,cur=null,fit=null,order=[],labelA=0,labelT0=0,danceT0=0,danceEnd=0,pulseEnd=0,running=false,arriveEnd=0;
+const DY=1.32;
+/* zone de scène (fraction du cadre) */
+function area(){const top=H<330?.15:.19;return{x:W*.04,y:H*top,w:W*.92,h:H*(.955-top)}}
+function areaAR(){const a=area();return a.w/a.h}
+function resize(){const r=$('stage').getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);
+  W=Math.max(10,r.width);H=Math.max(10,r.height);cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+  if(cur){computeFit(cur);for(let i=0;i<D.n;i++){D.x[i]=D.tx[i];D.y[i]=D.ty[i];D.s[i]=D.ts[i];D.t0[i]=0}}draw(performance.now())}
+function computeFit(L){
+  const a=area();let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  for(const p of L.pts){if(p[0]<x0)x0=p[0];if(p[0]>x1)x1=p[0];if(p[1]<y0)y0=p[1];if(p[1]>y1)y1=p[1]}
+  (L.labels||[]).forEach(l=>{if(l[1]-.4<y0)y0=l[1]-.4;const w=(l[2].length*.28)*(l[5]||1);if(l[0]-w<x0)x0=l[0]-w;if(l[0]+w>x1)x1=l[0]+w});
+  x0-=.55;x1+=.55;y0-=1.65;y1+=.25;
+  const smax=Math.min(46,H*.13);const sc=Math.min(a.w/(x1-x0),a.h/(y1-y0),smax);
+  const ox=a.x+(a.w-(x1-x0)*sc)/2-x0*sc,oy=a.y+(a.h-(y1-y0)*sc)*.72-y0*sc;
+  fit={sc,ox,oy,bx:[x0,y0,x1,y1]};
+  for(let i=0;i<D.n;i++){const p=L.pts[i]||L.pts[L.pts.length-1];D.tx[i]=ox+p[0]*sc;D.ty[i]=oy+p[1]*sc;D.ts[i]=sc}
+}
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+/* change la taille de la troupe : les nouveaux arrivent des coulisses */
+function troupe(n,colFn){
+  const old=D.n;
+  for(let i=old;i<n;i++){const left=i%2===0;D.x[i]=left?-30:W+30;D.y[i]=H*(.55+.35*((i*53)%17)/17);D.s[i]=fit?fit.sc:20;D.fl[i]=0}
+  D.n=n;recolor(colFn)}
+function recolor(colFn){const pal=[C_BLUE,C_VIOLET,C_TEAL,C_BLUE,C_WHITE,C_VIOLET];
+  for(let i=0;i<D.n;i++)D.col[i]=colFn?colFn(i):pal[(i*7+Math.floor(i/5))%pal.length]}
+/* déplace la troupe vers la formation L ; renvoie une promesse résolue à l'arrivée */
+function go(L,opt){opt=opt||{};cur=L;const now=performance.now();
+  if(L.cols)for(let i=0;i<D.n;i++)D.col[i]=L.cols[i];
+  for(let i=0;i<D.n;i++)D.fl[i]=L.fl?L.fl[i]||0:0;
+  computeFit(L);
+  order=Array.from({length:D.n},(_,i)=>i).sort((a,b)=>D.ty[a]-D.ty[b]||D.tx[a]-D.tx[b]);
+  const N=D.n,inst=reduceM||opt.instant;let end=now;
+  for(let k=0;k<N;k++){const i=order[k];D.fx[i]=D.x[i];D.fy[i]=D.y[i];D.fs[i]=D.s[i]||D.ts[i];
+    const dist=Math.hypot(D.tx[i]-D.x[i],D.ty[i]-D.y[i]);
+    if(inst||dist<.5){D.x[i]=D.tx[i];D.y[i]=D.ty[i];D.s[i]=D.ts[i];D.t0[i]=0;continue}
+    const wave=opt.wave===false?0:Math.floor(k/N*4)*(BEAT*.25);
+    D.t0[i]=now+wave*1000;D.du[i]=(opt.dur||BEAT*1.5)*1000;end=Math.max(end,D.t0[i]+D.du[i])}
+  arriveEnd=end;labelA=0;labelT0=end;
+  kick();
+  return new Promise(res=>setTimeout(()=>{if(opt.sound!==false&&window.LC_SND)LC_SND.step();res()},Math.max(0,end-now)+30))}
+function dance(ms){if(reduceM){danceT0=performance.now();danceEnd=danceT0+Math.min(ms,1200);kick();return}
+  danceT0=performance.now();danceEnd=danceT0+(ms||2400);kick()}
+function stopDance(){danceEnd=0}
+function pulse(){pulseEnd=performance.now()+1300;kick()}
+function kick(){if(!running){running=true;requestAnimationFrame(frame)}}
+function frame(t){draw(t);const busy=t<arriveEnd+400||t<danceEnd||t<pulseEnd||labelA<1;if(busy)requestAnimationFrame(frame);else{running=false;draw(t)}}
+function draw(t){
+  g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
+  if(!fit)return;
+  const dancing=t<danceEnd,beatF=(t-danceT0)/1000/BEAT;
+  for(let i=0;i<D.n;i++){if(D.t0[i]){const p=Math.min(1,Math.max(0,(t-D.t0[i])/D.du[i])),e=ease(p);
+      D.x[i]=D.fx[i]+(D.tx[i]-D.fx[i])*e;D.y[i]=D.fy[i]+(D.ty[i]-D.fy[i])*e-(reduceM?0:Math.sin(Math.PI*p)*D.ts[i]*.35);D.s[i]=D.fs[i]+(D.ts[i]-D.fs[i])*e;if(p>=1)D.t0[i]=0}}
+  if(t>labelT0){labelA=Math.min(1,(t-labelT0)/350)}
+  const L=cur;
+  /* halo sombre sous la troupe : lisibilité sur tous les décors */
+  if(L&&fit.bx){const b=fit.bx,cx=fit.ox+(b[0]+b[2])/2*fit.sc,cy=fit.oy+(b[1]+b[3])/2*fit.sc,rx=(b[2]-b[0])/2*fit.sc+fit.sc*1.6,ry=(b[3]-b[1])/2*fit.sc+fit.sc*1.2;
+    g.save();g.translate(cx,cy);g.scale(rx,ry);const pg=g.createRadialGradient(0,0,0,0,0,1);pg.addColorStop(0,'rgba(3,7,16,.5)');pg.addColorStop(.7,'rgba(3,7,16,.38)');pg.addColorStop(1,'rgba(3,7,16,0)');
+    g.fillStyle=pg;g.beginPath();g.arc(0,0,1,0,7);g.fill();g.restore()}
+  /* cadres de groupes */
+  if(L&&L.boxes&&labelA>0){g.save();g.globalAlpha=labelA;g.setLineDash([5,4]);g.lineWidth=1.5;
+    for(const b of L.boxes){const x=fit.ox+b[0]*fit.sc,y=fit.oy+b[1]*fit.sc,w=(b[2]-b[0])*fit.sc,h=(b[3]-b[1])*fit.sc;g.strokeStyle=b[4]||'rgba(160,185,255,.35)';
+      g.beginPath();g.roundRect?g.roundRect(x,y,w,h,Math.min(10,fit.sc*.5)):g.rect(x,y,w,h);g.stroke()}g.restore()}
+  /* projecteurs sur les solistes, anneaux sous le reste */
+  const pul=t<pulseEnd?1+.35*Math.sin((t%400)/400*Math.PI*2):1;
+  for(let i=0;i<D.n;i++){const f=D.fl[i];if(!f)continue;const s=D.s[i],x=D.x[i],y=D.y[i];
+    if(f&F_SPOT){const gr=g.createLinearGradient(x,y-s*7,x,y);gr.addColorStop(0,'rgba(232,199,102,0)');gr.addColorStop(1,'rgba(232,199,102,.32)');
+      g.fillStyle=gr;g.beginPath();g.moveTo(x-s*.25,y-s*7);g.lineTo(x+s*.25,y-s*7);g.lineTo(x+s*.9,y);g.lineTo(x-s*.9,y);g.fill();
+      g.strokeStyle='#e8c766';g.lineWidth=Math.max(1.2,s*.08);g.beginPath();g.ellipse(x,y,s*.62*pul,s*.2*pul,0,0,7);g.stroke()}
+    if(f&F_REST){g.strokeStyle='rgba(255,107,107,.9)';g.fillStyle='rgba(255,107,107,.16)';g.lineWidth=Math.max(1.2,s*.08);g.beginPath();g.ellipse(x,y,s*.55*pul,s*.18*pul,0,0,7);g.fill();g.stroke()}}
+  /* danseurs */
+  const list=order.length===D.n?order:Array.from({length:D.n},(_,i)=>i);
+  for(const i of list){let s=D.s[i],x=D.x[i],y=D.y[i];if(!s)continue;let pose=0;
+    if(D.t0[i])pose=((t/1000/BEAT*2)|0)%2?2:3;
+    else if(dancing&&!(D.fl[i]&F_DIM)){const b=beatF+D.ph[i]*.5;pose=reduceM?1:[1,2,1,3][(b|0)&3];if(!reduceM)y-=Math.abs(Math.sin(Math.PI*b))*s*.16}
+    const h=s*1.6,w=h*SW/SH;
+    if(h<6){g.fillStyle=COST[D.col[i]][0];g.fillRect(x-Math.max(.6,w*.25),y-h*.9,Math.max(1.2,w*.5),Math.max(1.2,h*.9));continue}
+    if(D.fl[i]&F_DIM)g.globalAlpha=.45;
+    g.drawImage(sprite(D.col[i],D.v[i],pose),x-w/2,y-h*.973,w,h);
+    if(D.fl[i]&F_DIM)g.globalAlpha=1}
+  /* étiquettes */
+  if(L&&L.labels&&labelA>0){g.save();g.globalAlpha=labelA;g.textBaseline='middle';
+    for(const l of L.labels){const px=Math.max(11,Math.min(22,fit.sc*.62*(l[5]||1)));g.font=`700 ${px}px Outfit, system-ui, sans-serif`;
+      g.textAlign=l[4]==='l'?'left':l[4]==='r'?'right':'center';const x=fit.ox+l[0]*fit.sc,y=fit.oy+l[1]*fit.sc;
+      if((l[5]||1)>=1){const tw=g.measureText(l[2]).width,ph=px*1.5,lx=l[4]==='l'?x:l[4]==='r'?x-tw:x-tw/2;g.fillStyle='rgba(4,9,20,.78)';g.beginPath();g.roundRect?g.roundRect(lx-px*.45,y-ph/2,tw+px*.9,ph,ph/2):g.rect(lx-px*.45,y-ph/2,tw+px*.9,ph);g.fill()}
+      g.lineWidth=3;g.strokeStyle='rgba(4,9,20,.85)';g.lineJoin='round';g.strokeText(l[2],x,y);
+      g.fillStyle=l[3]==='ko'?'#ff8f86':l[3]==='gold'?'#e8c766':l[3]==='mut'?'rgba(200,215,255,.75)':l[3]==='ac'?'#9fb4ff':'#f0f4ff';g.fillText(l[2],x,y)}
+    g.restore()}
+}
+new ResizeObserver(()=>resize()).observe($('stage'));
+
+/* ---------- formations (coordonnées abstraites : 1 = un danseur, DY entre deux rangées) ---------- */
+const Lay={
+  crowd(n){const c=Math.max(1,Math.ceil(Math.sqrt(n*1.9)));const pts=[];let r=7;const R=()=>{r=(r*9301+49297)%233280;return r/233280};
+    for(let i=0;i<n;i++){const row=Math.floor(i/c);pts.push([(i%c)*1.15+(row%2)*.55+(R()-.5)*.7,row*DY*.85+(R()-.5)*.6])}return{pts}},
+  rows(n,b,o){o=o||{};const k=Math.floor(n/b),r=n-k*b,pts=[],fl=[],labels=[],boxes=[];
+    for(let i=0;i<k*b;i++){pts.push([i%b,Math.floor(i/b)*DY]);fl.push(0)}
+    if(r){let hc=Math.max(1,k);if(r>hc*4)hc=Math.ceil(Math.sqrt(r*1.3));const cx=k?b+1.9:0,nc=Math.ceil(r/hc);
+      for(let j=0;j<r;j++){pts.push([cx+Math.floor(j/hc),(j%hc)*DY]);fl.push(F_REST)}
+      labels.push([cx+(nc-1)/2,-1.95,'reste '+r,'ko','c']);boxes.push([cx-.6,-1.75,cx+nc-.4,((Math.min(hc,r))-1)*DY+.35,'rgba(255,107,107,.55)'])}
+    if(o.rowNums!==false&&k>1&&k<=30)for(let j=0;j<k;j++)labels.push([-1.05,j*DY-.62,String(j+1),'mut','r',.85]);
+    if(o.top&&k)labels.push([(b-1)/2,-1.95,o.top,'gold','c']);
+    return{pts,fl,labels,boxes}},
+  /* n danseurs en d rangées égales (test de primalité) + reste */
+  drows(n,d){const q=Math.floor(n/d),r=n-q*d,pts=[],fl=[],labels=[],boxes=[];
+    for(let i=0;i<q*d;i++){pts.push([i%q,Math.floor(i/q)*DY]);fl.push(0)}
+    if(r){const hc=Math.max(1,Math.min(d,Math.ceil(r/Math.max(1,Math.ceil(r/d))))),cx=q+1.9,nc=Math.ceil(r/hc);
+      for(let j=0;j<r;j++){pts.push([cx+Math.floor(j/hc),(j%hc)*DY]);fl.push(F_REST)}
+      labels.push([cx+(nc-1)/2,-1.95,'reste '+r,'ko','c']);boxes.push([cx-.6,-1.75,cx+nc-.4,(Math.min(hc,r)-1)*DY+.35,'rgba(255,107,107,.55)'])}
+    if(d<=30)for(let j=0;j<d;j++)labels.push([-1.05,j*DY-.62,String(j+1),'mut','r',.85]);
+    return{pts,fl,labels,boxes}},
+  /* G groupes égaux (+ reste) : duos, groupes de 4, décomposition… */
+  groups(n,m,o){o=o||{};const G=Math.floor(n/m),r=n-G*m,tg=Math.sqrt(m*DY*.9),ic=o.ic||(A.divisors(m).find(d=>d>=tg-.01)||m),ir=Math.ceil(m/ic);
+    const gx=o.gap!=null?o.gap:Math.max(.9,Math.min(1.5,ic*.3)),gy=gx*1.1,cw=ic+gx,ch=ir*DY+gy;
+    const AR=areaAR();let best=1,bs=0;
+    for(let gc=1;gc<=Math.max(1,G);gc++){const gr=Math.ceil(G/gc),w=gc*cw+(r?2.5:0),h=gr*ch;const s=Math.min(AR/w,1/h);if(s>bs){bs=s;best=gc}}
+    const gc=o.gc||best,gr=Math.ceil(G/gc),pts=[],fl=[],cols=[],boxes=[],labels=[],pal=o.pal||[C_BLUE,C_GOLD,C_TEAL,C_VIOLET,C_PINK,C_GREEN];
+    for(let j=0;j<G;j++){const bx=(j%gc)*cw,by=Math.floor(j/gc)*ch;
+      for(let q=0;q<m;q++){pts.push([bx+(q%ic),by+Math.floor(q/ic)*DY]);fl.push(0);cols.push(o.colOf?o.colOf(j,q):pal[j%pal.length])}
+      if(o.boxes!==false&&G<=80&&m>1)boxes.push([bx-.5,by-1.7,bx+Math.min(m,ic)-.5,by+(ir-1)*DY+.32])}
+    if(r){const cx=gc*cw+1.2,hc=Math.max(1,Math.min(gr*Math.max(1,ir),Math.ceil(Math.sqrt(r*2))));
+      for(let j=0;j<r;j++){pts.push([cx+Math.floor(j/hc),((gr*ch-gy)/2-((Math.min(r,hc))*DY)/2+DY*.5)+(j%hc)*DY]);fl.push(o.restFlag!=null?o.restFlag:F_REST);cols.push(o.restCol!=null?o.restCol:(o.colOf?o.colOf(G,j):C_WHITE))}
+      if(o.restLabel)labels.push([cx+(Math.ceil(r/hc)-1)/2,pts[pts.length-r][1]-1.95,o.restLabel,o.restFlag===F_SPOT?'gold':'ko','c'])}
+    return{pts,fl,cols,boxes,labels}},
+  duo(n,o){o=o||{};return Lay.groups(n,2,Object.assign({ic:2,gap:.75,pal:o.pal||[C_BLUE,C_VIOLET,C_TEAL],restFlag:F_SPOT,restCol:C_GOLD,restLabel:'soliste',boxes:false},o))},
+  square(s,mode){const pts=[],fl=[],cols=[],labels=[],boxes=[];const k=(s-1)/2,gp=mode==='regions'?.75:0;
+    const X=c=>c+(c>=k?gp:0)+(c>k?gp:0);
+    for(let r=0;r<s;r++)for(let c=0;c<s;c++){pts.push([X(c),r*DY+(r>=k?gp*1.4:0)+(r>k?gp*1.4:0)]);
+      const center=r===k&&c===k,arm=(r===k)!==(c===k);
+      if(mode==='regions'){cols.push(center?C_GOLD:arm?C_TEAL:C_BLUE);fl.push(center?F_SPOT:0)}else{cols.push([C_BLUE,C_VIOLET][(r+c)%2]);fl.push(0)}}
+    if(mode==='regions'&&k>=1){const yk=-1.95;labels.push([(k-1)/2,yk,'k² = '+k*k,'ac','c'],[X(k),yk,'k = '+k,'gold','c'],[X(k+1)+(k-1)/2,yk,'k² = '+k*k,'ac','c'])}
+    return{pts,fl,cols,labels,boxes}},
+  /* deux troupes rangées par a, côte à côte ou fusionnées */
+  two(nA,nB,a,merged,o){o=o||{};const kA=nA/a,kB=nB/a,pts=[],cols=[],labels=[];
+    for(let i=0;i<nA;i++){pts.push([i%a,Math.floor(i/a)*DY]);cols.push(C_BLUE)}
+    for(let i=0;i<nB;i++){const x=merged?i%a:a+2.4+i%a,y=merged?(kA+Math.floor(i/a))*DY+.35:Math.floor(i/a)*DY;pts.push([x,y]);cols.push(C_GOLD)}
+    if(!merged){labels.push([(a-1)/2,-1.95,o.la||'','ac','c'],[a+2.4+(a-1)/2,-1.95,o.lb||'','gold','c'])}else labels.push([(a-1)/2,-1.95,o.lm||'','gold','c']);
+    return{pts,cols,labels}},
+  /* trois rangées n, n+1, n+2 ; « moved » : le dernier de la 3e rangée rejoint la 1re */
+  three(n,moved){const pts=[],cols=[],labels=[],L=[n,n+1,n+2],cc=[C_TEAL,C_VIOLET,C_PINK];let idx=0;
+    for(let r=0;r<3;r++)for(let c=0;c<L[r];c++){const last=r===2&&c===n+1;pts.push(moved&&last?[n,0]:[c,r*DY]);cols.push(cc[r]);idx++}
+    for(let r=0;r<3;r++)labels.push([n+2.7,r*DY-.62,String(moved?n+1:L[r]),r===1||moved?'gold':'mut','l']);
+    return{pts,cols,labels}},
+  /* équipes : t équipes de a danseurs (bleu) et b figurants (or) */
+  teams(A,B,t){const a=Math.floor(A/t),b=Math.floor(B/t),ra=A-a*t,rb=B-b*t,m=a+b;
+    const ic=Math.max(1,Math.round(Math.sqrt(m*DY*.9))),ir=Math.ceil(m/ic),gx=Math.max(.9,Math.min(1.5,ic*.3)),gy=gx*1.1,cw=ic+gx,ch=ir*DY+gy;
+    const rest=ra+rb,AR=areaAR();let best=1,bs=0;
+    for(let gc=1;gc<=t;gc++){const gr=Math.ceil(t/gc),w=gc*cw+(rest?3:0),h=gr*ch;const s=Math.min(AR/w,1/h);if(s>bs){bs=s;best=gc}}
+    const gc=best,gr=Math.ceil(t/gc),pts=new Array(A+B),fl=new Array(A+B).fill(0),cols=new Array(A+B),boxes=[],labels=[];
+    for(let j=0;j<t;j++){const bx=(j%gc)*cw,by=Math.floor(j/gc)*ch;
+      for(let q=0;q<m;q++){const idx=q<a?j*a+q:A+j*b+(q-a);pts[idx]=[bx+(q%ic),by+Math.floor(q/ic)*DY];cols[idx]=q<a?C_BLUE:C_GOLD}
+      if(t<=80&&t>1)boxes.push([bx-.5,by-1.7,bx+Math.min(m,ic)-.5,by+(ir-1)*DY+.32])}
+    if(rest){const cx=gc*cw+1.3,hc=Math.max(2,Math.min(Math.max(gr*ir,2),Math.ceil(Math.sqrt(rest*2))));let j=0;
+      const put=(idx,c)=>{pts[idx]=[cx+Math.floor(j/hc),(j%hc)*DY];cols[idx]=c;fl[idx]=F_REST;j++};
+      for(let q=0;q<ra;q++)put(a*t+q,C_BLUE);for(let q=0;q<rb;q++)put(A+b*t+q,C_GOLD);
+      labels.push([cx+(Math.ceil(rest/hc)-1)/2,-1.95,'sans équipe : '+rest,'ko','c'])}
+    return{pts,fl,cols,boxes,labels}}
+};
+function snap(){return{n:D.n,col:D.col.slice(0,D.n),cur,chap:chapNow,cnt:$('count').textContent}}
+function restore(s){D.n=s.n;D.col.set(s.col);setChapter(s.chap);$('count').textContent=s.cnt;if(s.cur)go(s.cur,{instant:true,sound:false})}
+window.LC_S={snap,restore,areaAR,A,sup,fmt,factStr,frac,ri,pick,shuf,DY,Lay,go,troupe,recolor,dance,stopDance,pulse,setChapter,resize,reduceM,
+  C:{C_BLUE,C_GOLD,C_CORAL,C_TEAL,C_VIOLET,C_WHITE,C_PINK,C_GREEN},F:{F_REST,F_SPOT,F_DIM},D,BEAT,count:n=>{$('count').textContent=n+' danseur'+(n>1?'s':'')}};
+resize();
+})();
+</script>
+<script>
+/* ======================= LE CLIP — jeu (niveaux, widgets) ======================= */
+(function(){
+'use strict';
+const S=window.LC_S,{A,sup,fmt,factStr,frac,ri,pick,shuf,Lay,go,troupe,dance,pulse,setChapter}=S,{C_BLUE,C_GOLD,C_TEAL,C_VIOLET,C_PINK,C_WHITE}=S.C;
+const $=id=>document.getElementById(id);
+const cap=h=>{$('capt').innerHTML=h||'&nbsp;'};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const norm=s=>String(s).toLowerCase().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/[×*·]/g,'x').replace(/^\+/,'')
+  .replace(/₁/g,'1').replace(/₂/g,'2').replace(/\^2/g,'²').replace(/\^3/g,'³').replace(/k_/g,'k').replace(/′|'/g,'′');
+const par=n=>n%2?'impair':'pair';
+const sleep=ms=>new Promise(r=>setTimeout(r,S.reduceM?Math.min(ms,60):ms));
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+
+/* ---------- bruitages ---------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),gn=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(v,t+.015);gn.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(gn);gn.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+function noise(d,v){const a=ac();if(!a)return;const b=a.createBuffer(1,Math.floor(a.sampleRate*d),a.sampleRate),x=b.getChannelData(0);for(let i=0;i<x.length;i++)x[i]=(Math.random()*2-1)*Math.pow(1-i/x.length,3);
+  const s=a.createBufferSource(),f=a.createBiquadFilter(),gn=a.createGain();f.type='bandpass';f.frequency.value=1800;gn.gain.value=v;s.buffer=b;s.connect(f);f.connect(gn);gn.connect(a.destination);s.start()}
+const SND={pop(){if(snd){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)}},step(){if(snd)noise(.09,.18)},
+  soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))},clap(){if(snd){noise(.06,.22);tone(196,.12,.04,'sine')}}};
+window.LC_SND=SND;
+
+/* ---------- état ---------- */
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,solved=false,mode='game',busy=false;
+let partState={};
+function starsOf(i){try{const g=SigmaKit.passport().games['le-clip'];return g&&g.levels[i+1]||0}catch(e){return 0}}
+
+/* ---------- widgets ---------- */
+function fb(html){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fb').hidden=false}
+const api={err(why){errs++;SND.soft();fb(why);partState.errors=(partState.errors||0)+1},ok(){fb('');nextPart()}};
+const W={};
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);api.ok()}};
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{if(busy)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){box.querySelectorAll('.opt').forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}api.ok()}
+    else{b.classList.add('ko');b.disabled=true;api.err(c.why);if(p.onKo)p.onKo(c)}})};
+W.fill=(p,box)=>{const numeric=p.ans.every(a=>/^\d+$/.test(a[0]));let k=0;
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>`<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" ${numeric?'inputmode="numeric"':''} aria-label="Case ${+i+1}" style="width:${Math.max(2.6,(p.size&&p.size[i])||Math.max(...p.ans[i].map(a=>a.length))*.75+1.6)}em">`);
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`;
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=e=>{e.preventDefault();if(busy)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=p.check?p.check(v):v.map((x,i)=>p.ans[+ins[i].dataset.i].some(a=>norm(a)===norm(x)));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();api.ok()}
+    else api.err(typeof p.why==='function'?p.why(v,oks):p.why)};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* chasse aux formations : toutes les tailles de rangée b */
+W.hunt=(p,box)=>{const n=p.n,ds=A.divisors(n),found=new Set(),pairs=ds.filter(d=>d*d<=n);
+  box.innerHTML=`<p class="ask">${p.ask||'Touche une taille de rangée :'}</p><div class="chips">${Array.from({length:n},(_,i)=>`<button type="button" class="chip" data-b="${i+1}" aria-label="Rangées de ${i+1}">${i+1}</button>`).join('')}</div>
+   <p class="hint">Formations trouvées (rangées de b × nombre de rangées)&nbsp;:</p><div class="pairs"></div>`;
+  const pr=box.querySelector('.pairs');
+  const show=()=>{pr.innerHTML=pairs.map(k=>found.has(k)?`<span class="pair">${n/k} × ${k}</span>`:'<span class="pair todo">? × ?</span>').join('')};show();
+  box.querySelectorAll('.chip').forEach(c=>c.onclick=async()=>{if(busy)return;const b=+c.dataset.b,k=Math.floor(n/b),r=n-k*b;busy=true;
+    box.querySelectorAll('.chip').forEach(x=>x.classList.remove('cur'));c.classList.add('cur');SND.pop();
+    cap(`Rangées de ${b}…`);await go(Lay.rows(n,b,{top:k?`${k} rangée${k>1?'s':''} de ${b}`:''}));
+    if(!r){c.classList.add('yes');const q=box.querySelector(`.chip[data-b="${k}"]`);if(q)q.classList.add('yes');found.add(Math.min(b,k));show();
+      cap(`${n} = ${k} × ${b} <span class="m">· pile&nbsp;! ${b} et ${k} sont des diviseurs de ${n}</span>`);dance(1600)}
+    else{c.classList.add('no');cap(`${n} = ${k} × ${b} + <span class="r">${r}</span> <span class="m">· il reste ${r} danseur${r>1?'s':''}</span>`)}
+    busy=false;
+    if(found.size===pairs.length){box.querySelectorAll('.chip').forEach(x=>x.disabled=true);api.ok()}})};
+/* démonstration à étiquettes (toucher ou glisser) */
+W.proof=(p,box)=>{let sel=null;const filled={};
+  const lines=p.lines.map((l,li)=>`<div class="ln" data-l="${li}">${l.replace(/\[(\w+)\]/g,(_,s)=>`<button type="button" class="slot" data-s="${s}" aria-label="Case vide">…</button>`)}</div>`).join('');
+  const tiles=shuf(p.tiles.slice());
+  box.innerHTML=`<p class="ask">${p.ask||'Complète la démonstration&nbsp;: touche une étiquette, puis la case où elle va (ou fais-la glisser).'}</p><div class="proof">${lines}</div><div class="tiles">${tiles.map(t=>`<button type="button" class="tile" data-t="${t.id}" aria-pressed="false">${t.h}</button>`).join('')}</div>`;
+  const lit=()=>box.querySelectorAll('.ln').forEach(l=>{const ss=[...l.querySelectorAll('.slot')];if(ss.length&&ss.every(s=>filled[s.dataset.s]))l.classList.add('lit')});
+  box.querySelectorAll('.ln').forEach(l=>{if(!l.querySelector('.slot'))l.classList.add('lit','given')});
+  function place(tid,sid){const t=p.tiles.find(x=>x.id===tid),sl=box.querySelector(`.slot[data-s="${sid}"]`);if(!t||!sl||filled[sid])return;
+    if(p.sol[sid]===tid){filled[sid]=1;sl.innerHTML=t.h;sl.classList.add('ok');sl.disabled=true;box.querySelector(`.tile[data-t="${tid}"]`).remove();SND.pop();fb('');lit();
+      if(Object.keys(filled).length===Object.keys(p.sol).length){box.querySelectorAll('.tile').forEach(x=>x.disabled=true);
+        (async()=>{if(p.onDone){busy=true;try{await p.onDone()}finally{busy=false}}api.ok()})()}}
+    else{sl.classList.remove('shake');void sl.offsetWidth;sl.classList.add('shake');
+      const elsewhere=Object.keys(p.sol).find(s=>p.sol[s]===tid);
+      api.err((t.why&&(t.why[sid]||t.why['*']))||(elsewhere?'Bonne étiquette, mais pas à cette place. ':'')+(p.hint[sid]||''))}
+    sel=null;box.querySelectorAll('.tile').forEach(x=>x.setAttribute('aria-pressed','false'))}
+  box.addEventListener('click',e=>{if(busy)return;const t=e.target.closest('.tile'),s=e.target.closest('.slot');
+    if(t&&!t.disabled){if(t.dataset.drag==='1'){t.dataset.drag='';return}const on=sel!==t.dataset.t;box.querySelectorAll('.tile').forEach(x=>x.setAttribute('aria-pressed','false'));sel=on?t.dataset.t:null;t.setAttribute('aria-pressed',String(on))}
+    else if(s&&!s.classList.contains('ok')){if(sel)place(sel,s.dataset.s);else fb('Choisis d\'abord une étiquette en bas, puis touche cette case.')}});
+  /* glisser-déposer au doigt ou à la souris */
+  box.addEventListener('pointerdown',e=>{const t=e.target.closest('.tile');if(!t||t.disabled||busy)return;const x0=e.clientX,y0=e.clientY;let gh=null,hot=null;
+    const mv=ev=>{if(!gh&&Math.hypot(ev.clientX-x0,ev.clientY-y0)<8)return;
+      if(!gh){gh=t.cloneNode(true);gh.classList.add('ghost');document.body.appendChild(gh);t.style.opacity='.35';try{t.setPointerCapture(e.pointerId)}catch(_){}}
+      gh.style.left=ev.clientX+'px';gh.style.top=ev.clientY+'px';const el=document.elementFromPoint(ev.clientX,ev.clientY),s=el&&el.closest('.slot:not(.ok)');
+      if(hot&&hot!==s)hot.classList.remove('hot');hot=s;if(s)s.classList.add('hot');ev.preventDefault()};
+    const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);
+      if(gh){gh.remove();t.style.opacity='';t.dataset.drag='1';setTimeout(()=>{t.dataset.drag=''},0);if(hot){hot.classList.remove('hot');place(t.dataset.t,hot.dataset.s)}}};
+    addEventListener('pointermove',mv,{passive:false});addEventListener('pointerup',up);addEventListener('pointercancel',up)})};
+/* échelle de divisions successives */
+W.ladder=(p,box)=>{const n=p.n;let m=n;const chips=p.chips||[2,3,4,5,6,7,9,11,13];const rows=[];
+  box.innerHTML=`<p class="ask">${p.ask||'Divise par un nombre premier qui divise le nombre en jaune&nbsp;:'}</p><table class="ladder" aria-label="Divisions successives"><tbody></tbody></table>
+   <div class="chips">${chips.map(c=>`<button type="button" class="chip" data-p="${c}" aria-label="Diviser par ${c}">${c}</button>`).join('')}</div><p class="wr" hidden></p>`;
+  const tb=box.querySelector('tbody');
+  const render=nw=>{tb.innerHTML=rows.map((r,i)=>`<tr${i===rows.length-1&&nw?' class="new"':''}><td>${r[0]}</td><td class="p">${r[1]}</td></tr>`).join('')+(m>1?`<tr class="cur"><td>${m}</td><td class="p">?</td></tr>`:'<tr><td>1</td><td></td></tr>')};render();
+  partState.m=m;
+  box.querySelectorAll('.chip').forEach(c=>c.onclick=async()=>{if(busy||m===1)return;const q=+c.dataset.p;
+    if(m%q){const k=Math.floor(m/q);api.err(`${m} = ${k} × ${q} + ${m-k*q}&nbsp;: il resterait ${m-k*q} danseur${m-k*q>1?'s':''} par groupe. ${q} ne divise pas ${m}.`);pulse();return}
+    if(!A.isPrime(q)){api.err(`${q} divise bien ${m}, mais ${q} n'est pas premier (${q} = ${factStr(q)})&nbsp;: on divise par des nombres premiers, en commençant par les plus petits.`);return}
+    busy=true;fb('');SND.pop();rows.push([m,q]);m/=q;partState.m=m;render(true);
+    const G=n/m;cap(`${m*q} = ${q} × ${m} <span class="m">· ${G} groupe${G>1?'s':''} de ${m}${m===1?' : indivisibles':''}</span>`);
+    await go(Lay.groups(n,m,{boxes:m>1}));busy=false;
+    if(m===1){box.querySelectorAll('.chip').forEach(x=>x.disabled=true);const w=box.querySelector('.wr');w.hidden=false;w.textContent=`${n} = ${rows.map(r=>r[1]).join(' × ')}`;dance(1800);api.ok()}})};
+/* test de primalité : d de 2 tant que d² ≤ n */
+W.test=(p,box)=>{const n=p.n;let d=2,found=0,over=false;
+  box.innerHTML=`<p class="ask">${p.ask||`Teste les diviseurs d à partir de 2, tant que d² ≤ ${n}.`}</p><div class="ttw"><table class="tt"><thead><tr><th>d</th><th>d²</th><th>${n} en d rangées</th><th>reste</th></tr></thead><tbody></tbody></table></div>
+   <div class="btns"><button type="button" class="btn or tst">Tester d = 2</button><button type="button" class="btn gh auto">Tester jusqu'au bout</button><button type="button" class="btn gh concl">Conclure</button></div><p class="hint tmsg" aria-live="polite"></p>`;
+  const tb=box.querySelector('tbody'),bt=box.querySelector('.tst'),ba=box.querySelector('.auto'),bc=box.querySelector('.concl'),msg=box.querySelector('.tmsg');
+  partState.d=d;
+  async function one(){const q=Math.floor(n/d),r=n-q*d;
+    tb.insertAdjacentHTML('beforeend',`<tr><td>${d}</td><td>${d*d}</td><td>${n} = ${q} × ${d}${r?' + '+r:''}</td><td class="${r?'':'z'}">${r?r:'0 : pile !'}</td></tr>`);
+    cap(`${d} rangées de ${q}${r?` <span class="m">+</span> <span class="r">reste ${r}</span>`:' <span class="k">· pile !</span>'}`);
+    await go(Lay.drows(n,d));
+    if(!r){found=d;dance(2000);msg.innerHTML=`${d} divise ${n}&nbsp;: ${n} = ${d} × ${q}. On a trouvé un diviseur autre que 1 et ${n}.`;bt.disabled=ba.disabled=true;return false}
+    if((d+1)*(d+1)>n){over=true;msg.innerHTML=`Prochain essai&nbsp;: ${d+1}² = ${(d+1)*(d+1)} &gt; ${n}. Inutile d'aller plus loin&nbsp;!`;bt.disabled=ba.disabled=true;return false}
+    d++;partState.d=d;bt.textContent=`Tester d = ${d}`;return true}
+  bt.onclick=async()=>{if(busy)return;busy=true;fb('');SND.pop();await one();busy=false};
+  ba.onclick=async()=>{if(busy)return;busy=true;fb('');bt.disabled=ba.disabled=true;while(await one())await S.waitBeat();if(!found&&!over){bt.disabled=ba.disabled=false}busy=false};
+  bc.onclick=()=>{if(busy)return;if(!found&&!over){api.err(`Pas encore&nbsp;: il faut tester d = ${d}, car ${d}² = ${d*d} ≤ ${n}.`);return}
+    box.querySelectorAll('button').forEach(x=>x.disabled=true);partState.done=1;api.ok()}};
+/* équipes identiques (deux troupes) */
+W.teams=(p,box)=>{const a=p.A,b=p.B,best=A.common(a,b),mx=Math.min(a,b);let t=p.t0||2;
+  box.innerHTML=`<p class="ask">${p.ask||'Choisis un nombre d\'équipes, puis forme-les&nbsp;:'}</p><div class="btns"><div class="step"><button type="button" data-d="-1" aria-label="Une équipe de moins">−</button><input class="tn" inputmode="numeric" aria-label="Nombre d'équipes" value="${t}"><button type="button" data-d="1" aria-label="Une équipe de plus">+</button></div>
+    <button type="button" class="btn or form">Former les équipes</button></div><p class="hint tmsg" aria-live="polite"></p>`;
+  const inp=box.querySelector('.tn'),msg=box.querySelector('.tmsg');
+  const val=()=>{let v=parseInt(inp.value,10);if(isNaN(v))v=1;v=Math.max(1,Math.min(mx,v));inp.value=v;return v};
+  box.querySelectorAll('[data-d]').forEach(x=>x.onclick=()=>{inp.value=Math.max(1,Math.min(mx,val()+ +x.dataset.d))});
+  box.querySelector('.form').onclick=async()=>{if(busy)return;t=val();busy=true;fb('');SND.pop();
+    const ea=Math.floor(a/t),eb=Math.floor(b/t),ra=a-ea*t,rb=b-eb*t;
+    await go(Lay.teams(a,b,t));busy=false;
+    if(ra||rb){cap(`${t} équipes <span class="m">·</span> <span class="r">${ra+rb} sans équipe</span>`);pulse();
+      msg.innerHTML=(ra?`${a} = ${ea} × ${t} + ${ra}&nbsp;: il reste ${ra} danseur${ra>1?'s':''}. `:'')+(rb?`${b} = ${eb} × ${t} + ${rb}&nbsp;: il reste ${rb} figurant${rb>1?'s':''}. `:'')+`${t} ne divise pas ${ra&&rb?`${a} et ${b}`:ra?a:b}.`;return}
+    cap(`${t} équipe${t>1?'s':''} de <span class="k">${ea}</span> danseurs et <span class="k">${eb}</span> figurants`);
+    if(t<best){const q=A.flat(A.common(ea,eb))[0];msg.innerHTML=`Ça marche&nbsp;! Mais ${ea} et ${eb} sont encore tous deux divisibles par ${q}&nbsp;: chaque équipe peut encore se couper en ${q}. Essaie plus d'équipes.`;return}
+    msg.innerHTML=`${t} équipes de ${ea} danseurs et ${eb} figurants. ${ea} et ${eb} n'ont plus de diviseur commun autre que 1&nbsp;: impossible de faire plus.`;
+    box.querySelectorAll('button,input').forEach(x=>x.disabled=true);dance(2200);api.ok()}};
+/* barrer les facteurs communs */
+W.barrer=(p,box)=>{const a=p.A,b=p.B,N=A.flat(a),Dn=A.flat(b),cutN=N.map(()=>0),cutD=Dn.map(()=>0);let t=1;
+  const rowH=(arr,side)=>arr.map((f,i)=>`${i?'<span class="x">×</span>':''}<button type="button" class="fct" data-s="${side}" data-i="${i}" aria-label="Facteur ${f}">${f}</button>`).join('');
+  box.innerHTML=`<p class="ask">${p.ask||''}${a} = ${factStr(a)} et ${b} = ${factStr(b)}. Touche un facteur commun pour le barrer en haut et en bas.</p>
+    <div class="barr"><div class="row">${rowH(N,'n')}</div><div class="bar"></div><div class="row">${rowH(Dn,'d')}</div></div>
+    <div class="btns" style="margin-top:12px"><button type="button" class="btn gh fin">Plus aucun facteur commun</button></div>`;
+  const left=()=>N.some((f,i)=>!cutN[i]&&Dn.some((g,j)=>g===f&&!cutD[j]));
+  box.querySelectorAll('.fct').forEach(x=>x.onclick=async()=>{if(busy||x.classList.contains('cut'))return;const s=x.dataset.s,i=+x.dataset.i,f=(s==='n'?N:Dn)[i];
+    const other=s==='n'?Dn:N,oc=s==='n'?cutD:cutN,j=other.findIndex((g,k)=>g===f&&!oc[k]);
+    if(j<0){api.err(`${f} n'apparaît pas ${s==='n'?'au dénominateur':'au numérateur'} (ou il y est déjà barré)&nbsp;: on ne barre que les facteurs communs.`);return}
+    (s==='n'?cutN:cutD)[i]=1;oc[j]=1;x.classList.add('cut','anim');box.querySelector(`.fct[data-s="${s==='n'?'d':'n'}"][data-i="${j}"]`).classList.add('cut','anim');
+    fb('');SND.pop();t*=f;busy=true;cap(`On barre ${f}&nbsp;: ${t} équipes de <span class="k">${a/t}</span> danseurs et <span class="k">${b/t}</span> figurants`);
+    await go(Lay.teams(a,b,t));busy=false;partState.t=t});
+  box.querySelector('.fin').onclick=()=>{if(busy)return;if(left()){const f=N.find((f,i)=>!cutN[i]&&Dn.some((g,j)=>g===f&&!cutD[j]));api.err(`Il reste un facteur commun&nbsp;: ${f} apparaît encore en haut et en bas.`);return}
+    box.querySelectorAll('button').forEach(x=>x.disabled=true);dance(1800);api.ok()}};
+
+/* ---------- déroulé d'une question ---------- */
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;partState={};if(pi<Q.parts.length){const p=Q.parts[pi],box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:S.reduceM?'auto':'smooth'})}}
+const LV=[];
+function newQ(){Q=LV[lvl].qs[qi]();pi=0;errs=0;solved=false;partState={};
+  setChapter(LV[lvl].ch);troupe(Q.n,Q.col);S.count(Q.n);go(Q.start||Lay.crowd(Q.n),{sound:false});cap(Q.cap0||`${Q.n} danseurs attendent le signal`);
+  $('prompt').innerHTML=Q.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  const box=partEl();W[Q.parts[0].t](Q.parts[0],box)}
+function dots(){const N=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:N},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){solved=true;fb('');SND.win();run.push(errs===0);dots();
+  const N=LV[lvl].qs.length,lvlDone=run.length>=N;
+  $('winx').textContent=errs===0?pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=Q.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;dance(Q.danceMs||2600);if(Q.onWin)Q.onWin();
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const L=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:L,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==L||mode!=='game')return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:S.reduceM?'auto':'smooth'})};
+function goLevel(l){mode='game';lvl=l;qi=0;run=[];$('game').hidden=false;$('clipv').hidden=true;window.LC_CLIP&&LC_CLIP.stop();
+  $('chap').textContent=S.chapName(LV[l].ch);$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;renderLv();newQ()}
+function renderLv(){$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${mode==='game'&&i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<button type="button" class="clipb" data-l="clip" aria-pressed="${mode==='clip'}">★ Mon clip</button><span class="sp"></span>`+
+  `<button type="button" class="tool" id="projb" aria-pressed="false">Vidéoprojecteur</button><button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('sigma-fanfare',snd?'1':'0')}catch(_){}renderLv();SND.pop();return}
+  if(b.id==='projb'){window.LC_CLIP&&LC_CLIP.proj(true);return}
+  if(b.dataset.l==='clip'){mode='clip';$('game').hidden=true;$('clipv').hidden=false;renderLv();LC_CLIP.open();return}
+  goLevel(+b.dataset.l)});
+
+/* ---------- fabriques ---------- */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+const ch=(ask,list,o)=>Object.assign({t:'choice',ask,ch:list},o||{});
+const fill=(ask,tpl,ans,why,o)=>Object.assign({t:'fill',ask,tpl,ans,why},o||{});
+const OK=h=>({h,ok:true}),NO=(h,why)=>({h,why});
+const capThen=(h,L,o)=>async()=>{cap(h[0]);await go(L,o);cap(h[1]);if(h[2])dance(h[2])};
+const fillInt=(n)=>[String(n)];
+const fr=frac;
+
+/* ===== Niveau 1 · Rangées pile ===== */
+LV.push({t:'Rangées pile',ch:0,
+ rule:`<p><b>a est un multiple de b</b> s'il existe un entier k tel que a = k × b&nbsp;; b est alors un <b>diviseur</b> de a.</p><p>Sur scène&nbsp;: n danseurs se rangent en rangées de b <b>pile</b> exactement quand n = k × b. Sinon, il reste des danseurs sur le côté&nbsp;: 28 = 3 × 8 + 4, reste 4&nbsp;: 28 n'est pas multiple de 8.</p>`,
+ qs:[
+ ()=>{const [n,b]=pick([[36,12],[36,12],[54,6],[45,9],[72,8],[48,6],[42,7],[60,12]]),k=n/b;
+  return{n,prompt:`Ta troupe compte <b>${n} danseurs</b>. Le clip demande des rangées de <b>${b}</b>.`,meta:{k:'tk',n,b},
+   parts:[act(`Ranger par ${b}`,capThen([`Rangées de ${b}…`,`${k} rangées de ${b} <span class="m">· reste</span> <span class="k">0</span>`,1400],Lay.rows(n,b,{top:`${k} rangées de ${b}`}))),
+     fill('Complète l\'égalité lue sur la scène&nbsp;:',`${n} = {0} × ${b}`,[fillInt(k)],v=>{const x=parseInt(v[0],10);return (isNaN(x)?'':`${x} × ${b} = ${x*b}, et non ${n}. `)+`Compte les rangées sur la scène&nbsp;: chacune compte ${b} danseurs.`},{meta:{k:'tk',n,b}})],
+   done:`${n} = ${k} × ${b}&nbsp;: la formation tombe pile. ${n} est un <b>multiple</b> de ${b}, et ${b} est un <b>diviseur</b> de ${n}.`}},
+ ()=>{const [n,b]=pick([[28,8],[28,8],[50,6],[24,7],[38,5],[46,7],[33,4],[58,9]]),q=Math.floor(n/b),r=n%b,r2=r>1?r-1:r+1;
+  const dv=A.divisors(n).filter(d=>d>1&&d<n&&d!==b&&d<=n/d),d=dv.length?pick(dv):0;
+  const L=[OK(`Non&nbsp;: ${n} = ${q} × ${b} + ${r}, il reste ${r} danseur${r>1?'s':''}.`),
+    NO(`Oui&nbsp;: ${n} est un multiple de ${b}.`,`Regarde le côté de la scène&nbsp;: ${r} danseur${r>1?'s':''} n'${r>1?'ont':'a'} pas de rangée. ${n} = ${q} × ${b} + ${r}&nbsp;: le reste n'est pas nul.`),
+    NO(`Non&nbsp;: ${n} = ${q-1} × ${b} + ${r+b}, il reste ${r+b} danseurs.`,`Avec ${r+b} danseurs, on peut encore former une rangée de ${b}&nbsp;: le reste doit être plus petit que ${b}. ${n} = ${q} × ${b} + ${r}.`)];
+  if(d)L.push(NO(`Oui&nbsp;: ${n} = ${n/d} × ${d}.`,`C'est vrai, mais ici les rangées sont de ${b}, pas de ${d}&nbsp;: ${n} est un multiple de ${d}, pas de ${b}.`));
+  return{n,prompt:`Ta troupe compte <b>${n} danseurs</b>. Cette fois, le clip demande des rangées de <b>${b}</b>.`,
+   parts:[act(`Ranger par ${b}`,capThen([`Rangées de ${b}…`,`${q} rangées de ${b} <span class="m">+</span> <span class="r">reste ${r}</span>`],Lay.rows(n,b,{top:`${q} rangées de ${b}`}))),
+     ch(`${n} est-il un multiple de ${b}&nbsp;?`,L,{meta:{k:'remq',n,b},onKo:()=>pulse()})],
+   done:`${n} = ${q} × ${b} + ${r}&nbsp;: le reste ${r} n'est pas nul, donc ${n} <b>n'est pas</b> un multiple de ${b}.`}},
+ ()=>{const n=pick([12,18,20,24,16,30]),ds=A.divisors(n);
+  return{n,prompt:`Trouve <b>toutes</b> les formations possibles de <b>${n} danseurs</b>, sans personne sur le côté.`,
+   parts:[{t:'hunt',n,ask:'Touche une taille de rangée pour l\'essayer&nbsp;:'}],
+   done:`Diviseurs de ${n}&nbsp;: ${ds.join(', ')}. Chaque formation pile ${n} = k × b donne deux diviseurs, b et k.`}},
+ ()=>{let b,k;do{b=ri(3,9);k=ri(3,9)}while(b===k);const n=b*k;
+  return{n,prompt:`<b>${n} danseurs</b>, rangées de <b>${b}</b>.`,
+   parts:[act(`Ranger par ${b}`,capThen([`Rangées de ${b}…`,`${n} = ${k} × ${b}`,1400],Lay.rows(n,b,{top:`${k} rangées de ${b}`}))),
+     ch(`${n} = ${k} × ${b}. Que peut-on affirmer&nbsp;?`,[OK(`${b} est un diviseur de ${n}.`),
+       NO(`${n} est un diviseur de ${b}.`,`C'est l'inverse&nbsp;: ${b} divise ${n}, car ${n} = ${k} × ${b}. Le diviseur, c'est la taille d'une rangée, pas la troupe entière.`),
+       NO(`${b} est un multiple de ${n}.`,`${b} est plus petit que ${n}&nbsp;: c'est ${n} qui est un multiple de ${b}.`),
+       NO(`${n} n'est pas un multiple de ${k}.`,`Si&nbsp;: ${n} = ${k} × ${b}, donc ${n} est aussi un multiple de ${k}. Il suffit de former ${b} rangées de ${k}&nbsp;!`)],{meta:{k:'vocab'}})],
+   done:`${n} = ${k} × ${b}&nbsp;: ${b} et ${k} sont des diviseurs de ${n}, et ${n} est un multiple de ${b} et de ${k}.`}},
+ ()=>{const [n,b,f]=pick([[45,9,'m'],[50,6,'m'],[72,8,'d'],[63,7,'d'],[56,6,'m'],[64,9,'d'],[81,9,'m'],[44,6,'d']]),q=Math.floor(n/b),r=n%b;
+  const st=f==='m'?`${n} est un multiple de ${b}`:`${b} divise ${n}`;let L;
+  if(!r)L=[OK(`Vrai&nbsp;: ${n} = ${q} × ${b}.`),NO(`Faux&nbsp;: il reste des danseurs sur le côté.`,`Regarde la scène&nbsp;: personne ne reste sur le côté. ${n} = ${q} × ${b}.`),
+      NO(`Faux&nbsp;: ${n} = ${q-1} × ${b} + ${b}.`,`${q-1} × ${b} + ${b} = ${q} × ${b}&nbsp;: avec ces ${b} danseurs, on forme une rangée de plus. Le reste est 0.`)];
+  else L=[OK(`Faux&nbsp;: ${n} = ${q} × ${b} + ${r}, le reste n'est pas nul.`),
+      NO(`Vrai&nbsp;: ${n} = ${q} × ${b} + ${r}.`,`Cette égalité est juste, mais le reste ${r} n'est pas nul&nbsp;: ${n} n'est pas un multiple de ${b}.`),
+      n%2===0&&b%2===0?NO(`Vrai&nbsp;: ${n} et ${b} sont tous les deux pairs.`,`Être tous deux pairs ne suffit pas&nbsp;: ${n} = ${q} × ${b} + ${r}.`)
+        :NO(`Vrai&nbsp;: il ne reste que ${r} danseur${r>1?'s':''}, c'est presque pile.`,`«&nbsp;Presque&nbsp;» ne suffit pas&nbsp;: pour un multiple, il faut un reste nul.`)];
+  return{n,prompt:`Vrai ou faux&nbsp;: <b>${st}</b>&nbsp;? Fais le test avec ${n} danseurs.`,
+   parts:[act(`Ranger par ${b}`,capThen([`Rangées de ${b}…`,r?`${q} rangées de ${b} <span class="m">+</span> <span class="r">reste ${r}</span>`:`${n} = ${q} × ${b} <span class="k">· pile&nbsp;!</span>`,r?0:1400],Lay.rows(n,b,{top:`${q} rangées de ${b}`}))),
+     ch(`${st}&nbsp;:`,L,{meta:{k:'vf',n,b}})],
+   done:r?`${n} = ${q} × ${b} + ${r}&nbsp;: ${b} ne divise pas ${n}.`:`${n} = ${q} × ${b}&nbsp;: ${n} est un multiple de ${b}, et ${b} divise ${n}.`}}
+]});
+
+/* ===== Niveau 2 · La fusion ===== */
+const hints3={s0:'b est un multiple de 3&nbsp;: b = 3 × un entier, ici k₁.',s1:'c est un multiple de 3&nbsp;: c = 3 × k₂ (c\'est k₂ qui va avec c).',
+  s2:'On factorise par 3&nbsp;: 3k₁ + 3k₂ = 3(k₁ + k₂).',s3:'k, c\'est ce qui reste dans la parenthèse&nbsp;: k₁ + k₂.',s4:'b + c = 3k&nbsp;: c\'est un multiple de 3.'};
+LV.push({t:'La fusion',ch:0,
+ rule:`<p><b>Propriété.</b> La somme de deux multiples de a est un multiple de a.</p><p>Si b = 3k₁ et c = 3k₂ (k₁, k₂ ∈ ℤ), alors b + c = 3k₁ + 3k₂ = 3(k₁ + k₂) = 3k, où k = k₁ + k₂ ∈ ℤ. Remplace 3 par a&nbsp;: la démonstration est identique.</p><p>Exemple&nbsp;: 700 = 7 × 100 et 21 = 7 × 3, donc 721 = 700 + 21 est multiple de 7.</p>`,
+ qs:[
+ ()=>{const k1=ri(2,5),k2=ri(2,5),a=3,X=a*k1,Y=a*k2;
+  return{n:X+Y,start:Lay.two(X,Y,a,false,{la:`${X} = 3 × ${k1}`,lb:`${Y} = 3 × ${k2}`}),cap0:`${X} danseurs en bleu, ${Y} en or`,
+   prompt:`Deux troupes, toutes deux rangées par <b>3</b>, fusionnent pour le refrain&nbsp;: ${X} danseurs en bleu et ${Y} en or.`,
+   parts:[act('Fusionner les deux troupes',capThen(['Fusion…',`${X} + ${Y} = ${X+Y} <span class="m">· rangées de 3, reste</span> <span class="k">0</span>`,1400],Lay.two(X,Y,a,true,{lm:`${X+Y} = 3 × ${k1+k2}`}))),
+     fill('Complète&nbsp;:',`${X} + ${Y} = 3 × {0}`,[fillInt(k1+k2)],`Les rangées s'empilent&nbsp;: ${k1} rangées bleues + ${k2} rangées dorées.`,{meta:{k:'tk',n:X+Y,b:3}})],
+   done:`${X} = 3 × ${k1} et ${Y} = 3 × ${k2}, donc ${X} + ${Y} = 3 × (${k1} + ${k2}) = 3 × ${k1+k2}. La somme de deux multiples de 3 est un multiple de 3.`}},
+ ()=>{const a=ri(4,7);let k1,k2;do{k1=ri(2,4);k2=ri(2,4)}while(k1===k2);const X=a*k1,Y=a*k2;
+  return{n:X+Y,start:Lay.two(X,Y,a,false,{la:`${X} = ${a} × ${k1}`,lb:`${Y} = ${a} × ${k2}`}),cap0:`Deux troupes rangées par ${a}`,
+   prompt:`Deux troupes rangées par <b>${a}</b>&nbsp;: ${X} danseurs en bleu, ${Y} en or.`,
+   parts:[act('Fusionner les deux troupes',capThen(['Fusion…',`${X+Y} danseurs <span class="m">· rangées de ${a}, reste</span> <span class="k">0</span>`,1400],Lay.two(X,Y,a,true,{lm:`${k1+k2} rangées de ${a}`}))),
+     fill('Complète&nbsp;:',`${X} + ${Y} = ${a} × ({0} + {1}) = ${a} × {2}`,[fillInt(k1),fillInt(k2),fillInt(k1+k2)],
+       v=>`${X} = ${a} × ${k1} et ${Y} = ${a} × ${k2}&nbsp;: on met ${a} en facteur, puis ${k1} + ${k2} = ${k1+k2}.`,
+       {check:v=>{const x=v.map(s=>parseInt(s,10)),sw=(x[0]===k1&&x[1]===k2)||(x[0]===k2&&x[1]===k1);return[sw,sw,x[2]===k1+k2]},meta:{k:'fus',a,k1,k2}})],
+   done:`${X} + ${Y} = ${a} × ${k1} + ${a} × ${k2} = ${a} × (${k1} + ${k2}) = ${a} × ${k1+k2}&nbsp;: encore un multiple de ${a}.`}},
+ ()=>{const X=9,Y=6;
+  return{n:X+Y,start:Lay.two(X,Y,3,false,{la:'b = 3k₁',lb:'c = 3k₂'}),cap0:'b danseurs en bleu, c en or, tous rangés par 3',
+   prompt:'Démontre la propriété du cours dans le cas a = 3&nbsp;: <b>la somme de deux multiples de 3 est un multiple de 3</b>.',
+   parts:[{t:'proof',lines:['Soient b et c deux multiples de 3.','b multiple de 3&nbsp;: il existe k₁ ∈ ℤ tel que b = [s0].','c multiple de 3&nbsp;: il existe k₂ ∈ ℤ tel que c = [s1].',
+       'b + c = 3k₁ + 3k₂ = [s2] = 3k, où k = [s3] ∈ ℤ.','Donc b + c est un [s4].'],
+     tiles:[{id:'t0',h:'3k₁'},{id:'t1',h:'3k₂'},{id:'t2',h:'3(k₁ + k₂)'},{id:'t3',h:'k₁ + k₂'},{id:'t4',h:'multiple de 3'},
+       {id:'d0',h:'k₁ × k₂',why:{'*':'Une somme ne devient pas un produit&nbsp;: 3k₁ + 3k₂ = 3(k₁ + k₂).'}},
+       {id:'d1',h:'6(k₁ + k₂)',why:{'*':'6(k₁ + k₂) = 6k₁ + 6k₂&nbsp;: c\'est le double. On factorise par 3&nbsp;: 3(k₁ + k₂).'}},
+       {id:'d2',h:'diviseur de 3',why:{'*':'b + c = 3k est un multiple de 3&nbsp;; les seuls diviseurs de 3 sont 1 et 3.'}},
+       {id:'d3',h:'3 + k₁',why:{'*':'3k₁ veut dire 3 × k₁, pas 3 + k₁.'}}],
+     sol:{s0:'t0',s1:'t1',s2:'t2',s3:'t3',s4:'t4'},hint:hints3,
+     onDone:capThen(['Fusion…','b + c = 3(k₁ + k₂)',1600],Lay.two(X,Y,3,true,{lm:'b + c = 3(k₁ + k₂)'}))}],
+   done:'Démonstration complète. En remplaçant 3 par a, elle reste identique&nbsp;: la somme de deux multiples de a est un multiple de a.'}},
+ ()=>{const a=7,X=21,Y=14;
+  return{n:X+Y,start:Lay.two(X,Y,a,false,{la:'b = ak₁',lb:'c = ak₂'}),cap0:'Deux troupes rangées par a',
+   prompt:'Généralise&nbsp;: b et c sont deux multiples d\'un entier <b>a</b>. Montre que b + c est un multiple de a.',
+   parts:[{t:'proof',lines:['b = ak₁ et c = ak₂, avec k₁, k₂ ∈ ℤ.','b + c = ak₁ + ak₂ = [s0]','= ak, où k = [s1] ∈ ℤ.','Donc b + c est un [s2].'],
+     tiles:[{id:'t0',h:'a(k₁ + k₂)'},{id:'t1',h:'k₁ + k₂'},{id:'t2',h:'multiple de a'},
+       {id:'d0',h:'a + k₁ + k₂',why:{'*':'ak₁ veut dire a × k₁&nbsp;: on factorise par a, ak₁ + ak₂ = a(k₁ + k₂).'}},
+       {id:'d1',h:'2a(k₁ + k₂)',why:{'*':'2a(k₁ + k₂) = 2ak₁ + 2ak₂&nbsp;: c\'est le double de b + c.'}},
+       {id:'d2',h:'diviseur de a',why:{'*':'b + c = ak&nbsp;: c\'est un multiple de a, pas un diviseur.'}},
+       {id:'d3',h:'multiple de k₁',why:{'*':'Rien ne dit que b + c est un multiple de k₁&nbsp;; le facteur commun, c\'est a.'}}],
+     sol:{s0:'t0',s1:'t1',s2:'t2'},hint:{s0:'On factorise par a&nbsp;: ak₁ + ak₂ = a(k₁ + k₂).',s1:'k est ce qui reste dans la parenthèse&nbsp;: k₁ + k₂.',s2:'b + c = ak&nbsp;: un multiple de a.'},
+     onDone:capThen(['Fusion…','b + c = a(k₁ + k₂)',1600],Lay.two(X,Y,a,true,{lm:'b + c = a(k₁ + k₂)'}))}],
+   done:'b + c = a(k₁ + k₂) = ak avec k = k₁ + k₂ ∈ ℤ&nbsp;: <b>la somme de deux multiples de a est un multiple de a</b>.'}},
+ ()=>{const [a,x,y]=pick([[7,100,3],[7,100,3],[9,100,4],[11,100,3],[6,100,7]]),X=a*x,Y=a*y;
+  return{n:Y,start:Lay.rows(Y,a,{top:`${Y} = ${a} × ${y}`}),cap0:`${fmt(X)} = ${a} × ${x} <span class="m">et</span> ${Y} = ${a} × ${y}`,
+   prompt:`${X} = ${a} × ${x} et ${Y} = ${a} × ${y}. Le chorégraphe se demande si <b>${X+Y} = ${X} + ${Y}</b> danseurs peuvent se ranger par ${a}.`,
+   parts:[ch(`${X+Y} est-il un multiple de ${a}&nbsp;?`,[OK(`Oui&nbsp;: ${X+Y} = ${a} × ${x+y}, somme de deux multiples de ${a}.`),
+       NO(`Oui&nbsp;: ${X+Y} = ${a} × ${x*y}.`,`${a} × ${x*y} = ${a*x*y}&nbsp;: on ne multiplie pas ${x} par ${y}, on les ajoute. ${X} + ${Y} = ${a} × (${x} + ${y}) = ${a} × ${x+y}.`),
+       NO(`Non&nbsp;: ${X+Y} ne se termine pas par ${a}.`,`Le dernier chiffre ne dit rien ici&nbsp;: ${X} et ${Y} sont des multiples de ${a}, donc leur somme aussi.`),
+       NO(`On ne peut pas savoir sans poser la division.`,`Inutile&nbsp;: la somme de deux multiples de ${a} est un multiple de ${a}.`)],{meta:{k:'eqStmt',n:X+Y,a}})],
+   done:`${X} = ${a} × ${x} et ${Y} = ${a} × ${y}, donc ${X+Y} = ${a} × (${x} + ${y}) = ${a} × ${x+y}&nbsp;: c'est un multiple de ${a}.`}},
+ ()=>{const n=ri(4,9),N=3*n+3;
+  return{n:N,start:Lay.three(n,false),cap0:`${n} + ${n+1} + ${n+2} danseurs`,
+   prompt:`Trois rangées de <b>${n}</b>, <b>${n+1}</b> et <b>${n+2}</b> danseurs&nbsp;: trois entiers consécutifs.`,
+   parts:[act('Faire glisser le dernier danseur',capThen(['Le dernier danseur change de rangée…',`3 rangées de ${n+1} <span class="m">· reste</span> <span class="k">0</span>`,1400],Lay.three(n,true))),
+     fill('Complète&nbsp;:',`${n} + ${n+1} + ${n+2} = 3 × {0}`,[fillInt(n+1)],`Après le glissement, les trois rangées comptent chacune ${n+1} danseurs.`,{meta:{k:'tk',n:N,b:3}}),
+     fill('Pour n entier quelconque&nbsp;:','n + (n + 1) + (n + 2) = 3n + {0} = 3({1})',[['3'],['n+1','1+n']],
+       v=>`On regroupe&nbsp;: n + n + n = 3n et 1 + 2 = 3. Puis on factorise&nbsp;: 3n + 3 = 3(n + 1).`,{size:[1.6,3.4],meta:{k:'cons'}})],
+   done:'S = n + (n + 1) + (n + 2) = 3n + 3 = 3(n + 1) = 3k avec k = n + 1 ∈ ℤ&nbsp;: la somme de trois entiers consécutifs est un multiple de 3.'}}
+]});
+
+/* ===== Niveau 3 · En duo ===== */
+const duoPal=(A_,cA,cB)=>({pal:[cA],colOf:(j,q)=>(2*j+q)<A_?cA:cB,restCol:null});
+LV.push({t:'En duo',ch:1,
+ rule:`<p><b>Pair</b>&nbsp;: multiple de 2, de la forme 2k (k ∈ ℤ). <b>Impair</b>&nbsp;: non pair, de la forme 2k + 1 (k ∈ ℤ).</p><p>Sur scène&nbsp;: tout le monde se met en duo. Si un soliste reste, le nombre est impair. Tout entier est pair ou impair, jamais les deux.</p><p>pair + pair = pair · pair + impair = impair · impair + impair = pair<br>pair × pair = pair · pair × impair = pair · impair × impair = impair</p>`,
+ qs:[
+ ()=>{const n=pick([34,34,26,38,42,46,52]);
+  return{n,prompt:`<b>${n} danseurs</b> sur la plage. Le refrain se danse en duo.`,
+   parts:[act('Tout le monde en duo&nbsp;!',capThen(['En duo…',`${n/2} duos <span class="m">· personne ne reste seul</span>`,1400],Lay.duo(n))),
+     fill('Complète&nbsp;:',`${n} = 2 × {0}`,[fillInt(n/2)],`Compte les duos&nbsp;: chaque duo, c'est 2 danseurs.`,{meta:{k:'tk',n,b:2}})],
+   done:`${n} = 2 × ${n/2}&nbsp;: personne ne reste seul, ${n} est <b>pair</b> (de la forme 2k).`}},
+ ()=>{const n=pick([57,57,35,43,49,53,61]);
+  return{n,prompt:`<b>${n} danseurs</b>. Tout le monde en duo… tout le monde&nbsp;?`,
+   parts:[act('Tout le monde en duo&nbsp;!',capThen(['En duo…',`${(n-1)/2} duos <span class="m">+</span> <span class="k">1 soliste</span>`],Lay.duo(n))),
+     fill('Complète&nbsp;:',`${n} = 2 × {0} + {1}`,[fillInt((n-1)/2),['1']],`Compte les duos, puis les solistes&nbsp;: ${(n-1)/2} duos et 1 soliste.`,{meta:{k:'qr',a:n,b:2}})],
+   done:`${n} = 2 × ${(n-1)/2} + 1&nbsp;: un soliste reste, ${n} est <b>impair</b> (de la forme 2k + 1).`}},
+ ()=>{const c=pick(['ii','pi','ii']);const X=c==='ii'?pick([7,9,11,13]):pick([8,10,12,14]),Y=pick([5,7,9,11]),N=X+Y;
+  const left=Lay.duo(X,{pal:[C_BLUE],restCol:C_BLUE}),right=Lay.duo(Y,{pal:[C_GOLD],restCol:C_GOLD});
+  let w=0;left.pts.forEach(p=>{w=Math.max(w,p[0])});const st={pts:left.pts.concat(right.pts.map(p=>[p[0]+w+3,p[1]])),fl:left.fl.concat(right.fl),cols:left.cols.concat(right.cols),labels:[]};
+  const ok=c==='ii'?'pair':'impair';
+  return{n:N,start:st,cap0:`${X} danseurs (${par(X)}) et ${Y} danseurs (${par(Y)})`,
+   prompt:`Deux troupes en duo&nbsp;: <b>${X}</b> danseurs en bleu (${par(X)}) et <b>${Y}</b> en or (${par(Y)}). Elles fusionnent.`,
+   parts:[act('Fusionner les deux troupes',capThen(['Fusion…',N%2?`${(N-1)/2} duos <span class="m">+</span> <span class="k">1 soliste</span>`:`${N/2} duos <span class="m">· personne ne reste seul</span>`,N%2?0:1400],Lay.duo(N,duoPal(X,C_BLUE,C_GOLD)))),
+     ch(`${par(X)} + impair, c'est&nbsp;:`,[OK(ok),NO(ok==='pair'?'impair':'pair',c==='ii'?`Les deux solistes se retrouvent… et forment un duo&nbsp;! ${X} + ${Y} = ${N} = 2 × ${N/2}.`:`Le soliste reste seul&nbsp;: ${X} + ${Y} = ${N} = 2 × ${(N-1)/2} + 1.`),
+       NO('ni pair ni impair','Tout entier est pair ou impair, jamais les deux.')],{keep:true,meta:{k:'opPar',op:'+',p1:par(X),p2:'impair'}})],
+   done:c==='ii'?'impair + impair = pair&nbsp;: (2p + 1) + (2q + 1) = 2p + 2q + 2 = 2(p + q + 1).':'pair + impair = impair&nbsp;: 2p + (2q + 1) = 2(p + q) + 1.'}},
+ ()=>{const c=pick(['ii','pi','ii']);const a=c==='ii'?pick([3,5,7]):pick([2,4,6]),b=pick([3,5,7]),N=a*b,ok=par(N);
+  return{n:N,start:Lay.rows(N,b,{top:`${a} rangées de ${b}`}),cap0:`${a} rangées de ${b} <span class="m">: ${a} × ${b} = ${N}</span>`,
+   prompt:`Une formation de <b>${a} rangées de ${b}</b>&nbsp;: ${a} est ${par(a)}, ${b} est impair. Le produit ${a} × ${b} est-il pair ou impair&nbsp;?`,
+   parts:[act('Tout le monde en duo&nbsp;!',capThen(['En duo…',N%2?`${(N-1)/2} duos <span class="m">+</span> <span class="k">1 soliste</span>`:`${N/2} duos <span class="m">· personne ne reste seul</span>`,N%2?0:1400],Lay.duo(N))),
+     ch(`${par(a)} × impair, c'est&nbsp;:`,[OK(ok),NO(ok==='pair'?'impair':'pair',c==='ii'?`Un soliste reste&nbsp;: ${N} = 2 × ${(N-1)/2} + 1. impair × impair = impair.`:`Personne ne reste seul&nbsp;: ${N} = 2 × ${N/2}. pair × impair = pair.`),
+       NO('ni pair ni impair','Tout entier est pair ou impair, jamais les deux.')],{keep:true,meta:{k:'opPar',op:'×',p1:par(a),p2:'impair'}})],
+   done:c==='ii'?`impair × impair = impair&nbsp;: ${a} × ${b} = ${N} = 2 × ${(N-1)/2} + 1.`:`pair × impair = pair&nbsp;: ${a} × ${b} = ${N} = 2 × ${N/2}.`}},
+ ()=>{const n=pick([3,5,7,9]),N=n*(n+1);
+  return{n:N,start:Lay.rows(N,n+1,{top:`${n} rangées de ${n+1}`}),cap0:`${n} × ${n+1} = ${N} danseurs`,
+   prompt:`Une formation de <b>${n} rangées de ${n+1}</b>&nbsp;: c'est n(n + 1) avec n = ${n}.`,
+   parts:[act('Tout le monde en duo&nbsp;!',capThen(['En duo…',`${N/2} duos <span class="m">· personne ne reste seul</span>`,1400],Lay.duo(N))),
+     ch('Pour tout entier n, le produit n(n + 1) est&nbsp;:',[OK('toujours pair'),
+       NO('pair seulement si n est pair',`Ici n = ${n} est impair, et pourtant ${n} × ${n+1} = ${N} se met en duos&nbsp;: c'est n + 1 qui est pair.`),
+       NO('toujours impair',`${n} × ${n+1} = ${N} = 2 × ${N/2}&nbsp;: personne ne reste seul.`)],{keep:true,meta:{k:'parExpr',ex:'n*(n+1)',cond:'all'}})],
+   done:'L\'un des deux entiers consécutifs est pair. Si n = 2k&nbsp;: n(n + 1) = 2k(2k + 1). Si n = 2k + 1&nbsp;: n(n + 1) = (2k + 1)(2k + 2) = 2(2k + 1)(k + 1). Dans tous les cas&nbsp;: pair.'}},
+ ()=>({n:64,start:Lay.duo(64),cap0:'8² = 64&nbsp;: un nombre pair au carré, tout le monde en duo',
+   prompt:`Sans calculer&nbsp;: <b>${fmt(5678984)}² + 1</b> est-il pair ou impair&nbsp;? Sur scène, 8² = 64 danseurs en duo (8 est pair, comme ${fmt(5678984)}).`,
+   parts:[act('Ajouter 1 danseur',async()=>{troupe(65);S.count(65);cap('+ 1 danseur…');await go(Lay.duo(65));cap('32 duos <span class="m">+</span> <span class="k">1 soliste</span>')}),
+     ch(`${fmt(5678984)}² + 1 est&nbsp;:`,[OK('impair'),NO('pair',`${fmt(5678984)} est pair, donc son carré aussi (pair × pair = pair). En ajoutant 1, un soliste reste&nbsp;: impair.`),
+       NO('impossible à savoir sans calculatrice',`Inutile de calculer&nbsp;: la parité de ${fmt(5678984)} suffit.`)],{keep:true,meta:{k:'parBig',N:5678984,form:'sq+1'}})],
+   done:`${fmt(5678984)} est pair, donc ${fmt(5678984)}² est pair (pair × pair = pair), donc ${fmt(5678984)}² + 1 est <b>impair</b>.`})
+]});
+
+/* ===== Niveau 4 · Le carré ===== */
+const hints4={s0:'Un impair s\'écrit 2k + 1 (2k, c\'est un nombre pair).',s1:'(2k + 1)² = (2k)² + 2 × 2k × 1 + 1² = 4k² + 4k + 1&nbsp;: n\'oublie pas le double produit.',
+  s2:'On factorise 4k² + 4k par 2&nbsp;: 4k² + 4k = 2(2k² + 2k).',s3:'k′ est le nombre dans la parenthèse&nbsp;: 2k² + 2k.',s4:'a² = 2k′ + 1 est de la forme 2k′ + 1&nbsp;: impair.'};
+LV.push({t:'Le carré',ch:1,
+ rule:`<p><b>Énoncé.</b> Si a est impair, alors a² est impair.</p><p>a impair&nbsp;: il existe k ∈ ℤ tel que a = 2k + 1. a² = (2k + 1)² = 4k² + 4k + 1 = 2(2k² + 2k) + 1 = 2k′ + 1, où k′ = 2k² + 2k ∈ ℤ.</p><p>Sur scène&nbsp;: un carré de côté 2k + 1, ce sont 4 blocs de k × k, 4 bras de k danseurs et un danseur au centre.</p>`,
+ qs:[
+ ()=>{const k=ri(1,3),s=2*k+1,N=s*s;
+  return{n:N,start:Lay.square(s,'plain'),cap0:`Formation carrée&nbsp;: ${s} × ${s} = ${N}`,
+   prompt:`Une formation carrée de <b>${s} × ${s}</b> danseurs (${s} est impair). Mets-les en duo.`,
+   parts:[act('Tout le monde en duo&nbsp;!',capThen(['En duo…',`${(N-1)/2} duos <span class="m">+</span> <span class="k">1 soliste</span>`],Lay.duo(N))),
+     ch('Combien de solistes restent&nbsp;?',[OK('1'),NO('0','Regarde le projecteur&nbsp;: un danseur est resté seul.'),
+       NO(String(s),`Chaque rangée de ${s} a bien un danseur en trop, mais ces danseurs se mettent en duo entre eux&nbsp;: il n'en reste qu'un.`)],{meta:{k:'solo',N}})],
+   done:`${s}² = ${N} = 2 × ${(N-1)/2} + 1&nbsp;: un seul soliste, le carré de ${s} est impair.`}},
+ ()=>{const k=ri(2,4),s=2*k+1,N=s*s;
+  return{n:N,start:Lay.square(s,'plain'),cap0:`Formation carrée&nbsp;: ${s} × ${s}, avec ${s} = 2 × ${k} + 1`,
+   prompt:`Carré de <b>${s} × ${s}</b>. Avec k = ${k}, on a ${s} = 2k + 1. Révèle la structure du carré.`,
+   parts:[act('Révéler la structure',capThen(['Le carré s\'ouvre…',`4 blocs de ${k} × ${k} <span class="m">·</span> 4 bras de ${k} <span class="m">·</span> <span class="k">1 au centre</span>`],Lay.square(s,'regions'))),
+     fill('Complète&nbsp;:',`${s}² = 4 × {0} + 4 × {1} + 1`,[fillInt(k*k),fillInt(k)],`Les 4 blocs bleus comptent chacun ${k} × ${k} = ${k*k} danseurs, les 4 bras ${k} danseurs chacun, et le soliste doré est au centre.`,{meta:{k:'sqreg',kk:k}})],
+   done:`Avec k = ${k}&nbsp;: (2k + 1)² = 4k² + 4k + 1 = ${4*k*k} + ${4*k} + 1 = ${N}. Blocs et bras se mettent en duos, le centre reste seul.`}},
+ ()=>({n:25,start:Lay.square(5,'regions'),cap0:'(2k + 1)² = 4k² + 4k + 1',
+   prompt:'Démontre&nbsp;: <b>si a est impair, alors a² est impair</b>.',
+   parts:[{t:'proof',lines:['a impair&nbsp;: il existe k ∈ ℤ tel que a = [s0].','a² = (2k + 1)² = [s1]','= [s2] + 1','= 2k′ + 1, où k′ = [s3] ∈ ℤ.','Donc a² est [s4].'],
+     tiles:[{id:'t0',h:'2k + 1'},{id:'t1',h:'4k² + 4k + 1'},{id:'t2',h:'2(2k² + 2k)'},{id:'t3',h:'2k² + 2k'},{id:'t4',h:'impair'},
+       {id:'d0',h:'2k',why:{'*':'2k est pair&nbsp;; un impair s\'écrit 2k + 1.'}},
+       {id:'d1',h:'4k² + 1',why:{'*':'C\'est l\'oubli classique du double produit&nbsp;: 2 × 2k × 1 = 4k.'}},
+       {id:'d2',h:'4k² + 2k + 1',why:{'*':'Le double produit vaut 2 × 2k × 1 = 4k, pas 2k.'}},
+       {id:'d3',h:'2(4k² + 4k)',why:{'*':'2(4k² + 4k) = 8k² + 8k&nbsp;: c\'est le double de 4k² + 4k.'}},
+       {id:'d4',h:'pair',why:{'*':'a² = 2k′ + 1&nbsp;: un soliste reste, c\'est impair.'}}],
+     sol:{s0:'t0',s1:'t1',s2:'t2',s3:'t3',s4:'t4'},hint:hints4,
+     onDone:capThen(['En duo…','a² = 2k′ + 1 <span class="m">·</span> <span class="k">1 soliste</span>'],Lay.duo(25))}],
+   done:'a² = (2k + 1)² = 4k² + 4k + 1 = 2(2k² + 2k) + 1 = 2k′ + 1 avec k′ ∈ ℤ&nbsp;: <b>le carré d\'un nombre impair est impair</b>.'}),
+ ()=>{const k=ri(4,9),a=2*k+1,N=a*a,kp=2*k*k+2*k;
+  return{n:N,start:Lay.square(a,'plain'),cap0:`Formation carrée&nbsp;: ${a} × ${a} = ${N}`,
+   prompt:`Grande formation&nbsp;: <b>${a} × ${a} = ${N}</b> danseurs. Ici a = ${a} = 2 × ${k} + 1.`,
+   parts:[act('Tout le monde en duo&nbsp;!',capThen(['En duo…',`${kp} duos <span class="m">+</span> <span class="k">1 soliste</span>`],Lay.duo(N))),
+     fill('Complète avec k′ = 2k² + 2k&nbsp;:',`${a}² = ${N} = 2 × {0} + 1`,[fillInt(kp)],v=>`Avec k = ${k}&nbsp;: k′ = 2 × ${k}² + 2 × ${k} = ${2*k*k} + ${2*k} = ${kp}. On vérifie&nbsp;: 2 × ${kp} + 1 = ${N}.`,{meta:{k:'kprime',a}})],
+   done:`${a}² = ${N} = 2 × ${kp} + 1, avec k′ = 2k² + 2k = ${kp}&nbsp;: impair, comme prévu.`}},
+ ()=>{const k=ri(2,4),s=2*k,N=s*s;
+  return{n:N,start:Lay.square(s,'plain'),cap0:`Formation carrée&nbsp;: ${s} × ${s} = ${N} (${s} est pair)`,
+   prompt:`Et le carré d'un nombre <b>pair</b>&nbsp;? Formation de <b>${s} × ${s}</b>.`,
+   parts:[act('Par groupes de 4',capThen(['Groupes de 4…',`${N/4} groupes de 4 <span class="m">· personne ne reste seul</span>`,1400],Lay.groups(N,4,{ic:2,boxes:true}))),
+     ch('Le carré d\'un nombre pair est toujours&nbsp;:',[OK('un multiple de 4'),NO('impair',`${s}² = ${N}&nbsp;: personne ne reste seul.`),
+       NO('un multiple de 8','Pas toujours&nbsp;: 6² = 36 = 4 × 9, et 36 n\'est pas un multiple de 8.')],{meta:{k:'alwaysTxt',ex:'(2*n)**2',cond:'all'}})],
+   done:'a = 2k&nbsp;: a² = (2k)² = 4k² = 4 × k²&nbsp;: le carré d\'un nombre pair est un multiple de 4.'}}
+]});
+
+/* ===== Niveau 5 · Le solo ===== */
+LV.push({t:'Le solo',ch:2,
+ rule:`<p><b>Définition.</b> Un entier n ≥ 2 est <b>premier</b> s'il possède exactement deux diviseurs&nbsp;: 1 et lui-même.</p><p>1 n'est pas premier (un seul diviseur). 2 est le seul nombre premier pair. Premiers nombres premiers&nbsp;: 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37…</p><p><b>Tester si n est premier&nbsp;:</b> tester les diviseurs d de 2 tant que d² ≤ n.</p>`,
+ qs:[
+ ()=>{const n=pick([11,13,17,19]);
+  return{n,prompt:`<b>${n} danseurs</b> sur le plateau. Trouve toutes leurs formations&nbsp;: essaie plusieurs tailles de rangée.`,
+   parts:[{t:'hunt',n},ch(`${n} est-il un nombre premier&nbsp;?`,[OK(`Oui&nbsp;: ses seuls diviseurs sont 1 et ${n}.`),
+       NO(`Non&nbsp;: ${n} = 1 × ${n}.`,`Tout nombre n s'écrit 1 × n&nbsp;: cela ne l'empêche pas d'être premier. ${n} a exactement deux diviseurs, 1 et ${n}.`),
+       NO('Non&nbsp;: il est impair.','Être impair n\'empêche pas d\'être premier&nbsp;: 3, 5, 7 sont impairs et premiers.')],{meta:{k:'ouiPrime',n}})],
+   done:`${n} n'admet qu'une formation&nbsp;: une seule rangée de ${n} (ou ${n} rangées de 1). Exactement deux diviseurs, 1 et ${n}&nbsp;: ${n} est <b>premier</b>.`}},
+ ()=>({n:1,start:{pts:[[0,0]],fl:[S.F.F_SPOT],cols:[C_GOLD]},cap0:'Un seul danseur sous le projecteur',
+   prompt:'Un seul danseur sur le plateau. <b>1</b> est-il un nombre premier&nbsp;?',
+   parts:[ch('1 est-il premier&nbsp;?',[OK('Non&nbsp;: 1 n\'a qu\'un seul diviseur.'),
+     NO('Oui&nbsp;: il n\'est divisible que par 1 et par lui-même.','«&nbsp;1 et lui-même&nbsp;», ici c\'est le même nombre&nbsp;: 1 n\'a qu\'un seul diviseur. Un nombre premier en a exactement deux.'),
+     NO('Oui&nbsp;: c\'est le plus petit nombre premier.','Le plus petit nombre premier est 2. La définition demande n ≥ 2.')],{meta:{k:'fixed',id:'one'}})],
+   done:'Un entier n ≥ 2 est premier s\'il a exactement deux diviseurs. 1 n\'en a qu\'un&nbsp;: <b>1 n\'est pas premier</b>.'}),
+ ()=>{const n=pick([97,113]),s=A.isqrtLe(n);
+  return{n,prompt:`<b>${n} danseurs</b>. ${n} est-il premier&nbsp;? Teste les diviseurs d à partir de 2, tant que d² ≤ ${n}&nbsp;: chaque test répartit la troupe en d rangées.`,
+   parts:[{t:'test',n},ch('Conclusion&nbsp;:',[OK(`${n} est premier&nbsp;: aucun d de 2 à ${s} ne le divise.`),
+       NO(`On ne peut pas conclure&nbsp;: il faudrait tester jusqu'à ${n-1}.`,`Inutile&nbsp;: si ${n} = d × e avec 2 ≤ d ≤ e, alors d² ≤ ${n}, donc d ≤ ${s}. Tester jusqu'à ${s} suffit.`),
+       NO(`${n} n'est pas premier&nbsp;: ${n} = ${Math.floor(n/2)} × 2 + 1.`,`Cette égalité montre un reste de 1&nbsp;: 2 ne divise pas ${n}. Aucun test n'a donné de formation pile.`)],{meta:{k:'conc',n}})],
+   done:`Aucun d avec d² ≤ ${n} ne divise ${n}&nbsp;: ${n} n'a que deux diviseurs, 1 et ${n}. <b>${n} est premier.</b>`}},
+ ()=>{const n=pick([169,169,143,187]),d=A.fact(n)[0][0],s=A.isqrtLe(n);
+  return{n,prompt:`<b>${n} danseurs</b>. ${n} est-il premier&nbsp;? Teste les diviseurs d à partir de 2 tant que d² ≤ ${n}. «&nbsp;Tester jusqu'au bout&nbsp;» enchaîne les essais.`,
+   parts:[{t:'test',n},ch('Conclusion&nbsp;:',[OK(`${n} n'est pas premier&nbsp;: ${n} = ${d} × ${n/d}${d*d===n?' = '+d+'²':''}.`),
+       NO(`${n} est premier&nbsp;: il n'est divisible ni par 2, ni par 3, ni par 5, ni par 7.`,`Il faut tester tant que d² ≤ ${n}, donc jusqu'à ${s}&nbsp;: ${n} = ${d} × ${n/d}.`),
+       NO(`${n} est premier&nbsp;: il est impair.`,`Être impair ne suffit pas&nbsp;: ${n} = ${d} × ${n/d}.`)],{meta:{k:'conc',n}})],
+   done:`${n} = ${d} × ${n/d}${d*d===n?' = '+d+'²':''}&nbsp;: ${n} a un diviseur autre que 1 et lui-même, il <b>n'est pas premier</b>.`}},
+ ()=>{const n=pick([24,28,30,36,40]),m=pick([22,26,34,38]);
+  return{n,start:Lay.duo(n),cap0:`${n/2} duos <span class="m">· ${n} est pair</span>`,
+   prompt:`<b>${n} danseurs</b> en duos. Un nombre pair peut-il être premier&nbsp;?`,
+   parts:[ch('Un nombre pair plus grand que 2 peut-il être premier&nbsp;?',[OK('Non&nbsp;: il se range en duos, donc 2 est un diviseur autre que 1 et lui-même.'),
+       NO('Oui, s\'il n\'est pas un multiple de 4.',`${m} n'est pas un multiple de 4, et pourtant ${m} = 2 × ${m/2}&nbsp;: il n'est pas premier.`),
+       NO('Oui&nbsp;: par exemple 2.','2 est bien premier, mais il n\'est pas plus grand que 2&nbsp;!')],{meta:{k:'fixed',id:'even'}})],
+   done:'Un nombre pair n &gt; 2 a au moins trois diviseurs&nbsp;: 1, 2 et n. <b>2 est le seul nombre premier pair.</b>'}}
+]});
+
+/* ===== Niveau 6 · Indivisibles ===== */
+function factLures(n){const f=A.fact(n),ok=factStr(n),out=new Set();
+  const big=f.find(x=>x[1]>1);if(big){out.add(f.map(([p,e])=>p===big[0]?String(p**e):p+(e>1?sup(e):'')).join(' × '))}
+  if(f.length>=2&&f[0][1]!==f[1][1]){const g=f.map(x=>x.slice());[g[0][1],g[1][1]]=[g[1][1],g[0][1]];out.add(g.map(([p,e])=>p+(e>1?sup(e):'')).join(' × '))}
+  out.add(f.map(([p])=>p).join(' × '));
+  const last=f[f.length-1],head=f.slice(0,-1);if(head.length&&f.length>=2){const comp=f[f.length-2][0]*last[0];if(last[1]===1&&f[f.length-2][1]===1)out.add(f.slice(0,-2).map(([p,e])=>p+(e>1?sup(e):'')).concat([String(comp)]).join(' × '))}
+  const g=f.map(x=>x.slice());g[0][1]++;out.add(g.map(([p,e])=>p+(e>1?sup(e):'')).join(' × '));
+  out.delete(ok);return[...out]}
+function whyFact(n,s){const parts=s.split(' × ');for(const t of parts){const b=parseInt(t,10);if(!A.isPrime(b))return `${b} n'est pas premier (${b} = ${factStr(b)})&nbsp;: la décomposition ne contient que des nombres premiers. ${n} = ${factStr(n)}.`}
+  const v=parts.reduce((m,t)=>{const mt=/^(\d+)([⁰¹²³⁴⁵⁶⁷⁸⁹]*)$/.exec(t);const e=mt[2]?+mt[2].split('').map(c=>SUPI[c]).join(''):1;return m*Math.pow(+mt[1],e)},1);
+  return `${s} = ${v}, et non ${n}. ${n} = ${factStr(n)}.`}
+const SUPI={'⁰':0,'¹':1,'²':2,'³':3,'⁴':4,'⁵':5,'⁶':6,'⁷':7,'⁸':8,'⁹':9};
+const ladderQ=(n,extra,more)=>Object.assign({n,start:Lay.groups(n,n,{boxes:false,pal:[C_BLUE]}),cap0:`${n} danseurs, un seul grand groupe`,
+  prompt:`<b>${n} danseurs</b>. Scinde la troupe en groupes égaux, en divisant par des nombres premiers, jusqu'aux groupes indivisibles.`,
+  parts:[{t:'ladder',n}].concat(extra),done:`${n} = ${factStr(n)}&nbsp;: c'est la décomposition de ${n} en facteurs premiers, unique à l'ordre près.`,danceMs:3000},more||{});
+const writeCh=n=>ch(`Écriture de la décomposition de ${n}&nbsp;:`,[OK(factStr(n))].concat(shuf(factLures(n)).slice(0,3).map(s=>NO(s,whyFact(n,s)))),{meta:{k:'fact',n}});
+LV.push({t:'Indivisibles',ch:2,
+ rule:`<p>Tout entier n ≥ 2 non premier peut s'écrire comme <b>produit de facteurs premiers</b>, de façon unique à l'ordre près.</p><p><b>Méthode.</b> Diviser successivement par 2, 3, 5, 7…<br>60 | 2 → 30 | 2 → 15 | 3 → 5 | 5 → 1, donc 60 = 2² × 3 × 5.</p><p>Sur scène&nbsp;: la troupe se scinde en groupes égaux, jusqu'aux groupes indivisibles.</p>`,
+ qs:[
+ ()=>ladderQ(60,[ch('Écriture de la décomposition de 60&nbsp;:',[OK('2² × 3 × 5'),NO('4 × 3 × 5','4 n\'est pas premier (4 = 2 × 2)&nbsp;: on écrit 2².'),
+   NO('2 × 3 × 5','2 × 3 × 5 = 30&nbsp;: il manque un facteur 2.'),NO('2² × 15','15 n\'est pas premier&nbsp;: 15 = 3 × 5.')],{meta:{k:'fact',n:60}})]),
+ ()=>ladderQ(126,[fill('Écris la décomposition avec un exposant&nbsp;:','126 = 2 × 3<sup>{0}</sup> × 7',[['2']],'Dans l\'échelle, 3 apparaît deux fois&nbsp;: 3 × 3 = 3².',{meta:{k:'pow',n:126,p:3}})]),
+ ()=>ladderQ(300,[fill('Écris la décomposition avec des exposants&nbsp;:','300 = 2<sup>{0}</sup> × 3 × 5<sup>{1}</sup>',[['2'],['2']],'Compte dans l\'échelle&nbsp;: 2 apparaît deux fois, 5 aussi. 300 = 2² × 3 × 5².',{meta:{k:'pow2',n:300,ps:[2,5]}})]),
+ ()=>{const n=pick([72,84,90,120,168,180,252,360]);return ladderQ(n,[writeCh(n)])},
+ ()=>({n:168,cap0:'168 danseurs',prompt:'On sait que <b>168 = 2³ × 3 × 7</b>. Le chorégraphe veut des rangées de 12.',
+   parts:[ch('168 est-il un multiple de 12&nbsp;?',[OK('Oui&nbsp;: 12 = 2² × 3, et 168 = 2² × 3 × 2 × 7 = 12 × 14.'),
+       NO('Non&nbsp;: 12 n\'apparaît pas dans la décomposition.','12 n\'est pas premier, il ne peut pas apparaître tel quel&nbsp;: 12 = 2² × 3, et 2² × 3 est «&nbsp;caché&nbsp;» dans 2³ × 3 × 7.'),
+       NO('Non&nbsp;: 168 est un multiple de 7, il ne peut pas être aussi un multiple de 12.','Un nombre peut être multiple de plusieurs nombres&nbsp;: 168 = 24 × 7 et 168 = 14 × 12.')],
+     {meta:{k:'ouiMult',n:168,b:12},onOk:capThen(['Rangées de 12…','168 = 14 × 12 <span class="k">· pile&nbsp;!</span>'],Lay.rows(168,12,{top:'14 rangées de 12'}))})],
+   done:'168 = 2³ × 3 × 7 = (2² × 3) × (2 × 7) = 12 × 14&nbsp;: 168 est un multiple de 12. Et 168 = 24 × 7&nbsp;: c\'est aussi un multiple de 7.'})
+]});
+
+/* ===== Niveau 7 · Le concert ===== */
+const tcol=A_=>i=>i<A_?C_BLUE:C_GOLD;
+const frIn='<span class="fr"><span>{0}</span><span>{1}</span></span>';
+const teamsQ=(a,b,prompt)=>{const g=A.common(a,b);return{n:a+b,col:tcol(a),start:Lay.teams(a,b,1),cap0:`${a} danseurs <span class="m">et</span> ${b} figurants`,prompt,
+  parts:[{t:'teams',A:a,B:b},fill('La fraction se simplifie de la même façon&nbsp;:',`${fr(a,b)} = ${frIn}`,[fillInt(a/g),fillInt(b/g)],`Chaque équipe compte ${a/g} danseurs et ${b/g} figurants&nbsp;: ${a} = ${g} × ${a/g} et ${b} = ${g} × ${b/g}.`,{meta:{k:'fr',a,b}})],
+  done:`${a} = ${g} × ${a/g} et ${b} = ${g} × ${b/g}, donc ${fr(a,b)} = ${fr(a/g,b/g)}&nbsp;: ${a/g} et ${b/g} n'ont pas de diviseur commun autre que 1, la fraction est <b>irréductible</b>.`,danceMs:3200}};
+const barrerQ=(a,b)=>{const g=A.common(a,b);return{n:a+b,col:tcol(a),start:Lay.teams(a,b,1),cap0:`${a} danseurs <span class="m">et</span> ${b} figurants`,
+  prompt:`Rends ${fr(a,b)} irréductible par la méthode du cours&nbsp;: décomposer, puis barrer les facteurs communs.`,
+  parts:[{t:'barrer',A:a,B:b},fill('Résultat&nbsp;:',`${fr(a,b)} = ${frIn}`,[fillInt(a/g),fillInt(b/g)],`Multiplie les facteurs non barrés&nbsp;: en haut ${A.flat(a/g).join(' × ')||'1'}, en bas ${A.flat(b/g).join(' × ')||'1'}.`,{meta:{k:'fr',a,b}})],
+  done:`${fr(a,b)} = ${fr(factStr(a),factStr(b))} = ${fr(a/g,b/g)} (irréductible).`}};
+LV.push({t:'Le concert',ch:3,
+ rule:`<p>La fraction ${frac('p','q')} est <b>irréductible</b> si p et q n'ont pas de diviseur commun autre que 1.</p><p><b>Méthode&nbsp;:</b> décomposer en facteurs premiers, puis simplifier.<br>${frac(60,126)} = ${frac('2² × 3 × 5','2 × 3² × 7')} = ${frac('2 × 5','3 × 7')} = ${frac(10,21)}</p><p>Sur scène&nbsp;: barrer un facteur commun p, c'est couper chaque équipe en p équipes identiques.</p>`,
+ qs:[
+ ()=>teamsQ(84,120,`Pour le grand concert&nbsp;: <b>84 danseurs</b> (en bleu) et <b>120 figurants</b> (en or). Répartis-les en équipes identiques, avec <b>le plus d'équipes possible</b>.`),
+ ()=>barrerQ(84,120),
+ ()=>barrerQ(60,126),
+ ()=>({n:120,col:tcol(45),start:Lay.teams(45,75,1),cap0:'45 danseurs <span class="m">et</span> 75 figurants',
+   prompt:`45 danseurs et 75 figurants. La fraction ${fr(45,75)} est-elle irréductible&nbsp;?`,
+   parts:[ch(`${fr(45,75)} est-elle irréductible&nbsp;?`,[OK(`Non&nbsp;: 45 = 3² × 5 et 75 = 3 × 5², on barre 3 et 5&nbsp;: ${fr(45,75)} = ${fr(3,5)}.`),
+       NO('Oui&nbsp;: 45 et 75 sont impairs.','Être impairs ne suffit pas&nbsp;: 45 et 75 sont tous deux multiples de 3 et de 5.'),
+       NO(`Non, et sa forme irréductible est ${fr(9,15)}.`,`${fr(9,15)} n'est pas irréductible&nbsp;: 9 et 15 sont encore tous deux multiples de 3. ${fr(45,75)} = ${fr(3,5)}.`)],
+     {meta:{k:'irrQ',a:45,b:75},onOk:capThen(['15 équipes…','15 équipes de <span class="k">3</span> danseurs et <span class="k">5</span> figurants'],Lay.teams(45,75,15))})],
+   done:`45 = 3 × 15 et 75 = 5 × 15&nbsp;: 15 équipes de 3 danseurs et 5 figurants. ${fr(45,75)} = ${fr(3,5)}, irréductible.`}),
+ ()=>teamsQ(150,210,`Le final du concert&nbsp;: <b>150 danseurs</b> et <b>210 figurants</b>, 360 artistes en scène&nbsp;! Le plus d'équipes identiques possible.`)
+]});
+
+/* ---------- exports ---------- */
+const plainPart=p=>({t:p.t,ask:p.ask||'',label:p.label||'',choices:p.ch?p.ch.map(c=>({h:c.h,ok:!!c.ok,why:c.why||''})):null,tpl:p.tpl||null,ans:p.ans||null,
+  n:p.n||null,A:p.A||null,B:p.B||null,lines:p.lines||null,tiles:p.tiles?p.tiles.map(t=>({id:t.id,h:t.h,why:t.why||null})):null,sol:p.sol||null,hint:p.hint||null,meta:p.meta||null});
+window.LC={
+  LV,genQ(l,i){const q=LV[l].qs[i]();return{level:l+1,n:q.n,prompt:q.prompt,done:q.done,cap0:q.cap0||'',parts:q.parts.map(plainPart)}},
+  state(){return{mode,lvl,qi,pi,solved,busy,errs,nq:LV[lvl].qs.length,part:Q&&pi<Q.parts.length?plainPart(Q.parts[pi]):null,ps:partState,run:run.slice()}},
+  goLevel,cap,MAKI,SND,norm,get snd(){return snd},renderLv,setMode(m){mode=m},getMode:()=>mode,
+  start(){renderLv();goLevel(0)}
+};
+S.chapName=c=>['Chapitre 1 · La cour du lycée','Chapitre 2 · La plage au coucher du soleil','Chapitre 3 · Le plateau télé','Chapitre 4 · Le grand concert'][c];
+S.waitBeat=()=>sleep(S.BEAT*1000*.9);
+})();
+</script>
+<script>
+/* ======================= LE CLIP — « Mon clip » et vidéoprojecteur ======================= */
+(function(){
+'use strict';
+const S=window.LC_S,{A,factStr,Lay,go,troupe,dance}=S,$=id=>document.getElementById(id);
+const cap=h=>{$('capt').innerHTML=h||'&nbsp;'};
+const SND=()=>window.LC_SND;
+/* suite des images du clip pour n danseurs */
+function frames(n){const F=[],ds=A.divisors(n);
+  F.push({L:Lay.crowd(n),cap:`${n} danseurs entrent en scène`,kind:'intro'});
+  ds.filter(k=>k*k<=n).forEach(k=>{const b=n/k;F.push({L:Lay.rows(n,b,{rowNums:k<=12}),kind:'form',form:[b,k],
+    cap:`${k} rangée${k>1?'s':''} de ${b} <span class="m">·</span> ${n} = ${k} × ${b}`})});
+  if(A.isPrime(n)){F.push({L:Lay.rows(n,n,{rowNums:false}),kind:'verdict',prime:true,cap:`<span class="k">${n} est premier</span> <span class="m">: une seule formation, diviseurs 1 et ${n}</span>`})}
+  else{let m=n;F.push({L:Lay.groups(n,n,{boxes:false,pal:[S.C.C_BLUE]}),kind:'dec0',cap:`Décomposition de ${n} <span class="m">: on divise par des nombres premiers</span>`});
+    A.flat(n).forEach(p=>{const prev=m;m/=p;F.push({L:Lay.groups(n,m,{boxes:m>1}),kind:'dec',step:[prev,p],cap:`${prev} = ${p} × ${m} <span class="m">· ${n/m} groupe${n/m>1?'s':''} de ${m}${m===1?' : indivisibles':''}</span>`})});
+    const AR=S.areaAR(),k=ds.filter(d=>d*d<=n).reduce((best,d)=>{const sc=x=>Math.min(AR/(n/x+1),1/(x*S.DY+1.6));return sc(d)>sc(best)?d:best},1);
+    F.push({L:Lay.rows(n,n/k,{rowNums:false}),kind:'verdict',prime:false,cap:`${n} = ${factStr(n)} <span class="m">·</span> <span class="k">pas premier</span> <span class="m">(${ds.length} diviseurs)</span>`})}
+  return F}
+let token=0,fr=[],fi=0,nNow=36,playing=false,saved=null;
+function panelReset(n){$('cforms').textContent='—';$('cdivs').textContent='—';$('cdec').textContent='—';$('cverd').innerHTML=''}
+function panelUpdate(n,upto){const F=fr.slice(0,upto+1),forms=F.filter(f=>f.kind==='form');
+  $('cforms').innerHTML=forms.length?forms.map(f=>`${f.form[0]} × ${f.form[1]}`).join(' · '):'—';
+  const ds=new Set();forms.forEach(f=>{ds.add(f.form[0]);ds.add(f.form[1])});
+  $('cdivs').innerHTML=ds.size?[...ds].sort((a,b)=>a-b).join(', '):'—';
+  const steps=F.filter(f=>f.kind==='dec');
+  $('cdec').innerHTML=A.isPrime(n)&&F.some(f=>f.kind==='verdict')?`${n} est premier&nbsp;: sa décomposition, c'est ${n} lui-même.`:steps.length?steps.map(f=>`${f.step[0]} | ${f.step[1]}`).join(' → ')+(steps.length===A.flat(n).length?` → 1<br>${n} = ${factStr(n)}`:''):'—';
+  const v=F.find(f=>f.kind==='verdict');
+  $('cverd').innerHTML=v?(v.prime?`<div class="verdict p">${n} est premier&nbsp;: exactement deux diviseurs, 1 et ${n}.</div>`:`<div class="verdict np">${n} n'est pas premier&nbsp;: ${A.divisors(n).length} diviseurs.</div>`):''}
+function readN(inp){let v=parseInt(String(inp.value).replace(/\D/g,''),10);if(isNaN(v))v=36;return v}
+async function showFrame(i,instant){const f=fr[i];cap(f.cap);await go(f.L,{instant});if(f.kind==='form'||f.kind==='verdict'){if(SND())SND().clap();dance(S.BEAT*4000)}}
+async function play(){const n=readN($('cn'));if(n<2||n>400){$('cwarn').textContent='Choisis un nombre entre 2 et 400.';return}
+  $('cwarn').textContent='';$('cn').value=n;nNow=n;const my=++token;playing=true;$('cskip').hidden=false;$('cgo').textContent='▶ Rejouer mon clip';
+  fr=frames(n);panelReset(n);S.setChapter(3);troupe(n);S.count(n);
+  for(fi=0;fi<fr.length;fi++){if(my!==token)return;await showFrame(fi);panelUpdate(n,fi);if(my!==token)return;
+    const f=fr[fi];await new Promise(r=>setTimeout(r,S.reduceM?700:(f.kind==='form'||f.kind==='verdict'?S.BEAT*3000:S.BEAT*1600)))}
+  playing=false;$('cskip').hidden=true}
+function skip(){if(!playing)return;const nextK=fr.findIndex((f,i)=>i>fi&&(fr[fi].kind==='form'||fr[fi].kind==='intro'?f.kind!=='form':f.kind==='verdict'));
+  if(nextK<0)return;fi=nextK-1}
+function stop(){token++;playing=false;$('cskip').hidden=true}
+function open(){stop();const n=readN($('cn'));S.setChapter(3);troupe(n);S.count(n);go(Lay.crowd(n),{sound:false});cap(`${n} danseurs attendent ton signal`);panelReset(n);
+  $('quick').innerHTML=[12,24,36,60,97,100,169,360].map(v=>`<button type="button" data-n="${v}">${v}</button>`).join('')}
+$('cgo').onclick=()=>{play()};$('cskip').onclick=()=>{skip()};
+$('quick').onclick=e=>{const b=e.target.closest('[data-n]');if(!b)return;$('cn').value=b.dataset.n;play()};
+document.querySelectorAll('[data-cd]').forEach(b=>b.onclick=()=>{$('cn').value=Math.max(2,Math.min(400,readN($('cn'))+ +b.dataset.cd));stop();open()});
+$('cn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();play()}});
+
+/* ---------- vidéoprojecteur ---------- */
+let pOn=false;
+function pRender(instant){$('pstep').textContent=`${fi+1} / ${fr.length}`;$('pprev').disabled=fi<=0;$('pnext').disabled=fi>=fr.length-1;showFrame(fi,instant)}
+function pBuild(){const n=Math.max(2,Math.min(400,readN($('pn'))));$('pn').value=n;fr=frames(n);fi=0;troupe(n);S.count(n);pRender()}
+function proj(on){if(on===pOn)return;pOn=on;
+  if(on){stop();saved={st:S.snap(),cap:$('capt').innerHTML};
+    document.body.classList.add('proj');$('pn').value=readN($('cn'));S.setChapter(3);requestAnimationFrame(()=>{S.resize();pBuild()});$('pnext').focus()}
+  else{document.body.classList.remove('proj');token++;requestAnimationFrame(()=>{S.resize();
+    S.restore(saved.st);$('capt').innerHTML=saved.cap})}}
+$('pnext').onclick=()=>{if(fi<fr.length-1){fi++;pRender()}};$('pprev').onclick=()=>{if(fi>0){fi--;pRender()}};$('pquit').onclick=()=>proj(false);
+document.querySelectorAll('[data-pd]').forEach(b=>b.onclick=()=>{$('pn').value=Math.max(2,Math.min(400,readN($('pn'))+ +b.dataset.pd));pBuild()});
+$('pn').addEventListener('change',pBuild);$('pn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();pBuild()}});
+document.addEventListener('keydown',e=>{if(!pOn||e.target.tagName==='INPUT')return;if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();$('pnext').click()}else if(e.key==='ArrowLeft'){e.preventDefault();$('pprev').click()}else if(e.key==='Escape')proj(false)});
+window.LC_CLIP={frames,open,stop,play,proj,state:()=>({fi,len:fr.length,playing,pOn,kind:fr[fi]&&fr[fi].kind})};
+})();
+</script>
+<script>
+/* ======================= LE CLIP — épreuves finales ======================= */
+(function(){
+'use strict';
+const S=window.LC_S,{A,sup,fmt,factStr,frac,ri,pick,shuf}=S;
+const fr=frac,frIn='<span class="fr"><span>{0}</span><span>{1}</span></span>';
+const plain=h=>String(h).replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();
+function QC(level,prompt,right,wrongs,explain,meta){const seen=new Set([plain(right)]),w=[];
+  for(const x of wrongs){if(x==null)continue;const p=plain(x);if(!seen.has(p)){seen.add(p);w.push(x)}}
+  if(w.length<2)return null;return{type:'qcm',level,prompt,choices:[right].concat(w.slice(0,3)),answer:0,explain,meta}}
+const TR=(level,prompt,blanks,explain,meta)=>({type:'trous',level,prompt,blanks,explain,meta});
+const N=v=>({answers:[String(v)],size:Math.max(2,String(v).length)});
+const notMult=(b,lo,hi,avoid)=>{let x;do{x=ri(lo,hi)}while(x%b===0||(avoid&&avoid.includes(x)));return x};
+const PRIMES=[...Array(400).keys()].filter(A.isPrime);
+
+/* ----- niveau 1 ----- */
+function q_multOf(st){const b=ri(3,9),k=ri(3,12),r=b*k,c=new Set();
+  const lures=[r+1,r-1,10*ri(1,9)+b,b*k+Math.ceil(b/2),r+b-1].filter(x=>x>1&&x%b!==0);shuf(lures);
+  return QC(1,`Lequel de ces nombres est un multiple de ${b}&nbsp;?`,String(r),lures.map(String),`${r} = ${k} × ${b}&nbsp;: c'est un multiple de ${b}. Les autres donnent un reste non nul dans la division par ${b}.`,{k:'multOf',b,steps:1,mx:r})}
+function q_divOf(){const n=pick([24,30,36,40,42,45,48,54,56,60,63,72,84,90]);const ds=A.divisors(n).filter(d=>d>2&&d<n);const d=pick(ds);
+  const non=[];for(let x=3;x<n;x++)if(n%x)non.push(x);shuf(non);
+  return QC(1,`Lequel de ces nombres est un diviseur de ${n}&nbsp;?`,String(d),[String(2*n)].concat(non.slice(0,3).map(String)),`${n} = ${n/d} × ${d}&nbsp;: ${d} est un diviseur de ${n}. Attention, ${2*n} est un multiple de ${n}, pas un diviseur.`,{k:'divOf',n,steps:1,mx:2*n})}
+function q_divList(){const n=pick([12,18,20,28,30,36,40,45,50]);const ds=A.divisors(n);const L=a=>a.join(', ');
+  const mid=ds.filter(d=>d!==1&&d!==n),pd=pick(mid.filter(d=>d*d<n)||[mid[0]]);
+  const extra=(()=>{for(let x=4;x<n;x++)if(n%x){return[...ds,x].sort((a,b)=>a-b)}})();
+  return QC(1,`Quelle est la liste de <b>tous</b> les diviseurs de ${n}&nbsp;?`,L(ds),[L(mid),L(ds.filter(d=>d!==pd&&d!==n/pd)),L(extra)],
+    `${n} = ${ds.filter(d=>d*d<=n).map(d=>`${d} × ${n/d}`).join(' = ')}&nbsp;: les diviseurs vont par paires, sans oublier 1 et ${n}.`,{k:'divList',n,steps:2,mx:n})}
+function t_k(){const b=ri(3,9),k=ri(3,11),n=b*k;return TR(1,`Complète&nbsp;: ${n} = {0} × ${b}.`,[N(k)],`${n} = ${k} × ${b}&nbsp;: ${n} est un multiple de ${b}, et ${b} est un diviseur de ${n}.`,{k:'tk',n,b,steps:1,mx:n})}
+function t_qr(){const b=ri(6,12),a=notMult(b,40,99),q=Math.floor(a/b);return TR(1,`Division avec reste&nbsp;: ${a} = {0} × ${b} + {1}, avec un reste plus petit que ${b}.`,[N(q),N(a-q*b)],
+  `${q} × ${b} = ${q*b} et ${a} − ${q*b} = ${a-q*b}, qui est bien plus petit que ${b}.`,{k:'qr',a,b,steps:2,mx:a})}
+function t_ndiv(){const n=pick([36,48,60,72,84,90,100]),ds=A.divisors(n);return TR(1,`Le nombre ${n} possède exactement {0} diviseurs (1 et ${n} compris).`,[N(ds.length)],
+  `Diviseurs de ${n}&nbsp;: ${ds.join(', ')}, soit ${ds.length} diviseurs.`,{k:'ndiv',n,steps:3,mx:n})}
+/* ----- niveau 2 ----- */
+function q_sum(st){const a=ri(3,9),x=ri(2,9),y=ri(2,9),X=a*x,Y=a*y;
+  return QC(2,`${X} = ${a} × ${x} et ${Y} = ${a} × ${y}. Donc ${X} + ${Y} = ${a} × …`,String(x+y),[String(x*y),String(X+Y),String(x+y+1)],
+    `${X} + ${Y} = ${a} × ${x} + ${a} × ${y} = ${a} × (${x} + ${y}) = ${a} × ${x+y}.`,{k:'eqk',n:X+Y,a,steps:1,mx:X+Y})}
+function q_721(){const [a,x,y]=pick([[7,100,3],[7,100,5],[9,100,4],[11,100,3],[13,100,2],[7,1000,3]]),X=a*x,Y=a*y;
+  return QC(2,`${fmt(X)} = ${a} × ${fmt(x)} et ${Y} = ${a} × ${y}. Donc ${fmt(X+Y)} = ${a} × …`,fmt(x+y),[fmt(x*y),fmt(x+Y),fmt(x-y)],
+    `${fmt(X+Y)} = ${a} × ${fmt(x)} + ${a} × ${y} = ${a} × (${fmt(x)} + ${y}) = ${a} × ${fmt(x+y)}&nbsp;: la somme de deux multiples de ${a} est un multiple de ${a}.`,{k:'eqk',n:X+Y,a,steps:2,mx:X+Y})}
+function t_proof(){return TR(2,'b = ak₁ et c = ak₂ avec k₁, k₂ entiers. Alors b + c = ak₁ + ak₂ = a({0}).',[{answers:['k₁ + k₂','k1+k2','k₂+k₁','k2+k1','k_1+k_2','k_2+k_1'],size:5}],
+  'On factorise par a&nbsp;: ak₁ + ak₂ = a(k₁ + k₂). Tu peux écrire k1 + k2.',{k:'sym',expr:'k1+k2',steps:2,mx:0})}
+function q_cons(){const v=pick([
+  {p:'La somme de trois entiers consécutifs est toujours un multiple de&nbsp;:',ex:'n+(n+1)+(n+2)',ok:3,w:[2,6,9],e:'n + (n + 1) + (n + 2) = 3n + 3 = 3(n + 1)&nbsp;: un multiple de 3 (mais pas toujours de 2, 6 ou 9&nbsp;: 1 + 2 + 3 = 6, 2 + 3 + 4 = 9).'},
+  {p:'Le produit de trois entiers consécutifs n(n + 1)(n + 2) est toujours un multiple de&nbsp;:',ex:'n*(n+1)*(n+2)',ok:6,w:[4,9,5],e:'Parmi trois entiers consécutifs, l\'un est pair et l\'un est multiple de 3&nbsp;: le produit est multiple de 6 (1 × 2 × 3 = 6 n\'est multiple ni de 4, ni de 9, ni de 5).'},
+  {p:'La somme de deux entiers impairs consécutifs (2k + 1) + (2k + 3) est toujours un multiple de&nbsp;:',ex:'(2*n+1)+(2*n+3)',ok:4,w:[3,8,6],e:'(2k + 1) + (2k + 3) = 4k + 4 = 4(k + 1)&nbsp;: un multiple de 4.'}]);
+  return QC(2,v.p,String(v.ok),v.w.map(String),v.e,{k:'alwaysMult',ex:v.ex,cond:'all',steps:3,mx:9})}
+function t_lin(){const a=pick([3,5,7]),u=ri(2,4),vv=ri(1,5);const U=a*u,V=a*vv;
+  return TR(2,`Pour tout entier n&nbsp;: ${U}n + ${V} = ${a}({0}), donc ${U}n + ${V} est un multiple de ${a}.`,[{answers:[`${u}n + ${vv}`,`${u}n+${vv}`,`${vv}+${u}n`,`${u}xn+${vv}`],size:5}],
+    `On factorise par ${a}&nbsp;: ${U}n = ${a} × ${u}n et ${V} = ${a} × ${vv}, donc ${U}n + ${V} = ${a}(${u}n + ${vv}).`,{k:'sym',expr:`${u}*n+${vv}`,steps:2,mx:U})}
+/* ----- niveau 3 ----- */
+function q_parity(){const n=pick([2025,1357,4096,999,3410,1001,2468,7777,5310,8642]);
+  return QC(3,`Le nombre ${n} est&nbsp;:`,par(n),[par(n+1),'ni pair ni impair'],n%2?`${n} = 2 × ${(n-1)/2} + 1&nbsp;: il est impair (il se termine par ${n%10}).`:`${n} = 2 × ${n/2}&nbsp;: il est pair.`,{k:'parity',v:n,steps:1,mx:n})}
+const par=n=>n%2?'impair':'pair';
+function q_op(){const op=pick(['+','×']),p1=pick(['pair','impair']),p2=pick(['pair','impair']);const r=op==='+'?((p1==='impair')+(p2==='impair'))%2:((p1==='impair')&&(p2==='impair'))?1:0;
+  const nm=op==='+'?'La somme':'Le produit';return QC(3,`${nm} d'un nombre ${p1} et d'un nombre ${p2} est&nbsp;:`,r?'impair':'pair',[r?'pair':'impair','ni pair ni impair'],
+    op==='+'?`Par exemple ${p1==='pair'?2:3} + ${p2==='pair'?4:5} = ${(p1==='pair'?2:3)+(p2==='pair'?4:5)}. ${p1} + ${p2} = ${r?'impair':'pair'}.`:`Par exemple ${p1==='pair'?2:3} × ${p2==='pair'?4:5} = ${(p1==='pair'?2:3)*(p2==='pair'?4:5)}. ${p1} × ${p2} = ${r?'impair':'pair'}.`,{k:'opPar',op,p1,p2,steps:1,mx:5})}
+function q_parBig(){const N0=pick([5678984,2468102,1357913,9876543,4040404]),form=pick(['sq+1','sq']);const v=form==='sq+1'?(N0%2?0:1):N0%2;
+  const e=`${fmt(N0)}${form==='sq+1'?'² + 1':'²'}`;
+  return QC(3,`Sans calculer, ${e} est&nbsp;:`,v?'impair':'pair',[v?'pair':'impair','impossible à savoir sans calculatrice'],
+    `${fmt(N0)} est ${par(N0)}, donc son carré est ${par(N0)} (${par(N0)} × ${par(N0)} = ${par(N0)})${form==='sq+1'?`, puis on ajoute 1&nbsp;: ${v?'impair':'pair'}`:''}.`,{k:'parBig',N:N0,form,steps:2,mx:N0})}
+function t_odd(){const n=pick([21,23,35,47,57,63,71,85,99]);return TR(3,`${n} est impair&nbsp;: ${n} = 2 × {0} + {1}.`,[N((n-1)/2),N(1)],`${n} = 2 × ${(n-1)/2} + 1&nbsp;: de la forme 2k + 1.`,{k:'qr',a:n,b:2,steps:1,mx:n})}
+function q_parExpr(){const v=pick([{e:'n² + n',ex:'n**2+n',c:'all',r:'toujours pair',x:'n² + n = n(n + 1), produit de deux entiers consécutifs&nbsp;: toujours pair.'},
+  {e:'n² + n + 1',ex:'n**2+n+1',c:'all',r:'toujours impair',x:'n² + n = n(n + 1) est toujours pair, donc n² + n + 1 est toujours impair.'},
+  {e:'3n + 1',ex:'3*n+1',c:'odd',r:'toujours pair',x:'n impair&nbsp;: 3n est impair (impair × impair), donc 3n + 1 est pair.'},
+  {e:'n² + 1',ex:'n**2+1',c:'odd',r:'toujours pair',x:'n impair&nbsp;: n² est impair, donc n² + 1 est pair.'},
+  {e:'n² + 3',ex:'n**2+3',c:'even',r:'toujours impair',x:'n pair&nbsp;: n² est pair, donc n² + 3 est impair.'},
+  {e:'5n + 2',ex:'5*n+2',c:'all',r:'pair ou impair selon n',x:'Pour n = 0, 5n + 2 = 2 est pair&nbsp;; pour n = 1, 5n + 2 = 7 est impair.'}]);
+  const cd=v.c==='odd'?' impair':v.c==='even'?' pair':'';
+  return QC(3,`Pour tout entier n${cd}, le nombre ${v.e} est&nbsp;:`,v.r,['toujours pair','toujours impair','pair ou impair selon n'].filter(x=>x!==v.r),v.x,{k:'parExpr',ex:v.ex,cond:v.c,steps:3,mx:5})}
+/* ----- niveau 4 ----- */
+function t_sqnum(){const a=pick([3,5,7,9]);return TR(4,`${a} est impair et ${a}² = ${a*a} = 2 × {0} + 1.`,[N((a*a-1)/2)],`${a*a} = ${a*a-1} + 1 = 2 × ${(a*a-1)/2} + 1&nbsp;: le carré de ${a} est bien impair.`,{k:'kprime',a,steps:1,mx:a*a})}
+function q_exp(){return QC(4,'Pour tout entier k, (2k + 1)² est égal à&nbsp;:','4k² + 4k + 1',['4k² + 1','4k² + 2k + 1','2k² + 1'],
+  '(2k + 1)² = (2k)² + 2 × 2k × 1 + 1² = 4k² + 4k + 1&nbsp;: n\'oublie pas le double produit.',{k:'expand',steps:2,mx:4})}
+function t_odd2(){return TR(4,'Pour tout entier k&nbsp;: (2k + 1)² = 4k² + 4k + 1 = 2({0}) + 1.',[{answers:['2k² + 2k','2k²+2k','2k^2+2k','2k+2k²','2k+2k^2','2(k²+k)','2(k^2+k)'],size:6}],
+  'On factorise 4k² + 4k par 2&nbsp;: 4k² + 4k = 2(2k² + 2k). Tu peux écrire 2k^2 + 2k.',{k:'sym',expr:'2*k**2+2*k',steps:2,mx:4})}
+function q_oddsq(){return QC(4,'Le carré d\'un nombre impair est toujours&nbsp;:','impair',['pair','pair ou impair selon le nombre','un multiple de 4'],
+  'Si a = 2k + 1, alors a² = 2(2k² + 2k) + 1&nbsp;: a² est impair.',{k:'alwaysTxt',ex:'(2*n+1)**2',cond:'all',steps:1,mx:4})}
+function q_kp(){const a=pick([11,13,15,17,19,21,23,25]),k=(a-1)/2,kp=(a*a-1)/2;
+  return QC(4,`a = ${a} = 2k + 1. Alors a² = 2k′ + 1 avec k′ égal à&nbsp;:`,String(kp),[String((a*a+1)/2),String(k*k+k),String(a*a-1)],
+    `k = ${k} et k′ = 2k² + 2k = ${2*k*k} + ${2*k} = ${kp}&nbsp;: 2 × ${kp} + 1 = ${a*a} = ${a}².`,{k:'k2',a,steps:3,mx:a*a})}
+function t_kk(){const a=pick([13,15,17,19,21]),k=(a-1)/2;return TR(4,`a = ${a} est impair&nbsp;: a = 2k + 1 avec k = {0}, et a² = ${a*a} = 2k′ + 1 avec k′ = {1}.`,[N(k),N((a*a-1)/2)],
+  `${a} = 2 × ${k} + 1, puis k′ = 2k² + 2k = ${2*k*k} + ${2*k} = ${(a*a-1)/2}.`,{k:'kk',a,steps:3,mx:a*a})}
+function q_sqEven(){return QC(4,'Le carré d\'un nombre pair est toujours un multiple de&nbsp;:','4',['8','3','6'],
+  'a = 2k&nbsp;: a² = 4k² = 4 × k². Ce n\'est pas toujours un multiple de 8&nbsp;: 6² = 36.',{k:'alwaysMult',ex:'(2*n)**2',cond:'all',steps:2,mx:36})}
+/* ----- niveau 5 ----- */
+function q_prime(){const p=pick([2,3,5,7,11,13,17,19,23,29,31,37,41,43,47]);const comp=shuf([1,9,15,21,25,27,33,35,39,49,51,57]).slice(0,3);
+  return QC(5,'Lequel de ces nombres est premier&nbsp;?',String(p),comp.map(String),`${p} n'a que deux diviseurs, 1 et ${p}. ${comp.filter(c=>c>1).map(c=>`${c} = ${A.fact(c)[0][0]} × ${c/A.fact(c)[0][0]}`).join('&nbsp;; ')}${comp.includes(1)?'&nbsp;; 1 n\'est pas premier':''}.`,{k:'primePick',steps:1,mx:57})}
+function q_isPrime(big){const pool=big?[[221,1],[247,1],[323,1],[289,1],[391,1],[211,0],[223,0],[227,0],[229,0],[233,0],[239,0],[241,0],[251,0],[257,0],[263,0],[269,0],[271,0],[277,0],[281,0],[283,0],[293,0],[307,0],[311,0],[313,0],[317,0],[331,0],[337,0],[347,0],[349,0],[353,0],[359,0],[367,0],[373,0],[379,0],[383,0],[389,0],[397,0]]
+    :[[121,1],[143,1],[169,1],[187,1],[209,1],[91,1],[119,1],[97,0],[101,0],[103,0],[107,0],[109,0],[113,0],[127,0],[131,0],[137,0],[139,0],[149,0],[151,0],[157,0],[163,0],[167,0],[173,0],[179,0],[181,0],[191,0],[193,0],[197,0],[199,0]];
+  const [n]=pick(pool),s=A.isqrtLe(n),prime=A.isPrime(n);let right,w;
+  if(prime){const d=pick([3,7,11].filter(x=>n%x));right=`Oui&nbsp;: aucun entier d de 2 à ${s} ne divise ${n}.`;
+    w=[`Non&nbsp;: ${n} est divisible par ${d}.`,`On ne peut pas savoir sans tester tous les entiers jusqu'à ${n-1}.`,`Non&nbsp;: ${n} est impair et plus grand que 100.`]}
+  else{const d=A.fact(n)[0][0];right=`Non&nbsp;: ${n} = ${d} × ${n/d}.`;
+    w=[`Oui&nbsp;: il n'est divisible ni par 2, ni par 3, ni par 5, ni par 7.`,`Oui&nbsp;: il est impair.`,`On ne peut pas savoir sans tester tous les entiers jusqu'à ${n-1}.`]}
+  return QC(5,`Le nombre ${n} est-il premier&nbsp;?`,right,w,prime?`On teste les d de 2 tant que d² ≤ ${n}, c'est-à-dire jusqu'à ${s}&nbsp;: aucun ne divise ${n}, il est premier.`:`En testant les d tant que d² ≤ ${n} (jusqu'à ${s}), on trouve ${n} = ${A.fact(n)[0][0]} × ${n/A.fact(n)[0][0]}&nbsp;: ${n} n'est pas premier.`,
+    {k:'isPrimeStmt',n,steps:big?3:2,mx:n})}
+function t_test(){const n=pick([97,113,127,131,149,169,191,199,211]),s=A.isqrtLe(n);return TR(5,`Pour tester si ${n} est premier, on teste les diviseurs d à partir de 2 tant que d² ≤ ${n}, c'est-à-dire jusqu'à d = {0}.`,[N(s)],
+  `${s}² = ${s*s} ≤ ${n} mais ${s+1}² = ${(s+1)*(s+1)} &gt; ${n}&nbsp;: on teste jusqu'à ${s}.`,{k:'isqrt',n,steps:2,mx:n})}
+function q_onePrime(){const v=pick(['one','even']);
+  if(v==='one')return QC(5,'Le nombre 1 est-il premier&nbsp;?','Non&nbsp;: il n\'a qu\'un seul diviseur.',['Oui&nbsp;: il n\'est divisible que par 1 et par lui-même.','Oui&nbsp;: c\'est le plus petit nombre premier.'],
+    'Un nombre premier a exactement deux diviseurs&nbsp;; 1 n\'en a qu\'un. Le plus petit nombre premier est 2.',{k:'fixed',id:'one',steps:1,mx:1});
+  return QC(5,'Le seul nombre premier pair est&nbsp;:','2',['0','4','1'],'Un nombre pair plus grand que 2 est divisible par 2&nbsp;: il n\'est pas premier. 0 et 1 ne sont pas premiers.',{k:'evenPrime',steps:1,mx:4})}
+function t_spf(){const n=pick([221,247,323,289,143,187,209,391]),d=A.fact(n)[0][0];return TR(5,`${n} n'est pas premier. Son plus petit diviseur supérieur à 1 est d = {0}, et ${n} = d × {1}.`,[N(d),N(n/d)],
+  `On teste les d tant que d² ≤ ${n}&nbsp;: le premier qui divise ${n} est ${d}, et ${n} = ${d} × ${n/d}.`,{k:'spf',n,steps:3,mx:n})}
+/* ----- niveau 6 ----- */
+function factLures(n){const f=A.fact(n),ok=factStr(n),out=new Set(),w=g=>g.map(([p,e])=>p+(e>1?sup(e):'')).join(' × ');
+  const big=f.find(x=>x[1]>1);if(big)out.add(f.map(([p,e])=>p===big[0]?String(p**e):p+(e>1?sup(e):'')).join(' × '));
+  if(f.length>=2&&f[0][1]!==f[1][1]){const g=f.map(x=>x.slice());[g[0][1],g[1][1]]=[g[1][1],g[0][1]];out.add(w(g))}
+  out.add(f.map(([p])=>p).join(' × '));const g=f.map(x=>x.slice());g[0][1]++;out.add(w(g));out.delete(ok);return shuf([...out])}
+function q_fact(big){const n=big?pick([126,150,168,180,196,252,300,360]):pick([12,18,20,24,28,40,45,50,60,72]);
+  return QC(6,`La décomposition de ${n} en produit de facteurs premiers est&nbsp;:`,factStr(n),factLures(n),
+    `On divise successivement par 2, 3, 5, 7…&nbsp;: ${n} = ${A.flat(n).join(' × ')} = ${factStr(n)}. Tous les facteurs sont premiers.`,{k:'fact',n,steps:big?2:1,mx:n})}
+function t_cof(){const [n,d,ds]=pick([[12,4,'2²'],[20,4,'2²'],[28,4,'2²'],[44,4,'2²'],[52,4,'2²'],[18,9,'3²'],[45,9,'3²'],[63,9,'3²'],[24,8,'2³'],[40,8,'2³']]);
+  return TR(6,`Complète la décomposition en facteurs premiers&nbsp;: ${n} = ${ds} × {0}.`,[N(n/d)],`${ds} = ${d} et ${n} = ${d} × ${n/d}&nbsp;: ${n/d} est premier.`,{k:'cofac',n,d,steps:1,mx:n})}
+function t_factMiss(){const [n,given,ans]=pick([[300,'2² × 3',['5²','5^2']],[126,'2 × 7',['3²','3^2']],[180,'2² × 3²',['5']],[252,'2² × 3²',['7']],[360,'2³ × 3²',['5']],[200,'5²',['2³','2^3']],[196,'7²',['2²','2^2']]]);
+  return TR(6,`Complète la décomposition en facteurs premiers&nbsp;: ${n} = ${given} × {0}. (Pour un exposant, tu peux écrire 5^2.)`,[{answers:ans,size:3}],`En divisant successivement par 2, 3, 5, 7…, on trouve ${n} = ${factStr(n)}.`,{k:'factMissing',n,given,steps:2,mx:n})}
+function q_fromFact(){const [s,v]=pick([['2² × 3² × 7',252],['2³ × 3 × 5',120],['2 × 3² × 5',90],['2² × 3 × 5²',300],['2³ × 3² × 5',360],['2 × 3 × 7²',294]]);
+  const f=A.fact(v);const ws=[f.reduce((m,[p,e])=>m*(p*e),1),f.reduce((m,[p])=>m*p,1)*f[0][0],v/f[f.length-1][0],v*2].filter(x=>x!==v).map(String);
+  return QC(6,`Quel nombre a pour décomposition en facteurs premiers ${s}&nbsp;?`,String(v),ws,`${s} = ${A.flat(v).join(' × ')} = ${v}. Attention&nbsp;: 2³ = 2 × 2 × 2 = 8, pas 2 × 3.`,{k:'fromFact',s,steps:2,mx:v})}
+function q_divFact(){const [s,Nn]=pick([['2³ × 3² × 5',360],['2² × 3 × 5 × 7',420],['2⁴ × 3²',144],['2 × 3³ × 5',270]]);
+  const ds=A.divisors(Nn).filter(d=>d>10&&d<Nn&&!(A.fact(d).length===1));const r=pick(ds.length?ds:[A.divisors(Nn)[3]]);
+  const non=[16,27,25,14,32,49,81,22,26].filter(x=>Nn%x);shuf(non);
+  return QC(6,`N = ${s}. Lequel de ces nombres est un diviseur de N&nbsp;?`,String(r),non.slice(0,3).map(String),`${r} = ${factStr(r)}&nbsp;: tous ses facteurs premiers apparaissent dans N, avec des exposants au plus égaux. ${non.slice(0,3).map(x=>`${x} = ${factStr(x)}`).join('&nbsp;; ')}&nbsp;: ce n'est pas le cas.`,{k:'divOf',n:Nn,steps:3,mx:Nn})}
+/* ----- niveau 7 ----- */
+const FRS=[[84,120],[60,126],[45,75],[36,48],[42,56],[54,90],[70,98],[180,252],[150,210],[126,210]];
+function q_irr(big){const [a,b]=pick(big?FRS.slice(4):FRS.slice(0,7)),g=A.common(a,b),p=A.flat(g)[0];
+  const ws=shuf(A.divisors(g).filter(d=>d>1&&d<g)).slice(0,2).map(d=>fr(a/d,b/d));ws.push(fr(b/g,a/g));
+  return QC(7,`La forme irréductible de ${fr(a,b)} est&nbsp;:`,fr(a/g,b/g),ws,`${a} = ${factStr(a)} et ${b} = ${factStr(b)}&nbsp;: on barre les facteurs communs, ${fr(a,b)} = ${fr(a/g,b/g)}. ${fr(a/p,b/p)} se simplifie encore.`,{k:'irr',a,b,steps:big?3:2,mx:b})}
+function t_fr(big){const [a,b]=pick(big?FRS.slice(4):FRS.slice(0,4)),g=A.common(a,b);
+  return TR(7,`${big?`${a} = ${factStr(a)} et ${b} = ${factStr(b)}, donc `:'Écris sous forme irréductible&nbsp;: '}${fr(a,b)} = ${frIn}`,[N(a/g),N(b/g)],`${fr(a,b)} = ${fr(factStr(a),factStr(b))} = ${fr(a/g,b/g)}.`,{k:'fr',a,b,steps:big?2:2,mx:b})}
+function q_teams(){const [a,b]=pick([[84,120],[150,210],[60,126],[45,75],[36,60],[48,72],[90,126]]),g=A.common(a,b);
+  const cds=A.divisors(g).filter(d=>d>1&&d<g),ws=shuf(cds).slice(0,2).map(String);ws.push(String(a/g),String(a/g+b/g));
+  return QC(7,`Un chorégraphe a ${a} danseurs et ${b} figurants. Il veut former des équipes identiques (même nombre de danseurs et même nombre de figurants dans chaque équipe), avec le plus d'équipes possible. Combien d'équipes&nbsp;?`,
+    String(g),ws,`${a} = ${factStr(a)} et ${b} = ${factStr(b)}&nbsp;: ${g} équipes de ${a/g} danseurs et ${b/g} figurants&nbsp;; ${a/g} et ${b/g} n'ont plus de diviseur commun autre que 1.`,{k:'teamsMax',A:a,B:b,steps:3,mx:b})}
+function t_teams(){const [a,b]=pick([[84,120],[150,210],[60,126],[45,75],[36,60],[48,72]]),g=A.common(a,b);
+  return TR(7,`${a} danseurs et ${b} figurants forment le plus grand nombre possible d'équipes identiques&nbsp;: {0} équipes, chacune de {1} danseurs et {2} figurants.`,[N(g),N(a/g),N(b/g)],
+    `${a} = ${factStr(a)} et ${b} = ${factStr(b)}&nbsp;: ${g} équipes de ${a/g} danseurs et ${b/g} figurants.`,{k:'teams',A:a,B:b,steps:3,mx:b})}
+
+function build(qs,ts){for(;;){const out=[];let bad=false;
+    for(const f of qs){const q=f();if(!q){bad=true;break}out.push(q)}
+    if(bad)continue;for(const f of ts)out.push(f());
+    const pr=new Set(out.map(q=>plain(q.prompt)));if(pr.size<out.length)continue;return shuf(out)}}
+const pickN=(arr,k)=>shuf(arr.slice()).slice(0,k);
+const FIN={
+  bronze:()=>build([q_multOf,q_divOf,q_sum,q_parity,q_op,q_prime],[t_k,t_odd,t_sqnum,t_cof]),
+  argent:()=>build(pickN([q_divList,q_721,q_parBig,q_exp,()=>q_isPrime(false),()=>q_fact(true),()=>q_irr(false),q_oddsq,q_onePrime],6),pickN([t_qr,t_proof,t_odd2,t_test,t_factMiss,()=>t_fr(false)],4)),
+  or:()=>build(pickN([q_teams,q_divFact,q_parExpr,q_cons,()=>q_isPrime(true),q_kp,q_fromFact,()=>q_irr(true),q_sqEven],6),pickN([t_lin,t_kk,()=>t_fr(true),t_teams,t_ndiv,t_spf],4))
+};
+window.LC_FIN=FIN;
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'le-clip',title:'Le Clip',levels:7,
+  levelNames:['Rangées pile','La fusion','En duo','Le carré','Le solo','Indivisibles','Le concert'],
+  music:'aventure',finals:{bronze:()=>(window.LC_lastFinal=LC_FIN.bronze()),argent:()=>(window.LC_lastFinal=LC_FIN.argent()),or:()=>(window.LC_lastFinal=LC_FIN.or())}});
+LC.start();
+(function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|INPUT|TEXTAREA)$/.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(fix)}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>
