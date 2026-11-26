@@ -56,6 +56,23 @@
     a.target = '_blank'; a.rel = 'noopener';
   });
 
+  /* ── Statistiques anonymes (GoatCounter, sans cookies) ─────────────
+     Clics sur les PDF et ouverture des jeux Sigma Arcade, comptés comme événements.
+     Sans effet si GoatCounter n'est pas activé (goatcounter_code vide). */
+  doc.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var gc = window.goatcounter;
+    if (!gc || typeof gc.count !== 'function') return;
+    var u; try { u = new URL(a.href, location.href); } catch (err) { return; }
+    if (u.origin !== location.origin) return;
+    var path = null, title = (a.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+    if (/\.pdf$/i.test(u.pathname)) path = 'pdf' + decodeURIComponent(u.pathname);
+    else { var m = u.pathname.match(/^\/sigma-arcade\/([a-z0-9-]+)\/?$/); if (m) path = 'jeu/' + m[1]; }
+    if (!path) return;
+    try { gc.count({ path: path, title: title || path, event: true }); } catch (err) {}
+  });
+
   /* ── Recherche ────────────────────────────────────────────────────── */
   var dlg = doc.getElementById('search');
   var input = doc.getElementById('search-input');
