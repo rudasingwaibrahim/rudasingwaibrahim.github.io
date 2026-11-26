@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le Moulinet · Sigma Arcade</title>
+<meta name="description" content="Trigonométrie, partie 1 (Première spécialité) : cercle trigonométrique, radian, conversion degrés–radians, enroulement de la droite des réels, point image d'un réel, réels associés au même point, longueur d'arc. Le fil gradué de la droite des réels s'enroule sur le tambour d'un moulinet de pêche : le point où arrive la graduation x, c'est le point image de x.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours, la réponse est donnée au deuxième essai.
+   IDEA : pêche de nuit dans le lagon. Le tambour du moulinet est le cercle trigonométrique (centre O, rayon 1).
+          Le fil est la droite des réels, graduée, tangente au tambour en I et fixée en I. Tourner le moulinet
+          dans le sens direct enroule la partie positive du fil ; dans le sens indirect, la partie négative.
+          Le point du tambour où arrive la graduation x est le point image de x ; la longueur de fil enroulée,
+          c'est la longueur de l'arc parcouru ; un tour complet enroule 2π de fil.
+   PICTURE : tambour sombre à rayons tournants, jante bleu clair (le cercle) ; fil ambré lumineux (objet) gradué ;
+          flotteur violet-bleu (sélection) que l'élève fait tourner ; point image doré quand c'est juste.
+   COLOUR and TYPE : « océan profond » du site ; violet-bleu pour l'action ; or pour les réussites ;
+          corail pour les erreurs ; Outfit partout.
+   LAYOUT : scène et compteur à gauche (collés en haut sur téléphone), carnet de questions à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise)}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:78ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button,select,input{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible,#scene:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(340px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:linear-gradient(178deg,#0a1733 0%,#071022 58%,#061528 100%);user-select:none;-webkit-user-select:none}
+#scene{display:block;width:100%;height:auto;touch-action:pan-y}
+#scene.grab{cursor:grab;touch-action:none}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(17px,1.8vw,21px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .4em}
+.capt .k{color:var(--gold2)}.capt .m{color:var(--mut);font-weight:600}.capt .s{color:#a9bbff}.capt .f{color:#ffc46b}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 4px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.6;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px;line-height:1.6}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.5 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(18px,2vw,22px)/2.3 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.2em;height:46px;margin:0 3px;padding:0 6px;font:700 20px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.pik{min-width:52px;min-height:48px;border-radius:12px;border:1.5px dashed rgba(255,196,107,.6);background:rgba(255,180,84,.08);color:#ffd9a0;font:700 22px var(--sg-font);cursor:pointer}
+.pik:hover:not(:disabled){background:rgba(255,180,84,.16)}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+/* faire tourner le flotteur */
+.rot{display:flex;align-items:center;gap:8px;margin:0 0 12px;flex-wrap:wrap}
+.rot .stp{min-width:64px;min-height:48px;padding:0 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:700 17px var(--sg-font);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.rot .stp svg{width:22px;height:22px}
+.rot .stp:hover:not(:disabled){border-color:var(--ac)}
+/* écritures mathématiques */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+sub,sup{font-size:.68em;line-height:0}
+.sk-q .fr,.sk-ch .fr{font-size:.92em}
+.arc{position:relative;display:inline-block}
+.arc::before{content:"";position:absolute;left:8%;right:8%;top:-.28em;height:.42em;border:2px solid currentColor;border-bottom:0;border-radius:50% 50% 0 0/100% 100% 0 0}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb.rv{background:rgba(200,168,75,.09);border-left-color:var(--gold)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex;flex:none}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:15px;border-radius:10px}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .rot{gap:6px}.rot .stp{flex:1 1 0;justify-content:center;padding:0 6px;font-size:15px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Le Moulinet</h1>
+<p>Pêche de nuit dans le lagon. Le tambour du moulinet, c'est le cercle trigonométrique&nbsp;; le fil, c'est la droite des réels, graduée et fixée en I. Tourne le moulinet&nbsp;: le fil s'enroule, et la graduation <i>x</i> vient se poser sur le cercle au point image de <i>x</i>.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage">
+    <svg id="scene" viewBox="0 0 900 560" role="img" aria-label="Le cercle trigonométrique, tambour d'un moulinet, et le fil gradué de la droite des réels tangent en I" tabindex="-1"></svg>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+<script>
+/* ======================= LE MOULINET — noyau : rationnels exacts, écritures, scène ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const NB=' ',MINUS='−',PI=Math.PI;
+/* ---------- rationnels exacts (petits entiers) ---------- */
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t}return a||1};
+function F(n,d){if(n&&typeof n==='object')return n;if(typeof n==='string')return parseNum(n);if(d===undefined)d=1;if(!Number.isInteger(n)||!Number.isInteger(d)||d===0)throw new Error('F('+n+','+d+')');if(d<0){n=-n;d=-d}const g=gcd(n,d);return {n:n/g+0,d:d/g}}
+const add=(a,b)=>{a=F(a);b=F(b);return F(a.n*b.d+b.n*a.d,a.d*b.d)};
+const sub=(a,b)=>{a=F(a);b=F(b);return F(a.n*b.d-b.n*a.d,a.d*b.d)};
+const mul=(a,b)=>{a=F(a);b=F(b);return F(a.n*b.n,a.d*b.d)};
+const div=(a,b)=>{a=F(a);b=F(b);return F(a.n*b.d,a.d*b.n)};
+const eq=(a,b)=>{if(!a||!b)return false;a=F(a);b=F(b);return a.n===b.n&&a.d===b.d};
+const cmp=(a,b)=>{a=F(a);b=F(b);const x=a.n*b.d,y=b.n*a.d;return x<y?-1:x>y?1:0};
+const val=a=>{a=F(a);return a.n/a.d};
+const isInt=a=>F(a).d===1;
+const neg=a=>{a=F(a);return F(-a.n,a.d)};
+const fabs=a=>{a=F(a);return F(Math.abs(a.n),a.d)};
+const floorF=a=>{a=F(a);return Math.floor(a.n/a.d)};
+/* reste dans [0 ; 2[ du coefficient de π : le réel de [0 ; 2π[ associé au même point */
+const mod2=a=>{a=F(a);return sub(a,F(2*Math.floor(a.n/(2*a.d))))};
+const toursOf=a=>Math.floor(Math.abs(val(a))/2+1e-12);
+const S=a=>{a=F(a);return a.d===1?String(a.n):a.n+'/'+a.d};
+/* rang (0..23) du point sur le cercle, si le coefficient est un multiple de 1/12 */
+const idxOf=c=>{const m=mul(mod2(c),12);return isInt(m)?m.n%24:null};
+/* ---------- lecture des réponses ---------- */
+function clean(s){return String(s).trim().replace(/[\s  ]/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/^\+/,'')}
+function parseNum(s){s=clean(s).replace(/(°|rad|cm|km|mm|m)$/i,'');
+  let m=/^(-?)(\d+)\/(\d+)$/.exec(s);if(m){if(+m[3]===0)return null;return F((m[1]?-1:1)*(+m[2]),+m[3])}
+  m=/^(-?)(\d*)(?:\.(\d+))?$/.exec(s);if(!m||(!m[2]&&!m[3]))return null;const f=m[3]||'',den=Math.pow(10,f.length);
+  if(f.length>8)return null;return F((m[1]?-1:1)*((+(m[2]||'0'))*den+(f?+f:0)),den)}
+/* « 3π/4 », « 3pi/4 », « 3/4π », « (3/4)π », « −π », « 2π », « 0 » → {pi, v} */
+function parsePi(s){let t=clean(s).toLowerCase().replace(/rad$/,'').replace(/pi/g,'π').replace(/[×*·x]/g,'').replace(/[()]/g,'');
+  if(!t)return null;const k=(t.match(/π/g)||[]).length;
+  if(k===0){const v=parseNum(t);return v?{pi:false,v}:null}
+  if(k>1)return null;const i=t.indexOf('π'),A=t.slice(0,i),B=t.slice(i+1);
+  const co=A===''?F(1):A==='-'?F(-1):parseNum(A);if(!co)return null;
+  if(B==='')return {pi:true,v:co};
+  if(B[0]==='/'&&!A.includes('/')){const d=parseNum(B.slice(1));if(!d||!isInt(d)||d.n<=0)return null;return {pi:true,v:div(co,d)}}
+  return null}
+/* ---------- écritures ---------- */
+const frac=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+function frS(s){let ng=s[0]==='-';if(ng)s=s.slice(1);let [ip,fp]=s.split('.');if(ip.length>=5)ip=ip.replace(/\B(?=(\d{3})+(?!\d))/g,' ');return (ng?MINUS:'')+ip+(fp?','+fp:'')}
+/* coefficient c → c·π, en HTML (fraction empilée) et en texte */
+function piH(c){c=F(c);if(c.n===0)return '0';const sg=c.n<0?MINUS:'',a=Math.abs(c.n),num=a===1?'π':a+'π';return c.d===1?sg+num:sg+frac(num,c.d)}
+function piT(c){c=F(c);if(c.n===0)return '0';const sg=c.n<0?MINUS:'',a=Math.abs(c.n),num=a===1?'π':a+'π';return c.d===1?sg+num:sg+num+'/'+c.d}
+/* décimal exact si possible, sinon fraction */
+function decOf(x){x=F(x);let d=x.d,k=0;while(d%2===0)d/=2;while(d%5===0)d/=5;if(d!==1)return null;while(!isInt(mul(x,Math.pow(10,k))))k++;const i=mul(x,Math.pow(10,k)).n,sg=i<0?'-':'',a=String(Math.abs(i)).padStart(k+1,'0');return sg+(k?a.slice(0,a.length-k)+'.'+a.slice(a.length-k):a)}
+function nH(x){x=F(x);const s=decOf(x);if(s!==null&&(s.split('.')[1]||'').length<=4)return frS(s);return (x.n<0?MINUS:'')+frac(String(Math.abs(x.n)),String(x.d))}
+function nT(x){x=F(x);const s=decOf(x);if(s!==null&&(s.split('.')[1]||'').length<=4)return frS(s);return (x.n<0?MINUS:'')+Math.abs(x.n)+'/'+x.d}
+const degH=x=>nH(x)+'°',degT=x=>nT(x)+'°';
+/* fraction (de tour, de π) : toujours en fraction */
+function fH(x){x=F(x);return x.d===1?(x.n<0?MINUS:'')+Math.abs(x.n):(x.n<0?MINUS:'')+frac(String(Math.abs(x.n)),String(x.d))}
+/* arrondi d'un réel (nombre JS) à d décimales → rationnel exact et texte (zéros conservés) */
+function rnd(x,d){const m=Math.pow(10,d);const r=Math.round(x*m+(x>=0?1e-9:-1e-9));return F(r,m)}
+function rT(x,d){const r=rnd(x,d);let s=decOf(r);let [i,f]=s.split('.');f=(f||'').padEnd(d,'0');return frS(d?i+'.'+f:i)}
+/* réponses acceptées pour un trou du kit (π) */
+function writesPi(c){c=F(c);if(c.n===0)return ['0','0π'];const out=[],ad=x=>{if(!out.includes(x))out.push(x)};
+  const sg=c.n<0?'-':'',a=Math.abs(c.n),d=c.d,u=a===1?'':String(a);
+  ad(piT(c));
+  if(d===1){ad(sg+u+'π');ad(sg+u+'pi');ad(sg+a+'π');ad(sg+a+'pi');ad(sg+a+'×π');ad(sg+a+'×pi')}
+  else{ad(sg+u+'π/'+d);ad(sg+u+'pi/'+d);ad(sg+a+'π/'+d);ad(sg+a+'pi/'+d);ad(sg+a+'/'+d+'π');ad(sg+a+'/'+d+'pi');
+    ad(sg+'('+a+'/'+d+')π');ad(sg+'('+a+'/'+d+')pi');ad(sg+a+'×π/'+d);ad(sg+a+'×pi/'+d);
+    const dc=decOf(c);if(dc!==null&&dc.replace('-','').length<=5){ad(dc+'π');ad(dc+'pi')}}
+  return out}
+function writesNum(x,extra){x=F(x);const out=[],ad=s=>{if(!out.includes(s))out.push(s)};const s=decOf(x);
+  if(s!==null){ad(frS(s).replace(/ /g,''));ad(s)}
+  if(!isInt(x)){const f=(x.n<0?MINUS:'')+Math.abs(x.n)+'/'+x.d;ad(f)}
+  if(s!==null&&s[0]==='-')ad(s);
+  for(const e of extra||[])ad(e);return out}
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* ---------------- bruitages ---------------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),gn=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(v,t+.012);gn.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(gn);gn.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+let lastTick=0;
+const SND={pop(){if(snd){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)}},
+  click(){if(!snd)return;const n=performance.now();if(n-lastTick<40)return;lastTick=n;tone(1900,.025,.012,'square');tone(950,.03,.01,'triangle',.005)},
+  soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))},
+  get on(){return snd},set on(v){snd=v}};
+
+/* ---------------- scène ---------------- */
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?1:ms));
+function anim(ms,fn){return new Promise(res=>{if(reduceM)ms=1;const t0=performance.now();
+  const step=t=>{let k=Math.min(1,(t-t0)/ms);fn(k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,k);if(k<1)requestAnimationFrame(step);else res()};requestAnimationFrame(step)})}
+const svg=$('scene');
+const CX=295,CY=280,U=162,DL=.055;
+let narrow=false;
+const P=(x,y)=>[CX+U*x,CY-U*y];
+const f1=n=>n.toFixed(1);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+let st=null;
+function blank(){return{w:0,den:4,ints:false,target:null,handle:null,hit:null,mark:null,ghost:null,dots:false,place:false,
+  capt:null,counter:true,second:null,labT:null,tRad:null,quiet:false}}
+/* rayon d'affichage de l'enroulement : chaque tour se pose un peu plus loin (épaisseur du fil) */
+const rad=t=>1+DL*Math.abs(t)/(2*PI);
+/* position (repère) du point du fil de graduation t quand on a enroulé w ; normale extérieure */
+function pos(t,w){const inW=w>=0?(t>=0&&t<=w):(t<=0&&t>=w),beyond=w>=0?t>w:t<w;
+  if(inW){const r=rad(t);return [r*Math.cos(t),r*Math.sin(t),Math.cos(t),Math.sin(t),'w']}
+  if(beyond){const r=rad(w),bx=r*Math.cos(w),by=r*Math.sin(w),d=t-w;return [bx-d*Math.sin(w),by+d*Math.cos(w),Math.cos(w),Math.sin(w),'f']}
+  return [1,t,1,0,'v']}
+const hasT=()=>(st.target!==null&&st.target!==undefined)||(st.tRad!==null&&st.tRad!==undefined);
+const tR=()=>st.tRad!==null&&st.tRad!==undefined?st.tRad:val(st.target)*PI;
+function piLab(k,den){return piT(F(k,den))}
+function render(){if(!st)return;const cw=svg.clientWidth||900;narrow=cw<600;const VW=narrow?600:900;svg.setAttribute('viewBox',`0 ${narrow?40:0} ${VW} ${narrow?475:560}`);
+  const FK=Math.min(2,Math.max(1.2,VW/cw));const fs=n=>f1(n*FK);
+  let s=`<defs><radialGradient id="ml-drum" cx=".42" cy=".38" r=".75"><stop offset="0" stop-color="#1b2c52"/><stop offset=".7" stop-color="#0d1834"/><stop offset="1" stop-color="#081022"/></radialGradient>`+
+    `<linearGradient id="ml-sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b2142" stop-opacity="0"/><stop offset="1" stop-color="#0d2b4d" stop-opacity=".55"/></linearGradient>`+
+    `<filter id="ml-glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+  /* nuit sur le lagon */
+  s+=`<rect x="0" y="430" width="900" height="140" fill="url(#ml-sea)"/>`+
+    `<g stroke="rgba(160,190,255,.10)" stroke-width="2" stroke-linecap="round"><path d="M40 492h70M150 512h46M610 500h90M740 522h60M380 532h52"/></g>`+
+    `<g fill="#dfe7ff" opacity=".4"><circle cx="60" cy="48" r="1.4"/><circle cx="170" cy="90" r="1"/><circle cx="520" cy="40" r="1.5"/><circle cx="700" cy="300" r="1.1"/><circle cx="860" cy="60" r="1.3"/><circle cx="560" cy="150" r="1"/><circle cx="80" cy="330" r="1.1"/></g>`;
+  /* axes */
+  const [ox,oy]=P(0,0);
+  s+=`<path d="M${f1(CX-U*1.42)} ${f1(oy)}H${f1(CX+U*1.12)}M${f1(ox)} ${f1(CY+U*1.4)}V${f1(CY-U*1.4)}" stroke="rgba(200,215,255,.34)" stroke-width="1.6" fill="none"/>`;
+  /* tambour : disque sombre, rayons qui tournent avec le moulinet */
+  const w=st.w;let sp='';for(let k=0;k<6;k++){const a=w+k*PI/3,c=Math.cos(a),si=Math.sin(a);const [x1,y1]=P(.16*c,.16*si),[x2,y2]=P(.82*c,.82*si);sp+=`M${f1(x1)} ${f1(y1)}L${f1(x2)} ${f1(y2)}`}
+  s+=`<circle cx="${CX}" cy="${CY}" r="${f1(U*.93)}" fill="url(#ml-drum)"/>`+
+     `<path d="${sp}" stroke="rgba(150,180,255,.20)" stroke-width="7" stroke-linecap="round"/>`+
+     `<circle cx="${CX}" cy="${CY}" r="${f1(U*.16)}" fill="#14234a" stroke="rgba(150,180,255,.35)" stroke-width="2"/>`;
+  s+=`<circle cx="${CX}" cy="${CY}" r="${U}" fill="none" stroke="#9fb4ff" stroke-width="3.2" filter="url(#ml-glow)"/>`;
+  /* sens direct */
+  {const r=1.2,a0=1.95,a1=2.55;const [x0,y0]=P(r*Math.cos(a0),r*Math.sin(a0)),[x1,y1]=P(r*Math.cos(a1),r*Math.sin(a1));
+   const tx=-Math.sin(a1),ty=Math.cos(a1),[hx,hy]=[x1,y1];const nx=Math.cos(a1),ny=Math.sin(a1);
+   const p1=[hx+(-tx*14+nx*7),hy-(-ty*14+ny*7)],p2=[hx+(-tx*14-nx*7),hy-(-ty*14-ny*7)];
+   s+=`<path d="M${f1(x0)} ${f1(y0)}A${f1(U*r)} ${f1(U*r)} 0 0 0 ${f1(x1)} ${f1(y1)}" stroke="rgba(174,191,255,.7)" stroke-width="2.4" fill="none"/>`+
+      `<path d="M${f1(hx)} ${f1(hy)}L${f1(p1[0])} ${f1(p1[1])}L${f1(p2[0])} ${f1(p2[1])}Z" fill="rgba(174,191,255,.85)"/>`;
+   const [lx,ly]=P(1.36*Math.cos(2.25),1.36*Math.sin(2.25));s+=`<text x="${f1(lx)}" y="${f1(ly)}" font-size="${fs(15)}" font-weight="700" fill="rgba(174,191,255,.9)" text-anchor="middle">+</text>`}
+  /* positions possibles du flotteur */
+  if(st.dots){let d='';for(let k=0;k<24;k++){const a=k*PI/12,[x,y]=P(Math.cos(a),Math.sin(a));d+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="${k%6===0?4.5:k%3===0?3.6:2.6}"/>`}s+=`<g fill="rgba(200,215,255,.55)">${d}</g>`}
+  /* fil (droite des réels) */
+  const fil=(W,col,op,lab)=>{let o='';const N=Math.max(2,Math.ceil(Math.abs(W)/.03));let pts=[];
+    const Lf=14;
+    /* partie restée sur la tangente du côté opposé */
+    const pv=W>=0?[[1,-Lf],[1,0]]:[[1,Lf],[1,0]];
+    let d=`M${P(...pv[0]).map(f1).join(' ')}L${P(...pv[1]).map(f1).join(' ')}`;
+    for(let i=0;i<=N;i++){const t=W*i/N,p=pos(t,W);pts.push(P(p[0],p[1]))}
+    d+='L'+pts.map(p=>f1(p[0])+' '+f1(p[1])).join('L');
+    {const p=pos(W+(W>=0?Lf:-Lf),W);const q2=P(p[0],p[1]);d+=`L${f1(q2[0])} ${f1(q2[1])}`}
+    o+=`<path d="${d}" fill="none" stroke="${col}" stroke-width="7" stroke-opacity="${op*.18}" stroke-linejoin="round"/>`+
+       `<path d="${d}" fill="none" stroke="${col}" stroke-width="3" stroke-opacity="${op}" stroke-linejoin="round" stroke-linecap="round"/>`;
+    if(!lab){if(st.second&&st.second.c){const t=val(st.second.c)*PI,p=pos(t,W),[x,y]=P(p[0],p[1]);const gx=x+p[2]*34,gy=y-p[3]*34,txt=piT(st.second.c),wd=(txt.length*8.2+16)*FK;
+        o+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="6" fill="#9ff0da" stroke="#002a20" stroke-width="2"/>`;
+        if(false)o+=`<g><rect x="${f1(gx-wd/2)}" y="${f1(gy-13*FK)}" width="${f1(wd)}" height="${f1(26*FK)}" rx="${f1(13*FK)}" fill="rgba(0,20,16,.85)" stroke="#7fe0c8" stroke-width="1.5"/>`+
+          `<text x="${f1(gx)}" y="${f1(gy+5*FK)}" text-anchor="middle" font-size="${fs(15)}" font-weight="800" fill="#c9fff0">${esc(txt)}</text></g>`}return o}
+    /* graduations en π/den */
+    const den=st.den,lim=Math.abs(W)+3.2,kmax=Math.ceil(lim*den/PI);let tk='',tl='';
+    for(let k=-kmax;k<=kmax;k++){const t=k*PI/den;if(Math.abs(t)>lim)continue;const p=pos(t,W),[x,y]=P(p[0],p[1]);
+      const maj=(2*k)%den===0,len=maj?17:11;tk+=`M${f1(x)} ${f1(y)}l${f1(p[2]*len)} ${f1(-p[3]*len)}`;
+      if(p[4]!=='w'&&k!==0&&!(hasT()&&Math.abs(t-tR())<1e-9)){const gx=x+p[2]*(len+8),gy=y-p[3]*(len+8);
+        if(gy>-10&&gy<580&&gx<890)tl+=`<text x="${f1(gx)}" y="${f1(gy+5*FK)}" text-anchor="${p[2]>.5?'start':p[2]<-.5?'end':'middle'}">${piLab(k,den)}</text>`}}
+    o+=`<path d="${tk}" stroke="${col}" stroke-opacity="${op*.9}" stroke-width="2" fill="none"/>`;
+    o+=`<g font-size="${fs(14)}" font-weight="600" fill="#ffd9a0" fill-opacity="${op}">${tl}</g>`;
+    /* graduations entières (de l'autre côté du fil) */
+    if(st.ints){let it='',il='';for(let n=-7;n<=7;n++){if(!n||Math.abs(n)>lim)continue;const p=pos(n,W),[x,y]=P(p[0],p[1]);it+=`M${f1(x)} ${f1(y)}l${f1(-p[2]*12)} ${f1(p[3]*12)}`;
+        const gx=x-p[2]*28,gy=y+p[3]*28;il+=`<text x="${f1(gx)}" y="${f1(gy+5*FK)}" text-anchor="middle">${n<0?MINUS+(-n):n}</text>`}
+      o+=`<path d="${it}" stroke="#7fe0c8" stroke-width="2" fill="none" opacity=".85"/><g font-size="${fs(13)}" font-weight="700" fill="#9ff0da">${il}</g>`}
+    /* la graduation x visée */
+    if(hasT()){const t=tR(),p=pos(t,W),[x,y]=P(p[0],p[1]);
+      const gx=x+p[2]*34,gy=y-p[3]*34;const txt=st.labT||piT(st.target);const wd=(txt.length*8.2+16)*FK;
+      o+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="6" fill="#ffd27a" stroke="#3b2600" stroke-width="2"/>`;
+      if(p[4]!=='w'&&gy>-10&&gy<580)o+=`<g><rect x="${f1(gx-wd/2)}" y="${f1(gy-13*FK)}" width="${f1(wd)}" height="${f1(26*FK)}" rx="${f1(13*FK)}" fill="rgba(20,14,0,.82)" stroke="#e8c766" stroke-width="1.5"/>`+
+        `<text x="${f1(gx)}" y="${f1(gy+5*FK)}" text-anchor="middle" font-size="${fs(15)}" font-weight="800" fill="#ffe3a3">${esc(txt)}</text></g>`}
+    return o};
+  if(st.second!==null&&st.second!==undefined)s+=fil(st.second.w,'#7fe0c8',.8,false);
+  s+=fil(w,'#ffb454',1,true);
+  /* points remarquables */
+  const lab=(x,y,t,anc,col)=>`<text x="${f1(x)}" y="${f1(y)}" text-anchor="${anc||'middle'}" font-size="${fs(17)}" font-weight="700" font-style="italic" fill="${col||'rgba(220,230,255,.92)'}" stroke="#060d1a" stroke-width="4" paint-order="stroke">${t}</text>`;
+  {const [ix,iy]=P(1,0),[jx,jy]=P(0,1),[i2x,i2y]=P(-1,0),[j2x,j2y]=P(0,-1);
+   s+=`<g fill="#dfe7ff"><circle cx="${f1(ix)}" cy="${f1(iy)}" r="4.5"/><circle cx="${f1(jx)}" cy="${f1(jy)}" r="4"/><circle cx="${f1(i2x)}" cy="${f1(i2y)}" r="4"/><circle cx="${f1(j2x)}" cy="${f1(j2y)}" r="4"/><circle cx="${f1(ox)}" cy="${f1(oy)}" r="3.5"/></g>`;
+   s+=lab(ix-10,iy+24*FK,'I','end')+lab(jx-12,jy-10,'J','end')+lab(i2x-10,i2y-10,'I′','end')+lab(j2x-12,j2y+24*FK,'J′','end')+lab(ox-10,oy+22*FK,'O','end')}
+  /* point marqué (lecture) */
+  const dotAt=(a,col,r,txt,ring)=>{const [x,y]=P(Math.cos(a),Math.sin(a)),inside=Math.cos(a)>.3,ra=inside?.74:1.27,da=inside?0:.16,[lx,ly]=P(ra*Math.cos(a+da),ra*Math.sin(a+da));
+    return (ring?`<circle cx="${f1(x)}" cy="${f1(y)}" r="${r+9}" fill="none" stroke="${col}" stroke-width="2" opacity=".55"/>`:'')+
+      `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="${col}" stroke="#fff6d8" stroke-width="2.5" filter="url(#ml-glow)"/>`+(txt?lab(lx,ly+6*FK,txt,'middle','#ffe3a3'):'')};
+  if(st.mark){const a=val(st.mark.c)*PI;const [mx,my]=P(Math.cos(a),Math.sin(a));
+    s+=`<line x1="${f1(ox)}" y1="${f1(oy)}" x2="${f1(mx)}" y2="${f1(my)}" stroke="rgba(232,199,102,.55)" stroke-width="2" stroke-dasharray="5 6"/>`+dotAt(a,'#e8c766',10,st.mark.lab||'M',true)}
+  if(st.ghost!==null&&st.ghost!==undefined){s+=dotAt(st.ghost*PI/12,'rgba(255,107,107,.75)',8,'',false)}
+  /* flotteur */
+  if(st.handle!==null&&st.handle!==undefined){const a=st.handle*PI/12,[hx,hy]=P(Math.cos(a),Math.sin(a)),hr=Math.cos(a)>.3?.72:1.25,[lx,ly]=P(hr*Math.cos(a),hr*Math.sin(a));
+    s+=`<line x1="${f1(ox)}" y1="${f1(oy)}" x2="${f1(hx)}" y2="${f1(hy)}" stroke="rgba(108,142,255,.75)" stroke-width="2.4" stroke-dasharray="6 6"/>`+
+       `<circle cx="${f1(hx)}" cy="${f1(hy)}" r="${st.place?22:0}" fill="rgba(108,142,255,.16)"/>`+
+       `<circle cx="${f1(hx)}" cy="${f1(hy)}" r="12" fill="#6c8eff" stroke="#eef2ff" stroke-width="3"/>`+
+       `<circle cx="${f1(hx)}" cy="${f1(hy)}" r="3.5" fill="#eef2ff"/>`+lab(lx,ly+6*FK,st.hit===true?'':'M ?','middle','#c9d6ff')}
+  if(st.hit===true){const a=tR();s+=dotAt(a,'#e8c766',11,'M',true)}
+  /* compteur (ordinateur) */
+  if(!narrow&&st.counter){const t=st.capt||counterTxt();
+    s+=`<g transform="translate(626 36)"><rect width="250" height="${t.l3?150:124}" rx="16" fill="rgba(8,18,38,.82)" stroke="rgba(120,160,255,.22)"/>`+
+      `<text x="18" y="30" font-size="13" font-weight="700" letter-spacing="1.4" fill="rgba(174,191,255,.85)">FIL ENROULÉ</text>`+
+      `<text x="18" y="70" font-size="30" font-weight="800" fill="#ffc46b">${esc(t.l1)}</text>`+
+      `<text x="18" y="104" font-size="16" font-weight="600" fill="rgba(220,230,255,.85)">${esc(t.l2)}</text>`+
+      (t.l3?`<text x="18" y="132" font-size="16" font-weight="600" fill="rgba(220,230,255,.85)">${esc(t.l3)}</text>`:'')+`</g>`}
+  svg.innerHTML=s}
+function counterTxt(){const w=st.w,n=Math.floor(Math.abs(w)/(2*PI)+1e-9);const ap=frS((Math.round(Math.abs(w)*100)/100).toFixed(2));let l1;
+  if(Math.abs(w)<1e-9)l1='0';
+  else if(st.wExact&&Math.abs(val(st.wExact)*PI-w)<1e-9)l1=piT(st.wExact)+' ≈ '+(w<0?MINUS:'')+ap;
+  else if(st.wInt!==undefined&&st.wInt!==null&&Math.abs(st.wInt-w)<1e-9)l1=(w<0?MINUS:'')+Math.abs(st.wInt);
+  else l1='≈ '+(w<0?MINUS:'')+ap;
+  const sens=Math.abs(w)<1e-9?'':(w>0?'sens direct ↺':'sens indirect ↻');
+  if(st.quiet)return {l1:Math.abs(w)<1e-9?'0':'≈ '+(w<0?MINUS:'')+ap,l2:sens||'—',l3:''};
+  return {l1,l2:`${n} tour${n>1?'s':''} complet${n>1?'s':''}`,l3:sens}}
+function capWind(){const t=counterTxt();cap(`<span class="m">fil enroulé</span> <span class="f">${t.l1}</span> <span class="m">· ${t.l2}${t.l3?' · '+t.l3:''}</span>`)}
+let cap=()=>{};
+/* enrouler jusqu'à W (radians) */
+async function windTo(W,exact,o){o=o||{};const w0=st.w,dw=W-w0;st.wExact=null;if(Math.abs(dw)<1e-9){st.wExact=exact||null;render();if(o.cap!==false)capWind();return}
+  const ms=o.ms||Math.min(3600,Math.max(650,520+380*Math.abs(dw)/PI));let lastK=Math.round(w0*12/PI);
+  await anim(ms,e=>{st.w=w0+dw*e;const k=Math.round(st.w*12/PI);if(k!==lastK){lastK=k;SND.click()}render();if(o.cap!==false)capWind()});
+  st.w=W;st.wExact=exact||null;render();if(o.cap!==false)capWind()}
+async function unwind(){if(Math.abs(st.w)<1e-9)return;await windTo(0,F(0),{ms:Math.min(900,350+120*Math.abs(st.w)/PI),cap:false})}
+async function windSecond(W,c){st.second={w:0,c:c||null};const ms=Math.min(3600,Math.max(650,520+380*Math.abs(W)/PI));let lastK=0;
+  await anim(ms,e=>{st.second.w=W*e;const k=Math.round(st.second.w*12/PI);if(k!==lastK){lastK=k;SND.click()}render()});st.second.w=W;render();
+  if(c&&st.wExact){const same=Number.isInteger(Math.round((val(c)-val(st.wExact))/2*1e9)/1e9);cap(`<span class="f">${piT(st.wExact)}</span> <span class="m">et</span> <span style="color:#9ff0da">${piT(c)}</span> <span class="m">:</span> ${same?'<span class="k">même point image</span>':'<span style="color:#ff9b7a">points différents</span>'}`)}}
+function reset(o){st=Object.assign(blank(),o||{});render()}
+/* ---------------- glisser le flotteur ---------------- */
+let drag=null,dragOn=false;
+function setDrag(d){drag=d;svg.classList.toggle('grab',!!d);if(st){st.place=!!d;render()}}
+function svgPt(e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const m=svg.getScreenCTM();if(!m)return null;const r=pt.matrixTransform(m.inverse());return {x:(r.x-CX)/U,y:(CY-r.y)/U}}
+svg.addEventListener('pointerdown',e=>{if(!drag)return;const p=svgPt(e);if(!p)return;const r=Math.hypot(p.x,p.y);if(r<.35||r>1.75)return;dragOn=true;try{svg.setPointerCapture(e.pointerId)}catch(_){}drag.move(p);e.preventDefault()});
+svg.addEventListener('pointermove',e=>{if(!drag||!dragOn)return;const p=svgPt(e);if(p)drag.move(p);e.preventDefault()});
+const endDrag=()=>{if(dragOn&&drag&&drag.end)drag.end();dragOn=false};
+svg.addEventListener('pointerup',endDrag);svg.addEventListener('pointercancel',endDrag);
+svg.addEventListener('keydown',e=>{if(!drag||!drag.key)return;const d={ArrowLeft:1,ArrowUp:1,ArrowRight:-1,ArrowDown:-1}[e.key];if(d){e.preventDefault();drag.key(d)}});
+addEventListener('resize',()=>{if(st)render()});
+
+window.MLK={$,NB,MINUS,PI,F,add,sub,mul,div,eq,cmp,val,isInt,neg,fabs,floorF,mod2,toursOf,S,idxOf,parseNum,parsePi,frac,frS,piH,piT,nH,nT,fH,degH,degT,rnd,rT,decOf,
+  writesPi,writesNum,ri,pick,shuf,SND,sleep,anim,reduceM,render,windTo,windSecond,unwind,reset,setDrag,pos,P,CX,CY,U,
+  get st(){return st},setCap(f){cap=f},capWind,counterTxt};
+})();
+</script>
+<script>
+/* ======================= LE MOULINET — déroulé des questions ======================= */
+(function(){
+'use strict';
+const K=window.MLK,{F,eq,val,S,idxOf,parsePi,parseNum,piH,piT,nH,nT,frS,ri,pick,shuf,SND,sleep,$,PI}=K;
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+let lvl=0,qi=0,run=[],QN=null,pi=0,errs=0,busy=false,partState={};
+const LV=window.ML_LV=[];
+function starsOf(i){try{const g=SigmaKit.passport().games['le-moulinet'];return g&&g.levels[i+1]||0}catch(e){return 0}}
+const cap=h=>{$('capt').innerHTML=h||'&nbsp;'};
+K.cap=cap;K.setCap(cap);
+
+/* ---------- retours ---------- */
+function fb(html,rv){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI(rv?'neutre':'pense');$('fbt').textContent=rv?'Voici la réponse.':'Pas tout à fait.';
+  $('fbp').innerHTML=html;$('fb').classList.toggle('rv',!!rv);$('fb').hidden=false;
+  const f=$('fb');if(f.getBoundingClientRect().bottom>innerHeight)setTimeout(()=>f.scrollIntoView({block:'end',behavior:K.reduceM?'auto':'smooth'}),30)}
+/* erreur : 1er essai → explication ; 2e essai → la réponse est donnée, on continue */
+function err(why,box,reveal,sol){errs++;partState.errors=(partState.errors||0)+1;SND.soft();
+  if(partState.errors>=2&&reveal){reveal();fb((why?why+' ':'')+(sol?'<br>'+sol:''),true);
+    const b=document.createElement('div');b.className='btns';b.style.marginTop='10px';b.innerHTML='<button type="button" class="btn or cont">Continuer →</button>';box.appendChild(b);
+    const c=b.querySelector('.cont');c.onclick=async()=>{if(busy)return;c.disabled=true;await finish(QN.parts[pi])};setTimeout(()=>c.focus({preventScroll:true}),30)}
+  else fb(why)}
+async function finish(p){fb('');if(p&&p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+const W={};
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);nextPart()}};
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  const all=[...box.querySelectorAll('.opt')];
+  all.forEach(b=>b.onclick=async()=>{if(busy||b.disabled)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){all.forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();await finish(p)}
+    else{b.classList.add('ko');b.disabled=true;err(c.why,box,()=>{all.forEach(x=>{x.disabled=true;if(p.ch[+x.dataset.j].ok)x.classList.add('ok')})},'La bonne réponse est en vert.')}})};
+/* trous : π accepté sous les formes 3π/4, 3pi/4, 3/4π… ; nombres avec virgule ou fraction */
+function okBlank(a,s){if(a.k==='pi'){const r=parsePi(s);return !!r&&((r.pi&&eq(r.v,a.v))||(!r.pi&&a.v.n===0&&r.v.n===0))}
+  if(a.k==='word'){const t=String(s).trim().toLowerCase().replace(/\s+/g,' ');return a.words.includes(t)}
+  const r=parseNum(s);return !!r&&eq(r,a.v)}
+const ansT=a=>a.k==='pi'?piT(a.v):a.k==='word'?a.words[0]:nT(a.v);
+const ansH=a=>a.k==='pi'?piH(a.v):a.k==='word'?a.words[0]:nH(a.v);
+W.fill=(p,box)=>{const hasPi=p.ans.some(a=>a.k==='pi');
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const a=p.ans[+i],s=ansT(a);const w=Math.max(a.k==='pi'?4.2:2.8,s.length*.62+1.8);
+    return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="${a.k==='num'&&isNonNegDec(a.v)?'decimal':'text'}" aria-label="Case ${+i+1}" style="width:${w.toFixed(1)}em">`});
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button>`+
+    (hasPi?`<button type="button" class="pik" aria-label="Écrire π">π</button>`:'')+`</div></form>`+(p.note||hasPi?`<p class="hint">${p.note||'Écris π avec la touche π ou en tapant « pi »&nbsp;: 3π/4, 3pi/4 ou 3/4π.'}</p>`:'');
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];let lastPi=ins.find(x=>p.ans[+x.dataset.i].k==='pi')||null;
+  ins.forEach(x=>x.addEventListener('focus',()=>{if(p.ans[+x.dataset.i].k==='pi')lastPi=x}));
+  const pk=box.querySelector('.pik');if(pk){pk.addEventListener('mousedown',e=>e.preventDefault());pk.onclick=()=>{if(!lastPi||lastPi.disabled)return;const s=lastPi.selectionStart??lastPi.value.length,e2=lastPi.selectionEnd??s;
+    lastPi.value=lastPi.value.slice(0,s)+'π'+lastPi.value.slice(e2);lastPi.focus({preventScroll:true});try{lastPi.setSelectionRange(s+1,s+1)}catch(_){}}}
+  f.onsubmit=async e=>{e.preventDefault();if(busy||f.dataset.done)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=v.map((x,i)=>okBlank(p.ans[+ins[i].dataset.i],x));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){f.dataset.done=1;ins.forEach(x=>x.disabled=true);f.querySelectorAll('button').forEach(b=>b.remove());SND.pop();await finish(p)}
+    else err(typeof p.why==='function'?p.why(v,oks):p.why,box,()=>{f.dataset.done=1;ins.forEach(x=>{x.value=ansT(p.ans[+x.dataset.i]);x.classList.remove('ko');x.classList.add('ok');x.disabled=true});f.querySelectorAll('button').forEach(b=>b.remove())},
+      'Réponse&nbsp;: '+p.ans.map(a=>'<b style="display:inline">'+ansH(a)+'</b>').join(' ; ')+'.')};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+const isNonNegDec=v=>v.n>=0&&K.decOf(v)!==null;
+/* placer le flotteur sur le cercle puis lâcher le fil */
+const ROT=d=>`<span aria-hidden="true" style="font-size:22px;line-height:1">${d>0?'↺':'↻'}</span>`;
+W.place=(p,box)=>{const st=K.st;const tgt=idxOf(p.c);if(st.handle===null)st.handle=p.start||0;st.dots=true;
+  box.innerHTML=`<p class="ask">${p.ask}</p><div class="rot"><button type="button" class="stp" data-d="1" aria-label="Tourner le flotteur dans le sens direct">${ROT(1)} sens direct</button>`+
+    `<button type="button" class="stp" data-d="-1" aria-label="Tourner le flotteur dans le sens indirect">${ROT(-1)} sens indirect</button></div>`+
+    `<div class="btns"><button type="button" class="btn or val">Lâcher le fil</button></div><p class="hint">Glisse le flotteur sur le cercle ou utilise les boutons (un cran&nbsp;= π/12), puis lâche le fil.</p>`;
+  let done=false;
+  const setH=k=>{k=((k%24)+24)%24;if(k!==st.handle){st.handle=k;partState.h=k;SND.click();if(st.mark){st.mark=null}K.render()}};
+  box.querySelectorAll('.stp').forEach(b=>b.onclick=()=>{if(busy||done)return;setH(st.handle+(+b.dataset.d))});
+  K.setDrag({move(pt){if(busy||done)return;let a=Math.atan2(pt.y,pt.x);if(a<0)a+=2*PI;setH(Math.round(a/(PI/12))%24)},
+    key(d){if(busy||done)return;setH(st.handle+d)}});
+  box.querySelector('.val').onclick=async()=>{if(busy||done)return;busy=true;const bs=box.querySelectorAll('button');bs.forEach(x=>x.disabled=true);
+    try{st.mark=null;st.hit=null;K.render();await K.unwind();st.target=p.c;K.render();await K.windTo(val(p.c)*PI,p.c)}finally{busy=false}
+    if(st.handle===tgt){done=true;K.setDrag(null);st.hit=true;K.render();SND.pop();await finish(p)}
+    else{bs.forEach(x=>x.disabled=false);st.mark={c:p.c,lab:'M'};K.render();
+      err(diag(p.c,st.handle),box,()=>{done=true;K.setDrag(null);st.handle=tgt;st.mark=null;st.hit=true;K.render();box.querySelectorAll('button').forEach(x=>x.disabled=true)},'Le flotteur est maintenant sur le point image.')}};
+  K.render()};
+/* diagnostic d'un placement faux : h = cran choisi, c = coefficient de π visé */
+function diag(c,h){const t=idxOf(c),cv=val(c);let s='';
+  const tours=Math.floor(Math.abs(cv)/2+1e-12),r=K.mod2(c);
+  if(h===(24-t)%24&&t%12!==0)s=cv>0?'Tu as tourné dans le sens indirect. Un réel <b>positif</b> s\'enroule dans le sens direct, contraire des aiguilles d\'une montre.':'Tu as tourné dans le sens direct. Un réel <b>négatif</b> s\'enroule dans le sens indirect, celui des aiguilles d\'une montre.';
+  else if(h===(t+12)%24)s='Tu es au point diamétralement opposé&nbsp;: il y a un demi-tour (π) d\'écart.';
+  else if(Math.abs(cv)<2&&h===((Math.round(2*t)%24)+24)%24&&t%12!==0)s='Attention&nbsp;: un tour complet vaut 2π, pas π. Ton flotteur est deux fois trop loin.';
+  else if(Math.abs(cv)<2&&2*h%24===t&&t%12!==0)s='Attention&nbsp;: un tour complet vaut 2π. Ton flotteur n\'a fait que la moitié du chemin.';
+  else s='Le fil s\'arrête ailleurs&nbsp;: regarde où la graduation dorée arrive sur le cercle.';
+  const fr=K.div(K.fabs(c),2);
+  const rest=K.sub(K.fabs(c),2*tours);
+  const how=tours>=1?` ${piH(c)} = ${cv<0?K.MINUS:''}${tours>1?tours+' × ':''}2π${rest.n?` ${cv<0?K.MINUS:'+'} ${piH(rest)}`:''}&nbsp;: ${tours} tour${tours>1?'s':''} complet${tours>1?'s':''} dans le sens ${cv>0?'direct':'indirect'}${rest.n?', puis encore '+piH(rest):''}.`
+    :` ${piH(K.fabs(c))} représente ${K.fH(fr)} de tour (un tour = 2π), dans le sens ${cv>0?'direct':'indirect'}.`;
+  return s+how}
+
+/* ---------- déroulé ---------- */
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');K.setDrag(null);
+  pi++;partState={};if(pi<QN.parts.length){const p=QN.parts[pi];if(p.on)p.on();const box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:K.reduceM?'auto':'smooth'})}}
+function newQ(){QN=LV[lvl].qs[qi]();pi=0;errs=0;partState={};K.setDrag(null);
+  QN.scene();if(QN.cap0)cap(QN.cap0);else K.capWind();
+  $('prompt').innerHTML=QN.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  const p=QN.parts[0];if(p.on)p.on();const box=partEl();W[p.t](p,box)}
+function dots(){const N=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:N},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+async function win(){fb('');K.setDrag(null);SND.win();run.push(errs===0);dots();
+  const N=LV[lvl].qs.length,lvlDone=run.length>=N;
+  $('winx').textContent=errs===0?pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=QN.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(QN.onWin){busy=true;try{await QN.onWin()}finally{busy=false}}
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lv=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lv,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lv)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if(busy)return;if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:K.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];$('chap').textContent=LV[l].chap;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('cours').open=false;renderLv();newQ()}
+function renderLv(){$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}" title="${l.t}">${i+1}. ${l.s||l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${SND.on}">♪ Bruitages : ${SND.on?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;
+  if(b.id==='snd'){SND.on=!SND.on;try{localStorage.setItem('sigma-fanfare',SND.on?'1':'0')}catch(_){}renderLv();SND.pop();return}
+  goLevel(+b.dataset.l)});
+
+/* ---------- fabriques de parties ---------- */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+/* choix : doublons retirés (même valeur qu'un choix déjà présent) */
+const ch=(ask,list,spec,o)=>{const seen=new Set();const ok=list.find(c=>c.ok);if(ok)seen.add(ok.val);
+  const out=list.filter(c=>{if(c.ok)return true;if(seen.has(c.val))return false;seen.add(c.val);return true}).slice(0,(o&&o.max)||4);
+  return Object.assign({t:'choice',ask,ch:out,spec},o||{})};
+/* ans : [{k:'pi'|'num'|'word', v, spec}] */
+const fill=(ask,tpl,ans,why,o)=>Object.assign({t:'fill',ask,tpl,ans:ans.map(a=>Object.assign({},a,{v:a.k==='word'?null:F(a.v)})),why},o||{});
+const place=(ask,c,o)=>Object.assign({t:'place',ask,c:F(c),spec:{k:'place',c:S(c)}},o||{});
+const OK=(h,v,x)=>Object.assign({h,val:v,ok:true},x||{}),NO=(h,v,why,x)=>Object.assign({h,val:v,why},x||{});
+Object.assign(K,{act,ch,fill,place,OK,NO,goLevel,renderLv,okBlank});
+
+/* ---------- crochets de test ---------- */
+function ser(p){const o={t:p.t,ask:p.ask||'',label:p.label||''};
+  if(p.t==='choice'){o.choices=p.ch.map(c=>({h:c.h,ok:!!c.ok,why:c.why||'',val:c.val}));o.spec=p.spec||null}
+  if(p.t==='fill'){o.tpl=p.tpl;o.ans=p.ans.map(a=>({k:a.k,v:a.v?S(a.v):null,txt:ansT(a),words:a.words||null,spec:a.spec||null}));o.why=typeof p.why==='function'?'':p.why||''}
+  if(p.t==='place'){o.c=S(p.c);o.target=idxOf(p.c);o.spec=p.spec}
+  return o}
+window.ML={state(){const p=QN&&QN.parts[pi];return{lvl,qi,nq:LV[lvl].qs.length,pi,busy,np:QN?QN.parts.length:0,part:p?ser(p):null,handle:K.st&&K.st.handle,w:K.st&&K.st.w}},
+  sample(L,i){const Qx=LV[L].qs[i]();return{prompt:Qx.prompt,done:Qx.done,spec:Qx.spec||null,parts:Qx.parts.map(ser)}},
+  get busy(){return busy}};
+})();
+</script>
+<script>
+/* ======================= LE MOULINET — les sept niveaux ======================= */
+(function(){
+'use strict';
+const K=window.MLK,{fH,F,add,sub,mul,div,eq,cmp,val,isInt,neg,fabs,mod2,toursOf,S,idxOf,parsePi,parseNum,frac,piH,piT,nH,nT,degH,rT,rnd,ri,pick,shuf,act,ch,fill,place,OK,NO,PI,MINUS}=K;
+const LV=window.ML_LV;
+const st=()=>K.st;
+const Fs=a=>a.map(([n,d])=>F(n,d||1));
+/* coefficients remarquables de ]0 ; 2[ (réels de ]0 ; 2π[) */
+const R0=Fs([[1,6],[1,4],[1,3],[1,2],[2,3],[3,4],[5,6],[1],[7,6],[5,4],[4,3],[3,2],[5,3],[7,4],[11,6]]);
+const R0n=R0.filter(c=>idxOf(c)%6!==0);
+const denOf=c=>{c=F(c);return c.d===1?2:c.d};
+const pv=c=>'p:'+S(c),nv=x=>'n:'+S(x);
+const X=c=>`<i>x</i>&nbsp;=&nbsp;${piH(c)}`;
+const kT=k=>k<0?MINUS+(-k):String(k);
+const parH=c=>val(c)<0?`(${piH(c)})`:piH(c);
+const INT0=`[0&nbsp;;&nbsp;2π[`,INTN=`]${MINUS}2π&nbsp;;&nbsp;0[`;
+function tourName(f){f=F(f);const m={'1/2':'un demi-tour','1/4':'un quart de tour','1/3':'un tiers de tour','3/4':'trois quarts de tour','1':'un tour complet'};return m[S(f)]||fH(f)+' de tour'}
+function frTour(v){v=F(v);return isInt(v)?v.n+' tour'+(v.n>1?'s':''):fH(v)+' de tour'}
+const lbl={I:'le point I',J:'le point J',I2:'le point I′',J2:'le point J′',A1:'le quart de cercle entre I et J',A2:'le quart de cercle entre J et I′',A3:'le quart de cercle entre I′ et J′',A4:'le quart de cercle entre J′ et I'};
+function posCode(c){const i=idxOf(c);if(i%6===0)return ['I','J','I2','J2'][i/6];return 'A'+(Math.floor(i/6)+1)}
+K.posCode=posCode;K.lbl=lbl;K.R0=R0;K.R0n=R0n;K.tourName=tourName;K.frTour=frTour;
+/* le fil est enroulé d'emblée jusqu'à c */
+function woundAt(c,o){K.reset(Object.assign({den:denOf(c),target:F(c)},o||{}));st().w=val(c)*PI;st().wExact=F(c);K.render();K.capWind()}
+async function replay(c){st().mark=null;st().hit=null;K.render();await K.unwind();st().target=F(c);await K.windTo(val(c)*PI,F(c));st().hit=true;K.render()}
+
+/* ---------- diagnostics des trous ---------- */
+function whyPi(exp,more){return (v)=>{const r=parsePi(v[0]);let s='';
+  if(r&&!r.pi&&Math.abs(val(r.v)-val(exp)*PI)<0.02&&val(exp)!==0)s='C\'est une valeur approchée&nbsp;: on attend la valeur exacte, écrite avec π.';
+  else if(r&&!r.pi)s='Il manque π&nbsp;: une longueur d\'arc sur le cercle trigonométrique s\'écrit ici avec π.';
+  return (s?s+' ':'')+(more||'')}}
+function whyD2R(d){return (v)=>{const r=parsePi(v[0]);d=F(d);
+  if(r&&!r.pi&&eq(r.v,d))return `${nH(d)}, c'est la mesure en degrés&nbsp;: il faut la convertir en radians.`;
+  if(r&&r.pi&&eq(r.v,d))return `Tu as gardé ${nH(d)} devant π. Or ${degH(d)} = ${nH(d)} × ${frac('π','180')}.`;
+  if(r&&r.pi&&eq(r.v,div(180,d)))return `Tu as inversé le rapport&nbsp;: on multiplie les degrés par ${frac('π','180')}, on ne divise pas 180 par ${nH(d)}.`;
+  if(r&&r.pi&&eq(r.v,div(d,360)))return `Un tour, c'est 360° mais 2π rad&nbsp;: avec ${frac('π','360')}, tu trouves la moitié de la bonne mesure.`;
+  return `180° = π rad, donc ${degH(d)} = ${nH(d)} × ${frac('π','180')} rad. Simplifie la fraction.`}}
+function whyR2D(c){return (v)=>{const r=parseNum(v[0]);c=F(c);
+  if(r&&eq(r,mul(c,360)))return 'π rad = 180° (un demi-tour), pas 360°.';
+  return `On remplace π par 180°&nbsp;: ${piH(c)} rad = ${fH(c)} × 180°.`}}
+
+/* =================== Niveau 1 : un tour = 2π =================== */
+const TF1=Fs([[1,2],[1,4]]),TF2=Fs([[1,3],[1,6],[1,8],[1,12]]),TF3=Fs([[3,4],[2,3],[5,6],[3,8],[5,12],[7,12],[5,8]]);
+function qTour(f,how){f=F(f);const c=mul(f,2);
+  return ()=>({scene:()=>K.reset({den:denOf(c),handle:how==='place'?0:null}),
+    prompt:`Le moulinet tourne de <b>${tourName(f)}</b> dans le sens direct.`,
+    parts:[fill('Quelle longueur de fil s\'enroule sur le tambour&nbsp;? (valeur exacte)','Longueur enroulée&nbsp;: {0}',[{k:'pi',v:c,spec:{k:'tour',f:S(f)}}],
+        whyPi(c,`Un tour complet enroule 2π. Donc ${tourName(f)} enroule ${fH(f)} × 2π.`)),
+      how==='place'?place(`Place le flotteur à l'endroit où le fil s'arrête.`,c):act('Vérifier&nbsp;: enrouler le fil ↺',async()=>{await replay(c)},{doneLabel:'Le fil arrive en M'})],
+    done:`${tourName(f)[0].toUpperCase()+tourName(f).slice(1)} = ${fH(f)} × 2π = <b>${piH(c)}</b>. La mesure en radians de l'angle au centre IOM est la longueur de l'arc parcouru sur le cercle de rayon 1.`})}
+LV.push({t:'Un tour = 2π',s:'Un tour',chap:'Cercle trigonométrique · radian',
+  rule:`<p>Le <b>cercle trigonométrique</b> est le cercle de centre O et de rayon 1, dans un repère orthonormé (O&nbsp;; I, J), orienté dans le <b>sens direct</b>&nbsp;: le sens contraire des aiguilles d'une montre.</p>
+    <p>Son périmètre vaut 2π × 1 = <b>2π</b>. Le <b>radian</b>&nbsp;: un tour complet mesure 2π rad&nbsp;; la mesure en radians d'un angle au centre est la longueur de l'arc qu'il intercepte sur le cercle de rayon 1.</p>
+    <p>Demi-tour&nbsp;: π · quart de tour&nbsp;: ${piH(F(1,2))} · sixième&nbsp;: ${piH(F(1,3))} · huitième&nbsp;: ${piH(F(1,4))} · douzième&nbsp;: ${piH(F(1,6))}.</p>`,
+  qs:[
+    ()=>({scene:()=>K.reset({den:2,quiet:true}),cap0:'<span class="m">Le fil est fixé en I&nbsp;: sa graduation 0 est posée sur I.</span>',
+      prompt:`Le tambour du moulinet est le <b>cercle trigonométrique</b>&nbsp;: centre O, rayon 1, orienté dans le sens direct. Le fil est la <b>droite des réels</b>, tangente au cercle en I et graduée vers le haut.`,
+      parts:[act('Enrouler un tour complet ↺',async()=>{await K.windTo(2*PI,F(2))},{ask:'Tourne le moulinet d\'un tour complet dans le sens direct.',doneLabel:'Un tour enroulé'}),
+        fill('Quelle longueur de fil s\'est enroulée&nbsp;? (valeur exacte)','Longueur enroulée&nbsp;: {0}',[{k:'pi',v:F(2),spec:{k:'tour',f:'1'}}],
+          v=>{const r=parsePi(v[0]);if(r&&!r.pi&&eq(r.v,F(360)))return '360, c\'est la mesure d\'un tour en degrés. Ici on mesure une longueur de fil.';
+            if(r&&r.pi&&eq(r.v,F(1)))return 'π, c\'est un demi-tour seulement. Le fil fait le tour complet du cercle&nbsp;: son périmètre.';
+            return whyPi(F(2),'Le fil fait le tour du cercle de rayon 1&nbsp;: sa longueur est le périmètre 2π × 1.')(v)})],
+      done:'Un tour complet enroule exactement le périmètre du cercle de rayon 1&nbsp;: 2π × 1 = <b>2π</b>. Un tour mesure donc 2π radians.'}),
+    ()=>qTour(pick(TF1),'act')(),
+    ()=>qTour(pick(TF2),'place')(),
+    ()=>{const c=pick(Fs([[1,4],[1,3],[1,6],[2,3],[3,4],[3,2],[5,6],[5,4],[4,3]])),f=div(c,2);
+      const L=[OK(frTour(f),nv(f)),NO(frTour(c),nv(c),`Un tour complet, c'est 2π (et non π)&nbsp;: ${piH(c)} n'est que ${fH(f)} de tour.`),
+        NO(frTour(mul(c,2)),nv(mul(c,2)),`Pour passer d'une longueur à une fraction de tour, on <b>divise</b> par 2π&nbsp;: ${piH(c)} ÷ 2π = ${fH(f)}.`),
+        NO(frTour(add(f,F(1,2))),nv(add(f,F(1,2))),`C'est un demi-tour de trop. ${piH(c)} ÷ 2π = ${fH(f)}.`)];
+      return {scene:()=>woundAt(c,{mark:{c,lab:'M'}}),
+        prompt:`Le fil a été enroulé dans le sens direct jusqu'à la graduation ${X(c)}&nbsp;: il arrive au point M.`,
+        parts:[ch('Quelle fraction de tour le moulinet a-t-il faite&nbsp;?',L,{k:'frac',c:S(c)}),
+          act('Revoir l\'enroulement ↺',async()=>{st().mark=null;st().hit=null;await K.unwind();await K.windTo(val(c)*PI,c);st().hit=true;K.render()})],
+        done:`${piH(c)} ÷ 2π = <b>${fH(f)}</b>&nbsp;: ${frTour(f)}.`}},
+    ()=>qTour(pick(TF3),'place')()]});
+
+/* =================== Niveau 2 : degrés et radians =================== */
+const D1=[30,45,60,90,120,135,150],D2=[210,225,240,270,300,315,330,15,75,105,165];
+const C3=Fs([[5,6],[7,4],[2,3],[5,4],[11,6],[3,8],[5,12],[7,12],[1,12],[4,3],[7,6]]);
+const NR=[{d:10},{d:20},{d:40},{d:72},{d:100},{d:108},{d:33},{d:18},{d:36},{c:[3,8]},{c:[2,5]},{c:[1,10]},{c:[7,9]},{c:[5,18]},{c:[7,10]},{c:[3,5]}];
+function qD2R(d,withPlace){const c=div(d,180);
+  return ()=>({scene:()=>K.reset({den:denOf(c),handle:withPlace?0:null}),
+    prompt:`On mesure un angle au centre de <b>${degH(d)}</b>.`,
+    parts:[fill(`Convertis en radians (fraction simplifiée).`,`${degH(d)} = {0} rad`,[{k:'pi',v:c,spec:{k:'d2r',d:String(d)}}],whyD2R(d)),
+      ...(withPlace?[place(`Le moulinet tourne de ${degH(d)} dans le sens direct. Place le flotteur à l'endroit où le fil s'arrête.`,c)]:[])],
+    done:`180° = π rad, donc ${degH(d)} = ${nH(d)} × ${frac('π','180')} = <b>${piH(c)}</b> rad.`})}
+function qR2D(c){c=F(c);const d=mul(c,180);
+  return ()=>({scene:()=>woundAt(c,{mark:{c,lab:'M'}}),
+    prompt:`Le fil enroulé jusqu'à ${X(c)} définit l'angle au centre IOM, de mesure ${piH(c)} rad.`,
+    parts:[fill('Convertis cette mesure en degrés.',`${piH(c)} rad = {0}°`,[{k:'num',v:d,spec:{k:'r2d',c:S(c)}}],whyR2D(c))],
+    done:`π rad = 180°, donc ${piH(c)} rad = ${fH(c)} × 180° = <b>${degH(d)}</b>.`})}
+LV.push({t:'Degrés et radians',s:'Degrés ↔ rad',chap:'Radian',
+  rule:`<p>Un tour = 360° = 2π rad, donc <b>180° = π rad</b>. La conversion se fait par proportionnalité&nbsp;:</p>
+    <p>mesure en radians = ${frac('π','180')} × mesure en degrés&nbsp;; mesure en degrés = ${frac('180','π')} × mesure en radians.</p>
+    <p>30° = ${piH(F(1,6))} · 45° = ${piH(F(1,4))} · 60° = ${piH(F(1,3))} · 90° = ${piH(F(1,2))} · 120° = ${piH(F(2,3))} · 135° = ${piH(F(3,4))} · 180° = π · 360° = 2π.</p>`,
+  qs:[()=>qD2R(pick(D1),true)(),()=>qD2R(pick(D2),false)(),()=>qR2D(pick(C3))(),
+    ()=>{const cs=shuf(C3.slice()).slice(0,4),good=ri(0,3);
+      const L=cs.map((c,i)=>{const t=mul(c,180);if(i===good)return OK(`${piH(c)} rad = ${degH(t)}`,'e:'+S(c)+'|'+S(t));
+        const w=[mul(c,360),mul(c,90),add(t,30)].filter(x=>!eq(x,t))[(i+good)%3];return NO(`${piH(c)} rad = ${degH(w)}`,'e:'+S(c)+'|'+S(w),`Faux&nbsp;: π rad = 180°, donc ${piH(c)} rad = ${fH(c)} × 180° = ${degH(t)}.`)});
+      const c=cs[good];
+      return {scene:()=>K.reset({den:4}),prompt:'Une seule de ces égalités est juste.',
+        parts:[ch('Laquelle&nbsp;?',L,{k:'eqdr'})],done:`π rad = 180°&nbsp;: ${piH(c)} rad = ${fH(c)} × 180° = <b>${degH(mul(c,180))}</b>.`}},
+    ()=>{const o=pick(NR);if(o.d)return qD2R(o.d,false)();return qR2D(F(o.c[0],o.c[1]))()}]});
+
+/* =================== Niveau 3 : placer un point (réels de [0 ; 2π[) =================== */
+function qPlace(c,txt){c=F(c);
+  return ()=>({scene:()=>K.reset({den:denOf(c),handle:0}),
+    prompt:txt||`Place sur le cercle trigonométrique le point M, image du réel ${X(c)}.`,
+    parts:[place('Fais tourner le flotteur jusqu\'au point image, puis lâche le fil.',c)],
+    done:pDone(c)})}
+function pDone(c){c=F(c);const cv=val(c),t=toursOf(c),r=sub(fabs(c),2*t);
+  if(t>=1)return `${piH(c)} = ${cv<0?MINUS:''}${t>1?t+' × ':''}2π${r.n?` ${cv<0?MINUS:'+'} ${piH(r)}`:''}&nbsp;: ${t} tour${t>1?'s':''} complet${t>1?'s':''} dans le sens ${cv>0?'direct':'indirect'}${r.n?', puis un arc de longueur '+piH(r):''}. Le point image est celui de <b>${piH(mod2(c))}</b>.`;
+  return `On part de I et on parcourt dans le sens ${cv>0?'direct':'indirect'} un arc de longueur ${piH(fabs(c))}, soit ${fH(div(fabs(c),2))} de tour.`}
+function qRead(neg_,mode){const cp=pick(R0n),i=idxOf(cp),good=neg_?sub(cp,2):cp;
+  const lo=neg_?'-2':'0',hi=neg_?'0':'2',spec={k:'read',i,lo,hi,loIn:!neg_,hiIn:false};
+  const ask=`Quel réel de ${neg_?INTN:INT0} a pour image le point M&nbsp;?`;
+  const base={scene:()=>K.reset({den:12,mark:{c:cp,lab:'M'},dots:true}),
+    prompt:`Le point M est placé sur le cercle trigonométrique (les petits points sont espacés de π/12).`,
+    done:`M est atteint en parcourant ${piH(fabs(good))} dans le sens ${neg_?'indirect':'direct'} depuis I&nbsp;: M est l'image de <b>${piH(good)}</b>${neg_?` (et aussi de ${piH(cp)}, qui n'est pas dans ${INTN})`:''}.`};
+  if(mode==='fill')return Object.assign(base,{parts:[fill(ask,`<i>x</i> = {0}`,[{k:'pi',v:good,spec}],v=>{const r=parsePi(v[0]);
+      if(r&&r.pi&&isInt(div(sub(r.v,good),2)))return `Ce réel a bien pour image M, mais il n'est pas dans ${neg_?INTN:INT0}.`;
+      if(r&&r.pi&&eq(r.v,neg(good)))return neg_?'Un réel de ]−2π ; 0[ est négatif : on tourne dans le sens indirect.':'Tu as compté dans le sens indirect. Pour un réel positif, on part de I dans le sens direct.';
+      return `Compte les crans de π/12 depuis I dans le sens ${neg_?'indirect':'direct'}.`}),
+    act('Vérifier&nbsp;: enrouler le fil',async()=>{await replay(good)})]});
+  const L=neg_?[OK(X(good),pv(good)),NO(X(neg(cp)),pv(neg(cp)),`${piH(neg(cp))} s'enroule de ${piH(cp)} dans le sens indirect&nbsp;: il arrive au symétrique de M par rapport à l'axe des abscisses.`),
+      NO(X(cp),pv(cp),`${piH(cp)} a bien pour image M, mais il est positif&nbsp;: il n'est pas dans ${INTN}.`),
+      NO(X(sub(mod2(add(cp,1)),2)),pv(sub(mod2(add(cp,1)),2)),'Ce réel donne le point diamétralement opposé à M&nbsp;: un demi-tour d\'écart.')]
+    :[OK(X(cp),pv(cp)),NO(X(mod2(neg(cp))),pv(mod2(neg(cp))),'Ce réel donne le symétrique de M par rapport à l\'axe des abscisses&nbsp;: tu as compté dans le sens indirect.'),
+      NO(X(mod2(sub(1,cp))),pv(mod2(sub(1,cp))),'Ce réel donne le symétrique de M par rapport à l\'axe des ordonnées&nbsp;: compte les crans depuis I, pas depuis I′.'),
+      NO(X(mod2(add(cp,1))),pv(mod2(add(cp,1))),'Ce réel donne le point diamétralement opposé à M&nbsp;: un demi-tour d\'écart.')];
+  return Object.assign(base,{parts:[ch(ask,L,spec),act('Vérifier&nbsp;: enrouler le fil',async()=>{await replay(good)})]})}
+LV.push({t:'Placer un point',s:'Placer',chap:'Enroulement de la droite des réels',
+  rule:`<p>On enroule la droite des réels, tangente en I au cercle trigonométrique, autour du cercle. À chaque réel <i>x</i> on associe ainsi un <b>unique point M</b> du cercle&nbsp;: le <b>point image</b> de <i>x</i>.</p>
+    <p>Pour <i>x</i> dans [0&nbsp;; 2π[&nbsp;: on part de I et on parcourt, dans le sens direct, un arc de longueur <i>x</i>.</p>
+    <p>Repères&nbsp;: ${piH(F(1,2))} → J · π → I′ · ${piH(F(3,2))} → J′ · 2π → I. Un quart de tour compte 6 crans de ${piH(F(1,12))}&nbsp;: ${piH(F(1,6))} = 2 crans, ${piH(F(1,4))} = 3 crans, ${piH(F(1,3))} = 4 crans.</p>`,
+  qs:[()=>qPlace(pick(Fs([[1,2],[1],[3,2],[1,4],[3,4],[5,4],[7,4]])))(),
+    ()=>qPlace(pick(Fs([[1,6],[1,3],[2,3],[5,6],[7,6],[4,3],[5,3],[11,6]])))(),
+    ()=>qRead(false,'choice'),
+    ()=>qPlace(pick(Fs([[7,6],[5,4],[4,3],[5,3],[7,4],[11,6],[5,6],[2,3]])))(),
+    ()=>qRead(false,'fill')]});
+
+/* =================== Niveau 4 : réels négatifs, sens indirect =================== */
+LV.push({t:'Le sens indirect',s:'Sens indirect',chap:'Enroulement de la droite des réels',
+  rule:`<p>Pour un réel <i>x</i> négatif, on enroule la partie négative du fil dans le <b>sens indirect</b> (celui des aiguilles d'une montre)&nbsp;: on part de I et on parcourt un arc de longueur |<i>x</i>|.</p>
+    <p>${piH(F(-1,2))} → J′ · ${MINUS}π → I′ · ${piH(F(-3,2))} → J · ${MINUS}2π → I.</p>
+    <p>La longueur de l'arc parcouru, de I au point image de <i>x</i>, est |<i>x</i>|.</p>`,
+  qs:[()=>qPlace(pick(Fs([[-1,2],[-1,4],[-3,4],[-3,2],[-5,4],[-7,4]])))(),
+    ()=>qPlace(pick(Fs([[-1,6],[-1,3],[-2,3],[-5,6],[-7,6],[-4,3],[-5,3],[-11,6]])))(),
+    ()=>qRead(true,'choice'),
+    ()=>{const c=pick(R0n);return qPlace(Math.random()<.5?neg(c):c)()},
+    ()=>qRead(true,'fill')]});
+
+/* =================== Niveau 5 : plusieurs tours =================== */
+function big(sign,kmax){for(;;){const k=ri(1,kmax),r=pick(R0);const c=add(2*k,r);if(val(c)<8.01)return sign<0?neg(c):c}}
+function decParts(c){const k=Math.floor(val(c)/2+1e-12),r=sub(c,2*k);return {k,r}}
+function qDec(c,first){const {k,r}=decParts(c);
+  const fl=fill(`Écris <i>x</i> = <i>k</i> × 2π + <i>r</i>, avec <i>k</i> entier et <i>r</i> dans ${INT0}.`,`${piH(c)} = {0} × 2π + {1}`,
+    [{k:'num',v:F(k),spec:{k:'deck',c:S(c)}},{k:'pi',v:r,spec:{k:'decr',c:S(c)}}],
+    (v,oks)=>{const kk=parseNum(v[0]),rr=parsePi(v[1]);
+      if(kk&&rr&&rr.pi&&eq(add(mul(kk,2),rr.v),c))return `Ton égalité est juste, mais le reste doit être dans ${INT0}&nbsp;: ajuste <i>k</i>.`;
+      if(val(c)<0)return `Pour un réel négatif, <i>k</i> est négatif&nbsp;: cherche le plus grand multiple de 2π inférieur ou égal à ${piH(c)}, puis calcule le reste.`;
+      return `Cherche combien de fois 2π = ${piH(F(2*c.d,c.d))} « rentre » dans ${piH(c)}&nbsp;: c'est <i>k</i>&nbsp;; le reste est <i>r</i>.`});
+  return fl}
+LV.push({t:'Plusieurs tours',s:'Plusieurs tours',chap:'Enroulement de la droite des réels',
+  rule:`<p>Si |<i>x</i>| dépasse 2π, le fil fait plusieurs tours. On écrit <i>x</i> = <i>k</i> × 2π + <i>r</i>, avec <i>k</i> entier et <i>r</i> dans [0&nbsp;; 2π[&nbsp;: le point image de <i>x</i> est celui de <i>r</i> (les tours complets ne changent rien).</p>
+    <p>Exemple du cours&nbsp;: ${piH(F(8,3))} = ${frac('6π + 2π','3')} = 2π + ${piH(F(2,3))}&nbsp;: même point que ${piH(F(2,3))} (un tour de plus).</p>
+    <p>Pour un réel négatif, <i>k</i> est négatif&nbsp;: ${piH(F(-9,2))} = ${MINUS}3 × 2π + ${piH(F(3,2))}&nbsp;; son point image est J′, comme celui de ${piH(F(3,2))} (et de ${piH(F(-1,2))}).</p>`,
+  qs:[()=>{const c=big(1,2);return {scene:()=>K.reset({den:denOf(c),target:c,quiet:true}),prompt:`Le fil doit être enroulé jusqu'à ${X(c)}.`,
+        parts:[act('Enrouler jusqu\'à '+piT(c)+' ↺',async()=>{await K.windTo(val(c)*PI,c);st().hit=true;K.render()},{doneLabel:'Fil enroulé'}),qDec(c)],
+        done:`${piH(c)} = ${kT(decParts(c).k)} × 2π + ${piH(decParts(c).r)}&nbsp;: le point image de ${piH(c)} est celui de <b>${piH(decParts(c).r)}</b>.`}},
+    ()=>{const c=big(1,3);const n=toursOf(c);return {scene:()=>K.reset({den:denOf(c),handle:0,quiet:true}),prompt:`Place le point image du réel ${X(c)}.`,
+        parts:[place('Fais tourner le flotteur jusqu\'au point image, puis lâche le fil.',c),
+          fill('Combien de tours complets le fil a-t-il faits&nbsp;?','{0} tour(s) complet(s)',[{k:'num',v:F(n),spec:{k:'ntours',c:S(c)}}],`Un tour complet = 2π = ${piH(F(2*c.d,c.d))}. Combien de fois ${piH(F(2*c.d,c.d))} tient-il dans ${piH(c)}&nbsp;?`)],
+        done:pDone(c)}},
+    ()=>{const c=big(-1,2);return {scene:()=>K.reset({den:denOf(c),target:c}),prompt:`Le fil doit être enroulé jusqu'à ${X(c)}&nbsp;: c'est un réel négatif.`,
+        parts:[qDec(c),act('Vérifier&nbsp;: enrouler le fil ↻',async()=>{await K.windTo(val(c)*PI,c);st().hit=true;K.render()})],
+        done:`${piH(c)} = ${kT(decParts(c).k)} × 2π + ${piH(decParts(c).r)}&nbsp;: même point image que <b>${piH(decParts(c).r)}</b>.`}},
+    ()=>{const c=big(-1,2);return qPlace(c)()},
+    ()=>{const c=big(1,3),{k,r}=decParts(c);
+      const opts=[[k,r],[k,mod2(add(r,1))],[k-1,r],[k+1,r],[k,mod2(sub(F(0),r))]].filter(([kk],j)=>j===0||kk!==0);
+      const L=opts.map(([kk,rr],j)=>{const h=`${kT(kk)} × 2π + ${piH(rr)}`,v='d:'+kk+'|'+S(rr);
+        return j===0?OK(h,v):NO(h,v,`Faux&nbsp;: ${kT(kk)} × 2π + ${piH(rr)} = ${piH(add(2*kk,rr))}, et non ${piH(c)}.`)});
+      return {scene:()=>K.reset({den:denOf(c)}),prompt:`On veut placer le point image du réel ${X(c)}.`,
+        parts:[ch('Quelle écriture est juste&nbsp;?',L,{k:'decch',c:S(c)}),act('Vérifier&nbsp;: enrouler le fil ↺',async()=>{st().target=c;await K.windTo(val(c)*PI,c);st().hit=true;K.render()})],
+        done:pDone(c)}}]});
+
+/* =================== Niveau 6 : même point image =================== */
+const RED=Fs([[17,4],[-5,3],[25,6],[-11,2],[13,3],[-7,4],[23,6],[-13,4],[19,6],[31,4],[-9,4],[29,6],[-17,6],[11,3]]);
+function qSame(){const c=pick(R0n.concat(R0n.map(neg)));const k=pick([1,-1,2,-2]),good=add(c,2*k);
+  const L=[OK(X(good),pv(good)),NO(X(add(c,1)),pv(add(c,1)),`${piH(add(c,1))} − ${piH(c)} = π&nbsp;: un demi-tour, pas un multiple de 2π.`),
+    NO(X(neg(c)),pv(neg(c)),`${piH(neg(c))} s'enroule dans l'autre sens&nbsp;: c'est le symétrique par rapport à l'axe des abscisses.`),
+    NO(X(add(c,F(1,2))),pv(add(c,F(1,2))),`L'écart est ${piH(F(1,2))}&nbsp;: un quart de tour.`),NO(X(mul(c,2)),pv(mul(c,2)),`Doubler le réel double l'arc parcouru&nbsp;: ce n'est pas le même point.`)];
+  return {scene:()=>K.reset({den:denOf(c),target:c}),prompt:`Un premier fil est enroulé jusqu'à ${X(c)}.`,
+    parts:[ch(`Lequel de ces réels a le même point image que ${piH(c)}&nbsp;?`,L,{k:'same',c:S(c)}),
+      act('Vérifier&nbsp;: enrouler les deux fils',async()=>{await K.windTo(val(c)*PI,c);st().hit=true;K.render();await K.windSecond(val(good)*PI,good)})],
+    done:`${piH(good)} − ${parH(c)} = ${piH(F(2*k))} = ${kT(k)} × 2π&nbsp;: un multiple de 2π, donc <b>même point image</b>.`}}
+function qRed(c,negI){c=F(c);const r=negI?sub(mod2(c),2):mod2(c);const spec={k:'red',c:S(c),lo:negI?'-2':'0',hi:negI?'0':'2',loIn:!negI,hiIn:false};
+  return {scene:()=>K.reset({den:denOf(c),target:c}),prompt:`On considère le réel ${X(c)}.`,
+    parts:[fill(`Donne le réel de ${negI?INTN:INT0} qui a le même point image que ${piH(c)}.`,`<i>x′</i> = {0}`,[{k:'pi',v:r,spec}],
+      v=>{const p=parsePi(v[0]);if(p&&p.pi&&isInt(div(sub(p.v,c),2)))return `Ton réel a bien le même point image, mais il n'est pas dans ${negI?INTN:INT0}.`;
+        return `Ajoute ou retranche 2π = ${piH(F(2*c.d,c.d))} autant de fois que nécessaire pour arriver dans ${negI?INTN:INT0}.`}),
+      act('Vérifier&nbsp;: enrouler les deux fils',async()=>{await K.windTo(val(c)*PI,c);st().hit=true;K.render();await K.windSecond(val(r)*PI,r)})],
+    done:(()=>{const m=Math.abs(val(sub(r,c))/2),up=cmp(r,c)>0;return `${piH(c)} ${up?'+':MINUS} ${piH(fabs(sub(r,c)))} = ${piH(r)}&nbsp;: on a ${up?'ajouté':'retranché'} ${m===1?'un tour (2π)':m+' tours ('+m+' × 2π)'}, donc <b>${piH(r)}</b> a le même point image.`})()}}
+LV.push({t:'Même point image',s:'Même point',chap:'Enroulement de la droite des réels',
+  rule:`<p>Deux réels <i>x</i> et <i>x′</i> ont le <b>même point image</b> si et seulement si leur différence est un multiple de 2π&nbsp;: <i>x′</i> − <i>x</i> = <i>k</i> × 2π, avec <i>k</i> entier.</p>
+    <p>Exemple du cours&nbsp;: ${piH(F(9,4))} − ${piH(F(1,4))} = ${frac('8π','4')} = 2π = 1 × 2π&nbsp;: ${piH(F(9,4))} et ${piH(F(1,4))} donnent le même point.</p>
+    <p>Pour trouver le réel de [0&nbsp;; 2π[ associé au même point, on ajoute ou on retranche 2π autant de fois que nécessaire.</p>`,
+  qs:[()=>qSame(),()=>qRed(pick(RED),false),
+    ()=>{const a=pick(R0.concat(R0.map(neg)).filter(x=>Math.abs(val(x))<2)),same=Math.random()<.5;
+      const k=pick([1,2,-1,-2]),b=same?add(a,2*k):add(a,pick([2*k+1,2*k-1]));const d=sub(b,a),q=div(d,2);
+      const dT=`<i>x′</i> − <i>x</i> = ${piH(d)}`;
+      const L=[same?OK(`Oui, car ${dT} = ${kT(q.n)} × 2π.`,'y'):NO(`Oui, car ${dT} = ${fH(q)} × 2π.`,'y',`${fH(q)} n'est pas un entier&nbsp;: ${piH(d)} n'est pas un multiple de 2π.`),
+        same?NO(`Non, car ${dT} n'est pas un multiple de 2π.`,'n',`${piH(d)} = ${kT(q.n)} × 2π&nbsp;: c'est bien un multiple de 2π.`):OK(`Non, car ${dT} n'est pas un multiple de 2π.`,'n'),
+        NO(`On ne peut pas savoir sans calculatrice.`,'x','Il suffit de calculer la différence <i>x′</i> − <i>x</i> et de regarder si c\'est un multiple de 2π.')];
+      return {scene:()=>K.reset({den:denOf(a)}),prompt:`On considère <i>x</i> = ${piH(a)} et <i>x′</i> = ${piH(b)}.`,
+        parts:[ch('Ces deux réels ont-ils le même point image&nbsp;?',L,{k:'sameq',a:S(a),b:S(b)},{keep:true}),
+          act('Vérifier&nbsp;: enrouler les deux fils',async()=>{st().target=a;K.render();await K.windTo(val(a)*PI,a);st().hit=true;K.render();await K.windSecond(val(b)*PI,b)})],
+        done:`${dT}${same?` = ${kT(q.n)} × 2π&nbsp;: <b>même point image</b>.`:`&nbsp;: ce n'est pas un multiple de 2π, les points images sont <b>différents</b>.`}`}},
+    ()=>qRed(pick(Fs([[1,3],[3,4],[7,6],[9,4],[5,6],[13,6],[1,2],[11,4],[5,3],[17,6]])),true),
+    ()=>{const b=pick(R0n);const ks=shuf([-2,-1,0,1,2]).slice(0,3);const odd=pick([add(b,2*pick([0,1,-1])+1),neg(add(b,2*pick([1,-1])))]);
+      const L=[OK(X(odd),pv(odd)),...ks.map(k=>NO(X(add(b,2*k)),pv(add(b,2*k)),`${piH(add(b,2*k))} = ${piH(b)} ${k<0?MINUS:'+'} ${Math.abs(k)} × 2π&nbsp;: il a le même point image que ${piH(b)}.`))];
+      return {scene:()=>K.reset({den:denOf(b)}),prompt:'Trois de ces réels ont le même point image&nbsp;; le quatrième non.',
+        parts:[ch('Lequel n\'a <b>pas</b> le même point image que les autres&nbsp;?',L,{k:'odd'}),
+          act('Vérifier&nbsp;: enrouler deux fils',async()=>{st().target=b;K.render();await K.windTo(val(b)*PI,b);st().hit=true;K.render();await K.windSecond(val(odd)*PI,odd)})],
+        done:`Les trois autres diffèrent de ${piH(b)} d'un multiple de 2π. ${piH(odd)} − ${piH(b)} = ${piH(sub(odd,b))}, qui n'est pas un multiple de 2π.`}}]});
+
+/* =================== Niveau 7 : longueurs d'arc =================== */
+const GRID=Fs([[0],[1,6],[1,4],[1,3],[1,2],[2,3],[3,4],[5,6],[1],[7,6],[5,4],[4,3],[3,2],[5,3],[7,4],[11,6],[2]]);
+function intervalOf(n){for(let i=0;i<GRID.length-1;i++)if(val(GRID[i])*PI<n&&n<val(GRID[i+1])*PI)return i;return -1}
+const ivH=i=>`entre ${piH(GRID[i])} et ${piH(GRID[i+1])}`;
+const R7=[[2,F(1,3)],[3,F(2,3)],[4,F(3,4)],[6,F(5,6)],[2,F(3,2)],[3,F(4,3)],[5,F(2,5)],[4,F(1,2)],[6,F(1,6)],[3,F(5,6)],[5,F(3,4)]];
+const ANG=[[6,4],[150,100],[90,60],[50,40],[30,20],[100,40],[35,50],[60,80],[140,80],[200,80],[45,30],[18,12],[25,20],[70,40]];
+LV.push({t:'Longueur d\'arc',s:'Longueur d\'arc',chap:'Longueur d\'arc · radian',
+  rule:`<p>Sur le cercle trigonométrique (rayon 1), quand le fil est enroulé de 0 à <i>x</i>, la longueur de l'arc parcouru depuis I est |<i>x</i>|.</p>
+    <p>Sur un cercle de rayon <i>R</i>, un angle au centre de θ radians intercepte un arc de longueur <b>ℓ = <i>R</i> × θ</b> (un tour&nbsp;: 2π<i>R</i>). Inversement θ = ${frac('ℓ','<i>R</i>')}.</p>
+    <p>Un radian, c'est l'angle au centre qui intercepte un arc de longueur égale au rayon&nbsp;: 1 rad = ${frac('180°','π')} ≈ 57,3°.</p>`,
+  qs:[()=>{const c=pick(R0.concat(R0.map(neg)).concat([F(2)]));const L=fabs(c),ap=rnd(val(L)*PI,2);
+      return {scene:()=>K.reset({den:denOf(c),target:c}),prompt:`Le fil est enroulé de 0 jusqu'à ${X(c)}, dans le sens ${val(c)>0?'direct':'indirect'}.`,
+        parts:[act(`Enrouler jusqu'à ${piT(c)} ${val(c)>0?'↺':'↻'}`,async()=>{await K.windTo(val(c)*PI,c);st().hit=true;K.render()},{doneLabel:'Fil enroulé'}),
+          fill('Longueur de l\'arc parcouru de I à M&nbsp;: valeur exacte, puis arrondie au centième.','ℓ = {0} ≈ {1}',[{k:'pi',v:L,spec:{k:'arcU',c:S(c)}},{k:'num',v:ap,spec:{k:'arcUd',c:S(c),d:2}}],
+            (v,oks)=>!oks[0]?(val(c)<0?'Une longueur est positive&nbsp;: c\'est |<i>x</i>|.':'La longueur de fil enroulée est exactement <i>x</i>.'):`Calcule ${piH(L)} à la calculatrice (π ≈ 3,14159…) et arrondis au centième.`)],
+        done:`ℓ = |<i>x</i>| = <b>${piH(L)}</b> ≈ ${rT(val(L)*PI,2)}.`}},
+    ()=>{const n=ri(1,6),i=intervalOf(n);const cand=[i-2,i-1,i+1,i+2].filter(j=>j>=0&&j<GRID.length-1);
+      const L=[OK(ivH(i),'b:'+S(GRID[i])+'|'+S(GRID[i+1])),...shuf(cand).slice(0,3).map(j=>NO(ivH(j),'b:'+S(GRID[j])+'|'+S(GRID[j+1]),`${piH(GRID[j])} ≈ ${rT(val(GRID[j])*PI,2)} et ${piH(GRID[j+1])} ≈ ${rT(val(GRID[j+1])*PI,2)}&nbsp;: ${n} n'est pas entre les deux.`))];
+      return {scene:()=>{K.reset({den:6,ints:true,tRad:n,labT:String(n)})},prompt:`Le fil porte aussi les graduations entières (en vert). On s'intéresse au point image du réel <b>${n}</b> (n'oublie pas&nbsp;: π ≈ 3,14).`,
+        parts:[ch(`Le point image de ${n} est sur l'arc parcouru dans le sens direct…`,L,{k:'between',n:String(n)}),
+          act(`Enrouler jusqu'à ${n} ↺`,async()=>{st().wInt=n;await K.windTo(n,null);st().hit=true;K.render()},{doneLabel:'Fil enroulé'})],
+        done:`${piH(GRID[i])} ≈ ${rT(val(GRID[i])*PI,2)} &lt; ${n} &lt; ${piH(GRID[i+1])} ≈ ${rT(val(GRID[i+1])*PI,2)}&nbsp;: le point image de ${n} est <b>${ivH(i)}</b>.`}},
+    ()=>{const [R,c]=pick(R7);const ex=mul(R,c),ap=rnd(val(ex)*PI,1);
+      return {scene:()=>K.reset({den:denOf(c),target:c}),prompt:`Le tambour d'un vrai moulinet a un rayon de <b>${R} cm</b>. Il tourne d'un angle de <b>${piH(c)} rad</b>.`,
+        parts:[fill('Longueur de fil enroulée&nbsp;: valeur exacte, puis arrondie au millimètre.','ℓ = {0} cm ≈ {1} cm',[{k:'pi',v:ex,spec:{k:'arcR',R:String(R),c:S(c)}},{k:'num',v:ap,spec:{k:'arcRd',R:String(R),c:S(c),d:1}}],
+            (v,oks)=>!oks[0]?`ℓ = <i>R</i> × θ = ${R} × ${piH(c)}. Simplifie.`:`Calcule ${piH(ex)} à la calculatrice et arrondis au dixième de centimètre.`),
+          act('Voir le tambour tourner ↺',async()=>{await K.windTo(val(c)*PI,c);st().hit=true;K.render()})],
+        done:`ℓ = <i>R</i> × θ = ${R} × ${piH(c)} = <b>${piH(ex)}</b> cm ≈ ${rT(val(ex)*PI,1)} cm.`}},
+    ()=>{const [Lg,R]=pick(ANG);const th=div(Lg,R),lt=val(th)<PI/2;
+      return {scene:()=>K.reset({den:4,tRad:val(th),labT:nT(th)+' rad'}),prompt:`Sur une piste circulaire de rayon <b>${R} m</b>, une coureuse parcourt un arc de <b>${Lg} m</b>.`,
+        parts:[fill('Mesure en radians de l\'angle au centre correspondant (valeur exacte).','θ = {0} rad',[{k:'num',v:th,spec:{k:'ang',L:String(Lg),R:String(R)}}],
+            v=>{const r=parseNum(v[0]);if(r&&eq(r,div(R,Lg)))return 'Tu as inversé&nbsp;: θ = ℓ ÷ R.';return 'ℓ = R × θ, donc θ = ℓ ÷ R.'}),
+          ch('Cet angle est-il plus petit ou plus grand qu\'un angle droit (un quart de tour)&nbsp;?',[
+            lt?OK(`Plus petit, car ${nH(th)} &lt; ${frac('π','2')} ≈ 1,57`,'lt'):NO(`Plus petit, car ${nH(th)} &lt; ${frac('π','2')} ≈ 1,57`,'lt',`${nH(th)} &gt; 1,57.`),
+            lt?NO(`Plus grand, car ${nH(th)} &gt; ${frac('π','2')} ≈ 1,57`,'gt',`${nH(th)} &lt; 1,57.`):OK(`Plus grand, car ${nH(th)} &gt; ${frac('π','2')} ≈ 1,57`,'gt'),
+            NO(`On ne peut pas comparer des radians et un quart de tour.`,'x','Un quart de tour mesure π/2 rad ≈ 1,57 rad&nbsp;: on compare les deux nombres.')],{k:'cmpq',L:String(Lg),R:String(R)},{keep:true}),
+          act('Voir l\'angle sur le cercle ↺',async()=>{st().wInt=null;await K.windTo(val(th),null);st().hit=true;K.render()})],
+        done:`θ = ℓ ÷ <i>R</i> = ${Lg} ÷ ${R} = <b>${nH(th)} rad</b>, ${lt?'moins':'plus'} qu'un quart de tour (${frac('π','2')} ≈ 1,57 rad).`}},
+    ()=>{const n=pick([1,1,2,3]);const dg=rnd(180*n/PI,1);
+      return {scene:()=>K.reset({den:6,ints:true,tRad:n,labT:String(n)}),prompt:`Un radian est l'angle au centre qui intercepte un arc de longueur égale au rayon.`,
+        parts:[fill(`Convertis ${n} rad en degrés, arrondi au dixième.`,`${n} rad ≈ {0}°`,[{k:'num',v:dg,spec:{k:'r2dd',n:String(n),d:1}}],
+            v=>{const r=parseNum(v[0]);if(r&&Math.abs(val(r)-n*PI/180)<.01)return 'Tu as multiplié par π/180&nbsp;: c\'est la conversion des degrés vers les radians. Ici, on multiplie par 180/π.';return `π rad = 180°, donc ${n} rad = ${n} × ${frac('180','π')} degrés.`}),
+          act(`Enrouler ${n} unité${n>1?'s':''} de fil ↺`,async()=>{st().wInt=n;await K.windTo(n,null);st().hit=true;K.render()},{doneLabel:'Fil enroulé'})],
+        done:`${n} rad = ${n} × ${frac('180','π')}° ≈ <b>${rT(180*n/PI,1)}°</b>.`}}]});
+})();
+</script>
+<script>
+/* ======================= LE MOULINET — épreuves finales Bronze, Argent, Or ======================= */
+(function(){
+'use strict';
+const K=window.MLK,{fH,F,add,sub,mul,div,eq,cmp,val,isInt,neg,fabs,mod2,toursOf,S,idxOf,frac,piH,piT,nH,nT,degH,rT,rnd,writesPi,writesNum,ri,pick,shuf,MINUS,PI,posCode,lbl,R0,R0n,tourName,frTour}=K;
+const Fs=a=>a.map(([n,d])=>F(n,d||1));
+const pv=c=>'p:'+S(c),nv=x=>'n:'+S(x);
+const INT0=`[0&nbsp;;&nbsp;2π[`,INTN=`]${MINUS}2π&nbsp;;&nbsp;0[`;
+/* QCM : choix dédoublonnés par valeur, 3 ou 4 choix, un seul juste */
+function QCM(level,prompt,list,explain,spec){const seen=new Set(),out=[];
+  const ok=list.find(c=>c.ok);if(ok){seen.add(ok.val);out.push(ok)}
+  for(const c of list){if(c.ok||seen.has(c.val))continue;seen.add(c.val);out.push(c);if(out.length===4)break}
+  if(out.length<3)return null;shuf(out);
+  return {type:'qcm',level,prompt,choices:out.map(c=>c.h),answer:out.findIndex(c=>c.ok),explain,spec,chk:out.map(c=>c.val)}}
+const OK=(h,v)=>({h,val:v,ok:true}),NO=(h,v)=>({h,val:v});
+/* trous : b = {k:'pi'|'num'|'word', v, spec, words} */
+function TR(level,prompt,blanks,explain){return {type:'trous',level,prompt,explain,
+  blanks:blanks.map(b=>{const ans=b.k==='pi'?writesPi(b.v):b.k==='word'?b.words.slice():writesNum(b.v);
+    return {answers:ans,size:Math.max(3,(b.k==='pi'?piT(b.v):b.k==='word'?b.words[0]:nT(b.v)).length+1),k:b.k,v:b.v?S(b.v):null,spec:b.spec}})}}
+const X=c=>piH(c);
+const kT=k=>k<0?MINUS+(-k):String(k);
+const parH=c=>val(c)<0?`(${piH(c)})`:piH(c);
+
+/* ---------- niveau 1 : un tour = 2π ---------- */
+function G1(t,ty){
+  if(t==='bronze'){const f=pick(Fs([[1,2],[1,4]])),c=mul(f,2);
+    if(ty==='qcm')return QCM(1,`Sur le cercle trigonométrique, ${tourName(f)} correspond à un arc de longueur&nbsp;:`,
+      [OK(X(c),pv(c)),NO(X(f),pv(f)),NO(X(mul(f,4)),pv(mul(f,4))),NO(nH(mul(f,360)),nv(mul(f,360)))],`Un tour mesure 2π&nbsp;: ${tourName(f)} mesure ${fH(f)} × 2π = ${X(c)}.`,{k:'tour',f:S(f)});
+    if(Math.random()<.5)return TR(1,'Le périmètre du cercle trigonométrique est égal à {0}.',[{k:'pi',v:F(2),spec:{k:'tour',f:'1'}}],'Le cercle trigonométrique a pour rayon 1&nbsp;: son périmètre est 2π × 1 = 2π.');
+    return TR(1,`Sur le cercle trigonométrique, ${tourName(f)} correspond à un arc de longueur {0}.`,[{k:'pi',v:c,spec:{k:'tour',f:S(f)}}],`Un tour mesure 2π, donc ${tourName(f)} mesure ${X(c)}.`)}
+  if(t==='argent'){
+    if(ty==='qcm'){const c=pick(Fs([[3,4],[2,3],[5,6],[5,4],[4,3],[3,2],[1,3]])),f=div(c,2);
+      return QCM(1,`Sur le cercle trigonométrique, un arc de longueur ${X(c)} correspond à&nbsp;:`,[OK(frTour(f),nv(f)),NO(frTour(c),nv(c)),NO(frTour(mul(c,2)),nv(mul(c,2))),NO(frTour(add(f,F(1,2))),nv(add(f,F(1,2))))],
+        `Un tour mesure 2π&nbsp;: ${X(c)} ÷ 2π = ${fH(f)}.`,{k:'frac',c:S(c)})}
+    const f=pick(Fs([[1,3],[1,6],[1,8],[1,12],[3,8],[5,12],[5,6],[2,3],[7,12]])),c=mul(f,2);
+    return TR(1,`Sur le cercle trigonométrique, ${tourName(f)} correspond à un arc de longueur {0}.`,[{k:'pi',v:c,spec:{k:'tour',f:S(f)}}],`${fH(f)} × 2π = ${X(c)}.`)}
+  if(ty==='qcm'){const n=pick([3,5,7]),f=F(n,2),c=F(n);
+    return QCM(1,`Une roue de rayon 1&nbsp;m fait ${(n-1)/2} tour${n>3?'s':''} et demi. Quelle distance (en m) parcourt un point de sa jante&nbsp;?`,
+      [OK(X(c),pv(c)),NO(X(f),pv(f)),NO(nH(f),nv(f)),NO(X(mul(c,2)),pv(mul(c,2)))],`Un tour = 2π × 1 = 2π&nbsp;; ${fH(f)} tours = ${fH(f)} × 2π = ${X(c)} m.`,{k:'tour',f:S(f)})}
+  for(;;){const f1=pick(Fs([[1,4],[1,3],[1,6],[1,8],[3,8],[1,12],[5,12]])),f2=pick(Fs([[1,4],[1,3],[1,6],[1,8],[1,12],[1,2]]));const s=add(f1,f2);if(eq(f1,f2)||cmp(s,1)>=0)continue;
+    return TR(1,`Un point part de I et parcourt le cercle trigonométrique dans le sens direct&nbsp;: ${tourName(f1)}, puis encore ${tourName(f2)}. Longueur totale de l'arc parcouru&nbsp;: {0}.`,
+      [{k:'pi',v:mul(s,2),spec:{k:'tour',f:S(s)}}],`(${fH(f1)} + ${fH(f2)}) × 2π = ${fH(s)} × 2π = ${X(mul(s,2))}.`)}}
+
+/* ---------- niveau 2 : degrés ↔ radians ---------- */
+const C3=Fs([[5,6],[7,4],[2,3],[5,4],[11,6],[5,12],[7,12],[4,3],[7,6],[3,4],[1,12]]);
+function G2(t,ty){
+  if(t==='bronze'){if(ty==='qcm'){const d=pick([30,45,60,90,120]),c=div(d,180);
+      return QCM(2,`Un angle de ${degH(d)} mesure, en radians&nbsp;:`,[OK(X(c),pv(c)),NO(X(div(d,360)),pv(div(d,360))),NO(X(div(180,d)),pv(div(180,d))),NO(X(F(d)),pv(F(d)))],
+        `180° = π rad, donc ${degH(d)} = ${nH(d)} × ${frac('π','180')} = ${X(c)} rad.`,{k:'d2r',d:String(d)})}
+    const d=pick([30,45,60,90,180,360]);return TR(2,`${degH(d)} = {0} rad.`,[{k:'pi',v:div(d,180),spec:{k:'d2r',d:String(d)}}],`180° = π rad, donc ${degH(d)} = ${X(div(d,180))} rad.`)}
+  if(t==='argent'){if(ty==='qcm'){const c=pick(C3),dg=mul(c,180);
+      return QCM(2,`${X(c)} rad est égal à&nbsp;:`,[OK(degH(dg),nv(dg)),NO(degH(mul(c,360)),nv(mul(c,360))),NO(degH(mul(c,90)),nv(mul(c,90))),NO(degH(add(dg,30)),nv(add(dg,30)))],
+        `π rad = 180°, donc ${X(c)} rad = ${fH(c)} × 180° = ${degH(dg)}.`,{k:'r2d',c:S(c)})}
+    if(Math.random()<.5){const d=pick([210,225,240,270,300,315,330,15,75,105,165]);return TR(2,`${degH(d)} = {0} rad.`,[{k:'pi',v:div(d,180),spec:{k:'d2r',d:String(d)}}],`${degH(d)} = ${nH(d)} × ${frac('π','180')} = ${X(div(d,180))} rad.`)}
+    const c=pick(C3);return TR(2,`${X(c)} rad = {0}°.`,[{k:'num',v:mul(c,180),spec:{k:'r2d',c:S(c)}}],`${X(c)} rad = ${fH(c)} × 180° = ${degH(mul(c,180))}.`)}
+  if(ty==='qcm'){const cs=shuf(Fs([[3,8],[2,5],[1,10],[7,9],[5,18],[7,10],[3,5],[1,9],[11,60]])).slice(0,4),g=ri(0,3);
+    const L=cs.map((c,i)=>{const dg=mul(c,180);if(i===g)return OK(`${X(c)} rad = ${degH(dg)}`,'e:'+S(c)+'|'+S(dg));const w=[mul(c,360),mul(c,90),add(dg,10)][(i+g)%3];return NO(`${X(c)} rad = ${degH(w)}`,'e:'+S(c)+'|'+S(w))});
+    return QCM(2,'Une seule de ces égalités est juste. Laquelle&nbsp;?',L,`π rad = 180°&nbsp;: ${X(cs[g])} rad = ${fH(cs[g])} × 180° = ${degH(mul(cs[g],180))}.`,{k:'eqdr'})}
+  const o=pick([{d:10},{d:20},{d:40},{d:72},{d:100},{d:108},{d:33},{d:18},{d:36},{d:150},{c:[3,8]},{c:[2,5]},{c:[7,9]},{c:[5,18]},{c:[7,10]},{c:[13,12]}]);
+  if(o.d){const c=div(o.d,180);return TR(2,`Convertir ${degH(o.d)} en radians (fraction irréductible)&nbsp;: ${degH(o.d)} = {0} rad.`,[{k:'pi',v:c,spec:{k:'d2r',d:String(o.d)}}],`${degH(o.d)} = ${o.d} × ${frac('π','180')} = ${X(c)} rad.`)}
+  const c=F(o.c[0],o.c[1]);return TR(2,`Convertir en degrés&nbsp;: ${X(c)} rad = {0}°.`,[{k:'num',v:mul(c,180),spec:{k:'r2d',c:S(c)}}],`${X(c)} rad = ${fH(c)} × 180° = ${degH(mul(c,180))}.`)}
+
+/* ---------- niveaux 3 et 4 : point image (réels positifs, négatifs) ---------- */
+const AX=['I','J','I2','J2'],AR=['A1','A2','A3','A4'];
+function quadQ(level,c,arcs,extra){const code=posCode(c);const codes=arcs?AR:AX;
+  return QCM(level,`Sur le cercle trigonométrique, le point image du réel ${X(c)} est${arcs?' situé sur':''}&nbsp;:`,codes.map(k=>k===code?OK(lbl[k],'q:'+k):NO(lbl[k],'q:'+k)),
+    extra||`On part de I et on parcourt ${X(fabs(c))} dans le sens ${val(c)>0?'direct':'indirect'}&nbsp;: on arrive sur ${lbl[code]}.`,{k:'quad',c:S(c)})}
+function readTR(level,idx,negI,how){const c0=F(idx,12),good=negI?sub(c0,2):c0;
+  return TR(level,`${how} M est l'image d'un unique réel de ${negI?INTN:INT0}&nbsp;: {0}.`,[{k:'pi',v:good,spec:{k:'read',i:idx,lo:negI?'-2':'0',hi:negI?'0':'2',loIn:!negI,hiIn:false}}],
+    `On part de I dans le sens ${negI?'indirect':'direct'}&nbsp;: M est atteint après un arc de longueur ${X(fabs(good))}.`)}
+const ptName={6:'J',12:'I′',18:'J′'};
+function G3(t,ty){
+  if(t==='bronze'){if(ty==='qcm')return quadQ(3,pick(Fs([[1,2],[1],[3,2]])),false);
+    const i=pick([6,12,18]);return readTR(3,i,false,`On note M le point ${ptName[i]} du cercle trigonométrique.`)}
+  if(t==='argent'){if(ty==='qcm')return quadQ(3,pick(R0n),true);
+    const q=ri(0,3),p=pick([[1,2,'le milieu du'],[1,3,'au tiers, en partant de '+['I','J','I′','J′'][q]+', du'],[2,3,'aux deux tiers, en partant de '+['I','J','I′','J′'][q]+', du']]);
+    const idx=6*q+6*p[0]/p[1];const ends=[['I','J'],['J','I′'],['I′','J′'],['J′','I']][q];
+    return readTR(3,idx,false,`Le point M est ${p[2]} quart de cercle allant de ${ends[0]} à ${ends[1]} dans le sens direct.`)}
+  if(ty==='qcm'){const code=pick(AR);const out=[];const used=new Set();
+    for(let tries=0;tries<200&&out.length<4;tries++){const b=pick(R0n),k=pick([-1,0,1,2]);const c=add(b,2*k);const pc=posCode(c);
+      if(used.has(pc))continue;if(out.length===0&&pc!==code)continue;used.add(pc);out.push(pc===code?OK(X(c),pv(c)):NO(X(c),pv(c)))}
+    if(out.length<4)return null;
+    return QCM(3,`Lequel de ces réels a son point image sur ${lbl[code]}&nbsp;?`,out,`On ramène chaque réel dans [0&nbsp;; 2π[ en ajoutant ou retranchant 2π, puis on repère le quart de cercle.`,{k:'inq',code})}
+  for(;;){const f=pick(Fs([[1,4],[1,2],[3,4],[1,3],[2,3]])),c=pick(R0n);const r=sub(mul(f,2),c);if(cmp(r,0)<=0)continue;
+    return TR(3,`Un point part de I, parcourt ${tourName(f)} dans le sens direct, puis revient en arrière d'un arc de longueur ${X(c)} (sens indirect). Il s'arrête au point image du réel de ${INT0}&nbsp;: {0}.`,
+      [{k:'pi',v:mod2(r),spec:{k:'walk',steps:[S(mul(f,2)),S(neg(c))],lo:'0',hi:'2',loIn:true,hiIn:false}}],`${fH(f)} × 2π − ${X(c)} = ${X(mul(f,2))} − ${X(c)} = ${X(r)}.`)}}
+function G4(t,ty){
+  if(t==='bronze'){if(ty==='qcm')return quadQ(4,pick(Fs([[-1,2],[-1],[-3,2]])),false,null);
+    const i=pick([6,18,12]);return readTR(4,i,true,`On note M le point ${ptName[i]} du cercle trigonométrique.`)}
+  if(t==='argent'){if(ty==='qcm')return quadQ(4,neg(pick(R0n)),true);
+    const c=neg(pick(R0n));return TR(4,`Pour placer le point image de ${X(c)}, on part de I et on tourne dans le sens {0} en parcourant un arc de longueur {1}.`,
+      [{k:'word',words:['indirect','horaire','des aiguilles d\'une montre'],spec:{k:'sens',c:S(c)}},{k:'pi',v:fabs(c),spec:{k:'arcU',c:S(c)}}],'Un réel négatif s\'enroule dans le sens indirect, sur un arc de longueur |<i>x</i>|.')}
+  if(ty==='qcm'){const m=pick(R0n),c=add(m,2*pick([0,1]));const good=sub(m,2);
+    return QCM(4,`Le point image de ${X(c)} est aussi le point image d'un réel de ${INTN}. Lequel&nbsp;?`,[OK(X(good),pv(good)),NO(X(neg(m)),pv(neg(m))),NO(X(sub(mod2(add(m,1)),2)),pv(sub(mod2(add(m,1)),2))),NO(X(m),pv(m))],
+      `${X(c)} − ${X(sub(c,good))} = ${X(good)}, et ${X(sub(c,good))} est un multiple de 2π.`,{k:'red',c:S(c),lo:'-2',hi:'0',loIn:false,hiIn:false})}
+  const c=pick(R0n.filter(x=>cmp(x,1)>0));const r=sub(2,c);
+  return TR(4,`Un point part de I et parcourt un arc de longueur ${X(c)} dans le sens indirect. Il s'arrête au point image du réel de ${INT0}&nbsp;: {0}.`,
+    [{k:'pi',v:r,spec:{k:'walk',steps:[S(neg(c))],lo:'0',hi:'2',loIn:true,hiIn:false}}],`Il s'arrête au point image de ${X(neg(c))} = ${X(r)} − 2π, donc de ${X(r)}.`)}
+
+/* ---------- niveau 5 : plusieurs tours ---------- */
+function big(sign,kmax){for(;;){const k=ri(1,kmax),r=pick(R0);const c=add(2*k,r);if(val(c)<8.01)return sign<0?neg(c):c}}
+const dk=c=>{const k=Math.floor(val(c)/2+1e-12);return {k,r:sub(c,2*k)}};
+function G5(t,ty){
+  if(t==='bronze'){const c=big(1,2),{k,r}=dk(c);
+    if(ty==='qcm'){const n=toursOf(c);return QCM(5,`Pour enrouler le réel ${X(c)} sur le cercle trigonométrique, le fil fait combien de tours complets&nbsp;?`,
+      [OK(String(n),nv(n)),NO(String(Math.floor(val(c))),nv(Math.floor(val(c)))),NO(String(n+1),nv(n+1)),NO(String(n+2),nv(n+2))],`Un tour = 2π&nbsp;: ${X(c)} = ${kT(k)} × 2π + ${X(r)}, donc ${n} tour${n>1?'s':''} complet${n>1?'s':''}.`,{k:'ntours',c:S(c)})}
+    return TR(5,`${X(c)} = {0} × 2π + ${X(r)}.`,[{k:'num',v:F(k),spec:{k:'deck',c:S(c)}}],`${X(c)} − ${X(r)} = ${X(F(2*k))} = ${kT(k)} × 2π.`)}
+  if(t==='argent'){if(ty==='qcm'){const c=big(Math.random()<.5?1:-1,2),{k,r}=dk(c);
+      const opts=[[k,r],[k,mod2(add(r,1))],[k-1,r],[k+1,r],[k,mod2(neg(r))]].filter(([kk],j)=>j===0||kk!==0);
+      return QCM(5,`Quelle écriture de ${X(c)} est juste&nbsp;?`,opts.map(([kk,rr],j)=>(j?NO:OK)(`${kT(kk)} × 2π + ${X(rr)}`,'d:'+kk+'|'+S(rr))),`${kT(k)} × 2π + ${X(r)} = ${X(F(2*k))} + ${X(r)} = ${X(c)}.`,{k:'decch',c:S(c)})}
+    const c=big(-1,2),{k,r}=dk(c);
+    return TR(5,`Compléter, avec un entier puis un réel de ${INT0}&nbsp;: ${X(c)} = {0} × 2π + {1}.`,[{k:'num',v:F(k),spec:{k:'deck',c:S(c)}},{k:'pi',v:r,spec:{k:'decr',c:S(c)}}],`${kT(k)} × 2π + ${X(r)} = ${X(F(2*k))} + ${X(r)} = ${X(c)}.`)}
+  if(ty==='qcm'){const c=add(big(1,3),0);const c2=pick([c,neg(c)]);const code=posCode(c2);
+    return QCM(5,`Sur le cercle trigonométrique, le point image du réel ${X(c2)} est situé sur&nbsp;:`,AR.concat(AX).filter(k=>k===code||AR.includes(k)).map(k=>k===code?OK(lbl[k],'q:'+k):NO(lbl[k],'q:'+k)),
+      `${X(c2)} a le même point image que ${X(mod2(c2))}, situé sur ${lbl[code]}.`,{k:'quad',c:S(c2)})}
+  const c=big(1,3),{k,r}=dk(c);
+  return TR(5,`On enroule le fil jusqu'à la graduation ${X(c)}. Le moulinet fait {0} tours complets, et le point image est celui du réel de ${INT0} égal à {1}.`,
+    [{k:'num',v:F(toursOf(c)),spec:{k:'ntours',c:S(c)}},{k:'pi',v:r,spec:{k:'decr',c:S(c)}}],`${X(c)} = ${kT(k)} × 2π + ${X(r)}.`)}
+
+/* ---------- niveau 6 : même point image ---------- */
+function G6(t,ty){
+  if(t==='bronze'){const c=pick(R0n);
+    if(ty==='qcm'){const g=add(c,2);return QCM(6,`Lequel de ces réels a le même point image que ${X(c)}&nbsp;?`,[OK(X(g),pv(g)),NO(X(add(c,1)),pv(add(c,1))),NO(X(neg(c)),pv(neg(c))),NO(X(mul(c,2)),pv(mul(c,2)))],
+      `${X(g)} − ${X(c)} = 2π&nbsp;: un tour de plus, même point image.`,{k:'same',c:S(c)})}
+    const x=add(c,2);return TR(6,`Le réel de ${INT0} qui a le même point image que ${X(x)} est {0}.`,[{k:'pi',v:c,spec:{k:'red',c:S(x),lo:'0',hi:'2',loIn:true,hiIn:false}}],`${X(x)} − 2π = ${X(c)}.`)}
+  if(t==='argent'){if(ty==='qcm'){const a=pick(R0.concat(R0.map(neg))),same=Math.random()<.5,k=pick([1,2,-1,-2]);const b=same?add(a,2*k):add(a,pick([2*k+1,2*k-1]));const d=sub(b,a),q=div(d,2);
+      return QCM(6,`Les réels ${X(a)} et ${X(b)} ont-ils le même point image sur le cercle trigonométrique&nbsp;?`,
+        [(same?OK:NO)(`Oui, car leur différence ${X(d)} est un multiple de 2π.`,'y'),(same?NO:OK)(`Non, car leur différence ${X(d)} n'est pas un multiple de 2π.`,'n'),NO('On ne peut pas conclure sans placer les points au rapporteur.','x')],
+        `${X(b)} − ${parH(a)} = ${X(d)} = ${fH(q)} × 2π${same?'&nbsp;: un multiple de 2π.':'&nbsp;: ce n\'est pas un multiple de 2π.'}`,{k:'sameq',a:S(a),b:S(b)})}
+    const c=pick(Fs([[17,4],[-5,3],[25,6],[-11,2],[13,3],[-7,4],[23,6],[-13,4],[19,6],[31,4],[29,6],[-17,6]]));
+    return TR(6,`Le réel de ${INT0} qui a le même point image que ${X(c)} est {0}.`,[{k:'pi',v:mod2(c),spec:{k:'red',c:S(c),lo:'0',hi:'2',loIn:true,hiIn:false}}],`On ajoute ou retranche 2π autant de fois que nécessaire&nbsp;: ${X(c)} ${cmp(mod2(c),c)>0?'+':MINUS} ${X(fabs(sub(mod2(c),c)))} = ${X(mod2(c))}.`)}
+  if(ty==='qcm'){const b=pick(R0n),ks=shuf([-2,-1,0,1,2]).slice(0,3),odd=pick([add(b,2*pick([0,1,-1])+1),neg(add(b,2*pick([1,-1])))]);
+    return QCM(6,'Trois de ces réels ont le même point image sur le cercle trigonométrique. Lequel n\'a <b>pas</b> le même point image que les trois autres&nbsp;?',
+      [OK(X(odd),pv(odd)),...ks.map(k=>NO(X(add(b,2*k)),pv(add(b,2*k))))],`Les trois autres diffèrent deux à deux d'un multiple de 2π&nbsp;; ${X(odd)} − ${X(b)} = ${X(sub(odd,b))} n'en est pas un.`,{k:'odd'})}
+  if(Math.random()<.5){const r=pick(R0n),k=pick([2,3,4,-2,-3,-4]),c=add(r,2*k);
+    return TR(6,`Déterminer l'entier <i>k</i> tel que ${X(c)} = ${X(r)} + <i>k</i> × 2π&nbsp;: <i>k</i> = {0}.`,[{k:'num',v:F(k),spec:{k:'kfind',c:S(c),r:S(r)}}],`${X(c)} − ${X(r)} = ${X(F(2*k))} = ${kT(k)} × 2π.`)}
+  const c=pick(Fs([[47,6],[29,4],[-23,6],[35,6],[22,3],[-15,4],[41,6],[-19,3]]));const r=sub(mod2(c),2);
+  return TR(6,`Le réel de ${INTN} qui a le même point image que ${X(c)} est {0}.`,[{k:'pi',v:r,spec:{k:'red',c:S(c),lo:'-2',hi:'0',loIn:false,hiIn:false}}],`${X(c)} ${cmp(r,c)>0?'+':MINUS} ${X(fabs(sub(r,c)))} = ${X(r)}, et ${X(fabs(sub(r,c)))} est un multiple de 2π.`)}
+
+/* ---------- niveau 7 : longueurs d'arc ---------- */
+const GRID=Fs([[0],[1,6],[1,4],[1,3],[1,2],[2,3],[3,4],[5,6],[1],[7,6],[5,4],[4,3],[3,2],[5,3],[7,4],[11,6],[2]]);
+function G7(t,ty){
+  if(t==='bronze'){if(ty==='qcm'){const c=pick(R0);
+      return QCM(7,`Sur le cercle trigonométrique, l'arc parcouru dans le sens direct de I jusqu'au point image de ${X(c)} a pour longueur&nbsp;:`,
+        [OK(X(c),pv(c)),NO(nH(mul(c,180)),nv(mul(c,180))),NO(X(div(c,2)),pv(div(c,2))),NO(X(mul(c,2)),pv(mul(c,2)))],`Sur le cercle de rayon 1, la longueur de l'arc parcouru est le réel lui-même&nbsp;: ${X(c)}.`,{k:'arcU',c:S(c)})}
+    const R=pick([2,3,4,5,6]),c=pick(Fs([[1,2],[1],[1,3],[1,4]]));
+    return TR(7,`Sur un cercle de rayon ${R}&nbsp;cm, un angle au centre de ${X(c)} rad intercepte un arc de longueur {0} cm.`,[{k:'pi',v:mul(R,c),spec:{k:'arcR',R:String(R),c:S(c)}}],`ℓ = R × θ = ${R} × ${X(c)} = ${X(mul(R,c))} cm.`)}
+  if(t==='argent'){if(ty==='qcm'){const n=ri(1,6);let i=-1;for(let j=0;j<GRID.length-1;j++)if(val(GRID[j])*PI<n&&n<val(GRID[j+1])*PI)i=j;
+      const iv=j=>`entre ${X(GRID[j])} et ${X(GRID[j+1])}`;const cand=[i-2,i-1,i+1,i+2].filter(j=>j>=0&&j<GRID.length-1);
+      return QCM(7,`On parcourt le cercle trigonométrique dans le sens direct à partir de I. Le point image du réel ${n} est situé&nbsp;:`,
+        [OK(iv(i),'b:'+S(GRID[i])+'|'+S(GRID[i+1])),...shuf(cand).map(j=>NO(iv(j),'b:'+S(GRID[j])+'|'+S(GRID[j+1])))],`${X(GRID[i])} ≈ ${rT(val(GRID[i])*PI,2)} &lt; ${n} &lt; ${X(GRID[i+1])} ≈ ${rT(val(GRID[i+1])*PI,2)}.`,{k:'between',n:String(n)})}
+    const [R,c]=pick([[2,F(1,3)],[3,F(2,3)],[4,F(3,4)],[6,F(5,6)],[2,F(3,2)],[5,F(2,5)],[4,F(1,2)],[6,F(1,6)],[3,F(5,6)],[5,F(3,4)]]);const ex=mul(R,c);
+    return TR(7,`Un moulinet a un tambour de rayon ${R}&nbsp;cm. Quand il tourne de ${X(c)} rad, il enroule ${X(ex)} cm de fil, soit environ {0} cm (arrondi au millimètre).`,
+      [{k:'num',v:rnd(val(ex)*PI,1),spec:{k:'arcRd',R:String(R),c:S(c),d:1}}],`ℓ = ${R} × ${X(c)} = ${X(ex)} cm ≈ ${rT(val(ex)*PI,1)} cm.`)}
+  if(ty==='qcm'){const [R,n]=pick([[F(5,2),6],[F(3,2),10],[F(2),5],[F(3),4],[F(5,2),4]]);const ex=mul(mul(R,n),2);
+    return QCM(7,`Le tambour d'un moulinet a un rayon de ${nH(R)}&nbsp;cm. Quelle longueur de fil enroule-t-il en ${n} tours&nbsp;?`,
+      [OK(`${X(ex)} cm ≈ ${rT(val(ex)*PI,1)} cm`,pv(ex)),NO(`${X(div(ex,2))} cm ≈ ${rT(val(ex)*PI/2,1)} cm`,pv(div(ex,2))),NO(`${X(mul(R,n))} cm ≈ ${rT(val(R)*n*PI,1)} cm`,pv(mul(R,n))),NO(`${X(mul(ex,2))} cm ≈ ${rT(val(ex)*PI*2,1)} cm`,pv(mul(ex,2)))],
+      `Un tour = 2π<i>R</i> = ${X(mul(R,2))} cm&nbsp;; ${n} tours = ${X(ex)} cm.`,{k:'tours',R:S(R),n:String(n)})}
+  const [L,R]=pick([[6,4],[150,100],[90,60],[50,40],[30,20],[100,40],[35,50],[60,80],[140,80],[200,80],[45,30]]);const th=div(L,R);
+  return TR(7,`Sur une piste circulaire de rayon ${R}&nbsp;m, une coureuse parcourt un arc de ${L}&nbsp;m. L'angle au centre mesure {0} rad, soit environ {1}° (arrondi à l'unité).`,
+    [{k:'num',v:th,spec:{k:'ang',L:String(L),R:String(R)}},{k:'num',v:rnd(val(th)*180/PI,0),spec:{k:'angdeg',L:String(L),R:String(R),d:0}}],`θ = ℓ ÷ R = ${L} ÷ ${R} = ${nH(th)} rad, soit ${nH(th)} × ${frac('180','π')} ≈ ${rT(val(th)*180/PI,0)}°.`)}
+
+const GEN=[G1,G2,G3,G4,G5,G6,G7];
+function build(tier){
+  for(let att=0;att<60;att++){
+    const extra=tier==='bronze'?shuf([1,2,3,4]).slice(0,3):tier==='or'?shuf([5,6,7,3]).slice(0,3):shuf([1,2,3,4,5,6,7]).slice(0,3);
+    const lv=shuf([1,2,3,4,5,6,7].concat(extra));const types=shuf(['qcm','qcm','qcm','qcm','qcm','qcm','trous','trous','trous','trous']);
+    const out=[];let ok=true;
+    for(let i=0;i<10;i++){let qn=null;for(let k=0;k<30&&!qn;k++)qn=GEN[lv[i]-1](tier,types[i]);if(!qn){ok=false;break}out.push(qn)}
+    if(ok&&new Set(out.map(x=>x.prompt)).size===10)return out}
+  throw new Error('épreuve impossible à construire')}
+window.ML_FIN={bronze:()=>(window.ML_last=build('bronze')),argent:()=>(window.ML_last=build('argent')),or:()=>(window.ML_last=build('or')),GEN};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'le-moulinet',title:'Le Moulinet',levels:7,
+  levelNames:['Un tour = 2π','Degrés et radians','Placer un point','Le sens indirect','Plusieurs tours','Même point image','Longueur d\'arc'],
+  music:'aventure',finals:{bronze:ML_FIN.bronze,argent:ML_FIN.argent,or:ML_FIN.or}});
+MLK.goLevel(0);
+</script>
+</body>
+</html>
