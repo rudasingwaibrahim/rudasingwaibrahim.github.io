@@ -1,0 +1,72 @@
+name: Test de construction Jekyll (hof)
+on:
+  push:
+    branches: [test-hof, test-fix, test-quiz]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construction GitHub Pages (Jekyll)
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - name: Contrôle des fichiers produits
+        run: |
+          set -e
+          sudo chown -R "$(id -u)" _site || true
+          for f in index.html 404.html sitemap.xml robots.txt search.json sw.js manifest.webmanifest offline/index.html \
+                   classes/index.html classes/seconde220/index.html classes/seconde220/chapitre1/index.html \
+                   classes/ses/chapitre6/index.html classes/snt/index.html ressources/index.html mentions-legales/index.html \
+                   sigma-arcade/index.html sigma-arcade/le-clip/index.html manuels/index.html \
+                   assets/lib/katex/katex.min.js assets/thumbs/seconde-ch1-cours-eleve.webp; do
+            test -s "_site/$f" || { echo "MANQUANT : $f"; exit 1; }
+          done
+          grep -q 'parcours-bar' _site/classes/seconde220/chapitre1/index.html
+          grep -q 'katex.min.js' _site/classes/seconde220/chapitre1/index.html
+          grep -q 'doc-thumb' _site/classes/seconde220/chapitre1/index.html
+          grep -q 'data-prog="c"' _site/classes/seconde220/chapitre1/index.html
+          grep -q 'goatcounter' _site/index.html
+          grep -q 'const VERSION = .20' _site/sw.js
+          ! grep -rl 'Liquid error\|Liquid Exception' _site --include=*.html
+          python3 -c "import json; d=json.load(open('_site/search.json')); print(len(d), 'entrées de recherche')"
+          python3 -c "import xml.dom.minidom as m; m.parse('_site/sitemap.xml'); print('sitemap valide')"
+          echo "Pages HTML : $(find _site -name '*.html' | wc -l)"
+      - name: Liens internes (0 lien cassé attendu)
+        run: |
+          python3 - <<'PY'
+          import os, json
+          from html.parser import HTMLParser
+          from urllib.parse import urljoin, urlparse, unquote
+          R = '_site'
+          class P(HTMLParser):
+              def __init__(s): super().__init__(); s.l = []
+              def handle_starttag(s, t, a):
+                  a = dict(a)
+                  for k in ('href', 'src'):
+                      if a.get(k) and a.get('rel') != 'canonical': s.l.append(a[k])
+          def tgt(u):
+              p = unquote(urlparse(u).path); f = os.path.join(R, p.lstrip('/'))
+              return os.path.join(f, 'index.html') if p.endswith('/') else f
+          bad, n = [], 0
+          for d, _, fs in os.walk(R):
+              for f in fs:
+                  if not f.endswith('.html'): continue
+                  rel = '/' + os.path.relpath(os.path.join(d, f), R)
+                  url = rel[:-10] if rel.endswith('/index.html') else rel
+                  p = P(); p.feed(open(os.path.join(d, f), encoding='utf-8').read())
+                  for h in p.l:
+                      if h.startswith(('mailto:', 'tel:', 'data:', 'javascript:')): continue
+                      full = urljoin('http://x' + url, h)
+                      if urlparse(full).netloc != 'x': continue
+                      n += 1
+                      if not os.path.exists(tgt(full)): bad.append((url, h))
+          for x in json.load(open(os.path.join(R, 'search.json'))):
+              n += 1
+              if not os.path.exists(tgt('http://x' + x['u'])): bad.append(('search.json', x['u']))
+          print(n, 'liens vérifiés,', len(bad), 'cassé(s)')
+          for b in bad[:40]: print('CASSÉ', *b)
+          raise SystemExit(1 if bad else 0)
+          PY
