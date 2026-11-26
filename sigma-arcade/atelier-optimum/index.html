@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>L'Atelier Optimum · Sigma Arcade</title>
+<meta name="description" content="Dérivation, partie 3 (Première spécialité) : modéliser une situation par une fonction, étudier ses variations avec la dérivée et résoudre des problèmes d'optimisation (aire, volume, clôture, affiche, recette, bénéfice, coût marginal, coût moyen), établir une inégalité et étudier la position relative de deux courbes. Dans l'atelier, une manivelle règle x : l'objet se déforme, le point court sur la courbe et la pente de la tangente indique de quel côté tourner.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : artisan exigeant et complice ; jamais enfantin ; on réessaie toujours, la réponse est donnée au deuxième essai.
+   IDEA : un atelier de nuit à Mamoudzou reçoit des commandes (un potager à clôturer, une boîte à plier, une affiche,
+          un étal de mabawa…). Une MANIVELLE règle la grandeur x : à gauche, l'objet se déforme en direct ; à droite,
+          le point M(x ; f(x)) court sur la courbe du modèle et laisse sa trace. Une fois f′ calculée, la petite
+          tangente en M s'allume : bleue si f′(x) > 0 (tourner vers la droite fait gagner), saumon si f′(x) < 0.
+          À l'optimum elle devient horizontale et dorée : f′ s'annule en changeant de signe, l'objet s'illumine.
+   PICTURE : plan de travail bleu nuit, traits fins de bleu clair, l'objet en lignes claires ; or pour l'optimum.
+   COLOUR and TYPE : « océan profond » du site ; violet-bleu pour l'action ; --sg-pos / --sg-neg pour le signe de f′ ;
+          or pour l'optimum et les réussites ; corail pour les erreurs ; Outfit partout.
+   LAYOUT : scène (maquette + moniteur) et légende à gauche, collées en haut sur téléphone ; carnet de commande à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);--pos:var(--sg-pos);--neg:var(--sg-neg)}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:80ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button,select,input{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible,#scene:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(340px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:linear-gradient(175deg,#0b1834 0%,#07101f 62%,#050b16 100%);user-select:none;-webkit-user-select:none}
+#scene{display:block;width:100%;height:auto;touch-action:pan-y}
+#scene.grab{cursor:ew-resize}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(17px,1.8vw,21px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .45em}
+.capt .k{color:var(--gold2)}.capt .m{color:var(--mut);font-weight:600}.capt .s{color:#a9bbff}.capt .p{color:var(--pos)}.capt .n{color:var(--neg)}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 4px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.55;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.order{display:block;margin:0 0 4px;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--gold)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.45 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(18px,2vw,22px)/2.3 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.2em;height:46px;margin:0 3px;padding:0 6px;font:700 20px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+/* manivelle */
+.crank{display:flex;align-items:center;gap:8px;margin:0 0 12px;flex-wrap:wrap}
+.crank .stp{min-width:56px;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:700 22px var(--sg-font);cursor:pointer}
+.crank .stp:hover:not(:disabled){border-color:var(--ac)}
+.crank output{min-width:7.4em;min-height:48px;display:inline-flex;align-items:center;justify-content:center;padding:0 12px;border-radius:12px;background:rgba(108,142,255,.12);border:1.5px solid rgba(108,142,255,.55);color:#dfe6ff;font:800 20px var(--sg-font);font-variant-numeric:tabular-nums}
+/* tableau de signes à construire */
+.tvw{overflow-x:auto;max-width:100%;margin:4px 0 10px}
+table.tv{border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:16px;min-width:100%}
+table.tv th,table.tv td{border:1px solid var(--line);padding:4px 6px;text-align:center;height:48px}
+table.tv th{color:var(--mut);font-weight:600;text-align:left;white-space:nowrap;padding:4px 10px}
+table.tv td.z{color:var(--gold2);font-weight:800;width:2.2em}
+table.tv td.nd{color:var(--mut);font-weight:700}
+.sg{min-width:56px;min-height:44px;border-radius:10px;border:1.5px dashed var(--line);background:var(--solid);color:var(--mut);font:800 22px var(--sg-font);cursor:pointer}
+.sg:hover:not(:disabled){border-color:var(--ac)}
+.sg[data-s="+"]{color:var(--pos);border-style:solid;border-color:rgba(127,178,255,.6)}
+.sg[data-s="-"]{color:var(--neg);border-style:solid;border-color:rgba(255,155,122,.6)}
+.sg.ok{border-color:var(--ok)}.sg.ko{border-color:var(--ko)}
+.sg:disabled{cursor:default;opacity:1}
+.arw{font:800 24px var(--sg-font)}.arw.u{color:var(--pos)}.arw.d{color:var(--neg)}
+.vv{display:block;font-size:14px;color:var(--gold2);font-weight:700}
+/* écritures mathématiques */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+sub,sup{font-size:.68em;line-height:0}
+.sk-q .fr,.sk-ch .fr{font-size:.92em}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb.rv{background:rgba(200,168,75,.09);border-left-color:var(--gold)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex;flex:none}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:15px;border-radius:10px}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .crank{flex-wrap:nowrap;gap:6px}.crank .stp{min-width:48px;flex:none}.crank output{flex:1 1 auto;min-width:0;padding:0 6px;font-size:18px}
+  table.tv{font-size:15px}table.tv th{padding:4px 6px}.sg{min-width:44px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>L'Atelier Optimum</h1>
+<p>Chaque commande de l'atelier cache un problème d'optimisation. Tourne la manivelle&nbsp;: la grandeur x change, l'objet se déforme et le point file sur la courbe du modèle. Calcule la dérivée&nbsp;: la petite tangente te dit de quel côté tourner, et elle devient horizontale, dorée, pile à l'optimum.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage">
+    <svg id="scene" viewBox="0 0 1000 560" role="img" aria-label="La maquette de l'objet commandé et la courbe de la fonction qui le modélise" tabindex="-1"></svg>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+<script>
+/* ======================= L'ATELIER OPTIMUM — noyau : nombres exacts, fonctions, scène ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const NB=' ',MINUS='−';
+const ab=x=>x<0n?-x:x;
+const gcd=(a,b)=>{a=ab(a);b=ab(b);while(b){const t=a%b;a=b;b=t}return a||1n};
+/* rationnels exacts */
+class Q{
+  constructor(n,d){n=BigInt(n);d=d===undefined?1n:BigInt(d);if(d===0n)throw new Error('division par 0');if(d<0n){n=-n;d=-d}const g=gcd(n,d);this.n=n/g;this.d=d/g}
+  static of(x){if(x instanceof Q)return x;if(typeof x==='bigint')return new Q(x,1n);if(typeof x==='number'){if(Number.isInteger(x))return new Q(BigInt(x),1n);return Q.parse(String(x))}return Q.parse(x)}
+  static parse(s){s=String(s).trim().replace(/[\s  ]/g,'').replace(/[−–—]/g,'-').replace(',','.').replace(/^\+/,'');
+    let m=/^(-?)(\d+)\/(\d+)$/.exec(s);if(m){if(m[3]==='0')return null;return new Q((m[1]?-1n:1n)*BigInt(m[2]),BigInt(m[3]))}
+    m=/^(-?)(\d*)(?:\.(\d+))?$/.exec(s);if(!m||(!m[2]&&!m[3]))return null;const f=m[3]||'',den=10n**BigInt(f.length);
+    return new Q((m[1]?-1n:1n)*(BigInt(m[2]||'0')*den+(f?BigInt(f):0n)),den)}
+  add(o){o=Q.of(o);return new Q(this.n*o.d+o.n*this.d,this.d*o.d)}
+  sub(o){o=Q.of(o);return new Q(this.n*o.d-o.n*this.d,this.d*o.d)}
+  mul(o){o=Q.of(o);return new Q(this.n*o.n,this.d*o.d)}
+  div(o){o=Q.of(o);return new Q(this.n*o.d,this.d*o.n)}
+  pow(k){let r=new Q(1n,1n);if(k>=0){for(let i=0;i<k;i++)r=r.mul(this)}else{for(let i=0;i<-k;i++)r=r.div(this)}return r}
+  eq(o){o=Q.of(o);return o!==null&&this.n===o.n&&this.d===o.d}
+  cmp(o){o=Q.of(o);const a=this.n*o.d,b=o.n*this.d;return a<b?-1:a>b?1:0}
+  neg(){return new Q(-this.n,this.d)}
+  abs(){return new Q(ab(this.n),this.d)}
+  sgn(){return this.n<0n?-1:this.n>0n?1:0}
+  get v(){return Number(this.n)/Number(this.d)}
+  isInt(){return this.d===1n}
+  exact(){let d=this.d;while(d%2n===0n)d/=2n;while(d%5n===0n)d/=5n;return d===1n}
+  dec(){if(!this.exact())return null;let k=0;while(!this.mul(10n**BigInt(k)).isInt())k++;const i=this.mul(10n**BigInt(k)).n,s=i<0n?'-':'',a=String(ab(i)).padStart(k+1,'0');
+    return s+(k?a.slice(0,a.length-k)+'.'+a.slice(a.length-k):a)}
+  toString(){return this.d===1n?String(this.n):this.n+'/'+this.d}
+}
+const q=x=>Q.of(x);
+const s=x=>String(q(x));
+function frS(t){let neg=t[0]==='-';if(neg)t=t.slice(1);let [ip,fp]=t.split('.');if(ip.length>=5)ip=ip.replace(/\B(?=(\d{3})+(?!\d))/g,' ');return (neg?MINUS:'')+ip+(fp?','+fp:'')}
+const frac=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+/* nombre exact → HTML (décimal si possible, sinon fraction) ; → texte (scène, légende) */
+function D(x){x=q(x);const t=x.dec();if(t!==null&&(t.split('.')[1]||'').length<=4)return frS(t);return (x.n<0n?MINUS:'')+frac(String(ab(x.n)),String(x.d))}
+function Dt(x){x=q(x);const t=x.dec();if(t!==null&&(t.split('.')[1]||'').length<=4)return frS(t);return (x.n<0n?MINUS:'')+ab(x.n)+'/'+x.d}
+const par=x=>{x=q(x);return x.sgn()<0?`(${D(x)})`:D(x)};
+/* écritures acceptées pour un trou du kit */
+function writes(x){x=q(x);const out=[];const add=t=>{if(!out.includes(t))out.push(t)};const t=x.dec();
+  if(t!==null){add(frS(t).replace(/ /g,''));add(t)}
+  if(!x.isInt()){const f=(x.n<0n?MINUS:'')+ab(x.n)+'/'+x.d;add(f);add(f.replace(MINUS,'-'))}
+  if(t!==null&&t[0]==='-')add(frS(t).replace(MINUS,'-').replace(/ /g,''));
+  return out}
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* ---------------- fonctions ----------------
+   {t:'lp', ts:[[coef,exp],…]}  polynôme « de Laurent » (exposants entiers, éventuellement négatifs : k/x, k/x²)
+   {t:'hom', a,b,c,d}           (ax + b)/(cx + d)
+   {t:'homd',k,c,d}             k/(cx + d)²  (dérivée d'une fonction homographique) */
+function LP(ts){const m=new Map();for(const [c,e] of ts){const k=+e;m.set(k,(m.get(k)||q(0)).add(q(c)))}
+  return {t:'lp',ts:[...m.entries()].filter(([e,c])=>c.sgn()!==0).sort((a,b)=>b[0]-a[0]).map(([e,c])=>[String(c),e])}}
+const P=(...cs)=>LP(cs.map((c,i)=>[c,i]));               /* P(c0,c1,c2,…) */
+const lpAdd=(A,B)=>LP(A.ts.concat(B.ts));
+const lpSc=(A,k)=>LP(A.ts.map(([c,e])=>[q(c).mul(k),e]));
+const lpMul=(A,B)=>{const o=[];for(const [c,e] of A.ts)for(const [d,f] of B.ts)o.push([q(c).mul(d),e+f]);return LP(o)};
+const lpX=(A,k)=>LP(A.ts.map(([c,e])=>[c,e+k]));          /* A × x^k */
+const co=(F,e)=>{const t=F.ts.find(z=>z[1]===e);return t?q(t[0]):q(0)};
+const HOM=(a,b,c,d)=>({t:'hom',a:s(a),b:s(b),c:s(c),d:s(d)});
+function fv(F,x){x=q(x);switch(F.t){
+  case 'lp':{let r=q(0);for(const [c,e] of F.ts){if(e<0&&x.sgn()===0)return null;r=r.add(q(c).mul(x.pow(e)))}return r}
+  case 'hom':{const den=q(F.c).mul(x).add(F.d);if(den.sgn()===0)return null;return q(F.a).mul(x).add(F.b).div(den)}
+  case 'homd':{const den=q(F.c).mul(x).add(F.d);if(den.sgn()===0)return null;return q(F.k).div(den.mul(den))}}}
+function fn(F,x){switch(F.t){
+  case 'lp':{let r=0;for(const [c,e] of F.ts)r+=q(c).v*Math.pow(x,e);return r}
+  case 'hom':return (q(F.a).v*x+q(F.b).v)/(q(F.c).v*x+q(F.d).v);
+  case 'homd':{const z=q(F.c).v*x+q(F.d).v;return q(F.k).v/(z*z)}}}
+function fd(F){switch(F.t){
+  case 'lp':return LP(F.ts.filter(([c,e])=>e!==0).map(([c,e])=>[q(c).mul(e),e-1]));
+  case 'hom':return {t:'homd',k:s(q(F.a).mul(F.d).sub(q(F.b).mul(F.c))),c:F.c,d:F.d}}}
+const fdef=(F,x)=>{if(F.t!=='lp')return false;return !F.ts.some(([c,e])=>e<0)||Math.abs(x)>1e-12};
+/* sympy */
+function fsym(F){const r=x=>`(${s(x)})`;switch(F.t){
+  case 'lp':return F.ts.map(([c,e])=>`${r(c)}*x**(${e})`).join(' + ')||'0';
+  case 'hom':return `(${r(F.a)}*x+${r(F.b)})/(${r(F.c)}*x+${r(F.d)})`;
+  case 'homd':return `${r(F.k)}/(${r(F.c)}*x+${r(F.d)})**2`}}
+/* écriture d'un polynôme (HTML ou texte), variable v */
+const SUP=['','','²','³','⁴'];
+function lpH(F,v,txt){v=v||'x';let o='';
+  for(const [c0,e] of F.ts){const c=q(c0),neg=c.sgn()<0,a=c.abs();let t;
+    if(e>0){const vv=e===1?v:txt?v+SUP[e]:`${v}<sup>${e}</sup>`;t=(a.eq(1)?'':(txt?Dt(a):D(a)))+vv}
+    else if(e===0)t=txt?Dt(a):D(a);
+    else{const den=e===-1?v:txt?v+SUP[-e]:`${v}<sup>${-e}</sup>`;t=txt?`${Dt(a)}/${den}`:frac(D(a),den)}
+    o+=o?(neg?` ${MINUS} `:' + ')+t:(neg?MINUS:'')+t}
+  return o||'0'}
+const lin=(a,b,v,txt)=>lpH(P(b,a),v,txt);
+function fh(F,v,txt){v=v||'x';switch(F.t){
+  case 'lp':return lpH(F,v,txt);
+  case 'hom':return txt?`(${lin(F.a,F.b,v,1)})/(${lin(F.c,F.d,v,1)})`:frac(lin(F.a,F.b,v),lin(F.c,F.d,v));
+  case 'homd':{const k=q(F.k);return (k.sgn()<0?MINUS:'')+(txt?`${Dt(k.abs())}/(${lin(F.c,F.d,v,1)})²`:frac(D(k.abs()),`(${lin(F.c,F.d,v)})<sup>2</sup>`))}}}
+/* combinaison écrite proprement : [[coef, suffixe]] (coefficient 1 omis devant un suffixe) */
+function lc(ts){let o='';for(const [c0,sf] of ts){const c=q(c0);if(c.sgn()===0)continue;const a=c.abs(),t=(sf&&a.eq(1)?'':D(a))+sf;o+=o?(c.sgn()<0?` ${MINUS} `:' + ')+t:(c.sgn()<0?MINUS:'')+t}return o||'0'}
+/* « x − a » */
+const xm=(a,v)=>{a=q(a);v=v||'x';return a.sgn()===0?v:a.sgn()>0?`${v} ${MINUS} ${D(a)}`:`${v} + ${D(a.abs())}`};
+/* intervalle écrit à la française */
+const BR=(lo,hi,lo_o,hi_o)=>`${lo===null||lo_o?']':'['}${lo===null?MINUS+'∞':D(lo)}${NB};${NB}${hi===null?'+∞':D(hi)}${hi===null||hi_o?'[':']'}`;
+const domH=dm=>BR(dm.lo,dm.hi,dm.lo_o,dm.hi_o);
+const inDom=(dm,x)=>{x=q(x);if(dm.lo!==null){const c=x.cmp(dm.lo);if(c<0||(c===0&&dm.lo_o))return false}if(dm.hi!==null){const c=x.cmp(dm.hi);if(c>0||(c===0&&dm.hi_o))return false}return true};
+
+/* ---------------- bruitages ---------------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),gn=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(v,t+.015);gn.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(gn);gn.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+let lastTick=0;
+const SND={pop(){if(snd){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)}},
+  tick(){if(!snd)return;const n=performance.now();if(n-lastTick<45)return;lastTick=n;tone(1250,.03,.014,'square')},
+  soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  crank(){if(snd){tone(150,.3,.03,'sawtooth');tone(210,.25,.02,'triangle',.1)}},
+  gold(){if(snd)[659.25,783.99,987.77].forEach((f,i)=>tone(f,.35,.045,'triangle',i*.08))},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))},
+  get on(){return snd},set on(v){snd=v}};
+
+/* ---------------- scène ---------------- */
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?1:ms));
+function anim(ms,f){return new Promise(res=>{if(reduceM)ms=1;const t0=performance.now();
+  const step=t=>{let k=Math.min(1,(t-t0)/ms);f(k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,k);if(k<1)requestAnimationFrame(step);else res()};requestAnimationFrame(step)})}
+const svg=$('scene');
+const VW=1000,VH=560;
+let st=null,GL=470,GR=984,GT=22,GB=520;
+function blank(){return{M:null,layout:'split',x:null,xn:0,reveal:1,tan:false,gold:0,trail:[],floor:null,g:null,gap:false,gname:'g',fold:1,pts:[],hl:null}}
+const X=x=>GL+(x-st.M.view.x0)/(st.M.view.x1-st.M.view.x0)*(GR-GL);
+const Y=y=>GB-(y-st.M.view.y0)/(st.M.view.y1-st.M.view.y0)*(GB-GT);
+const IX=px=>st.M.view.x0+(px-GL)/(GR-GL)*(st.M.view.x1-st.M.view.x0);
+function niceStep(r,n){n=n||11;for(const z of [0.01,0.02,0.05,0.1,0.2,0.25,0.5,1,2,5,10,20,25,50,100,200,250,500,1000,2000,5000])if(r/z<=n)return z;return 10000}
+function tickLab(x,z){const d=z>=1?0:z>=.1?1:2;let t=(Math.round(x/z)*z).toFixed(d);if(t.includes('.'))t=t.replace(/0+$/,'').replace(/\.$/,'');if(/^-0(\.0+)?$/.test(t))t=t.slice(1);
+  if(Math.abs(+t)>=10000)t=t.replace(/\B(?=(\d{3})+(?!\d))/g,' ');return t.replace('-',MINUS).replace('.',',')}
+const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const f1=v=>v.toFixed(1);
+/* domaine numérique visible */
+function domN(M){const dm=M.dom,v=M.view;return[dm.lo===null?v.x0:Math.max(v.x0,q(dm.lo).v),dm.hi===null?v.x1:Math.min(v.x1,q(dm.hi).v)]}
+/* valeur affichée */
+function vt(x,d){if(Math.abs(x-Math.round(x))<1e-9)return frS(String(Math.round(x)));let t=x.toFixed(d===undefined?2:d);t=t.replace(/0+$/,'').replace(/\.$/,'');return frS(t)}
+/* jauge commune (bas de la maquette) */
+function gauge(lab,val,fr,gold){fr=Math.max(0,Math.min(1,fr));const W=380;
+  return `<g font-family="Outfit,system-ui,sans-serif"><text x="34" y="478" font-size="${(21*MF).toFixed(1)}" font-weight="600" fill="rgba(200,215,255,.75)">${esc(lab)}</text>`+
+    `<text x="414" y="478" text-anchor="end" font-size="${(30*MF).toFixed(1)}" font-weight="800" fill="${gold?'#e8c766':'#f0f4ff'}">${esc(val)}</text>`+
+    `<rect x="34" y="494" width="${W}" height="18" rx="9" fill="rgba(120,160,255,.14)"/><rect x="34" y="494" width="${(W*fr).toFixed(1)}" height="18" rx="9" fill="${gold?'#e8c766':'#6c8eff'}"/></g>`}
+/* fraction de jauge : 1 à l'optimum, 0 au pire de l'intervalle balayé */
+function gaugeFr(M,x){const [a,b]=domN(M);let lo=Infinity,hi=-Infinity;for(let i=1;i<60;i++){const t=a+(b-a)*i/60;if(!fdef(M.F,t)&&M.F.t==='lp')continue;const y=fn(M.F,t);if(!isFinite(y))continue;lo=Math.min(lo,y);hi=Math.max(hi,y)}
+  const y=fn(M.F,x);if(M.ys===undefined||M.ys===null||!M.goal)return (y-lo)/((hi-lo)||1);if(M.goal==='min')return (hi-y)/((hi-q(M.ys).v)||1);return (y-lo)/((q(M.ys).v-lo)||1)}
+const isOpt=x=>st.M.xs!==undefined&&st.M.xs!==null&&Math.abs(x-q(st.M.xs).v)<1e-9;
+
+/* ---------------- maquettes (zone 0–448) ---------------- */
+const MQ={};
+let MF=1;
+const LBL=(x,y,t,o)=>`<text x="${f1(x)}" y="${f1(y)}" font-size="${(((o&&o.fs)||24)*MF).toFixed(1)}" font-weight="${(o&&o.fw)||700}" fill="${(o&&o.col)||'#dfe7ff'}"${o&&o.anc?` text-anchor="${o.anc}"`:''}>${esc(t)}</text>`;
+MQ.enclos=(m,x,M)=>{const gold=st.gold>0||isOpt(x);let D_=x,Wd,sc;
+  if(m.mode==='P'){Wd=m.P-2*x;sc=360/m.P}else if(m.mode==='R'){Wd=m.P/2-x;sc=300/(m.P/2)}else{Wd=m.A/x;sc=118/q(M.xs).v}
+  const w=Wd*sc,h=D_*sc,cx=226,L=cx-w/2,T=74;let o='';
+  /* mur */
+  if(m.mode!=='R'){o+=`<rect x="20" y="40" width="412" height="34" rx="4" fill="#24324f" stroke="rgba(200,215,255,.35)"/>`;
+  for(let i=0;i<9;i++)o+=`<path d="M${24+i*46} 57H${66+i*46}M${46+i*46} 40V57M${24+i*46+23} 57V74" stroke="rgba(200,215,255,.18)" stroke-width="2"/>`;
+  o+=LBL(226,32,'mur',{anc:'middle',fs:20,col:'rgba(200,215,255,.6)',fw:600})}
+  o+=`<g clip-path="url(#ao-mq)"><rect x="${f1(L)}" y="${T}" width="${f1(Math.max(0,w))}" height="${f1(Math.max(0,h))}" fill="${gold?'rgba(232,199,102,.2)':'rgba(127,178,255,.1)'}"/>`;
+  /* plants du potager */
+  for(let yy=T+22;yy<T+h-8;yy+=26)for(let xx=L+18;xx<L+w-8;xx+=26)o+=`<circle cx="${f1(xx)}" cy="${f1(yy)}" r="4" fill="${gold?'rgba(232,199,102,.55)':'rgba(95,210,124,.45)'}"/>`;
+  o+=`<path d="M${f1(L)} ${T}V${f1(T+h)}H${f1(L+w)}V${T}${m.mode==='R'?'Z':''}" fill="none" stroke="${gold?'#e8c766':'#dfe7ff'}" stroke-width="4" stroke-linejoin="round"/>`;
+  const post=(px,py)=>`<circle cx="${f1(px)}" cy="${f1(py)}" r="4.5" fill="#0a1628" stroke="${gold?'#e8c766':'#dfe7ff'}" stroke-width="2.5"/>`;
+  for(let k=0;k<=Math.max(1,Math.round(h/34));k++)o+=post(L,T+h*k/Math.max(1,Math.round(h/34)))+post(L+w,T+h*k/Math.max(1,Math.round(h/34)));
+  for(let k=1;k<Math.round(w/34);k++){o+=post(L+w*k/Math.round(w/34),T+h);if(m.mode==='R')o+=post(L+w*k/Math.round(w/34),T)}o+='</g>';
+  const yb=Math.min(446,T+h+34);
+  if(L>120)o+=LBL(L-12,Math.min(430,T+Math.max(h/2+8,22)),`x = ${vt(x)}`,{anc:'end',col:'#a9bbff'});
+  else o+=LBL(Math.max(18,L),yb,`x = ${vt(x)}`,{anc:'start',col:'#a9bbff'});
+  o+=LBL(L>120?cx:Math.max(cx,180),yb,`${vt(Wd)} ${m.u}`,{anc:L>120?'middle':'start'});
+  return o+gauge(m.glab,`${vt(fn(M.F,x))} ${m.gu}`,gaugeFr(M,x),gold)};
+MQ.boite=(m,x,M)=>{const gold=st.gold>0||isOpt(x),c=m.a,d=m.b,k=st.fold;let o='';
+  /* plaque vue de dessus */
+  const s1=Math.min(300/Math.max(c,d),190/Math.min(c,d)),W=Math.max(c,d)*s1,H=Math.min(c,d)*s1,L=226-W/2,T=24,e=x*s1;
+  o+=`<rect x="${f1(L)}" y="${T}" width="${f1(W)}" height="${f1(H)}" fill="rgba(200,168,75,.12)" stroke="rgba(232,199,102,.7)" stroke-width="2"/>`;
+  for(const [px,py] of [[L,T],[L+W-e,T],[L,T+H-e],[L+W-e,T+H-e]])o+=`<rect x="${f1(px)}" y="${f1(py)}" width="${f1(e)}" height="${f1(e)}" fill="#07101f" stroke="#ff9b7a" stroke-width="2" stroke-dasharray="5 4"/>`;
+  o+=`<path d="M${f1(L+e)} ${f1(T+e)}H${f1(L+W-e)}V${f1(T+H-e)}H${f1(L+e)}Z" fill="none" stroke="rgba(232,199,102,.6)" stroke-width="1.5" stroke-dasharray="6 5"/>`;
+  o+=LBL(L+e/2,T+e+24,'x',{anc:'middle',fs:20,col:'#ffb59f'});
+  o+=LBL(226,T+H+26,`${vt(Math.max(c,d))} × ${vt(Math.min(c,d))} ${m.u}`,{anc:'middle',fs:20,col:'rgba(200,215,255,.7)',fw:600});
+  /* boîte pliée (perspective cavalière) */
+  const bw=Math.max(c,d)-2*x,bd=Math.min(c,d)-2*x,s2=270/Math.max(c,d),fw=bw*s2,fd_=bd*s2*.5,fh_=x*s2*k,ox=226-(fw+fd_*.7)/2,oy=430;
+  const dx=fd_*.7,dy=-fd_*.6;
+  const col=gold?'#e8c766':'#c9a14f',sh=gold?'rgba(232,199,102,.32)':'rgba(200,168,75,.2)';
+  o+=`<path d="M${f1(ox+dx)} ${f1(oy+dy-fh_)}V${f1(oy+dy)}H${f1(ox+fw+dx)}" fill="none" stroke="rgba(232,199,102,.35)" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+  o+=`<path d="M${f1(ox)} ${f1(oy)}L${f1(ox+dx)} ${f1(oy+dy)}" stroke="rgba(232,199,102,.35)" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+  o+=`<path d="M${f1(ox+fw)} ${f1(oy)}L${f1(ox+fw+dx)} ${f1(oy+dy)}V${f1(oy+dy-fh_)}L${f1(ox+fw)} ${f1(oy-fh_)}Z" fill="${sh}" stroke="${col}" stroke-width="2.5" stroke-linejoin="round"/>`;
+  o+=`<path d="M${f1(ox)} ${f1(oy-fh_)}L${f1(ox+dx)} ${f1(oy+dy-fh_)}H${f1(ox+fw+dx)}" fill="none" stroke="${col}" stroke-width="2.5"/>`;
+  o+=`<rect x="${f1(ox)}" y="${f1(oy-fh_)}" width="${f1(fw)}" height="${f1(fh_)}" fill="${sh}" stroke="${col}" stroke-width="2.5"/>`;
+  o+=LBL(ox+fw+dx+10,oy-fh_/2,`h = ${vt(x)}`,{fs:20,col:'#a9bbff'});
+  return o+gauge(m.glab,`${vt(fn(M.F,x))} ${m.gu}`,gaugeFr(M,x),gold)};
+MQ.boiteV=(m,x,M)=>{const gold=st.gold>0||isOpt(x),n=q(M.xs).v,sc=120/n,H=m.V/(x*x);let o='';
+  const fw=x*sc,fd_=x*sc*.45,fh_=H*sc,ox=200-fw/2,oy=392,dx=fd_*.8,dy=-fd_*.65,col=gold?'#e8c766':'#c9a14f',sh=gold?'rgba(232,199,102,.3)':'rgba(200,168,75,.18)';
+  o+=`<g clip-path="url(#ao-mq)">`;
+  o+=`<path d="M${f1(ox+fw)} ${f1(oy)}L${f1(ox+fw+dx)} ${f1(oy+dy)}V${f1(oy+dy-fh_)}L${f1(ox+fw)} ${f1(oy-fh_)}Z" fill="${sh}" stroke="${col}" stroke-width="2.5" stroke-linejoin="round"/>`;
+  o+=`<path d="M${f1(ox)} ${f1(oy-fh_)}L${f1(ox+dx)} ${f1(oy+dy-fh_)}H${f1(ox+fw+dx)}" fill="none" stroke="${col}" stroke-width="2.5"/>`;
+  o+=`<rect x="${f1(ox)}" y="${f1(oy-fh_)}" width="${f1(fw)}" height="${f1(fh_)}" fill="${sh}" stroke="${col}" stroke-width="2.5"/></g>`;
+  o+=LBL(ox+fw/2,oy+32,`x = ${vt(x)} ${m.u}`,{anc:'middle',fs:22,col:'#a9bbff'});
+  o+=LBL(Math.min(400,ox+fw+dx+10),Math.max(40,oy-fh_/2),`h = ${vt(H)}`,{fs:20,col:'#a9bbff'});
+  o+=LBL(226,36,`volume : ${vt(m.V)} ${m.u}³`,{anc:'middle',fs:20,col:'rgba(200,215,255,.7)',fw:600});
+  return o+gauge(m.glab,`${vt(fn(M.F,x))} ${m.gu}`,gaugeFr(M,x),gold)};
+MQ.affiche=(m,x,M)=>{const gold=st.gold>0||isOpt(x),Hh=m.S/x,xs=q(M.xs).v,sc=330/Math.max(xs,m.S/xs)*.92,w=x*sc,h=Hh*sc,L=226-w/2,T=40;let o='<g clip-path="url(#ao-mq)">';
+  o+=`<rect x="${f1(L)}" y="${T}" width="${f1(w)}" height="${f1(h)}" fill="#eef2ff" fill-opacity=".1" stroke="#dfe7ff" stroke-width="2.5"/>`;
+  const iw=(x-2*m.b)*sc,ih=(Hh-2*m.a)*sc;
+  if(iw>0&&ih>0){o+=`<rect x="${f1(L+m.b*sc)}" y="${f1(T+m.a*sc)}" width="${f1(iw)}" height="${f1(ih)}" fill="${gold?'rgba(232,199,102,.32)':'rgba(108,142,255,.24)'}" stroke="${gold?'#e8c766':'#8ea6ff'}" stroke-width="2"/>`;
+    for(let yy=T+m.a*sc+16;yy<T+m.a*sc+ih-6;yy+=16)o+=`<path d="M${f1(L+m.b*sc+10)} ${f1(yy)}H${f1(L+m.b*sc+Math.max(10,iw-10))}" stroke="${gold?'rgba(232,199,102,.5)':'rgba(200,215,255,.28)'}" stroke-width="4" stroke-linecap="round"/>`}
+  o+='</g>';
+  o+=LBL(226,Math.min(446,T+h+28),`${vt(x)} × ${vt(Hh)} ${m.u}`,{anc:'middle',fs:22,col:'#a9bbff'});
+  return o+gauge(m.glab,`${vt(fn(M.F,x))} ${m.gu}`,gaugeFr(M,x),gold)};
+MQ.etal=(m,x,M)=>{const gold=st.gold>0||isOpt(x);let o='';
+  /* étal : auvent, comptoir, étiquette du prix */
+  o+=`<path d="M60 70H390L410 118H40Z" fill="rgba(108,142,255,.22)" stroke="#8ea6ff" stroke-width="2"/>`;
+  for(let i=0;i<6;i++)o+=`<path d="M${40+i*61.7} 118q30.8 22 61.7 0" fill="${i%2?'rgba(108,142,255,.28)':'rgba(200,215,255,.16)'}" stroke="#8ea6ff" stroke-width="1.5"/>`;
+  o+=`<rect x="70" y="190" width="310" height="60" rx="6" fill="#1a2a48" stroke="rgba(200,215,255,.35)"/><path d="M80 118V190M370 118V190" stroke="rgba(200,215,255,.35)" stroke-width="4"/>`;
+  o+=`<rect x="150" y="146" width="150" height="40" rx="10" fill="${gold?'#e8c766':'#f0f4ff'}"/><text x="225" y="176" text-anchor="middle" font-size="${(26*Math.min(MF,1.25)).toFixed(1)}" font-weight="800" fill="#0a1628" font-family="Outfit,system-ui,sans-serif">${esc(vt(m.price?m.price(x):x)+' €')}</text>`;
+  o+=LBL(226,52,m.title,{anc:'middle',fs:20,col:'rgba(200,215,255,.7)',fw:600});
+  /* file de clients */
+  const N=Math.max(0,m.N(x)),unit=m.unit||1,n=Math.round(N/unit);
+  for(let i=0;i<n&&i<40;i++){const cx=60+(i%10)*34,cy=290+Math.floor(i/10)*40;o+=`<circle cx="${cx}" cy="${cy}" r="9" fill="${gold?'#e8c766':'#a9bbff'}"/><path d="M${cx-12} ${cy+24}q12 -16 24 0" fill="${gold?'rgba(232,199,102,.6)':'rgba(169,187,255,.6)'}"/>`}
+  o+=LBL(410,462-30,`${vt(N)} ${m.cl}`,{anc:'end',fs:20,col:'#a9bbff'});
+  return o+gauge(m.glab,`${vt(fn(M.F,x))} ${m.gu}`,gaugeFr(M,x),gold)};
+MQ.lancer=(m,x,M)=>{const gold=st.gold>0||isOpt(x),hm=q(M.ys).v*1.15,h=Math.max(0,fn(M.F,x)),sc=360/hm,G=420;let o='';
+  o+=`<path d="M40 ${G}H410" stroke="rgba(200,215,255,.5)" stroke-width="3"/>`;
+  for(let k=0;k<=hm;k+=hm>20?5:hm>10?2:1){const yy=G-k*sc;o+=`<path d="M70 ${f1(yy)}H84" stroke="rgba(200,215,255,.4)" stroke-width="2"/>`+LBL(64,yy+7,vt(k),{anc:'end',fs:18,col:'rgba(200,215,255,.6)',fw:600})}
+  o+=`<path d="M77 ${G}V${f1(G-hm*sc)}" stroke="rgba(200,215,255,.4)" stroke-width="2"/>`;
+  o+=`<path d="M120 ${f1(G-q(M.ys).v*sc)}H400" stroke="#e8c766" stroke-width="2" stroke-dasharray="6 6" opacity="${gold?1:.45}"/>`;
+  const by=G-h*sc;o+=`<circle cx="250" cy="${f1(by-16)}" r="16" fill="${gold?'#e8c766':'#ff9b7a'}" stroke="#0a1628" stroke-width="2"/><path d="M236 ${f1(by-16)}h28M250 ${f1(by-30)}v28" stroke="rgba(10,22,40,.6)" stroke-width="2"/>`;
+  o+=LBL(280,Math.max(30,by-12),`t = ${vt(x)} s`,{fs:20,col:'#a9bbff'});
+  return o+gauge(m.glab,`${vt(fn(M.F,x))} ${m.gu}`,Math.max(0,h/q(M.ys).v),gold)};
+MQ.bars=(m,x,M)=>{const gold=st.gold>0||isOpt(x);let o='';const bs=m.bars,n=bs.length,bw=Math.min(90,300/n),base=330;
+  let mx=1;const [a,b]=domN(M);for(const B of bs)for(let i=0;i<=40;i++){const t=a+(b-a)*i/40;if(B.F.t==='lp'&&!fdef(B.F,t))continue;const yy=Math.abs(fn(B.F,t));if(isFinite(yy))mx=Math.max(mx,yy)}
+  mx=Math.min(mx,Math.max(Math.abs(M.view.y1),Math.abs(M.view.y0)));const sc=185/mx;o+=`<path d="M30 ${base}H420" stroke="rgba(200,215,255,.5)" stroke-width="2"/>`;
+  bs.forEach((B,i)=>{const yv=fn(B.F,x),hh=Math.max(-90,Math.min(195,yv*sc)),bx=60+i*(360/n)+(360/n-bw)/2;const g2=gold&&B.opt;
+    o+=`<rect x="${f1(bx)}" y="${f1(hh>=0?base-hh:base)}" width="${f1(bw)}" height="${f1(Math.abs(hh))}" rx="6" fill="${g2?'#e8c766':B.col}" opacity="${g2?1:.85}"/>`;
+    o+=LBL(bx+bw/2,(hh>=0?base-hh:base)-10,vt(yv),{anc:'middle',fs:20,col:g2?'#e8c766':'#f0f4ff'});
+    o+=LBL(bx+bw/2,base+(hh<0?Math.abs(hh)+28:28),B.lab,{anc:'middle',fs:20,col:'rgba(200,215,255,.75)',fw:600})});
+  o+=LBL(226,40,m.title,{anc:'middle',fs:20,col:'rgba(200,215,255,.7)',fw:600});
+  o+=LBL(226,410,`${M.v} = ${vt(x)} ${m.u}`,{anc:'middle',fs:22,col:'#a9bbff'});
+  return o+gauge(m.glab,`${vt(fn(M.F,x))} ${m.gu}`,gaugeFr(M,x),gold)};
+
+/* ---------------- rendu ---------------- */
+function render(){if(!st||!st.M)return;const M=st.M,v=M.view;let o='';const w=svg.clientWidth||1000,FK=Math.min(1.75,Math.max(1,600/w));MF=Math.min(1.45,FK);
+  GL=st.layout==='split'?(FK>1.3?486:470):(FK>1.3?96:76);GR=984;GT=22;GB=FK>1.3?504:520;
+  o+=`<defs><filter id="ao-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`+
+     `<clipPath id="ao-clip"><rect x="${GL}" y="${GT}" width="${GR-GL}" height="${GB-GT}"/></clipPath><clipPath id="ao-mq"><rect x="0" y="0" width="448" height="456"/></clipPath></defs>`;
+  o+=`<g fill="#dfe7ff" opacity=".3"><circle cx="520" cy="40" r="1.3"/><circle cx="700" cy="60" r="1.1"/><circle cx="880" cy="34" r="1.4"/><circle cx="960" cy="110" r="1"/></g>`;
+  if(st.layout==='split'){const xn=st.xn;o+=`<rect x="0" y="0" width="452" height="560" fill="rgba(4,9,20,.35)"/><path d="M452 0V560" stroke="rgba(120,160,255,.22)" stroke-width="2"/>`;
+    o+=`<g font-family="Outfit,system-ui,sans-serif">${MQ[M.maq.t](M.maq,xn,M)}</g>`}
+  /* quadrillage */
+  const sx=niceStep(v.x1-v.x0,Math.round((st.layout==='split'?8:12)/FK)),sy=niceStep(v.y1-v.y0,Math.round(8/Math.sqrt(FK)));let g='',lab='';
+  const hasY0=v.y0<=0&&v.y1>=0,hasX0=v.x0<=0&&v.x1>=0,yAx=hasX0?X(0):GL,xAy=hasY0?Y(0):GB;
+  for(let k=Math.ceil(v.x0/sx-1e-9);k*sx<=v.x1+1e-9;k++){const x=k*sx,px=X(x);g+=`M${f1(px)} ${GT}V${GB}`;
+    if((Math.abs(x)>1e-9||!hasY0)&&px<GR-30*FK&&px>GL+(hasX0?0:20))lab+=`<text x="${f1(px)}" y="${f1(Math.min(xAy+8+20*FK,GB-6))}" text-anchor="middle">${tickLab(x,sx)}</text>`}
+  for(let k=Math.ceil(v.y0/sy-1e-9);k*sy<=v.y1+1e-9;k++){const y=k*sy,py=Y(y);g+=`M${GL} ${f1(py)}H${GR}`;
+    if((Math.abs(y)>1e-9||!hasX0)&&py>GT+30&&py<GB-4)lab+=`<text x="${f1(yAx-8)}" y="${f1(py+7)}" text-anchor="end">${tickLab(y,sy)}</text>`}
+  o+=`<path d="${g}" stroke="rgba(120,160,255,.12)" stroke-width="1.2" fill="none"/>`;
+  let axes='';if(hasY0)axes+=`M${GL} ${f1(Y(0))}H${GR}`;if(hasX0)axes+=`M${f1(X(0))} ${GT}V${GB}`;else axes+=`M${GL} ${GT}V${GB}`;if(!hasY0)axes+=`M${GL} ${GB}H${GR}`;
+  o+=`<path d="${axes}" stroke="rgba(200,215,255,.55)" stroke-width="2" fill="none"/>`;
+  if(hasX0&&hasY0)lab+=`<text x="${f1(X(0)-8)}" y="${f1(Y(0)+26)}" text-anchor="end">0</text>`;
+  o+=`<g font-family="Outfit,system-ui,sans-serif" font-size="${(19*FK).toFixed(1)}" font-weight="600" fill="rgba(200,215,255,.7)">${lab}<text x="${GR-6}" y="${f1(xAy-10)}" text-anchor="end" font-style="italic" fill="#c9d4ff">${esc(M.v)}</text>`+
+     `<text x="${f1(yAx+10)}" y="${GT+24*FK}" font-style="italic" fill="#c9d4ff">${esc(M.yl||M.nm+'('+M.v+')')}</text></g>`;
+  /* intervalle d'étude sur l'axe */
+  const [da,db]=domN(M);o+=`<path d="M${f1(X(da))} ${f1(xAy)}H${f1(X(db))}" stroke="rgba(108,142,255,.75)" stroke-width="6" stroke-linecap="round"/>`;
+  o+=`<g clip-path="url(#ao-clip)">`;
+  /* plancher */
+  if(st.floor!==null){const yy=Y(q(st.floor).v);o+=`<path d="M${GL} ${f1(yy)}H${GR}" stroke="#e8c766" stroke-width="3" stroke-dasharray="12 8" opacity=".85"/><text x="${GR-10}" y="${f1(yy+30*FK)}" text-anchor="end" font-family="Outfit,system-ui,sans-serif" font-size="${(20*FK).toFixed(1)}" font-weight="700" fill="#e8c766">y = ${esc(Dt(st.floor))}</text>`}
+  /* courbes */
+  const curve=(F,col,wd,rev,dash)=>{const N=360,[a,b]=[da,db],hi=a+(b-a)*rev;let segs=[],cur=[];
+    for(let i=0;i<=N;i++){const x=a+(b-a)*i/N;if(x>hi+1e-9)break;const ok=F.t==='lp'?fdef(F,x):Math.abs(q(F.c).v*x+q(F.d).v)>1e-9;const y=ok?fn(F,x):NaN;
+      if(!isFinite(y)){if(cur.length>1)segs.push(cur);cur=[];continue}cur.push([X(x),Math.max(-3000,Math.min(3600,Y(y)))])}
+    if(cur.length>1)segs.push(cur);return segs.map(p=>`<path d="M${p.map(z=>f1(z[0])+' '+f1(z[1])).join('L')}" fill="none" stroke="${col}" stroke-width="${wd}" stroke-linejoin="round" filter="url(#ao-glow)"${dash?' stroke-dasharray="10 8"':''}/>`).join('')};
+  if(st.g)o+=curve(st.g,'#d4a5ff',4,1);
+  if(st.reveal>0)o+=curve(M.F,st.g?'#e8eeff':'#7fb2ff',5,st.reveal);
+  /* traces des réglages essayés */
+  for(const t of st.trail){const tv=q(t).v,y=fn(M.F,tv);if(isFinite(y))o+=`<circle cx="${f1(X(tv))}" cy="${f1(Y(y))}" r="${(4.5*FK).toFixed(1)}" fill="rgba(169,187,255,.7)"/>`}
+  /* points nommés */
+  for(const p of st.pts){const px=X(q(p.x).v),py=Y(q(p.y).v);o+=`<circle cx="${f1(px)}" cy="${f1(py)}" r="${(6*FK).toFixed(1)}" fill="${p.col||'#e8c766'}" stroke="#0a1628" stroke-width="2"/>`+(p.lab?`<text x="${f1(px+12)}" y="${f1(py-12)}" font-family="Outfit,system-ui,sans-serif" font-size="${(20*FK).toFixed(1)}" font-weight="700" fill="${p.col||'#e8c766'}">${esc(p.lab)}</text>`:'')}
+  /* point M, écart, tangente */
+  if(st.x!==null&&st.reveal>0){const x=st.xn,ok=M.F.t!=='lp'||fdef(M.F,x),y=ok?fn(M.F,x):NaN;
+    if(isFinite(y)){const px=X(x),py=Y(y);
+      o+=`<path d="M${f1(px)} ${f1(xAy)}V${f1(py)}" stroke="rgba(200,215,255,.3)" stroke-width="2" stroke-dasharray="4 6"/>`;
+      if(st.gap&&st.g){const yg=fn(st.g,x),pg=Y(yg),hpos=y-yg>1e-9,hz=Math.abs(y-yg)<1e-9;
+        o+=`<path d="M${f1(px)} ${f1(pg)}V${f1(py)}" stroke="${hz?'#e8c766':hpos?'#7fb2ff':'#ff9b7a'}" stroke-width="7" stroke-linecap="round"/><circle cx="${f1(px)}" cy="${f1(pg)}" r="${(7*FK).toFixed(1)}" fill="#d4a5ff" stroke="#0a1628" stroke-width="2"/>`}
+      if(st.tan){const m=fn(fd(M.F),x),k=(GB-GT)/(v.y1-v.y0)/((GR-GL)/(v.x1-v.x0)),L=Math.hypot(1,m*k),hx=62*FK/L,col=Math.abs(m)<1e-9?'#e8c766':m>0?'#7fb2ff':'#ff9b7a';
+        o+=`<path d="M${f1(px-hx)} ${f1(py+m*k*hx)}L${f1(px+hx)} ${f1(py-m*k*hx)}" stroke="${col}" stroke-width="${(6*Math.sqrt(FK)).toFixed(1)}" stroke-linecap="round"${Math.abs(m)<1e-9?' filter="url(#ao-glow)"':''}/>`}
+      const gold=st.gold>0||(isOpt(x)&&st.tan);
+      o+=`<circle cx="${f1(px)}" cy="${f1(py)}" r="${(9*FK).toFixed(1)}" fill="${gold?'#e8c766':'#f0f4ff'}" stroke="#0a1628" stroke-width="2.5"/>`;
+      if(gold)o+=`<circle cx="${f1(px)}" cy="${f1(py)}" r="${(20*FK).toFixed(1)}" fill="none" stroke="#e8c766" stroke-width="3" opacity=".7"/>`}}
+  o+='</g>';
+  svg.innerHTML=o}
+addEventListener('resize',()=>render());
+function reset(o){st=Object.assign(blank(),o||{});if(st.x!==null)st.xn=q(st.x).v;render()}
+function set(o){Object.assign(st,o);if(o&&o.x!==undefined&&o.x!==null)st.xn=q(st.x).v;render()}
+/* mouvements */
+async function goX(to,ms){const a=st.xn,b=q(to).v;await anim(ms||700,k=>{st.xn=a+(b-a)*k;render()});st.x=s(to);st.xn=b;render()}
+async function sweep(ms){const [a,b]=domN(st.M),x0=st.x;SND.crank();const lo=a+(b-a)*.002,hi=b-(b-a)*.002,r0=st.reveal;
+  await anim(Math.round((ms||2200)*.18),k=>{st.xn=(st.x===null?lo:q(st.x).v)+(lo-(st.x===null?lo:q(st.x).v))*k;render()});
+  if(st.x===null)st.x=s(st.M.x0);
+  await anim(ms||2200,k=>{st.xn=lo+(hi-lo)*k;st.reveal=Math.max(r0,k);render()});st.reveal=1;
+  await anim(700,k=>{st.xn=hi+(q(x0||st.M.x0).v-hi)*k;render()});st.x=s(x0||st.M.x0);st.xn=q(st.x).v;render()}
+async function shine(){st.gold=1;render();SND.gold();await sleep(500)}
+async function fold(){st.fold=0;render();await anim(900,k=>{st.fold=k;render()});st.fold=1;render()}
+/* grille de la manivelle */
+function grid(M){const out=[],stp=q(M.step),[a,b]=[M.dom.lo===null?q(M.gmin):q(M.dom.lo),M.dom.hi===null?q(M.gmax):q(M.dom.hi)];
+  let x=a;if(!inDom(M.dom,x))x=x.add(stp);let n=0;while(x.cmp(M.dom.hi===null?M.gmax:b)<=0&&n<400){if(inDom(M.dom,x))out.push(s(x));x=x.add(stp);n++}
+  if(M.gmax!==undefined)return out.filter(t=>q(t).cmp(M.gmax)<=0&&(M.gmin===undefined||q(t).cmp(M.gmin)>=0));return out}
+/* glisser dans la scène (zone du graphique) */
+let dragH=null;
+function toWorld(ev){const p=svg.createSVGPoint();p.x=ev.clientX;p.y=ev.clientY;const r=p.matrixTransform(svg.getScreenCTM().inverse());return{px:r.x,py:r.y}}
+svg.addEventListener('pointerdown',e=>{if(!dragH)return;e.preventDefault();svg.setPointerCapture(e.pointerId);dragH.move(toWorld(e),true)});
+svg.addEventListener('pointermove',e=>{if(!dragH||!svg.hasPointerCapture(e.pointerId))return;dragH.move(toWorld(e),false)});
+svg.addEventListener('pointerup',e=>{if(dragH&&svg.hasPointerCapture(e.pointerId)){svg.releasePointerCapture(e.pointerId);if(dragH.end)dragH.end()}});
+svg.addEventListener('keydown',e=>{if(!dragH||!dragH.key)return;const k={ArrowLeft:-1,ArrowDown:-1,ArrowRight:1,ArrowUp:1}[e.key];if(k){e.preventDefault();dragH.key(k)}});
+function setDrag(h){dragH=h;svg.classList.toggle('grab',!!h);svg.setAttribute('tabindex',h?'0':'-1')}
+/* cadrage automatique */
+function vfit(M,o){o=o||{};const [a,b]=[M.dom.lo===null?q(M.gmin).v:q(M.dom.lo).v,M.dom.hi===null?q(M.gmax).v:(M.gmax!==undefined?Math.min(q(M.gmax).v*1.15,q(M.dom.hi).v):q(M.dom.hi).v)];const pad=(b-a)*.06;
+  let ys=[];const Fs=[M.F].concat(o.extra||[]);for(const F of Fs)for(let i=0;i<=80;i++){const t=a+(b-a)*i/80;if(F.t==='lp'&&!fdef(F,t))continue;const y=fn(F,t);if(isFinite(y))ys.push(y)}
+  ys.sort((p,r)=>p-r);let y0=ys[0],y1=ys[ys.length-1];if(o.clip){y0=Math.max(y0,o.clip[0]);y1=Math.min(y1,o.clip[1])}
+  if(o.y0!==undefined)y0=Math.min(y0,o.y0);if(o.zero!==false){y0=Math.min(y0,0)}
+  const e=(y1-y0)*.1||1;return{x0:Math.min(a-pad,o.x0!==undefined?o.x0:a-pad),x1:b+pad,y0:y0-(y0<0?e:e*.3),y1:y1+e}}
+
+window.AOK={Q,q,s,D,Dt,frS,frac,par,writes,ri,pick,shuf,LP,P,lpAdd,lpSc,lpMul,lpX,co,HOM,fv,fn,fd,fdef,fsym,lpH,lin,fh,lc,xm,BR,domH,inDom,
+  SND,anim,sleep,reduceM,reset,set,render,goX,sweep,shine,fold,grid,setDrag,vfit,X,Y,IX,get st(){return st},NB,MINUS,$,vt};
+})();
+</script>
+<script>
+/* ======================= L'ATELIER OPTIMUM — déroulé des questions ======================= */
+(function(){
+'use strict';
+const K=window.AOK,{Q,q,s,D,Dt,frac,pick,shuf,SND,sleep,$}=K;
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+let lvl=0,qi=0,run=[],QN=null,pi=0,errs=0,busy=false,partState={};
+const LV=window.AO_LV=[];
+function starsOf(i){try{const g=SigmaKit.passport().games['atelier-optimum'];return g&&g.levels[i+1]||0}catch(e){return 0}}
+const cap=h=>{$('capt').innerHTML=h||'&nbsp;'};
+K.cap=cap;
+/* légende vivante : x, f(x) et, si la tangente est allumée, le signe de f′(x) */
+function live(){const st=K.st,M=st&&st.M;if(!M||st.x===null)return;const x=q(st.x),y=K.fv(M.F,x);if(y===null){cap('&nbsp;');return}
+  let h=`<span class="m">${M.v} =</span> <span class="s">${Dt(x)}${M.ux?K.NB+M.ux:''}</span> <span class="m">·</span> ${M.nm}(${Dt(x)}) = <span class="k">${Dt(y)}${M.uy?K.NB+M.uy:''}</span>`;
+  if(st.gap&&st.g){const hv=y.sub(K.fv(st.g,x));h=`<span class="m">${M.v} =</span> <span class="s">${Dt(x)}</span> <span class="m">·</span> h(${Dt(x)}) = ${M.nm}(${Dt(x)}) − ${st.gname}(${Dt(x)}) = <span class="${hv.sgn()>0?'p':hv.sgn()<0?'n':'k'}">${Dt(hv)}</span>`}
+  else if(st.tan){const d=K.fv(K.fd(M.F),x);h+=` <span class="m">·</span> <span class="${d.sgn()>0?'p':d.sgn()<0?'n':'k'}">${M.nm}′(${Dt(x)}) ${d.sgn()>0?'&gt; 0':d.sgn()<0?'&lt; 0':'= 0'}</span>`}
+  cap(h)}
+K.live=live;
+
+/* ---------- retours ---------- */
+function fb(html,rv){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI(rv?'neutre':'pense');$('fbt').textContent=rv?'Voici la réponse.':'Pas tout à fait.';
+  $('fbp').innerHTML=html;$('fb').classList.toggle('rv',!!rv);$('fb').hidden=false;
+  const f=$('fb');if(innerWidth<=860&&f.getBoundingClientRect().bottom>innerHeight)setTimeout(()=>f.scrollIntoView({block:'end',behavior:K.reduceM?'auto':'smooth'}),30)}
+/* erreur : 1er essai → explication ; 2e essai → la réponse est donnée, on continue */
+function err(why,box,reveal,sol){errs++;partState.errors=(partState.errors||0)+1;SND.soft();
+  if(partState.errors>=2&&reveal){reveal();fb((why?why+' ':'')+(sol?'<br>'+sol:''),true);
+    const b=document.createElement('div');b.className='btns';b.style.marginTop='10px';b.innerHTML='<button type="button" class="btn or cont">Continuer →</button>';box.appendChild(b);
+    const c=b.querySelector('.cont');c.onclick=async()=>{if(busy)return;c.disabled=true;await finish(QN.parts[pi])};setTimeout(()=>c.focus({preventScroll:true}),30)}
+  else fb(why)}
+async function finish(p){fb('');K.setDrag(null);if(p&&p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+const W={};
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);nextPart()}};
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  const all=[...box.querySelectorAll('.opt')];
+  all.forEach(b=>b.onclick=async()=>{if(busy||b.disabled)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){all.forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();await finish(p)}
+    else{b.classList.add('ko');b.disabled=true;err(c.why,box,()=>{all.forEach(x=>{x.disabled=true;if(p.ch[+x.dataset.j].ok)x.classList.add('ok')})},'La bonne réponse est en vert.')}})};
+/* trous : comparaison exacte (virgule ou point, signe + facultatif, fractions a/b, unités ignorées) */
+function readNum(t){return Q.parse(String(t).replace(/[%€]/g,'').replace(/\s*(cm³|cm²|dm³|dm²|m²|m³|cm|dm|km|m|s|[a-zA-Zéèàù°]+)$/,''))}
+W.fill=(p,box)=>{
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const a=p.ans[+i],z=Dt(a.v);const w=Math.max(2.8,z.length*.62+1.7);
+    return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="${a.v.sgn()<0||(!a.v.isInt()&&!a.v.exact())?'text':'decimal'}" aria-label="Case ${+i+1}" style="width:${w.toFixed(1)}em">`});
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+(p.note?`<p class="hint">${p.note}</p>`:'');
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy||f.dataset.done)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=v.map((x,i)=>{const z=readNum(x);return !!z&&z.eq(p.ans[+ins[i].dataset.i].v)});
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){f.dataset.done=1;ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();await finish(p)}
+    else err(typeof p.why==='function'?p.why(v.map(readNum),oks):p.why,box,()=>{f.dataset.done=1;ins.forEach(x=>{x.value=Dt(p.ans[+x.dataset.i].v).replace(/ /g,'');x.classList.remove('ko');x.classList.add('ok');x.disabled=true});f.querySelector('button').remove()},
+      'Réponse&nbsp;: '+p.ans.map(a=>'<b style="display:inline">'+D(a.v)+'</b>').join(' ; ')+'.')};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* manivelle : régler x (boutons − / +, glisser dans la scène, flèches du clavier) puis valider */
+W.dial=(p,box)=>{const st=K.st,M=st.M,G=K.grid(M);let i=G.findIndex(t=>q(t).eq(st.x));if(i<0){i=0;K.set({x:G[0]})}
+  box.innerHTML=`<p class="ask">${p.ask}</p><div class="crank"><button type="button" class="stp" data-d="-1" aria-label="Tourner vers la gauche : diminuer ${M.v}">−</button><output aria-live="polite"></output><button type="button" class="stp" data-d="1" aria-label="Tourner vers la droite : augmenter ${M.v}">+</button></div>`+
+    `<div class="btns"><button type="button" class="btn or val">${p.btn||'Valider ce réglage'}</button></div><p class="hint">Tourne la manivelle avec − et +, ou fais glisser le point dans le graphique.</p>`;
+  const out=box.querySelector('output');let done=false;
+  const show=()=>{out.innerHTML=`${M.v} = ${Dt(G[i])}${M.ux?K.NB+M.ux:''}`;K.set({x:G[i]});if(!st.trail.includes(G[i]))st.trail.push(G[i]);K.render();if(p.live)cap(p.live(q(G[i])));else live()};
+  const go=j=>{j=Math.max(0,Math.min(G.length-1,j));if(j!==i){i=j;SND.tick();partState.x=G[i];show()}};
+  box.querySelectorAll('.stp').forEach(b=>b.onclick=()=>{if(busy||done)return;go(i+(+b.dataset.d))});
+  K.setDrag({move(pt){if(busy||done)return;const xw=K.IX(pt.px);let best=0,bd=1e18;G.forEach((t,j)=>{const d=Math.abs(q(t).v-xw);if(d<bd){bd=d;best=j}});go(best)},
+    key(d){if(busy||done)return;go(i+d)}});
+  box.querySelector('.val').onclick=async()=>{if(busy||done)return;
+    if(q(G[i]).eq(p.target)){done=true;K.setDrag(null);box.querySelectorAll('button').forEach(x=>x.disabled=true);SND.pop();await finish(p)}
+    else err(p.why(q(G[i])),box,()=>{done=true;K.setDrag(null);i=G.findIndex(t=>q(t).eq(p.target));show();box.querySelectorAll('button').forEach(x=>x.disabled=true)},`La manivelle est maintenant réglée sur ${M.v} = ${D(p.target)}.`)};
+  show()};
+/* tableau de signes à compléter : on choisit + ou − dans chaque case ; les flèches suivent */
+W.signs=(p,box)=>{const n=p.ans.length,cur=Array(n).fill('');
+  const head=p.nodes.map((nd,k)=>`<td${nd.nd?' class="nd"':''}>${nd.h}</td>`+(k<n?'<td></td>':'')).join('');
+  const sgr=p.nodes.map((nd,k)=>`<td class="z">${nd.nd?'‖':nd.z?'0':''}</td>`+(k<n?`<td><button type="button" class="sg" data-k="${k}" aria-label="Signe sur l'intervalle ${k+1}">?</button></td>`:'')).join('');
+  const vr=()=>p.nodes.map((nd,k)=>`<td>${box.dataset.done&&nd.v?`<span class="vv">${nd.v}</span>`:''}</td>`+(k<n?`<td>${cur[k]==='+'?'<span class="arw u">↗</span>':cur[k]==='-'?'<span class="arw d">↘</span>':''}</td>`:'')).join('');
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="tvw"><table class="tv"><tr><th>${p.xl||'x'}</th>${head}</tr><tr><th>${p.sl}</th>${sgr}</tr>${p.fl?`<tr class="vrow"><th>${p.fl}</th>${vr()}</tr>`:''}</table></div>`+
+    `<div class="btns"><button type="button" class="btn or val">Valider le tableau</button></div>${p.note?`<p class="hint">${p.note}</p>`:''}`;
+  const upd=()=>{box.querySelectorAll('.sg').forEach(b=>{const k=+b.dataset.k;b.dataset.s=cur[k];b.textContent=cur[k]==='+'?'+':cur[k]==='-'?'−':'?'});const r=box.querySelector('.vrow');if(r)r.innerHTML=`<th>${p.fl}</th>${vr()}`};
+  box.querySelectorAll('.sg').forEach(b=>b.onclick=()=>{if(busy||box.dataset.done)return;const k=+b.dataset.k;cur[k]=cur[k]==='+'?'-':'+';b.classList.remove('ko','ok');SND.tick();upd()});
+  const fin=()=>{box.dataset.done=1;box.querySelectorAll('.sg').forEach(b=>{b.disabled=true;b.classList.add('ok')});upd();const v=box.querySelector('.val');if(v)v.remove()};
+  box.querySelector('.val').onclick=async()=>{if(busy||box.dataset.done)return;
+    if(cur.some(c=>!c)){fb('Choisis un signe dans chaque case (touche une case pour alterner + et −).');return}
+    const bad=cur.map((c,k)=>c!==p.ans[k]);box.querySelectorAll('.sg').forEach(b=>b.classList.toggle('ko',bad[+b.dataset.k]));
+    if(!bad.some(Boolean)){fin();SND.pop();await finish(p)}
+    else err(typeof p.why==='function'?p.why(cur):p.why,box,()=>{for(let k=0;k<n;k++)cur[k]=p.ans[k];fin()},'Le tableau est maintenant complété.')};
+  upd()};
+
+/* ---------- déroulé ---------- */
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;partState={};if(pi<QN.parts.length){const p=QN.parts[pi];if(p.on)p.on();const box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:K.reduceM?'auto':'smooth'})}}
+function newQ(){QN=LV[lvl].qs[qi]();pi=0;errs=0;partState={};K.setDrag(null);
+  QN.scene();if(QN.cap0)cap(QN.cap0);else live();
+  $('prompt').innerHTML=(QN.order?`<span class="order">${QN.order}</span>`:'')+QN.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  const p=QN.parts[0];if(p.on)p.on();const box=partEl();W[p.t](p,box)}
+function dots(){const N=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:N},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+async function win(){fb('');K.setDrag(null);SND.win();run.push(errs===0);dots();
+  const N=LV[lvl].qs.length,lvlDone=run.length>=N;
+  $('winx').textContent=errs===0?pick(['Commande livrée !','Parfait !','Du travail d\'orfèvre !','Exactement !']):pick(['C\'est ça !','Commande livrée.','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=QN.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(QN.onWin){busy=true;try{await QN.onWin()}finally{busy=false}}
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lv=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lv,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lv)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if(busy)return;if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:K.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];$('chap').textContent=LV[l].chap;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('cours').open=false;renderLv();newQ()}
+function renderLv(){$('lv').innerHTML=LV.map((l,i)=>{const z=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}" title="${l.t}">${i+1}. ${l.s||l.t}${z?`<span class="ck" aria-label="${z} étoile${z>1?'s':''}">${'★'.repeat(z)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${SND.on}">♪ Bruitages : ${SND.on?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;
+  if(b.id==='snd'){SND.on=!SND.on;try{localStorage.setItem('sigma-fanfare',SND.on?'1':'0')}catch(_){}renderLv();SND.pop();return}
+  goLevel(+b.dataset.l)});
+
+/* ---------- fabriques de parties ---------- */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+/* choix : doublons retirés (même texte) ; chaque choix porte une affirmation « claim » vérifiée par l'audit */
+const ch=(ask,list,o)=>{const seen=new Set();const out=[];for(const c of list){if(seen.has(c.h))continue;seen.add(c.h);out.push(c)}
+  return Object.assign({t:'choice',ask,ch:out.slice(0,(o&&o.max)||4)},o||{})};
+const fill=(ask,tpl,ans,why,o)=>Object.assign({t:'fill',ask,tpl,ans:ans.map(a=>Object.assign({},a,{v:q(a.v)})),why},o||{});
+const dial=(ask,target,why,o)=>Object.assign({t:'dial',ask,target:s(target),why},o||{});
+const signs=(ask,nodes,ans,why,o)=>Object.assign({t:'signs',ask,nodes,ans,why},o||{});
+const OK=(h,c,x)=>Object.assign({h,ok:true,c},x||{}),NO=(h,c,why,x)=>Object.assign({h,c,why},x||{});
+Object.assign(K,{act,ch,fill,dial,signs,OK,NO,goLevel,renderLv});
+
+/* ---------- crochets de test ---------- */
+function ser(p){const o={t:p.t,ask:p.ask||'',label:p.label||''};
+  if(p.t==='choice')o.choices=p.ch.map(c=>({h:c.h,ok:!!c.ok,why:c.why||'',c:c.c||null}));
+  if(p.t==='fill'){o.tpl=p.tpl;o.ans=p.ans.map(a=>({v:String(a.v),txt:Dt(a.v).replace(/ /g,''),c:a.c||null}));o.why=typeof p.why==='function'?'(fonction)':p.why||''}
+  if(p.t==='dial'){o.target=p.target;o.c=p.c||null;o.grid=K.st&&K.st.M?K.grid(K.st.M):null}
+  if(p.t==='signs'){o.ans=p.ans;o.c=p.c||null;o.nodes=p.nodes.map(n=>n.h)}
+  return o}
+window.AO={state(){const p=QN&&QN.parts[pi];return{lvl,qi,nq:LV[lvl].qs.length,pi,busy,np:QN?QN.parts.length:0,part:p?ser(p):null,x:K.st&&K.st.x}},
+  sample(L,i){const Qx=LV[L].qs[i]();return{prompt:Qx.prompt,done:Qx.done,spec:Qx.spec||{},parts:Qx.parts.map(p=>{const o=ser(p);if(p.t==='dial'){o.grid=Qx.grid||null}return o})}},
+  get busy(){return busy}};
+})();
+</script>
+<script>
+/* ======================= L'ATELIER OPTIMUM — modèles et sept niveaux ======================= */
+(function(){
+'use strict';
+const K=window.AOK,{Q,q,s,D,Dt,frac,par,ri,pick,shuf,LP,P,lpAdd,lpSc,lpMul,co,HOM,fv,fn,fd,fsym,lpH,lin,fh,lc,xm,BR,domH,inDom,act,ch,fill,dial,signs,OK,NO,cap,sleep,MINUS,NB}=K;
+const LV=window.AO_LV;
+/* ---------- outils ---------- */
+const dm=(lo,hi,lo_o,hi_o)=>({lo:lo===null?null:s(lo),hi:hi===null?null:s(hi),lo_o:!!lo_o,hi_o:!!hi_o});
+const nm2=M=>`${M.nm}(${M.v})`,nmd=M=>`${M.nm}′(${M.v})`;
+const fdefH=M=>`${nm2(M)} = ${fh(M.F,M.v)}`;
+/* modèle : complète la vue, la grille et les points critiques (zéros de f′ dans l'intervalle ouvert) */
+function mk(o){o.v=o.v||'x';o.ux=o.ux===undefined?'':o.ux;o.uy=o.uy===undefined?'':o.uy;o.step=s(o.step||1);
+  if(o.crit)o.crit=o.crit.map(s);else o.crit=[];
+  if(o.xs!==undefined&&o.xs!==null){o.xs=s(o.xs);o.ys=s(fv(o.F,o.xs))}
+  o.x0=s(o.x0!==undefined?o.x0:K.grid(Object.assign({},o))[0]);
+  o.view=o.view||K.vfit(o,o.fit||{});return o}
+function specOf(M,ex){return Object.assign({f:fsym(M.F),dom:[M.dom.lo,M.dom.hi,M.dom.lo_o,M.dom.hi_o],goal:M.goal||null,pos:M.pos||[]},ex||{})}
+/* optimum exact (candidats : points critiques et bornes fermées) */
+function optOf(F,dom,goal,crit){const c=crit.map(q);if(dom.lo!==null&&!dom.lo_o)c.push(q(dom.lo));if(dom.hi!==null&&!dom.hi_o)c.push(q(dom.hi));
+  let b=null,bv=null;for(const x of c){const y=fv(F,x);if(y===null)continue;if(b===null||(goal==='max'?y.cmp(bv)>0:y.cmp(bv)<0)){b=x;bv=y}}return{x:b,y:bv}}
+/* valeur test « jolie » strictement entre a et b (a, b : Q ou null) */
+function tv(a,b){if(a===null)return q(b).sub(1).isInt()?q(b).sub(1):q(b).sub(1);if(b===null)return q(a).add(1);a=q(a);b=q(b);
+  const lo=Math.floor(a.v)+1;if(lo<b.v&&q(lo).cmp(a)>0&&q(lo).cmp(b)<0){const mid=(a.v+b.v)/2;let best=lo;for(let k=lo;k<b.v;k++)if(Math.abs(k-mid)<Math.abs(best-mid))best=k;return q(best)}
+  return a.add(b).div(2)}
+/* tableau de signes de G (par défaut f′) sur l'intervalle d'étude */
+function signPart(M,o){o=o||{};const G=o.G||fd(M.F),crit=(o.crit||M.crit).map(q),dmn=M.dom,pts=[dmn.lo===null?null:q(dmn.lo)].concat(crit,[dmn.hi===null?null:q(dmn.hi)]);
+  const ans=[],tests=[];for(let k=0;k<pts.length-1;k++){const t=tv(pts[k],pts[k+1]);tests.push(t);const z=fv(G,t);ans.push(z.sgn()>0?'+':'-')}
+  const showV=o.values!==false;
+  const nodes=pts.map((x,k)=>{const end=k===0||k===pts.length-1,closed=end&&x!==null&&!(k===0?dmn.lo_o:dmn.hi_o);
+    const y=x!==null&&(!end||closed)&&showV?fv(M.F,x):null;
+    return{h:x===null?(k===0?MINUS+'∞':'+∞'):D(x),z:!end&&o.zeros!==false,v:y!==null?D(y):''}});
+  const gn=o.gname||nmd(M);
+  const why=cur=>{const k=cur.findIndex((c,i)=>c!==ans[i]);const t=tests[k],z=fv(G,t);
+    return `Teste une valeur de l'intervalle&nbsp;: pour ${M.v} = ${D(t)}, ${gn.replace('('+M.v+')','('+D(t)+')')} = ${D(z)}${z.sgn()>0?' &gt; 0':' &lt; 0'}. `+(o.hint||'Entre deux valeurs où elle s\'annule, l\'expression garde un signe constant.')};
+  return signs(o.ask||`Complète le signe de ${gn} sur ${domH(dmn)}&nbsp;; les flèches de ${M.nm} se placent toutes seules.`,nodes,ans,why,
+    Object.assign({sl:o.sl||gn,fl:o.fl===undefined?M.nm:o.fl,xl:M.v,c:['signs',o.gk||'fp',pts.map(x=>x===null?null:s(x)),ans],onOk:o.onOk||(async()=>{K.set({tan:true});await K.sweep(1500);K.live()})},o.extra||{}))}
+/* dérivée d'un polynôme à compléter */
+function derPart(M,o){o=o||{};const d=fd(M.F),deg=Math.max(...d.ts.map(t=>t[1]));const v=M.v,L=['a','b','c'];
+  const tpl=deg===2?`${nmd(M)} = a${v}<sup>2</sup> + b${v} + c avec a = {0}, b = {1} et c = {2}`:deg===1?`${nmd(M)} = a${v} + b avec a = {0} et b = {1}`:`${nmd(M)} = {0}`;
+  const ans=[];for(let e=deg;e>=0;e--)ans.push({v:co(d,e),c:['coef','fp',e]});
+  return fill(o.ask||`Calcule la dérivée de ${M.nm}&nbsp;:`,tpl,ans,o.why||`On dérive terme à terme&nbsp;: (${v}<sup>3</sup>)′ = 3${v}<sup>2</sup>, (${v}<sup>2</sup>)′ = 2${v}, (k${v})′ = k et une constante a pour dérivée 0. Ici ${nmd(M)} = ${fh(d,v)}.`,
+    Object.assign({onOk:async()=>{K.set({tan:true});K.live();cap(`${nmd(M)} = <span class="k">${K.fh(d,v)}</span>`)},note:'Les nombres peuvent être négatifs ou décimaux.'},o.extra||{}))}
+/* manivelle sur l'optimum */
+function dialOpt(M,o){o=o||{};const G=fd(M.F);
+  return dial(o.ask||`Règle la manivelle sur la valeur de ${M.v} qui rend ${M.nm} ${M.goal==='max'?'maximale':'minimale'}.`,M.xs,x=>{const z=fv(G,x);
+      if(!K.st.tan)return `Ce n'est pas l'optimum. Compare ${M.nm} un cran à gauche et un cran à droite dans la légende.`;
+      const better=(M.goal==='max')===(z.sgn()>0);
+      return `En ${M.v} = ${D(x)}, ${nmd(M).replace('('+M.v+')','('+D(x)+')')} ${z.sgn()>0?'&gt; 0':z.sgn()<0?'&lt; 0':'= 0'}&nbsp;: `+(z.sgn()===0?`la tangente est horizontale mais ce n'est pas l'optimum cherché (regarde le tableau).`:
+        `la tangente ${z.sgn()>0?'monte':'descend'}, donc ${M.nm} ${better?'gagne':'perd'} si l'on augmente ${M.v}. Tourne vers la ${better?'droite':'gauche'}.`)},
+    Object.assign({c:['argopt',M.goal],onOk:async()=>{K.set({tan:true});await K.shine();K.live()}},o.extra||{}))}
+/* conclusion : valeur optimale et où elle est atteinte */
+function conclPart(M,o){o=o||{};const g=M.goal,w=g==='max'?'maximum':'minimum',wo=g==='max'?'minimum':'maximum',xs=q(M.xs),ys=q(M.ys);
+  const u=t=>t?NB+t:'';const L=[OK(`${w} ${D(ys)}${u(M.uy)} atteint pour ${M.v} = ${D(xs)}${u(M.ux)}`,['optat',g,s(xs),s(ys)])];
+  if(!xs.eq(ys))L.push(NO(`${w} ${D(xs)}${u(M.uy)} atteint pour ${M.v} = ${D(ys)}${u(M.ux)}`,['optat',g,s(ys),s(xs)],`Ne confonds pas la valeur de ${M.v} (l'abscisse) et la valeur de ${M.nm} (l'ordonnée).`));
+  L.push(NO(`${wo} ${D(ys)}${u(M.uy)} atteint pour ${M.v} = ${D(xs)}${u(M.ux)}`,['optat',g==='max'?'min':'max',s(xs),s(ys)],`${nmd(M)} passe de ${g==='max'?'+ à −':'− à +'}&nbsp;: ${M.nm} ${g==='max'?'monte puis descend, c\'est un maximum':'descend puis remonte, c\'est un minimum'}.`));
+  const alt=o.alt||[];for(const a of alt)L.push(a);
+  return ch(o.ask||'Conclusion&nbsp;:',L,{keep:false})}
+const sceneOf=(M,o)=>()=>K.reset(Object.assign({M,layout:'split',x:M.x0,reveal:1},o||{}));
+const winOpt=M=>async()=>{await K.goX(M.xs,600);K.set({tan:true});await K.shine();K.live()};
+function Qn(M,o){o.grid=K.grid(M);if(!o.scene)o.scene=sceneOf(M,o.sc||{});return o}
+Object.assign(K,{dm,mk,specOf,optOf,signPart,derPart,dialOpt,conclPart,nm2,nmd,fdefH});
+
+/* =================================================================== */
+/* MODÈLES (servent aussi aux épreuves finales)                         */
+/* =================================================================== */
+const MOD={};
+MOD.enclosP=P_=>{P_=P_||pick([12,16,20,24,28,32,40]);return mk({F:P(0,P_,-2),nm:'A',ux:'m',uy:'m²',dom:dm(0,P_/2,1,1),goal:'max',xs:P_/4,crit:[P_/4],step:1,x0:1,
+  maq:{t:'enclos',mode:'P',P:P_,u:'m',glab:'Aire',gu:'m²'},pos:['x',`${P_}-2*x`],P:P_,par:`${P_}-2*x`,
+  ctx:`Avec ${P_}${NB}m de grillage, on clôture un potager rectangulaire adossé au mur de la cour&nbsp;: pas de grillage le long du mur. On note x la longueur, en mètres, des deux côtés perpendiculaires au mur.`})};
+MOD.carre=P_=>{P_=P_||pick([16,20,24,28,32,40]);return mk({F:P(0,P_/2,-1),nm:'A',ux:'m',uy:'m²',dom:dm(0,P_/2,1,1),goal:'max',xs:P_/4,crit:[P_/4],step:1,x0:1,
+  maq:{t:'enclos',mode:'R',P:P_,u:'m',glab:'Aire',gu:'m²'},pos:['x',`${P_/2}-x`],P:P_,par:`${P_/2}-x`,
+  ctx:`On dispose de ${P_}${NB}m de corde pour délimiter au sol un terrain de jeu rectangulaire. On note x la longueur, en mètres, d'un côté.`})};
+const ETAL=[[120,20],[150,25],[90,30],[100,20],[160,40],[140,20],[200,50]];
+MOD.etal=ab_=>{const [a,b]=ab_||pick(ETAL);return mk({F:P(0,a,-b),v:'p',nm:'R',ux:'€',uy:'€',dom:dm(0,q(a).div(b),0,0),goal:'max',xs:q(a).div(2*b),crit:[q(a).div(2*b)],step:'0.5',x0:'0.5',
+  maq:{t:'etal',title:'Jus de fruits frais',N:p=>a-b*p,unit:Math.ceil(a/30),cl:'jus',glab:'Recette',gu:'€'},pos:['x',`${a}-${b}*x`],a,b,
+  ctx:`Au marché couvert, un stand vend des jus de fruits frais. Une étude montre qu'au prix de p euros le jus, on en vend ${a} − ${b}p par matinée.`})};
+const LANC=[[10,1],[10,2],[15,1],[15,2],[20,1],[20,2]];
+MOD.lancer=vh=>{const [v,h0]=vh||pick(LANC);return mk({F:P(h0,v,-5),v:'t',nm:'h',ux:'s',uy:'m',dom:dm(0,q(v).div(5),0,0),goal:'max',xs:q(v).div(10),crit:[q(v).div(10)],step:'0.5',x0:0,
+  maq:{t:'lancer',glab:'Hauteur',gu:'m'},v0:v,h0,
+  ctx:`Sur le plateau sportif, un ballon est lancé vers le haut. Sa hauteur, en mètres, t secondes après le lancer est h(t) = ${lpH(P(h0,v,-5),'t')} pour t ∈ [0${NB};${NB}${D(q(v).div(5))}].`})};
+const BEN2=[['0.2',6,20],['0.1',4,15],['0.5',10,30],['0.25',5,10],['0.2',8,30]];
+MOD.benef2=o=>{const [al,pb,ga]=o||pick(BEN2),be=pick([12,18,24]),pr=be+pb;const C=P(ga,be,al),R=P(0,pr),F=lpAdd(R,lpSc(C,-1)),xs=q(pb).div(q(al).mul(2)),st2=xs.cmp(12)>0&&xs.isInt()&&xs.n%2n===0n?2:1;
+  return mk({F,nm:'B',dom:dm(0,xs.mul(2),0,0),goal:'max',xs,crit:[xs],step:st2,x0:st2,C,R,pr,
+    maq:{t:'bars',title:'Production (en milliers)',u:'milliers',bars:[{lab:'R',F:R,col:'#7fb2ff'},{lab:'C',F:C,col:'#ff9b7a'},{lab:'B',F,col:'#a9bbff',opt:true}],glab:'Bénéfice',gu:'k€'},
+    ctx:`Un atelier fabrique x milliers de lampes solaires, avec x ∈ [0${NB};${NB}${D(xs.mul(2))}]. Le coût de production, en milliers d'euros, est C(x) = ${lpH(C)} et chaque millier de lampes est vendu ${pr}${NB}milliers d'euros&nbsp;: la recette est R(x) = ${pr}x.`})};
+MOD.boiteC=c=>{c=c||pick([12,18,24,30]);return mk({F:P(0,c*c,-4*c,4),nm:'V',ux:'cm',uy:'cm³',dom:dm(0,c/2,1,1),goal:'max',xs:q(c).div(6),crit:[q(c).div(6)],step:1,x0:1,
+  maq:{t:'boite',a:c,b:c,u:'cm',glab:'Volume',gu:'cm³'},pos:['x',`${c}-2*x`],dims:['x',`${c}-2*x`,`${c}-2*x`],c,
+  ctx:`Dans une plaque carrée de carton de ${c}${NB}cm de côté, on découpe aux quatre coins un carré de côté x${NB}cm, puis on relève les bords pour obtenir une boîte sans couvercle.`})};
+const BOR=[[10,16,2],[15,24,3],[20,32,4],[24,45,5]];
+MOD.boiteR=o=>{const [a,b,x1]=o||pick(BOR);const F=P(0,a*b,-2*(a+b),4);return mk({F,nm:'V',ux:'cm',uy:'cm³',dom:dm(0,q(a).div(2),1,1),goal:'max',xs:x1,crit:[x1],step:a===15?'0.5':1,x0:1,
+  maq:{t:'boite',a:b,b:a,u:'cm',glab:'Volume',gu:'cm³'},pos:['x',`${a}-2*x`,`${b}-2*x`],dims:['x',`${a}-2*x`,`${b}-2*x`],a,b,
+  ctx:`Dans une plaque rectangulaire de ${b}${NB}cm sur ${a}${NB}cm, on découpe aux quatre coins un carré de côté x${NB}cm, puis on relève les bords pour former une boîte sans couvercle.`})};
+const CUB=[[-1,1],[-2,0],[0,2],[-1,3],[1,3],[-3,1],[0,4],[-2,2]];
+MOD.cubic=o=>{const [r1,r2]=o&&o.r||pick(CUB),d=o&&o.d!==undefined?o.d:ri(-3,4);const F=P(d,3*r1*r2,q(-3*(r1+r2)).div(2),1);
+  const lo=o&&o.lo!==undefined?o.lo:r1-pick([1,2]),hi=o&&o.hi!==undefined?o.hi:r2+pick([1,2]);
+  return mk({F,nm:'f',dom:dm(lo,hi,0,0),goal:null,crit:[r1,r2],step:1,x0:lo,r1,r2,lo,hi,maq:{t:'none'}})};
+const BEN3=[[5,1,20],[6,2,16],[4,2,10],[7,1,45]];
+MOD.benef3=o=>{const [r,sv,F0]=o||pick(BEN3),F=P(-F0,3*r*sv,q(3*(r-sv)).div(2),-1);return mk({F,nm:'B',dom:dm(0,10,0,0),goal:'max',xs:r,crit:[r],step:1,x0:0,r,sv,
+  maq:{t:'bars',title:'Production (en centaines)',u:'centaines',bars:[{lab:'B',F,col:'#a9bbff',opt:true}],glab:'Bénéfice',gu:'k€'},fit:{clip:[-140,1e9]},
+  ctx:`Une coopérative produit et vend x centaines de bouteilles de jus de goyave par semaine, avec x ∈ [0${NB};${NB}10]. Le bénéfice, en milliers d'euros, est B(x) = ${lpH(F)}.`})};
+MOD.enclosA=n=>{n=n||pick([3,4,5,6,8,10]);const A=2*n*n;return mk({F:LP([[2,1],[A,-1]]),nm:'L',ux:'m',uy:'m',dom:dm(0,null,1,1),goal:'min',xs:n,crit:[n],step:n>6?2:1,x0:n>6?2:1,gmax:3*n,
+  maq:{t:'enclos',mode:'A',A,u:'m',glab:'Grillage',gu:'m'},pos:['x'],A,n,fit:{clip:[0,10*n]},
+  ctx:`On veut clôturer un enclos rectangulaire de ${A}${NB}m² adossé à un mur&nbsp;: pas de grillage le long du mur. On note x la longueur, en mètres, des côtés perpendiculaires au mur.`})};
+MOD.boiteV=n=>{n=n||pick([4,6,8,10]);const V=n*n*n/2;return mk({F:LP([[1,2],[2*n*n*n,-1]]),nm:'S',ux:'cm',uy:'cm²',dom:dm(0,null,1,1),goal:'min',xs:n,crit:[n],step:n>6?2:1,x0:n>6?2:1,gmax:Math.round(2.5*n),
+  maq:{t:'boiteV',V,u:'cm',glab:'Carton',gu:'cm²'},pos:['x'],V,n,fit:{clip:[0,12*n*n]},
+  ctx:`Une boîte sans couvercle a une base carrée de côté x${NB}cm et doit contenir ${V}${NB}cm³. Sa hauteur est donc ${frac(V,'x<sup>2</sup>')}${NB}cm.`})};
+const AFF=[[600,3,2,20],[864,3,2,24],[384,3,2,16],[294,3,2,14],[600,2,3,30]];
+MOD.affiche=o=>{const [S,a,b,x1]=o||pick(AFF);const F=LP([[S+4*a*b,0],[-2*a,1],[-2*b*S,-1]]);return mk({F,nm:'A',ux:'cm',uy:'cm²',dom:dm(2*b,q(S).div(2*a),1,1),goal:'max',xs:x1,crit:[x1],step:2,x0:2*b+2,gmax:3*x1,
+  maq:{t:'affiche',S,a,b,u:'cm',glab:'Imprimé',gu:'cm²'},pos:[`x-${2*b}`,`${S}/x-${2*a}`],S,a,b,fit:{clip:[0,1e9]},
+  ctx:`Une affiche rectangulaire de ${S}${NB}cm² a une largeur de x${NB}cm. On laisse des marges de ${a}${NB}cm en haut et en bas, de ${b}${NB}cm à gauche et à droite. On cherche à rendre maximale l'aire A(x) de la zone imprimée.`})};
+MOD.quot=k=>{k=k||pick([1,2,3,4,5]);return mk({F:LP([[1,1],[k*k,-1]]),nm:'f',dom:dm(0,null,1,1),goal:'min',xs:k,crit:[k],step:k>2?1:'0.5',x0:k>2?1:'0.5',gmax:3*k,k,maq:{t:'none'},fit:{clip:[0,6*k]}})};
+MOD.hom=()=>{let a,b,c,d,lo,hi;do{a=pick([1,2,3,-1]);b=ri(-3,4);c=1;d=pick([1,2,3]);lo=0;hi=pick([2,3,4])}while(a*d-b*c===0);
+  return mk({F:HOM(a,b,c,d),nm:'f',dom:dm(lo,hi,0,0),goal:'max',crit:[],xs:a*d-b*c>0?hi:lo,step:'0.5',x0:lo,maq:{t:'none'},hom:[a,b,c,d],lo,hi})};
+const MAB=[[200,20,2],[160,20,2],[240,30,2],[300,30,4],[120,10,4]];
+MOD.mabawa=o=>{const [a,b,c]=o||pick(MAB),F=P(-a*c,a+b*c,-b),xs=q(a).div(b).add(c).div(2);return mk({F,v:'p',nm:'B',ux:'€',uy:'€',dom:dm(c,q(a).div(b),0,0),goal:'max',xs,crit:[xs],step:'0.5',x0:c,
+  maq:{t:'etal',title:'Mabawa grillés',N:p=>a-b*p,unit:Math.ceil(a/30),cl:'barquettes',glab:'Bénéfice',gu:'€'},pos:[`x-${c}`,`${a}-${b}*x`],a,b,c,
+  ctx:`Un stand de mabawa grillés prépare chaque barquette pour ${c}${NB}€. Au prix de p euros la barquette, il en vend ${a} − ${b}p par soirée, avec p ∈ [${c}${NB};${NB}${D(q(a).div(b))}].`})};
+const CMS=[[1,10,400,20],[2,5,200,10],[1,20,900,30],[4,3,100,5],['0.5',8,50,10]];
+MOD.cm=o=>{const [al,be,ga,x1]=o||pick(CMS),C=P(ga,be,al),F=LP([[al,1],[be,0],[ga,-1]]);const stp=x1>=20?2:1;
+  return mk({F,nm:'CM',dom:dm(0,3*x1,1,0),goal:'min',xs:x1,crit:[x1],step:stp,x0:stp,C,al,be,ga,
+    maq:{t:'bars',title:'Coûts par centaine',u:'centaines',bars:[{lab:'CM',F,col:'#a9bbff',opt:true},{lab:'C′',F:fd(C),col:'#7fb2ff'}],glab:'Coût moyen',gu:'€'},fit:{clip:[0,8*(2*Math.sqrt(q(al).v*ga)+be)]},
+    ctx:`Le coût de fabrication de x centaines de paniers tressés est C(x) = ${lpH(C)} (en euros), pour x ∈ ]0${NB};${NB}${3*x1}]. Le coût moyen d'une centaine est CM(x) = ${frac('C(x)','x')}.`})};
+const KAY=[[10,60,3],[20,80,2],[12,60,2],[10,80,4]];
+MOD.kayak=o=>{const [P0,N0,k]=o||pick(KAY),F=P(P0*N0,N0-k*P0,-k),xs=q(N0-k*P0).div(2*k);return mk({F,nm:'R',ux:'€',uy:'€',dom:dm(0,q(N0).div(k),0,0),goal:'max',xs,crit:[xs],step:1,x0:0,P0,N0,k,
+  maq:{t:'etal',title:'Location de kayaks',N:x=>N0-k*x,price:x=>P0+x,unit:Math.ceil(N0/30),cl:'locations',glab:'Recette',gu:'€'},pos:['x',`${N0}-${k}*x`],
+  ctx:`Sur la plage, une location de kayaks demande ${P0}${NB}€ la demi-journée et compte ${N0} locations par jour. Chaque hausse du prix de 1${NB}€ fait perdre ${k} locations. On augmente le prix de x euros.`})};
+/* niveau 6 : inégalités */
+MOD.ineqK=k=>{k=k||pick([1,2,3,4,5]);return mk({F:LP([[1,1],[k*k,-1]]),nm:'f',dom:dm(0,null,1,1),goal:'min',xs:k,crit:[k],step:k>2?1:'0.5',x0:k>2?1:'0.5',gmax:3*k,k,maq:{t:'none'},fit:{clip:[0,6*k]}})};
+MOD.ineqCube=k=>{k=k||pick([1,2,3]);return mk({F:P(2*k*k*k,-3*k*k,0,1),nm:'h',dom:dm(0,null,0,1),goal:'min',xs:k,crit:[k],step:k>1?1:'0.5',x0:0,gmax:2*k,k,maq:{t:'none'},fit:{clip:[-1,1e9]}})};
+MOD.signCube=()=>{const r=pick([1,2,-1]),p=pick([1,2,3,4,5]);return mk({F:P(-(r*r*r+p*r),p,0,1),nm:'f',dom:dm(null,null,1,1),goal:null,crit:[],step:1,gmin:r-3,gmax:r+3,x0:r-2,r,p,maq:{t:'none'},fit:{clip:[-30,30]}})};
+MOD.ineqSq=n=>{n=n||pick([1,2,3]);return mk({F:LP([[1,2],[2*n*n*n,-1]]),nm:'g',dom:dm(0,null,1,1),goal:'min',xs:n,crit:[n],step:'0.5',x0:'0.5',gmax:3*n,n,maq:{t:'none'},fit:{clip:[0,10*n*n]}})};
+MOD.encadre=()=>{const k=pick([1,2]),hi=pick([2*k,3*k]);return mk({F:P(0,-3*k*k,0,1),nm:'f',dom:dm(0,hi,0,0),goal:'min',xs:k,crit:[k],step:k>1?1:'0.5',x0:0,k,hi,maq:{t:'none'}})};
+/* niveau 7 : position relative (h = f − g) */
+MOD.posPara=()=>{const m=pick([-2,-1,1,2,3]),r=pick([-2,-1,1,2,3]),e=pick([0,0,1,2,3]),c=ri(-2,3),b=m-2*r,p=c-r*r-e;
+  const f=P(c,b,1),g=P(p,m);return mk({F:lpAdd(f,lpSc(g,-1)),f,g,nm:'h',dom:dm(null,null,1,1),goal:'min',xs:r,crit:[r],step:1,gmin:r-4,gmax:r+4,x0:r-3,e,r,maq:{t:'none'},fit:{extra:[f,g],clip:[-12,20]}})};
+MOD.posTanCube=()=>{const a=pick([1,2]);const f=P(0,0,0,1),g=P(-2*a*a*a,3*a*a);return mk({F:lpAdd(f,lpSc(g,-1)),f,g,nm:'h',dom:dm(0,null,0,1),goal:'min',xs:a,crit:[a],step:'0.5',x0:0,gmax:2*a+1,a,maq:{t:'none'},fit:{extra:[f,g],clip:[-10,30*a]}})};
+MOD.posTanInv=()=>{const a=pick([1,2]);const f=LP([[1,-1]]),g=P(q(2).div(a),q(-1).div(a*a));return mk({F:lpAdd(f,lpSc(g,-1)),f,g,nm:'h',dom:dm(0,null,1,1),goal:'min',xs:a,crit:[a],step:'0.5',x0:'0.5',gmax:3*a,a,maq:{t:'none'},fit:{extra:[f,g],clip:[-1,3/a+1]}})};
+MOD.posCross=()=>{const m=pick([1,2,3]);const f=P(0,0,0,1),g=P(0,m*m);return mk({F:lpAdd(f,lpSc(g,-1)),f,g,nm:'h',dom:dm(0,null,0,1),goal:null,crit:[],step:'0.5',x0:0,gmax:m+2,m,maq:{t:'none'},fit:{extra:[f,g],clip:[-2*m*m,4*m*m*m]}})};
+MOD.posCourse=()=>{const r=pick([1,2]),k=pick([1,2,3,4,5,6]);const f=P(0,0,0,1),g=P(r*r*r+k*r,-k);return mk({F:lpAdd(f,lpSc(g,-1)),f,g,nm:'h',dom:dm(r,null,0,1),goal:'min',xs:r,crit:[],step:'0.5',x0:r,gmax:r+3,r,k,maq:{t:'none'},fit:{extra:[f,g],clip:[-5,1e9],x0:0}})};
+K.MOD=MOD;
+const u_=t=>t?NB+t:'';
+
+/* =================================================================== */
+/* NIVEAU 1 · Le plan de travail : modéliser                           */
+/* =================================================================== */
+const rule1=`<p>Résoudre un problème d'optimisation, c'est&nbsp;:</p><p>1. choisir la variable x et l'ensemble I de ses valeurs possibles (les longueurs, les quantités… doivent rester positives)&nbsp;;</p><p>2. exprimer la grandeur à optimiser en fonction de x&nbsp;: f(x)&nbsp;;</p><p>3. étudier les variations de f sur I (dérivée, signe, tableau)&nbsp;;</p><p>4. lire l'extremum et répondre à la question posée, avec l'unité.</p>`;
+const sweepAct=(M,o)=>act(o&&o.label||'Tourner la manivelle sur tout l\'intervalle',async()=>{await K.sweep(2400);cap(o&&o.cap||`La courbe de ${M.nm} est tracée sur ${domH(M.dom)}&nbsp;: on y voit l'optimum à chercher.`)},{ask:o&&o.ask||'La manivelle balaie toutes les valeurs possibles de x&nbsp;: le point trace la courbe du modèle.'});
+function l1q1(){const M=MOD.enclosP(),P_=M.P,x0=pick([2,3,P_/4+1].filter(t=>t<P_/2&&t!==P_/4));
+  return Qn(M,{spec:specOf(M),sc:{reveal:0},order:'Commande n° 1 · le potager',prompt:M.ctx,cap0:'La manivelle règle x&nbsp;; la maquette suit.',
+    parts:[dial(`Règle la manivelle sur x = ${x0}${NB}m.`,x0,x=>`La manivelle indique x = ${D(x)}. Tourne-la jusqu'à x = ${x0}.`,{c:['free']}),
+      fill('Lis la maquette, puis calcule&nbsp;:',`côté parallèle au mur&nbsp;: {0} m&nbsp;; aire du potager&nbsp;: {1} m²`,[{v:P_-2*x0,c:['atx',`${P_}-2*x`,s(x0)]},{v:x0*(P_-2*x0),c:['val','f',s(x0)]}],
+        `Les deux côtés perpendiculaires au mur utilisent 2 × ${x0} = ${2*x0}${NB}m de grillage&nbsp;: il reste ${P_} − ${2*x0} = ${P_-2*x0}${NB}m pour le côté parallèle. L'aire est longueur × largeur.`),
+      ch('Pour une valeur quelconque de x, l\'aire du potager est&nbsp;:',[OK(`A(x) = x(${P_} − 2x)`,['expr','f',`x*(${P_}-2*x)`]),NO(`A(x) = x(${P_} − x)`,['expr','f',`x*(${P_}-x)`],`Il y a DEUX côtés de longueur x&nbsp;: le côté parallèle mesure ${P_} − 2x.`),
+        NO(`A(x) = 2x + (${P_} − 2x)`,['expr','f',`2*x+(${P_}-2*x)`],`Ça, c'est la longueur de grillage (toujours ${P_}${NB}m). L'aire est un produit.`),NO(`A(x) = x(${P_/2} − x)`,['expr','f',`x*(${P_/2}-x)`],`Ce serait le cas sans mur (quatre côtés). Ici le côté parallèle mesure ${P_} − 2x.`)]),
+      ch('Quelles valeurs x peut-il prendre&nbsp;?',[OK(`x ∈ ]0${NB};${NB}${P_/2}[`,['dom','0',s(P_/2),true,true]),NO(`x ∈ ]0${NB};${NB}${P_}[`,['dom','0',s(P_),true,true],`Si x ≥ ${P_/2}, le côté parallèle ${P_} − 2x n'est plus positif.`),
+        NO(`x ∈ [0${NB};${NB}+∞[`,['dom','0',null,false,true],`x est une longueur non nulle, et le côté ${P_} − 2x doit rester strictement positif.`),NO(`x ∈ ]0${NB};${NB}${P_/4}[`,['dom','0',s(P_/4),true,true],`Rien n'empêche x de dépasser ${P_/4}&nbsp;: il faut seulement ${P_} − 2x &gt; 0.`)]),
+      sweepAct(M)],
+    done:`Le modèle est prêt&nbsp;: A(x) = x(${P_} − 2x) sur ]0${NB};${NB}${P_/2}[. La courbe monte puis redescend&nbsp;: il y a un potager d'aire maximale (on le trouvera au niveau 2).`})}
+function l1q2(){const M=MOD.boiteC(),c=M.c,x0=pick([1,2,3].filter(t=>t<c/2&&t!==c/6));
+  return Qn(M,{spec:specOf(M,{dims:M.dims}),sc:{reveal:0},order:'Commande n° 2 · la boîte',prompt:M.ctx,
+    parts:[act('Découper et plier la boîte',async()=>{await K.fold();cap('Les bords relevés ont pour hauteur x.')},{ask:'Regarde la découpe des coins puis le pliage.'}),
+      ch('La base de la boîte est un carré de côté&nbsp;:',[OK(`${c} − 2x`,['dim',1,`${c}-2*x`]),NO(`${c} − x`,['dim',1,`${c}-x`],'On enlève un carré de côté x à CHAQUE extrémité d\'un bord&nbsp;: deux fois x.'),NO(`${c/2} − x`,['dim',1,`${c/2}-x`],`C'est la moitié du bon côté&nbsp;: ${c} − 2x = 2(${c/2} − x).`),NO(`${c} − 4x`,['dim',1,`${c}-4*x`],'Il y a quatre coins, mais chaque bord ne perd que deux carrés.')]),
+      ch('Le volume de la boîte est donc&nbsp;:',[OK(`V(x) = x(${c} − 2x)<sup>2</sup>`,['expr','f',`x*(${c}-2*x)**2`]),NO(`V(x) = (${c} − 2x)<sup>2</sup>`,['expr','f',`(${c}-2*x)**2`],'C\'est l\'aire de la base&nbsp;; il faut multiplier par la hauteur x.'),
+        NO(`V(x) = x<sup>2</sup>(${c} − 2x)`,['expr','f',`x**2*(${c}-2*x)`],'La base est le carré de côté '+c+' − 2x, et la hauteur est x&nbsp;: V = base × hauteur.'),NO(`V(x) = 4x(${c} − 2x)`,['expr','f',`4*x*(${c}-2*x)`],'Volume d\'un pavé = longueur × largeur × hauteur.')]),
+      ch('Quelles valeurs x peut-il prendre&nbsp;?',[OK(`x ∈ ]0${NB};${NB}${c/2}[`,['dom','0',s(c/2),true,true]),NO(`x ∈ ]0${NB};${NB}${c}[`,['dom','0',s(c),true,true],`Il faut ${c} − 2x &gt; 0, c'est-à-dire x &lt; ${c/2}.`),NO(`x ∈ ]0${NB};${NB}${c/4}[`,['dom','0',s(c/4),true,true],`x peut dépasser ${c/4}&nbsp;: la seule contrainte est ${c} − 2x &gt; 0.`),NO(`x ∈ [0${NB};${NB}${c/2}]`,['dom','0',s(c/2),false,false],'Pour x = 0 ou x = '+(c/2)+', il n\'y a plus de boîte.')]),
+      dial(`Règle la manivelle sur x = ${x0}${NB}cm.`,x0,x=>`Tourne la manivelle jusqu'à x = ${x0}.`,{c:['free']}),
+      fill('Calcule le volume&nbsp;:',`V(${x0}) = {0} cm³`,[{v:x0*(c-2*x0)*(c-2*x0),c:['val','f',s(x0)]}],`V(${x0}) = ${x0} × (${c} − ${2*x0})<sup>2</sup> = ${x0} × ${c-2*x0}<sup>2</sup>.`,{onOk:async()=>{await K.sweep(2000)}})],
+    done:`Modèle de la boîte&nbsp;: V(x) = x(${c} − 2x)<sup>2</sup> pour x ∈ ]0${NB};${NB}${c/2}[. Trop peu découpé, la boîte est plate&nbsp;; trop découpé, la base disparaît&nbsp;: entre les deux, un volume maximal.`})}
+function l1q3(){const M=MOD.etal(),a=M.a,b=M.b,p0=pick([1,2]);
+  return Qn(M,{spec:specOf(M),sc:{reveal:0},order:'Commande n° 3 · le stand de jus',prompt:M.ctx,
+    parts:[dial(`Règle le prix sur p = ${p0}${NB}€.`,p0,x=>`Tourne la manivelle jusqu'à p = ${p0}.`,{c:['free']}),
+      fill('Calcule&nbsp;:',`jus vendus&nbsp;: {0}&nbsp;; recette&nbsp;: {1} €`,[{v:a-b*p0,c:['atx',`${a}-${b}*x`,s(p0)]},{v:p0*(a-b*p0),c:['val','f',s(p0)]}],`${a} − ${b} × ${p0} = ${a-b*p0} jus, vendus ${p0}${NB}€ chacun&nbsp;: la recette est le produit prix × quantité.`),
+      ch('Pour un prix p quelconque, la recette est&nbsp;:',[OK(`R(p) = p(${a} − ${b}p)`,['expr','f',`x*(${a}-${b}*x)`]),NO(`R(p) = ${a} − ${b}p`,['expr','f',`${a}-${b}*x`],'Ça, c\'est le nombre de jus vendus. Recette = prix × nombre de jus.'),
+        NO(`R(p) = p + (${a} − ${b}p)`,['expr','f',`x+${a}-${b}*x`],'On ne additionne pas un prix et une quantité&nbsp;: on les multiplie.'),NO(`R(p) = ${a-b}p`,['expr','f',`${a-b}*x`],`${a} − ${b}p n'est pas égal à ${a-b}p&nbsp;: on ne peut pas réduire ainsi.`)]),
+      ch('Quels prix p ont un sens ici&nbsp;?',[OK(`p ∈ [0${NB};${NB}${D(q(a).div(b))}]`,['dom','0',s(q(a).div(b)),false,false]),NO(`p ∈ [0${NB};${NB}+∞[`,['dom','0',null,false,true],`Au-delà de ${D(q(a).div(b))}${NB}€, le nombre de jus ${a} − ${b}p deviendrait négatif.`),
+        NO(`p ∈ [0${NB};${NB}${a}]`,['dom','0',s(a),false,false],`Il faut ${a} − ${b}p ≥ 0, soit p ≤ ${D(q(a).div(b))}.`),NO(`p ∈ [0${NB};${NB}${D(q(b).div(a))}]`,['dom','0',s(q(b).div(a)),false,false],`${a} − ${b}p ≥ 0 ⇔ p ≤ ${frac(a,b)} = ${D(q(a).div(b))}.`)]),
+      sweepAct(M,{label:'Balayer tous les prix'})],
+    done:`R(p) = p(${a} − ${b}p) pour p ∈ [0${NB};${NB}${D(q(a).div(b))}]&nbsp;: à 0${NB}€ comme à ${D(q(a).div(b))}${NB}€ la recette est nulle, entre les deux elle passe par un maximum.`})}
+function l1q4(){const M=MOD.affiche(),S=M.S,a=M.a,b=M.b,x0=pick([6,8,10,12,20,24,30,40,42,48].filter(t=>S%t===0&&t%2===0&&t>2*b&&S/t>2*a&&!q(t).eq(M.xs)&&q(t).cmp(M.gmax)<=0)),h0=S/x0;
+  return Qn(M,{spec:specOf(M),sc:{reveal:0},order:'Commande n° 4 · l\'affiche',prompt:M.ctx,
+    parts:[dial(`Règle la largeur sur x = ${x0}${NB}cm.`,x0,x=>`Tourne la manivelle jusqu'à x = ${x0}.`,{c:['free']}),
+      fill('Calcule&nbsp;:',`hauteur de l'affiche&nbsp;: {0} cm&nbsp;; aire imprimée&nbsp;: {1} cm²`,[{v:h0,c:['atx',`${S}/x`,s(x0)]},{v:(x0-2*b)*(h0-2*a),c:['val','f',s(x0)]}],
+        `Hauteur = ${frac(S,x0)} = ${D(h0)}. La zone imprimée mesure (${x0} − ${2*b}) sur (${D(h0)} − ${2*a}).`),
+      ch('Pour une largeur x quelconque, l\'aire imprimée est&nbsp;:',[OK(`A(x) = (x − ${2*b})(${frac(S,'x')} − ${2*a})`,['expr','f',`(x-${2*b})*(${S}/x-${2*a})`]),
+        NO(`A(x) = (x − ${b})(${frac(S,'x')} − ${a})`,['expr','f',`(x-${b})*(${S}/x-${a})`],`Il y a une marge de chaque côté&nbsp;: on enlève 2 × ${b} à la largeur et 2 × ${a} à la hauteur.`),
+        NO(`A(x) = (x − ${2*a})(${frac(S,'x')} − ${2*b})`,['expr','f',`(x-${2*a})*(${S}/x-${2*b})`],`Les marges de ${b}${NB}cm sont à gauche et à droite&nbsp;: elles réduisent la largeur x.`),
+        NO(`A(x) = ${S} − ${2*a+2*b}x`,['expr','f',`${S}-${2*a+2*b}*x`],'On n\'enlève pas les marges ainsi&nbsp;: la zone imprimée est un rectangle, son aire est un produit.')]),
+      ch('Quelles largeurs x sont possibles&nbsp;?',[OK(`x ∈ ]${2*b}${NB};${NB}${D(q(S).div(2*a))}[`,['dom',s(2*b),s(q(S).div(2*a)),true,true]),NO(`x ∈ ]0${NB};${NB}${S}[`,['dom','0',s(S),true,true],`Il faut x − ${2*b} &gt; 0 et ${frac(S,'x')} − ${2*a} &gt; 0.`),
+        NO(`x ∈ ]${2*b}${NB};${NB}+∞[`,['dom',s(2*b),null,true,true],`Si x est trop grand, la hauteur ${frac(S,'x')} devient plus petite que les marges&nbsp;: il faut x &lt; ${D(q(S).div(2*a))}.`),NO(`x ∈ ]${2*a}${NB};${NB}${D(q(S).div(2*b))}[`,['dom',s(2*a),s(q(S).div(2*b)),true,true],'Tu as échangé les marges horizontales et verticales.')]),
+      sweepAct(M,{label:'Balayer toutes les largeurs'})],
+    done:`A(x) = (x − ${2*b})(${frac(S,'x')} − ${2*a}) sur ]${2*b}${NB};${NB}${D(q(S).div(2*a))}[&nbsp;: trop étroite ou trop large, l'affiche ne laisse presque rien à imprimer.`})}
+function l1q5(){const M=MOD.enclosA(),A=M.A,n=M.n,x0=pick([1,2,4,5,6,8,10,12,15].filter(t=>A%t===0&&t!==n&&t<=3*n&&(M.step==='1'||t%2===0)));
+  return Qn(M,{spec:specOf(M),sc:{reveal:0},order:'Commande n° 5 · l\'enclos',prompt:M.ctx,
+    parts:[dial(`Règle la manivelle sur x = ${x0}${NB}m.`,x0,x=>`Tourne la manivelle jusqu'à x = ${x0}.`,{c:['free']}),
+      fill('Calcule&nbsp;:',`côté parallèle au mur&nbsp;: {0} m&nbsp;; longueur de grillage&nbsp;: {1} m`,[{v:q(A).div(x0),c:['atx',`${A}/x`,s(x0)]},{v:q(2*x0).add(q(A).div(x0)),c:['val','f',s(x0)]}],
+        `Aire = longueur × largeur, donc le côté parallèle mesure ${frac(A,x0)}. Le grillage couvre deux côtés x et ce côté.`),
+      ch('Pour une valeur quelconque de x, la longueur de grillage est&nbsp;:',[OK(`L(x) = 2x + ${frac(A,'x')}`,['expr','f',`2*x+${A}/x`]),NO(`L(x) = x + ${frac(A,'x')}`,['expr','f',`x+${A}/x`],'Il y a deux côtés perpendiculaires au mur.'),
+        NO(`L(x) = 2x + ${frac(2*A,'x')}`,['expr','f',`2*x+${2*A}/x`],'Le côté le long du mur n\'est pas grillagé&nbsp;: un seul côté de longueur '+A+'/x.'),NO(`L(x) = 2x × ${frac(A,'x')}`,['expr','f',`2*x*${A}/x`],'Une longueur de grillage s\'obtient en additionnant les côtés.')]),
+      ch('Quelles valeurs x peut-il prendre&nbsp;?',[OK(`x ∈ ]0${NB};${NB}+∞[`,['dom','0',null,true,true]),NO(`x ∈ [0${NB};${NB}+∞[`,['dom','0',null,false,true],`Pour x = 0, ${frac(A,'x')} n'est pas défini&nbsp;: pas d'enclos.`),
+        NO(`x ∈ ]0${NB};${NB}${A}[`,['dom','0',s(A),true,true],`Même si x ≥ ${A}, l'autre côté ${frac(A,'x')} reste positif&nbsp;: aucune borne supérieure.`),NO(`x ∈ ]0${NB};${NB}${A/2}[`,['dom','0',s(A/2),true,true],'Toute longueur x strictement positive convient.')]),
+      sweepAct(M)],
+    done:`L(x) = 2x + ${frac(A,'x')} sur ]0${NB};${NB}+∞[&nbsp;: très petit x, le côté le long du mur explose&nbsp;; très grand x, ce sont les deux côtés x. Il existe un grillage minimal (niveau 4).`})}
+LV.push({t:'Le plan de travail',s:'Modéliser',chap:'Optimisation · choisir x, exprimer f(x)',rule:rule1,qs:[l1q1,l1q2,l1q3,l1q4,l1q5]});
+
+/* =================================================================== */
+/* NIVEAU 2 · Le sommet : second degré                                 */
+/* =================================================================== */
+const rule2=`<p>Si f(x) = ax<sup>2</sup> + bx + c (a ≠ 0), alors f′(x) = 2ax + b, qui s'annule en x = ${frac('−b','2a')}.</p><p>a &lt; 0&nbsp;: f′ passe de + à −, f admet un <b>maximum</b> (parabole tournée vers le bas). a &gt; 0&nbsp;: f′ passe de − à +, f admet un <b>minimum</b>.</p><p>Au point de l'extremum, f′ = 0&nbsp;: la tangente est horizontale.</p>`;
+function l2q1(){const M=MOD.enclosP(),P_=M.P,xs=P_/4;
+  return Qn(M,{spec:specOf(M),order:'Commande n° 6 · le potager le plus grand',prompt:`${M.ctx} On a établi que A(x) = x(${P_} − 2x) pour x ∈ ]0${NB};${NB}${P_/2}[. Quelles dimensions donnent le potager le plus grand&nbsp;?`,
+    parts:[fill('Développe&nbsp;:',`A(x) = ax<sup>2</sup> + bx avec a = {0} et b = {1}`,[{v:-2,c:['coef','f',2]},{v:P_,c:['coef','f',1]}],`x(${P_} − 2x) = ${P_}x − 2x<sup>2</sup>&nbsp;: a = −2 et b = ${P_}.`),
+      derPart(M),signPart(M),dialOpt(M),
+      fill('Conclusion&nbsp;:',`aire maximale&nbsp;: {0} m², pour un côté parallèle au mur de {1} m`,[{v:M.ys,c:['opt','max']},{v:P_/2,c:['atopt',`${P_}-2*x`]}],`A(${xs}) = ${xs} × (${P_} − ${2*xs}) = ${D(M.ys)}&nbsp;; le côté parallèle mesure ${P_} − 2 × ${xs} = ${P_/2}${NB}m.`)],
+    onWin:winOpt(M),done:`A′(x) = −4x + ${P_} s'annule en ${xs} en passant de + à −&nbsp;: potager maximal de ${D(M.ys)}${NB}m² pour ${xs}${NB}m sur ${P_/2}${NB}m. La longueur parallèle au mur vaut le double de la profondeur.`})}
+function l2q2(){const M=MOD.etal(),a=M.a,b=M.b,ps=q(M.xs);
+  return Qn(M,{spec:specOf(M),order:'Commande n° 7 · le bon prix',prompt:`${M.ctx} La recette est R(p) = ${lpH(M.F,'p')} pour p ∈ ${domH(M.dom)}. À quel prix vendre le jus&nbsp;?`,
+    parts:[derPart(M),
+      ch(`R′(p) = 0 pour&nbsp;:`,[OK(`p = ${D(ps)}`,['crit',s(ps)]),NO(`p = ${D(q(a).div(b))}`,['crit',s(q(a).div(b))],`${D(q(a).div(b))} annule le nombre de jus vendus (et R), pas R′. Résous ${lc([[-2*b,'p'],[a,'']])} = 0.`),
+        NO(`p = ${D(q(a).div(4*b))}`,['crit',s(q(a).div(4*b))],`Résous −${2*b}p + ${a} = 0&nbsp;: p = ${frac(a,2*b)}.`),NO(`p = ${D(q(2*b).div(a))}`,['crit',s(q(2*b).div(a))],`Attention au sens de la division&nbsp;: p = ${frac(a,2*b)}.`)]),
+      signPart(M),dialOpt(M,{ask:'Règle le prix sur la recette maximale.'}),conclPart(M)],
+    onWin:winOpt(M),done:`R′(p) = ${lpH(fd(M.F),'p')} est positive puis négative&nbsp;: la recette est maximale, ${D(M.ys)}${NB}€, pour un jus à ${D(ps)}${NB}€ (et ${a-b*ps.v} jus vendus).`})}
+function l2q3(){const M=MOD.lancer(),v=M.v0,h0=M.h0;
+  return Qn(M,{spec:specOf(M),order:'Commande n° 8 · le ballon',prompt:`${M.ctx} À quel instant le ballon est-il le plus haut, et à quelle hauteur&nbsp;?`,
+    parts:[derPart(M),
+      fill('Résous h′(t) = 0, puis calcule la hauteur maximale&nbsp;:',`t = {0} s&nbsp;; hauteur maximale&nbsp;: {1} m`,[{v:M.xs,c:['argopt','max']},{v:M.ys,c:['opt','max']}],`−10t + ${v} = 0 ⇔ t = ${D(M.xs)}, et h(${D(M.xs)}) = ${D(M.ys)}.`),
+      signPart(M,{onOk:async()=>{K.set({tan:true});await K.sweep(1400);K.live()}}),dialOpt(M,{ask:'Règle la manivelle sur l\'instant du sommet.'}),
+      ch('À cet instant, la tangente à la courbe de h est&nbsp;:',[OK('horizontale',['fpval',s(M.xs),'0']),NO(`de coefficient directeur ${v}`,['fpval',s(M.xs),s(v)],`${v} est h′(0), la pente au départ. Au sommet, h′(${D(M.xs)}) = 0.`),
+        NO(`de coefficient directeur ${D(M.ys)}`,['fpval',s(M.xs),s(M.ys)],`${D(M.ys)} est la hauteur h(${D(M.xs)}), pas la pente.`),NO('verticale',['vertical'],'h est dérivable&nbsp;: sa tangente a un coefficient directeur, ici h′ = 0.')])],
+    onWin:winOpt(M),done:`h′(t) = −10t + ${v} s'annule en t = ${D(M.xs)}${NB}s en passant de + à −&nbsp;: le ballon culmine à ${D(M.ys)}${NB}m, avec une tangente horizontale.`})}
+function l2q4(){let a,r,c;do{a=pick([-3,-2,-1,1,2,3]);r=pick([-2,-1,1,2,3]);c=ri(-4,5)}while(false);const F=P(c,-2*a*r,a),M=mk({F,nm:'f',dom:dm(null,null,1,1),goal:a>0?'min':'max',xs:r,crit:[r],step:1,gmin:r-4,gmax:r+4,x0:r-3,maq:{t:'none'},fit:{clip:[-40,40]}});
+  const b=-2*a*r,d=fd(F),y=fv(F,r);
+  return Qn(M,{spec:specOf(M),sc:{layout:'graph'},order:'Atelier d\'entraînement · la parabole',prompt:`Soit f la fonction définie sur ℝ par ${fdefH(M)}.`,
+    parts:[ch('Sa dérivée est&nbsp;:',[OK(`f′(x) = ${lpH(d)}`,['expr','fp',fsym(d)]),NO(`f′(x) = ${lpH(P(b,a))}`,['expr','fp',fsym(P(b,a))],`(x<sup>2</sup>)′ = 2x&nbsp;: le coefficient ${a} est multiplié par 2.`),
+        NO(`f′(x) = ${lpH(P(b+c,2*a))}`,['expr','fp',fsym(P(b+c,2*a))],'La dérivée d\'une constante est 0.'),NO(`f′(x) = ${lpH(P(0,2*a))}`,['expr','fp',fsym(P(0,2*a))],`(${b}x)′ = ${b}&nbsp;: ce terme ne disparaît pas.`)],{onOk:async()=>{K.set({tan:true});K.live()}}),
+      fill('f′ s\'annule pour x = {0}, et la valeur de f en ce point est {1}.','x = {0}&nbsp;; f(x) = {1}',[{v:r,c:['crit',s(r)]},{v:y,c:['val','f',s(r)]}],`${lpH(d)} = 0 ⇔ x = ${frac(-b,2*a)} = ${r}, puis f(${r}) = ${D(y)}.`),
+      ch(`En x = ${r}, f admet&nbsp;:`,[OK(a>0?'un minimum':'un maximum',['ext',s(r),a>0?'min':'max']),NO(a>0?'un maximum':'un minimum',['ext',s(r),a>0?'max':'min'],`f′ est affine de coefficient ${2*a} ${a>0?'&gt; 0 : elle passe de − à +':'&lt; 0 : elle passe de + à −'}.`),
+        NO('ni maximum ni minimum',['ext',s(r),'none'],'f′ s\'annule en changeant de signe&nbsp;: il y a bien un extremum.')],{onOk:async()=>{await K.goX(r,700);await K.shine();K.live()}}),
+      ch('La courbe de f est une parabole&nbsp;:',[OK(a>0?'tournée vers le haut':'tournée vers le bas',['opens',a>0?'up':'down']),NO(a>0?'tournée vers le bas':'tournée vers le haut',['opens',a>0?'down':'up'],`Le signe de a = ${a} décide&nbsp;: ${a>0?'a &gt; 0, la parabole s\'ouvre vers le haut':'a &lt; 0, elle s\'ouvre vers le bas'}.`)])],
+    done:`f′(x) = ${lpH(d)} s'annule en ${r}&nbsp;: f admet ${a>0?'un minimum':'un maximum'} égal à ${D(y)}, et la tangente en ce point est la droite horizontale y = ${D(y)}.`})}
+function l2q5(){const M=MOD.carre(),P_=M.P,xs=P_/4;
+  return Qn(M,{spec:specOf(M),order:'Commande n° 9 · le terrain de jeu',prompt:`${M.ctx} Quelle forme donne le plus grand terrain&nbsp;?`,
+    parts:[ch('L\'aire du terrain est&nbsp;:',[OK(`A(x) = x(${P_/2} − x)`,['expr','f',`x*(${P_/2}-x)`]),NO(`A(x) = x(${P_} − x)`,['expr','f',`x*(${P_}-x)`],`Le demi-périmètre vaut ${P_/2}&nbsp;: l'autre côté mesure ${P_/2} − x.`),
+        NO(`A(x) = x(${P_} − 2x)`,['expr','f',`x*(${P_}-2*x)`],'Ce serait le cas avec un mur. Ici les quatre côtés sont en corde.'),NO(`A(x) = 2x + 2(${P_/2} − x)`,['expr','f',`2*x+2*(${P_/2}-x)`],'Ça, c\'est le périmètre.')]),
+      derPart(M),dialOpt(M),
+      ch('Le terrain d\'aire maximale est&nbsp;:',[OK(`un carré de ${xs}${NB}m de côté`,['dims','x',s(xs),`${P_/2}-x`,s(xs)]),NO(`un rectangle de ${P_/2}${NB}m sur ${P_/4}${NB}m`,['dims','x',s(P_/2),`${P_/2}-x`,s(P_/4)],`Si x = ${xs}, l'autre côté vaut ${P_/2} − ${xs} = ${xs}.`),
+        NO(`un rectangle de ${xs+1}${NB}m sur ${xs-1}${NB}m`,['dims','x',s(xs+1),`${P_/2}-x`,s(xs-1)],`A′(x) = −2x + ${P_/2} s'annule pour x = ${xs}, pas ${xs+1}.`)])],
+    onWin:winOpt(M),done:`A′(x) = −2x + ${P_/2} s'annule en ${xs}&nbsp;: à périmètre fixé, le rectangle d'aire maximale est le carré (${D(M.ys)}${NB}m²).`})}
+LV.push({t:'Le sommet',s:'Le sommet',chap:'Optimisation · second degré',rule:rule2,qs:[l2q1,l2q2,l2q3,l2q4,l2q5]});
+
+/* =================================================================== */
+/* NIVEAU 3 · La boîte : troisième degré                                */
+/* =================================================================== */
+const rule3=`<p>(x<sup>3</sup>)′ = 3x<sup>2</sup>&nbsp;: la dérivée d'un polynôme du 3<sup>e</sup> degré est un trinôme. Son signe s'étudie avec le discriminant Δ ou une factorisation.</p><p>Si f′ s'annule en changeant de signe en a, f admet un extremum local en a.</p><p>Sur un intervalle fermé [α${NB};${NB}β], le maximum de f est la plus grande des valeurs aux extremums locaux et aux bornes.</p>`;
+function l3q1(){const M=MOD.boiteC(),c=M.c,xs=q(M.xs);
+  return Qn(M,{spec:specOf(M,{dims:M.dims}),order:'Commande n° 10 · la boîte la plus grande',prompt:`${M.ctx} Son volume est V(x) = x(${c} − 2x)<sup>2</sup> pour x ∈ ]0${NB};${NB}${c/2}[.`,
+    parts:[act('Découper et plier la boîte',async()=>{await K.fold()}),
+      fill('Développe&nbsp;:',`V(x) = 4x<sup>3</sup> + ax<sup>2</sup> + bx avec a = {0} et b = {1}`,[{v:-4*c,c:['coef','f',2]},{v:c*c,c:['coef','f',1]}],`(${c} − 2x)<sup>2</sup> = ${c*c} − ${4*c}x + 4x<sup>2</sup>, puis on multiplie par x.`),
+      derPart(M),
+      ch('Une factorisation de V′(x) est&nbsp;:',[OK(`V′(x) = (2x − ${c})(6x − ${c})`,['expr','fp',`(2*x-${c})*(6*x-${c})`]),NO(`V′(x) = (2x − ${c})(6x + ${c})`,['expr','fp',`(2*x-${c})*(6*x+${c})`],`Développe pour vérifier&nbsp;: le terme en x doit être −${8*c}x.`),
+        NO(`V′(x) = 12(x − ${c})(x − ${c/12})`,['expr','fp',`12*(x-${c})*(x-${q(c).div(12)})`],`Contrôle avec x = ${D(xs)}&nbsp;: V′(${D(xs)}) doit valoir 0.`),NO(`V′(x) = (x − ${c/2})(12x − ${c})`,['expr','fp',`(x-${q(c).div(2)})*(12*x-${c})`],`Développe&nbsp;: le terme constant serait ${c*c/2}, pas ${c*c}.`)]),
+      signPart(M,{hint:`Sur ]0${NB};${NB}${c/2}[, 2x − ${c} &lt; 0 toujours&nbsp;; seul 6x − ${c} change de signe, en ${D(xs)}.`}),
+      dialOpt(M),fill('Conclusion&nbsp;:',`volume maximal&nbsp;: {0} cm³`,[{v:M.ys,c:['opt','max']}],`V(${D(xs)}) = ${D(xs)} × ${D(q(c).sub(xs.mul(2)))}<sup>2</sup>.`)],
+    onWin:winOpt(M),done:`V′ s'annule en ${D(xs)} en passant de + à −&nbsp;: en découpant des carrés de ${D(xs)}${NB}cm, la boîte atteint ${D(M.ys)}${NB}cm³.`})}
+function l3q2(){const M=MOD.boiteR(),a=M.a,b=M.b,xs=q(M.xs),d=fd(M.F),A=co(d,2),B=co(d,1),C=co(d,0),Dl=B.mul(B).sub(A.mul(C).mul(4)),x2=B.neg().div(A).sub(xs);
+  return Qn(M,{spec:specOf(M,{dims:M.dims}),order:'Commande n° 11 · la boîte rectangulaire',prompt:`${M.ctx} Son volume est V(x) = x(${a} − 2x)(${b} − 2x) = ${lpH(M.F)} pour x ∈ ]0${NB};${NB}${D(q(a).div(2))}[.`,
+    parts:[derPart(M),
+      fill('Étudie le trinôme V′(x)&nbsp;:',`Δ = {0}&nbsp;; racines x₁ = {1} et x₂ = {2} (x₁ &lt; x₂)`,[{v:Dl,c:['disc','fp']},{v:xs,c:['root',0]},{v:x2,c:['root',1]}],`Δ = (${D(B)})<sup>2</sup> − 4 × ${D(A)} × ${D(C)} = ${D(Dl)} = ${Math.round(Math.sqrt(Dl.v))}<sup>2</sup>, puis x = ${frac('−b ± √Δ','2a')}.`),
+      ch(`Laquelle de ces racines appartient à ]0${NB};${NB}${D(q(a).div(2))}[&nbsp;?`,[OK(`${D(xs)} seulement`,['indomonly',[s(xs)],[s(x2)]]),NO(`${D(x2)} seulement`,['indomonly',[s(x2)],[s(xs)]],`${D(x2)} &gt; ${D(q(a).div(2))}&nbsp;: avec un tel x, le côté ${a} − 2x serait négatif.`),NO('les deux',['indomonly',[s(xs),s(x2)],[]],`${D(x2)} &gt; ${D(q(a).div(2))}.`)]),
+      signPart(M,{hint:`V′ est un trinôme de coefficient ${D(A)} &gt; 0&nbsp;: positif à l'extérieur des racines, négatif entre elles.`}),
+      dialOpt(M),fill('Conclusion&nbsp;:',`volume maximal&nbsp;: {0} cm³`,[{v:M.ys,c:['opt','max']}],`V(${D(xs)}) = ${D(xs)} × ${D(q(a).sub(xs.mul(2)))} × ${D(q(b).sub(xs.mul(2)))}.`)],
+    onWin:winOpt(M),done:`Une seule racine de V′ est dans l'intervalle&nbsp;: la boîte la plus grande s'obtient pour x = ${D(xs)}${NB}cm et contient ${D(M.ys)}${NB}cm³.`})}
+function l3q3(){const M=MOD.cubic(),r1=M.r1,r2=M.r2,d=fd(M.F),y1=fv(M.F,r1),y2=fv(M.F,r2);
+  return Qn(M,{spec:specOf(M),sc:{layout:'graph'},order:'Atelier d\'entraînement · le troisième degré',prompt:`Soit f la fonction définie sur [${M.lo}${NB};${NB}${M.hi}] par ${fdefH(M)}.`,
+    parts:[derPart(M),
+      fill('f′(x) = 3(x − x₁)(x − x₂). Les racines de f′ sont&nbsp;:','x₁ = {0} et x₂ = {1} (x₁ &lt; x₂)',[{v:r1,c:['root',0]},{v:r2,c:['root',1]}],`f′(x) = ${lpH(d)} = 3(${lpH(P(r1*r2,-(r1+r2),1))})&nbsp;: cherche deux nombres de somme ${r1+r2} et de produit ${r1*r2} (ou utilise Δ).`),
+      signPart(M),
+      ch('On peut en déduire que f admet&nbsp;:',[OK(`un maximum local ${D(y1)} en ${r1} et un minimum local ${D(y2)} en ${r2}`,['locpair',s(r1),s(y1),s(r2),s(y2)]),
+        NO(`un minimum local ${D(y1)} en ${r1} et un maximum local ${D(y2)} en ${r2}`,['locpair',s(r2),s(y2),s(r1),s(y1)],'f′ passe de + à − en '+r1+'&nbsp;: f monte puis descend, c\'est un maximum local.'),
+        NO(`un maximum local ${r1} en ${D(y1)} et un minimum local ${r2} en ${D(y2)}`,['locpair',s(y1),s(r1),s(y2),s(r2)],'L\'extremum est une valeur de f, atteinte en une valeur de x.')])],
+    done:`f′(x) = ${lpH(d)} = 3(${xm(r1)})(${xm(r2)})&nbsp;: + puis − puis +. Maximum local ${D(y1)} en ${r1}, minimum local ${D(y2)} en ${r2}, tangentes horizontales en ces deux points.`})}
+function l3q4(){let M,y1,yh;do{const [r1,r2]=pick(CUB);M=MOD.cubic({r:[r1,r2],d:ri(-3,3),lo:r1-1,hi:r2+(r2-r1<4?2:3)});y1=fv(M.F,M.r1);yh=fv(M.F,M.hi)}while(yh.cmp(y1)<=0);
+  const r1=M.r1,r2=M.r2;M.goal='max';const o=K.optOf(M.F,M.dom,'max',M.crit);M.xs=s(o.x);M.ys=s(o.y);
+  return Qn(M,{spec:specOf(M),sc:{layout:'graph'},order:'Atelier d\'entraînement · local ou global&nbsp;?',prompt:`Soit ${fdefH(M)} sur [${M.lo}${NB};${NB}${M.hi}]. On a f′(x) = 3(${xm(r1)})(${xm(r2)}).`,
+    parts:[signPart(M),
+      fill('Calcule&nbsp;:',`f(${r1}) = {0} et f(${M.hi}) = {1}`,[{v:y1,c:['val','f',s(r1)]},{v:yh,c:['val','f',s(M.hi)]}],`Remplace x par ${r1}, puis par ${M.hi}, dans ${fh(M.F)}.`),
+      ch(`Le maximum de f sur [${M.lo}${NB};${NB}${M.hi}] est&nbsp;:`,[OK(`${D(yh)}, atteint en x = ${M.hi}`,['optat','max',s(M.hi),s(yh)]),NO(`${D(y1)}, atteint en x = ${r1}`,['optat','max',s(r1),s(y1)],`${D(y1)} n'est qu'un maximum LOCAL&nbsp;: à la borne ${M.hi}, f vaut ${D(yh)}, c'est plus.`),
+        NO(`${D(fv(M.F,r2))}, atteint en x = ${r2}`,['optat','max',s(r2),s(fv(M.F,r2))],`En ${r2}, f′ passe de − à +&nbsp;: c'est un minimum local.`)]),
+      dial('Règle la manivelle là où f atteint son maximum sur l\'intervalle.',M.hi,x=>`Le maximum sur l'intervalle fermé se compare aux bornes&nbsp;: f(${M.hi}) = ${D(yh)} &gt; f(${r1}) = ${D(y1)}.`,{c:['argopt','max'],onOk:async()=>{await K.shine();K.live()}})],
+    done:`Sur [${M.lo}${NB};${NB}${M.hi}], le maximum de f est ${D(yh)}, atteint à la borne ${M.hi}&nbsp;: le maximum local ${D(y1)} (en ${r1}) est dépassé. Toujours comparer avec les bornes&nbsp;!`})}
+function l3q5(){const M=MOD.benef3(),r=M.r,sv=M.sv,d=fd(M.F);
+  return Qn(M,{spec:specOf(M),order:'Commande n° 12 · la coopérative',prompt:`${M.ctx} Quelle production rend le bénéfice maximal&nbsp;?`,
+    parts:[derPart(M),
+      ch('Une factorisation de B′(x) est&nbsp;:',[OK(`B′(x) = −3(x − ${r})(x + ${sv})`,['expr','fp',`-3*(x-${r})*(x+${sv})`]),NO(`B′(x) = −3(x + ${r})(x − ${sv})`,['expr','fp',`-3*(x+${r})*(x-${sv})`],`Vérifie avec x = ${r}&nbsp;: B′(${r}) = ${D(fv(d,r))}.`),
+        NO(`B′(x) = 3(x − ${r})(x + ${sv})`,['expr','fp',`3*(x-${r})*(x+${sv})`],'Le coefficient de x<sup>2</sup> dans B′(x) est −3.'),NO(`B′(x) = −3(x − ${r})(x − ${sv})`,['expr','fp',`-3*(x-${r})*(x-${sv})`],`Développe&nbsp;: le terme constant doit être ${D(co(d,0))}.`)]),
+      signPart(M,{hint:`Sur [0${NB};${NB}10], x + ${sv} &gt; 0&nbsp;: le signe de B′ est celui de −3(x − ${r}).`}),
+      dialOpt(M,{ask:'Règle la production sur le bénéfice maximal.'}),conclPart(M,{alt:[NO(`maximum ${D(fv(M.F,10))}${NB}k€ atteint pour x = 10`,['optat','max','10',s(fv(M.F,10))],'B décroît après '+r+'&nbsp;: produire plus fait baisser le bénéfice.')]})],
+    onWin:winOpt(M),done:`B′(x) = −3(x − ${r})(x + ${sv}) : + puis −. Bénéfice maximal de ${D(M.ys)} milliers d'euros pour ${r} centaines de bouteilles.`})}
+LV.push({t:'La boîte',s:'La boîte',chap:'Optimisation · troisième degré',rule:rule3,qs:[l3q1,l3q2,l3q3,l3q4,l3q5]});
+
+/* =================================================================== */
+/* NIVEAU 4 · Le moins de matière : fonctions rationnelles             */
+/* =================================================================== */
+const rule4=`<p>(${frac('k','x')})′ = ${MINUS}${frac('k','x<sup>2</sup>')} et (${frac('u','v')})′ = ${frac('u′v − uv′','v<sup>2</sup>')}.</p><p>Sur ]0${NB};${NB}+∞[, x<sup>2</sup> &gt; 0&nbsp;: si f′(x) = ${frac('N(x)','x<sup>2</sup>')}, f′(x) a le signe de N(x).</p><p>Factorisations utiles&nbsp;: x<sup>2</sup> − a<sup>2</sup> = (x − a)(x + a)&nbsp;; x<sup>3</sup> − a<sup>3</sup> = (x − a)(x<sup>2</sup> + ax + a<sup>2</sup>).</p><p>Si f′ ne s'annule pas sur [α${NB};${NB}β], l'extremum est atteint à une borne.</p>`;
+function l4q1(){const M=MOD.enclosA(),A=M.A,n=M.n;
+  return Qn(M,{spec:specOf(M),order:'Commande n° 13 · le moins de grillage',prompt:`${M.ctx} La longueur de grillage est L(x) = 2x + ${frac(A,'x')} pour x &gt; 0.`,
+    parts:[fill('Dérive&nbsp;:',`L′(x) = 2 − ${frac('k','x<sup>2</sup>')} avec k = {0}`,[{v:A,c:['ncoef','fp',-2]}],`(${frac(A,'x')})′ = ${MINUS}${frac(A,'x<sup>2</sup>')}.`,{onOk:async()=>{K.set({tan:true});K.live()}}),
+      ch('Au même dénominateur&nbsp;:',[OK(`L′(x) = ${frac(`2(x − ${n})(x + ${n})`,'x<sup>2</sup>')}`,['expr','fp',`2*(x-${n})*(x+${n})/x**2`]),NO(`L′(x) = ${frac(`2(x − ${n})<sup>2</sup>`,'x<sup>2</sup>')}`,['expr','fp',`2*(x-${n})**2/x**2`],`2x<sup>2</sup> − ${A} = 2(x<sup>2</sup> − ${n*n}) = 2(x − ${n})(x + ${n})&nbsp;: c'est a<sup>2</sup> − b<sup>2</sup>.`),
+        NO(`L′(x) = ${frac(`2x − ${A}`,'x<sup>2</sup>')}`,['expr','fp',`(2*x-${A})/x**2`],'2 = 2x²/x²&nbsp;: le numérateur est 2x<sup>2</sup> − '+A+'.'),NO(`L′(x) = ${frac(`2(x − ${n})(x + ${n})`,'x')}`,['expr','fp',`2*(x-${n})*(x+${n})/x`],'Le dénominateur commun est x<sup>2</sup>.')]),
+      signPart(M,{hint:`Sur ]0${NB};${NB}+∞[, x<sup>2</sup> &gt; 0 et x + ${n} &gt; 0&nbsp;: L′(x) a le signe de x − ${n}.`}),
+      dialOpt(M),fill('Conclusion&nbsp;:',`grillage minimal&nbsp;: {0} m, pour un enclos de {1} m sur {2} m`,[{v:4*n,c:['opt','min']},{v:n,c:['argopt','min']},{v:2*n,c:['atopt',`${A}/x`]}],`L(${n}) = ${2*n} + ${frac(A,n)} = ${4*n}&nbsp;; l'autre côté mesure ${frac(A,n)} = ${2*n}.`)],
+    onWin:winOpt(M),done:`L′ s'annule en ${n} en passant de − à +&nbsp;: ${4*n}${NB}m de grillage suffisent, pour un enclos de ${n}${NB}m sur ${2*n}${NB}m.`})}
+function l4q2(){const M=MOD.boiteV(),n=M.n,V=M.V;
+  return Qn(M,{spec:specOf(M),order:'Commande n° 14 · le moins de carton',prompt:`${M.ctx} On cherche la base qui utilise le moins de carton.`,
+    parts:[fill('La surface de carton (fond + 4 faces) est&nbsp;:',`S(x) = x<sup>2</sup> + ${frac('k','x')} avec k = {0}`,[{v:4*V,c:['coef','f',-1]}],`Fond&nbsp;: x<sup>2</sup>. Chaque face&nbsp;: x × ${frac(V,'x<sup>2</sup>')} = ${frac(V,'x')}, et il y en a 4.`),
+      fill('Dérive&nbsp;:',`S′(x) = 2x − ${frac('k','x<sup>2</sup>')} avec k = {0}`,[{v:4*V,c:['ncoef','fp',-2]}],`(${frac(4*V,'x')})′ = ${MINUS}${frac(4*V,'x<sup>2</sup>')}.`,{onOk:async()=>{K.set({tan:true});K.live()}}),
+      ch(`On a S′(x) = ${frac(`2(x<sup>3</sup> − ${n*n*n})`,'x<sup>2</sup>')}. Une factorisation de x<sup>3</sup> − ${n*n*n} est&nbsp;:`,[OK(`(x − ${n})(x<sup>2</sup> + ${n}x + ${n*n})`,['polyeq',`x**3-${n*n*n}`,`(x-${n})*(x**2+${n}*x+${n*n})`]),
+        NO(`(x − ${n})(x<sup>2</sup> − ${n}x + ${n*n})`,['polyeq',`x**3-${n*n*n}`,`(x-${n})*(x**2-${n}*x+${n*n})`],'Développe&nbsp;: les termes en x<sup>2</sup> doivent s\'éliminer.'),NO(`(x − ${n})<sup>3</sup>`,['polyeq',`x**3-${n*n*n}`,`(x-${n})**3`],'(x − a)<sup>3</sup> contient des termes en x<sup>2</sup> et en x.'),NO(`(x − ${n})(x<sup>2</sup> + ${n*n})`,['polyeq',`x**3-${n*n*n}`,`(x-${n})*(x**2+${n*n})`],'Développe&nbsp;: il reste −'+n+'x<sup>2</sup> + '+(n*n)+'x.')]),
+      signPart(M,{hint:`x<sup>2</sup> + ${n}x + ${n*n} &gt; 0 et x<sup>2</sup> &gt; 0 sur ]0${NB};${NB}+∞[&nbsp;: S′(x) a le signe de x − ${n}.`}),
+      dialOpt(M),fill('Conclusion&nbsp;:',`carton minimal&nbsp;: {0} cm², avec une hauteur de {1} cm`,[{v:3*n*n,c:['opt','min']},{v:q(n).div(2),c:['atopt',`${V}/x**2`]}],`S(${n}) = ${n*n} + ${frac(4*V,n)} = ${3*n*n}&nbsp;; hauteur ${frac(V,n*n)} = ${D(q(n).div(2))}.`)],
+    onWin:winOpt(M),done:`Le carton est minimal (${3*n*n}${NB}cm²) pour une base de ${n}${NB}cm de côté et une hauteur de ${D(q(n).div(2))}${NB}cm&nbsp;: la hauteur vaut la moitié du côté.`})}
+function l4q3(){const M=MOD.affiche(),S=M.S,a=M.a,b=M.b,xs=q(M.xs),h=q(S).div(xs);
+  return Qn(M,{spec:specOf(M),order:'Commande n° 15 · l\'affiche idéale',prompt:`${M.ctx} On a A(x) = (x − ${2*b})(${frac(S,'x')} − ${2*a}) pour x ∈ ]${2*b}${NB};${NB}${D(q(S).div(2*a))}[.`,
+    parts:[fill('Développe&nbsp;:',`A(x) = {0} − {1}x − ${frac('k','x')} avec k = {2}`,[{v:S+4*a*b,c:['coef','f',0]},{v:2*a,c:['ncoef','f',1]},{v:2*b*S,c:['ncoef','f',-1]}],`(x − ${2*b})(${frac(S,'x')} − ${2*a}) = ${S} − ${2*a}x − ${frac(2*b*S,'x')} + ${4*a*b}.`),
+      fill('Dérive&nbsp;:',`A′(x) = −${2*a} + ${frac('k','x<sup>2</sup>')} avec k = {0}`,[{v:2*b*S,c:['coef','fp',-2]}],`(${MINUS}${frac(2*b*S,'x')})′ = +${frac(2*b*S,'x<sup>2</sup>')}.`,{onOk:async()=>{K.set({tan:true});K.live()}}),
+      fill('Résous A′(x) = 0 sur l\'intervalle&nbsp;:',`x<sup>2</sup> = {0}, donc x = {1}`,[{v:xs.mul(xs),c:['atx','x**2',s(xs)]},{v:xs,c:['crit',s(xs)]}],`${2*a}x<sup>2</sup> = ${2*b*S} ⇔ x<sup>2</sup> = ${D(xs.mul(xs))}, et x &gt; 0.`),
+      signPart(M,{hint:`A′(x) = ${frac(`${2*b*S} − ${2*a}x<sup>2</sup>`,'x<sup>2</sup>')}&nbsp;: positif tant que x<sup>2</sup> &lt; ${D(xs.mul(xs))}.`}),
+      dialOpt(M),fill('Conclusion&nbsp;:',`affiche de {0} cm sur {1} cm&nbsp;; aire imprimée maximale&nbsp;: {2} cm²`,[{v:xs,c:['argopt','max']},{v:h,c:['atopt',`${S}/x`]},{v:M.ys,c:['opt','max']}],`A(${D(xs)}) = (${D(xs)} − ${2*b})(${D(h)} − ${2*a}).`)],
+    onWin:winOpt(M),done:`L'affiche idéale mesure ${D(xs)}${NB}cm sur ${D(h)}${NB}cm&nbsp;: ${D(M.ys)}${NB}cm² imprimés, le maximum possible avec ces marges.`})}
+function l4q4(){const M=MOD.quot(),k=M.k;
+  return Qn(M,{spec:specOf(M),sc:{layout:'graph'},order:'Atelier d\'entraînement · la formule du quotient',prompt:`Soit f définie sur ]0${NB};${NB}+∞[ par f(x) = ${frac(`x<sup>2</sup> + ${k*k}`,'x')}. On pose u(x) = x<sup>2</sup> + ${k*k} et v(x) = x.`,
+    parts:[fill('Avec (u/v)′ = (u′v − uv′)/v²&nbsp;:',`f′(x) = ${frac('x<sup>2</sup> − k','x<sup>2</sup>')} avec k = {0}`,[{v:k*k,c:['ncoef','fp',-2]}],`u′v − uv′ = 2x × x − (x<sup>2</sup> + ${k*k}) × 1 = x<sup>2</sup> − ${k*k}.`,{onOk:async()=>{K.set({tan:true});K.live()}}),
+      signPart(M,{hint:`x<sup>2</sup> − ${k*k} = (x − ${k})(x + ${k}) et x + ${k} &gt; 0.`}),
+      dialOpt(M,{ask:'Règle la manivelle sur le minimum de f.'}),
+      fill('Le minimum de f est&nbsp;:',`f(${k}) = {0}`,[{v:2*k,c:['opt','min']}],`f(${k}) = ${frac(`${k*k} + ${k*k}`,k)} = ${2*k}.`)],
+    onWin:winOpt(M),done:`f′(x) = ${frac(`x<sup>2</sup> − ${k*k}`,'x<sup>2</sup>')} : − puis +. f admet sur ]0${NB};${NB}+∞[ un minimum égal à ${2*k}, atteint en ${k}.`})}
+function l4q5(){const M=MOD.hom(),[a,b,c,d]=M.hom,k=a*d-b*c,lo=M.lo,hi=M.hi,yl=fv(M.F,lo),yh=fv(M.F,hi),inc=k>0;
+  M.goal='max';M.xs=s(inc?hi:lo);M.ys=s(inc?yh:yl);
+  return Qn(M,{spec:specOf(M),sc:{layout:'graph'},order:'Atelier d\'entraînement · l\'extremum au bord',prompt:`Soit f définie sur [${lo}${NB};${NB}${hi}] par f(x) = ${fh(M.F)}.`,
+    parts:[ch('Sa dérivée est&nbsp;:',[OK(`f′(x) = ${fh(fd(M.F))}`,['expr','fp',fsym(fd(M.F))]),...(a*d+b*c!==0?[NO(`f′(x) = ${fh({t:'homd',k:s(a*d+b*c),c:s(c),d:s(d)})}`,['expr','fp',fsym({t:'homd',k:s(a*d+b*c),c:s(c),d:s(d)})],'u′v − uv′&nbsp;: c\'est une DIFFÉRENCE.')]:[]),
+        NO(`f′(x) = ${fh({t:'homd',k:s(-k),c:s(c),d:s(d)})}`,['expr','fp',fsym({t:'homd',k:s(-k),c:s(c),d:s(d)})],'L\'ordre compte&nbsp;: u′v − uv′, et non uv′ − u′v.'),NO(`f′(x) = ${D(q(a).div(c))}`,['expr','fp',s(q(a).div(c))],'On ne dérive pas séparément le numérateur et le dénominateur.')],{onOk:async()=>{K.set({tan:true});K.live()}}),
+      ch(`Sur [${lo}${NB};${NB}${hi}], f est&nbsp;:`,[OK(inc?'strictement croissante':'strictement décroissante',['mono',s(lo),s(hi),inc?'inc':'dec']),NO(inc?'strictement décroissante':'strictement croissante',['mono',s(lo),s(hi),inc?'dec':'inc'],`f′(x) a le signe de ${k}, car (x + ${d})<sup>2</sup> &gt; 0.`),
+        NO('croissante puis décroissante',['monochange',s(lo),s(hi)],'f′ ne s\'annule jamais&nbsp;: f ne change pas de sens de variation.')],{onOk:async()=>{await K.sweep(1500);K.live()}}),
+      fill(`Le maximum de f sur [${lo}${NB};${NB}${hi}] est&nbsp;:`,`{0}, atteint en x = {1}`,[{v:inc?yh:yl,c:['opt','max']},{v:inc?hi:lo,c:['argopt','max']}],`f est ${inc?'croissante&nbsp;: son maximum est à droite, f('+hi+')':'décroissante&nbsp;: son maximum est à gauche, f('+lo+')'} = ${D(inc?yh:yl)}.`)],
+    onWin:async()=>{await K.goX(M.xs,600);await K.shine();K.live()},done:`f′(x) = ${fh(fd(M.F))} ne s'annule pas&nbsp;: pas de tangente horizontale, l'extremum est atteint à une borne de l'intervalle.`})}
+LV.push({t:'Le moins de matière',s:'Moins de matière',chap:'Optimisation · fonctions rationnelles',rule:rule4,qs:[l4q1,l4q2,l4q3,l4q4,l4q5]});
+
+/* =================================================================== */
+/* NIVEAU 5 · Le juste bénéfice : économie, coût marginal               */
+/* =================================================================== */
+const rule5=`<p>Bénéfice&nbsp;: B(x) = R(x) − C(x), donc B′(x) = R′(x) − C′(x).</p><p>Le <b>coût marginal</b> est C′(x)&nbsp;: il donne une valeur approchée du coût de production d'une unité supplémentaire, C(x + 1) − C(x).</p><p>Le bénéfice est maximal là où B′ s'annule en passant de + à −, c'est-à-dire là où la recette marginale R′(x) égale le coût marginal C′(x).</p><p>Coût moyen&nbsp;: CM(x) = ${frac('C(x)','x')}.</p>`;
+function l5q1(){const M=MOD.benef2(),xs=q(M.xs),C=M.C,pr=M.pr;
+  return Qn(M,{spec:specOf(M,{C:fsym(C),R:fsym(M.R)}),order:'Commande n° 16 · les lampes solaires',prompt:`${M.ctx} Combien de lampes produire pour un bénéfice maximal&nbsp;?`,
+    parts:[fill('Le bénéfice est B(x) = R(x) − C(x)&nbsp;:',`B(x) = ax<sup>2</sup> + bx + c avec a = {0}, b = {1} et c = {2}`,[{v:co(M.F,2),c:['coef','f',2]},{v:co(M.F,1),c:['coef','f',1]},{v:co(M.F,0),c:['coef','f',0]}],`B(x) = ${pr}x − (${lpH(C)})&nbsp;: les parenthèses changent tous les signes.`),
+      derPart(M),signPart(M),dialOpt(M,{ask:'Règle la production sur le bénéfice maximal.'}),
+      fill('Conclusion&nbsp;:',`bénéfice maximal&nbsp;: {0} milliers d'euros, pour {1} milliers de lampes`,[{v:M.ys,c:['opt','max']},{v:xs,c:['argopt','max']}],`B(${D(xs)}) = ${D(M.ys)}.`)],
+    onWin:winOpt(M),done:`B′(x) = ${lpH(fd(M.F))} s'annule en ${D(xs)}&nbsp;: ${D(xs)} milliers de lampes rapportent ${D(M.ys)} milliers d'euros. En ce point, coût marginal C′(${D(xs)}) = ${D(fv(fd(C),xs))} = prix de vente ${pr}.`})}
+function l5q2(){const al=pick(['0.01','0.02','0.05']),be=pick([2,3,4,5]),ga=pick([200,300,500]),C=P(ga,be,al),x0=pick([50,100,150,200]),cm=fv(fd(C),x0),dif=fv(C,x0+1).sub(fv(C,x0)),pr=cm.add(pick([1,2,3])),xb=q(pr).sub(be).div(q(al).mul(2));
+  const B=lpAdd(P(0,pr),lpSc(C,-1)),M=mk({F:C,nm:'C',ux:'',uy:'€',dom:dm(0,400,0,0),goal:null,step:10,x0:x0-20,maq:{t:'bars',title:'Production de pagnes brodés',u:'pagnes',bars:[{lab:'C′(x)',F:fd(C),col:'#7fb2ff'},{lab:'prix',F:P(pr),col:'#e8c766'}],glab:'Coût total',gu:'€'}});
+  return Qn(M,{spec:specOf(M,{fB:fsym(B)}),order:'Commande n° 17 · le coût marginal',prompt:`Un atelier de couture produit x pagnes brodés par mois (0 ≤ x ≤ 400). Le coût total, en euros, est C(x) = ${lpH(C)}.`,
+    parts:[fill('Le coût marginal est C′(x)&nbsp;:',`C′(${x0}) = {0} €`,[{v:cm,c:['val','fpC',s(x0)]}],`C′(x) = ${lpH(fd(C))}, donc C′(${x0}) = ${D(cm)}.`,{onOk:async()=>{K.set({x:s(x0)});K.set({tan:true});K.live()}}),
+      fill('Compare avec le coût réel du pagne suivant&nbsp;:',`C(${x0+1}) − C(${x0}) = {0} €`,[{v:dif,c:['diffC',s(x0),s(x0+1)]}],`C(${x0+1}) = ${D(fv(C,x0+1))} et C(${x0}) = ${D(fv(C,x0))}.`),
+      ch(`Le nombre C′(${x0}) = ${D(cm)} s'interprète comme&nbsp;:`,[OK(`le coût approximatif du ${x0+1}<sup>e</sup> pagne`,['interp','marg']),NO(`le coût moyen d'un pagne quand on en fabrique ${x0}`,['interp','moyen'],`Le coût moyen serait C(${x0})/${x0} = ${D(fv(C,x0).div(x0))}${NB}€.`),
+        NO(`le coût total de ${x0} pagnes`,['interp','total'],`C'est C(${x0}) = ${D(fv(C,x0))}${NB}€.`),NO(`le bénéfice réalisé sur le ${x0}<sup>e</sup> pagne`,['interp','benef'],'Le coût marginal ne parle que des coûts, pas des ventes.')]),
+      fill(`Chaque pagne est vendu ${D(pr)}${NB}€. Le bénéfice B(x) = ${D(pr)}x − C(x) est maximal quand B′(x) = 0, c'est-à-dire quand le coût marginal égale le prix&nbsp;:`,`C′(x) = ${D(pr)} ⇔ x = {0}`,[{v:xb,c:['argoptB','max']}],`${lpH(fd(C))} = ${D(pr)} ⇔ x = ${frac(`${D(pr)} − ${be}`,D(q(al).mul(2)))} = ${D(xb)}.`,{onOk:async()=>{K.set({x:s(xb)});await K.shine();K.live()}})],
+    done:`C′(${x0}) = ${D(cm)}${NB}€ approche bien C(${x0+1}) − C(${x0}) = ${D(dif)}${NB}€. Tant que le coût marginal reste sous le prix de vente, produire un pagne de plus augmente le bénéfice&nbsp;: optimum à ${D(xb)} pagnes.`})}
+function l5q3(){const M=MOD.cm(),al=M.al,be=M.be,ga=M.ga,xs=q(M.xs);
+  return Qn(M,{spec:specOf(M,{C:fsym(M.C)}),order:'Commande n° 18 · le coût moyen',prompt:`${M.ctx} Pour quelle production le coût moyen est-il le plus bas&nbsp;?`,
+    parts:[fill('Simplifie&nbsp;:',`CM(x) = ${lc([[al,'x'],[be,'']])} + ${frac('k','x')} avec k = {0}`,[{v:ga,c:['coef','f',-1]}],`${frac(lpH(M.C),'x')}&nbsp;: on divise chaque terme par x.`),
+      fill('Dérive&nbsp;:',`CM′(x) = ${D(al)} − ${frac('k','x<sup>2</sup>')} avec k = {0}`,[{v:ga,c:['ncoef','fp',-2]}],`(${frac(ga,'x')})′ = ${MINUS}${frac(ga,'x<sup>2</sup>')} et la constante ${be} disparaît.`,{onOk:async()=>{K.set({tan:true});K.live()}}),
+      signPart(M,{gname:'CM′(x)',sl:'CM′(x)',fl:'CM',hint:`CM′(x) = ${frac(`${lc([[al,'x<sup>2</sup>'],[-ga,'']])}`,'x<sup>2</sup>')}&nbsp;: le numérateur s'annule en ${D(xs)}.`}),
+      dialOpt(M,{ask:'Règle la production sur le coût moyen minimal.'}),
+      fill('Conclusion&nbsp;:',`coût moyen minimal&nbsp;: {0} € par centaine, pour x = {1}`,[{v:M.ys,c:['opt','min']},{v:xs,c:['argopt','min']}],`CM(${D(xs)}) = ${D(q(al).mul(xs))} + ${be} + ${frac(ga,D(xs))} = ${D(M.ys)}.`)],
+    onWin:winOpt(M),done:`Coût moyen minimal&nbsp;: ${D(M.ys)}${NB}€ pour ${D(xs)} centaines. Regarde les barres&nbsp;: à cet optimum, le coût moyen égale le coût marginal C′(${D(xs)}) = ${D(fv(fd(M.C),xs))}.`})}
+function l5q4(){const M=MOD.mabawa(),a=M.a,b=M.b,c=M.c,xs=q(M.xs);
+  return Qn(M,{spec:specOf(M),order:'Commande n° 19 · les mabawa',prompt:`${M.ctx} Quel prix de vente maximise le bénéfice&nbsp;?`,
+    parts:[ch('Le bénéfice de la soirée est&nbsp;:',[OK(`B(p) = (p − ${c})(${a} − ${b}p)`,['expr','f',`(x-${c})*(${a}-${b}*x)`]),NO(`B(p) = p(${a} − ${b}p) − ${c}`,['expr','f',`x*(${a}-${b}*x)-${c}`],`Le coût ${c}${NB}€ est payé pour CHAQUE barquette vendue.`),
+        NO(`B(p) = (p + ${c})(${a} − ${b}p)`,['expr','f',`(x+${c})*(${a}-${b}*x)`],'Le bénéfice par barquette est prix − coût.'),NO(`B(p) = p − ${c}`,['expr','f',`x-${c}`],'Il faut multiplier par le nombre de barquettes vendues.')]),
+      fill('Développe&nbsp;:',`B(p) = ap<sup>2</sup> + bp + c avec a = {0}, b = {1} et c = {2}`,[{v:-b,c:['coef','f',2]},{v:a+b*c,c:['coef','f',1]},{v:-a*c,c:['coef','f',0]}],`(p − ${c})(${a} − ${b}p) = ${a}p − ${b}p<sup>2</sup> − ${a*c} + ${b*c}p.`),
+      derPart(M),signPart(M),dialOpt(M,{ask:'Règle le prix sur le bénéfice maximal.'}),conclPart(M)],
+    onWin:winOpt(M),done:`B′(p) = ${lpH(fd(M.F),'p')} s'annule en ${D(xs)}&nbsp;: la barquette à ${D(xs)}${NB}€ rapporte ${D(M.ys)}${NB}€ par soirée.`})}
+function l5q5(){const M=MOD.kayak(),P0=M.P0,N0=M.N0,k=M.k,xs=q(M.xs);
+  return Qn(M,{spec:specOf(M),order:'Commande n° 20 · les kayaks',prompt:`${M.ctx} Quelle hausse de prix rend la recette maximale&nbsp;?`,
+    parts:[ch('La recette journalière est&nbsp;:',[OK(`R(x) = (${P0} + x)(${N0} − ${k}x)`,['expr','f',`(${P0}+x)*(${N0}-${k}*x)`]),NO(`R(x) = ${P0}x(${N0} − ${k}x)`,['expr','f',`${P0}*x*(${N0}-${k}*x)`],`Le nouveau prix est ${P0} + x.`),
+        NO(`R(x) = (${P0} + x)(${N0} − x)`,['expr','f',`(${P0}+x)*(${N0}-x)`],`Chaque euro de plus fait perdre ${k} locations&nbsp;: ${N0} − ${k}x.`),NO(`R(x) = ${P0} × ${N0} + x`,['expr','f',`${P0*N0}+x`],'Recette = prix × nombre de locations.')]),
+      derPart(M),signPart(M),dialOpt(M,{ask:'Règle la hausse de prix sur la recette maximale.'}),
+      fill('Conclusion&nbsp;:',`prix&nbsp;: {0} €&nbsp;; locations&nbsp;: {1}&nbsp;; recette maximale&nbsp;: {2} €`,[{v:xs.add(P0),c:['atopt',`${P0}+x`]},{v:q(N0).sub(xs.mul(k)),c:['atopt',`${N0}-${k}*x`]},{v:M.ys,c:['opt','max']}],`Pour x = ${D(xs)}&nbsp;: ${P0} + ${D(xs)} et ${N0} − ${k} × ${D(xs)}.`)],
+    onWin:winOpt(M),done:`R′(x) = ${lpH(fd(M.F))} s'annule en ${D(xs)}&nbsp;: à ${D(xs.add(P0))}${NB}€ la demi-journée, ${D(q(N0).sub(xs.mul(k)))} locations rapportent ${D(M.ys)}${NB}€.`})}
+LV.push({t:'Le juste bénéfice',s:'Le bénéfice',chap:'Optimisation · économie et coût marginal',rule:rule5,qs:[l5q1,l5q2,l5q3,l5q4,l5q5]});
+
+/* =================================================================== */
+/* NIVEAU 6 · Le plancher : inégalités                                  */
+/* =================================================================== */
+const rule6=`<p>Pour démontrer que f(x) ≥ m pour tout x de I&nbsp;: on étudie les variations de f sur I&nbsp;; si le minimum de f sur I vaut m, alors f(x) ≥ m sur I.</p><p>Pour comparer deux expressions A(x) et B(x), on étudie le signe de A(x) − B(x).</p><p>Une fonction strictement monotone qui s'annule en r change de signe en r.</p>`;
+const gsc=(M,o)=>()=>K.reset(Object.assign({M,layout:'graph',x:M.x0,reveal:1},o||{}));
+function l6q1(){const M=MOD.ineqK(),k=M.k;
+  return Qn(M,{spec:specOf(M),scene:gsc(M),order:'Démonstration · le plancher',prompt:`Démontrer que pour tout x &gt; 0, x + ${frac(k*k,'x')} ≥ ${2*k}. On étudie f(x) = x + ${frac(k*k,'x')} sur ]0${NB};${NB}+∞[.`,
+    parts:[fill('Dérive&nbsp;:',`f′(x) = 1 − ${frac('k','x<sup>2</sup>')} avec k = {0}`,[{v:k*k,c:['ncoef','fp',-2]}],`(${frac(k*k,'x')})′ = ${MINUS}${frac(k*k,'x<sup>2</sup>')}.`,{onOk:async()=>{K.set({tan:true});K.live()}}),
+      signPart(M,{hint:`f′(x) = ${frac(`(x − ${k})(x + ${k})`,'x<sup>2</sup>')}.`}),
+      fill('Le minimum de f sur ]0 ; +∞[ est&nbsp;:',`f(${k}) = {0}`,[{v:2*k,c:['opt','min']}],`f(${k}) = ${k} + ${frac(k*k,k)} = ${2*k}.`,{onOk:async()=>{K.set({floor:s(2*k)});await K.goX(k,600);await K.shine();K.live()}}),
+      ch('Conclusion&nbsp;:',[OK(`pour tout x &gt; 0, x + ${frac(k*k,'x')} ≥ ${2*k}`,['ineq','f','ge',s(2*k),'0',null,true,true]),NO(`pour tout x &gt; 0, x + ${frac(k*k,'x')} &gt; ${2*k}`,['ineq','f','gt',s(2*k),'0',null,true,true],`Pour x = ${k}, il y a égalité&nbsp;: l'inégalité stricte est fausse.`),
+        NO(`pour tout x &gt; 0, x + ${frac(k*k,'x')} ≤ ${2*k}`,['ineq','f','le',s(2*k),'0',null,true,true],`${2*k} est un MINIMUM&nbsp;: f(x) est au-dessus.`),NO(`pour tout x &gt; 0, x + ${frac(k*k,'x')} ≥ ${2*k+1}`,['ineq','f','ge',s(2*k+1),'0',null,true,true],`Faux pour x = ${k}&nbsp;: f(${k}) = ${2*k}.`)])],
+    done:`f décroît puis croît, son minimum est f(${k}) = ${2*k}&nbsp;: la courbe ne passe jamais sous le plancher y = ${2*k}, elle le touche en x = ${k}.`})}
+function l6q2(){const M=MOD.ineqCube(),k=M.k,K3=k*k*k,K2=3*k*k;
+  return Qn(M,{spec:specOf(M),scene:gsc(M),order:'Démonstration · comparer deux expressions',prompt:`Démontrer que pour tout x ≥ 0, x<sup>3</sup> + ${2*K3} ≥ ${K2}x.`,
+    parts:[ch('On étudie le signe de&nbsp;:',[OK(`h(x) = x<sup>3</sup> − ${K2}x + ${2*K3}`,['expr','f',`x**3-${K2}*x+${2*K3}`]),NO(`h(x) = x<sup>3</sup> + ${K2}x + ${2*K3}`,['expr','f',`x**3+${K2}*x+${2*K3}`],`On étudie la DIFFÉRENCE (x<sup>3</sup> + ${2*K3}) − ${K2}x.`),NO(`h(x) = x<sup>3</sup> − ${K2}x − ${2*K3}`,['expr','f',`x**3-${K2}*x-${2*K3}`],`Le terme ${2*K3} est du côté gauche&nbsp;: il garde son signe +.`)]),
+      fill('Dérive&nbsp;:',`h′(x) = 3x<sup>2</sup> − {0}`,[{v:K2,c:['ncoef','fp',0]}],`(−${K2}x)′ = −${K2} et la constante disparaît.`,{onOk:async()=>{K.set({tan:true});K.live()}}),
+      signPart(M,{hint:`h′(x) = 3(x − ${k})(x + ${k}) et x + ${k} &gt; 0 sur [0${NB};${NB}+∞[.`}),
+      fill('Le minimum de h sur [0 ; +∞[ vaut&nbsp;:',`h(${k}) = {0}`,[{v:0,c:['opt','min']}],`h(${k}) = ${K3} − ${K2*k} + ${2*K3} = 0.`,{onOk:async()=>{K.set({floor:'0'});await K.goX(k,600);await K.shine();K.live()}}),
+      ch('Conclusion&nbsp;:',[OK(`h(x) ≥ 0 sur [0${NB};${NB}+∞[, donc x<sup>3</sup> + ${2*K3} ≥ ${K2}x`,['ineq','f','ge','0','0',null,false,true]),NO(`h(x) &gt; 0 sur [0${NB};${NB}+∞[, donc x<sup>3</sup> + ${2*K3} &gt; ${K2}x`,['ineq','f','gt','0','0',null,false,true],`h(${k}) = 0&nbsp;: égalité pour x = ${k}.`),
+        NO(`h(x) ≤ 0 sur [0${NB};${NB}+∞[`,['ineq','f','le','0','0',null,false,true],'0 est le minimum de h&nbsp;: h(x) est au-dessus.')])],
+    done:`Le minimum de h sur [0${NB};${NB}+∞[ est h(${k}) = 0&nbsp;: h(x) ≥ 0, c'est-à-dire x<sup>3</sup> + ${2*K3} ≥ ${K2}x, avec égalité seulement pour x = ${k}.`})}
+function l6q3(){const M=MOD.signCube(),r=M.r,p=M.p,c=r*r*r+p*r;
+  return Qn(M,{spec:specOf(M),scene:gsc(M),order:'Démonstration · le signe par les variations',prompt:`Soit f la fonction définie sur ℝ par ${fdefH(M)}. On cherche le signe de f(x).`,
+    parts:[fill('Dérive&nbsp;:',`f′(x) = 3x<sup>2</sup> + {0}`,[{v:p,c:['coef','fp',0]}],`(${lc([[p,'x']])})′ = ${p} et la constante disparaît.`,{onOk:async()=>{K.set({tan:true});K.live()}}),
+      ch('Sur ℝ, f est&nbsp;:',[OK('strictement croissante',['mono',s(r-5),s(r+5),'inc']),NO('strictement décroissante',['mono',s(r-5),s(r+5),'dec'],`3x<sup>2</sup> ≥ 0 et ${p} &gt; 0&nbsp;: f′(x) &gt; 0 partout.`),NO('croissante puis décroissante',['monochange',s(r-5),s(r+5)],'f′(x) = 3x<sup>2</sup> + '+p+' ne s\'annule jamais.')],{onOk:async()=>{await K.sweep(1400);K.live()}}),
+      fill('Cherche une racine évidente&nbsp;:',`f({0}) = 0`,[{v:r,c:['rootf']}],`Essaie de petits entiers&nbsp;: f(${r}) = ${r<0?'('+r+')':r}<sup>3</sup> ${p*r<0?MINUS:'+'} ${Math.abs(p*r)} ${c<0?'+':MINUS} ${Math.abs(c)} = 0.`,{onOk:async()=>{K.set({pts:[{x:s(r),y:'0',lab:''}]});await K.goX(r,600);K.live()}}),
+      signPart(M,{G:M.F,crit:[r],gname:'f(x)',sl:'f(x)',fl:'',values:false,gk:'f',ask:`Complète le signe de f(x) sur ℝ.`,hint:`f est croissante et s'annule en ${r}&nbsp;: avant ${r}, f(x) &lt; f(${r}) = 0.`,onOk:async()=>{await K.shine();K.live()}})],
+    done:`f est strictement croissante sur ℝ et f(${r}) = 0&nbsp;: f(x) &lt; 0 pour x &lt; ${r} et f(x) &gt; 0 pour x &gt; ${r}.`})}
+function l6q4(){const M=MOD.ineqSq(),n=M.n,N3=2*n*n*n;
+  return Qn(M,{spec:specOf(M),scene:gsc(M),order:'Démonstration · toucher le plancher',prompt:`Démontrer que pour tout x &gt; 0, x<sup>2</sup> + ${frac(N3,'x')} ≥ ${3*n*n}. On étudie g(x) = x<sup>2</sup> + ${frac(N3,'x')} sur ]0${NB};${NB}+∞[.`,
+    parts:[fill('Dérive&nbsp;:',`g′(x) = 2x − ${frac('k','x<sup>2</sup>')} avec k = {0}`,[{v:N3,c:['ncoef','fp',-2]}],`(${frac(N3,'x')})′ = ${MINUS}${frac(N3,'x<sup>2</sup>')}.`,{onOk:async()=>{K.set({tan:true,floor:s(3*n*n)});K.live()}}),
+      ch(`g′(x) = ${frac(`2(x<sup>3</sup> − ${n*n*n})`,'x<sup>2</sup>')} est du signe de&nbsp;:`,[OK(`x − ${n}`,['samesign','fp',`x-${n}`,'0',null]),NO(`x + ${n}`,['samesign','fp',`x+${n}`,'0',null],`x<sup>3</sup> − ${n*n*n} = (x − ${n})(${lc([[1,'x<sup>2</sup>'],[n,'x'],[n*n,'']])}), et le second facteur est positif.`),NO(`${n} − x`,['samesign','fp',`${n}-x`,'0',null],`Pour x = ${2*n}, g′(x) &gt; 0 alors que ${n} − ${2*n} &lt; 0.`)]),
+      signPart(M),dialOpt(M,{ask:'Règle la manivelle là où la courbe touche le plancher.'}),
+      fill('Le minimum de g est donc&nbsp;:',`g(${n}) = {0}`,[{v:3*n*n,c:['opt','min']}],`g(${n}) = ${n*n} + ${frac(N3,n)} = ${3*n*n}.`)],
+    done:`Minimum ${3*n*n} en x = ${n}&nbsp;: pour tout x &gt; 0, x<sup>2</sup> + ${frac(N3,'x')} ≥ ${3*n*n}. La courbe pose un seul point sur le plancher.`})}
+function l6q5(){const M=MOD.encadre(),k=M.k,hi=M.hi,fm=fv(M.F,k),fh_=fv(M.F,hi);
+  return Qn(M,{spec:specOf(M),scene:gsc(M),order:'Démonstration · l\'encadrement',prompt:`Soit ${fdefH(M)} sur [0${NB};${NB}${hi}]. On cherche deux nombres m et M tels que m ≤ f(x) ≤ M pour tout x de [0${NB};${NB}${hi}].`,
+    parts:[fill('Dérive&nbsp;:',`f′(x) = 3x<sup>2</sup> − {0}`,[{v:3*k*k,c:['ncoef','fp',0]}],'(x<sup>3</sup>)′ = 3x<sup>2</sup>.',{onOk:async()=>{K.set({tan:true});K.live()}}),
+      signPart(M),
+      fill('Lis le tableau&nbsp;:',`minimum&nbsp;: m = {0}&nbsp;; maximum&nbsp;: M = {1}`,[{v:fm,c:['opt','min']},{v:fh_,c:['optmax']}],`Compare les valeurs du tableau&nbsp;: f(0) = 0, f(${k}) = ${D(fm)}, f(${hi}) = ${D(fh_)}.`),
+      ch('Conclusion&nbsp;:',[OK(`pour tout x de [0${NB};${NB}${hi}], ${D(fm)} ≤ f(x) ≤ ${D(fh_)}`,['encadre',s(fm),s(fh_)]),NO(`pour tout x de [0${NB};${NB}${hi}], ${D(fm)} ≤ f(x) ≤ 0`,['encadre',s(fm),'0'],`f(${hi}) = ${D(fh_)} &gt; 0&nbsp;: le maximum est atteint à la borne.`),
+        NO(`pour tout x de [0${NB};${NB}${hi}], 0 ≤ f(x) ≤ ${D(fh_)}`,['encadre','0',s(fh_)],`f(${k}) = ${D(fm)} &lt; 0.`)],{onOk:async()=>{K.set({floor:s(fm)});await K.goX(k,600);await K.shine();K.live()}})],
+    done:`Sur [0${NB};${NB}${hi}]&nbsp;: ${D(fm)} ≤ f(x) ≤ ${D(fh_)}. Le minimum est un extremum local, le maximum est atteint à la borne ${hi}.`})}
+LV.push({t:'Le plancher',s:'Le plancher',chap:'Inégalités · signe par les variations',rule:rule6,qs:[l6q1,l6q2,l6q3,l6q4,l6q5]});
+
+/* =================================================================== */
+/* NIVEAU 7 · Au-dessus, en dessous : position relative                */
+/* =================================================================== */
+const rule7=`<p>Position relative de 𝒞<sub>f</sub> et 𝒞<sub>g</sub>&nbsp;: on étudie le signe de h(x) = f(x) − g(x).</p><p>h(x) &gt; 0&nbsp;: 𝒞<sub>f</sub> est au-dessus de 𝒞<sub>g</sub>&nbsp;; h(x) &lt; 0&nbsp;: en dessous&nbsp;; h(x) = 0&nbsp;: les courbes ont un point commun.</p><p>Courbe et tangente en a&nbsp;: on étudie f(x) − [f′(a)(x − a) + f(a)].</p>`;
+const psc=(M,o)=>()=>K.reset(Object.assign({M:Object.assign({},M,{F:M.f,nm:'f'}),layout:'graph',x:M.x0,reveal:1,g:M.g,gap:true},o||{}));
+/* la scène montre f et g ; l'écart vertical coloré est h(x) */
+function l7q1(){const M=MOD.posPara(),f=M.f,g=M.g,r=M.r,e=M.e,hp=fd(M.F);
+  const kind=e===0?'above_touch':'above_strict';
+  return Qn(M,{spec:specOf(M,{fF:fsym(f),g:fsym(g)}),scene:psc(M),order:'Position relative · parabole et droite',prompt:`Soit f(x) = ${lpH(f)} et g(x) = ${lpH(g)} sur ℝ. Étudier la position relative de 𝒞<sub>f</sub> et 𝒞<sub>g</sub>.`,
+    parts:[fill('Calcule la différence&nbsp;:',`h(x) = f(x) − g(x) = x<sup>2</sup> + bx + c avec b = {0} et c = {1}`,[{v:co(M.F,1),c:['coef','f',1]},{v:co(M.F,0),c:['coef','f',0]}],`h(x) = ${lpH(f)} − (${lpH(g)})&nbsp;: la parenthèse change les signes.`),
+      fill('Dérive h&nbsp;:',`h′(x) = 2x + {0}`,[{v:co(hp,0),c:['coef','fp',0]}],`(x<sup>2</sup>)′ = 2x et (${D(co(M.F,1))}x)′ = ${D(co(M.F,1))}.`),
+      signPart(M,{gname:'h′(x)',sl:'h′(x)',fl:'h',onOk:async()=>{await K.sweep(1500);K.live()}}),
+      fill('Le minimum de h vaut&nbsp;:',`h(${r}) = {0}`,[{v:e,c:['opt','min']}],`h′ s'annule en ${r}&nbsp;: remplace x par ${r} dans h(x) = ${lpH(M.F)}.`),
+      ch('Conclusion&nbsp;:',[OK(e===0?'𝒞<sub>f</sub> est au-dessus de 𝒞<sub>g</sub>, avec un seul point commun':'𝒞<sub>f</sub> est strictement au-dessus de 𝒞<sub>g</sub>',['pos',kind]),
+        NO(e===0?'𝒞<sub>f</sub> est strictement au-dessus de 𝒞<sub>g</sub>':'𝒞<sub>f</sub> est au-dessus de 𝒞<sub>g</sub>, avec un seul point commun',['pos',e===0?'above_strict':'above_touch'],e===0?`h(${r}) = 0&nbsp;: les courbes se touchent en x = ${r}.`:`Le minimum de h est ${e} &gt; 0&nbsp;: aucun point commun.`),
+        NO('𝒞<sub>f</sub> est en dessous de 𝒞<sub>g</sub>',['pos','below'],'h(x) ≥ '+e+'&nbsp;: f(x) − g(x) n\'est jamais négatif.'),NO('les courbes se croisent en deux points',['pos','cross'],'h ne prend jamais de valeur négative.')],{onOk:async()=>{await K.goX(r,600);await K.shine();K.live()}})],
+    done:e===0?`h(x) = (${xm(r)})<sup>2</sup> ≥ 0&nbsp;: la parabole est au-dessus de la droite et la touche en x = ${r}&nbsp;: cette droite est la tangente en ce point.`:`h(x) = (${xm(r)})<sup>2</sup> + ${e} ≥ ${e} &gt; 0&nbsp;: la parabole reste toujours au-dessus de la droite.`})}
+function l7q2(){const M=MOD.posTanCube(),a=M.a;
+  return Qn(M,{spec:specOf(M,{fF:fsym(M.f),g:fsym(M.g)}),scene:psc(M,{gap:false,g:null}),order:'Position relative · la courbe et sa tangente',prompt:`Soit f(x) = x<sup>3</sup> sur [0${NB};${NB}+∞[ et T sa tangente au point d'abscisse ${a}. Étudier la position de 𝒞<sub>f</sub> par rapport à T.`,
+    parts:[fill('Équation de T&nbsp;: y = f′(a)(x − a) + f(a)&nbsp;:',`T&nbsp;: y = {0}x + {1}`,[{v:3*a*a,c:['tanm',s(a)]},{v:-2*a*a*a,c:['tanp',s(a)]}],`f′(x) = 3x<sup>2</sup>, f′(${a}) = ${3*a*a}, f(${a}) = ${a*a*a}&nbsp;: y = ${3*a*a}(x − ${a}) + ${a*a*a}.`,{onOk:async()=>{K.set({g:M.g,gap:true});K.live()}}),
+      fill('On pose h(x) = x³ − (' + `${3*a*a}x − ${2*a*a*a}). Dérive&nbsp;:`,`h′(x) = 3x<sup>2</sup> − {0}`,[{v:3*a*a,c:['ncoef','fp',0]}],`h(x) = x<sup>3</sup> − ${3*a*a}x + ${2*a*a*a}.`),
+      signPart(M,{gname:'h′(x)',sl:'h′(x)',fl:'h',onOk:async()=>{await K.sweep(1500);K.live()}}),
+      dial('Règle la manivelle là où l\'écart h(x) est le plus petit.',a,x=>`L'écart vertical vaut h(${D(x)}) = ${D(fv(M.F,x))}. Le minimum de h est atteint là où h′ s'annule.`,{c:['argopt','min'],onOk:async()=>{await K.shine();K.live()}}),
+      ch('Conclusion&nbsp;:',[OK(`𝒞<sub>f</sub> est au-dessus de T sur [0${NB};${NB}+∞[ (contact en x = ${a})`,['pos','above_touch']),NO('𝒞<sub>f</sub> est en dessous de T',['pos','below'],`h(${a}) = 0 est le minimum de h&nbsp;: h(x) ≥ 0.`),NO(`𝒞<sub>f</sub> traverse T en x = ${a}`,['pos','cross'],'h ne devient jamais négatif sur [0 ; +∞[.')])],
+    done:`h(x) = x<sup>3</sup> − ${3*a*a}x + ${2*a*a*a} a pour minimum h(${a}) = 0 sur [0${NB};${NB}+∞[&nbsp;: la courbe de la fonction cube y est au-dessus de sa tangente en ${a}.`})}
+function l7q3(){const M=MOD.posTanInv(),a=M.a,m=q(-1).div(a*a),p=q(2).div(a);
+  return Qn(M,{spec:specOf(M,{fF:fsym(M.f),g:fsym(M.g)}),scene:psc(M,{gap:false,g:null}),order:'Position relative · l\'hyperbole et sa tangente',prompt:`Soit f(x) = ${frac(1,'x')} sur ]0${NB};${NB}+∞[ et T sa tangente au point d'abscisse ${a}.`,
+    parts:[fill('Équation de T&nbsp;:',`T&nbsp;: y = {0}x + {1}`,[{v:m,c:['tanm',s(a)]},{v:p,c:['tanp',s(a)]}],`f′(x) = ${MINUS}${frac(1,'x<sup>2</sup>')}, f′(${a}) = ${D(m)}, f(${a}) = ${D(q(1).div(a))}.`,{onOk:async()=>{K.set({g:M.g,gap:true});K.live()}}),
+      ch(`Avec h(x) = ${frac(1,'x')} − (${lc([[m,'x'],[p,'']])}), on obtient&nbsp;:`,[OK(`h′(x) = ${frac(`x<sup>2</sup> − ${a*a}`,`${a*a===1?'':a*a}x<sup>2</sup>`)}`,['expr','fp',`(x**2-${a*a})/(${a*a}*x**2)`]),NO(`h′(x) = ${frac(`${a*a} − x<sup>2</sup>`,`${a*a===1?'':a*a}x<sup>2</sup>`)}`,['expr','fp',`(${a*a}-x**2)/(${a*a}*x**2)`],`h′(x) = ${MINUS}${frac(1,'x<sup>2</sup>')} + ${frac(1,a*a)}&nbsp;: positif pour x grand.`),
+        NO(`h′(x) = ${MINUS}${frac(1,'x<sup>2</sup>')}`,['expr','fp',`-1/x**2`],`La dérivée de ${MINUS}(${lc([[m,'x'],[p,'']])}) vaut +${D(m.neg())}.`)]),
+      signPart(M,{gname:'h′(x)',sl:'h′(x)',fl:'h',onOk:async()=>{await K.sweep(1500);K.live()}}),
+      ch('Conclusion&nbsp;:',[OK(`𝒞<sub>f</sub> est au-dessus de T sur ]0${NB};${NB}+∞[ (contact en x = ${a})`,['pos','above_touch']),NO('𝒞<sub>f</sub> est en dessous de T',['pos','below'],`Le minimum de h est h(${a}) = 0.`),NO(`𝒞<sub>f</sub> est strictement au-dessus de T`,['pos','above_strict'],`h(${a}) = 0&nbsp;: la courbe touche sa tangente.`)],{onOk:async()=>{await K.goX(a,600);await K.shine();K.live()}})],
+    done:`h décroît puis croît, h(${a}) = 0&nbsp;: sur ]0${NB};${NB}+∞[, l'hyperbole est au-dessus de chacune de ses tangentes.`})}
+function l7q4(){const M=MOD.posCross(),m=M.m;
+  return Qn(M,{spec:specOf(M,{fF:fsym(M.f),g:fsym(M.g)}),scene:psc(M),order:'Position relative · se croiser',prompt:`Soit f(x) = x<sup>3</sup> et g(x) = ${m*m===1?'':m*m}x sur [0${NB};${NB}+∞[.`,
+    parts:[ch('h(x) = f(x) − g(x) se factorise en&nbsp;:',[OK(`x(x − ${m})(x + ${m})`,['expr','f',`x*(x-${m})*(x+${m})`]),NO(`x(x − ${m})<sup>2</sup>`,['expr','f',`x*(x-${m})**2`],`x<sup>3</sup> − ${lc([[m*m,'x']])} = x(x<sup>2</sup> − ${m*m}) et x<sup>2</sup> − ${m*m} est une différence de carrés.`),NO(`(x − ${m})(x + ${m})`,['expr','f',`(x-${m})*(x+${m})`],'On a mis x en facteur&nbsp;: il ne doit pas disparaître.')]),
+      signPart(M,{G:M.F,crit:[m],gname:'h(x)',sl:'h(x)',fl:'',values:false,gk:'f',ask:`Complète le signe de h(x) sur [0${NB};${NB}+∞[ (h(0) = 0).`,hint:`Sur ]0${NB};${NB}+∞[, x &gt; 0 et x + ${m} &gt; 0&nbsp;: h(x) a le signe de x − ${m}.`,onOk:async()=>{await K.sweep(1500);K.live()}}),
+      ch(`Sur ]0${NB};${NB}${m}[&nbsp;:`,[OK('𝒞<sub>f</sub> est en dessous de 𝒞<sub>g</sub>',['subpos','0',s(m),'below']),NO('𝒞<sub>f</sub> est au-dessus de 𝒞<sub>g</sub>',['subpos','0',s(m),'above'],`Pour x = ${D(q(m).div(2))}, h(x) = ${D(fv(M.F,q(m).div(2)))} &lt; 0.`)]),
+      fill('Les courbes se coupent en x = 0 et en&nbsp;:','x = {0}',[{v:m,c:['inter']}],`h(x) = 0 ⇔ x = 0 ou x = ${m} (ou −${m}, exclu).`,{onOk:async()=>{K.set({pts:[{x:'0',y:'0',lab:''},{x:s(m),y:s(m*m*m),lab:''}]});await K.goX(m,600);await K.shine();K.live()}})],
+    done:`𝒞<sub>f</sub> est sous 𝒞<sub>g</sub> sur ]0${NB};${NB}${m}[ et au-dessus sur ]${m}${NB};${NB}+∞[&nbsp;; elles se coupent en x = 0 et x = ${m}.`})}
+function l7q5(){const M=MOD.posCourse(),r=M.r,k=M.k,c=r*r*r+k*r;
+  return Qn(M,{spec:specOf(M,{fF:fsym(M.f),g:fsym(M.g)}),scene:psc(M),order:'Position relative · au-dessus à partir de r',prompt:`Soit f(x) = x<sup>3</sup> et g(x) = ${lpH(M.g)} sur [${r}${NB};${NB}+∞[. Étudier la position relative de 𝒞<sub>f</sub> et 𝒞<sub>g</sub>.`,
+    parts:[fill('Calcule la différence&nbsp;:',`h(x) = x<sup>3</sup> + {0}x − {1}`,[{v:k,c:['coef','f',1]},{v:c,c:['ncoef','f',0]}],`x<sup>3</sup> − (${lpH(M.g)}) = x<sup>3</sup> + ${k===1?'':k}x − ${c}.`),
+      ch(`h′(x) = 3x<sup>2</sup> + ${k}. Donc sur [${r}${NB};${NB}+∞[, h est&nbsp;:`,[OK('strictement croissante',['mono',s(r),s(r+5),'inc']),NO('strictement décroissante',['mono',s(r),s(r+5),'dec'],`3x<sup>2</sup> + ${k} &gt; 0.`),NO('constante',['mono',s(r),s(r+5),'const'],'h′ n\'est pas nulle.')],{onOk:async()=>{await K.sweep(1400);K.live()}}),
+      fill('Calcule&nbsp;:',`h(${r}) = {0}`,[{v:0,c:['val','f',s(r)]}],`h(${r}) = ${r*r*r} + ${k*r} − ${c}.`,{onOk:async()=>{await K.goX(r,500);await K.shine();K.live()}}),
+      ch('Conclusion&nbsp;:',[OK(`𝒞<sub>f</sub> est au-dessus de 𝒞<sub>g</sub> sur [${r}${NB};${NB}+∞[, avec égalité en x = ${r}`,['pos','above_touch']),NO(`𝒞<sub>f</sub> est en dessous de 𝒞<sub>g</sub> sur [${r}${NB};${NB}+∞[`,['pos','below'],`h est croissante et h(${r}) = 0&nbsp;: h(x) ≥ 0.`),NO(`𝒞<sub>f</sub> est strictement au-dessus de 𝒞<sub>g</sub> sur [${r}${NB};${NB}+∞[`,['pos','above_strict'],`En x = ${r}, h(${r}) = 0&nbsp;: point commun.`)])],
+    done:`h croissante sur [${r}${NB};${NB}+∞[ et h(${r}) = 0&nbsp;: h(x) ≥ 0, donc 𝒞<sub>f</sub> est au-dessus de 𝒞<sub>g</sub>, avec un point commun en x = ${r}.`})}
+LV.push({t:'Au-dessus, en dessous',s:'Position',chap:'Position relative de deux courbes',rule:rule7,qs:[l7q1,l7q2,l7q3,l7q4,l7q5]});
+})();
+</script>
+<script>
+/* ======================= L'ATELIER OPTIMUM — épreuves finales Bronze, Argent, Or ======================= */
+(function(){
+'use strict';
+const K=window.AOK,{Q,q,s,D,Dt,frac,writes,ri,pick,shuf,LP,P,lpAdd,lpSc,co,fv,fd,fsym,lpH,fh,lc,xm,domH,MINUS,NB,MOD,specOf,optOf}=K;
+/* QCM : choix dédoublonnés (par texte), 3 ou 4 choix ; chaque choix porte une affirmation vérifiable (chk) */
+function QCM(level,prompt,list,explain,o){const seen=new Set(),out=[];
+  for(const c of list){if(seen.has(c.h))continue;seen.add(c.h);out.push(c);if(out.length===4)break}
+  if(out.length<3||out.filter(c=>c.ok).length!==1)return null;
+  return Object.assign({type:'qcm',level,prompt,choices:out.map(c=>c.h),answer:out.findIndex(c=>c.ok),explain,chk:out.map(c=>c.c)},o||{})}
+const OK=(h,c)=>({h,c,ok:true}),NO=(h,c)=>({h,c});
+function TR(level,prompt,blanks,explain,o){return Object.assign({type:'trous',level,prompt,explain,
+  blanks:blanks.map(b=>({answers:(b.extra||[]).concat(writes(b.v)).filter((x,i,a)=>a.indexOf(x)===i),size:Math.max(3,Dt(b.v).length+1),c:b.c,v:s(b.v)}))},o||{})}
+const u=t=>t?NB+t:'';
+const valC=(x,v)=>['val','f',s(x)];
+
+/* ---------- niveau 1 : modéliser ---------- */
+function G1(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){const M=MOD.enclosP(),P_=M.P,x0=pick([1,2,3].filter(z=>z!==P_/4));const v=x0*(P_-2*x0);
+      return QCM(1,`${M.ctx} Pour x = ${x0}, l'aire du potager vaut&nbsp;:`,[OK(`${v}${NB}m²`,['valis','f',s(x0),s(v)]),NO(`${x0*(P_-x0)}${NB}m²`,['valis','f',s(x0),s(x0*(P_-x0))]),NO(`${P_}${NB}m²`,['valis','f',s(x0),s(P_)]),NO(`${x0*(P_/2-x0)}${NB}m²`,['valis','f',s(x0),s(x0*(P_/2-x0))])],
+        `Le côté parallèle au mur mesure ${P_} − 2 × ${x0} = ${P_-2*x0}${NB}m, et l'aire vaut ${x0} × ${P_-2*x0} = ${v}${NB}m².`,{spec:specOf(M),steps:1})}
+    const M=MOD.etal(),a=M.a,b=M.b,p0=pick([1,2]);
+    return TR(1,`${M.ctx} Au prix de ${p0}${NB}€, on vend {0} jus et la recette est de {1}${NB}€.`,[{v:a-b*p0,c:['atx',`${a}-${b}*x`,s(p0)]},{v:p0*(a-b*p0),c:['val','f',s(p0)]}],
+      `${a} − ${b} × ${p0} = ${a-b*p0} jus, à ${p0}${NB}€ chacun&nbsp;: ${p0*(a-b*p0)}${NB}€.`,{spec:specOf(M),steps:1})}
+  if(t==='argent'){
+    if(ty==='qcm'){const k=pick(['b','e']);
+      if(k==='b'){const M=MOD.boiteC(),c=M.c;return QCM(1,`${M.ctx} Le volume de la boîte, en cm³, est&nbsp;:`,[OK(`V(x) = x(${c} − 2x)<sup>2</sup>`,['expr','f',`x*(${c}-2*x)**2`]),NO(`V(x) = (${c} − 2x)<sup>2</sup>`,['expr','f',`(${c}-2*x)**2`]),NO(`V(x) = x(${c} − x)<sup>2</sup>`,['expr','f',`x*(${c}-x)**2`]),NO(`V(x) = x<sup>2</sup>(${c} − 2x)`,['expr','f',`x**2*(${c}-2*x)`])],
+        `La base est un carré de côté ${c} − 2x (on retire x de chaque côté) et la hauteur est x&nbsp;: V(x) = x(${c} − 2x)<sup>2</sup>.`,{spec:specOf(M,{dims:M.dims}),steps:2})}
+      const M=MOD.enclosA(),A=M.A;return QCM(1,`${M.ctx} La longueur de grillage, en mètres, est&nbsp;:`,[OK(`L(x) = 2x + ${frac(A,'x')}`,['expr','f',`2*x+${A}/x`]),NO(`L(x) = x + ${frac(A,'x')}`,['expr','f',`x+${A}/x`]),NO(`L(x) = 2x + ${frac(2*A,'x')}`,['expr','f',`2*x+${2*A}/x`]),NO(`L(x) = 2x + ${A}x`,['expr','f',`2*x+${A}*x`])],
+        `Le côté parallèle au mur mesure ${frac(A,'x')} (aire ÷ largeur)&nbsp;; on grillage deux côtés x et ce côté.`,{spec:specOf(M),steps:2})}
+    const M=MOD.boiteC(),c=M.c;
+    return TR(1,`${M.ctx} La variable x appartient à l'intervalle ]0${NB};${NB}{0}[ et la base de la boîte a pour côté {1} cm quand x = 1.`,[{v:c/2,c:['dombound','hi']},{v:c-2,c:['atx',`${c}-2*x`,'1']}],
+      `Il faut ${c} − 2x &gt; 0, soit x &lt; ${c/2}&nbsp;; pour x = 1, le côté vaut ${c} − 2 = ${c-2}.`,{spec:specOf(M,{dims:M.dims}),steps:2})}
+  if(ty==='qcm'){const M=MOD.affiche(),S=M.S,a=M.a,b=M.b,hi=q(S).div(2*a);
+    return QCM(1,`${M.ctx} Une modélisation correcte est&nbsp;:`,[OK(`A(x) = (x − ${2*b})(${frac(S,'x')} − ${2*a}) sur ]${2*b}${NB};${NB}${D(hi)}[`,['exprdom',`(x-${2*b})*(${S}/x-${2*a})`,s(2*b),s(hi),true,true]),
+      NO(`A(x) = (x − ${2*b})(${frac(S,'x')} − ${2*a}) sur ]0${NB};${NB}${S}[`,['exprdom',`(x-${2*b})*(${S}/x-${2*a})`,'0',s(S),true,true]),
+      NO(`A(x) = (x − ${b})(${frac(S,'x')} − ${a}) sur ]${b}${NB};${NB}${D(q(S).div(a))}[`,['exprdom',`(x-${b})*(${S}/x-${a})`,s(b),s(q(S).div(a)),true,true]),
+      NO(`A(x) = (x − ${2*a})(${frac(S,'x')} − ${2*b}) sur ]${2*a}${NB};${NB}${D(q(S).div(2*b))}[`,['exprdom',`(x-${2*a})*(${S}/x-${2*b})`,s(2*a),s(q(S).div(2*b)),true,true])],
+      `Largeur imprimée x − ${2*b} &gt; 0, hauteur imprimée ${frac(S,'x')} − ${2*a} &gt; 0&nbsp;: x ∈ ]${2*b}${NB};${NB}${D(hi)}[.`,{spec:specOf(M),steps:3})}
+  const M=MOD.boiteR(),a=M.a,b=M.b,x0=pick([1,2]);
+  return TR(1,`${M.ctx} Son volume vaut V(x) = x(${a} − 2x)(${b} − 2x) pour x ∈ ]0${NB};${NB}{0}[, et V(${x0}) = {1}${NB}cm³.`,[{v:q(a).div(2),c:['dombound','hi']},{v:x0*(a-2*x0)*(b-2*x0),c:['val','f',s(x0)]}],
+    `Les deux côtés ${a} − 2x et ${b} − 2x doivent être positifs&nbsp;: x &lt; ${D(q(a).div(2))}. V(${x0}) = ${x0} × ${a-2*x0} × ${b-2*x0}.`,{spec:specOf(M,{dims:M.dims}),steps:3})}
+
+/* ---------- niveau 2 : second degré ---------- */
+function G2(t,ty){
+  if(t==='bronze'){let a,b,c;do{a=pick([-3,-2,-1,1,2,3]);b=ri(-6,6);c=ri(-5,5)}while(b===0||c===0);const F=P(c,b,a),M={F,dom:K.dm(null,null,1,1),goal:null};
+    if(ty==='qcm')return QCM(2,`La dérivée de la fonction f définie sur ℝ par f(x) = ${lpH(F)} est&nbsp;:`,[OK(`f′(x) = ${lpH(fd(F))}`,['expr','fp',fsym(fd(F))]),NO(`f′(x) = ${lpH(P(b,a))}`,['expr','fp',fsym(P(b,a))]),NO(`f′(x) = ${lpH(P(b+c,2*a))}`,['expr','fp',fsym(P(b+c,2*a))]),NO(`f′(x) = ${lpH(P(0,2*a))}`,['expr','fp',fsym(P(0,2*a))])],
+      `(x<sup>2</sup>)′ = 2x, (x)′ = 1, une constante a pour dérivée 0&nbsp;: f′(x) = ${lpH(fd(F))}.`,{spec:specOf(M),steps:1});
+    const r=pick([1,2,3,4,5]),k=pick([-4,-2,2,4]),G=P(-k*r,k),F2=P(ri(-3,3),-k*r,q(k).div(2));
+    return TR(2,`Une fonction f a pour dérivée f′(x) = ${lpH(G)}. f′(x) = 0 pour x = {0}.`,[{v:r,c:['crit',s(r)]}],`${lpH(G)} = 0 ⇔ ${k}x = ${k*r} ⇔ x = ${r}.`,{spec:specOf({F:F2,dom:K.dm(null,null,1,1)}),steps:1})}
+  if(t==='argent'){
+    if(ty==='qcm'){const M=MOD.etal(),a=M.a,b=M.b,xs=q(M.xs);
+      return QCM(2,`${M.ctx} La recette est R(p) = p(${a} − ${b}p). Elle est maximale pour un prix de&nbsp;:`,[OK(`${D(xs)}${NB}€`,['argopt','max',s(xs)]),NO(`${D(q(a).div(b))}${NB}€`,['argopt','max',s(q(a).div(b))]),NO(`${D(M.ys)}${NB}€`,['argopt','max',s(M.ys)]),NO(`${D(q(a).div(4*b))}${NB}€`,['argopt','max',s(q(a).div(4*b))])],
+        `R′(p) = ${lpH(fd(M.F),'p')} s'annule en p = ${D(xs)} en passant de + à −. (${D(q(a).div(b))}${NB}€ annule la recette, ${D(M.ys)}${NB}€ est la recette maximale.)`,{spec:specOf(M),steps:2})}
+    const M=MOD.enclosP(),P_=M.P;
+    return TR(2,`${M.ctx} On a A(x) = x(${P_} − 2x). L'aire est maximale pour x = {0}${NB}m et vaut alors {1}${NB}m².`,[{v:M.xs,c:['argopt','max']},{v:M.ys,c:['opt','max']}],
+      `A′(x) = −4x + ${P_} s'annule en ${D(M.xs)} (+ puis −)&nbsp;; A(${D(M.xs)}) = ${D(M.ys)}.`,{spec:specOf(M),steps:2})}
+  if(ty==='qcm'){const M=MOD.lancer(),v=M.v0,h0=M.h0;
+    return QCM(2,`${M.ctx} La hauteur maximale atteinte par le ballon est&nbsp;:`,[OK(`${D(M.ys)}${NB}m`,['opt','max',s(M.ys)]),NO(`${D(M.xs)}${NB}m`,['opt','max',s(M.xs)]),NO(`${D(fv(M.F,q(v).div(5)))}${NB}m`,['opt','max',s(fv(M.F,q(v).div(5)))]),NO(`${D(q(h0).add(q(v*v).div(10)))}${NB}m`,['opt','max',s(q(h0).add(q(v*v).div(10)))])],
+      `h′(t) = −10t + ${v} s'annule en t = ${D(M.xs)}${NB}s, et h(${D(M.xs)}) = ${D(M.ys)}${NB}m.`,{spec:specOf(M),steps:3})}
+  const M=MOD.kayak(),xs=q(M.xs);
+  return TR(2,`${M.ctx} La recette est maximale pour un prix de {0}${NB}€&nbsp;; elle vaut alors {1}${NB}€.`,[{v:xs.add(M.P0),c:['atopt',`${M.P0}+x`]},{v:M.ys,c:['opt','max']}],
+    `R(x) = (${M.P0} + x)(${M.N0} − ${M.k}x), R′(x) = ${lpH(fd(M.F))} s'annule en ${D(xs)}&nbsp;: prix ${D(xs.add(M.P0))}${NB}€, recette ${D(M.ys)}${NB}€.`,{spec:specOf(M),steps:3})}
+
+/* ---------- niveau 3 : troisième degré ---------- */
+function G3(t,ty){
+  if(t==='bronze'){const M=MOD.cubic(),d=fd(M.F);
+    if(ty==='qcm'){const c2=co(M.F,2),c1=co(M.F,1);
+      return QCM(3,`La dérivée de f(x) = ${lpH(M.F)} est&nbsp;:`,[OK(`f′(x) = ${lpH(d)}`,['expr','fp',fsym(d)]),NO(`f′(x) = ${lpH(P(c1,c2,1))}`,['expr','fp',fsym(P(c1,c2,1))]),NO(`f′(x) = ${lpH(P(c1.add(co(M.F,0)),c2.mul(2),3))}`,['expr','fp',fsym(P(c1.add(co(M.F,0)),c2.mul(2),3))]),NO(`f′(x) = ${lpH(P(0,c2.mul(2),3))}`,['expr','fp',fsym(P(0,c2.mul(2),3))])],
+        `(x<sup>3</sup>)′ = 3x<sup>2</sup> et (x<sup>2</sup>)′ = 2x&nbsp;: f′(x) = ${lpH(d)}.`,{spec:specOf(M),steps:1})}
+    return TR(3,`On donne f′(x) = 3(${xm(M.r1)})(${xm(M.r2)}). Les solutions de f′(x) = 0 sont x = {0} et x = {1} (dans l'ordre croissant).`,[{v:M.r1,c:['root',0]},{v:M.r2,c:['root',1]}],
+      `Un produit est nul si l'un de ses facteurs est nul&nbsp;: x = ${M.r1} ou x = ${M.r2}.`,{spec:specOf(M),steps:1})}
+  if(t==='argent'){
+    if(ty==='qcm'){const M=MOD.cubic(),r1=M.r1,r2=M.r2;
+      return QCM(3,`Soit f(x) = ${lpH(M.F)} sur ℝ. On a f′(x) = 3(${xm(r1)})(${xm(r2)}). En x = ${r1}, f admet&nbsp;:`,[OK('un maximum local',['ext',s(r1),'max']),NO('un minimum local',['ext',s(r1),'min']),NO('ni maximum ni minimum local',['ext',s(r1),'none'])],
+        `f′ est positive avant ${r1} et négative entre ${r1} et ${r2}&nbsp;: f monte puis descend, maximum local en ${r1}.`,{spec:Object.assign(specOf(M),{dom:[null,null,true,true]}),steps:2})}
+    const M=MOD.boiteC(),c=M.c;
+    return TR(3,`${M.ctx} Son volume est V(x) = x(${c} − 2x)<sup>2</sup>. Il est maximal pour x = {0}${NB}cm et vaut alors {1}${NB}cm³.`,[{v:M.xs,c:['argopt','max']},{v:M.ys,c:['opt','max']}],
+      `V′(x) = (2x − ${c})(6x − ${c}) est positif puis négatif sur ]0${NB};${NB}${c/2}[&nbsp;: maximum en ${D(M.xs)}, V = ${D(M.ys)}.`,{spec:specOf(M,{dims:M.dims}),steps:2})}
+  if(ty==='qcm'){let M,y1,yh;do{const [r1,r2]=pick([[-1,1],[-2,0],[0,2],[1,3]]);M=MOD.cubic({r:[r1,r2],d:ri(-3,3),lo:r1-1,hi:r2+2});y1=fv(M.F,M.r1);yh=fv(M.F,M.hi)}while(yh.cmp(y1)<=0);
+    return QCM(3,`Soit f(x) = ${lpH(M.F)} sur [${M.lo}${NB};${NB}${M.hi}], avec f′(x) = 3(${xm(M.r1)})(${xm(M.r2)}). Le maximum de f sur cet intervalle est&nbsp;:`,
+      [OK(D(yh),['opt','max',s(yh)]),NO(D(y1),['opt','max',s(y1)]),NO(D(fv(M.F,M.lo)),['opt','max',s(fv(M.F,M.lo))]),NO(D(fv(M.F,M.r2)),['opt','max',s(fv(M.F,M.r2))])],
+      `Les candidats sont les maximums locaux et les bornes&nbsp;: f(${M.r1}) = ${D(y1)} et f(${M.hi}) = ${D(yh)}. Le maximum est ${D(yh)}, atteint à la borne.`,{spec:Object.assign(specOf(M),{goal:'max'}),steps:3})}
+  const M=MOD.boiteR(),a=M.a,b=M.b;
+  return TR(3,`${M.ctx} On admet que V(x) = ${lpH(M.F)}. Le volume est maximal pour x = {0}${NB}cm et vaut alors {1}${NB}cm³.`,[{v:M.xs,c:['argopt','max']},{v:M.ys,c:['opt','max']}],
+    `V′(x) = ${lpH(fd(M.F))} a deux racines, ${D(M.xs)} et ${D(q(a+b).mul(2).div(3).sub(M.xs))}&nbsp;; seule ${D(M.xs)} est dans ]0${NB};${NB}${D(q(a).div(2))}[. V(${D(M.xs)}) = ${D(M.ys)}.`,{spec:specOf(M,{dims:M.dims}),steps:3})}
+
+/* ---------- niveau 4 : fonctions rationnelles ---------- */
+function G4(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){const A=pick([18,32,50,72]);const M={F:LP([[2,1],[A,-1]]),dom:K.dm(0,null,1,1)};
+      return QCM(4,`La dérivée de f(x) = 2x + ${frac(A,'x')} sur ]0${NB};${NB}+∞[ est&nbsp;:`,[OK(`f′(x) = 2 − ${frac(A,'x<sup>2</sup>')}`,['expr','fp',`2-${A}/x**2`]),NO(`f′(x) = 2 + ${frac(A,'x<sup>2</sup>')}`,['expr','fp',`2+${A}/x**2`]),NO(`f′(x) = 2 − ${frac(A,'x')}`,['expr','fp',`2-${A}/x`]),NO(`f′(x) = 2 + ${A}`,['expr','fp',`${2+A}`])],
+        `(${frac(1,'x')})′ = ${MINUS}${frac(1,'x<sup>2</sup>')}, donc (${frac(A,'x')})′ = ${MINUS}${frac(A,'x<sup>2</sup>')}.`,{spec:specOf(M),steps:1})}
+    const k=pick([2,3,4,5]),M={F:LP([[1,1],[k*k,-1]]),dom:K.dm(0,null,1,1)};
+    return TR(4,`Pour x &gt; 0, la dérivée de f(x) = x + ${frac(k*k,'x')} s'écrit f′(x) = 1 − ${frac('{0}','x<sup>2</sup>')}.`,[{v:k*k,c:['ncoef','fp',-2]}],`(${frac(k*k,'x')})′ = ${MINUS}${frac(k*k,'x<sup>2</sup>')}.`,{spec:specOf(M),steps:1})}
+  if(t==='argent'){
+    if(ty==='qcm'){const M=MOD.enclosA(),n=M.n,A=M.A;
+      return QCM(4,`${M.ctx} La longueur de grillage L(x) = 2x + ${frac(A,'x')} est minimale et vaut&nbsp;:`,[OK(`${4*n}${NB}m`,['opt','min',s(4*n)]),NO(`${n}${NB}m`,['opt','min',s(n)]),NO(`${2*n}${NB}m`,['opt','min',s(2*n)]),NO(`${2+A}${NB}m`,['opt','min',s(2+A)])],
+        `L′(x) = ${frac(`2(x − ${n})(x + ${n})`,'x<sup>2</sup>')} : − puis +, minimum en ${n}&nbsp;: L(${n}) = ${2*n} + ${2*n} = ${4*n}.`,{spec:specOf(M),steps:2})}
+    const M=MOD.boiteV(),n=M.n;
+    return TR(4,`${M.ctx} La surface de carton est S(x) = x<sup>2</sup> + ${frac(4*M.V,'x')}. Elle est minimale pour x = {0}${NB}cm et vaut alors {1}${NB}cm².`,[{v:n,c:['argopt','min']},{v:3*n*n,c:['opt','min']}],
+      `S′(x) = ${frac(`2(x<sup>3</sup> − ${n*n*n})`,'x<sup>2</sup>')} a le signe de x − ${n}&nbsp;: minimum S(${n}) = ${3*n*n}.`,{spec:specOf(M),steps:2})}
+  if(ty==='qcm'){const M=MOD.affiche(),S=M.S,xs=q(M.xs),h=q(S).div(xs),r=Math.round(Math.sqrt(S));
+    const L=[OK(`${D(xs)}${NB}cm de large sur ${D(h)}${NB}cm de haut`,['dims','x',s(xs),`${S}/x`,s(h)]),NO(`${D(h)}${NB}cm de large sur ${D(xs)}${NB}cm de haut`,['dims','x',s(h),`${S}/x`,s(xs)])];
+    if(r*r!==S)L.push(NO(`${D(xs.add(2))}${NB}cm de large sur ${D(q(S).div(xs.add(2)))}${NB}cm de haut`,['dims','x',s(xs.add(2)),`${S}/x`,s(q(S).div(xs.add(2)))]));
+    L.push(NO(`${D(xs.sub(2))}${NB}cm de large sur ${D(q(S).div(xs.sub(2)))}${NB}cm de haut`,['dims','x',s(xs.sub(2)),`${S}/x`,s(q(S).div(xs.sub(2)))]));
+    return QCM(4,`${M.ctx} Les dimensions de l'affiche qui donnent la plus grande zone imprimée sont&nbsp;:`,L,
+      `A(x) = ${lpH(M.F)}, A′(x) = ${frac(`${2*M.b*S} − ${2*M.a}x<sup>2</sup>`,'x<sup>2</sup>')} s'annule en x = ${D(xs)}&nbsp;: affiche de ${D(xs)}${NB}cm sur ${D(h)}${NB}cm.`,{spec:specOf(M),steps:3})}
+  const M=MOD.hom(),[a,b,c,d]=M.hom,k=a*d-b*c,inc=k>0,x=inc?M.hi:M.lo;
+  return TR(4,`Soit f(x) = ${fh(M.F)} sur [${M.lo}${NB};${NB}${M.hi}]. Le maximum de f sur cet intervalle vaut {0} et il est atteint en x = {1}.`,[{v:fv(M.F,x),c:['opt','max']},{v:x,c:['argopt','max']}],
+    `f′(x) = ${fh(fd(M.F))} est ${inc?'positive':'négative'}&nbsp;: f est ${inc?'croissante, maximum à droite':'décroissante, maximum à gauche'}, f(${x}) = ${D(fv(M.F,x))}.`,{spec:specOf(M),steps:3})}
+
+/* ---------- niveau 5 : économie ---------- */
+function G5(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){const al=pick(['0.01','0.02','0.05']),be=pick([2,3,4,5]),ga=pick([200,300,500]),C=P(ga,be,al),x0=pick([50,100,200]),M={F:C,dom:K.dm(0,400,0,0)};const cm=fv(fd(C),x0);
+      return QCM(5,`Le coût de fabrication de x objets est C(x) = ${lpH(C)} euros. Le coût marginal pour x = ${x0}, C′(${x0}), vaut&nbsp;:`,[OK(`${D(cm)}${NB}€`,['val','fp',s(x0),s(cm)]),NO(`${D(fv(C,x0))}${NB}€`,['val','fp',s(x0),s(fv(C,x0))]),NO(`${D(fv(C,x0).div(x0))}${NB}€`,['val','fp',s(x0),s(fv(C,x0).div(x0))]),NO(`${D(q(al).mul(x0).add(be))}${NB}€`,['val','fp',s(x0),s(q(al).mul(x0).add(be))])],
+        `C′(x) = ${lpH(fd(C))}, donc C′(${x0}) = ${D(cm)}${NB}€&nbsp;: c'est environ le coût du ${x0+1}<sup>e</sup> objet.`,{spec:specOf(M),steps:1})}
+    const pr=pick([20,30,40]),al=pick([1,2]),be=pick([4,6,8]),ga=pick([50,100]),C=P(ga,be,al),F=lpAdd(P(0,pr),lpSc(C,-1)),M={F,dom:K.dm(0,null,0,1)};
+    return TR(5,`La recette est R(x) = ${pr}x et le coût C(x) = ${lpH(C)}. Le bénéfice B(x) = R(x) − C(x) s'écrit B(x) = {0}x<sup>2</sup> + {1}x − {2}.`,[{v:-al,c:['coef','f',2]},{v:pr-be,c:['coef','f',1]},{v:ga,c:['ncoef','f',0]}],
+      `B(x) = ${pr}x − ${al===1?'':al}x<sup>2</sup> − ${be}x − ${ga}&nbsp;: les parenthèses changent tous les signes.`,{spec:specOf(M),steps:1})}
+  if(t==='argent'){
+    if(ty==='qcm'){const M=MOD.benef2(),xs=q(M.xs);
+      return QCM(5,`${M.ctx} Le bénéfice B(x) = R(x) − C(x) est maximal pour&nbsp;:`,[OK(`x = ${D(xs)}`,['argopt','max',s(xs)]),NO(`x = ${D(xs.mul(2))}`,['argopt','max',s(xs.mul(2))]),NO(`x = ${D(xs.div(2))}`,['argopt','max',s(xs.div(2))]),NO(`x = ${D(M.ys)}`,['argopt','max',s(M.ys)])],
+        `B(x) = ${lpH(M.F)}, B′(x) = ${lpH(fd(M.F))} s'annule en ${D(xs)} (+ puis −).`,{spec:specOf(M,{C:fsym(M.C),R:fsym(M.R)}),steps:2})}
+    const M=MOD.mabawa();
+    return TR(5,`${M.ctx} Le bénéfice B(p) = (p − ${M.c})(${M.a} − ${M.b}p) est maximal pour un prix de {0}${NB}€ et vaut alors {1}${NB}€.`,[{v:M.xs,c:['argopt','max']},{v:M.ys,c:['opt','max']}],
+      `B(p) = ${lpH(M.F,'p')}, B′(p) = ${lpH(fd(M.F),'p')} s'annule en ${D(M.xs)}&nbsp;: B(${D(M.xs)}) = ${D(M.ys)}.`,{spec:specOf(M),steps:2})}
+  if(ty==='qcm'){const M=MOD.cm(),xs=q(M.xs),alt=fv(M.F,xs.mul(2));
+    return QCM(5,`${M.ctx} Le coût moyen minimal, par centaine de paniers, est&nbsp;:`,[OK(`${D(M.ys)}${NB}€`,['opt','min',s(M.ys)]),NO(`${D(xs)}${NB}€`,['opt','min',s(xs)]),NO(`${D(alt)}${NB}€`,['opt','min',s(alt)]),NO(`${D(q(M.be).add(M.ga))}${NB}€`,['opt','min',s(q(M.be).add(M.ga))])],
+      `CM(x) = ${lpH(M.F)}, CM′(x) = ${D(M.al)} − ${frac(M.ga,'x<sup>2</sup>')} s'annule en ${D(xs)}&nbsp;: CM(${D(xs)}) = ${D(M.ys)}${NB}€.`,{spec:specOf(M,{C:fsym(M.C)}),steps:3})}
+  const M=MOD.kayak(),xs=q(M.xs);
+  return TR(5,`${M.ctx} Pour une recette maximale, il faut augmenter le prix de {0}${NB}€&nbsp;; il y a alors {1} locations par jour.`,[{v:xs,c:['argopt','max']},{v:q(M.N0).sub(xs.mul(M.k)),c:['atopt',`${M.N0}-${M.k}*x`]}],
+    `R(x) = (${M.P0} + x)(${M.N0} − ${M.k}x), R′(x) = ${lpH(fd(M.F))} = 0 ⇔ x = ${D(xs)}&nbsp;; ${M.N0} − ${M.k} × ${D(xs)} = ${D(q(M.N0).sub(xs.mul(M.k)))}.`,{spec:specOf(M),steps:3})}
+
+/* ---------- niveau 6 : inégalités ---------- */
+function G6(t,ty){
+  if(t==='bronze'){const M=MOD.ineqK(),k=M.k;
+    if(ty==='qcm'){const m=2*k;
+      return QCM(6,`Soit f(x) = x + ${frac(k*k,'x')} sur ]0${NB};${NB}+∞[. Son tableau de variations montre que f admet un minimum égal à ${m}, atteint en x = ${k}. On peut affirmer que, pour tout x &gt; 0&nbsp;:`,[OK(`f(x) ≥ ${m}`,['ineq','f','ge',s(m),'0',null,true,true]),NO(`f(x) ≤ ${m}`,['ineq','f','le',s(m),'0',null,true,true]),NO(`f(x) &gt; ${m}`,['ineq','f','gt',s(m),'0',null,true,true]),NO(`f(x) ≥ ${m+k}`,['ineq','f','ge',s(m+k),'0',null,true,true])],
+        `Le minimum est la plus petite valeur&nbsp;: f(x) ≥ ${m}, avec égalité pour x = ${k} (donc pas d'inégalité stricte).`,{spec:specOf(M),steps:1})}
+    return TR(6,`Soit f(x) = x + ${frac(k*k,'x')} sur ]0${NB};${NB}+∞[. f′ s'annule en ${k} en passant de − à +, donc le minimum de f vaut f(${k}) = {0}.`,[{v:2*k,c:['opt','min']}],`f(${k}) = ${k} + ${frac(k*k,k)} = ${2*k}.`,{spec:specOf(M),steps:1})}
+  if(t==='argent'){
+    if(ty==='qcm'){const M=MOD.ineqCube(),k=M.k,K3=k*k*k,K2=3*k*k;
+      return QCM(6,`Pour démontrer que x<sup>3</sup> + ${2*K3} ≥ ${K2}x pour tout x ≥ 0, on étudie h(x) = x<sup>3</sup> − ${K2}x + ${2*K3}. Sur [0${NB};${NB}+∞[, le minimum de h vaut&nbsp;:`,[OK(`0, atteint en x = ${k}`,['optat','min',s(k),'0']),NO(`${2*K3}, atteint en x = 0`,['optat','min','0',s(2*K3)]),NO(`0, atteint en x = 0`,['optat','min','0','0']),NO(`${-2*K3}, atteint en x = ${k}`,['optat','min',s(k),s(-2*K3)])],
+        `h′(x) = 3(x − ${k})(x + ${k})&nbsp;: − puis + sur [0${NB};${NB}+∞[, minimum h(${k}) = ${K3} − ${K2*k} + ${2*K3} = 0. Donc h(x) ≥ 0.`,{spec:specOf(M),steps:2})}
+    const M=MOD.ineqSq(),n=M.n;
+    return TR(6,`Soit g(x) = x<sup>2</sup> + ${frac(2*n*n*n,'x')} sur ]0${NB};${NB}+∞[. Son minimum vaut {0}, atteint en x = {1}&nbsp;; donc g(x) ≥ {0} pour tout x &gt; 0.`,[{v:3*n*n,c:['opt','min']},{v:n,c:['argopt','min']}],
+      `g′(x) = ${frac(`2(x<sup>3</sup> − ${n*n*n})`,'x<sup>2</sup>')} a le signe de x − ${n}&nbsp;: minimum g(${n}) = ${3*n*n}.`,{spec:specOf(M),steps:2})}
+  if(ty==='qcm'){const M=MOD.signCube(),r=M.r;
+    return QCM(6,`Soit f(x) = ${lpH(M.F)} sur ℝ. Le signe de f(x) est&nbsp;:`,[OK(`négatif sur ]${MINUS}∞${NB};${NB}${r}[ et positif sur ]${r}${NB};${NB}+∞[`,['fsignpat',s(r),'-+']),NO(`positif sur ]${MINUS}∞${NB};${NB}${r}[ et négatif sur ]${r}${NB};${NB}+∞[`,['fsignpat',s(r),'+-']),
+      NO('positif sur ℝ',['fsignpat',s(r),'++']),NO(`négatif sur ]${MINUS}∞${NB};${NB}${-r}[ et positif sur ]${-r}${NB};${NB}+∞[`,['fsignpat',s(-r),'-+'])],
+      `f′(x) = 3x<sup>2</sup> + ${M.p} &gt; 0&nbsp;: f est strictement croissante, et f(${r}) = 0&nbsp;: f change de signe en ${r}, de − à +.`,{spec:specOf(M),steps:3})}
+  const M=MOD.encadre(),k=M.k,hi=M.hi;
+  return TR(6,`Soit f(x) = ${lpH(M.F)} sur [0${NB};${NB}${hi}]. Pour tout x de cet intervalle, {0} ≤ f(x) ≤ {1}, et ces deux bornes sont atteintes.`,[{v:fv(M.F,k),c:['opt','min']},{v:fv(M.F,hi),c:['optmax']}],
+    `f′(x) = 3(x − ${k})(x + ${k})&nbsp;: f décroît sur [0${NB};${NB}${k}] puis croît. Minimum f(${k}) = ${D(fv(M.F,k))}&nbsp;; maximum à comparer entre f(0) = 0 et f(${hi}) = ${D(fv(M.F,hi))}.`,{spec:specOf(M),steps:3})}
+
+/* ---------- niveau 7 : position relative ---------- */
+function G7(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){const r=pick([-2,-1,1,2,3]),e=pick([1,2,3,5]),F=P(r*r+e,-2*r,1),M={F,dom:K.dm(null,null,1,1)};
+      return QCM(7,`Pour tout réel x, f(x) − g(x) = (${xm(r)})<sup>2</sup> + ${e}. On peut affirmer que&nbsp;:`,[OK('𝒞<sub>f</sub> est strictement au-dessus de 𝒞<sub>g</sub>',['pos','above_strict']),NO('𝒞<sub>f</sub> est en dessous de 𝒞<sub>g</sub>',['pos','below']),NO(`𝒞<sub>f</sub> et 𝒞<sub>g</sub> se coupent en x = ${r}`,['inter',s(r)])],
+        `Un carré est positif&nbsp;: f(x) − g(x) ≥ ${e} &gt; 0, donc 𝒞<sub>f</sub> est toujours au-dessus de 𝒞<sub>g</sub>, sans point commun.`,{spec:specOf(M),steps:1})}
+    const m=pick([-3,-2,1,2,4]),p=ri(-5,5),b=ri(-4,4),c=ri(-4,4),f=P(c,b,1),g=P(p,m),M={F:lpAdd(f,lpSc(g,-1)),dom:K.dm(null,null,1,1)};
+    if(b===m||c===p)return null;
+    return TR(7,`Soit f(x) = ${lpH(f)} et g(x) = ${lpH(g)}. Alors f(x) − g(x) = x<sup>2</sup> + {0}x + {1}.`,[{v:b-m,c:['coef','f',1]},{v:c-p,c:['coef','f',0]}],`f(x) − g(x) = ${lpH(f)} − (${lpH(g)})&nbsp;: la parenthèse change les signes.`,{spec:specOf(M,{fF:fsym(f),g:fsym(g)}),steps:1})}
+  if(t==='argent'){
+    if(ty==='qcm'){const M=MOD.posTanCube(),a=M.a;
+      return QCM(7,`La tangente à la courbe de f(x) = x<sup>3</sup> au point d'abscisse ${a} a pour équation&nbsp;:`,[OK(`y = ${lc([[3*a*a,'x'],[-2*a*a*a,'']])}`,['tanline',s(a),s(3*a*a),s(-2*a*a*a)]),NO(`y = ${lc([[3*a*a,'x'],[a*a*a,'']])}`,['tanline',s(a),s(3*a*a),s(a*a*a)]),NO(`y = ${lc([[a*a*a,'x'],[-2*a*a*a,'']])}`,['tanline',s(a),s(a*a*a),s(-2*a*a*a)]),NO(`y = ${lc([[3*a,'x'],[-2*a*a*a,'']])}`,['tanline',s(a),s(3*a),s(-2*a*a*a)])],
+        `y = f′(${a})(x − ${a}) + f(${a}) = ${3*a*a}(x − ${a}) + ${a*a*a} = ${lc([[3*a*a,'x'],[-2*a*a*a,'']])}.`,{spec:specOf(M,{fF:fsym(M.f),g:fsym(M.g)}),steps:2})}
+    const M=MOD.posPara(),f=M.f,g=M.g;
+    return TR(7,`Soit f(x) = ${lpH(f)} et g(x) = ${lpH(g)}. La fonction h = f − g admet un minimum égal à {0}, atteint en x = {1}.`,[{v:M.e,c:['opt','min']},{v:M.r,c:['argopt','min']}],
+      `h(x) = ${lpH(M.F)}, h′(x) = ${lpH(fd(M.F))} s'annule en ${M.r}&nbsp;: h(${M.r}) = ${M.e}.`,{spec:specOf(M,{fF:fsym(f),g:fsym(g)}),steps:2})}
+  if(ty==='qcm'){const M=MOD.posTanInv(),a=M.a,m=q(-1).div(a*a),p=q(2).div(a);
+    return QCM(7,`Soit f(x) = ${frac(1,'x')} sur ]0${NB};${NB}+∞[ et T sa tangente au point d'abscisse ${a}, d'équation y = ${lc([[m,'x'],[p,'']])}. Sur ]0${NB};${NB}+∞[&nbsp;:`,[OK(`𝒞<sub>f</sub> est au-dessus de T, avec un seul point commun en x = ${a}`,['pos','above_touch']),NO('𝒞<sub>f</sub> est en dessous de T',['pos','below']),NO(`𝒞<sub>f</sub> traverse T en x = ${a}`,['pos','cross']),NO('𝒞<sub>f</sub> est strictement au-dessus de T',['pos','above_strict'])],
+      `h(x) = ${frac(1,'x')} − (${lc([[m,'x'],[p,'']])}) a pour dérivée ${frac(`x<sup>2</sup> − ${a*a}`,`${a*a===1?'':a*a}x<sup>2</sup>`)}&nbsp;: minimum h(${a}) = 0, donc h(x) ≥ 0.`,{spec:specOf(M,{fF:fsym(M.f),g:fsym(M.g)}),steps:3})}
+  const M=MOD.posCourse(),r=M.r,k=M.k,c=r*r*r+k*r;
+  return TR(7,`Soit f(x) = x<sup>3</sup> et g(x) = ${lpH(M.g)} sur [${r}${NB};${NB}+∞[. La différence s'écrit h(x) = x<sup>3</sup> + {0}x − {1}&nbsp;; h est croissante et h({2}) = 0, donc 𝒞<sub>f</sub> est au-dessus de 𝒞<sub>g</sub> sur [${r}${NB};${NB}+∞[.`,[{v:k,c:['coef','f',1]},{v:c,c:['ncoef','f',0]},{v:r,c:['rootf']}],
+    `h(x) = x<sup>3</sup> + ${k===1?'':k}x − ${c}, h′(x) = 3x<sup>2</sup> + ${k} &gt; 0 et h(${r}) = ${r*r*r} + ${k*r} − ${c} = 0.`,{spec:specOf(M,{fF:fsym(M.f),g:fsym(M.g)}),steps:3})}
+
+const GEN=[G1,G2,G3,G4,G5,G6,G7];
+function build(tier){for(let tries=0;tries<60;tries++){
+  const extra=tier==='bronze'?shuf([1,2,3,4,5]).slice(0,3):tier==='or'?shuf([3,4,5,6,7]).slice(0,3):shuf([1,2,3,4,5,6,7]).slice(0,3);
+  const lv=shuf([1,2,3,4,5,6,7].concat(extra));const types=shuf(['qcm','qcm','qcm','qcm','qcm','qcm','trous','trous','trous','trous']);
+  const out=[];let ok=true;
+  for(let i=0;i<10;i++){let qn=null;for(let k=0;k<30&&!qn;k++)qn=GEN[lv[i]-1](tier,types[i]);if(!qn){ok=false;break}out.push(qn)}
+  if(ok&&new Set(out.map(x=>x.prompt)).size===10)return out}
+  throw new Error('épreuve impossible à construire')}
+window.AO_FIN={bronze:()=>(window.AO_last=build('bronze')),argent:()=>(window.AO_last=build('argent')),or:()=>(window.AO_last=build('or')),GEN};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'atelier-optimum',title:'L\'Atelier Optimum',levels:7,
+  levelNames:['Le plan de travail','Le sommet','La boîte','Le moins de matière','Le juste bénéfice','Le plancher','Au-dessus, en dessous'],
+  music:'aventure',finals:{bronze:AO_FIN.bronze,argent:AO_FIN.argent,or:AO_FIN.or}});
+AOK.goLevel(0);
+</script>
+</body>
+</html>
