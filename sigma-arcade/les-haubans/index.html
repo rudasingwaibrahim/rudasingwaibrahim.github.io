@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Les Haubans · Sigma Arcade</title>
+<meta name="description" content="Fonction exponentielle (Première spécialité) : définition par f′ = f et f(0) = 1, tangente, nombre e, méthode d'Euler, propriétés algébriques, signe, variations, équations et inéquations, fonctions t ↦ e^(kt), lien avec les suites géométriques. Sur la plage, de nuit, les têtes des mâts lumineux dessinent la courbe de l'exponentielle ; chaque mât est tenu par un hauban tangent à la guirlande, planté exactement une unité derrière lui : pente = hauteur.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours, la réponse est donnée au deuxième essai.
+   IDEA : soirée sur la plage. Une rangée de mâts lumineux est plantée dans le sable ; leurs têtes dessinent la courbe
+          de l'exponentielle (la guirlande). Chaque mât est tenu par un HAUBAN tendu jusqu'à un piquet : pour que le
+          hauban soit tangent à la guirlande, il faut planter le piquet exactement 1 unité derrière le pied du mât,
+          quel que soit le mât. Base 1, hauteur e^a : la pente du hauban est la hauteur du mât. C'est f′ = f.
+          Le reste du chapitre suit : marcher sur les haubans (Euler), glisser le long de la guirlande (e^(a+b) = e^a e^b),
+          comparer des mâts (croissance), régler k (le piquet recule de 1/k), planter des mâts à pas réguliers (suite géométrique).
+   PICTURE : ciel nocturne, sable sombre sous l'axe des abscisses, mâts argentés, lampes et guirlande dorées ; hauban
+          violet-bleu tant qu'il n'est pas tangent, doré quand il l'est.
+   COLOUR and TYPE : « océan profond » du site ; violet-bleu pour l'action ; or pour la guirlande et les réussites ;
+          corail pour les erreurs ; Outfit partout.
+   LAYOUT : scène et légende à gauche (collées en haut sur téléphone), carnet de questions à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise)}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:78ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button,select,input{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible,#scene:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(340px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:linear-gradient(180deg,#0a1733 0%,#081226 58%,#0b1220 100%);user-select:none;-webkit-user-select:none}
+#scene{display:block;width:100%;height:auto;touch-action:pan-y}
+#scene.grab{cursor:grab}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(17px,1.8vw,21px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .4em}
+.capt .k{color:var(--gold2)}.capt .m{color:var(--mut);font-weight:600}.capt .s{color:#a9bbff}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 4px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+pre.code{margin:8px 0;padding:10px 12px;border-radius:10px;background:rgba(0,0,10,.35);border:1px solid var(--soft);font:600 14px/1.5 var(--sg-mono);color:#dfe7ff;overflow-x:auto;white-space:pre}
+pre.code .hole{color:var(--gold2)}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.6;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px;line-height:1.6}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.5 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.opt code{font:600 15px var(--sg-mono)}
+.fill{font:700 clamp(18px,2vw,22px)/2.4 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.2em;height:46px;margin:0 3px;padding:0 6px;font:700 20px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.up{vertical-align:12px;height:44px;font-size:18px;margin-left:1px}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+/* réglage −/+ (piquet, x, k) */
+.adj{display:flex;align-items:center;gap:8px;margin:0 0 12px;flex-wrap:wrap}
+.adj .stp{min-width:56px;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:700 22px var(--sg-font);cursor:pointer}
+.adj .stp:hover:not(:disabled){border-color:var(--ac)}
+.adj .stp:disabled{opacity:.4;cursor:not-allowed}
+.adj output{min-width:8em;min-height:48px;display:inline-flex;align-items:center;justify-content:center;padding:0 12px;border-radius:12px;background:rgba(108,142,255,.12);border:1.5px solid rgba(108,142,255,.55);color:#dfe6ff;font:800 20px var(--sg-font);font-variant-numeric:tabular-nums}
+/* écritures mathématiques */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+sub,sup{font-size:.7em;line-height:0}
+.sk-q .fr,.sk-ch .fr{font-size:.92em}
+.cf{font-family:serif;font-style:italic;font-weight:600}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb.rv{background:rgba(200,168,75,.09);border-left-color:var(--gold)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex;flex:none}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:15px;border-radius:10px}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .adj{flex-wrap:nowrap;gap:6px}.adj .stp{min-width:48px;flex:none}.adj output{flex:1 1 auto;min-width:0;padding:0 6px;font-size:18px}
+  pre.code{font-size:12.5px}
+  .sk-final-btn .s{display:inline!important}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Les Haubans</h1>
+<p>Soirée sur la plage&nbsp;: les têtes des mâts lumineux dessinent la courbe de l'exponentielle. Chaque mât est tenu par un hauban planté dans le sable. Pour qu'il frôle la guirlande, une seule place pour le piquet&nbsp;: une unité derrière le mât, quel que soit le mât. La pente du hauban est la hauteur du mât&nbsp;: c'est f′ = f.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage">
+    <svg id="scene" viewBox="0 0 1000 560" role="img" aria-label="La plage de nuit : des mâts lumineux dont les têtes dessinent la courbe de la fonction exponentielle" tabindex="-1"></svg>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+<script>
+/* ======================= LES HAUBANS — noyau : nombres exacts, écritures, scène ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const NB=' ',NN=' ',MINUS='−';
+const ab=x=>x<0n?-x:x;
+const gcd=(a,b)=>{a=ab(a);b=ab(b);while(b){const t=a%b;a=b;b=t}return a||1n};
+/* rationnels exacts */
+class Q{
+  constructor(n,d){n=BigInt(n);d=d===undefined?1n:BigInt(d);if(d===0n)throw new Error('division par 0');if(d<0n){n=-n;d=-d}const g=gcd(n,d);this.n=n/g;this.d=d/g}
+  static of(x){if(x instanceof Q)return x;if(typeof x==='bigint')return new Q(x,1n);if(typeof x==='number'){if(Number.isInteger(x))return new Q(BigInt(x),1n);return Q.parse(String(x))}return Q.parse(x)}
+  static parse(s){s=String(s).trim().replace(/[\s  ]/g,'').replace(/[−–—]/g,'-').replace(',','.').replace(/^\+/,'');
+    let m=/^(-?)(\d+)\/(\d+)$/.exec(s);if(m){if(m[3]==='0')return null;return new Q((m[1]?-1n:1n)*BigInt(m[2]),BigInt(m[3]))}
+    m=/^(-?)(\d*)(?:\.(\d+))?$/.exec(s);if(!m||(!m[2]&&!m[3]))return null;const f=m[3]||'',den=10n**BigInt(f.length);
+    return new Q((m[1]?-1n:1n)*(BigInt(m[2]||'0')*den+(f?BigInt(f):0n)),den)}
+  add(o){o=Q.of(o);return new Q(this.n*o.d+o.n*this.d,this.d*o.d)}
+  sub(o){o=Q.of(o);return new Q(this.n*o.d-o.n*this.d,this.d*o.d)}
+  mul(o){o=Q.of(o);return new Q(this.n*o.n,this.d*o.d)}
+  div(o){o=Q.of(o);return new Q(this.n*o.d,this.d*o.n)}
+  eq(o){o=Q.of(o);return o!==null&&this.n===o.n&&this.d===o.d}
+  cmp(o){o=Q.of(o);const a=this.n*o.d,b=o.n*this.d;return a<b?-1:a>b?1:0}
+  neg(){return new Q(-this.n,this.d)}
+  abs(){return new Q(ab(this.n),this.d)}
+  sgn(){return this.n<0n?-1:this.n>0n?1:0}
+  get v(){return Number(this.n)/Number(this.d)}
+  isInt(){return this.d===1n}
+  exact(){let d=this.d;while(d%2n===0n)d/=2n;while(d%5n===0n)d/=5n;return d===1n}
+  dec(){if(!this.exact())return null;let k=0;while(!this.mul(10n**BigInt(k)).isInt())k++;const i=this.mul(10n**BigInt(k)).n,s=i<0n?'-':'',a=String(ab(i)).padStart(k+1,'0');
+    return s+(k?a.slice(0,a.length-k)+'.'+a.slice(a.length-k):a)}
+  toString(){return this.d===1n?String(this.n):this.n+'/'+this.d}
+}
+const q=x=>Q.of(x);
+/* arrondi d'un réel (nombre JS) à d décimales, rendu exact */
+const rnd=(x,d)=>{const m=Math.pow(10,d);return new Q(BigInt(Math.round(x*m)),BigInt(m))};
+function frS(s){let neg=s[0]==='-';if(neg)s=s.slice(1);let [ip,fp]=s.split('.');if(ip.length>=5)ip=ip.replace(/\B(?=(\d{3})+(?!\d))/g,NN);return (neg?MINUS:'')+ip+(fp?','+fp:'')}
+const frac=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+function D(x){x=q(x);const s=x.dec();if(s!==null&&(s.split('.')[1]||'').length<=8)return frS(s);return (x.n<0n?MINUS:'')+frac(String(ab(x.n)),String(x.d))}
+function Dt(x){x=q(x);const s=x.dec();if(s!==null&&(s.split('.')[1]||'').length<=8)return frS(s);return (x.n<0n?MINUS:'')+ab(x.n)+'/'+x.d}
+/* nombre arrondi à d décimales (zéros conservés) */
+function Dr(x,d){const r=rnd(x,d);let s=r.dec();let [i,f]=s.split('.');f=(f||'').padEnd(d,'0');return frS(d?i+'.'+f:i)}
+const par=x=>{x=q(x);return x.sgn()<0?`(${D(x)})`:D(x)};
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const s=x=>String(q(x));
+
+/* ---------- écritures d'exposants affines : a·v + b ---------- */
+/* HTML : « 2x + 1 », « −x », « 3 − x » n'est jamais produit (on écrit −x + 3) */
+function aff(a,b,v){a=q(a);b=q(b);v=v||'x';let o='';
+  if(a.sgn()!==0)o=(a.sgn()<0?MINUS:'')+(a.abs().eq(1)?'':D(a.abs()))+v;
+  if(b.sgn()!==0||!o)o+=o?(b.sgn()<0?' '+MINUS+' ':' + ')+D(b.abs()):D(b);
+  return o}
+/* texte brut pour la scène */
+function affT(a,b,v){return aff(a,b,v).replace(/<[^>]+>/g,'')}
+/* chaîne sympy */
+const affS=(a,b,v)=>`(${s(a)})*${v||'x'}+(${s(b)})`;
+/* e^(a v + b) en HTML ; exposant 1 sans variable → « e » (sauf o.raw) */
+function E(a,b,v,o){a=q(a);b=q(b);o=o||{};if(!o.raw&&a.sgn()===0&&b.eq(1))return 'e';return `e<sup>${aff(a,b,v)}</sup>`}
+const En=(r,o)=>E(0,r,'x',o);
+const ES=(a,b,v)=>`exp(${affS(a,b,v)})`;
+const EnS=r=>`exp(${s(r)})`;
+/* écritures acceptées d'une expression affine (trous du kit) */
+function affW(a,b,v){a=q(a);b=q(b);v=v||'x';const out=[],add=x=>{if(!out.includes(x))out.push(x)};
+  const cf=c=>c.abs().eq(1)?'':Dt(c.abs()).replace(/ /g,''),cfp=c=>c.abs().eq(1)?'':(c.dec()!==null?c.abs().dec():Dt(c.abs()));
+  const tA=(neg)=>a.sgn()===0?'':((neg?'-':'')+cf(a)+v),tB=Dt(b.abs()).replace(/ /g,'');
+  if(a.sgn()===0){add(Dt(b).replace(/ /g,'').replace(MINUS,'-'));if(b.dec()!==null)add(b.dec());return [aff(a,b,v).replace(/<[^>]+>/g,'')].concat(out)}
+  const A=(a.sgn()<0?'-':'')+cf(a)+v,Ad=(a.sgn()<0?'-':'')+cfp(a)+v;
+  if(b.sgn()===0){add(A);add(Ad)}
+  else{const sg=b.sgn()<0?'-':'+';add(A+sg+tB);add(Ad+sg+(b.dec()!==null?b.abs().dec():tB));
+    /* constante d'abord */
+    const B=(b.sgn()<0?'-':'')+tB;add(B+(a.sgn()<0?'-':'+')+cf(a)+v);add((b.sgn()<0?'-':'')+(b.dec()!==null?b.abs().dec():tB)+(a.sgn()<0?'-':'+')+cfp(a)+v)}
+  return [aff(a,b,v).replace(/<[^>]+>/g,'')].concat(out)}
+/* écritures acceptées d'un nombre (trous du kit) */
+function writes(x){x=q(x);const out=[];const add=s=>{if(!out.includes(s))out.push(s)};const d=x.dec();
+  if(d!==null){add(frS(d).replace(/ /g,''));add(d)}
+  if(!x.isInt()){const f=(x.n<0n?MINUS:'')+ab(x.n)+'/'+x.d;add(f);add(f.replace(MINUS,'-'))}
+  if(d!==null&&d[0]==='-')add(frS(d).replace(MINUS,'-').replace(/ /g,''));
+  return out}
+/* nombre arrondi : écritures acceptées (zéros finaux facultatifs) */
+function writesR(x,d){const t=Dr(x,d).replace(/ /g,''),out=[t];let u=t;if(u.includes(',')){while(u.endsWith('0'))u=u.slice(0,-1);if(u.endsWith(','))u=u.slice(0,-1);if(!out.includes(u))out.push(u)}
+  out.slice().forEach(w=>{const p=w.replace(',','.').replace(MINUS,'-');if(!out.includes(p))out.push(p)});return out}
+
+/* ---------------- bruitages ---------------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),gn=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(v,t+.015);gn.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(gn);gn.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+let lastTick=0;
+const SND={pop(){if(snd){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)}},
+  tick(){if(!snd)return;const n=performance.now();if(n-lastTick<45)return;lastTick=n;tone(1300,.03,.014,'square')},
+  soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  pluck(){if(snd){tone(523.25,.35,.045,'triangle');tone(784,.3,.025,'sine',.05)}},
+  rise(){if(snd)[392,494,587].forEach((f,i)=>tone(f,.18,.03,'triangle',i*.07))},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))},
+  get on(){return snd},set on(v){snd=v}};
+
+/* ---------------- scène ---------------- */
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep=ms=>new Promise(r=>setTimeout(r,reduceM?1:ms));
+function anim(ms,fn){return new Promise(res=>{if(reduceM)ms=1;const t0=performance.now();
+  const step=t=>{let k=Math.min(1,(t-t0)/ms);fn(k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,k);if(k<1)requestAnimationFrame(step);else res()};requestAnimationFrame(step)})}
+const svg=$('scene');
+const VW=1000,VH=560,PL=58,PR=988,PT=16,PB=532;
+let st=null;
+function blank(){return{v:{x0:-3.2,x1:2.4,y0:-1,y1:10},k:1,C:1,curve:true,poles:[],sel:null,peg:null,pegDrag:false,tri:false,tl:null,ext:false,
+  euler:null,ghost:null,pair:null,seq:null,ride:null,hline:null,marks:[],title:'',xl:'x',yl:'y',glow:0,lit:null}}
+const X=x=>PL+(x-st.v.x0)/(st.v.x1-st.v.x0)*(PR-PL);
+const Y=y=>PB-(y-st.v.y0)/(st.v.y1-st.v.y0)*(PB-PT);
+const IX=px=>st.v.x0+(px-PL)/(PR-PL)*(st.v.x1-st.v.x0);
+const F=x=>st.C*Math.exp(st.k*x);
+function niceStep(r,n){n=n||11;for(const z of [0.001,0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.25,0.5,1,2,5,10,20,25,50,100,200,500,1000,2000,5000])if(r/z<=n)return z;return 10000}
+function tickLab(x,z){const d=z>=1?0:z>=.1?1:z>=.01?2:3;let t=(Math.round(x/z)*z).toFixed(d);if(t.includes('.'))t=t.replace(/0+$/,'').replace(/\.$/,'');if(/^-0(\.0+)?$/.test(t))t=t.slice(1);
+  if(/^\d{5,}$/.test(t))t=t.replace(/\B(?=(\d{3})+(?!\d))/g,NN);return t.replace('-',MINUS).replace('.',',')}
+const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+/* texte avec exposant : « e^(2x+1) » → tspan */
+function tx(t){t=esc(t);return t.replace(/\^\{([^}]*)\}/g,(_,e)=>`<tspan dy="-0.55em" font-size="0.72em">${e}</tspan><tspan dy="0.55em"> </tspan>`).replace(/_\{([^}]*)\}/g,(_,e)=>`<tspan dy="0.3em" font-size="0.72em">${e}</tspan><tspan dy="-0.3em"> </tspan>`)}
+/* courbe y = C e^(kx) */
+function curvePath(C,k){const v=st.v,N=300;let d='';for(let i=0;i<=N;i++){const x=v.x0+(v.x1-v.x0)*i/N,y=C*Math.exp(k*x);d+=(i?'L':'M')+X(x).toFixed(1)+' '+Math.max(-3000,Math.min(3000,Y(y))).toFixed(1)}return d}
+/* un mât : pied (x ; 0), tête (x ; y) */
+function pole(x,y,o){o=o||{};const px=X(x),py0=Y(0),cut=y>st.v.y1,py=cut?PT+6:Y(y),col=o.col||'#c4cfe8',lamp=o.lamp||'#ffd76a';let g='';
+  g+=`<ellipse cx="${px.toFixed(1)}" cy="${(py0+3).toFixed(1)}" rx="${(o.big?13:9)}" ry="3.5" fill="rgba(0,0,0,.45)"/>`;
+  g+=`<line x1="${px.toFixed(1)}" y1="${py0.toFixed(1)}" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" stroke="${col}" stroke-width="${o.big?5:3.4}" stroke-linecap="round"${o.dim?' opacity=".45"':''}/>`;
+  if(cut)g+=`<path d="M${(px-9).toFixed(1)} ${(PT+20).toFixed(1)}L${px.toFixed(1)} ${(PT+4).toFixed(1)}L${(px+9).toFixed(1)} ${(PT+20).toFixed(1)}" fill="none" stroke="${lamp}" stroke-width="3"/>`;
+  else g+=`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${o.big?15:10}" fill="${lamp}" opacity="${o.dim?.12:.22}"/><circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${o.big?7.5:5.5}" fill="${lamp}"${o.dim?' opacity=".5"':''} stroke="#2a1d00" stroke-width="1.2"/>`;
+  return g}
+function render(){if(!st)return;const v=st.v;let s='';const w=svg.clientWidth||1000,FK=Math.min(1.75,Math.max(1,600/w));
+  s+=`<defs><linearGradient id="hb-sand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3222" stop-opacity=".55"/><stop offset="1" stop-color="#14110b" stop-opacity=".2"/></linearGradient>`+
+     `<filter id="hb-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`+
+     `<clipPath id="hb-clip"><rect x="${PL}" y="${PT}" width="${PR-PL}" height="${PB-PT}"/></clipPath></defs>`;
+  /* ciel : étoiles, lune */
+  s+=`<g fill="#dfe7ff" opacity=".4"><circle cx="130" cy="44" r="1.4"/><circle cx="310" cy="76" r="1.1"/><circle cx="520" cy="30" r="1.5"/><circle cx="690" cy="62" r="1.1"/><circle cx="430" cy="112" r="1"/><circle cx="214" cy="128" r=".9"/><circle cx="610" cy="140" r=".9"/></g>`;
+    /* quadrillage */
+  const sx=st.xstep||niceStep(v.x1-v.x0,Math.round(12/FK)),sy=niceStep(v.y1-v.y0,Math.round(9/Math.sqrt(FK)));let g='',lab='';
+  const y0in=v.y0<=0&&v.y1>=0,x0in=v.x0<=0&&v.x1>=0;
+  const yAx=x0in?X(0):PL,xAy=y0in?Y(0):PB;
+  for(let k=Math.ceil(v.x0/sx-1e-9);k*sx<=v.x1+1e-9;k++){const x=k*sx,px=X(x);g+=`M${px.toFixed(1)} ${PT}V${xAy.toFixed(1)}`;
+    if((Math.abs(x)>1e-9||!x0in)&&px<PR-30&&px>PL+8)lab+=`<text x="${px.toFixed(1)}" y="${Math.min(xAy+8+20*FK,PB-6).toFixed(1)}" text-anchor="middle">${tickLab(x,sx)}</text>`}
+  for(let k=Math.ceil(Math.max(0,v.y0)/sy-1e-9);k*sy<=v.y1+1e-9;k++){const y=k*sy,py=Y(y);g+=`M${PL} ${py.toFixed(1)}H${PR}`;
+    if(Math.abs(y)>1e-9&&py>PT+16)lab+=x0in?`<text x="${(yAx-10).toFixed(1)}" y="${(py+8).toFixed(1)}" text-anchor="end">${tickLab(y,sy)}</text>`:`<text x="${PL+8}" y="${(py-6).toFixed(1)}">${tickLab(y,sy)}</text>`}
+  s+=`<path d="${g}" stroke="rgba(120,160,255,.12)" stroke-width="1.2" fill="none"/>`;
+  /* sable sous l'axe des abscisses */
+  if(y0in){s+=`<rect x="${PL}" y="${xAy.toFixed(1)}" width="${PR-PL}" height="${(PB-xAy+16).toFixed(1)}" fill="url(#hb-sand)"/>`;
+    let dots='';for(let i=0;i<34;i++){const px=PL+((i*97)%(PR-PL)),py=xAy+8+((i*37)%Math.max(8,(PB-xAy-6)));if(py<PB)dots+=`<circle cx="${px}" cy="${py.toFixed(1)}" r="1.1"/>`}
+    s+=`<g fill="#c8a84b" opacity=".18">${dots}</g>`}
+  let axes='';if(y0in)axes+=`M${PL} ${xAy.toFixed(1)}H${PR}`;if(x0in)axes+=`M${yAx.toFixed(1)} ${PT}V${xAy.toFixed(1)}`;
+  s+=`<path d="${axes}" stroke="rgba(200,215,255,.55)" stroke-width="2" fill="none"/>`;
+  if(x0in&&y0in)lab+=`<text x="${(yAx-10).toFixed(1)}" y="${(xAy+28*FK).toFixed(1)}" text-anchor="end">0</text>`;
+  s+=`<g font-family="Outfit,system-ui,sans-serif" font-size="${(21*FK).toFixed(1)}" font-weight="600" fill="rgba(200,215,255,.72)">${lab}<text x="${PR-6}" y="${(xAy-10).toFixed(1)}" text-anchor="end" font-style="italic">${esc(st.xl)}</text><text x="${(yAx+10).toFixed(1)}" y="${PT+24}" font-style="italic">${esc(st.yl)}</text></g>`;
+  s+=`<g clip-path="url(#hb-clip)">`;
+  let top='';const T=(x,y,t,o)=>{o=o||{};top+=`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}"${o.a?` text-anchor="${o.a}"`:''} fill="${o.c||'#e6ebff'}"${o.it?' font-style="italic"':''} font-weight="${o.w||700}"${o.fs?` font-size="${(o.fs*FK).toFixed(1)}"`:''}>${tx(t)}</text>`};
+  /* seuil horizontal */
+  if(st.hline){const py=Y(st.hline.y);s+=`<line x1="${PL}" y1="${py.toFixed(1)}" x2="${PR}" y2="${py.toFixed(1)}" stroke="#ff9b7a" stroke-width="2.2" stroke-dasharray="10 8"/>`;if(st.hline.lab)T(PR-12,py-10,st.hline.lab,{a:'end',c:'#ffb59f'})}
+  /* courbe fantôme (cible) */
+  if(st.ghost){s+=`<path d="${curvePath(st.ghost.C||1,st.ghost.k)}" fill="none" stroke="#8ea6ff" stroke-width="3" stroke-dasharray="12 9" opacity=".8"/>`;
+    if(st.ghost.lab){const gx=st.ghost.lx!==undefined?st.ghost.lx:v.x1-(v.x1-v.x0)*.12,gy=(st.ghost.C||1)*Math.exp(st.ghost.k*gx);T(X(gx),Math.max(PT+30,Math.min(Y(gy)-16,PB-40)),st.ghost.lab,{a:'middle',c:'#a9bbff'})}}
+  /* la guirlande : y = C e^(kx) */
+  if(st.curve){const d=curvePath(st.C,st.k);
+    s+=`<path d="${d}" fill="none" stroke="rgba(232,199,102,.38)" stroke-width="2.4"/>`+
+       `<path d="${d}" fill="none" stroke="#ffd76a" stroke-width="7" stroke-linecap="round" stroke-dasharray="0.1 22" filter="url(#hb-glow)" opacity=".9"/>`}
+  /* hauban (sous les mâts) */
+  let tangent=false;
+  if(st.sel!==null&&st.peg!==null){const xa=st.sel,ya=F(xa),pa=[X(xa),Y(ya)],pp=[X(st.peg),Y(0)];
+    tangent=st.k!==0&&Math.abs(st.peg-(xa-1/st.k))<1e-7;st.tan=tangent;
+    if(tangent&&st.tri){s+=`<path d="M${pp[0].toFixed(1)} ${pp[1].toFixed(1)}L${pa[0].toFixed(1)} ${pp[1].toFixed(1)}L${pa[0].toFixed(1)} ${pa[1].toFixed(1)}Z" fill="rgba(108,142,255,.16)" stroke="none"/>`;
+      s+=`<path d="M${pp[0].toFixed(1)} ${(pp[1]-2).toFixed(1)}H${pa[0].toFixed(1)}" stroke="#a9bbff" stroke-width="5"/>`;
+      if(st.tl){const mid=(pp[0]+pa[0])/2;T(mid,pp[1]-12,st.tl.h,{a:'middle',c:'#c9d4ff',fs:22});
+        T(pa[0]+(st.peg<xa?14:-14),(pp[1]+Math.max(pa[1],PT))/2+8,st.tl.v,{a:st.peg<xa?'start':'end',c:'#ffd76a',fs:22})}}
+    if(tangent&&st.ext){const m=st.k*ya,xl=v.x0,xr=v.x1;s+=`<line x1="${X(xl).toFixed(1)}" y1="${Y(ya+m*(xl-xa)).toFixed(1)}" x2="${X(xr).toFixed(1)}" y2="${Y(ya+m*(xr-xa)).toFixed(1)}" stroke="#e8c766" stroke-width="2" opacity=".45" stroke-dasharray="4 8"/>`}
+    s+=`<line x1="${pp[0].toFixed(1)}" y1="${pp[1].toFixed(1)}" x2="${pa[0].toFixed(1)}" y2="${Math.max(pa[1],-3000).toFixed(1)}" stroke="${tangent?'#e8c766':'#8ea6ff'}" stroke-width="${tangent?3.6:3}"${tangent?' filter="url(#hb-glow)"':' stroke-dasharray="12 8"'}/>`;
+    /* piquet */
+    s+=`<path d="M${(pp[0]-7).toFixed(1)} ${(pp[1]-4).toFixed(1)}L${(pp[0]+7).toFixed(1)} ${(pp[1]-4).toFixed(1)}L${pp[0].toFixed(1)} ${(pp[1]+16).toFixed(1)}Z" fill="${tangent?'#e8c766':'#c9d4ff'}" stroke="#1a2440" stroke-width="1.5"/>`;
+    if(st.pegDrag)s+=`<circle cx="${pp[0].toFixed(1)}" cy="${pp[1].toFixed(1)}" r="22" fill="rgba(108,142,255,.12)" stroke="#8ea6ff" stroke-width="2" stroke-dasharray="5 5"/>`;
+    if(st.pegLab!==false)T(pp[0],Math.min(pp[1]+8+44*FK,PB-4),st.pegLab||('piquet'),{a:'middle',c:tangent?'#e8c766':'#a9bbff',fs:19,w:600})}
+  else st.tan=false;
+  /* mâts */
+  for(const p of st.poles){const y=p.y!==undefined?p.y:F(p.x);s+=pole(p.x,y,{big:p.big||p.x===st.sel,dim:p.dim,lamp:p.lamp,col:p.col});
+    if(p.lab){const py=y>v.y1?PT+40:Y(y);T(X(p.x)+(p.dx||0),py-(p.dy||22)*FK,p.lab,{a:'middle',c:p.lc||'#ffe7a3',fs:p.fs||21})}}
+  /* marche d'Euler */
+  if(st.euler){const E=st.euler,P=E.pts;for(let i=0;i+1<P.length;i++){s+=`<line x1="${X(P[i][0]).toFixed(1)}" y1="${Y(P[i][1]).toFixed(1)}" x2="${X(P[i+1][0]).toFixed(1)}" y2="${Y(P[i+1][1]).toFixed(1)}" stroke="#8ea6ff" stroke-width="3.2"/>`}
+    if(E.part){const [a,b]=E.part;s+=`<line x1="${X(a[0]).toFixed(1)}" y1="${Y(a[1]).toFixed(1)}" x2="${X(b[0]).toFixed(1)}" y2="${Y(b[1]).toFixed(1)}" stroke="#8ea6ff" stroke-width="3.2" stroke-dasharray="8 6"/>`}
+    P.forEach((p,i)=>{s+=pole(p[0],p[1],{big:i===P.length-1,lamp:'#9fb4ff',col:'#b7c5ef'});if(E.lab&&E.lab[i])T(X(p[0])+12,Y(p[1])-18*FK,E.lab[i],{a:'start',c:'#c9d4ff',fs:20})})}
+  /* deux mâts à comparer */
+  if(st.pair){const Pp=st.pair;Pp.xs.forEach((x,i)=>{const col=i?'#ff9b7a':'#7fb2ff',y=F(x);s+=pole(x,y,{big:true,lamp:col,col:i?'#f0c6b8':'#c6d8ff'});
+      const py=y>v.y1?PT+44:Y(y);T(X(x)+(i?18:-18),py-14*FK,Pp.labs[i],{a:i?'start':'end',c:col,fs:21});
+      if(Pp.foot)T(X(x),Y(0)+(i?58:32)*FK,Pp.foot[i],{a:'middle',c:col,fs:18,w:600})});
+    if(Pp.same){const x=Pp.xs[0],y=F(x);s+=`<circle cx="${X(x).toFixed(1)}" cy="${(y>v.y1?PT+10:Y(y)).toFixed(1)}" r="20" fill="none" stroke="#e8c766" stroke-width="3" filter="url(#hb-glow)"/>`}}
+  /* rangée géométrique */
+  if(st.seq){const S=st.seq;S.n.forEach((n,i)=>{const y=F(n);s+=pole(n,y,{big:i===S.n.length-1});if(S.lab)T(X(n),(y>v.y1?PT+40:Y(y))-24*FK,S.lab(n,i),{a:'middle',c:'#ffe7a3',fs:19});
+      if(i&&S.q){const x0=S.n[i-1],y0=F(x0),y1=Math.min(y,v.y1),xm=(X(x0)+X(n))/2,ym=Math.min(Y(y0),Y(y1))-34*FK;
+        s+=`<path d="M${X(x0).toFixed(1)} ${(Y(Math.min(y0,v.y1))-12).toFixed(1)}Q${xm.toFixed(1)} ${(ym-10).toFixed(1)} ${X(n).toFixed(1)} ${(Y(y1)-12).toFixed(1)}" fill="none" stroke="#8ea6ff" stroke-width="2" stroke-dasharray="5 5"/>`;
+        T(xm,ym-8,S.q,{a:'middle',c:'#a9bbff',fs:18})}})}
+  /* mât qui glisse le long de la guirlande */
+  if(st.ride){const R=st.ride,y=F(R.x);s+=pole(R.x,y,{big:true,lamp:'#9fb4ff',col:'#d7e0ff'});if(R.lab)T(X(R.x),(y>v.y1?PT+40:Y(y))-26*FK,R.lab,{a:'middle',c:'#c9d4ff',fs:21})}
+  /* repères verticaux */
+  for(const m of st.marks){const px=X(m.x);s+=`<line x1="${px.toFixed(1)}" y1="${PT}" x2="${px.toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="${m.c||'rgba(200,215,255,.3)'}" stroke-width="2" stroke-dasharray="4 7"/>`;if(m.lab)T(px+6,PT+56,m.lab,{c:m.c||'#c9d4ff',fs:18,w:600})}
+  s+=`<g font-family="Outfit,system-ui,sans-serif" font-size="${(22*FK).toFixed(1)}">${top}</g></g>`;
+  /* titre */
+  if(st.title){const tw=Math.min(700,24+st.title.replace(/\^\{|\}|_\{/g,'').length*12.4*FK);
+    s+=`<g font-family="Outfit,system-ui,sans-serif"><rect x="${PL+10}" y="${PT+10}" width="${tw.toFixed(0)}" height="${(42*FK).toFixed(0)}" rx="12" fill="rgba(6,13,26,.8)" stroke="rgba(120,160,255,.3)"/><text x="${PL+22}" y="${(PT+10+29*FK).toFixed(0)}" font-size="${(22*FK).toFixed(1)}" font-weight="700" fill="#f0f4ff">${tx(st.title)}</text></g>`}
+  svg.innerHTML=s}
+addEventListener('resize',()=>render());
+function reset(o){st=Object.assign(blank(),o||{});render()}
+function set(o){Object.assign(st,o);render()}
+/* rangée de mâts réguliers */
+function fleet(a,b,stp,o){const out=[];for(let x=a;x<=b+1e-9;x+=stp)out.push(Object.assign({x:Math.round(x*1000)/1000,dim:true},o||{}));return out}
+async function tween(key,to,ms,after){const from=st[key];await anim(ms||700,k=>{st[key]=from+(to-from)*k;render();if(after)after(k)});st[key]=to;render()}
+/* glisser dans la scène */
+let dragH=null;
+function toSvg(ev){const p=svg.createSVGPoint();p.x=ev.clientX;p.y=ev.clientY;const r=p.matrixTransform(svg.getScreenCTM().inverse());return{px:r.x,py:r.y}}
+svg.addEventListener('pointerdown',e=>{if(!dragH)return;e.preventDefault();svg.setPointerCapture(e.pointerId);dragH.move(toSvg(e),true)});
+svg.addEventListener('pointermove',e=>{if(!dragH||!svg.hasPointerCapture(e.pointerId))return;dragH.move(toSvg(e),false)});
+svg.addEventListener('pointerup',e=>{if(dragH&&svg.hasPointerCapture(e.pointerId)){svg.releasePointerCapture(e.pointerId);if(dragH.end)dragH.end()}});
+svg.addEventListener('keydown',e=>{if(!dragH||!dragH.key)return;const k={ArrowLeft:-1,ArrowDown:-1,ArrowRight:1,ArrowUp:1}[e.key];if(k){e.preventDefault();dragH.key(k)}});
+function setDrag(h){dragH=h;svg.classList.toggle('grab',!!h);svg.setAttribute('tabindex',h?'0':'-1')}
+
+window.HBK={Q,q,rnd,frS,frac,D,Dt,Dr,par,ri,pick,shuf,s,aff,affT,affS,E,En,ES,EnS,affW,writes,writesR,
+  SND,anim,sleep,reduceM,reset,set,render,fleet,tween,setDrag,X,Y,IX,F,get st(){return st},NB,NN,MINUS,$};
+})();
+</script>
+<script>
+/* ======================= LES HAUBANS — déroulé des questions ======================= */
+(function(){
+'use strict';
+const K=window.HBK,{Q,q,D,Dt,Dr,ri,pick,shuf,SND,sleep,$,MINUS}=K;
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+let lvl=0,qi=0,run=[],QN=null,pi=0,errs=0,busy=false,partState={};
+const LV=window.HB_LV=[];
+function starsOf(i){try{const g=SigmaKit.passport().games['les-haubans'];return g&&g.levels[i+1]||0}catch(e){return 0}}
+const cap=h=>{$('capt').innerHTML='<span>'+(h||'&nbsp;')+'</span>'};
+K.cap=cap;
+
+/* ---------- retours ---------- */
+function fb(html,rv){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI(rv?'neutre':'pense');$('fbt').textContent=rv?'Voici la réponse.':'Pas tout à fait.';
+  $('fbp').innerHTML=html;$('fb').classList.toggle('rv',!!rv);$('fb').hidden=false;
+  const f=$('fb');if(innerWidth<=860&&f.getBoundingClientRect().bottom>innerHeight)setTimeout(()=>f.scrollIntoView({block:'end',behavior:K.reduceM?'auto':'smooth'}),30)}
+/* erreur : 1er essai → explication ; 2e essai → la réponse est donnée, on continue */
+function err(why,box,reveal,sol){errs++;partState.errors=(partState.errors||0)+1;SND.soft();
+  if(partState.errors>=2&&reveal){reveal();fb((why?why+' ':'')+(sol?'<br>'+sol:''),true);
+    const b=document.createElement('div');b.className='btns';b.style.marginTop='10px';b.innerHTML='<button type="button" class="btn or cont">Continuer →</button>';box.appendChild(b);
+    const c=b.querySelector('.cont');c.onclick=async()=>{if(busy)return;c.disabled=true;await finish(QN.parts[pi])};setTimeout(()=>c.focus({preventScroll:true}),30)}
+  else fb(why)}
+async function finish(p){fb('');if(p&&p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+const W={};
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);nextPart()};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)b.focus({preventScroll:true})},50)};
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+(p.code?`<pre class="code">${p.code}</pre>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  const all=[...box.querySelectorAll('.opt')];
+  all.forEach(b=>b.onclick=async()=>{if(busy||b.disabled)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){all.forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();await finish(p)}
+    else{b.classList.add('ko');b.disabled=true;err(c.why,box,()=>{all.forEach(x=>{x.disabled=true;if(p.ch[+x.dataset.j].ok)x.classList.add('ok')})},'La bonne réponse est en vert.')}})};
+/* lecture d'un nombre : virgule ou point, fraction a/b, unités ignorées */
+function readNum(s){return Q.parse(String(s).replace(/[%€]/g,'').replace(/\s*(g|ans?|années?|[a-zA-Zéèàù°]+)$/,''))}
+/* lecture d'une expression affine a·v + b : « 2x + 1 », « 1 + 2x », « −x », « 0,5x − 3 », « x/2 » refusé */
+function readAff(str,v){let t=String(str).replace(/[\s  ]/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.').replace(/[×*·]/g,'');
+  if(!t)return null;if(!/^[+-]/.test(t))t='+'+t;const terms=t.match(/[+-][^+-]+/g);if(!terms||terms.join('')!==t)return null;
+  let a=q(0),b=q(0);for(const tm of terms){const sg=tm[0]==='-'?-1:1,body=tm.slice(1);
+    if(body.endsWith(v)){const c=body.slice(0,-v.length);const cq=c===''?q(1):Q.parse(c);if(!cq||c.includes(v))return null;a=a.add(cq.mul(sg))}
+    else{const cq=Q.parse(body);if(!cq)return null;b=b.add(cq.mul(sg))}}
+  return [a,b]}
+K.readAff=readAff;K.readNum=readNum;
+function ansTxt(a){return a.kind==='aff'?K.affT(a.a,a.b,a.var):a.kind==='rnd'?Dr(a.x,a.d):Dt(a.v)}
+function ansOk(a,raw){if(a.kind==='aff'){const r=readAff(raw,a.var);return !!r&&r[0].eq(a.a)&&r[1].eq(a.b)}
+  const z=readNum(raw);if(!z)return false;if(a.kind==='rnd')return z.eq(K.rnd(a.x,a.d));return z.eq(a.v)}
+W.fill=(p,box)=>{
+  const t=p.tpl.replace(/\{(\^?)(\d)\}/g,(_,up,i)=>{const a=p.ans[+i],sx=ansTxt(a);const w=Math.max(2.8,sx.length*.6+1.7);
+    return `<input class="in${up?' up':''}" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="${a.kind==='aff'||a.neg?'text':'decimal'}" aria-label="Case ${+i+1}" style="width:${w.toFixed(1)}em">`});
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+(p.note?`<p class="hint">${p.note}</p>`:'');
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy||f.dataset.done)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=v.map((x,i)=>ansOk(p.ans[+ins[i].dataset.i],x));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){f.dataset.done=1;ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();await finish(p)}
+    else err(typeof p.why==='function'?p.why(v,oks):p.why,box,()=>{f.dataset.done=1;ins.forEach(x=>{x.value=ansTxt(p.ans[+x.dataset.i]).replace(/ /g,'');x.classList.remove('ko');x.classList.add('ok');x.disabled=true});f.querySelector('button').remove()},
+      'Réponse&nbsp;: '+p.ans.map(a=>'<b style="display:inline">'+ansTxt(a)+'</b>').join(' ; ')+'.')};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* réglage d'une grandeur (piquet, x, k) : boutons − et +, glisser dans la scène, flèches du clavier */
+W.adj=(p,box)=>{const stp=q(p.step);let k=q(p.get());
+  const show=()=>{out.innerHTML=p.fmt(k);p.set(k);if(p.live)cap(p.live(k))};
+  box.innerHTML=`<p class="ask">${p.ask}</p><div class="adj"><button type="button" class="stp" data-d="-1" aria-label="Diminuer">−</button><output aria-live="polite"></output><button type="button" class="stp" data-d="1" aria-label="Augmenter">+</button></div>`+
+    `<div class="btns"><button type="button" class="btn or val">${p.label||'Valider'}</button></div><p class="hint">${p.hint||'Fais glisser dans la scène, ou utilise − et +.'}</p>`;
+  const out=box.querySelector('output');let done=false;
+  const setk=nk=>{if(nk.cmp(p.min)<0)nk=q(p.min);if(nk.cmp(p.max)>0)nk=q(p.max);if(!nk.eq(k)){k=nk;SND.tick();partState.k=String(k);show()}};
+  box.querySelectorAll('.stp').forEach(b=>b.onclick=()=>{if(busy||done)return;setk(k.add(stp.mul(+b.dataset.d)))});
+  if(p.drag)K.setDrag({move(pt){if(busy||done)return;const w=p.drag(pt);if(w===null||!isFinite(w))return;setk(K.rnd(Math.round(w/stp.v)*stp.v,4))},
+    key(d){if(busy||done)return;setk(k.add(stp.mul(d)))}});
+  if(p.on2)p.on2();
+  box.querySelector('.val').onclick=async()=>{if(busy||done)return;
+    if(k.eq(p.target)){done=true;K.setDrag(null);box.querySelectorAll('button').forEach(x=>x.disabled=true);SND.pluck();if(p.after)p.after();await finish(p)}
+    else err(p.why(k),box,()=>{done=true;K.setDrag(null);k=q(p.target);show();if(p.after)p.after();box.querySelectorAll('button').forEach(x=>x.disabled=true)},p.revealTxt||'La bonne position est maintenant affichée.')};
+  show()};
+
+/* ---------- déroulé ---------- */
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');
+  pi++;partState={};if(pi<QN.parts.length){const p=QN.parts[pi];if(p.on)p.on();const box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:K.reduceM?'auto':'smooth'})}}
+function newQ(){QN=LV[lvl].qs[qi]();pi=0;errs=0;partState={};K.setDrag(null);
+  QN.scene();cap(QN.cap0||'&nbsp;');
+  $('prompt').innerHTML=QN.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  const p=QN.parts[0];if(p.on)p.on();const box=partEl();W[p.t](p,box)}
+function dots(){const N=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:N},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+async function win(){fb('');K.setDrag(null);SND.win();run.push(errs===0);dots();
+  const N=LV[lvl].qs.length,lvlDone=run.length>=N;
+  $('winx').textContent=errs===0?pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=QN.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(QN.onWin){busy=true;try{await QN.onWin()}finally{busy=false}}
+  setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const Lv=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lv,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lv)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if(busy)return;if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:K.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];$('chap').textContent=LV[l].chap;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('cours').open=false;renderLv();newQ()}
+function renderLv(){$('lv').innerHTML=LV.map((l,i)=>{const n=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}" title="${l.t}">${i+1}. ${l.s||l.t}${n?`<span class="ck" aria-label="${n} étoile${n>1?'s':''}">${'★'.repeat(n)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${SND.on}">♪ Bruitages : ${SND.on?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;
+  if(b.id==='snd'){SND.on=!SND.on;try{localStorage.setItem('sigma-fanfare',SND.on?'1':'0')}catch(_){}renderLv();SND.pop();return}
+  goLevel(+b.dataset.l)});
+
+/* ---------- fabriques de parties ---------- */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+/* choix : doublons retirés (même texte) */
+const ch=(ask,list,o)=>{const seen=new Set();const out=list.filter(c=>{if(seen.has(c.h))return false;seen.add(c.h);return true}).slice(0,(o&&o.max)||4);
+  return Object.assign({t:'choice',ask,ch:out},o||{})};
+/* trous : ans = [{v}|{x,d}(arrondi)|{a,b,var}(affine)] ; ref = expression sympy de la grandeur demandée (audit) */
+const fill=(ask,tpl,ans,why,o)=>Object.assign({t:'fill',ask,tpl,ans:ans.map(a=>a.var!==undefined?Object.assign({kind:'aff'},a,{a:q(a.a),b:q(a.b)}):a.d!==undefined?Object.assign({kind:'rnd'},a):Object.assign({kind:'num'},a,{v:q(a.v)})),why},o||{});
+const adj=(o)=>Object.assign({t:'adj'},o);
+const OK=(h,x)=>Object.assign({h,ok:true},x||{}),NO=(h,why,x)=>Object.assign({h,why},x||{});
+Object.assign(K,{act,ch,fill,adj,OK,NO,goLevel,renderLv});
+
+/* ---------- crochets de test ---------- */
+function ser(p){const o={t:p.t,ask:p.ask||'',label:p.label||'',au:p.au||null,code:p.code||null};
+  if(p.t==='choice')o.choices=p.ch.map(c=>({h:c.h,ok:!!c.ok,why:c.why||'',c:c.c||null}));
+  if(p.t==='fill'){o.tpl=p.tpl;o.ans=p.ans.map(a=>({expo:!!a.expo,kind:a.kind,txt:ansTxt(a).replace(/ /g,''),ref:a.ref||null,d:a.d===undefined?null:a.d,var:a.var||null,v:a.kind==='num'?String(a.v):a.kind==='aff'?[String(a.a),String(a.b)]:null}))}
+  if(p.t==='adj'){o.kind=p.kind||null;o.lo=p.lo===undefined?null:p.lo;o.hi=p.hi===undefined?null:p.hi;o.target=String(q(p.target));o.step=String(p.step);o.min=String(p.min);o.max=String(p.max);o.au=p.au||null}
+  return o}
+window.HB={state(){const p=QN&&QN.parts[pi];return{lvl,qi,nq:LV[lvl].qs.length,pi,busy,np:QN?QN.parts.length:0,part:p?ser(p):null,tan:K.st&&K.st.tan}},
+  sample(L,i){const Qx=LV[L].qs[i]();return{prompt:Qx.prompt,done:Qx.done,cap0:Qx.cap0||'',steps:Qx.steps||1,parts:Qx.parts.map(ser)}},
+  get busy(){return busy},partBox(){return $('work').lastElementChild}};
+})();
+</script>
+<script>
+/* ======================= LES HAUBANS — les sept niveaux ======================= */
+(function(){
+'use strict';
+const K=window.HBK,{q,D,Dt,Dr,frac,ri,pick,shuf,s,aff,affT,affS,E,En,ES,EnS,act,ch,fill,adj,OK,NO,cap,sleep,MINUS,NB,par}=K;
+const LV=window.HB_LV;
+const ex=Math.exp;
+const cf=c=>{c=q(c);return c.eq(1)?'':c.eq(-1)?MINUS:D(c)};
+const VE=()=>({x0:-3.3,x1:2.45,y0:-2.1,y1:10});
+const FLEET=()=>K.fleet(-3,2,0.5);
+/* libellé scène d'une exponentielle : e^{…} */
+const eL=(a,b,v)=>{const t=affT(a,b,v);return (q(a).sgn()===0&&q(b).eq(1))?'e':'e^{'+t+'}'};
+const vAt=x=>Dr(ex(x),2);
+/* pied d'un mât donné en évidence */
+function poles(hi,o){o=o||{};return FLEET().map(p=>hi.includes(p.x)?Object.assign({},p,{dim:false,big:true,lab:o.lab?o.lab(p.x):null}):p)}
+/* --- le piquet : réglage, explication de l'erreur, légende --- */
+function pegAdj(ask,a,o){o=o||{};const k=q(o.k===undefined?1:o.k),A=q(a),T=A.sub(q(1).div(k));
+  return adj(Object.assign({kind:'peg',au:{ref:`solve(diff(exp((${s(k)})*x),x).subs(x,${s(A)})*(x-(${s(A)}))+exp((${s(k)})*(${s(A)})),x)[0]`},ask,step:o.step||'0.25',min:o.min===undefined?-3.25:o.min,max:o.max===undefined?A.sub('0.25'):o.max,target:s(T),label:'Tendre le hauban',
+    get:()=>q(K.st.peg),set:v=>{K.st.peg=v.v;K.render()},fmt:v=>'piquet en x = '+Dt(v),
+    drag:p=>K.IX(p.px),
+    on2:()=>{K.st.pegDrag=true;K.render()},
+    after:()=>{K.st.pegDrag=false;K.st.tri=true;K.render()},
+    live:v=>{const base=Math.abs(A.v-v.v),h=K.F(A.v),m=base>1e-9?h/base:Infinity;return `<span class="m">base</span> <span class="s">${Dt(q(A).sub(v).abs())}</span> <span class="m">· hauban</span> ${isFinite(m)?'≈ <span class="s">'+Dr(m,2)+'</span>':'—'} <span class="m">· guirlande ≈</span> <span class="k">${Dr(k.v*h,2)}</span>`},
+    why:v=>{const base=Math.abs(A.v-v.v),need=1/Math.abs(k.v);
+      if(base<need)return `Le hauban est trop raide&nbsp;: plus pentu que la guirlande, il la coupe. Avec une base de ${Dt(q(A).sub(v).abs())}, sa pente vaut hauteur ÷ ${Dt(q(A).sub(v).abs())}, plus que la hauteur. Recule le piquet.`;
+      return `Le hauban est trop couché&nbsp;: sa pente (hauteur ÷ ${Dt(q(A).sub(v).abs())}) est plus petite que celle de la guirlande, qui vaut la hauteur du mât. Rapproche le piquet.`},
+    revealTxt:'Le piquet est maintenant à la bonne place&nbsp;: une unité derrière le mât.',hint:'Fais glisser le piquet dans le sable, ou utilise − et +. La légende compare les pentes du hauban et de la guirlande.'},o.x||{}))}
+
+/* =================================================================== */
+/* NIVEAU 1 · Pente = hauteur : f′ = f, f(0) = 1, tangente, nombre e     */
+/* =================================================================== */
+const rule1=`<p>La <b>fonction exponentielle</b> est l'unique fonction f dérivable sur ℝ telle que <b>f′ = f</b> et <b>f(0) = 1</b> (existence et unicité admises). On la note exp&nbsp;; exp(x) = e<sup>x</sup> avec <b>e = exp(1) ≈ 2,718</b>.</p><p>Sur la plage, le mât d'abscisse a mesure e<sup>a</sup>. Le hauban tangent a pour pente exp′(a) = exp(a) = e<sup>a</sup>&nbsp;: <b>pente = hauteur</b>. La tangente y = e<sup>a</sup>(x − a) + e<sup>a</sup> coupe l'axe des abscisses en a − 1&nbsp;: le piquet est toujours une unité derrière le mât.</p><p>En 0&nbsp;: exp(0) = 1, exp′(0) = 1, tangente y = x + 1.</p>`;
+function l1q1(){const a=pick([0.5,1.5,2]);
+  return{steps:2,prompt:`Les têtes des mâts dessinent la courbe de la fonction exponentielle. Le mât d'abscisse <b>${Dt(a)}</b> mesure ${En(a)} ≈ ${vAt(a)}. On veut le tenir par un hauban <b>tangent</b> à la guirlande en son sommet.`,
+    scene:()=>K.reset({v:VE(),poles:poles([a],{lab:x=>eL(0,x)}),sel:a,peg:Math.max(-3,a-2.5),title:'y = e^{x}',tl:{h:'1',v:eL(0,a)}}),
+    cap0:'La guirlande&nbsp;: y = e<sup>x</sup>.',
+    parts:[pegAdj('Plante le piquet dans le sable pour que le hauban frôle la guirlande.',a),
+      ch(`Le triangle a une base de 1 et une hauteur de ${En(a)}. La pente du hauban, c'est-à-dire exp′(${Dt(a)}), vaut&nbsp;:`,[
+        OK(En(a)),NO('1','1 est la base du triangle, pas sa pente&nbsp;: pente = hauteur ÷ base.'),
+        NO(`${D(a)}${En(a-1)}`,`C'est la règle de dérivation de x<sup>n</sup>, qui ne s'applique pas ici&nbsp;: l'exposant est la variable. Par définition, exp′ = exp.`),
+        NO(En(a-1),`C'est la hauteur du mât planté au niveau du piquet, pas la pente du hauban.`)],{au:{mode:'val',ref:`exp(${s(a)})`}})],
+    done:`Base 1, hauteur ${En(a)}&nbsp;: pente = ${En(a)} ÷ 1 = ${En(a)}. La pente de la tangente est la hauteur du mât&nbsp;: exp′(${Dt(a)}) = exp(${Dt(a)}). C'est la définition f′ = f, vue sur la plage.`}}
+function l1q2(){
+  return{steps:2,prompt:`Le mât planté à l'abscisse <b>0</b>.`,
+    scene:()=>K.reset({v:VE(),poles:poles([0],{lab:()=>'?'}),sel:0,peg:-2.5,title:'y = e^{x}',tl:{h:'1',v:'1'}}),
+    parts:[fill('Sa hauteur&nbsp;:','exp(0) = {0}',[{v:1,ref:'exp(0)'}],'La définition impose f(0) = 1&nbsp;: le mât d\'abscisse 0 mesure 1.',{onOk:()=>{K.st.poles=poles([0],{lab:()=>'1'});K.render()}}),
+      fill('La pente de la tangente en 0&nbsp;:','exp′(0) = {0}',[{v:1,ref:'diff(exp(x),x).subs(x,0)'}],'exp′ = exp, donc exp′(0) = exp(0) = 1.'),
+      pegAdj('Plante le piquet pour que le hauban soit tangent en (0&nbsp;; 1).',0,{x:{after:()=>{K.st.pegDrag=false;K.st.tri=true;K.st.ext=true;K.render()}}}),
+      ch('La tangente à la courbe au point d\'abscisse 0 a pour équation&nbsp;:',[
+        OK('y = x + 1',{c:['tan','exp(x)','0','1','1']}),NO('y = x','Elle passe par le sommet du mât (0&nbsp;; 1), pas par l\'origine.',{c:['tan','exp(x)','0','1','0']}),
+        NO('y = ex + 1','La pente est exp′(0) = e<sup>0</sup> = 1, pas e.',{c:['tan','exp(x)','0','E','1']}),NO('y = 1','Ce serait une tangente horizontale, de pente 0&nbsp;; ici la pente vaut 1.',{c:['tan','exp(x)','0','0','1']})],{au:{mode:'claim'}})],
+    done:`exp(0) = 1 et exp′(0) = 1&nbsp;: la tangente en 0 est y = 1 × (x − 0) + 1 = x + 1. Elle coupe l'axe des abscisses en −1, exactement là où tu as planté le piquet.`}}
+function l1q3(){const b=pick([2,3,-1]);const bx=b===3?1.5:b;
+  const opts=b===-1?[OK(`${En(-1)} ≈ ${Dr(ex(-1),2)}`),NO(`${MINUS}e ≈ ${MINUS}${Dr(Math.E,2)}`,'Une exponentielle est toujours strictement positive&nbsp;: e<sup>−1</sup> = 1/e.'),NO(`e ${MINUS} 1 ≈ ${Dr(Math.E-1,2)}`,'e<sup>−1</sup> n\'est pas e − 1&nbsp;: e<sup>−1</sup> = 1/e.')]
+    :[OK(`${En(b)} ≈ ${Dr(ex(b),2)}`),NO(`${b}e ≈ ${Dr(b*Math.E,2)}`,`${b}e = e + … + e (${b} fois)&nbsp;: c'est une somme, alors que e<sup>${b}</sup> = e × … × e (${b} fois).`),NO(`e + ${b} ≈ ${Dr(Math.E+b,2)}`,`e<sup>${b}</sup> se calcule avec des produits, pas avec une somme.`)];
+  return{steps:1,prompt:`Le nombre <b>e</b> est la hauteur du mât d'abscisse 1&nbsp;: e = exp(1).`,
+    scene:()=>K.reset({v:VE(),poles:poles([]),title:'y = e^{x}'}),
+    parts:[act('Allumer le mât d\'abscisse 1',async()=>{K.st.poles=poles([1],{lab:()=>'e'});K.render();K.SND.rise();await sleep(300);cap('e = exp(1) ≈ <span class="k">2,718 28</span>')}),
+      fill('Au millième près&nbsp;:','e ≈ {0}',[{x:Math.E,d:3,ref:'E'}],'Le mât d\'abscisse 1 mesure environ 2,718&nbsp;: au millième, e ≈ 2,718.'),
+      ch(`Le mât d'abscisse ${b} mesure&nbsp;:`,opts,{au:{mode:'val',ref:`exp(${b})`},onOk:()=>{K.st.poles=poles(b===3?[1]:[1,b],{lab:x=>eL(0,x)});K.render()}})],
+    done:`e = exp(1) ≈ 2,718 et le mât d'abscisse ${b} mesure exp(${b}) = e<sup>${b}</sup> ≈ ${Dr(ex(b),2)}${b===3?' (il dépasse le cadre)':''}.`}}
+function l1q4(){const a=pick([2,3,-1,-2,0.5]);
+  return{steps:2,prompt:`Une fonction g est dérivable sur ℝ et vérifie <b>g′ = g</b> et <b>g(0) = 1</b>.`,
+    scene:()=>K.reset({v:VE(),poles:poles(a>=-3&&a<=2?[a]:[]),title:'y = g(x)'}),
+    parts:[ch('Alors, pour tout réel x, g(x) est égal à&nbsp;:',[
+        OK('e<sup>x</sup>',{c:['fn','exp(x)']}),NO('x + 1','C\'est la tangente en 0&nbsp;: sa dérivée vaut 1, pas x + 1.',{c:['fn','x+1']}),
+        NO('2e<sup>x</sup>','Sa dérivée est bien elle-même, mais en 0 elle vaut 2, pas 1.',{c:['fn','2*exp(x)']}),
+        NO('e<sup>x</sup> + 1','Sa dérivée est e<sup>x</sup>, pas e<sup>x</sup> + 1&nbsp;: g′ ≠ g.',{c:['fn','exp(x)+1']})],{au:{mode:'claim'}}),
+      fill(`Donc&nbsp;:`,`g′(${Dt(a)}) = e{^0}`,[{v:a,ref:`diff(exp(x),x).subs(x,${s(a)})`,expo:true}],`g = exp, donc g′ = exp et g′(${Dt(a)}) = exp(${Dt(a)}) = e<sup>${Dt(a)}</sup>.`,
+        {onOk:()=>{if(a>=-3&&a<=2){K.st.sel=a;K.st.peg=a-1;K.st.tri=true;K.st.tl={h:'1',v:eL(0,a)};K.render()}}})],
+    done:`Une seule fonction vérifie g′ = g et g(0) = 1&nbsp;: c'est exp. Donc g′(${Dt(a)}) = g(${Dt(a)}) = e<sup>${Dt(a)}</sup>.`}}
+function l1q5(){const a=pick([-2,-1.5,-1,-0.5,1.5,2]);
+  const list=[OK(`en x = ${Dt(a-1)}`),NO(`en x = ${Dt(a+1)}`,'Derrière le mât, pas devant&nbsp;: la guirlande monte vers la droite, donc le hauban descend vers la gauche.'),
+    NO(`en x = ${Dt(a-2)}`,'Avec une base de 2, la pente du hauban serait la moitié de la hauteur&nbsp;: il serait trop couché.')];
+  if(a!==0)list.push(NO('en x = −1','−1, c\'est le piquet du mât d\'abscisse 0 seulement.'));
+  return{steps:2,prompt:`Le mât d'abscisse <b>${Dt(a)}</b> mesure ${En(a)} ≈ ${vAt(a)}.`,
+    scene:()=>K.reset({v:VE(),poles:poles([a],{lab:x=>eL(0,x)}),sel:a,peg:a-0.25,title:'y = e^{x}',tl:{h:'1',v:eL(0,a)}}),
+    parts:[ch(`Où faut-il planter le piquet pour que le hauban soit tangent à la guirlande&nbsp;?`,list,{au:{mode:'val',pre:'en x = ',ref:`solve(exp(${s(a)})*(x-(${s(a)}))+exp(${s(a)}),x)[0]`}}),
+      pegAdj('Vérifie sur la plage&nbsp;: plante le piquet.',a)],
+    done:`La tangente en ${Dt(a)}&nbsp;: y = e<sup>${Dt(a)}</sup>(x − ${par(a)}) + e<sup>${Dt(a)}</sup> = e<sup>${Dt(a)}</sup>(x ${q(a).sub(1).sgn()<0?'+ '+Dt(q(1).sub(a)):MINUS+' '+Dt(q(a).sub(1))}). Elle s'annule pour x = ${Dt(a-1)}&nbsp;: une unité derrière le mât, comme pour tous les mâts.`}}
+LV.push({t:'Pente = hauteur',s:'Pente = hauteur',chap:'Définition · f′ = f et f(0) = 1',rule:rule1,qs:[l1q1,l1q2,l1q3,l1q4,l1q5]});
+
+/* =================================================================== */
+/* NIVEAU 2 · La marche d'Euler : construire exp, approcher e           */
+/* =================================================================== */
+const rule2=`<p>Si f′ = f, alors pour h proche de 0&nbsp;: f(x + h) ≈ f(x) + h f′(x) = f(x) + h f(x) = (1 + h) f(x).</p><p><b>Méthode d'Euler</b>&nbsp;: on part de f(0) = 1 et, à chaque pas h, on avance le long du hauban (la tangente)&nbsp;: la hauteur est multipliée par <b>1 + h</b>.</p><p>Avec n pas de h = 1/n, on arrive en x = 1 à la hauteur (1 + 1/n)<sup>n</sup>&nbsp;: quand n devient grand, ce nombre se rapproche de <b>e ≈ 2,718</b>.</p>`;
+async function eStep(h,ms){const Eu=K.st.euler,[x,y]=Eu.pts[Eu.pts.length-1];K.SND.rise();
+  await K.anim(ms||650,k=>{Eu.part=[[x,y],[x+h*k,y+y*h*k]];K.render()});Eu.part=null;Eu.pts.push([x+h,y*(1+h)]);K.render()}
+const EV=(x0,x1,y1)=>({x0,x1,y0:-y1*.12,y1});
+function l2q1(){
+  return{steps:3,prompt:`On construit la guirlande sans la connaître, avec seulement <b>f′ = f</b> et <b>f(0) = 1</b>. Départ&nbsp;: le mât d'abscisse 0, de hauteur 1. On avance de <b>h = 0,5</b> le long de son hauban, dont la pente est sa hauteur.`,
+    scene:()=>K.reset({v:EV(-0.5,1.6,4.6),euler:{pts:[[0,1]],lab:['1']},title:'f′ = f, f(0) = 1'}),
+    cap0:'En pointillés dorés&nbsp;: la vraie guirlande y = e<sup>x</sup>.',
+    parts:[act('Avancer d\'un pas',()=>eStep(0.5)),
+      fill('Hauteur du nouveau mât, en x = 0,5&nbsp;:','1 + 0,5 × 1 = {0}',[{v:1.5,ref:'euler(1/2,1)'}],'On ajoute h × pente = 0,5 × 1 à la hauteur 1.',{onOk:()=>{K.st.euler.lab[1]='1,5';K.render()}}),
+      act('Deuxième pas',()=>eStep(0.5)),
+      fill('En x = 1&nbsp;:','1,5 + 0,5 × 1,5 = {0}',[{v:2.25,ref:'euler(1/2,2)'}],'Le nouveau hauban a pour pente la hauteur 1,5&nbsp;: on ajoute 0,5 × 1,5 = 0,75.',{onOk:()=>{K.st.euler.lab[2]='2,25';K.render()}}),
+      ch('Comparé à e ≈ 2,718, ce résultat est&nbsp;:',[OK('trop petit',{c:['cmp','9/4','E','lt']}),NO('trop grand','Regarde la scène&nbsp;: la marche reste sous la guirlande dorée.',{c:['cmp','9/4','E','gt']}),NO('exactement égal à e','2,25 ≠ 2,718… La méthode d\'Euler ne donne qu\'une valeur approchée.',{c:['cmp','9/4','E','eq']})],{au:{mode:'claim'}})],
+    done:`Chaque pas multiplie la hauteur par 1 + 0,5 = 1,5&nbsp;: f(1) ≈ 1,5<sup>2</sup> = 2,25. Les haubans passent sous la guirlande&nbsp;: l'approximation est trop petite. Avec des pas plus courts, on s'approche de e.`}}
+function l2q2(){const h=pick([0.25,0.2,0.1]),n=Math.round(1/h),val=Math.pow(1+h,n);
+  return{steps:3,prompt:`Même départ (f(0) = 1), mais avec des pas plus courts&nbsp;: <b>h = ${Dt(h)}</b>.`,
+    scene:()=>K.reset({v:EV(-0.4,1.4,3.5),euler:{pts:[[0,1]],lab:['1']},title:'pas h = '+Dt(h)}),
+    cap0:'En pointillés dorés&nbsp;: la vraie guirlande y = e<sup>x</sup>.',
+    parts:[ch(`À chaque pas, la hauteur du mât est multipliée par&nbsp;:`,[OK(Dt(1+h)),NO(Dt(h),'On ajoute h × hauteur à la hauteur&nbsp;: f + h f = (1 + h) f. On ne multiplie pas par h seul.'),
+        NO(Dt(2*h),'Le nouveau mât vaut f + h f = (1 + h) f.'),NO(`${En(h)} ≈ ${Dr(ex(h),4)}`,'C\'est le facteur de la vraie guirlande&nbsp;; la marche d\'Euler suit les haubans&nbsp;: facteur 1 + h.')],{au:{mode:'val',ref:`euler(${s(h)},1)`}}),
+      act(`Faire les ${n} pas jusqu'à x = 1`,async()=>{for(let i=0;i<n;i++)await eStep(h,n>5?260:420);K.st.euler.lab[n]='≈ '+Dr(val,2);K.render()}),
+      fill('Au centième&nbsp;:',`f(1) ≈ (1 + ${Dt(h)})<sup>${n}</sup> ≈ {0}`,[{x:val,d:2,ref:`euler(${s(h)},${n})`}],`(1 + ${Dt(h)})<sup>${n}</sup> = ${Dt(1+h)}<sup>${n}</sup>&nbsp;: à la calculatrice, ${Dr(val,4)}…`)],
+    done:`Après ${n} pas, f(1) ≈ ${Dr(val,2)}, plus près de e ≈ 2,718 qu'avec h = 0,5 (2,25).`}}
+function l2q3(){const h=pick([-0.5,-0.25]),n=Math.round(-1/h),val=Math.pow(1+h,n);
+  return{steps:3,prompt:`Vers la gauche aussi&nbsp;: on recule de ${Dt(-h)} à chaque pas (h = ${Dt(h)}). La hauteur est multipliée par 1 + h = ${Dt(1+h)}.`,
+    scene:()=>K.reset({v:EV(-1.45,0.8,1.6),euler:{pts:[[0,1]],lab:['1']},title:'pas h = '+Dt(h)}),
+    parts:[act(`Reculer de ${n} pas`,async()=>{for(let i=0;i<n;i++)await eStep(h,420)}),
+      fill(h===-0.5?'':'Au centième&nbsp;:',`f(${MINUS}1) ≈ ${Dt(1+h)}<sup>${n}</sup> ${h===-0.5?'=':'≈'} {0}`,[h===-0.5?{v:0.25,ref:`euler(${s(h)},${n})`}:{x:val,d:2,ref:`euler(${s(h)},${n})`}],`On multiplie ${n} fois par ${Dt(1+h)}&nbsp;: ${Dt(1+h)}<sup>${n}</sup> ${h===-0.5?'=':'≈'} ${h===-0.5?'0,25':Dr(val,4)}.`,{onOk:()=>{K.st.euler.lab[n]=h===-0.5?'0,25':'≈ '+Dr(val,2);K.render()}}),
+      ch(`La vraie valeur e<sup>−1</sup> ≈ 0,368 est&nbsp;:`,[OK('plus grande que cette approximation',{c:['cmp',s(val),'exp(-1)','lt']}),NO('plus petite que cette approximation','Regarde la scène&nbsp;: la marche reste sous la guirlande.',{c:['cmp',s(val),'exp(-1)','gt']}),NO('égale à cette approximation','Ce n\'est qu\'une valeur approchée.',{c:['cmp',s(val),'exp(-1)','eq']})],{au:{mode:'claim'}})],
+    done:`f(−1) ≈ ${h===-0.5?'0,25':Dr(val,2)} &lt; e<sup>−1</sup> ≈ 0,368&nbsp;: à gauche aussi, les haubans passent sous la guirlande.`}}
+function l2q4(){
+  const run=async n=>{K.st.euler={pts:[[0,1]],lab:['1']};K.render();for(let i=0;i<n;i++)await eStep(1/n,n>4?200:420)};
+  return{steps:2,prompt:`Avec n pas de longueur h = 1/n, on arrive en x = 1 à la hauteur u<sub>n</sub> = (1 + ${frac(1,'n')})<sup>n</sup>.`,
+    scene:()=>K.reset({v:EV(-0.25,1.35,3.4),euler:{pts:[[0,1]],lab:['1']},title:'u_{n} = (1 + 1/n)^{n}'}),
+    parts:[act('Marcher avec n = 1, puis avec n = 2',async()=>{await run(1);cap('n = 1&nbsp;: u<sub>1</sub> en x = 1');await sleep(500);await run(2);cap('n = 2&nbsp;: u<sub>2</sub> en x = 1')}),
+      fill('','u<sub>1</sub> = {0} et u<sub>2</sub> = {1}',[{v:2,ref:'euler(1,1)'},{v:2.25,ref:'euler(1/2,2)'}],'u<sub>1</sub> = (1 + 1)<sup>1</sup> = 2 et u<sub>2</sub> = (1 + 0,5)<sup>2</sup> = 2,25.'),
+      act('Puis n = 4 et n = 10',async()=>{await run(4);cap('u<sub>4</sub> = 1,25<sup>4</sup> ≈ <span class="k">2,441</span>');await sleep(500);await run(10);cap('u<sub>10</sub> = 1,1<sup>10</sup> ≈ <span class="k">2,594</span>')}),
+      ch('Quand n devient très grand, u<sub>n</sub> se rapproche de&nbsp;:',[OK('e ≈ 2,718',{c:['lim','E']}),NO('1','1 + 1/n se rapproche de 1, mais on le multiplie n fois par lui-même&nbsp;: la marche arrive de plus en plus haut.',{c:['lim','1']}),
+        NO('2','u<sub>1</sub> = 2, mais les termes suivants sont plus grands&nbsp;: 2,25&nbsp;; 2,441&nbsp;; 2,594…',{c:['lim','2']}),NO('+∞ (les termes dépassent tout nombre)','Les termes augmentent mais restent sous la guirlande&nbsp;: ils ne dépassent pas e.',{c:['lim','oo']})],{au:{mode:'claim'}})],
+    done:`u<sub>1</sub> = 2, u<sub>2</sub> = 2,25, u<sub>4</sub> ≈ 2,441, u<sub>10</sub> ≈ 2,594, u<sub>1000</sub> ≈ 2,717…&nbsp;: les termes se rapprochent de e = exp(1) ≈ 2,718.`}}
+function l2q5(){const [h,n]=pick([[0.5,2],[0.5,3],[0.1,2],[0.2,2],[-0.5,2]]),val=Math.pow(1+h,n);
+  const code=`def euler(h, n):\n    x = 0\n    y = 1\n    for k in range(n):\n        y = <span class="hole">▢</span>\n        x = x + h\n    return y`;
+  return{steps:2,prompt:`Le programme Python ci-dessous applique la méthode d'Euler à partir de f(0) = 1 (pas h, n pas).`,
+    scene:()=>K.reset({v:h<0?EV(-1.25,0.6,1.5):EV(-0.4,1.7,n===3&&h===0.5?4.2:3),euler:{pts:[[0,1]],lab:['1']},title:'euler('+String(h)+', '+n+')'}),
+    parts:[ch('Quelle expression faut-il écrire à la place de ▢&nbsp;?',[OK('<code>y + h * y</code>',{c:['code','y + h * y']}),NO('<code>y + h</code>','On ajoute h × f′(x), c\'est-à-dire h × y, et non h.',{c:['code','y + h']}),
+        NO('<code>h * y</code>','h × y n\'est que l\'accroissement&nbsp;: il faut l\'ajouter à y.',{c:['code','h * y']}),NO('<code>y * h + h</code>','La pente du hauban est y&nbsp;: on ajoute h × y à y.',{c:['code','y * h + h']})],{code,au:{mode:'claim'}}),
+      act(`Lancer euler(${String(h)}, ${n})`,async()=>{for(let i=0;i<n;i++)await eStep(h,420)}),
+      fill('',`euler(${String(h)}, ${n}) renvoie {0}`,[{v:rr(val),ref:`euler(${s(h)},${n})`}],`On multiplie ${n} fois par 1 + h = ${Dt(1+h)}&nbsp;: ${Dt(1+h)}<sup>${n}</sup> = ${Dt(q(1+h).mul(q(1+h)).mul(n===3?q(1+h):1))}.`)],
+    done:`y = y + h * y revient à y = (1 + h) y&nbsp;: après ${n} pas, y = ${Dt(1+h)}<sup>${n}</sup> = ${Dt(rr(val))}.`}}
+const rr=v=>q(Math.round(v*1e8)/1e8);
+LV.push({t:'La marche d\'Euler',s:'Euler',chap:'Construire exp · méthode d\'Euler, nombre e',rule:rule2,qs:[l2q1,l2q2,l2q3,l2q4,l2q5]});
+
+/* =================================================================== */
+/* NIVEAU 3 · Additionner, c'est multiplier : e^(a+b) = e^a × e^b      */
+/* =================================================================== */
+const rule3=`<p>Pour tous réels a et b&nbsp;: <b>e<sup>a + b</sup> = e<sup>a</sup> × e<sup>b</sup></b>.</p><p>Sur la plage&nbsp;: faire glisser un mât de b vers la droite, le long de la guirlande, multiplie sa hauteur par e<sup>b</sup>, quel que soit le mât de départ.</p><p>En particulier e<sup>x</sup> × e<sup>−x</sup> = e<sup>0</sup> = 1, donc <b>e<sup>−x</sup> = ${frac(1,'e<sup>x</sup>')}</b>. Attention&nbsp;: e<sup>a</sup> + e<sup>b</sup> n'est pas égal à e<sup>a + b</sup>.</p>`;
+async function ride(x0,x1,ms,lab){K.st.ride={x:x0,lab:lab||''};K.SND.rise();
+  await K.anim(ms||1300,k=>{const x=x0+(x1-x0)*k;K.st.ride.x=x;K.render();cap(`hauteur × <span class="k">${Dr(ex(x-x0),3)}</span> <span class="m">(glissé de ${Dr(x-x0,2)})</span>`)});K.st.ride.x=x1;K.render()}
+function l3q1(){let a,b;do{a=pick([-1.5,-1,-0.5,0.5]);b=pick([0.5,1,1.5,2])}while(a+b>2||a+b===0);
+  return{steps:2,prompt:`Le mât d'abscisse <b>${Dt(a)}</b> mesure ${En(a)}. On le fait glisser de <b>${Dt(b)}</b> vers la droite, le long de la guirlande.`,
+    scene:()=>K.reset({v:VE(),poles:poles([a],{lab:x=>eL(0,x)}),title:'y = e^{x}',marks:[{x:a+b,lab:'x = '+Dt(a+b)}]}),
+    parts:[act('Faire glisser le mât',async()=>{await ride(a,a+b,1300,eL(0,a+b));cap(`${eL(0,a).replace(/\^\{(.*)\}/,'<sup>$1</sup>')} ≈ ${Dr(ex(a),3)} → ${Dr(ex(a+b),3)}&nbsp;: <span class="m">hauteur ×</span> <span class="k">${Dr(ex(b),3)}</span>`)}),
+      ch('Sa hauteur a été multipliée par&nbsp;:',[OK(En(b)),NO(Dt(b),`Glisser de ${Dt(b)} ne multiplie pas par ${Dt(b)}&nbsp;: la guirlande n'est pas une droite.`),
+        NO(En(a+b),'C\'est la nouvelle hauteur, pas le facteur.'),NO(Dt(1+b),`Le facteur ${Dr(ex(b),3)} affiché dans la légende n'est pas ${Dt(1+b)}.`)],{au:{mode:'val',ref:`exp(${s(a+b)})/exp(${s(a)})`}}),
+      fill('Donc&nbsp;:',`${En(a)} × ${En(b)} = e{^0}`,[{v:a+b,ref:`exp(${s(a)})*exp(${s(b)})`,expo:true}],'Le mât d\'arrivée est celui d\'abscisse a + b.')],
+    done:`${En(a)} × ${En(b)} = e<sup>${Dt(a)} + ${par(b)}</sup> = ${En(a+b)}&nbsp;: e<sup>a</sup> × e<sup>b</sup> = e<sup>a + b</sup>. Le facteur e<sup>${Dt(b)}</sup> ne dépend pas du mât de départ.`}}
+function l3q2(){const a=pick([0.5,1,1.5,2]);
+  return{steps:2,prompt:`Les mâts d'abscisses <b>${Dt(a)}</b> et <b>${MINUS}${Dt(a)}</b>.`,
+    scene:()=>K.reset({v:VE(),poles:poles([a,-a],{lab:x=>eL(0,x)}),title:'y = e^{x}'}),
+    cap0:`${En(a)} ≈ ${Dr(ex(a),3)} et ${En(-a)} ≈ ${Dr(ex(-a),3)}`,
+    parts:[ch(`${En(a)} × ${En(-a)} =`,[OK('1'),NO('0','Une exponentielle n\'est jamais nulle&nbsp;; ici on additionne les exposants&nbsp;: e<sup>0</sup> = 1.'),
+        NO(`e<sup>${Dt(2*a)}</sup>`,`On additionne les exposants&nbsp;: ${Dt(a)} + (${MINUS}${Dt(a)}) = 0.`),NO(`${MINUS}1`,'Un produit de deux nombres positifs est positif.')],{au:{mode:'val',ref:`exp(${s(a)})*exp(${s(-a)})`}}),
+      ch(`Donc ${En(-a)} est égal à&nbsp;:`,[OK(frac(1,En(a))),NO(`${MINUS}${En(a)}`,`Le signe − de l'exposant ne passe pas devant&nbsp;: ${En(-a)} est positif.`),
+        NO(`1 ${MINUS} ${En(a)}`,`C'est un produit qui vaut 1, pas une somme.`),NO(frac(1,En(-a)),`${frac(1,En(-a))} = ${En(a)}, le mât de droite.`)],{au:{mode:'val',ref:`exp(${s(-a)})`}})],
+    done:`${En(a)} × ${En(-a)} = e<sup>0</sup> = 1, donc ${En(-a)} = ${frac(1,En(a))} ≈ ${Dr(ex(-a),3)}. Les mâts d'abscisses ${Dt(a)} et ${MINUS}${Dt(a)} ont des hauteurs inverses.`}}
+function l3q3(){let p,qq,r,t;do{p=pick([1,2,3,-1]);r=pick([1,2,3,-1,-2]);qq=ri(-3,3);t=ri(-3,3)}while(p+r===0||(qq===0&&t===0)||qq+t===0&&p+r===1);
+  return{steps:2,prompt:`Pour tout réel x, on écrit ${E(p,qq)} × ${E(r,t)} sous la forme d'une seule exponentielle.`,
+    scene:()=>K.reset({v:VE(),poles:poles([]),title:'e^{a} × e^{b} = e^{a + b}'}),
+    parts:[fill('',`${E(p,qq)} × ${E(r,t)} = e{^0}`,[{a:p+r,b:qq+t,var:'x',ref:`${ES(p,qq)}*${ES(r,t)}`,expo:true}],`On additionne les exposants&nbsp;: (${aff(p,qq)}) + (${aff(r,t)}) = ${aff(p+r,qq+t)}.`)],
+    done:`${E(p,qq)} × ${E(r,t)} = e<sup>(${aff(p,qq)}) + (${aff(r,t)})</sup> = ${E(p+r,qq+t)}.`}}
+function l3q4(){let p,qq,c,r,t;do{p=pick([1,2,3]);qq=pick([-3,-2,-1,1,2,4]);c=pick([-1,-2]);r=pick([1,2,3,4]);t=ri(-3,3)}while(r+c===0||t===0);
+  return{steps:2,prompt:`Pour tout réel x, on transforme chaque expression en une seule exponentielle.`,
+    scene:()=>K.reset({v:VE(),poles:poles([]),title:'e^{−x} = 1/e^{x}'}),
+    parts:[fill('',`${frac(1,E(p,qq))} = e{^0}`,[{a:-p,b:-qq,var:'x',ref:`1/${ES(p,qq)}`,expo:true}],`${frac(1,'e<sup>A</sup>')} = e<sup>−A</sup>&nbsp;: on prend l'opposé de tout l'exposant, ${MINUS}(${aff(p,qq)}) = ${aff(-p,-qq)}.`),
+      fill('',`${E(c,0)} × ${E(r,t)} = e{^0}`,[{a:r+c,b:t,var:'x',ref:`${ES(c,0)}*${ES(r,t)}`,expo:true}],`On additionne les exposants&nbsp;: ${aff(c,0)} + ${aff(r,t)} = ${aff(r+c,t)}.`)],
+    done:`${frac(1,E(p,qq))} = ${E(-p,-qq)} et ${E(c,0)} × ${E(r,t)} = ${E(r+c,t)}.`}}
+function l3q5(){const m=pick([1,2,3]);
+  return{steps:2,prompt:`Deux pièges classiques.`,
+    scene:()=>K.reset({v:VE(),poles:poles([0,1]),title:'e^{a} × e^{b} = e^{a + b}'}),
+    parts:[ch('Laquelle de ces égalités est vraie pour tous réels a et b&nbsp;?',[OK('e<sup>a + b</sup> = e<sup>a</sup> × e<sup>b</sup>',{c:['ident','exp(a+b)','exp(a)*exp(b)']}),
+        NO('e<sup>a + b</sup> = e<sup>a</sup> + e<sup>b</sup>','Faux&nbsp;: avec a = b = 0, on obtiendrait 1 = 2.',{c:['ident','exp(a+b)','exp(a)+exp(b)']}),
+        NO('e<sup>a × b</sup> = e<sup>a</sup> × e<sup>b</sup>','Faux&nbsp;: avec a = b = 1, on obtiendrait e = e<sup>2</sup>.',{c:['ident','exp(a*b)','exp(a)*exp(b)']}),
+        NO('e<sup>a</sup> + e<sup>b</sup> = e<sup>a × b</sup>','Faux&nbsp;: avec a = b = 0, on obtiendrait 2 = 1.',{c:['ident','exp(a)+exp(b)','exp(a*b)']})],{au:{mode:'claim'}}),
+      ch(`${En(m)} + ${En(m+1)} est égal à&nbsp;:`,[OK(`${En(m)}(1 + e)`),NO(En(2*m+1),'On n\'additionne les exposants que pour un produit, pas pour une somme.'),
+        NO(`2${En(m+1)}`,`Les deux termes ne sont pas égaux&nbsp;: ${En(m)} ≠ ${En(m+1)}.`),NO(En(m*(m+1)),'On ne multiplie jamais les exposants pour une somme.')],{au:{mode:'val',ref:`exp(${m})+exp(${m+1})`}})],
+    done:`Seul le produit se transforme&nbsp;: e<sup>a</sup> × e<sup>b</sup> = e<sup>a + b</sup>. Pour la somme, on factorise&nbsp;: ${En(m)} + ${En(m+1)} = ${En(m)} + ${En(m)} × e = ${En(m)}(1 + e).`}}
+LV.push({t:'Additionner, c\'est multiplier',s:'e<sup>a+b</sup>',chap:'Propriétés algébriques · produit, inverse',rule:rule3,qs:[l3q1,l3q2,l3q3,l3q4,l3q5]});
+
+/* =================================================================== */
+/* NIVEAU 4 · Quotients et puissances                                  */
+/* =================================================================== */
+const rule4=`<p>Pour tous réels a et b et tout entier n&nbsp;: <b>${frac('e<sup>a</sup>','e<sup>b</sup>')} = e<sup>a − b</sup></b> et <b>(e<sup>a</sup>)<sup>n</sup> = e<sup>na</sup></b>.</p><p>Sur la plage&nbsp;: diviser par e<sup>b</sup>, c'est glisser de b vers la gauche&nbsp;; élever à la puissance n, c'est enchaîner n glissades de a.</p>`;
+function l4q1(){let m,n;do{m=pick([2,1.5,1]);n=pick([0.5,1,1.5,2,3,4])}while(m-n<-3||m===n);
+  return{steps:2,prompt:`Le mât d'abscisse <b>${Dt(m)}</b> mesure ${En(m)}. On divise sa hauteur par ${En(n)}.`,
+    scene:()=>K.reset({v:VE(),poles:poles([m],{lab:x=>eL(0,x)}),title:'y = e^{x}'}),
+    parts:[act(`Diviser par ${En(n)}&nbsp;: glisser de ${Dt(n)} vers la gauche`,()=>ride(m,m-n,1400,eL(0,m-n))),
+      fill('',`${frac(En(m),En(n))} = e{^0}`,[{v:m-n,ref:`exp(${s(m)})/exp(${s(n)})`,expo:true}],`On soustrait les exposants&nbsp;: ${Dt(m)} − ${par(n)} = ${Dt(m-n)}.`)],
+    done:`${frac(En(m),En(n))} = e<sup>${Dt(m)} − ${par(n)}</sup> = ${En(m-n)} ≈ ${Dr(ex(m-n),3)}.`}}
+function l4q2(){const [a,n]=pick([[0.5,2],[0.5,3],[0.5,4],[-0.5,3],[-0.5,4],[-0.5,6]]);const [p,r]=pick([[2,3],[2,4],[3,3],[-2,3],[3,4],[-2,4]]);
+  return{steps:2,prompt:`On part du mât d'abscisse 0 et on enchaîne <b>${n} glissades</b> de ${Dt(a)}&nbsp;: chacune multiplie la hauteur par ${En(a)}.`,
+    scene:()=>K.reset({v:VE(),poles:poles([0],{lab:()=>'1'}),title:'(e^{a})^{n} = e^{na}'}),
+    parts:[act(`Enchaîner les ${n} glissades`,async()=>{const xs=[0];for(let i=1;i<=n;i++){await ride((i-1)*a,i*a,500,'');xs.push(i*a);K.st.seq={n:xs.slice(),q:'×'+eL(0,a)};K.st.ride=null;K.render()}
+        cap(`(${En(a)})<sup>${n}</sup> = ${En(n*a)} ≈ <span class="k">${Dr(ex(n*a),3)}</span>`)}),
+      fill('',`(${En(a)})<sup>${n}</sup> = e{^0}`,[{v:n*a,ref:`exp(${s(a)})**${n}`,expo:true}],`${n} glissades de ${Dt(a)}&nbsp;: on arrive en ${n} × ${par(a)} = ${Dt(n*a)}.`),
+      ch(`Et (${En(p)})<sup>${r}</sup> est égal à&nbsp;:`,[OK(En(p*r)),NO(En(p+r),`(e<sup>${p}</sup>)<sup>${r}</sup> = e<sup>${p}</sup> × … (${r} fois)&nbsp;: on ajoute ${r} fois ${par(p)}, soit ${r} × ${par(p)}.`),
+        NO(En(Math.pow(p,r)),'Ce n\'est pas l\'exposant qu\'on élève à la puissance&nbsp;: on le multiplie par '+r+'.'),NO(`${r}${En(p)}`,`(e<sup>${p}</sup>)<sup>${r}</sup> est un produit de ${r} facteurs, pas ${r} fois une somme.`)],{au:{mode:'val',ref:`exp(${p})**${r}`}})],
+    done:`(${En(a)})<sup>${n}</sup> = ${En(n*a)} et (${En(p)})<sup>${r}</sup> = e<sup>${r} × ${par(p)}</sup> = ${En(p*r)}.`}}
+function l4q3(){let u,v,w,r;do{u=ri(-3,4);v=ri(-4,3);w=ri(1,5);r=u+v-w}while(r>-2||r<-4||u===0||v===0||u===v);
+  return{steps:3,prompt:`On simplifie A = ${frac(`${En(u)} × ${En(v)}`,En(w))}.`,
+    scene:()=>K.reset({v:VE(),poles:poles([]),title:'e^{a} × e^{b} / e^{c} = e^{a + b − c}'}),
+    parts:[fill('',`A = e{^0}`,[{v:r,ref:`exp(${u})*exp(${v})/exp(${w})`,expo:true}],`Exposant&nbsp;: ${u} + ${par(v)} − ${w} = ${r}.`,{onOk:()=>{K.st.poles=poles(r>=-3?[r]:[],{lab:x=>eL(0,x)});K.render()}}),
+      ch(`Ce nombre A est aussi égal à&nbsp;:`,[OK(frac(1,En(-r))),NO(`${MINUS}${En(-r)}`,`A est une exponentielle, donc A > 0&nbsp;: ${En(r)} = ${frac(1,En(-r))}.`),
+        NO(frac(1,`${-r}e`),`${En(-r)} = e × … × e (${-r} facteur${-r>1?'s':''}), pas ${-r} × e.`),NO(`${MINUS}${-r}e`,`Un exposant négatif ne donne pas un nombre négatif.`)],{au:{mode:'val',ref:`exp(${r})`}})],
+    done:`A = e<sup>${u} + ${par(v)} − ${w}</sup> = ${En(r)} = ${frac(1,En(-r))}.`}}
+function l4q4(){let p,qq,r,t;do{p=pick([2,3,4,1]);r=pick([1,2,-1,3]);qq=ri(-3,3);t=ri(-4,4)}while(p===r||qq===t||t===0);
+  return{steps:2,prompt:`Pour tout réel x, on simplifie C = ${frac(E(p,qq),E(r,t))}.`,
+    scene:()=>K.reset({v:VE(),poles:poles([]),title:'e^{a} / e^{b} = e^{a − b}'}),
+    parts:[fill('',`C = e{^0}`,[{a:p-r,b:qq-t,var:'x',ref:`${ES(p,qq)}/${ES(r,t)}`,expo:true}],`On soustrait TOUT l'exposant du dénominateur&nbsp;: (${aff(p,qq)}) − (${aff(r,t)}) = ${aff(p-r,qq-t)}.`)],
+    done:`C = e<sup>(${aff(p,qq)}) − (${aff(r,t)})</sup> = ${E(p-r,qq-t)}.`}}
+function l4q5(){let p,r,t;do{p=pick([2,3,-1,-2]);r=pick([2,3]);t=ri(-7,4)}while(p*r+t<-3||p*r+t>2||t===0);let n,c;do{n=pick([2,3,4]);c=pick([-1,-2,-4,-5])}while(n+c===0);
+  return{steps:3,prompt:`On simplifie B = (${En(p)})<sup>${r}</sup> × ${En(t)}, puis une expression en x.`,
+    scene:()=>K.reset({v:VE(),poles:poles([]),title:'(e^{a})^{n} = e^{na}'}),
+    parts:[fill('',`B = e{^0}`,[{v:p*r+t,ref:`exp(${p})**${r}*exp(${t})`,expo:true}],`(${En(p)})<sup>${r}</sup> = ${En(p*r)}, puis ${p*r} + ${par(t)} = ${p*r+t}.`,{onOk:()=>{K.st.poles=poles([p*r+t],{lab:x=>eL(0,x)});K.render()}}),
+      fill('Pour tout réel x&nbsp;:',`(e<sup>x</sup>)<sup>${n}</sup> × ${E(c,0)} = e{^0}`,[{a:n+c,b:0,var:'x',ref:`exp(x)**${n}*${ES(c,0)}`,expo:true}],`(e<sup>x</sup>)<sup>${n}</sup> = e<sup>${n}x</sup>, puis ${n}x + (${aff(c,0)}) = ${aff(n+c,0)}.`)],
+    done:`B = ${En(p*r)} × ${En(t)} = ${En(p*r+t)}${p*r+t===1?' = e':''}, et (e<sup>x</sup>)<sup>${n}</sup> × ${E(c,0)} = ${E(n+c,0)}.`}}
+LV.push({t:'Quotients et puissances',s:'Quotients, puissances',chap:'Propriétés algébriques · quotient, puissance',rule:rule4,qs:[l4q1,l4q2,l4q3,l4q4,l4q5]});
+
+/* =================================================================== */
+/* NIVEAU 5 · Comparer les mâts : signe, croissance, (in)équations      */
+/* =================================================================== */
+const rule5=`<p>Pour tout réel x, <b>e<sup>x</sup> > 0</b>&nbsp;: aucun mât ne s'enfonce dans le sable.</p><p>exp′ = exp > 0, donc exp est <b>strictement croissante</b> sur ℝ&nbsp;: plus un mât est à droite, plus il est haut. D'où, pour tous réels a et b&nbsp;: <b>e<sup>a</sup> = e<sup>b</sup> ⇔ a = b</b> et <b>e<sup>a</sup> &lt; e<sup>b</sup> ⇔ a &lt; b</b>.</p><p>Pour résoudre e<sup>u</sup> = e<sup>v</sup> ou e<sup>u</sup> &lt; e<sup>v</sup>, on compare les exposants.</p>`;
+const PV=()=>({x0:-5.6,x1:5.6,y0:-1.6,y1:12});
+/* équation e^(ax+b) = e^(cx+d) de solution x0 : b = w − a·x0, d = w − c·x0 */
+function eqGen(ws){let a,c,x0,w;do{a=pick([1,2,3,-1]);c=pick([1,2,3,-1,-2]);x0=pick([-1.5,-1,-0.5,0.5,1,1.5,2]);w=pick(ws||[-1,-0.5,0,0.5,1])}while(a===c||w-a*x0===0&&w-c*x0===0);
+  return{a,c,x0,w,b:w-a*x0,d:w-c*x0}}
+function pairScene(G,x){const u=G.a*x+G.b,v=G.c*x+G.d;K.st.pair={xs:[u,v],labs:['e^{'+affT(G.a,G.b)+'}','e^{'+affT(G.c,G.d)+'}'],same:Math.abs(u-v)<1e-9};K.render()}
+function l5q1(){const c=pick([-2,-1,0]);
+  return{steps:1,prompt:`Les mâts de la plage, du plus petit au plus grand.`,
+    scene:()=>K.reset({v:{x0:-3.3,x1:2.45,y0:-2.7,y1:9},poles:FLEET().map(p=>Object.assign(p,{dim:false})),title:'y = e^{x}',hline:{y:c,lab:'y = '+Dt(c)}}),
+    cap0:`Le mât d'abscisse −3 mesure e<sup>−3</sup> ≈ ${Dr(ex(-3),3)}.`,
+    parts:[ch('Pour tout réel x, e<sup>x</sup> est&nbsp;:',[OK('strictement positif',{c:['sign','pos']}),NO('négatif quand x est négatif','Le mât d\'abscisse −3 est petit, mais il est bien au-dessus du sable&nbsp;: e<sup>−3</sup> = 1/e<sup>3</sup> > 0.',{c:['sign','negneg']}),
+        NO('du signe de x','e<sup>−1</sup> = 1/e est positif alors que −1 est négatif.',{c:['sign','sgnx']}),NO('nul pour x = 0','e<sup>0</sup> = 1, pas 0.',{c:['sign','zero0']})],{au:{mode:'claim'}}),
+      ch(`L'équation e<sup>x</sup> = ${Dt(c)}&nbsp;:`,[OK('n\'a aucune solution',{c:['nsol',s(c),'0']}),NO(`a pour solution x = ${Dt(c)}`,`e<sup>${Dt(c)}</sup> ≈ ${Dr(ex(c),2)}, pas ${Dt(c)}.`,{c:['issol',s(c),s(c)]}),
+        NO(c===0?'a pour solution x = 1':'a pour solution x = 0',c===0?'e<sup>1</sup> = e ≈ 2,718.':'e<sup>0</sup> = 1.',{c:['issol',s(c),c===0?'1':'0']}),NO('a une infinité de solutions','Aucun mât ne descend jusqu\'à la droite en pointillés.',{c:['nsol',s(c),'oo']})],{au:{mode:'claim'}})],
+    done:`e<sup>x</sup> > 0 pour tout réel x&nbsp;: la guirlande reste au-dessus de l'axe des abscisses, elle ne rencontre jamais la droite y = ${Dt(c)}.`}}
+function l5q2(){const G=eqGen();const lo=G.x0-1.5,hi=G.x0+1.5,st0=pick([lo,hi]);
+  return{steps:2,prompt:`On résout ${E(G.a,G.b)} = ${E(G.c,G.d)}. Pour chaque valeur de x, les deux mâts sont plantés aux abscisses ${aff(G.a,G.b)} et ${aff(G.c,G.d)}.`,
+    scene:()=>{K.reset({v:PV(),poles:[],title:'e^{u} = e^{v} ⇔ u = v'});K.st.xv=st0;pairScene(G,st0)},
+    parts:[adj({kind:'x',au:{ref:`solve(Eq(${ES(G.a,G.b)},${ES(G.c,G.d)}),x)[0]`},lo,hi,ask:'Fais varier x jusqu\'à ce que les deux mâts n\'en fassent plus qu\'un.',step:'0.5',min:s(lo),max:s(hi),target:s(G.x0),label:'Valider x',
+        get:()=>q(K.st.xv),set:v=>{K.st.xv=v.v;pairScene(G,v.v)},fmt:v=>'x = '+Dt(v),drag:p=>lo+(p.px-58)/(988-58)*(hi-lo),
+        live:v=>{const u=G.a*v.v+G.b,w=G.c*v.v+G.d;return `${affT(G.a,G.b)} = <span class="s">${Dt(rr(u))}</span> <span class="m">et</span> ${affT(G.c,G.d)} = <span class="s">${Dt(rr(w))}</span>`},
+        why:v=>`Les deux mâts ne sont pas au même endroit (${Dt(rr(G.a*v.v+G.b))} ≠ ${Dt(rr(G.c*v.v+G.d))})&nbsp;: comme exp est strictement croissante, leurs hauteurs sont différentes.`,
+        revealTxt:'Les deux mâts sont maintenant confondus.',hint:'Fais glisser horizontalement dans la scène, ou utilise − et +.'}),
+      fill('',`${aff(G.a,G.b)} = ${aff(G.c,G.d)} ⇔ x = {0}`,[{v:G.x0,ref:`solve(Eq(${ES(G.a,G.b)},${ES(G.c,G.d)}),x)[0]`}],`On résout l'équation du premier degré ${aff(G.a,G.b)} = ${aff(G.c,G.d)}.`,{au:{shown:[E(G.a,G.b),E(G.c,G.d)]}})],
+    done:`${E(G.a,G.b)} = ${E(G.c,G.d)} ⇔ ${aff(G.a,G.b)} = ${aff(G.c,G.d)} ⇔ x = ${Dt(G.x0)}. Deux mâts ont la même hauteur seulement s'ils sont au même endroit.`}}
+function l5q3(){const G=eqGen([-0.5,0.5,1]),op=pick(['>','<']),rev=op==='>'?'<':'>',sym=o=>o==='<'?'&lt;':'&gt;';
+  const right=(op==='>')===(G.a>G.c);/* solutions : x > x0 si right */
+  const I=(r)=>r?`]${Dt(G.x0)}${NB}; +∞[`:`]−∞${NB}; ${Dt(G.x0)}[`;
+  const S=(r)=>r?`Interval.open(${s(G.x0)},oo)`:`Interval.open(-oo,${s(G.x0)})`;
+  return{steps:3,prompt:`On résout l'inéquation ${E(G.a,G.b)} ${sym(op)} ${E(G.c,G.d)}.`,
+    scene:()=>{const xd=G.x0+(right?0.5:-0.5),Y1=Math.max(2.6,1.35*Math.max(ex(G.a*xd+G.b),ex(G.c*xd+G.d),ex(G.a*G.x0+G.b)));K.reset({v:{x0:-2.4,x1:2.6,y0:-Y1*.15,y1:Y1},poles:[],title:'e^{u} < e^{v} ⇔ u < v'});pairScene(G,xd)},
+    cap0:`Pour x = ${Dt(G.x0+(right?0.5:-0.5))}, l'inégalité est vraie&nbsp;: le mât bleu (${E(G.a,G.b)}) est plus ${op==='>'?'haut':'bas'} que le mât orangé.`,
+    parts:[ch(`${E(G.a,G.b)} ${sym(op)} ${E(G.c,G.d)} équivaut à&nbsp;:`,[OK(`${aff(G.a,G.b)} ${sym(op)} ${aff(G.c,G.d)}`,{c:['equiv',`${ES(G.a,G.b)}${op}${ES(G.c,G.d)}`,`${affS(G.a,G.b)}${op}${affS(G.c,G.d)}`]}),
+        NO(`${aff(G.a,G.b)} ${sym(rev)} ${aff(G.c,G.d)}`,'exp est strictement croissante&nbsp;: elle conserve l\'ordre, elle ne l\'inverse pas.',{c:['equiv',`${ES(G.a,G.b)}${op}${ES(G.c,G.d)}`,`${affS(G.a,G.b)}${rev}${affS(G.c,G.d)}`]}),
+        NO(`${aff(G.a,G.b)} ${sym(op)} 0`,'On compare les deux exposants entre eux.',{c:['equiv',`${ES(G.a,G.b)}${op}${ES(G.c,G.d)}`,`${affS(G.a,G.b)}${op}0`]})],{au:{mode:'claim'}}),
+      ch('L\'ensemble des solutions est&nbsp;:',[OK(I(right),{c:['set',`${ES(G.a,G.b)}${op}${ES(G.c,G.d)}`,S(right)]}),NO(I(!right),`Attention au sens&nbsp;: en isolant x, on divise par ${Dt(G.a-G.c)}${G.a-G.c<0?', un nombre négatif, ce qui change le sens':', un nombre positif'}.`,{c:['set',`${ES(G.a,G.b)}${op}${ES(G.c,G.d)}`,S(!right)]}),
+        NO(right?`[${Dt(G.x0)}${NB}; +∞[`:`]−∞${NB}; ${Dt(G.x0)}]`,`L'inégalité est stricte&nbsp;: pour x = ${Dt(G.x0)}, les deux mâts sont égaux.`,{c:['set',`${ES(G.a,G.b)}${op}${ES(G.c,G.d)}`,right?`Interval(${s(G.x0)},oo)`:`Interval(-oo,${s(G.x0)})`]})],{au:{mode:'claim'},on:()=>{pairScene(G,G.x0)}})],
+    done:`${aff(G.a,G.b)} ${sym(op)} ${aff(G.c,G.d)} ⇔ ${aff(G.a-G.c,0)} ${sym(op)} ${Dt(rr(G.d-G.b))} ⇔ x ${sym(right?'>':'<')} ${Dt(G.x0)}. 𝒮 = ${I(right)}.`}}
+function l5q4(){let p,r;do{p=pick([-2.5,-2,-1.5,-1,-0.5,0.5]);r=pick([-3,-2.5,-2,-1.5,-1,1])}while(p===r);const mx=Math.max(p,r),mn=Math.min(p,r);
+  let a,b;do{a=pick([2,4,5,-2,-4]);b=pick([-6,-4,-2,1,3,2,-1])}while(!q(-b).div(a).exact());
+  return{steps:2,prompt:`On compare des mâts, puis on cherche celui qui mesure 1.`,
+    scene:()=>K.reset({v:VE(),poles:poles([p,r].filter(x=>x>=-3),{lab:x=>eL(0,x)}),title:'y = e^{x}'}),
+    parts:[ch(`Le plus grand des deux nombres ${En(p)} et ${En(r)} est&nbsp;:`,[OK(En(mx),{c:['max',s(p),s(r),s(mx)]}),NO(En(mn),'exp est strictement croissante&nbsp;: le plus grand exposant donne le plus haut mât.',{c:['max',s(p),s(r),s(mn)]}),NO('ils sont égaux','Les exposants sont différents, donc les mâts aussi.',{c:['max',s(p),s(r),'eq']})],{au:{mode:'claim'}}),
+      fill('',`${E(a,b)} = 1 ⇔ ${aff(a,b)} = 0 ⇔ x = {0}`,[{v:q(-b).div(a),ref:`solve(Eq(${ES(a,b)},1),x)[0]`,neg:true}],`e<sup>u</sup> = 1 = e<sup>0</sup> ⇔ u = 0&nbsp;: ${aff(a,b)} = 0.`)],
+    done:`${En(mx)} > ${En(mn)} car ${Dt(mx)} > ${Dt(mn)}. Et ${E(a,b)} = e<sup>0</sup> ⇔ ${aff(a,b)} = 0 ⇔ x = ${Dt(q(-b).div(a))}.`}}
+function l5q5(){const c=pick([1,2,3,-1,-2]);const fx=`(${aff(1,-c)})e<sup>x</sup>`;
+  return{steps:2,prompt:`On étudie le signe de f(x) = ${fx} sur ℝ.`,
+    scene:()=>K.reset({v:VE(),poles:poles([c].filter(x=>x>=-3&&x<=2)),title:'y = e^{x}',marks:[{x:c,lab:'x = '+Dt(c),c:'#ff9b7a'}]}),
+    parts:[ch('Le signe de f(x) est celui de&nbsp;:',[OK(aff(1,-c),{c:['samesign',`(x-(${c}))*exp(x)`,`x-(${c})`]}),NO('e<sup>x</sup>','e<sup>x</sup> > 0&nbsp;: ce facteur ne change jamais le signe, c\'est l\'autre facteur qui décide.',{c:['samesign',`(x-(${c}))*exp(x)`,'exp(x)']}),
+        NO('x','Le facteur à étudier est '+aff(1,-c)+', pas x.',{c:['samesign',`(x-(${c}))*exp(x)`,'x']}),NO('−e<sup>x</sup>','e<sup>x</sup> > 0&nbsp;: le signe est celui de '+aff(1,-c)+'.',{c:['samesign',`(x-(${c}))*exp(x)`,'-exp(x)']})],{au:{mode:'claim'}}),
+      ch('f(x) &lt; 0 pour x appartenant à&nbsp;:',[OK(`]−∞${NB}; ${Dt(c)}[`,{c:['set',`(x-(${c}))*exp(x)<0`,`Interval.open(-oo,${c})`]}),NO(`]${Dt(c)}${NB}; +∞[`,`Pour x > ${Dt(c)}, ${aff(1,-c)} > 0 et e<sup>x</sup> > 0&nbsp;: f(x) > 0.`,{c:['set',`(x-(${c}))*exp(x)<0`,`Interval.open(${c},oo)`]}),
+        NO(`]−∞${NB}; 0[`,'Le changement de signe se fait là où '+aff(1,-c)+' s\'annule.',{c:['set',`(x-(${c}))*exp(x)<0`,'Interval.open(-oo,0)']}),NO('∅ (f est toujours positive)',`Pour x = ${Dt(c-1)}, f(x) = ${MINUS}e<sup>${Dt(c-1)}</sup> &lt; 0.`,{c:['set',`(x-(${c}))*exp(x)<0`,'EmptySet']})],{au:{mode:'claim'}})],
+    done:`e<sup>x</sup> > 0, donc f(x) a le signe de ${aff(1,-c)}&nbsp;: f(x) &lt; 0 sur ]−∞${NB}; ${Dt(c)}[, f(${Dt(c)}) = 0 et f(x) > 0 sur ]${Dt(c)}${NB}; +∞[.`}}
+LV.push({t:'Comparer les mâts',s:'Comparer',chap:'Signe et variations · équations, inéquations',rule:rule5,qs:[l5q1,l5q2,l5q3,l5q4,l5q5]});
+
+/* =================================================================== */
+/* NIVEAU 6 · Le réglage k : t ↦ e^(kt)                                 */
+/* =================================================================== */
+const rule6=`<p>Pour tout réel k, la fonction f : t ↦ e<sup>kt</sup> est dérivable sur ℝ et <b>f′(t) = k e<sup>kt</sup></b>.</p><p>Comme e<sup>kt</sup> > 0, f′(t) a le signe de k&nbsp;: si <b>k > 0</b>, f est strictement croissante (croissance exponentielle)&nbsp;; si <b>k &lt; 0</b>, f est strictement décroissante (décroissance exponentielle)&nbsp;; si k = 0, f est constante égale à 1.</p><p>Sur la plage&nbsp;: le hauban du mât t = 0 a pour pente k, son piquet est à la distance ${frac(1,'|k|')} du pied (derrière si k > 0, devant si k &lt; 0). Les courbes de t ↦ e<sup>kt</sup> et t ↦ e<sup>−kt</sup> sont symétriques par rapport à l'axe des ordonnées.</p>`;
+const KV=()=>({x0:-4.6,x1:3.1,y0:-0.75,y1:6});
+const kAdj=(ask,k0,o)=>adj(Object.assign({kind:'k',ask,step:'0.25',min:'-3',max:'3',target:s(k0),label:'Valider k',get:()=>q(K.st.k),set:v=>{K.st.k=v.v;K.render()},fmt:v=>'k = '+Dt(v),
+  drag:p=>{const t=K.IX(p.px);return Math.abs(t)<0.15?null:Math.log(Math.max(1e-3,K.st.v.y0+(532-p.py)/(516)*(K.st.v.y1-K.st.v.y0)))/t},
+  hint:'Fais glisser un point de la guirlande dans la scène, ou utilise − et +.'},o||{}));
+function l6q1(){const k0=pick([0.5,2,-0.5,-2,0.25]),peg=-1/k0;
+  return{steps:2,prompt:`La guirlande suit maintenant <b>t ↦ e<sup>kt</sup></b>. Le mât t = 0 mesure toujours e<sup>0</sup> = 1. Son hauban est déjà planté en <b>t = ${Dt(peg)}</b>&nbsp;: règle k pour que la guirlande frôle le hauban.`,
+    scene:()=>K.reset({v:KV(),k:1,poles:[{x:0,big:true,lab:'1'}],sel:0,peg:peg,pegLab:'piquet',title:'y = e^{kt}',xl:'t',tl:{h:Dt(Math.abs(peg)),v:'1'}}),
+    parts:[kAdj('Règle k.',k0,{au:{ref:`solve(Eq(diff(exp(k*t),t).subs(t,0)*(${s(peg)}-0)+1,0),k)[0]`},live:v=>`<span class="m">hauban : base</span> <span class="s">${Dt(Math.abs(peg))}</span><span class="m">, hauteur</span> <span class="s">1</span> <span class="m">· pente de la guirlande en 0 : k × e<sup>0</sup> =</span> <span class="k">${Dt(v)}</span>`,
+        why:v=>{const m=k0;return v.v*m<0?`Le hauban ${m>0?'monte':'descend'} vers la droite&nbsp;: k doit être ${m>0?'positif':'négatif'}.`:Math.abs(v.v)>Math.abs(m)?'La guirlande est plus raide que le hauban en t = 0&nbsp;: diminue |k|.':'La guirlande est moins raide que le hauban en t = 0&nbsp;: augmente |k|.'},
+        after:()=>{K.st.tri=true;K.render()},revealTxt:'La guirlande frôle maintenant le hauban.'}),
+      fill('',`f′(0) = k × e<sup>0</sup> = {0}`,[{v:k0,ref:`diff(exp((${s(k0)})*t),t).subs(t,0)`,neg:true}],`f′(t) = k e<sup>kt</sup>, donc f′(0) = k = ${Dt(k0)}.`)],
+    done:`Avec k = ${Dt(k0)}, le hauban de pente ${Dt(k0)} est tangent en (0&nbsp;; 1)&nbsp;: f′(0) = k. Son piquet est à ${Dt(Math.abs(peg))} = 1/|k| du mât, ${k0>0?'derrière':'devant'} lui.`}}
+function l6q2(){const a=pick([3,-2,0.5,-0.4,1.5,-1.5]),c=pick([2,-3,4,-0.5].filter(x=>x!==a));
+  return{steps:1,prompt:`On dérive des fonctions de la forme t ↦ e<sup>at</sup>.`,
+    scene:()=>K.reset({v:KV(),k:a,poles:[{x:0,big:true,lab:'1'}],sel:0,peg:-1/a,title:'y = '+eL(a,0,'t'),xl:'t'}),
+    parts:[fill('',`f(t) = ${E(a,0,'t')} ⇒ f′(t) = {0}${E(a,0,'t')}`,[{v:a,ref:`diff(exp((${s(a)})*t),t)/exp((${s(a)})*t)`,neg:true}],`(e<sup>at</sup>)′ = a e<sup>at</sup>&nbsp;: on multiplie par le coefficient de t, ici ${Dt(a)}.`),
+      ch(`Pour g(t) = ${E(c,0,'t')}, g′(t) est égal à&nbsp;:`,[OK(`${D(c)}${E(c,0,'t')}`),NO(E(c,0,'t'),'Seule e<sup>t</sup> est sa propre dérivée&nbsp;: (e<sup>ct</sup>)′ = c e<sup>ct</sup>.'),
+        NO(`${D(c)}t e<sup>${aff(c,-1,'t')}</sup>`,'C\'est la règle de x<sup>n</sup> mal appliquée&nbsp;: ici, c\'est l\'exposant qui contient la variable.'),
+        NO(`${D(c)}${E(c-1,0,'t')}`,'L\'exposant ne change pas&nbsp;: (e<sup>ct</sup>)′ = c e<sup>ct</sup>.')],{au:{mode:'val',ref:`diff(exp((${s(c)})*t),t)`,var:'t'}})],
+    done:`(${E(a,0,'t')})′ = ${cf(a)}${E(a,0,'t')} et (${E(c,0,'t')})′ = ${cf(c)}${E(c,0,'t')}.`}}
+function l6q3(){const k0=pick([-0.5,-1,-1.5,-2,0.5,1.5]);
+  return{steps:2,prompt:`Règle k pour que la guirlande se pose sur la courbe en pointillés, qui passe par le point (1&nbsp;; ${En(k0)}).`,
+    scene:()=>K.reset({v:KV(),k:k0>0?-1:1,ghost:{k:k0,lab:'cible',lx:k0>0?-3.6:2.4},poles:[{x:0,big:true,lab:'1'}],title:'y = e^{kt}',xl:'t'}),
+    parts:[kAdj('Règle k.',k0,{why:v=>v.v*k0<0?`La courbe cible ${k0<0?'descend':'monte'}&nbsp;: k doit être ${k0<0?'négatif':'positif'}.`:Math.abs(v.v)>Math.abs(k0)?'Ta guirlande varie trop vite&nbsp;: diminue |k|.':'Ta guirlande varie trop lentement&nbsp;: augmente |k|.',revealTxt:'La guirlande est maintenant posée sur la cible.'}),
+      ch(`La fonction t ↦ ${E(k0,0,'t')} est, sur ℝ&nbsp;:`,[OK(k0>0?'strictement croissante':'strictement décroissante',{c:['mono',`exp((${s(k0)})*t)`,k0>0?'inc':'dec']}),NO(k0>0?'strictement décroissante':'strictement croissante',`Sa dérivée ${cf(k0)}${E(k0,0,'t')} est ${k0>0?'positive':'négative'}, car ${E(k0,0,'t')} > 0.`,{c:['mono',`exp((${s(k0)})*t)`,k0>0?'dec':'inc']}),
+        NO('constante','Elle n\'est constante que si k = 0.',{c:['mono',`exp((${s(k0)})*t)`,'const']}),NO(k0>0?'décroissante puis croissante':'croissante puis décroissante','Le signe de la dérivée, celui de k, ne change pas.',{c:['mono',`exp((${s(k0)})*t)`,'change']})],{au:{mode:'claim'}})],
+    done:`f′(t) = ${cf(k0)}${E(k0,0,'t')} a le signe de k = ${Dt(k0)}&nbsp;: f est strictement ${k0>0?'croissante (croissance':'décroissante (décroissance'} exponentielle).`}}
+function l6q4(){const k=pick([0.5,1,1.5,2]);
+  return{steps:2,prompt:`On compare t ↦ ${E(k,0,'t')} et t ↦ ${E(-k,0,'t')}.`,
+    scene:()=>K.reset({v:KV(),k:k,title:'y = '+eL(k,0,'t'),xl:'t'}),
+    parts:[act('Basculer k en −k',async()=>{K.st.ghost={k,lab:eL(k,0,'t'),lx:2.2};K.SND.rise();await K.tween('k',-k,1500);K.st.title='y = '+eL(-k,0,'t');K.render()}),
+      ch('Les deux courbes sont symétriques par rapport à&nbsp;:',[OK('l\'axe des ordonnées',{c:['sym',`exp((${s(k)})*t)`,`exp((${s(-k)})*t)`,'y']}),NO('l\'axe des abscisses','Les deux courbes sont au-dessus de l\'axe des abscisses (exp > 0)&nbsp;: elles ne peuvent pas être symétriques par rapport à lui.',{c:['sym',`exp((${s(k)})*t)`,`exp((${s(-k)})*t)`,'x']}),
+        NO('l\'origine du repère','La symétrie par rapport à l\'origine changerait le signe des ordonnées.',{c:['sym',`exp((${s(k)})*t)`,`exp((${s(-k)})*t)`,'o']})],{au:{mode:'claim'}}),
+      fill('','Elles se coupent au point de coordonnées (0&nbsp;; {0}).',[{v:1,ref:'exp(0)'}],'En t = 0, les deux valent e<sup>0</sup> = 1.')],
+    done:`${E(-k,0,'t')} = e<sup>${Dt(k)} × (−t)</sup>&nbsp;: la valeur en t de l'une est la valeur en −t de l'autre. Symétrie par rapport à l'axe des ordonnées, point commun (0&nbsp;; 1).`}}
+function l6q5(){const M0=pick([10,20,50]),lam=pick([0.0004,0.0002,0.0005]),t1=pick([1000,2000]);const val=M0*ex(-lam*t1),dM=q(-lam).mul(M0);
+  return{steps:3,prompt:`Un échantillon radioactif a une masse de ${M0} g. Au bout de t années, il en reste M(t) = ${M0}${E(-lam,0,'t')} grammes.`,
+    scene:()=>K.reset({v:{x0:-350,x1:5200,y0:-M0*.12,y1:M0*1.15},k:-lam,C:M0,poles:[0,1000,2000,3000,4000,5000].map(x=>({x,dim:x!==t1,big:x===t1,lab:x===t1?'M('+t1+')':null})),title:'M(t) = '+M0+' e^{−'+Dt(lam)+'t}',xl:'t (années)',yl:'M (g)'}),
+    parts:[fill('Au centième&nbsp;:',`M(${t1}) ≈ {0} g`,[{x:val,d:2,ref:`${M0}*exp(-(${s(lam)})*${t1})`}],`M(${t1}) = ${M0}e<sup>${MINUS}${Dt(lam*t1)}</sup> ≈ ${Dr(val,4)}.`),
+      fill('',`M′(t) = {0}${E(-lam,0,'t')}`,[{v:dM,ref:`diff(${M0}*exp(-(${s(lam)})*t),t)/exp(-(${s(lam)})*t)`,neg:true}],`(${E(-lam,0,'t')})′ = ${MINUS}${Dt(lam)}${E(-lam,0,'t')}, puis on multiplie par ${M0}.`),
+      ch('La fonction M est donc, sur [0&nbsp;; +∞[&nbsp;:',[OK('strictement décroissante',{c:['mono',`${M0}*exp(-(${s(lam)})*t)`,'dec']}),NO('strictement croissante',`M′(t) = ${cf(dM)}${E(-lam,0,'t')} &lt; 0.`,{c:['mono',`${M0}*exp(-(${s(lam)})*t)`,'inc']}),NO('constante','M′(t) ≠ 0.',{c:['mono',`${M0}*exp(-(${s(lam)})*t)`,'const']})],{au:{mode:'claim'}})],
+    done:`M(${t1}) ≈ ${Dr(val,2)} g et M′(t) = ${cf(dM)}${E(-lam,0,'t')} &lt; 0&nbsp;: la masse diminue, c'est une décroissance exponentielle.`}}
+LV.push({t:'Le réglage k',s:'e<sup>kt</sup>',chap:'Fonctions t ↦ exp(kt) · dérivée, variations',rule:rule6,qs:[l6q1,l6q2,l6q3,l6q4,l6q5]});
+
+/* =================================================================== */
+/* NIVEAU 7 · La rangée géométrique : suites (e^(na)), modélisation     */
+/* =================================================================== */
+const rule7=`<p>Pour tout réel a et tout entier naturel n&nbsp;: <b>e<sup>na</sup> = (e<sup>a</sup>)<sup>n</sup></b>.</p><p>La suite (u<sub>n</sub>) définie par u<sub>n</sub> = e<sup>na</sup> est donc <b>géométrique</b>, de premier terme u<sub>0</sub> = 1 et de raison <b>q = e<sup>a</sup></b>&nbsp;: des mâts plantés à pas réguliers, chacun e<sup>a</sup> fois plus haut que le précédent.</p><p>Temps discret (la suite) et temps continu (la fonction t ↦ e<sup>at</sup>) donnent les mêmes valeurs aux instants entiers&nbsp;: croissance si a > 0 (q > 1), décroissance si a &lt; 0 (0 &lt; q &lt; 1).</p>`;
+async function plant(N,lab,ms){K.st.seq={n:[],q:K.st.seq&&K.st.seq.q,lab};for(let n=0;n<=N;n++){K.st.seq.n.push(n);K.SND.pluck();K.render();await sleep(ms||420)}}
+function l7q1(){const a=pick([0.5,0.3,-0.5,0.4,-0.3]);const y1=a>0?ex(4*a)*1.25:1.3;
+  return{steps:2,prompt:`On plante un mât à chaque instant entier n&nbsp;: le mât n mesure <b>u<sub>n</sub> = ${E(a,0,'n')}</b>. La guirlande, elle, suit t ↦ ${E(a,0,'t')}.`,
+    scene:()=>K.reset({v:{x0:-0.6,x1:4.6,y0:-y1*.12,y1},k:a,seq:{n:[],q:'×'+eL(0,a)},title:'u_{n} = '+eL(a,0,'n'),xl:'n',xstep:1}),
+    parts:[act('Planter les mâts n = 0, 1, 2, 3, 4',()=>plant(4,(n)=>'u_{'+n+'}')),
+      ch('(u<sub>n</sub>) est géométrique de raison&nbsp;:',[OK(En(a)),NO(Dt(a),`${Dt(a)} est le pas de l'exposant&nbsp;; d'un mât au suivant, on multiplie la hauteur par ${En(a)}.`),
+        NO('e<sup>n</sup>','La raison est un nombre fixe, qui ne dépend pas de n.'),NO(Dt(1+a),`u<sub>n+1</sub> ÷ u<sub>n</sub> = ${En(a)} ≈ ${Dr(ex(a),4)}, pas ${Dt(1+a)}.`)],{au:{mode:'val',ref:`exp((${s(a)})*(n+1))/exp((${s(a)})*n)`}}),
+      fill('','u<sub>0</sub> = {0}',[{v:1,ref:'exp(0)'}],`u<sub>0</sub> = e<sup>${Dt(a)} × 0</sup> = e<sup>0</sup> = 1.`)],
+    done:`u<sub>n+1</sub> = e<sup>${Dt(a)}(n + 1)</sup> = e<sup>${Dt(a)}n</sup> × e<sup>${Dt(a)}</sup> = ${En(a)} × u<sub>n</sub>&nbsp;: suite géométrique de premier terme 1 et de raison ${En(a)} ≈ ${Dr(ex(a),4)}.`}}
+function l7q2(){const [a,N]=pick([[0.5,4],[1,2],[1,3],[-0.5,3],[0.2,5],[-1,2],[0.5,3]]);const val=ex(a*N),y1=a>0?ex(a*N)*1.25:1.3;
+  return{steps:2,prompt:`u<sub>n</sub> = ${E(a,0,'n')} pour tout entier naturel n.`,
+    scene:()=>K.reset({v:{x0:-0.6,x1:N+0.9,y0:-y1*.12,y1},k:a,seq:{n:[],q:'×'+eL(0,a)},title:'u_{n} = '+eL(a,0,'n'),xl:'n',xstep:1}),
+    parts:[fill('',`u<sub>${N}</sub> = e{^0}`,[{v:a*N,ref:`exp((${s(a)})*${N})`,expo:true}],`u<sub>${N}</sub> = e<sup>${Dt(a)} × ${N}</sup>.`,{onOk:()=>plant(N,(n)=>'u_{'+n+'}',260)}),
+      fill('Au millième&nbsp;:',`u<sub>${N}</sub> ≈ {0}`,[{x:val,d:3,ref:`exp((${s(a)})*${N})`}],`${En(a*N)} ≈ ${Dr(val,5)} à la calculatrice.`),
+      ch('La suite (u<sub>n</sub>) est&nbsp;:',[OK(a>0?'strictement croissante':'strictement décroissante',{c:['monoseq',`exp((${s(a)})*n)`,a>0?'inc':'dec']}),NO(a>0?'strictement décroissante':'strictement croissante',`Sa raison ${En(a)} est ${a>0?'plus grande':'plus petite'} que 1 et u<sub>0</sub> = 1 > 0.`,{c:['monoseq',`exp((${s(a)})*n)`,a>0?'dec':'inc']}),NO('constante',`Sa raison ${En(a)} est différente de 1.`,{c:['monoseq',`exp((${s(a)})*n)`,'const']})],{au:{mode:'claim'}})],
+    done:`u<sub>${N}</sub> = ${En(a*N)} ≈ ${Dr(val,3)}. Raison ${En(a)} ${a>0?'> 1':'&lt; 1'} et premier terme positif&nbsp;: la suite est strictement ${a>0?'croissante':'décroissante'}.`}}
+function l7q3(){const U0=pick([2,3,4]),a=pick([-0.2,-0.1,-0.3]),N=pick([3,4,5]),val=U0*ex(a*N);
+  return{steps:3,prompt:`Une solution est diluée chaque jour. Sa concentration (en g/L) au bout de n jours est u<sub>n</sub> = ${U0}${E(a,0,'n')}.`,
+    scene:()=>K.reset({v:{x0:-0.6,x1:N+0.9,y0:-U0*.14,y1:U0*1.25},k:a,C:U0,seq:{n:[],q:'×'+eL(0,a)},title:'u_{n} = '+U0+eL(a,0,'n'),xl:'n (jours)',xstep:1,yl:'g/L'}),
+    parts:[act(`Planter les mâts jusqu'au jour ${N}`,()=>plant(N,(n)=>'u_{'+n+'}',380)),
+      ch('Pour tout n, u<sub>n+1</sub> = … × u<sub>n</sub>&nbsp;:',[OK(En(a)),NO(Dt(a),'On multiplie, on n\'ajoute pas&nbsp;: u<sub>n+1</sub> = u<sub>n</sub> × e<sup>'+Dt(a)+'</sup>.'),
+        NO(Dt(1+a),`Une baisse de ${Dt(-a*100)}&nbsp;% donnerait ×${Dt(1+a)}&nbsp;; ici le facteur est ${En(a)} ≈ ${Dr(ex(a),4)}.`),NO(String(U0),`${U0} est le premier terme u<sub>0</sub>, pas la raison.`)],{au:{mode:'val',ref:`${U0}*exp((${s(a)})*(n+1))/(${U0}*exp((${s(a)})*n))`}}),
+      fill('Au centième&nbsp;:',`u<sub>${N}</sub> ≈ {0} g/L`,[{x:val,d:2,ref:`${U0}*exp((${s(a)})*${N})`}],`u<sub>${N}</sub> = ${U0}e<sup>${Dt(a*N)}</sup> ≈ ${Dr(val,4)}.`)],
+    done:`(u<sub>n</sub>) est géométrique de raison ${En(a)} ≈ ${Dr(ex(a),3)} &lt; 1&nbsp;: la concentration diminue chaque jour du même pourcentage. u<sub>${N}</sub> ≈ ${Dr(val,2)} g/L.`}}
+function l7q4(){const C0=pick([1000,2000,500]),r=pick([0.03,0.02,0.05]),f=ex(r);
+  return{steps:3,prompt:`Un capital de ${C0} € est placé&nbsp;: au bout de t années, il vaut C(t) = ${C0}${E(r,0,'t')} euros.`,
+    scene:()=>K.reset({v:{x0:-0.8,x1:10.6,y0:-C0*.2,y1:C0*ex(r*10)*1.2},k:r,C:C0,seq:{n:[0,1,2,3,4,5,6,7,8,9,10],q:null},title:'C(t) = '+C0+' e^{'+Dt(r)+'t}',xl:'t (années)',yl:'€'}),
+    parts:[fill('',`${frac('C(1)','C(0)')} = e{^0}`,[{v:r,ref:`(${C0}*exp(${s(r)}*1))/(${C0}*exp(0))`,expo:true}],`C(1) ÷ C(0) = ${C0}e<sup>${Dt(r)}</sup> ÷ ${C0}.`),
+      fill('Au dix-millième&nbsp;:',`e<sup>${Dt(r)}</sup> ≈ {0}`,[{x:f,d:4,ref:`exp(${s(r)})`}],`À la calculatrice&nbsp;: e<sup>${Dt(r)}</sup> ≈ ${Dr(f,6)}.`),
+      fill('Au centième&nbsp;:','Chaque année, le capital augmente d\'environ {0}&nbsp;%.',[{x:(f-1)*100,d:2,ref:`(exp(${s(r)})-1)*100`}],`Multiplier par ${Dr(f,4)}, c'est augmenter de ${Dr(f,4)} − 1 ≈ ${Dr(f-1,4)}, soit ${Dr((f-1)*100,2)}&nbsp;%.`)],
+    done:`Chaque année, C est multiplié par e<sup>${Dt(r)}</sup> ≈ ${Dr(f,4)}&nbsp;: une hausse de ${Dr((f-1)*100,2)}&nbsp;% par an (un peu plus que ${Dt(r*100)}&nbsp;%). Les valeurs C(0), C(1), C(2)… forment une suite géométrique.`}}
+function l7q5(){const [a,S]=pick([[1,10],[1,20],[1,50],[1,100],[0.5,5],[0.5,10],[0.5,20]]);let nmin=0;while(ex(a*nmin)<=S)nmin++;
+  const code=`from math import exp\nq = exp(${a})\nn = 0\nu = 1\nwhile <span class="hole">▢</span>:\n    n = n + 1\n    u = u * q`;
+  return{steps:3,prompt:`u<sub>n</sub> = ${E(a,0,'n')}. On cherche le premier rang n tel que <b>u<sub>n</sub> > ${S}</b>.`,
+    scene:()=>K.reset({v:{x0:-0.6,x1:nmin+1.2,y0:-S*.18,y1:Math.max(S*1.3,ex(a*nmin)*1.08)},k:a,seq:{n:[],q:null},hline:{y:S,lab:'seuil '+S},title:'u_{n} = '+eL(a,0,'n'),xl:'n',xstep:1}),
+    parts:[act('Planter les mâts un par un',async()=>{await plant(nmin,(n)=>'u_{'+n+'}',450);cap(`u<sub>${nmin-1}</sub> ≈ ${Dr(ex(a*(nmin-1)),2)} ≤ ${S} &lt; u<sub>${nmin}</sub> ≈ ${Dr(ex(a*nmin),2)}`)}),
+      fill('','Le premier rang est n = {0}.',[{v:nmin,ref:`seuil(${s(a)},${S})`}],`u<sub>${nmin-1}</sub> ≈ ${Dr(ex(a*(nmin-1)),2)} ne dépasse pas ${S}, mais u<sub>${nmin}</sub> ≈ ${Dr(ex(a*nmin),2)} le dépasse.`),
+      ch('Dans ce programme, quelle condition écrire à la place de ▢&nbsp;?',[OK(`<code>u &lt;= ${S}</code>`,{c:['while',`u <= ${S}`,s(a),String(S)]}),NO(`<code>u &gt; ${S}</code>`,'La boucle doit continuer TANT QUE le seuil n\'est pas dépassé.',{c:['while',`u > ${S}`,s(a),String(S)]}),
+        NO(`<code>n &lt;= ${S}</code>`,'C\'est u qu\'on compare au seuil, pas le rang n.',{c:['while',`n <= ${S}`,s(a),String(S)]}),NO(`<code>u == ${S}</code>`,'u ne tombe jamais exactement sur le seuil&nbsp;: la boucle ne tournerait pas.',{c:['while',`u == ${S}`,s(a),String(S)]})],{code,au:{mode:'claim'}})],
+    done:`Le premier rang est n = ${nmin}&nbsp;: la boucle « tant que u ≤ ${S} » s'arrête dès que u<sub>n</sub> dépasse ${S}.`}}
+LV.push({t:'La rangée géométrique',s:'Suites',chap:'Lien avec les suites géométriques · modélisation',rule:rule7,qs:[l7q1,l7q2,l7q3,l7q4,l7q5]});
+K.rr=rr;
+})();
+</script>
+<script>
+/* ======================= LES HAUBANS — épreuves finales Bronze, Argent, Or ======================= */
+(function(){
+'use strict';
+const K=window.HBK,{q,D,Dt,Dr,frac,ri,pick,shuf,s,aff,affS,E,En,ES,EnS,affW,writes,writesR,MINUS,NB}=K;
+const ex=Math.exp;
+const cf=c=>{c=q(c);return c.eq(1)?'':c.eq(-1)?MINUS:D(c)};
+/* QCM : choix dédoublonnés (par texte), 3 ou 4 choix ; au = contrôle (val : valeur de chaque choix ; claim : affirmation de chaque choix) */
+function QCM(level,prompt,list,explain,o){o=o||{};const seen=new Set(),out=[];
+  for(const c of list){if(seen.has(c.h))continue;seen.add(c.h);out.push(c);if(out.length===4)break}
+  if(out.length<3||out.filter(c=>c.ok).length!==1)return null;
+  return{type:'qcm',level,prompt,choices:out.map(c=>c.h),answer:out.findIndex(c=>c.ok),explain,au:o.au||null,cl:out.map(c=>c.c||null),steps:o.steps||1}}
+const OK=(h,c)=>({h,ok:true,c:c&&c.c?c.c:c}),NO=(h,c)=>({h,c:c&&c.c?c.c:c});
+/* trous : {v} nombre exact | {x,d} arrondi | {a,b,var} expression affine ; ref = grandeur demandée (sympy), expo = le trou est un exposant */
+function TR(level,prompt,blanks,explain,o){o=o||{};
+  return{type:'trous',level,prompt,explain,steps:o.steps||1,blanks:blanks.map(b=>{let answers,size;
+    if(b.var!==undefined){answers=affW(b.a,b.b,b.var);size=Math.max(4,answers[0].length+1)}
+    else if(b.d!==undefined){answers=writesR(b.x,b.d);size=Math.max(4,answers[0].length+1)}
+    else{answers=writes(b.v);size=Math.max(3,answers[0].length+1)}
+    return{answers,size,ref:b.ref,expo:!!b.expo,d:b.d===undefined?null:b.d,var:b.var||null,kind:b.var!==undefined?'aff':b.d!==undefined?'rnd':'num'}})}}
+
+/* ---------- niveau 1 : définition, tangente, nombre e ---------- */
+function G1(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){if(Math.random()<.5)return QCM(1,'exp(0) est égal à&nbsp;:',[OK('1'),NO('0'),NO('e'),NO(MINUS+'1')],'Par définition, exp(0) = 1&nbsp;: e<sup>0</sup> = 1.',{au:{mode:'val',ref:'exp(0)'}});
+      return QCM(1,'La fonction exponentielle est l\'unique fonction f dérivable sur ℝ telle que&nbsp;:',[OK('f′ = f et f(0) = 1',{c:['def','f','1']}),NO('f′ = f et f(0) = 0',{c:['def','f','0']}),NO('f′ = 1 et f(0) = 1',{c:['def','1','1']}),NO('f′ = 0 et f(0) = 1',{c:['def','0','1']})],'Définition&nbsp;: exp′ = exp et exp(0) = 1.',{au:{mode:'claim'}})}
+    const v=pick([0,1,2]);
+    if(v===0)return TR(1,'exp(0) = {0}',[{v:1,ref:'exp(0)'}],'Par définition de la fonction exponentielle, exp(0) = 1.');
+    if(v===1)return TR(1,'Le nombre e est l\'image de {0} par la fonction exponentielle.',[{v:1,ref:'E',expo:true}],'e = exp(1).');
+    return TR(1,'exp′(0) = {0}',[{v:1,ref:'diff(exp(x),x).subs(x,0)'}],'exp′ = exp, donc exp′(0) = exp(0) = 1.')}
+  if(t==='argent'){
+    if(ty==='qcm'){if(Math.random()<.5)return QCM(1,'La tangente à la courbe de la fonction exponentielle au point d\'abscisse 0 a pour équation&nbsp;:',[OK('y = x + 1',{c:['tan','exp(x)','0','1','1']}),NO('y = x',{c:['tan','exp(x)','0','1','0']}),NO('y = ex + 1',{c:['tan','exp(x)','0','E','1']}),NO('y = 1',{c:['tan','exp(x)','0','0','1']})],'exp(0) = 1 et exp′(0) = 1&nbsp;: y = 1 × (x − 0) + 1 = x + 1.',{au:{mode:'claim'},steps:2});
+      const a=pick([2,3,-1,-2]);return QCM(1,`Le coefficient directeur de la tangente à la courbe de la fonction exponentielle au point d'abscisse ${a} est&nbsp;:`,[OK(En(a)),NO(`${cf(a)}${En(a-1)}`),NO(Dt(a)),NO(En(a-1))],`exp′ = exp&nbsp;: la pente est exp′(${a}) = e<sup>${a}</sup>.`,{au:{mode:'val',ref:`diff(exp(x),x).subs(x,${a})`},steps:2})}
+    const a=pick([2,3,-1,0.5,1.5]);return TR(1,`La tangente à la courbe de la fonction exponentielle au point d'abscisse ${Dt(a)} coupe l'axe des abscisses au point d'abscisse {0}.`,[{v:a-1,ref:`solve(exp(${s(a)})*(x-(${s(a)}))+exp(${s(a)}),x)[0]`}],`La tangente a pour équation y = e<sup>${Dt(a)}</sup>(x − ${par(a)}) + e<sup>${Dt(a)}</sup>&nbsp;; y = 0 ⇔ x = ${Dt(a)} − 1 = ${Dt(a-1)}.`,{steps:2})}
+  if(ty==='qcm')return QCM(1,'Une fonction f est dérivable sur ℝ et vérifie f′ = f et f(0) = 3 (on pourra considérer la fonction g = f/3). Pour tout réel x, f(x) est égal à&nbsp;:',[OK('3e<sup>x</sup>',{c:['fn3','3*exp(x)']}),NO('e<sup>3x</sup>',{c:['fn3','exp(3*x)']}),NO('e<sup>x</sup> + 2',{c:['fn3','exp(x)+2']}),NO('e<sup>x + 3</sup>',{c:['fn3','exp(x+3)']})],'g = f/3 vérifie g′ = g et g(0) = 1, donc g = exp et f(x) = 3e<sup>x</sup>. Les autres ne vérifient pas f′ = f ou f(0) = 3.',{au:{mode:'claim'},steps:3});
+  const a=pick([2,3,-1,-2]);return TR(1,`La tangente à la courbe de la fonction exponentielle au point d'abscisse ${a} a pour équation y = e<sup>${a}</sup>x + k e<sup>${a}</sup>, où k = {0}.`,[{v:1-a,ref:`(exp(${a})-diff(exp(x),x).subs(x,${a})*(${a}))/exp(${a})`}],`y = e<sup>${a}</sup>(x − ${par(a)}) + e<sup>${a}</sup> = e<sup>${a}</sup>x + (1 − ${par(a)})e<sup>${a}</sup>&nbsp;: k = ${1-a}.`,{steps:3})}
+const par=x=>{x=q(x);return x.sgn()<0?`(${D(x)})`:D(x)};
+
+/* ---------- niveau 2 : méthode d'Euler, nombre e ---------- */
+function G2(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm')return QCM(2,'Une valeur approchée du nombre e au millième est&nbsp;:',[OK('2,718'),NO('3,142'),NO('1,414'),NO('2,178')],'e = exp(1) ≈ 2,718. (3,142 est une valeur approchée de π, 1,414 de √2.)',{au:{mode:'rnd',ref:'E',d:3}});
+    const h=pick([0.1,0.2,0.5,0.05]);return TR(2,`On applique la méthode d'Euler à f′ = f, f(0) = 1, avec le pas h = ${Dt(h)}&nbsp;: f(${Dt(h)}) ≈ 1 + ${Dt(h)} × 1 = {0}.`,[{v:1+h,ref:`euler(${s(h)},1)`}],`f(h) ≈ f(0) + h f′(0) = 1 + ${Dt(h)} × 1 = ${Dt(1+h)}.`)}
+  if(t==='argent'){
+    if(ty==='qcm'){const h=pick([0.1,0.2,0.25,0.05]);return QCM(2,`Méthode d'Euler pour f′ = f, de pas h = ${Dt(h)}&nbsp;: on passe d'une valeur approchée de f(x) à une valeur approchée de f(x + ${Dt(h)}) en multipliant par&nbsp;:`,[OK(Dt(1+h)),NO(Dt(h)),NO(`${En(h)} ≈ ${Dr(ex(h),4)}`),NO(Dt(2*h))],`f(x + h) ≈ f(x) + h f′(x) = f(x) + h f(x) = (1 + h) f(x)&nbsp;: on multiplie par ${Dt(1+h)}.`,{au:{mode:'val',ref:`euler(${s(h)},1)`},steps:2})}
+    const [h,n]=pick([[0.5,2],[0.2,2],[0.1,2],[-0.5,2],[0.5,3]]);const v=Math.pow(1+h,n);return TR(2,`On applique la méthode d'Euler à f′ = f, f(0) = 1, avec ${n} pas de h = ${Dt(h)}&nbsp;: f(${Dt(n*h)}) ≈ {0}.`,[{v:Math.round(v*1e6)/1e6,ref:`euler(${s(h)},${n})`}],`Chaque pas multiplie par 1 + h = ${Dt(1+h)}&nbsp;: ${Dt(1+h)}<sup>${n}</sup> = ${Dt(Math.round(v*1e6)/1e6)}.`,{steps:2})}
+  if(ty==='qcm'){if(Math.random()<.5)return QCM(2,'Pour tout entier n ⩾ 1, on pose u<sub>n</sub> = (1 + 1/n)<sup>n</sup>. Quand n devient de plus en plus grand, u<sub>n</sub> se rapproche de&nbsp;:',[OK('e',{c:['lim','E']}),NO('1',{c:['lim','1']}),NO('2',{c:['lim','2']}),NO('+∞',{c:['lim','oo']})],'u<sub>1</sub> = 2, u<sub>2</sub> = 2,25, u<sub>10</sub> ≈ 2,594, u<sub>1000</sub> ≈ 2,717&nbsp;: la suite se rapproche de e ≈ 2,718.',{au:{mode:'claim'},steps:2});
+    return QCM(2,'Pour tout entier n ⩾ 1, u<sub>n</sub> = (1 + 1/n)<sup>n</sup>. Au centième, u<sub>4</sub> vaut&nbsp;:',[OK('2,44'),NO('2,25'),NO('2,72'),NO('2')],'u<sub>4</sub> = 1,25<sup>4</sup> = 2,441 406 25 ≈ 2,44.',{au:{mode:'rnd',ref:'(1+Rational(1,4))**4',d:2},steps:2})}
+  const [h,n]=pick([[0.5,3],[0.1,3],[0.2,3],[-0.5,3]]);const v=Math.round(Math.pow(1+h,n)*1e6)/1e6;
+  return TR(2,`On considère la fonction Python ci-dessous.<pre class="code">def euler(h, n):\n    y = 1\n    for k in range(n):\n        y = y + h * y\n    return y</pre>euler(${String(h)}, ${n}) renvoie {0}.`,[{v,ref:`euler(${s(h)},${n})`}],`Chaque tour remplace y par y + h y = (1 + h) y&nbsp;: ${Dt(1+h)}<sup>${n}</sup> = ${Dt(v)}.`,{steps:3})}
+
+/* ---------- niveau 3 : e^(a+b) = e^a e^b, e^(−x) ---------- */
+function G3(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){let a,b;do{a=ri(2,5);b=ri(2,5)}while(a===b||a+b===a*b);return QCM(3,`${En(a)} × ${En(b)} est égal à&nbsp;:`,[OK(En(a+b)),NO(En(a*b)),NO(En(a-b)),NO(`e<sup>${a}</sup> + e<sup>${b}</sup>`)],`On additionne les exposants&nbsp;: e<sup>${a}</sup> × e<sup>${b}</sup> = e<sup>${a+b}</sup>.`,{au:{mode:'val',ref:`exp(${a})*exp(${b})`}})}
+    let a,b;do{a=ri(2,6);b=ri(-5,-1)}while(a+b===0);return TR(3,`${En(a)} × ${En(b)} = e<sup>N</sup> où N = {0}.`,[{v:a+b,ref:`exp(${a})*exp(${b})`,expo:true}],`On additionne les exposants&nbsp;: ${a} + (${b}) = ${a+b}.`)}
+  if(t==='argent'){
+    if(ty==='qcm')return QCM(3,'Pour tout réel x, e<sup>−x</sup> est égal à&nbsp;:',[OK(frac(1,'e<sup>x</sup>')),NO(MINUS+'e<sup>x</sup>'),NO(MINUS+frac(1,'e<sup>x</sup>')),NO('1 − e<sup>x</sup>')],'e<sup>x</sup> × e<sup>−x</sup> = e<sup>0</sup> = 1, donc e<sup>−x</sup> = 1/e<sup>x</sup> (un nombre positif).',{au:{mode:'val',ref:'exp(-x)',var:'x'},steps:2});
+    let p,qq,r,u;do{p=pick([1,2,3,-1]);r=pick([1,2,3,-2]);qq=ri(-3,3);u=ri(-3,3)}while(p+r===0||qq===0||u===0);
+    return TR(3,`Pour tout réel x, ${E(p,qq)} × ${E(r,u)} = e<sup>N</sup> où N = {0}.`,[{a:p+r,b:qq+u,var:'x',ref:`${ES(p,qq)}*${ES(r,u)}`,expo:true}],`On additionne les exposants&nbsp;: (${aff(p,qq)}) + (${aff(r,u)}) = ${aff(p+r,qq+u)}.`,{steps:2})}
+  if(ty==='qcm'){const m=pick([1,2,3]);return QCM(3,`${En(m)} + ${En(m+1)} est égal à&nbsp;:`,[OK(`${En(m)}(1 + e)`),NO(En(2*m+1)),NO(`2${En(m+1)}`),NO(En(m*(m+1)))],`On factorise par e<sup>${m}</sup>&nbsp;: e<sup>${m+1}</sup> = e<sup>${m}</sup> × e. On n'additionne les exposants que pour un produit.`,{au:{mode:'val',ref:`exp(${m})+exp(${m+1})`},steps:2})}
+  if(Math.random()<.5){const sg=pick([1,-1]);return TR(3,`Pour tout réel x, (e<sup>x</sup> ${sg>0?'+':MINUS} e<sup>−x</sup>)<sup>2</sup> = e<sup>2x</sup> + ({0}) + e<sup>−2x</sup>.`,[{v:2*sg,ref:`expand((exp(x)${sg>0?'+':'-'}exp(-x))**2)-exp(2*x)-exp(-2*x)`}],`Identité remarquable&nbsp;: le double produit vaut ${sg>0?'':MINUS}2 × e<sup>x</sup> × e<sup>−x</sup> = ${sg>0?'':MINUS}2 × e<sup>0</sup> = ${2*sg}.`,{steps:3})}
+  let a,b;do{a=pick([2,3]);b=pick([1,2,-1])}while(false);
+  return TR(3,`Pour tout réel x, ${E(a,0)} × ${E(-1,b)} × e<sup>−${a}x</sup> = e<sup>N</sup> où N = {0}.`,[{a:-1,b:b,var:'x',ref:`${ES(a,0)}*${ES(-1,b)}*exp(-${a}*x)`,expo:true}],`${a}x + (${aff(-1,b)}) − ${a}x = ${aff(-1,b)}.`,{steps:3})}
+
+/* ---------- niveau 4 : quotients et puissances ---------- */
+function G4(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){const [m,n]=pick([[6,2],[8,2],[9,3],[6,3],[4,2]].filter(z=>!(z[0]===4&&z[1]===2)));return QCM(4,`${frac(En(m),En(n))} est égal à&nbsp;:`,[OK(En(m-n)),NO(En(m/n)),NO(En(m+n)),NO(En(m*n))],`On soustrait les exposants&nbsp;: e<sup>${m} − ${n}</sup> = e<sup>${m-n}</sup>.`,{au:{mode:'val',ref:`exp(${m})/exp(${n})`}})}
+    const a=pick([2,3,4,-2]),n=pick([2,3,5]);return TR(4,`(${En(a)})<sup>${n}</sup> = e<sup>N</sup> où N = {0}.`,[{v:a*n,ref:`exp(${a})**${n}`,expo:true}],`(e<sup>a</sup>)<sup>n</sup> = e<sup>na</sup>&nbsp;: ${n} × ${par(a)} = ${a*n}.`)}
+  if(t==='argent'){
+    if(ty==='qcm'){let u,v,w;do{u=ri(2,5);v=ri(-4,-1);w=ri(2,6)}while(new Set([u+v-w,u+v+w,u-v-w,u-v+w]).size<4);
+      return QCM(4,`${frac(`${En(u)} × ${En(v)}`,En(w))} est égal à&nbsp;:`,[OK(En(u+v-w)),NO(En(u+v+w)),NO(En(u-v-w)),NO(En(u-v+w))],`Exposant&nbsp;: ${u} + (${v}) − ${w} = ${u+v-w}.`,{au:{mode:'val',ref:`exp(${u})*exp(${v})/exp(${w})`},steps:2})}
+    let p,qq,r,u;do{p=pick([2,3,4]);r=pick([1,2,-1]);qq=ri(-3,3);u=ri(-4,4)}while(p===r||qq===u||u===0);
+    return TR(4,`Pour tout réel x, ${frac(E(p,qq),E(r,u))} = e<sup>N</sup> où N = {0}.`,[{a:p-r,b:qq-u,var:'x',ref:`${ES(p,qq)}/${ES(r,u)}`,expo:true}],`On soustrait tout l'exposant du dénominateur&nbsp;: (${aff(p,qq)}) − (${aff(r,u)}) = ${aff(p-r,qq-u)}.`,{steps:2})}
+  if(ty==='qcm'){let n,c;do{n=pick([2,3,4]);c=pick([-1,-2,-3])}while(n+c===0);
+    return QCM(4,`Pour tout réel x, (e<sup>x</sup>)<sup>${n}</sup> × ${E(c,0)} est égal à&nbsp;:`,[OK(E(n+c,0)),NO(E(n-c,0)),NO(E(n*c,0)),NO(`e<sup>x<sup>${n}</sup> ${c<0?MINUS:'+'} ${Math.abs(c)===1?'':Math.abs(c)}x</sup>`)],`(e<sup>x</sup>)<sup>${n}</sup> = e<sup>${n}x</sup>, puis ${n}x + (${aff(c,0)}) = ${aff(n+c,0)}.`,{au:{mode:'val',ref:`exp(x)**${n}*${ES(c,0)}`,var:'x'},steps:3})}
+  let a,m,b;do{a=pick([2,3,4]);m=pick([1,2,3]);b=pick([1,2,3,-1,-2])}while(false);
+  return TR(4,`Pour tout réel x, ${frac(`${E(a,0)} × (e<sup>−x</sup>)<sup>${m}</sup>`,E(1,-b))} = e<sup>N</sup> où N = {0}.`,[{a:a-m-1,b:b,var:'x',ref:`${ES(a,0)}*exp(-x)**${m}/${ES(1,-b)}`,expo:true}],`${aff(a,0)} − ${aff(m,0)} − (${aff(1,-b)}) = ${aff(a-m-1,b)}.`,{steps:3})}
+
+/* ---------- niveau 5 : signe, croissance, équations, inéquations ---------- */
+function eqG(){let a,c,x0,w;do{a=pick([1,2,3,-1]);c=pick([1,2,3,-1,-2]);x0=pick([-2,-1,1,2,3,4]);w=pick([-2,-1,0,1,2,3])}while(a===c||(w-a*x0===0&&w-c*x0===0));return{a,c,x0,b:w-a*x0,d:w-c*x0}}
+function G5(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){const c=pick([-2,-3,-0.5]);return QCM(5,`Le nombre ${En(c)} est&nbsp;:`,[OK('strictement positif',{c:['signnum',`exp(${s(c)})`,'pos']}),NO('strictement négatif',{c:['signnum',`exp(${s(c)})`,'neg']}),NO('nul',{c:['signnum',`exp(${s(c)})`,'zero']})],`Pour tout réel x, e<sup>x</sup> > 0&nbsp;: ${En(c)} = ${frac(1,En(-c))} > 0.`,{au:{mode:'claim'}})}
+    const v=pick([0,2,3,-1]);return TR(5,v===0?'e<sup>x</sup> = 1 ⇔ x = {0}':`e<sup>x</sup> = ${En(v)} ⇔ x = {0}`,[{v,ref:v===0?'solve(Eq(exp(x),1),x)[0]':`solve(Eq(exp(x),exp(${v})),x)[0]`}],v===0?'e<sup>x</sup> = 1 = e<sup>0</sup> ⇔ x = 0.':`e<sup>a</sup> = e<sup>b</sup> ⇔ a = b.`)}
+  if(t==='argent'){
+    if(ty==='qcm'){const G=eqG();const eq=`Eq(${ES(G.a,G.b)},${ES(G.c,G.d)})`;
+      return QCM(5,`L'équation ${E(G.a,G.b)} = ${E(G.c,G.d)} a pour ensemble de solutions&nbsp;:`,[OK(`{${Dt(G.x0)}}`,{c:['eqset',eq,[s(G.x0)]]}),NO(`{${Dt(-G.x0)}}`,{c:['eqset',eq,[s(-G.x0)]]}),NO(`{${Dt(G.x0+1)}}`,{c:['eqset',eq,[s(G.x0+1)]]}),NO('∅',{c:['eqset',eq,[]]})],`${E(G.a,G.b)} = ${E(G.c,G.d)} ⇔ ${aff(G.a,G.b)} = ${aff(G.c,G.d)} ⇔ x = ${Dt(G.x0)}.`,{au:{mode:'claim'},steps:2})}
+    let G;do{G=eqG()}while(G.a<=G.c);return TR(5,`${E(G.a,G.b)} > ${E(G.c,G.d)} ⇔ x > {0}`,[{v:G.x0,ref:`gtbound(${ES(G.a,G.b)}>${ES(G.c,G.d)})`}],`exp est strictement croissante&nbsp;: ${aff(G.a,G.b)} > ${aff(G.c,G.d)} ⇔ ${aff(G.a-G.c,0)} > ${Dt(G.d-G.b)} ⇔ x > ${Dt(G.x0)}.`,{steps:2})}
+  if(ty==='qcm'){const c=pick([1,2,3,-1,-2]);const ex2=`(x-(${c}))*exp(x)<0`;
+    return QCM(5,`Soit f(x) = (${aff(1,-c)})e<sup>x</sup>. On a f(x) &lt; 0 si et seulement si x appartient à&nbsp;:`,[OK(`]−∞${NB}; ${c}[`,{c:['set',ex2,`Interval.open(-oo,${c})`]}),NO(`]${c}${NB}; +∞[`,{c:['set',ex2,`Interval.open(${c},oo)`]}),NO(`]−∞${NB}; 0[`,{c:['set',ex2,'Interval.open(-oo,0)']}),NO('∅',{c:['set',ex2,'EmptySet']})],`e<sup>x</sup> > 0, donc f(x) a le signe de ${aff(1,-c)}, négatif pour x &lt; ${c}.`,{au:{mode:'claim'},steps:2})}
+  let a,b,c,d,x0;do{a=pick([1,2,3]);c=pick([1,2,3]);b=ri(-3,4);d=ri(-6,3);x0=q(-(b+d)).div(a+c)}while(b+d===0||x0.isInt()&&false);
+  return TR(5,`L'équation ${E(a,b)} = ${frac(1,E(c,d))} a pour solution x = {0}.`,[{v:x0,ref:`solve(Eq(${ES(a,b)},1/${ES(c,d)}),x)[0]`}],`${frac(1,E(c,d))} = ${E(-c,-d)}, donc ${aff(a,b)} = ${aff(-c,-d)} ⇔ ${aff(a+c,0)} = ${Dt(-(b+d))} ⇔ x = ${Dt(x0)}.`,{steps:3})}
+
+/* ---------- niveau 6 : t ↦ e^(kt) ---------- */
+function G6(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){const a=pick([3,2,4,5]);return QCM(6,`Si f(t) = ${E(a,0,'t')}, alors f′(t) est égal à&nbsp;:`,[OK(`${a}${E(a,0,'t')}`),NO(E(a,0,'t')),NO(`${a}t e<sup>${aff(a,-1,'t')}</sup>`),NO(En(a))],`(e<sup>at</sup>)′ = a e<sup>at</sup>&nbsp;: f′(t) = ${a}e<sup>${a}t</sup>.`,{au:{mode:'val',ref:`diff(exp(${a}*t),t)`,var:'t'}})}
+    const a=pick([-2,-3,-0.5,1.5]);return TR(6,`Si f(t) = ${E(a,0,'t')}, alors f′(t) = {0}${E(a,0,'t')}.`,[{v:a,ref:`diff(exp((${s(a)})*t),t)/exp((${s(a)})*t)`}],`(e<sup>at</sup>)′ = a e<sup>at</sup> avec a = ${Dt(a)}.`)}
+  if(t==='argent'){
+    if(ty==='qcm'){const k=pick([0.5,1,2,0.1,3]);return QCM(6,`La fonction t ↦ ${E(-k,0,'t')} est, sur ℝ&nbsp;:`,[OK('strictement décroissante',{c:['mono',`exp(-(${s(k)})*t)`,'dec']}),NO('strictement croissante',{c:['mono',`exp(-(${s(k)})*t)`,'inc']}),NO('constante',{c:['mono',`exp(-(${s(k)})*t)`,'const']}),NO('croissante puis décroissante',{c:['mono',`exp(-(${s(k)})*t)`,'change']})],`Sa dérivée ${cf(-k)}${E(-k,0,'t')} est strictement négative, car ${E(-k,0,'t')} > 0.`,{au:{mode:'claim'},steps:2})}
+    const [M0,k]=pick([[5,0.2],[10,0.3],[20,0.05],[4,0.5],[50,0.02]]);return TR(6,`Si f(t) = ${M0}${E(-k,0,'t')}, alors f′(t) = {0}${E(-k,0,'t')}.`,[{v:q(-k).mul(M0),ref:`diff(${M0}*exp(-(${s(k)})*t),t)/exp(-(${s(k)})*t)`}],`f′(t) = ${M0} × (${MINUS}${Dt(k)})${E(-k,0,'t')} = ${cf(q(-k).mul(M0))}${E(-k,0,'t')}.`,{steps:2})}
+  if(ty==='qcm'){if(Math.random()<.5)return QCM(6,'Si f(x) = x e<sup>x</sup>, alors f′(x) est égal à&nbsp;:',[OK('(x + 1)e<sup>x</sup>'),NO('e<sup>x</sup>'),NO('x e<sup>x − 1</sup>'),NO('x e<sup>x</sup>')],'Dérivée d\'un produit&nbsp;: f′(x) = 1 × e<sup>x</sup> + x × e<sup>x</sup> = (x + 1)e<sup>x</sup>.',{au:{mode:'val',ref:'diff(x*exp(x),x)',var:'x'},steps:3});
+    return QCM(6,'Si f(x) = (x − 1)e<sup>x</sup>, alors f′(x) est égal à&nbsp;:',[OK('x e<sup>x</sup>'),NO('e<sup>x</sup>'),NO('(x − 1)e<sup>x</sup>'),NO('(x − 2)e<sup>x</sup>')],'f′(x) = 1 × e<sup>x</sup> + (x − 1)e<sup>x</sup> = x e<sup>x</sup>.',{au:{mode:'val',ref:'diff((x-1)*exp(x),x)',var:'x'},steps:3})}
+  if(Math.random()<.5)return TR(6,'La fonction f définie sur ℝ par f(x) = (x − 1)e<sup>x</sup> admet un minimum égal à {0}.',[{v:-1,ref:'minval((x-1)*exp(x))'}],'f′(x) = x e<sup>x</sup> a le signe de x&nbsp;: f est décroissante puis croissante, minimum f(0) = (0 − 1)e<sup>0</sup> = −1.',{steps:3});
+  return TR(6,'La fonction f définie sur ℝ par f(x) = e<sup>2x</sup> − 2x admet un minimum égal à {0}.',[{v:1,ref:'minval(exp(2*x)-2*x)'}],'f′(x) = 2e<sup>2x</sup> − 2 s\'annule pour e<sup>2x</sup> = 1, soit x = 0&nbsp;; négative avant, positive après&nbsp;: minimum f(0) = 1.',{steps:3})}
+
+/* ---------- niveau 7 : suites géométriques, modélisation ---------- */
+function G7(t,ty){
+  if(t==='bronze'){
+    if(ty==='qcm'){const a=pick([0.5,2,0.3,-1]);return QCM(7,`La suite définie pour tout entier naturel n par u<sub>n</sub> = ${E(a,0,'n')} est géométrique de raison&nbsp;:`,[OK(En(a)),NO(Dt(a)),NO('e<sup>n</sup>'),NO(Dt(1+a))],`u<sub>n+1</sub> = e<sup>${cf(a)}(n + 1)</sup> = ${En(a)} × u<sub>n</sub>&nbsp;: la raison est ${En(a)}.`,{au:{mode:'val',ref:`exp((${s(a)})*(n+1))/exp((${s(a)})*n)`}})}
+    if(Math.random()<.5){const a=pick([2,0.5,-1,3]);return TR(7,`Pour tout entier naturel n, u<sub>n</sub> = ${E(a,0,'n')}. Alors u<sub>0</sub> = {0}.`,[{v:1,ref:`exp((${s(a)})*0)`}],'u<sub>0</sub> = e<sup>0</sup> = 1.')}
+    const a=pick([0.2,0.5,-0.1,3]);return TR(7,`Pour tout entier naturel n, u<sub>n</sub> = ${E(a,0,'n')}. Alors u<sub>n+1</sub> = e<sup>N</sup> × u<sub>n</sub> où N = {0}.`,[{v:a,ref:`exp((${s(a)})*(n+1))/exp((${s(a)})*n)`,expo:true}],`u<sub>n+1</sub> = e<sup>${aff(a,a,'n')}</sup> = e<sup>${Dt(a)}</sup> × e<sup>${aff(a,0,'n')}</sup>.`)}
+  if(t==='argent'){
+    if(ty==='qcm'){const [U,a]=pick([[3,-0.2],[5,-0.1],[2,0.3],[4,0.5]]);const f=`${U}*exp((${s(a)})*n)`;
+      return QCM(7,`La suite définie pour tout entier naturel n par u<sub>n</sub> = ${U}${E(a,0,'n')} est&nbsp;:`,[OK(`géométrique de raison ${En(a)}, ${a<0?'décroissante':'croissante'}`,{c:['seq',f,'geo',`exp(${s(a)})`,a<0?'dec':'inc']}),NO(`géométrique de raison ${En(a)}, ${a<0?'croissante':'décroissante'}`,{c:['seq',f,'geo',`exp(${s(a)})`,a<0?'inc':'dec']}),
+        NO(`arithmétique de raison ${Dt(a)}`,{c:['seq',f,'ari',s(a),'any']}),NO(`géométrique de raison ${Dt(a)}`,{c:['seq',f,'geo',s(a),'any']})],`u<sub>n+1</sub> = e<sup>${Dt(a)}</sup> × u<sub>n</sub>&nbsp;; la raison ${En(a)} est ${a<0?'entre 0 et 1':'plus grande que 1'} et u<sub>0</sub> = ${U} > 0.`,{au:{mode:'claim'},steps:2})}
+    const M0=pick([10,20,50]),lam=pick([0.0004,0.0002,0.0005]),t1=pick([1000,2000]),v=M0*ex(-lam*t1);
+    return TR(7,`La masse (en g) d'un échantillon radioactif au bout de t années est M(t) = ${M0}${E(-lam,0,'t')}. Au centième, M(${t1}) ≈ {0} g.`,[{x:v,d:2,ref:`${M0}*exp(-(${s(lam)})*${t1})`}],`M(${t1}) = ${M0}e<sup>${MINUS}${Dt(lam*t1)}</sup> ≈ ${Dr(v,4)}.`,{steps:2})}
+  if(ty==='qcm'){const r=pick([0.03,0.02,0.05,0.04]),f=ex(r),pc=Dr((f-1)*100,2);
+    return QCM(7,`Un capital placé vaut C(t) = 1 000${E(r,0,'t')} euros au bout de t années. D'une année sur l'autre, il augmente d'environ&nbsp;:`,[OK(`${pc}&nbsp;%`,{c:['rate',s(r),pc.replace(',','.')]}),NO(`${Dt(r*100)}&nbsp;% exactement`,{c:['rateexact',s(r),s(r*100)]}),NO(`${Dt(r)}&nbsp;%`,{c:['rate',s(r),s(r)]}),NO(`${Dr(f*100,2)}&nbsp;%`,{c:['rate',s(r),Dr(f*100,2).replace(',','.').replace(/\s/g,'')]})],`C(t + 1) = e<sup>${Dt(r)}</sup> × C(t) et e<sup>${Dt(r)}</sup> ≈ ${Dr(f,4)}&nbsp;: une hausse d'environ ${pc}&nbsp;%.`,{au:{mode:'claim'},steps:3})}
+  const [a,S]=pick([[1,10],[1,20],[1,50],[1,100],[0.5,5],[0.5,10],[0.5,20]]);let n=0;while(ex(a*n)<=S)n++;
+  return TR(7,`Pour tout entier naturel n, u<sub>n</sub> = ${E(a,0,'n')}. Le plus petit entier n tel que u<sub>n</sub> > ${S} est {0}.`,[{v:n,ref:`seuil(${s(a)},${S})`}],`u<sub>${n-1}</sub> ≈ ${Dr(ex(a*(n-1)),2)} ≤ ${S} et u<sub>${n}</sub> ≈ ${Dr(ex(a*n),2)} > ${S}.`,{steps:3})}
+
+const GEN=[G1,G2,G3,G4,G5,G6,G7];
+function build(tier){for(let tries=0;tries<60;tries++){
+  const extra=tier==='bronze'?shuf([1,2,3,4,5]).slice(0,3):tier==='or'?shuf([3,4,5,6,7]).slice(0,3):shuf([1,2,3,4,5,6,7]).slice(0,3);
+  const lv=shuf([1,2,3,4,5,6,7].concat(extra));const types=shuf(['qcm','qcm','qcm','qcm','qcm','qcm','trous','trous','trous','trous']);
+  const out=[];let ok=true;
+  for(let i=0;i<10;i++){let qn=null;for(let k=0;k<30&&!qn;k++)qn=GEN[lv[i]-1](tier,types[i]);if(!qn){ok=false;break}out.push(qn)}
+  if(ok&&new Set(out.map(x=>x.prompt)).size===10)return out}
+  throw new Error('épreuve impossible à construire')}
+window.HB_FIN={bronze:()=>(window.HB_last=build('bronze')),argent:()=>(window.HB_last=build('argent')),or:()=>(window.HB_last=build('or')),GEN};
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'les-haubans',title:'Les Haubans',levels:7,
+  levelNames:['Pente = hauteur','La marche d\'Euler','Additionner, c\'est multiplier','Quotients et puissances','Comparer les mâts','Le réglage k','La rangée géométrique'],
+  music:'aventure',finals:{bronze:HB_FIN.bronze,argent:HB_FIN.argent,or:HB_FIN.or}});
+HBK.goLevel(0);
+</script>
+</body>
+</html>
