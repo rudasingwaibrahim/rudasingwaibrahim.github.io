@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La Traceuse · Sigma Arcade</title>
+<meta name="description" content="Géométrie repérée en Première spécialité : de nuit, une machine trace les lignes d'un terrain. Sa flèche, le vecteur normal, reste perpendiculaire à la ligne qu'elle peint ; une corde tendue depuis un piquet trace les cercles ; un joueur rejoint une ligne au plus court : c'est le projeté orthogonal.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* IDÉE : un terrain de sport, la nuit, rapporté à un repère orthonormé. La traceuse (machine qui peint les lignes)
+   porte une flèche : son vecteur normal n⃗(a ; b). Elle roule selon u⃗(−b ; a) et la flèche reste perpendiculaire à la
+   ligne peinte, d'équation ax + by + c = 0. Pour les cercles, on plante un piquet au centre et on tend une corde de
+   longueur r. Pour le projeté orthogonal, un joueur rejoint la ligne au plus court : il court selon n⃗. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);
+--cn:#f2a65a;--cu:#6fd3c1;--cv:#b79cff}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:76ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(340px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:760/440;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#050d18;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.stage.picking{cursor:crosshair;box-shadow:0 0 0 2px var(--ac),var(--sg-shadow-card)}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg text{font-family:var(--sg-font)}
+.capt{margin-top:8px;min-height:50px;padding:9px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(17px,1.8vw,20px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .35em}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.6;margin:0 0 12px}
+.prompt p{margin:0 0 8px}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px;line-height:1.6}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1;box-shadow:none}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.45 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.opts.row{grid-template-columns:repeat(auto-fit,minmax(118px,1fr))}
+.opts.row .opt{text-align:center}
+.fill{font:700 clamp(19px,2.2vw,22px)/2.3 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.6em;height:46px;margin:0 3px;padding:0 6px;font:700 20px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}.in.rv{border-color:var(--gold);color:var(--gold2)}
+.in:disabled{opacity:1}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+/* placement d'un point sur le terrain */
+.pk{display:grid;grid-template-columns:auto 1fr;gap:10px 14px;align-items:center}
+.pkr{font-weight:600}
+.pkr b{font:800 22px var(--sg-font);color:var(--gold2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pad{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(2,48px);gap:6px;justify-self:end}
+.pad button{width:48px;height:48px;padding:0;border-radius:12px;font-size:20px}
+.pad .up{grid-column:2}.pad .lf{grid-column:1;grid-row:2}.pad .dn{grid-column:2;grid-row:2}.pad .rt{grid-column:3;grid-row:2}
+.pk .btns{grid-column:1/-1}
+/* notations : vecteur (flèche), vecteur colonne, fraction */
+.vc{display:inline-block;position:relative;padding-top:.36em;line-height:1.05;font-style:normal}
+.vc::before{content:"";position:absolute;left:.06em;right:.2em;top:.17em;height:max(.075em,1.5px);background:currentColor;border-radius:1px}
+.vc::after{content:"";position:absolute;right:.02em;top:.075em;width:0;height:0;border-left:.24em solid currentColor;border-top:.14em solid transparent;border-bottom:.14em solid transparent}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.cv{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;position:relative;padding:.06em .46em;margin:0 .12em;line-height:1.18;font-variant-numeric:tabular-nums}
+.cv::before,.cv::after{content:"";position:absolute;top:.04em;bottom:.04em;width:.34em;border:0 solid currentColor}
+.cv::before{left:0;border-left-width:2px;border-radius:50% 0 0 50%/50% 0 0 50%}
+.cv::after{right:0;border-right-width:2px;border-radius:0 50% 50% 0/0 50% 50% 0}
+.fill .cv{line-height:1.12;padding:.12em .5em}
+.fill .cv .in{margin:3px 0}
+.nw{white-space:nowrap}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.cv .fr{font-size:.86em}
+.tn{color:var(--cn)}.tu{color:var(--cu)}.tv{color:var(--cv)}
+.sk-q .fr,.sk-ch .fr{font-size:.92em}
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb.rv{background:rgba(200,168,75,.08);border-left-color:var(--gold)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0;line-height:1.6}
+.fb .sol{display:block;margin-top:6px;color:var(--gold2)}
+.fb .btns{margin-top:10px}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px;line-height:1.6}
+.mk{display:inline-flex;flex:none}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:#060d1a;border-bottom:1px solid var(--soft)}
+  .stage{max-height:30svh;margin:auto}
+  .capt{margin-top:5px;min-height:34px;padding:4px 10px;font-size:14px;line-height:1.3;border-radius:10px}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .pk{grid-template-columns:1fr}.pad{justify-self:start}
+}
+@media (prefers-reduced-motion:reduce){.win{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>La Traceuse</h1>
+<p>De nuit, sur le terrain, une machine peint les lignes. Sa flèche orange, le vecteur normal, reste perpendiculaire à la ligne qu'elle trace&nbsp;; une corde tendue depuis un piquet dessine les cercles&nbsp;; un joueur rejoint une ligne au plus court. Donne-lui les bonnes équations.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Le terrain rapporté à un repère orthonormé : lignes peintes, vecteurs, cercles et points">
+    <svg id="scene" viewBox="0 0 760 440" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p><div id="fbx"></div></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+
+<script>
+/* ======================= nombres exacts (fractions), écritures, notations ======================= */
+window.LT_N=(function(){
+'use strict';
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t}return a};
+const R=(n,d)=>{if(n&&typeof n==='object')return n;if(d===undefined)d=1;if(d<0){n=-n;d=-d}const g=gcd(n,d)||1;return{n:n/g,d:d/g}};
+const add=(x,y)=>{x=R(x);y=R(y);return R(x.n*y.d+y.n*x.d,x.d*y.d)},sub=(x,y)=>{x=R(x);y=R(y);return R(x.n*y.d-y.n*x.d,x.d*y.d)};
+const mul=(x,y)=>{x=R(x);y=R(y);return R(x.n*y.n,x.d*y.d)},div=(x,y)=>{x=R(x);y=R(y);return R(x.n*y.d,x.d*y.n)},neg=x=>{x=R(x);return R(-x.n,x.d)};
+const abs=x=>{x=R(x);return R(Math.abs(x.n),x.d)};
+const cmp=(x,y)=>{x=R(x);y=R(y);return Math.sign(x.n*y.d-y.n*x.d)},eq=(x,y)=>cmp(x,y)===0,val=x=>{x=R(x);return x.n/x.d},isZ=x=>R(x).n===0,isInt=x=>R(x).d===1;
+const NB='\u00a0',MI='−';
+const VH=s=>`<span class="vh">${s}</span>`;
+function fmtInt(n){if(n&&typeof n==='object')return numH(n);return (n<0?MI:'')+String(Math.abs(n))}
+const frH=(a,b)=>`<span class="fr"><span>${a}</span>${VH('/')}<span>${b}</span></span>`;
+const numH=r=>{r=R(r);return r.d===1?fmtInt(r.n):(r.n<0?MI:'')+frH(Math.abs(r.n),r.d)};
+const numT=r=>{r=R(r);return r.d===1?fmtInt(r.n):`${r.n<0?MI:''}${Math.abs(r.n)}/${r.d}`};
+const PN=r=>R(r).n<0?`(${numH(r)})`:numH(r);
+const isDec=r=>{let d=R(r).d;while(d%2===0)d/=2;while(d%5===0)d/=5;return d===1};
+function decT(r){r=R(r);let k=0;while(k<8&&(Math.abs(r.n)*Math.pow(10,k))%r.d)k++;const v=Math.abs(r.n)*Math.pow(10,k)/r.d,s=String(Math.round(v)).padStart(k+1,'0');
+  return (r.n<0?'-':'')+(k?s.slice(0,-k)+','+s.slice(-k):s)}
+/* écritures acceptées d'un rationnel (trous de l'épreuve finale) : la première est affichée en correction */
+function ans(r){r=R(r);const out=[];const push=s=>{if(s&&out.indexOf(s)<0)out.push(s)};
+  push(numT(r));push(numT(r).replace(MI,'-'));if(r.d!==1&&isDec(r))push(decT(r));return out}
+function parse(s){s=String(s).replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.');if(!s)return null;
+  const P=t=>{const m=/^([-+]?)(\d*)(?:\.(\d+))?$/.exec(t);if(!m||!(m[2]||m[3]))return null;const ip=m[2]||'0',fp=m[3]||'';if(fp.length>9)return null;return R(parseInt(ip+fp,10)*(m[1]==='-'?-1:1),Math.pow(10,fp.length))};
+  const m=/^([^/]+)\/([^/]+)$/.exec(s);if(m){const a=P(m[1]),b=P(m[2]);return a&&b&&b.n?div(a,b):null}
+  return P(s)}
+/* expressions linéaires : [[coef, symbole], …] → « 2x − 3y + 1 » (jamais « 1x », « 0x », « + − ») */
+function lin(list){let h='';for(const [c0,s] of list){const c=R(c0);if(isZ(c))continue;const a=abs(c);
+  const body=s?((a.n===1&&a.d===1)?'':numH(a))+s:numH(a);h+=h?(c.n<0?' '+MI+' ':' + ')+body:(c.n<0?MI:'')+body}return h||'0'}
+const EQ=(a,b,c)=>`<span class="nw">${lin([[a,'x'],[b,'y'],[c,'']])} = 0</span>`;
+const FORM=(a,b)=>`<span class="nw">${lin([[a,'x'],[b,'y']])} + c = 0</span>`;
+/* a(x − α) : facteur et parenthèse */
+function fac(k,s,al){k=R(k);al=R(al);if(isZ(al))return lin([[k,s]]);const inner=`(${s} ${al.n>0?MI:'+'} ${numH(abs(al))})`;
+  return (k.d===1&&Math.abs(k.n)===1?(k.n<0?MI:''):numH(k))+inner}
+function sumfac(list){let h='';list.forEach(([k,s,al])=>{k=R(k);if(isZ(k))return;const t=fac(abs(k),s,al);h+=h?(k.n<0?' '+MI+' ':' + ')+t:(k.n<0?MI:'')+t});return h||'0'}
+const sqx=(s,al)=>{al=R(al);return isZ(al)?s+'²':`(${s} ${al.n>0?MI:'+'} ${numH(abs(al))})²`};
+const CIRC=(al,be,r2)=>`<span class="nw">${sqx('x',al)} + ${sqx('y',be)} = ${numH(r2)}</span>`;
+const DEV=(A,B,C,k)=>{k=k||1;return `<span class="nw">${lin([[k,'x²'],[k,'y²'],[A,'x'],[B,'y'],[C,'']])} = 0</span>`};
+/* substitution « a × x + b × y + c » avec les nombres */
+function subst(a,b,c,P){const t=[];if(!isZ(a))t.push([a,P[0]]);if(!isZ(b))t.push([b,P[1]]);let h='';
+  t.forEach(([k,x],i)=>{const kk=R(k),body=`${numH(abs(kk))} × ${PN(x)}`;h+=i?(kk.n<0?' '+MI+' ':' + ')+body:(kk.n<0?MI:'')+body});
+  if(!isZ(c))h+=(R(c).n<0?' '+MI+' ':' + ')+numH(abs(c));return h}
+/* vecteur colonne, point, vecteur nommé */
+const cvx=v=>typeof v==='string'?v:numH(v);
+const CV=(x,y)=>`<span class="cv">${VH('(')}<span>${cvx(x)}</span>${VH(' ; ')}<span>${cvx(y)}</span>${VH(')')}</span>`;
+const PT=(nm,x,y)=>`<span class="nw">${nm}(${numH(x)} ; ${numH(y)})</span>`;
+const VC=(n,c)=>`<span class="vc${c?' '+c:''}">${n}</span>`;
+/* racine d'un rationnel positif : r² = 37 → √37, 20 → 2√5, 13/2 → √26/2 */
+function sqf(n){let m=1,r=n;for(let f=2;f*f<=r;f++)while(r%(f*f)===0){r/=f*f;m*=f}return{m,r}}
+function radParts(r2){r2=R(r2);const s=r2.n*r2.d,{m,r}=sqf(s),g=gcd(m,r2.d);return{m:m/g,k:r,d:r2.d/g}}
+function radH(r2){if(isZ(r2))return '0';const {m,k,d}=radParts(r2);if(k===1)return numH(R(m,d));const top=(m===1?'':m)+'√'+k;return d===1?top:frH(top,d)}
+const isSq=n=>n>=0&&Math.round(Math.sqrt(n))**2===n;
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do v=ri(a,b);while(!v);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const enc=x=>{x=R(x);return x.d===1?x.n:x.n+'/'+x.d};
+return{gcd,R,add,sub,mul,div,neg,abs,cmp,eq,val,isZ,isInt,NB,MI,VH,fmtInt,frH,numH,numT,PN,ans,parse,lin,EQ,FORM,fac,sumfac,sqx,CIRC,DEV,subst,CV,PT,VC,
+  radH,radParts,sqf,isSq,ri,nz,pick,shuf,enc};
+})();
+</script>
+
+<script>
+/* ======================= la scène : le terrain, la traceuse, la corde, le joueur ======================= */
+window.LT_S=(function(){
+'use strict';
+const svg=document.getElementById('scene'),stage=document.getElementById('stage'),W=760,H=440;
+const C={paint:'#f4f7ff',n:'#f2a65a',u:'#6fd3c1',v:'#b79cff',pt:'#f0f4ff',ok:'#5fd27c',ko:'#ff9b7a',rope:'#d9b26a',run:'#7fb2ff',gold:'#e8c766',mut:'rgba(200,215,255,.72)',ac:'#8ea6ff'};
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let cam={cx:0,cy:0,u:40},objs={},moving=0,pickCb=null;
+const X=x=>W/2+(x-cam.cx)*cam.u,Y=y=>H/2-(y-cam.cy)*cam.u;
+const f1=v=>Math.round(v*10)/10;
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function view(m){m=m||0;const hw=W/2/cam.u,hh=H/2/cam.u;return{x0:cam.cx-hw-m,x1:cam.cx+hw+m,y0:cam.cy-hh-m,y1:cam.cy+hh+m}}
+/* ---- décor fixe : gazon de nuit, projecteurs ---- */
+function bg(){let h=`<defs><linearGradient id="lt-night" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#04101c"/><stop offset="1" stop-color="#071a26"/></linearGradient>
+  <radialGradient id="lt-flood" cx="50%" cy="0%" r="60%"><stop offset="0" stop-color="#e8c766" stop-opacity=".16"/><stop offset="1" stop-color="#e8c766" stop-opacity="0"/></radialGradient>
+  <radialGradient id="lt-halo" cx="50%" cy="50%" r="65%"><stop offset="0" stop-color="#6c8eff" stop-opacity=".10"/><stop offset="1" stop-color="#6c8eff" stop-opacity="0"/></radialGradient>
+  <filter id="lt-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"/></filter></defs>
+  <rect width="${W}" height="${H}" fill="url(#lt-night)"/>`;
+  for(let i=0;i<10;i++)if(i%2)h+=`<rect x="${i*76}" y="0" width="76" height="${H}" fill="#0a2230" opacity=".55"/>`;
+  h+=`<rect width="${W}" height="${H}" fill="url(#lt-halo)"/><ellipse cx="70" cy="-30" rx="260" ry="170" fill="url(#lt-flood)"/><ellipse cx="690" cy="-30" rx="260" ry="170" fill="url(#lt-flood)"/>`;
+  return h}
+svg.innerHTML=bg()+'<g id="lt-grid"></g><g id="lt-dyn"></g>';
+const gridG=document.getElementById('lt-grid'),dyn=document.getElementById('lt-dyn');
+/* ---- quadrillage et axes du repère orthonormé ---- */
+function grid(){const v=view(),u=cam.u,st=u>=24?1:u>=12?2:5,lab=u*st<34?st*2:st;let h='<g stroke="rgba(170,200,255,.085)" stroke-width="1">';
+  for(let k=Math.ceil(v.x0/st)*st;k<=v.x1;k+=st)if(k)h+=`<line x1="${f1(X(k))}" y1="0" x2="${f1(X(k))}" y2="${H}"/>`;
+  for(let k=Math.ceil(v.y0/st)*st;k<=v.y1;k+=st)if(k)h+=`<line x1="0" y1="${f1(Y(k))}" x2="${W}" y2="${f1(Y(k))}"/>`;
+  h+='</g>';const ox=X(0),oy=Y(0);
+  if(oy>-2&&oy<H+2)h+=`<line x1="0" y1="${f1(oy)}" x2="${W-4}" y2="${f1(oy)}" stroke="rgba(200,215,255,.42)" stroke-width="1.6"/><path d="M${W-2} ${f1(oy)}l-11 -5v10z" fill="rgba(200,215,255,.6)"/><text x="${W-16}" y="${f1(oy-10)}" font-size="20" font-style="italic" fill="rgba(200,215,255,.7)" text-anchor="end">x</text>`;
+  if(ox>-2&&ox<W+2)h+=`<line x1="${f1(ox)}" y1="${H}" x2="${f1(ox)}" y2="4" stroke="rgba(200,215,255,.42)" stroke-width="1.6"/><path d="M${f1(ox)} 2l-5 11h10z" fill="rgba(200,215,255,.6)"/><text x="${f1(ox+12)}" y="22" font-size="20" font-style="italic" fill="rgba(200,215,255,.7)">y</text>`;
+  h+='<g font-size="15" fill="rgba(200,215,255,.5)" font-variant-numeric="tabular-nums">';
+  if(oy>-2&&oy<H+2)for(let k=Math.ceil(v.x0/lab)*lab;k<=v.x1;k+=lab)if(k&&X(k)>14&&X(k)<W-30)h+=`<line x1="${f1(X(k))}" y1="${f1(oy-4)}" x2="${f1(X(k))}" y2="${f1(oy+4)}" stroke="rgba(200,215,255,.42)"/><text x="${f1(X(k))}" y="${f1(Math.min(H-6,oy+21))}" text-anchor="middle">${k<0?'−'+(-k):k}</text>`;
+  if(ox>-2&&ox<W+2)for(let k=Math.ceil(v.y0/lab)*lab;k<=v.y1;k+=lab)if(k&&Y(k)>30&&Y(k)<H-10)h+=`<line x1="${f1(ox-4)}" y1="${f1(Y(k))}" x2="${f1(ox+4)}" y2="${f1(Y(k))}" stroke="rgba(200,215,255,.42)"/><text x="${f1(Math.max(16,ox-9))}" y="${f1(Y(k)+5)}" text-anchor="end">${k<0?'−'+(-k):k}</text>`;
+  if(ox>10&&ox<W&&oy>0&&oy<H-10)h+=`<text x="${f1(ox-8)}" y="${f1(oy+20)}" text-anchor="end" font-size="16">O</text>`;
+  gridG.innerHTML=h+'</g>'}
+/* ---- objets ---- */
+function label(x,y,lab,col,fs,anchor){if(!lab)return'';fs=fs||27;anchor=anchor||'middle';const t=typeof lab==='string'?{t:lab}:lab;
+  {const wd=t.t.length*fs*.56,lo=anchor==='middle'?wd/2+4:anchor==='end'?wd+4:4,hi=anchor==='middle'?W-wd/2-4:anchor==='end'?W-4:W-wd-4;x=Math.max(lo,Math.min(hi,x));y=Math.max(fs*.9+4,Math.min(H-6,y))}
+  let h=`<text x="${f1(x)}" y="${f1(y)}" text-anchor="${anchor}" font-size="${fs}" font-weight="700" fill="${col}" paint-order="stroke" stroke="#04101c" stroke-width="6" stroke-linejoin="round">${esc(t.t)}</text>`;
+  if(t.vec){const w=Math.max(.62,t.t.replace(/[′ ]/g,'').length*.58)*fs,x0=anchor==='middle'?x-w/2:anchor==='end'?x-w:x,yy=y-fs*.86;
+    h+=`<path d="M${f1(x0+2)} ${f1(yy)}H${f1(x0+w-6)}" stroke="#04101c" stroke-width="7" stroke-linecap="round"/><path d="M${f1(x0+2)} ${f1(yy)}H${f1(x0+w-6)}" stroke="${col}" stroke-width="2.6" stroke-linecap="round"/><path d="M${f1(x0+w)} ${f1(yy)}l-10 -5.5v11z" fill="${col}"/>`}
+  return h}
+function arrowS(x1,y1,x2,y2,col,w,op){const L=Math.hypot(x2-x1,y2-y1);if(L<2)return'';const ux=(x2-x1)/L,uy=(y2-y1)/L,hs=Math.min(20,L*.45),bx=x2-ux*hs,by=y2-uy*hs;
+  return `<g opacity="${op===undefined?1:op}"><line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(bx)}" y2="${f1(by)}" stroke="${col}" stroke-width="${w+8}" stroke-opacity=".15" stroke-linecap="round"/>`+
+    `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(bx+ux*2)}" y2="${f1(by+uy*2)}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`+
+    `<path d="M${f1(x2)} ${f1(y2)}L${f1(bx-uy*hs*.5)} ${f1(by+ux*hs*.5)}L${f1(bx+uy*hs*.5)} ${f1(by-ux*hs*.5)}Z" fill="${col}"/></g>`}
+/* segment visible de la droite ax + by + c = 0, orienté selon u(−b ; a) */
+function lineSeg(a,b,c,m){const v=view(m===undefined?.4:m),pts=[];
+  if(Math.abs(b)>1e-12)for(const x of [v.x0,v.x1]){const y=-(a*x+c)/b;if(y>=v.y0-1e-9&&y<=v.y1+1e-9)pts.push([x,y])}
+  if(Math.abs(a)>1e-12)for(const y of [v.y0,v.y1]){const x=-(b*y+c)/a;if(x>=v.x0-1e-9&&x<=v.x1+1e-9)pts.push([x,y])}
+  if(pts.length<2)return null;const t=p=>-b*p[0]+a*p[1];pts.sort((p,q)=>t(p)-t(q));return[pts[0],pts[pts.length-1]]}
+const R1={
+ line(o){const s=lineSeg(o.a,o.b,o.c);if(!s)return'';const [p,q]=s,pr=o.prog===undefined?1:o.prog,ex=p[0]+(q[0]-p[0])*pr,ey=p[1]+(q[1]-p[1])*pr;if(pr<=0)return'';
+   const col=o.col||C.paint,x1=X(p[0]),y1=Y(p[1]),x2=X(ex),y2=Y(ey);let h=`<g opacity="${o.op===undefined?1:o.op}">`;
+   h+=`<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${col}" stroke-width="12" stroke-opacity=".13" stroke-linecap="round"/>`;
+   h+=`<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${col}" stroke-width="${o.w||3.4}" stroke-linecap="round"${o.dash?' stroke-dasharray="10 8"':''}/>`;
+   if(o.lab&&pr>.95){const f=o.lf===undefined?.9:o.lf,lx=X(p[0]+(q[0]-p[0])*f),ly=Y(p[1]+(q[1]-p[1])*f),nn=Math.hypot(o.a,o.b)||1,sd=o.side||1;
+     h+=label(lx+o.a/nn*24*sd,ly-o.b/nn*24*sd+9,o.lab,col,26)}
+   return h+'</g>'},
+ seg(o){const pr=o.prog===undefined?1:o.prog;if(pr<=0)return'';const x2=o.x1+(o.x2-o.x1)*pr,y2=o.y1+(o.y2-o.y1)*pr,col=o.col||C.mut;
+   let h=`<g opacity="${o.op===undefined?1:o.op}"><line x1="${f1(X(o.x1))}" y1="${f1(Y(o.y1))}" x2="${f1(X(x2))}" y2="${f1(Y(y2))}" stroke="${col}" stroke-width="${o.w||3}" stroke-linecap="round"${o.dash?' stroke-dasharray="9 7"':''}/>`;
+   if(o.lab&&pr>.95){const mx=(X(o.x1)+X(o.x2))/2,my=(Y(o.y1)+Y(o.y2))/2,dx=X(o.x2)-X(o.x1),dy=Y(o.y2)-Y(o.y1),L=Math.hypot(dx,dy)||1,sd=o.side||1;
+     h+=label(mx-dy/L*24*sd,my+dx/L*24*sd+8,o.lab,o.lcol||col,23)}
+   return h+'</g>'},
+ vec(o){const x1=X(o.x),y1=Y(o.y),x2=X(o.x+o.dx),y2=Y(o.y+o.dy),col=o.col||C.n;let h=arrowS(x1,y1,x2,y2,col,o.w||5,o.op);
+   if(o.lab){const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1,sd=o.side||1;h+=`<g opacity="${o.op===undefined?1:o.op}">`+label(x1+dx*.58-dy/L*26*sd,y1+dy*.58+dx/L*26*sd+10,o.lab,col,26)+'</g>'}
+   return h},
+ pt(o){const x=X(o.x),y=Y(o.y),col=o.col||C.pt;let h=`<g opacity="${o.op===undefined?1:o.op}">`;
+   if(o.ring)h+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="13" fill="none" stroke="${col}" stroke-width="2.5" opacity=".7"/>`;
+   h+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="${o.r||6}" fill="${col}" stroke="#04101c" stroke-width="2.5"/>`;
+   if(o.lab)h+=label(x+(o.lx===undefined?15:o.lx),y+(o.ly===undefined?-12:o.ly),o.lab,col,24,o.lx<0?'end':'start');return h+'</g>'},
+ circ(o){const pr=o.prog===undefined?1:o.prog;if(pr<=0)return'';const cx=X(o.cx),cy=Y(o.cy),r=o.r*cam.u,col=o.col||C.paint;let d;
+   if(pr>=.999)d=`M${f1(cx+r)} ${f1(cy)}A${f1(r)} ${f1(r)} 0 1 0 ${f1(cx-r)} ${f1(cy)}A${f1(r)} ${f1(r)} 0 1 0 ${f1(cx+r)} ${f1(cy)}`;
+   else{const a0=o.a0||0,a1=a0+pr*2*Math.PI;d=`M${f1(cx+r*Math.cos(a0))} ${f1(cy-r*Math.sin(a0))}A${f1(r)} ${f1(r)} 0 ${pr>.5?1:0} 0 ${f1(cx+r*Math.cos(a1))} ${f1(cy-r*Math.sin(a1))}`}
+   return `<g opacity="${o.op===undefined?1:o.op}" fill="none"><path d="${d}" stroke="${col}" stroke-width="12" stroke-opacity=".12"/><path d="${d}" stroke="${col}" stroke-width="${o.w||3.4}"${o.dash?' stroke-dasharray="10 8"':''}/></g>`},
+ right(o){const x=X(o.x),y=Y(o.y),k=15,nu=Math.hypot(o.ux,o.uy)||1,nv=Math.hypot(o.vx,o.vy)||1,ux=o.ux/nu*k,uy=-o.uy/nu*k,vx=o.vx/nv*k,vy=-o.vy/nv*k;
+   return `<path d="M${f1(x+ux)} ${f1(y+uy)}L${f1(x+ux+vx)} ${f1(y+uy+vy)}L${f1(x+vx)} ${f1(y+vy)}" fill="rgba(95,210,124,.2)" stroke="${o.col||C.ok}" stroke-width="2.6" opacity="${o.op===undefined?1:o.op}"/>`},
+ robot(o){const x=X(o.x),y=Y(o.y),ang=Math.atan2(-o.hy,o.hx)*180/Math.PI;
+   return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${f1(ang)})" opacity="${o.op===undefined?1:o.op}"><ellipse rx="30" ry="21" fill="#f4f7ff" opacity=".09"/>`+
+    `<rect x="-14" y="-17" width="10" height="6" rx="2" fill="#9fb4ff"/><rect x="5" y="-17" width="10" height="6" rx="2" fill="#9fb4ff"/><rect x="-14" y="11" width="10" height="6" rx="2" fill="#9fb4ff"/><rect x="5" y="11" width="10" height="6" rx="2" fill="#9fb4ff"/>`+
+    `<rect x="-19" y="-12" width="38" height="24" rx="7" fill="#15284c" stroke="#c9d6ff" stroke-width="2"/><path d="M6 -6L14 0L6 6" fill="none" stroke="#e8c766" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`+
+    `<circle cx="-12" cy="0" r="4.2" fill="#f4f7ff"/></g>`},
+ runner(o){const x=X(o.x),y=Y(o.y);return `<g opacity="${o.op===undefined?1:o.op}"><circle cx="${f1(x)}" cy="${f1(y)}" r="16" fill="${C.run}" opacity=".18"/><circle cx="${f1(x)}" cy="${f1(y)}" r="10" fill="${C.run}" stroke="#04101c" stroke-width="3"/><circle cx="${f1(x)}" cy="${f1(y)}" r="3.5" fill="#04101c"/></g>`},
+ stake(o){const x=X(o.x),y=Y(o.y);return `<g opacity="${o.op===undefined?1:o.op}"><circle cx="${f1(x)}" cy="${f1(y)}" r="15" fill="${C.gold}" opacity=".16"/><path d="M${f1(x)} ${f1(y-11)}L${f1(x+8)} ${f1(y)}L${f1(x)} ${f1(y+11)}L${f1(x-8)} ${f1(y)}Z" fill="${C.gold}" stroke="#3a2a10" stroke-width="2"/>${o.lab?label(x+(o.lx||14),y+(o.ly||-12),o.lab,C.gold,24,'start'):''}</g>`},
+ rope(o){return `<line x1="${f1(X(o.x1))}" y1="${f1(Y(o.y1))}" x2="${f1(X(o.x2))}" y2="${f1(Y(o.y2))}" stroke="${o.col||C.rope}" stroke-width="2.6" stroke-linecap="round" opacity="${o.op===undefined?1:o.op}"/>`+
+   (o.lab?label((X(o.x1)+X(o.x2))/2+(o.lx||0),(Y(o.y1)+Y(o.y2))/2+(o.ly||-12),o.lab,o.col||C.rope,23):'')},
+ cur(o){const x=X(o.x),y=Y(o.y);return `<g><circle cx="${f1(x)}" cy="${f1(y)}" r="17" fill="rgba(142,166,255,.15)" stroke="${C.ac}" stroke-width="3"/><path d="M${f1(x-26)} ${f1(y)}H${f1(x-9)}M${f1(x+9)} ${f1(y)}H${f1(x+26)}M${f1(x)} ${f1(y-26)}V${f1(y-9)}M${f1(x)} ${f1(y+9)}V${f1(y+26)}" stroke="${C.ac}" stroke-width="2.6" stroke-linecap="round"/><circle cx="${f1(x)}" cy="${f1(y)}" r="3.5" fill="${C.ac}"/>`+
+   label(x+(x>W-120?-24:24),y+(y<40?36:-20),`(${o.x<0?'−'+(-o.x):o.x} ; ${o.y<0?'−'+(-o.y):o.y})`,C.ac,21,x>W-120?'end':'start')+'</g>'},
+ txt(o){return label(X(o.x)+(o.lx||0),Y(o.y)+(o.ly||0),o.t,o.col||C.pt,o.fs||22,o.anchor)}};
+function draw(){grid();const ids=Object.keys(objs).sort((a,b)=>(objs[a].z||0)-(objs[b].z||0));let h='';for(const id of ids){const o=objs[id];if(R1[o.t])h+=R1[o.t](o)}dyn.innerHTML=h}
+/* ---- animation ---- */
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function tw(list,dur,opt){opt=opt||{};if(dur===undefined)dur=700;if(reduceM)dur=0;
+  const from=list.map(([id,p])=>{const o=objs[id],f={};if(o)for(const k in p)f[k]=o[k];return f}),cf=opt.cam?Object.assign({},cam):null;
+  return new Promise(res=>{const t0=performance.now();moving++;
+    const step=now=>{const t=dur?Math.min(1,(now-t0)/dur):1,e=opt.lin?t:ease(t);
+      list.forEach(([id,p],i)=>{const o=objs[id];if(!o)return;for(const k in p)o[k]=from[i][k]+(p[k]-from[i][k])*e});
+      if(cf)for(const k in opt.cam)cam[k]=cf[k]+(opt.cam[k]-cf[k])*e;
+      if(opt.each)opt.each(e,t);draw();
+      if(t>=1){moving--;res();return}requestAnimationFrame(step)};
+    if(!dur)step(t0);else requestAnimationFrame(step)})}
+const wait=ms=>new Promise(r=>setTimeout(r,reduceM?0:ms));
+/* cadrage : le repère suit les objets de la question (l'origine reste visible) */
+function camFor(pts,pad){let x0=0,x1=0,y0=0,y1=0;pts.forEach(p=>{const x=+p[0],y=+p[1];x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)});
+  pad=pad===undefined?1.4:pad;const w=x1-x0+2*pad,h=y1-y0+2*pad;let u=Math.min(W/w,H/h);u=Math.max(13,Math.min(74,u));return{cx:(x0+x1)/2,cy:(y0+y1)/2,u}}
+function fit(pts,pad,dur){const c=camFor(pts.map(p=>p.map(v=>typeof v==='object'?v.n/v.d:v)),pad);return tw([],dur===undefined?550:dur,{cam:c})}
+function add(id,o){objs[id]=Object.assign({},o);draw()}
+function upd(id,p){if(objs[id])Object.assign(objs[id],p);draw()}
+function rm(id){delete objs[id];draw()}
+function clear(){objs={};pickOff();draw()}
+const num=v=>typeof v==='object'?v.n/v.d:v;
+/* la traceuse peint une droite d'un bord à l'autre ; sa flèche (vecteur normal) roule avec elle */
+async function paintLine(id,L,o){o=o||{};const a=num(L.a),b=num(L.b),c=num(L.c),s=lineSeg(a,b,c,.6);if(!s)return;const [p,q]=s,dx=q[0]-p[0],dy=q[1]-p[1];
+  objs[id]={t:'line',a,b,c,col:o.col||C.paint,prog:0,lab:o.lab,z:2,side:o.side,lf:o.lf};
+  objs[id+'~r']={t:'robot',x:p[0],y:p[1],hx:dx,hy:dy,z:12};
+  if(o.nv)objs[id+'~n']={t:'vec',x:p[0],y:p[1],dx:o.nv[0],dy:o.nv[1],col:C.n,lab:{t:o.nlab||'n',vec:true},z:8,side:o.nside};
+  SND.paint();
+  await tw([[id,{prog:1}]],o.dur||1500,{lin:true,each:()=>{const pr=objs[id].prog,x=p[0]+dx*pr,y=p[1]+dy*pr;Object.assign(objs[id+'~r'],{x,y});if(objs[id+'~n'])Object.assign(objs[id+'~n'],{x,y})}});
+  await tw([[id+'~r',{op:0}]],250);delete objs[id+'~r'];
+  if(objs[id+'~n']){if(o.keepN&&o.anchor){await tw([[id+'~n',{x:num(o.anchor[0]),y:num(o.anchor[1])}]],450)}else delete objs[id+'~n']}
+  if(o.uv&&o.anchor){const A=o.anchor.map(num);objs[id+'~u']={t:'vec',x:A[0],y:A[1],dx:o.uv[0],dy:o.uv[1],col:C.u,lab:{t:'u',vec:true},z:7,op:0,side:o.uside};
+    objs[id+'~ra']={t:'right',x:A[0],y:A[1],ux:o.uv[0],uy:o.uv[1],vx:o.nv?o.nv[0]:a,vy:o.nv?o.nv[1]:b,op:0,z:6};await tw([[id+'~u',{op:1}],[id+'~ra',{op:1}]],400)}
+  draw()}
+/* un joueur rejoint un point en courant */
+async function runTo(id,A,P,o){o=o||{};A=A.map(num);P=P.map(num);objs[id+'~p']={t:'seg',x1:A[0],y1:A[1],x2:P[0],y2:P[1],col:o.col||C.run,dash:true,prog:0,z:4,lab:o.lab,side:o.side};
+  objs[id]={t:'runner',x:A[0],y:A[1],z:13};SND.run();
+  await tw([[id+'~p',{prog:1}]],o.dur||1100,{each:()=>{const pr=objs[id+'~p'].prog;objs[id].x=A[0]+(P[0]-A[0])*pr;objs[id].y=A[1]+(P[1]-A[1])*pr}});
+  if(o.u){objs[id+'~ra']={t:'right',x:P[0],y:P[1],ux:o.u[0],uy:o.u[1],vx:A[0]-P[0],vy:A[1]-P[1],z:6,op:0};await tw([[id+'~ra',{op:1}]],300);SND.zero()}
+  draw()}
+/* le piquet, la corde, le cercle */
+async function ropeCircle(id,O,r,o){o=o||{};O=O.map(num);r=num(r);
+  if(!objs[id+'~s'])objs[id+'~s']={t:'stake',x:O[0],y:O[1],z:11,lab:o.slab===undefined?'Ω':o.slab};
+  objs[id+'~c']={t:'rope',x1:O[0],y1:O[1],x2:O[0],y2:O[1],z:9,lab:null};
+  await tw([[id+'~c',{x2:O[0]+r}]],450);
+  objs[id]={t:'circ',cx:O[0],cy:O[1],r,col:o.col||C.paint,prog:0,z:2};objs[id+'~r']={t:'robot',x:O[0]+r,y:O[1],hx:0,hy:1,z:12};SND.paint();
+  await tw([[id,{prog:1}]],o.dur||1700,{lin:true,each:()=>{const t=objs[id].prog*2*Math.PI,x=O[0]+r*Math.cos(t),y=O[1]+r*Math.sin(t);Object.assign(objs[id+'~r'],{x,y,hx:-Math.sin(t),hy:Math.cos(t)});Object.assign(objs[id+'~c'],{x2:x,y2:y})}});
+  await tw([[id+'~r',{op:0}]],250);delete objs[id+'~r'];
+  const ang=o.ang===undefined?Math.PI/4:o.ang;objs[id+'~c'].x2=O[0]+r*Math.cos(ang);objs[id+'~c'].y2=O[1]+r*Math.sin(ang);objs[id+'~c'].lab=o.rlab||null;objs[id+'~c'].ly=-14;
+  draw()}
+/* ---- placement d'un point (clic, doigt, clavier) ---- */
+function pickOn(x,y,cb){pickCb=cb;objs['~cur']={t:'cur',x,y,z:30};stage.classList.add('picking');draw()}
+function pickSet(x,y){const v=view(-.3);x=Math.max(Math.ceil(v.x0),Math.min(Math.floor(v.x1),x));y=Math.max(Math.ceil(v.y0),Math.min(Math.floor(v.y1),y));if(objs['~cur']){objs['~cur'].x=x;objs['~cur'].y=y;draw()}return[x,y]}
+function pickOff(){pickCb=null;delete objs['~cur'];stage.classList.remove('picking')}
+function toWorld(cx,cy){const p=svg.createSVGPoint();p.x=cx;p.y=cy;const q=p.matrixTransform(svg.getScreenCTM().inverse());return[cam.cx+(q.x-W/2)/cam.u,cam.cy-(q.y-H/2)/cam.u]}
+function toClient(x,y){const m=svg.getScreenCTM(),sx=X(x),sy=Y(y);return[m.a*sx+m.c*sy+m.e,m.b*sx+m.d*sy+m.f]}
+stage.addEventListener('pointerdown',e=>{if(!pickCb)return;const [x,y]=toWorld(e.clientX,e.clientY);pickCb(Math.round(x),Math.round(y))});
+/* ---- bruitages (clé partagée avec le kit : sigma-fanfare) ---- */
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+const sound={get(){try{return localStorage.getItem('sigma-fanfare')!=='0'}catch(e){return true}},set(v){try{localStorage.setItem('sigma-fanfare',v?'1':'0')}catch(e){}}};
+function tone(f,d,v,type,w){if(!sound.get())return;const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v||.06,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.02)}
+function sweep(f0,f1,d,v){if(!sound.get())return;const a=ac();if(!a)return;const t=a.currentTime,o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+d);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.05);g.gain.exponentialRampToValueAtTime(.0001,t+d+.1);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.15)}
+const SND={pop(){tone(660,.12,.05);tone(990,.1,.03,'sine',.05)},soft(){tone(220,.22,.05,'sine');tone(196,.25,.04,'sine',.08)},
+  win(){[523,659,784,1046].forEach((f,i)=>tone(f,.28,.05,'triangle',i*.08))},paint(){sweep(240,420,1.2,.025)},run(){[0,.12,.24,.36].forEach(w=>tone(150,.06,.03,'square',w))},
+  tick(){tone(1200,.04,.02,'square')},zero(){tone(784,.18,.05,'sine');tone(1175,.3,.04,'sine',.09)}};
+draw();
+return{C,tw,wait,fit,add,upd,rm,clear,draw,paintLine,runTo,ropeCircle,pickOn,pickSet,pickOff,toClient,SND,sound,reduceM,num,
+  get busy(){return moving>0},get objs(){return objs},get cam(){return cam},state(){return{moving:moving>0,cam:Object.assign({},cam),ids:Object.keys(objs)}}};
+})();
+</script>
+
+<script>
+/* ======================= moteur : questions en étapes, deuxième essai = réponse donnée ======================= */
+window.LT_G=(function(){
+'use strict';
+const N=window.LT_N,S=window.LT_S,SND=S.SND,$=id=>document.getElementById(id);
+const cap=h=>{$('capt').innerHTML=`<span>${h||'&nbsp;'}</span>`};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+const knorm=s=>String(s).toLowerCase().replace(/\s+/g,'').replace(/[−–—]/g,'-').replace(/,/g,'.');
+const GAME='la-traceuse';
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,busy=false,pickPart=null;
+function starsOf(i){try{const g=SigmaKit.passport().games[GAME];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function fb(html,kind,extra){if(!html){$('fb').hidden=true;return}
+  $('fb').classList.toggle('rv',kind==='rv');$('fbt').textContent=kind==='rv'?'Voici la réponse.':'Pas tout à fait.';
+  $('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fbx').innerHTML='';if(extra)$('fbx').appendChild(extra);$('fb').hidden=false}
+/* une erreur : 1re fois, on explique ; 2e fois, on explique et on donne la réponse */
+function miss(p,why,reveal){p._e=(p._e||0)+1;errs++;SND.soft();
+  if(p._e<2){fb(why);setTimeout(()=>scrollPart($('fb')),40);return}
+  reveal();const b=document.createElement('div');b.className='btns';b.innerHTML='<button type="button" class="btn or" id="cont">Continuer →</button>';
+  fb(why+(p.solH?`<span class="sol">Réponse&nbsp;: ${p.solH}</span>`:''),'rv',b);
+  b.querySelector('button').onclick=async()=>{if(busy)return;fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()};
+  setTimeout(()=>{const c=$('cont');if(c&&matchMedia('(pointer:fine)').matches)c.focus({preventScroll:true});scrollPart($('fb'))},40)}
+const W={};
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await p.run()}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);fb('');nextPart()};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)b.focus({preventScroll:true})},50)};
+W.choice=(p,box)=>{const idx=p.keep?p.ch.map((_,j)=>j):N.shuf(p.ch.map((_,j)=>j));
+  if(!p.solH)p.solH=p.ch.find(c=>c.ok).h;
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts${p.row?' row':''}">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  const all=[...box.querySelectorAll('.opt')];
+  const lock=()=>all.forEach(x=>x.disabled=true);
+  all.forEach(b=>b.onclick=async()=>{if(busy||b.disabled)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){lock();b.classList.add('ok');SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+    else{b.classList.add('ko');b.disabled=true;if(c.onBad)c.onBad();miss(p,c.why,()=>{lock();all.forEach(x=>{if(p.ch[+x.dataset.j].ok)x.classList.add('ok')})})}})};
+function okBlank(b,v){if(b.w)return b.w.some(a=>knorm(a)===knorm(v));const x=N.parse(v);return !!x&&N.eq(x,b.r)}
+const blankT=b=>b.w?b.w[0]:N.numT(b.r);
+W.fill=(p,box)=>{
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const b=p.b[+i];return `<input class="in" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" ${b.w?'':'inputmode="text"'} aria-label="Case ${+i+1}" style="width:${b.size||(p.small?3.4:4.4)}em">`});
+  if(!p.solH)p.solH=p.b.map(b=>b.w?b.w[0]:N.numH(b.r)).join('&nbsp;; ');
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`+
+    `<p class="hint">${p.hint||'Entier ou fraction comme 7/5&nbsp;: tout est accepté.'}</p>`;
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy||f.dataset.done)return;const v=ins.map(x=>x.value.trim());
+    if(v.some(x=>!x)){fb('Remplis toutes les cases avant de valider.');return}
+    const oks=v.map((x,i)=>okBlank(p.b[+ins[i].dataset.i],x));
+    ins.forEach((x,i)=>{x.classList.toggle('ok',oks[i]);x.classList.toggle('ko',!oks[i])});
+    if(oks.every(Boolean)){f.dataset.done=1;ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+    else miss(p,typeof p.why==='function'?p.why(v.map(x=>N.parse(x)),oks):p.why,()=>{f.dataset.done=1;ins.forEach((x,i)=>{if(!oks[i]){x.value=blankT(p.b[+x.dataset.i]);x.classList.remove('ko');x.classList.add('rv')}x.disabled=true});f.querySelector('button').remove()})};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+/* placer un point du quadrillage : doigt, souris, flèches */
+W.pick=(p,box)=>{const tg=p.target;let x=p.init?p.init[0]:0,y=p.init?p.init[1]:0;if(x===tg[0]&&y===tg[1])x+=x>0?-2:2;
+  if(!p.solH)p.solH=`${p.lab||'le point'} (${N.numH(tg[0])} ; ${N.numH(tg[1])})`;
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="pk"><div class="pkr">${p.lab||'Point'}&nbsp;: <b class="pkv"></b></div>`+
+    `<div class="pad"><button type="button" class="btn gh up" data-d="0,1" aria-label="Monter d'une unité">↑</button><button type="button" class="btn gh lf" data-d="-1,0" aria-label="Aller à gauche d'une unité">←</button><button type="button" class="btn gh dn" data-d="0,-1" aria-label="Descendre d'une unité">↓</button><button type="button" class="btn gh rt" data-d="1,0" aria-label="Aller à droite d'une unité">→</button></div>`+
+    `<div class="btns"><button type="button" class="btn or pko">${p.btn||'Valider ce point'}</button></div></div><p class="hint">Touche le terrain, ou déplace la croix avec les flèches (aussi au clavier).</p>`;
+  const out=box.querySelector('.pkv'),ok=box.querySelector('.pko');let done=false;
+  const show=()=>{out.textContent=`(${x<0?'−'+(-x):x} ; ${y<0?'−'+(-y):y})`};
+  const set=(a,b)=>{if(done)return;[x,y]=S.pickSet(a,b);show();SND.tick();if(p.onMove)p.onMove(x,y)};
+  S.pickOn(x,y,set);[x,y]=S.pickSet(x,y);show();
+  box.querySelectorAll('.pad button').forEach(b=>b.onclick=()=>{const [dx,dy]=b.dataset.d.split(',').map(Number);set(x+dx,y+dy)});
+  pickPart={move:(dx,dy)=>set(x+dx,y+dy)};
+  ok.onclick=async()=>{if(busy||done)return;
+    if(x===tg[0]&&y===tg[1]){done=true;pickPart=null;S.pickOff();box.querySelectorAll('button').forEach(b=>b.disabled=true);ok.remove();SND.pop();fb('');if(p.onOk){busy=true;try{await p.onOk()}finally{busy=false}}nextPart()}
+    else miss(p,typeof p.why==='function'?p.why(x,y):p.why,()=>{done=true;pickPart=null;S.pickSet(tg[0],tg[1]);x=tg[0];y=tg[1];show();S.pickOff();box.querySelectorAll('button').forEach(b=>b.disabled=true);ok.remove()})};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ok.focus({preventScroll:true})},50)};
+document.addEventListener('keydown',e=>{if(!pickPart||document.querySelector('.sk-ov'))return;const t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'))return;
+  const d={ArrowUp:[0,1],ArrowDown:[0,-1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key];if(!d)return;e.preventDefault();pickPart.move(d[0],d[1])});
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');pickPart=null;
+  pi++;if(pi<Q.parts.length){const p=Q.parts[pi];if(p.pre)p.pre();const box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860&&box){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top+4||r.bottom>innerHeight-20)scrollTo({top:scrollY+r.top-top-12,behavior:S.reduceM?'auto':'smooth'})}}
+const LV=[];
+async function newQ(){busy=true;Q=LV[lvl].qs[qi]();pi=0;errs=0;pickPart=null;
+  S.clear();cap(Q.cap0||'&nbsp;');
+  $('prompt').innerHTML=Q.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${LV[lvl].qs.length}`;dots();
+  try{if(Q.setup)await Q.setup()}finally{busy=false}
+  const p=Q.parts[0];if(p.pre)p.pre();const box=partEl();W[p.t](p,box)}
+function dots(){const n=LV[lvl].qs.length;$('dots').innerHTML=Array.from({length:n},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){fb('');SND.win();run.push(errs===0);dots();
+  const n=LV[lvl].qs.length,lvlDone=run.length>=n;
+  $('winx').textContent=errs===0?N.pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):N.pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=Q.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;if(Q.onWin)Q.onWin();
+  setTimeout(()=>{scrollPart($('win'));if(matchMedia('(pointer:fine)').matches)$('next').focus({preventScroll:true})},60);renderLv()}
+function endLevel(){const Lnum=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:Lnum,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==Lnum)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if(busy)return;if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();if(innerWidth<=860)scrollTo({top:0,behavior:S.reduceM?'auto':'smooth'});else $('scol').scrollIntoView({block:'nearest',behavior:S.reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];
+  $('chap').textContent=`Niveau ${l+1} sur ${LV.length} · ${LV[l].badge}`;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;$('cours').open=false;renderLv();newQ()}
+function renderLv(){const snd=S.sound.get();$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;
+  if(b.id==='snd'){S.sound.set(!S.sound.get());renderLv();SND.pop();return}
+  goLevel(+b.dataset.l)});
+/* fabriques */
+const act=(label,run,o)=>Object.assign({t:'act',label,run},o||{});
+const ch=(ask,list,o)=>Object.assign({t:'choice',ask,ch:list},o||{});
+const fill=(ask,tpl,b,why,o)=>Object.assign({t:'fill',ask,tpl,b,why},o||{});
+const pk=(ask,lab,target,why,o)=>Object.assign({t:'pick',ask,lab,target,why},o||{});
+const OK=(h,x)=>Object.assign({h,ok:true},x||{}),NO=(h,why,x)=>Object.assign({h,why},x||{});
+/* case à remplir : r = valeur exacte attendue, key = expression recalculée par l'audit */
+const B=(r,key,o)=>Object.assign({r:N.R(r),key},o||{});
+/* sérialisation pour l'audit (sans les fonctions) */
+const enc=v=>v&&typeof v==='object'&&'n' in v&&'d' in v?N.enc(v):Array.isArray(v)?v.map(enc):v&&typeof v==='object'?Object.fromEntries(Object.entries(v).map(([k,x])=>[k,enc(x)])):v;
+function dump(q){return{meta:enc(q.meta||{}),prompt:q.prompt,done:q.done,cap0:q.cap0||'',parts:q.parts.map(p=>({t:p.t,ask:p.ask||'',tpl:p.tpl||'',label:p.label||'',vt:p.vt||'',key:p.key||'',
+  b:p.b?p.b.map(b=>({r:N.enc(b.r),key:b.key,w:b.w||null})):null,ch:p.ch?p.ch.map(c=>({h:c.h,ok:!!c.ok,v:enc(c.v===undefined?null:c.v),why:c.why||''})):null,
+  target:p.target?enc(p.target):null,why:typeof p.why==='string'?p.why:'',whyF:typeof p.why==='function'}))}}
+window.LT={start(){const m=/[?&]niveau=(\d)/.exec(location.search);goLevel(m?Math.min(+m[1]-1,LV.length-1):0)},
+  state:()=>{const p=Q&&Q.parts[pi];return{lvl,qi,nq:LV[lvl]&&LV[lvl].qs.length,busy:busy||S.busy,pi,win:!$('win').hidden,cont:!!$('cont')&&!$('fb').hidden,
+    part:p?{t:p.t,sol:p.b?p.b.map(blankT):null,choices:p.ch?p.ch.map(c=>({ok:!!c.ok})):null,target:p.target||null,cur:S.objs['~cur']?[S.objs['~cur'].x,S.objs['~cur'].y]:null}:null,scene:S.state()}},
+  LV,goLevel,dump,get Q(){return Q}};
+return{LV,W,act,ch,fill,pk,OK,NO,B,cap,MAKI,renderLv};
+})();
+</script>
+
+<script>
+/* ======================= outils géométriques (valeurs exactes) ======================= */
+window.LT_T=(function(){
+'use strict';
+const N=window.LT_N;
+const {R,add,sub,mul,div,neg,eq,isZ,gcd,ri,nz,pick}=N;
+/* coefficients (a ; b) non nuls, premiers entre eux */
+function ab(o){o=o||{};const lim=o.lim||5;for(let n=0;n<5000;n++){const a=o.az?ri(-lim,lim):nz(-lim,lim),b=nz(-lim,lim);if(gcd(a,b)!==1)continue;
+    if(o.dist&&Math.abs(a)===Math.abs(b))continue;if(o.max2&&a*a+b*b>o.max2)continue;if(o.min2&&a*a+b*b<o.min2)continue;return[a,b]}throw new Error('ab')}
+const lineP=(a,b,P)=>({a,b,c:-(a*P[0]+b*P[1])});
+const Lr=L=>[L.a,L.b,L.c];
+const val0=(L,P)=>add(add(mul(L.a,P[0]),mul(L.b,P[1])),L.c);
+const onL=(L,P)=>isZ(val0(L,P));
+const same=(L,M)=>{const p=[L.a,L.b,L.c].map(R),q=[M.a,M.b,M.c].map(R);for(let i=0;i<3;i++)for(let j=0;j<3;j++)if(!eq(mul(p[i],q[j]),mul(p[j],q[i])))return false;return true};
+const colin=(u,v)=>isZ(sub(mul(u[0],v[1]),mul(u[1],v[0])));
+const dot=(u,v)=>add(mul(u[0],v[0]),mul(u[1],v[1]));
+const vec=(A,B)=>[sub(B[0],A[0]),sub(B[1],A[1])];
+const mid=(A,B)=>[div(add(A[0],B[0]),2),div(add(A[0+1],B[1]),2)];
+const d2=(A,B)=>{const v=vec(A,B);return dot(v,v)};
+/* projeté orthogonal de A sur ax + by + c = 0 */
+function proj(A,L){const t=div(neg(val0(L,A)),add(mul(L.a,L.a),mul(L.b,L.b)));return[add(A[0],mul(L.a,t)),add(A[1],mul(L.b,t))]}
+const inView=(P,bx,by)=>Math.abs(N.val(P[0]))<=(bx||8)&&Math.abs(N.val(P[1]))<=(by||6);
+const isIntP=P=>N.isInt(P[0])&&N.isInt(P[1]);
+/* intersection (valeurs approchées, pour le dessin) */
+function inter(L,M){const D=L.a*M.b-L.b*M.a;if(Math.abs(D)<1e-12)return null;return[(L.b*M.c-L.c*M.b)/D,(L.c*M.a-L.a*M.c)/D]}
+/* points entiers d'un cercle de centre O et de rayon² r2 */
+function lattice(r2){const out=[],m=Math.floor(Math.sqrt(r2));for(let x=-m;x<=m;x++)for(let y=-m;y<=m;y++)if(x*x+y*y===r2)out.push([x,y]);return out}
+return{ab,lineP,Lr,val0,onL,same,colin,dot,vec,mid,d2,proj,inView,isIntP,inter,lattice};
+})();
+</script>
+
+<script>
+/* ======================= les sept niveaux ======================= */
+(function(){
+'use strict';
+const N=window.LT_N,S=window.LT_S,G=window.LT_G,T=window.LT_T;
+const {R,add,sub,mul,div,neg,abs,eq,isZ,val,numH,numT,fmtInt,PN,lin,EQ,FORM,sumfac,sqx,CIRC,DEV,subst,CV,PT,VC,radH,isSq,ri,nz,pick,shuf,NB,MI,frH,gcd}=N;
+const {act,ch,fill,pk,OK,NO,B,cap}=G;
+const {ab,lineP,Lr,val0,onL,same,colin,dot,vec,mid,d2,proj,inView,isIntP,inter,lattice}=T;
+const C=S.C,num=S.num;
+const nV=VC('n','tn'),uV=VC('u','tu'),nP=VC('n′','tv');
+const P2=(nm,P)=>PT(nm,P[0],P[1]);
+const pt0=(nm,P)=>PT(nm,P[0],P[1]);
+const ptO=(id,P,lab,o)=>S.add(id,Object.assign({t:'pt',x:num(P[0]),y:num(P[1]),lab,z:10},o||{}));
+const lineO=(id,L,o)=>S.add(id,Object.assign({t:'line',a:num(L.a),b:num(L.b),c:num(L.c),z:2},o||{}));
+const vecO=(id,P,v,lab,col,o)=>S.add(id,Object.assign({t:'vec',x:num(P[0]),y:num(P[1]),dx:num(v[0]),dy:num(v[1]),col:col||C.n,lab:lab?{t:lab,vec:true}:null,z:8},o||{}));
+const segO=(id,P,Q,o)=>S.add(id,Object.assign({t:'seg',x1:num(P[0]),y1:num(P[1]),x2:num(Q[0]),y2:num(Q[1]),col:'rgba(200,215,255,.55)',w:2,z:3},o||{}));
+const rightO=(id,P,u,v)=>S.add(id,{t:'right',x:num(P[0]),y:num(P[1]),ux:num(u[0]),uy:num(u[1]),vx:num(v[0]),vy:num(v[1]),z:6});
+const vcm=(nm,P,Q)=>`${VC(nm)}${CV(`${numH(Q[0])} ${MI} ${PN(P[0])}`,`${numH(Q[1])} ${MI} ${PN(P[1])}`)}`;
+/* (x_M − α)² écrit avec les nombres */
+const sqn=(x,al)=>{al=R(al);return isZ(al)?`${PN(x)}²`:`(${numH(x)} ${al.n>0?MI:'+'} ${numH(abs(al))})²`};
+const rotv=v=>[neg(v[1]),v[0]];
+const EQL=L=>EQ(L.a,L.b,L.c);
+/* coordonnées : (x ; y) sans nom */
+const PC=P=>PT('',P[0],P[1]);
+/* phrase de substitution complète : a × x + b × y + c */
+const SUB=(L,P)=>subst(L.a,L.b,L.c,P);
+const intOf=(L,M)=>inter({a:num(L.a),b:num(L.b),c:num(L.c)},{a:num(M.a),b:num(M.b),c:num(M.c)});
+
+/* ======================= Niveau 1 · La boussole ======================= */
+const L1={t:'La boussole',badge:'Vecteur normal et vecteur directeur',
+ rule:`<p>Un <b>vecteur normal</b> à une droite d est un vecteur non nul orthogonal à un vecteur directeur de d.</p>
+ <p>La droite d'équation <b>ax + by + c = 0</b> a pour vecteur normal ${nV}${CV('a','b')} et pour vecteur directeur ${uV}${CV(MI+'b','a')}.</p>
+ <p>Réciproquement, une droite de vecteur normal ${nV}${CV('a','b')} a une équation de la forme ax + by + c = 0.</p>
+ <p>Tout vecteur non nul colinéaire à ${nV} est aussi normal à d.</p>`,
+ qs:[
+ ()=>{const [a,b]=ab({dist:true}),P=[ri(-3,3),ri(-2,2)],L=lineP(a,b,P);
+  return{meta:{L:{d:Lr(L)}},setup:async()=>{await S.fit([P,[P[0]+a,P[1]+b],[P[0]-b,P[1]+a]]);S.add('rb',{t:'robot',x:P[0],y:P[1],hx:-b,hy:a,z:12})},cap0:'La traceuse attend sa consigne',
+   prompt:`<p>La traceuse doit peindre la droite d d'équation ${EQ(a,b,L.c)}.</p>`,
+   parts:[fill('Lis sur l\'équation un vecteur normal à d&nbsp;:',`${nV} ${CV('{0}','{1}')}`,[B(a,'nrm(d)[0]'),B(b,'nrm(d)[1]')],
+      vs=>vs[0]&&vs[1]&&eq(vs[0],-b)&&eq(vs[1],a)?`${CV(-b,a)} est un vecteur <b>directeur</b> de d. Le vecteur normal se lit directement&nbsp;: ses coordonnées sont les coefficients de x et de y.`:
+        `Dans ${EQ(a,b,L.c)}, le coefficient de x est ${fmtInt(a)} et celui de y est ${fmtInt(b)}&nbsp;: ce sont les coordonnées de ${nV}.`,
+      {small:true,onOk:async()=>{S.rm('rb');cap('La traceuse roule, sa flèche reste perpendiculaire à la ligne');await S.paintLine('d',L,{lab:'d',nv:[a,b],anchor:P,keepN:true});cap(`${nV}${CV(a,b)} est normal à d`)}}),
+    fill(`La traceuse roule selon un vecteur directeur&nbsp;; le cours donne ${uV}${CV(MI+'b','a')}&nbsp;:`,`${uV} ${CV('{0}','{1}')}`,[B(-b,'dirv(d)[0]'),B(a,'dirv(d)[1]')],
+      vs=>vs[0]&&vs[1]&&eq(vs[0],a)&&eq(vs[1],b)?`C'est ${nV}, le vecteur normal&nbsp;: il est perpendiculaire à la ligne. Pour ${uV}, on prend ${CV(MI+'b','a')}.`:`Avec a = ${fmtInt(a)} et b = ${fmtInt(b)}&nbsp;: ${MI}b = ${fmtInt(-b)} et a = ${fmtInt(a)}.`,
+      {small:true,onOk:async()=>{vecO('u',P,[-b,a],'u',C.u,{z:7,side:-1});rightO('ra',P,[-b,a],[a,b]);S.SND.zero();cap(`${nV}${NB}·${NB}${uV} = 0&nbsp;: la flèche est perpendiculaire à la ligne`)}})],
+   done:`${nV}${CV(a,b)} est normal à d et ${uV}${CV(-b,a)} la dirige&nbsp;: ${nV}${NB}·${NB}${uV} = ${fmtInt(a)} × ${PN(-b)} + ${PN(b)} × ${PN(a)} = 0.`}},
+ ()=>{const [a,b]=ab({dist:true}),P=[ri(-3,3),ri(-2,2)],L=lineP(a,b,P);
+  return{meta:{L:{d:Lr(L)}},setup:async()=>{await S.fit([P,[P[0]+a,P[1]+b],[P[0]-b,P[1]+a],[P[0]+b,P[1]+a]]);S.add('rb',{t:'robot',x:P[0],y:P[1],hx:1,hy:0,z:12});vecO('n',P,[a,b],'n')},
+   cap0:`La flèche orange de la traceuse est ${nV}${CV(a,b)}`,
+   prompt:`<p>La droite d a pour équation ${EQ(a,b,L.c)}. La traceuse est posée sur d&nbsp;; sa flèche orange montre le vecteur normal ${nV}${CV(a,b)}.</p>`,
+   parts:[ch('Dans quelle direction doit-elle rouler&nbsp;? Un vecteur directeur de d est&nbsp;:',[
+      OK(CV(-b,a),{v:[-b,a]}),
+      NO(CV(a,b),`${CV(a,b)} est le vecteur normal&nbsp;: en le suivant, la traceuse partirait perpendiculairement à d.`,{v:[a,b]}),
+      NO(CV(b,a),`On a seulement échangé les coordonnées&nbsp;: ${nV}${NB}·${NB}${CV(b,a)} = ${fmtInt(a)} × ${PN(b)} + ${PN(b)} × ${PN(a)} = ${fmtInt(2*a*b)}, qui n'est pas nul. Le cours donne ${uV}${CV(MI+'b','a')}.`,{v:[b,a]})],
+      {vt:'vec',key:'pred:colin(X,dirv(d))',row:true,onOk:async()=>{S.rm('rb');S.rm('n');await S.paintLine('d',L,{lab:'d',nv:[a,b],anchor:P,keepN:true,uv:[-b,a],uside:-1});cap(`La traceuse a roulé selon ${uV}${CV(-b,a)}`)}}),
+    fill(`Vérifie avec le produit scalaire, pour ${uV}${CV(-b,a)} puis pour ${VC('w')}${CV(b,a)}&nbsp;:`,`${nV}${NB}·${NB}${uV} = {0}<br>${nV}${NB}·${NB}${VC('w')} = {1}`,[B(0,'dot(nrm(d),dirv(d))'),B(2*a*b,'dot(nrm(d),(d[1],d[0]))')],
+      `En repère orthonormé, ${CV('x','y')}${NB}·${NB}${CV('x′','y′')} = xx′ + yy′. Par exemple ${nV}${NB}·${NB}${uV} = ${fmtInt(a)} × ${PN(-b)} + ${PN(b)} × ${PN(a)}.`)],
+   done:`${nV}${NB}·${NB}${uV} = 0&nbsp;: ${uV}${CV(-b,a)} est orthogonal à ${nV}, il dirige d. Avec ${VC('w')}${CV(b,a)}, on trouve ${fmtInt(2*a*b)}&nbsp;: ce n'est pas un vecteur directeur.`}},
+ ()=>{const [a,b]=ab({dist:true,lim:4}),P=[ri(-2,2),ri(-2,1)],L=lineP(a,b,P),k=pick([-1,2,-2,3]);
+  const Q=[P[0]-2*b,P[1]+2*a];
+  return{meta:{L:{d:Lr(L)},N:{K:k}},setup:async()=>{await S.fit([P,Q,[P[0]+a,P[1]+b],[Q[0]+k*a,Q[1]+k*b]],1);lineO('d',L,{lab:'d'});vecO('n',P,[a,b],'n')},
+   cap0:`d est peinte&nbsp;; ${nV}${CV(a,b)} est normal à d`,
+   prompt:`<p>La traceuse a peint la droite d d'équation ${EQ(a,b,L.c)}.</p>`,
+   parts:[ch(`Lequel de ces vecteurs est, lui aussi, normal à d&nbsp;?`,[
+      OK(CV(k*a,k*b),{v:[k*a,k*b]}),
+      NO(CV(a,-b),`${CV(a,-b)} n'est pas colinéaire à ${nV}${CV(a,b)}&nbsp;: ${fmtInt(a)} × ${PN(-b)} ${MI} ${PN(b)} × ${PN(a)} = ${fmtInt(-2*a*b)}, qui n'est pas nul.`,{v:[a,-b]}),
+      NO(CV(-b,a),`C'est un vecteur directeur de d&nbsp;: il suit la ligne au lieu d'être perpendiculaire.`,{v:[-b,a]}),
+      NO(CV(b,a),`${CV(b,a)} n'est pas colinéaire à ${nV}${CV(a,b)}&nbsp;: ${fmtInt(a)} × ${PN(a)} ${MI} ${PN(b)} × ${PN(b)} = ${fmtInt(a*a-b*b)}, qui n'est pas nul.`,{v:[b,a]})],
+      {vt:'vec',key:'pred:colin(X,nrm(d))',row:true,onOk:async()=>{vecO('kn',Q,[0,0],null,C.n,{z:8});await S.tw([['kn',{dx:k*a,dy:k*b}]],700);S.upd('kn',{lab:{t:(k===-1?'−':k)+'n',vec:true}});cap(`${k===-1?MI:k}${nV} est colinéaire à ${nV}&nbsp;: lui aussi est perpendiculaire à d`)}}),
+    fill(`Avec ${CV(k*a,k*b)} comme vecteur normal, une équation de d s'écrit&nbsp;:`,`{0}x + {1}y + {2} = 0`,[B(k*a,'K*d[0]'),B(k*b,'K*d[1]'),B(k*L.c,'K*d[2]')],
+      `On multiplie <b>tous</b> les coefficients de ${EQ(a,b,L.c)} par ${fmtInt(k)}, le terme constant compris.`,{small:true})],
+   done:`En multipliant par ${fmtInt(k)}&nbsp;: ${EQ(k*a,k*b,k*L.c)}. C'est la même droite d, et ${CV(k*a,k*b)} est un autre vecteur normal.`}},
+ ()=>{const [p,q]=ab({dist:true}),A=[ri(-3,3),ri(-2,2)],L=lineP(p,q,A);
+  return{meta:{P:{A},V:{n:[p,q]}},setup:async()=>{await S.fit([A,[A[0]+p,A[1]+q],[A[0]-q,A[1]+p],[A[0]+q,A[1]-p]]);ptO('A',A,'A');S.add('rb',{t:'robot',x:A[0],y:A[1],hx:-q,hy:p,z:12});vecO('n',A,[p,q],'n')},
+   cap0:`La flèche est réglée sur ${nV}${CV(p,q)}`,
+   prompt:`<p>La traceuse est en ${P2('A',A)}&nbsp;; sa flèche montre le vecteur normal ${nV}${CV(p,q)} de la droite d à peindre.</p>`,
+   parts:[ch('Une équation de d est de la forme&nbsp;:',[
+      OK(FORM(p,q),{v:[p,q]}),
+      NO(FORM(q,p),`Les coefficients de x et de y sont les coordonnées de ${nV}, dans l'ordre&nbsp;: ${fmtInt(p)} devant x, ${fmtInt(q)} devant y.`,{v:[q,p]}),
+      NO(FORM(-q,p),`Cette forme est celle d'une droite de vecteur <b>directeur</b> ${CV(p,q)}. Ici ${CV(p,q)} est normal&nbsp;: ses coordonnées sont directement les coefficients de x et de y.`,{v:[-q,p]}),
+      NO(FORM(p,-q),`Le signe du coefficient de y a changé&nbsp;: ${nV}${CV(p,q)} donne ${fmtInt(q)} devant y.`,{v:[p,-q]})],
+      {vt:'form',key:'pred:colin(X,n)'}),
+    fill('A est sur d&nbsp;: ses coordonnées vérifient l\'équation.',`${subst(p,q,0,A)} + c = 0, donc c = {0}`,[B(L.c,'lpn(A,n)[2]')],
+      vs=>vs[0]&&L.c&&eq(vs[0],-L.c)?`Attention au signe&nbsp;: ${subst(p,q,0,A)} = ${fmtInt(-L.c)}, donc c = ${fmtInt(L.c)}.`:`Calcule ${subst(p,q,0,A)} = ${fmtInt(-L.c)}, puis isole c.`,
+      {onOk:async()=>{S.rm('rb');S.rm('n');await S.paintLine('d',L,{lab:'d',nv:[p,q],anchor:A,keepN:true});cap(`d : ${EQL(L)}`)}})],
+   done:`d : ${EQL(L)}. Son vecteur normal ${nV}${CV(p,q)} donne les coefficients de x et de y, le point A donne c.`}},
+ ()=>{const hor=Math.random()<.5,k=nz(-4,4),L=hor?{a:0,b:1,c:-k}:{a:1,b:0,c:-k},P=hor?[ri(-3,3),k]:[k,ri(-2,2)];
+  const good=hor?[0,1]:[1,0],dirv=hor?[1,0]:[0,1];
+  return{meta:{N:{K:k,HOR:hor?1:0}},setup:()=>S.fit([P,[P[0]+good[0],P[1]+good[1]],[P[0]+1,P[1]+1]]),cap0:hor?'Une ligne horizontale':'Une ligne verticale',
+   prompt:`<p>La traceuse doit peindre la ligne d d'équation ${hor?'y':'x'} = ${fmtInt(k)}.</p>`,
+   parts:[ch('Un vecteur normal à d est&nbsp;:',[
+      OK(CV(good[0],good[1]),{v:good}),
+      NO(CV(dirv[0],dirv[1]),`La ligne est ${hor?'horizontale':'verticale'}&nbsp;: ${CV(dirv[0],dirv[1])} la suit, c'est un vecteur directeur.`,{v:dirv}),
+      NO(CV(1,1),`${CV(1,1)} est «&nbsp;en biais&nbsp;»&nbsp;: il n'est pas orthogonal à la ligne ${hor?'horizontale':'verticale'}.`,{v:[1,1]})],
+      {vt:'vec',key:'pred:colin(X,nrm(hl(K,HOR)))',row:true,onOk:async()=>{await S.paintLine('d',L,{lab:'d',nv:good,anchor:P,keepN:true});cap(`${nV}${CV(good[0],good[1])} est normal à d`)}}),
+    fill(`Écris d sous la forme ax + by + c = 0 avec ${hor?'b':'a'} = 1&nbsp;:`,hor?'a = {0} et c = {1}':'b = {0} et c = {1}',[B(0,hor?'hl(K,HOR)[0]':'hl(K,HOR)[1]'),B(-k,'hl(K,HOR)[2]')],
+      `${hor?'y':'x'} = ${fmtInt(k)} ⇔ ${hor?'y':'x'} ${k>0?MI:'+'} ${Math.abs(k)} = 0&nbsp;: ${hor?'x':'y'} n'apparaît pas, son coefficient est 0.`,{small:true})],
+   done:`${hor?'y':'x'} = ${fmtInt(k)} s'écrit ${EQL(L)}&nbsp;: vecteur normal ${CV(good[0],good[1])}, vecteur directeur ${CV(-good[1],good[0])}.`}}]};
+
+/* ======================= Niveau 2 · Point et normale ======================= */
+const L2={t:'Point et normale',badge:'Équation par un point et un vecteur normal',
+ rule:`<p>Pour la droite d passant par A(x<sub>A</sub> ; y<sub>A</sub>) et de vecteur normal ${nV}${CV('a','b')}&nbsp;:</p>
+ <p>• l'équation est de la forme ax + by + c = 0, et on trouve c en écrivant que A vérifie l'équation&nbsp;;</p>
+ <p>• ou bien&nbsp;: M(x ; y) ∈ d ⇔ ${VC('AM')}${NB}·${NB}${nV} = 0 ⇔ <b>a(x − x<sub>A</sub>) + b(y − y<sub>A</sub>) = 0</b>.</p>
+ <p>Un point est sur d si et seulement si ses coordonnées vérifient l'équation. Deux équations dont les coefficients sont proportionnels décrivent la même droite.</p>`,
+ qs:[
+ ()=>{let a,b,A,L,Bp,on;for(let n=0;;n++){[a,b]=ab({lim:4});A=[ri(-4,4),ri(-3,3)];L=lineP(a,b,A);const k=pick([-1,1]);Bp=[A[0]-b*k,A[1]+a*k];on=Math.random()<.5;if(!on)Bp=[Bp[0]+pick([-1,1]),Bp[1]];if(inView(Bp,7,5))break}
+  const v0=val0(L,Bp);
+  return{meta:{P:{A,B:Bp},V:{n:[a,b]}},setup:async()=>{await S.fit([A,Bp,[A[0]+a,A[1]+b]]);ptO('A',A,'A');vecO('n',A,[a,b],'n')},cap0:`La traceuse est en A, flèche ${nV} réglée`,
+   prompt:`<p>La traceuse doit peindre la droite d passant par ${P2('A',A)} et de vecteur normal ${nV}${CV(a,b)}. Une équation de d est donc de la forme ${FORM(a,b)}.</p>`,
+   parts:[fill('A est sur d&nbsp;: ses coordonnées vérifient l\'équation.',`${subst(a,b,0,A)} + c = 0, donc c = {0}`,[B(L.c,'lpn(A,n)[2]')],
+      vs=>vs[0]&&L.c&&eq(vs[0],-L.c)?`Attention au signe&nbsp;: ${subst(a,b,0,A)} = ${fmtInt(-L.c)}, donc c = ${fmtInt(L.c)}.`:`Calcule d'abord ${subst(a,b,0,A)} = ${fmtInt(-L.c)}, puis isole c.`,
+      {onOk:async()=>{S.rm('n');await S.paintLine('d',L,{lab:'d',nv:[a,b],anchor:A,keepN:true});cap(`d : ${EQL(L)}`)}}),
+    fill(`Le point ${P2('B',Bp)} est-il aussi sur d&nbsp;? Remplace x et y par ses coordonnées&nbsp;:`,`${SUB(L,Bp)} = {0}`,[B(v0,'d0(B,lpn(A,n))')],
+      `Calcule pas à pas&nbsp;: ${fmtInt(a)} × ${PN(Bp[0])} = ${fmtInt(a*Bp[0])} et ${PN(b)} × ${PN(Bp[1])} = ${fmtInt(b*Bp[1])}.`,{onOk:async()=>{ptO('B',Bp,'B',{col:on?C.ok:C.ko,ring:true})}}),
+    ch('Donc&nbsp;:',[OK(on?'B est sur d':'B n\'est pas sur d',{v:on?'sur':'hors'}),NO(on?'B n\'est pas sur d':'B est sur d',on?'Le résultat est 0&nbsp;: les coordonnées de B vérifient l\'équation.':`Le résultat vaut ${numH(v0)}, pas 0&nbsp;: B ne vérifie pas l'équation.`,{v:on?'hors':'sur'})],
+      {vt:'tag',key:'pred:X==("sur" if on(B,lpn(A,n)) else "hors")',row:true})],
+   done:`d : ${EQL(L)}. Pour B&nbsp;: ${SUB(L,Bp)} = ${numH(v0)}${on?'&nbsp;: B est sur d.':', différent de 0&nbsp;: B n\'est pas sur d.'}`}},
+ ()=>{const [a,b]=ab({lim:5}),A=[nz(-4,4),nz(-3,3)],L=lineP(a,b,A),u=[-b,a],Mf=[A[0]+2*u[0]+a,A[1]+2*u[1]+b];
+  const AM=CV(lin([[1,'x'],[-A[0],'']]),lin([[1,'y'],[-A[1],'']]));
+  return{meta:{P:{A},V:{n:[a,b]}},setup:async()=>{await S.fit([A,[A[0]+a,A[1]+b],[A[0]-1.6*u[0],A[1]-1.6*u[1]],Mf],1);ptO('A',A,'A');vecO('n',A,[a,b],'n')},
+   cap0:`M(x ; y) est sur d exactement quand ${VC('AM')}${NB}·${NB}${nV} = 0`,
+   prompt:`<p>d passe par ${P2('A',A)} et a pour vecteur normal ${nV}${CV(a,b)}. Pour un point M(x ; y), ${VC('AM')}${AM}.</p><p>M ∈ d ⇔ ${VC('AM')}${NB}·${NB}${nV} = 0.</p>`,
+   parts:[fill('Développe et réduis&nbsp;:',`${sumfac([[a,'x',A[0]],[b,'y',A[1]]])} = 0 ⇔ {0}x + {1}y + {2} = 0`,[B(a,'lpn(A,n)[0]'),B(b,'lpn(A,n)[1]'),B(L.c,'lpn(A,n)[2]')],
+      `On développe&nbsp;: ${sumfac([[a,'x',A[0]],[b,'y',A[1]]])} = ${lin([[a,'x'],[-a*A[0],''],[b,'y'],[-b*A[1],'']])}, puis on regroupe les nombres.`,
+      {small:true,onOk:async()=>{S.rm('n');await S.paintLine('d',L,{lab:'d',nv:[a,b],anchor:A,keepN:true});cap(`d : ${EQL(L)}`)}}),
+    act('Faire glisser M sur d, puis hors de d',async()=>{ptO('M',A,'M',{col:C.v,z:11});vecO('AM',A,[0,0],null,C.v,{z:7});
+      const setM=(x,y)=>{S.upd('M',{x,y});S.upd('AM',{dx:x-A[0],dy:y-A[1]})};
+      await S.tw([],1500,{each:e=>{const t=-1.6+3.6*e;setM(A[0]+t*u[0],A[1]+t*u[1]);cap(`M sur d&nbsp;: ${VC('AM')}${NB}·${NB}${nV} = 0`)}});
+      await S.tw([],900,{each:e=>{setM(A[0]+2*u[0]+e*a,A[1]+2*u[1]+e*b)}});
+      cap(`M hors de d&nbsp;: ${VC('AM')}${NB}·${NB}${nV} = ${a*a+b*b}, qui n'est pas nul`)},{doneLabel:'Vu'})],
+   done:`${sumfac([[a,'x',A[0]],[b,'y',A[1]]])} = 0 ⇔ ${EQL(L)}. Tant que M reste sur d, ${VC('AM')} est orthogonal à ${nV}.`}},
+ ()=>{for(let n=0;;n++){const [a,b]=ab({lim:4,dist:true}),A=[nz(-4,4),nz(-3,3)],L=lineP(a,b,A);if(L.c===0)continue;
+   const L1={a,b,c:-L.c},L2=lineP(b,-a,A),L3=lineP(A[0],A[1],[a,b]),all=[L,L1,L2,L3];let okk=true;
+   for(let i=0;i<4;i++)for(let j=i+1;j<4;j++)if(same(all[i],all[j]))okk=false;if(!okk)continue;
+   const k=pick([-1,2,-2,3]),E0={a:k*a,b:k*b,c:k*L.c},E1={a:k*a,b:k*b,c:L.c},E2={a:k*a,b,c:k*L.c};
+   return{meta:{P:{A},V:{n:[a,b]}},setup:async()=>{await S.fit([A,[A[0]+a,A[1]+b]]);ptO('A',A,'A');vecO('n',A,[a,b],'n')},cap0:'Quelle consigne donner à la traceuse&nbsp;?',
+    prompt:`<p>On veut la droite d passant par ${P2('A',A)} et de vecteur normal ${nV}${CV(a,b)}.</p>`,
+    parts:[ch('Une équation de d est&nbsp;:',[
+       OK(EQL(L),{v:Lr(L)}),
+       NO(EQL(L1),`Erreur de signe sur c&nbsp;: A vérifie ${subst(a,b,0,A)} + c = 0, donc c = ${fmtInt(L.c)}.`,{v:Lr(L1)}),
+       NO(EQL(L2),`Cette droite a ${CV(a,b)} pour vecteur <b>directeur</b>&nbsp;: son vecteur normal est ${CV(b,-a)}. Ici, c'est ${CV(a,b)} qui doit être normal.`,{v:Lr(L2)}),
+       NO(EQL(L3),`Les rôles sont inversés&nbsp;: les coefficients de x et de y sont les coordonnées du vecteur normal, pas celles du point A.`,{v:Lr(L3)})],
+       {vt:'line',key:'pred:same(X,lpn(A,n))',onOk:async()=>{S.rm('n');await S.paintLine('d',L,{lab:'d',nv:[a,b],anchor:A,keepN:true});cap(`d : ${EQL(L)}`)}}),
+     ch('Une autre équation de cette même droite d est&nbsp;:',[
+       OK(EQL(E0),{v:Lr(E0)}),
+       NO(EQL(E1),`Pour garder la même droite, on multiplie <b>tous</b> les coefficients par le même nombre, c compris.`,{v:Lr(E1)}),
+       NO(EQL(E2),`Le coefficient de y n'a pas été multiplié comme les autres&nbsp;: ce n'est plus la même droite.`,{v:Lr(E2)})],
+       {vt:'line',key:'pred:same(X,lpn(A,n))',onOk:async()=>cap(`${EQL(L)} et ${EQL(E0)} décrivent la même droite`)})],
+    done:`d : ${EQL(L)}, ou encore ${EQL(E0)} (tout multiplié par ${fmtInt(k)}).`}}},
+ ()=>{let A,w,Bp;for(;;){A=[ri(-4,3),ri(-3,2)];w=[nz(-4,4),nz(-3,3)];if(Math.abs(w[0])===Math.abs(w[1]))continue;Bp=[A[0]+w[0],A[1]+w[1]];if(inView(Bp,6,4))break}
+  const n=[-w[1],w[0]],L=lineP(n[0],n[1],A);
+  return{meta:{P:{A,B:Bp}},setup:async()=>{await S.fit([A,Bp,[A[0]+n[0],A[1]+n[1]]]);ptO('A',A,'A');ptO('B',Bp,'B')},cap0:'La ligne doit passer par A et par B',
+   prompt:`<p>La traceuse doit peindre la droite (AB), avec ${P2('A',A)} et ${P2('B',Bp)}.</p>`,
+   parts:[fill('Un vecteur directeur de (AB)&nbsp;:',`${VC('AB')} ${CV('{0}','{1}')}`,[B(w[0],'vec(A,B)[0]'),B(w[1],'vec(A,B)[1]')],
+      `${VC('AB')}${CV('x<sub>B</sub> − x<sub>A</sub>','y<sub>B</sub> − y<sub>A</sub>')}, soit ${vcm('AB',A,Bp)}.`,{small:true,onOk:async()=>{vecO('ab',A,[0,0],'AB',C.u,{z:7});await S.tw([['ab',{dx:w[0],dy:w[1]}]],600)}}),
+    ch('Il faut un vecteur normal à (AB)&nbsp;:',[
+      OK(CV(n[0],n[1]),{v:n}),
+      NO(CV(w[0],w[1]),`C'est ${VC('AB')} lui-même&nbsp;: il dirige (AB), il n'est pas perpendiculaire.`,{v:w}),
+      NO(CV(w[1],w[0]),`${CV(w[1],w[0])}${NB}·${NB}${VC('AB')} = ${fmtInt(w[1])} × ${PN(w[0])} + ${PN(w[0])} × ${PN(w[1])} = ${fmtInt(2*w[0]*w[1])}, qui n'est pas nul. Pour ${VC('AB')}${CV('α','β')}, le vecteur ${CV(MI+'β','α')} est normal.`,{v:[w[1],w[0]]})],
+      {vt:'vec',key:'pred:colin(X,rot(vec(A,B)))',row:true,onOk:async()=>{vecO('n',A,n,'n');rightO('ra',A,w,n);cap(`${nV}${CV(n[0],n[1])}${NB}·${NB}${VC('AB')} = 0`)}}),
+    fill('Une équation de (AB)&nbsp;:',`${lin([[n[0],'x'],[n[1],'y']])} + {0} = 0`,[B(L.c,'lpn(A,rot(vec(A,B)))[2]')],
+      `A est sur (AB)&nbsp;: ${subst(n[0],n[1],0,A)} + c = 0.`,{onOk:async()=>{S.rm('n');S.rm('ra');await S.paintLine('d',L,{lab:'(AB)',nv:n,anchor:A,keepN:true});cap(`(AB) : ${EQL(L)}`)}})],
+   done:`(AB) : ${EQL(L)}. Vérification avec B&nbsp;: ${SUB(L,Bp)} = 0.`}},
+ ()=>{for(;;){const [a,b]=ab({lim:5}),A=[ri(-5,-1),ri(-4,-1)],L=lineP(a,b,A),k=pick([1,-1,2]),Q=[A[0]-b*k,A[1]+a*k];if(!inView(Q,7,5))continue;
+   const F1=[Q[1],Q[0]],F2=[Q[0],Q[1]+1];if(onL(L,F1)||(F1[0]===Q[0]&&F1[1]===Q[1])||(F1[0]===A[0]&&F1[1]===A[1])||!inView(F1,7,5)||!inView(F2,7,5))continue;
+   const vF1=val0(L,F1),vF2=val0(L,F2);
+   return{meta:{P:{A},V:{n:[a,b]}},setup:async()=>{await S.fit([A,Q,F1,F2,[A[0]+a,A[1]+b]]);ptO('A',A,'A');vecO('n',A,[a,b],'n');[Q,F1,F2].forEach((P,i)=>ptO('c'+i,P,'',{col:C.mut,r:5}))},
+    cap0:'Trois repères posés sur le terrain&nbsp;: un seul sera sur la ligne',
+    prompt:`<p>d passe par ${P2('A',A)} et a pour vecteur normal ${nV}${CV(a,b)}.</p>`,
+    parts:[fill(null,`d : ${lin([[a,'x'],[b,'y']])} + c = 0 avec ${subst(a,b,0,A)} + c = 0, donc c = {0}`,[B(L.c,'lpn(A,n)[2]')],
+       vs=>vs[0]&&L.c&&eq(vs[0],-L.c)?`Attention au signe&nbsp;: ${subst(a,b,0,A)} = ${fmtInt(-L.c)}, donc c = ${fmtInt(L.c)}.`:`Avec des coordonnées négatives, garde les parenthèses&nbsp;: ${subst(a,b,0,A)} = ${fmtInt(-L.c)}.`,
+       {onOk:async()=>{S.rm('n');await S.paintLine('d',L,{lab:'d',nv:[a,b],anchor:A,keepN:true});cap(`d : ${EQL(L)}`)}}),
+     ch('Lequel de ces points est sur d&nbsp;?',[
+       OK(PC(Q),{v:Q}),
+       NO(PC(F1),`${SUB(L,F1)} = ${numH(vF1)}, pas 0. Attention à l'ordre&nbsp;: d'abord l'abscisse, puis l'ordonnée.`,{v:F1}),
+       NO(PC(F2),`${SUB(L,F2)} = ${numH(vF2)}, pas 0&nbsp;: ce point n'est pas sur d.`,{v:F2})],
+       {vt:'pt',key:'pred:on(X,lpn(A,n))',row:true,onOk:async()=>{S.upd('c0',{col:C.ok,ring:true});cap(`${PC(Q)} vérifie l'équation de d`)}})],
+    done:`d : ${EQL(L)}. Pour ${PC(Q)}&nbsp;: ${SUB(L,Q)} = 0.`}}}]};
+
+/* ======================= Niveau 3 · L'angle droit ======================= */
+const L3={t:'L\'angle droit',badge:'Perpendiculaires, parallèles, droites remarquables',
+ rule:`<p>d de vecteur normal ${nV} et d′ de vecteur normal ${nP}&nbsp;: <b>d ⟂ d′ ⇔ ${nV}${NB}·${NB}${nP} = 0</b>.</p>
+ <p>Deux droites de vecteurs normaux colinéaires sont parallèles.</p>
+ <p>Perpendiculaire à d&nbsp;: un vecteur directeur de d devient vecteur normal. Parallèle à d&nbsp;: on garde le vecteur normal de d.</p>
+ <p>La <b>médiatrice</b> de [AB] passe par le milieu de [AB] et a pour vecteur normal ${VC('AB')}. La <b>hauteur</b> issue de A dans ABC passe par A et a pour vecteur normal ${VC('BC')}.</p>`,
+ qs:[
+ ()=>{for(;;){const [a,b]=ab({lim:4}),P=[ri(-3,3),ri(-2,2)],L=lineP(a,b,P),perp=Math.random()<.5;let p,q;
+   if(perp){const s=pick([1,-1]);p=-b*s;q=a*s}else{[p,q]=ab({lim:4});if(a*p+b*q===0||colin([a,b],[p,q]))continue}
+   const Q=[ri(-3,3),ri(-2,2)],M=lineP(p,q,Q);if(same(L,M))continue;const I=intOf(L,M);if(!I||Math.abs(I[0])>7||Math.abs(I[1])>5)continue;
+   const dv=a*p+b*q;
+   return{meta:{L:{d:Lr(L),e:Lr(M)}},setup:async()=>{await S.fit([P,Q,I,[P[0]+a,P[1]+b]]);lineO('d',L,{lab:'d'});vecO('n',P,[a,b],'n')},cap0:'Les deux lignes seront-elles à angle droit&nbsp;?',
+    prompt:`<p>d : ${EQL(L)} et d′ : ${EQL(M)}.</p>`,
+    parts:[fill(`Avec ${nV}${CV(a,b)} normal à d et ${nP}${CV(p,q)} normal à d′&nbsp;:`,`${nV}${NB}·${NB}${nP} = ${fmtInt(a)} × ${PN(p)} + ${PN(b)} × ${PN(q)} = {0}`,[B(dv,'dot(nrm(d),nrm(e))')],
+       `Multiplie les abscisses, puis les ordonnées, et ajoute&nbsp;: ${fmtInt(a*p)} + ${PN(b*q)}.`),
+     ch('Les droites d et d′ sont-elles perpendiculaires&nbsp;?',[OK(perp?'Oui':'Non',{v:perp?'perp':'non'}),NO(perp?'Non':'Oui',perp?'Le produit scalaire des vecteurs normaux est nul&nbsp;: les droites sont perpendiculaires.':`${nV}${NB}·${NB}${nP} = ${fmtInt(dv)}, qui n'est pas nul&nbsp;: pas d'angle droit.`,{v:perp?'non':'perp'})],
+       {vt:'tag',key:'pred:X==("perp" if perp(d,e) else "non")',row:true,onOk:async()=>{await S.paintLine('e',M,{lab:'d′',col:C.v,nv:[p,q],nlab:'n′',anchor:Q,keepN:true});if(perp){rightO('ra',I,[-b,a],[-q,p]);S.SND.zero();cap('Angle droit&nbsp;!')}else cap('Les lignes se coupent, mais pas à angle droit')}})],
+    done:`${nV}${NB}·${NB}${nP} = ${fmtInt(a*p)} + ${PN(b*q)} = ${fmtInt(dv)}&nbsp;: ${perp?'d et d′ sont perpendiculaires.':'d et d′ ne sont pas perpendiculaires.'}`}}},
+ ()=>{for(;;){const [a,b]=ab({lim:4,dist:true}),P=[ri(-3,3),ri(-2,2)],L=lineP(a,b,P),A=[ri(-4,4),ri(-3,3)];if(onL(L,A))continue;const M=lineP(-b,a,A),I=intOf(L,M);
+   if(Math.abs(I[0])>7||Math.abs(I[1])>5)continue;
+   return{meta:{L:{d:Lr(L)},P:{A}},setup:async()=>{await S.fit([P,A,I,[A[0]-b,A[1]+a]]);lineO('d',L,{lab:'d'});ptO('A',A,'A')},cap0:'Une ligne perpendiculaire à d, passant par A',
+    prompt:`<p>d : ${EQL(L)}. La traceuse doit peindre la droite d′ perpendiculaire à d passant par ${P2('A',A)}.</p>`,
+    parts:[ch('Un vecteur normal à d′ est&nbsp;:',[
+       OK(CV(-b,a),{v:[-b,a]}),
+       NO(CV(a,b),`${CV(a,b)} est normal à d&nbsp;: avec le même vecteur normal, d′ serait parallèle à d.`,{v:[a,b]}),
+       NO(CV(b,a),`d′ ⟂ d&nbsp;: un vecteur directeur de d, ${uV}${CV(MI+'b','a')} = ${CV(-b,a)}, est normal à d′. ${CV(b,a)} ne lui est pas colinéaire.`,{v:[b,a]})],
+       {vt:'vec',key:'pred:colin(X,dirv(d))',row:true,onOk:async()=>{vecO('n',A,[-b,a],'n′',C.v);cap(`Le vecteur directeur de d devient le vecteur normal de d′`)}}),
+     fill(null,`d′ : ${lin([[-b,'x'],[a,'y']])} + {0} = 0`,[B(M.c,'lpn(A,dirv(d))[2]')],`A est sur d′&nbsp;: ${subst(-b,a,0,A)} + c = 0.`,
+       {onOk:async()=>{S.rm('n');await S.paintLine('e',M,{lab:'d′',col:C.v,nv:[-b,a],nlab:'n′',anchor:A,keepN:true});rightO('ra',I,[-b,a],[a,b]);S.SND.zero();cap(`d′ : ${EQL(M)}`)}})],
+    done:`d′ : ${EQL(M)}. Son vecteur normal ${CV(-b,a)} dirige d&nbsp;: ${CV(a,b)}${NB}·${NB}${CV(-b,a)} = 0, les droites sont perpendiculaires.`}}},
+ ()=>{for(;;){const [a,b]=ab({lim:4,dist:true}),P=[ri(-3,3),ri(-2,2)],L=lineP(a,b,P),A=[ri(-4,4),ri(-3,3)];if(onL(L,A))continue;const M=lineP(a,b,A);
+   return{meta:{L:{d:Lr(L)},P:{A}},setup:async()=>{await S.fit([P,A,[A[0]+a,A[1]+b]]);lineO('d',L,{lab:'d'});ptO('A',A,'A')},cap0:'Une ligne parallèle à d, passant par A',
+    prompt:`<p>d : ${EQL(L)}. La traceuse doit peindre la droite d′ parallèle à d passant par ${P2('A',A)}.</p>`,
+    parts:[ch('Un vecteur normal à d′ est&nbsp;:',[
+       OK(CV(a,b),{v:[a,b]}),
+       NO(CV(-b,a),`${CV(-b,a)} dirige d&nbsp;: en le prenant comme vecteur normal, on obtiendrait une perpendiculaire à d.`,{v:[-b,a]}),
+       NO(CV(a,-b),`${CV(a,-b)} n'est pas colinéaire à ${CV(a,b)}&nbsp;: la ligne ne serait pas parallèle à d.`,{v:[a,-b]})],
+       {vt:'vec',key:'pred:colin(X,nrm(d))',row:true,onOk:async()=>{vecO('n',A,[a,b],'n′',C.v);cap('Des parallèles ont le même vecteur normal')}}),
+     fill(null,`d′ : ${lin([[a,'x'],[b,'y']])} + {0} = 0`,[B(M.c,'lpn(A,nrm(d))[2]')],vs=>vs[0]&&eq(vs[0],L.c)?`C'est le c de d&nbsp;: on retrouverait d elle-même. Utilise A&nbsp;: ${subst(a,b,0,A)} + c = 0.`:`A est sur d′&nbsp;: ${subst(a,b,0,A)} + c = 0.`,
+       {onOk:async()=>{S.rm('n');await S.paintLine('e',M,{lab:'d′',col:C.v,nv:[a,b],nlab:'n′',anchor:A,keepN:true});cap(`d′ : ${EQL(M)}`)}})],
+    done:`d′ : ${EQL(M)}&nbsp;: même vecteur normal que d, un autre c.`}}},
+ ()=>{let A,w,Bp;for(;;){A=[ri(-5,3),ri(-4,2)];w=[nz(-3,3),nz(-2,2)];Bp=[A[0]+2*w[0],A[1]+2*w[1]];if(inView(Bp,6,4))break}
+  const I=[A[0]+w[0],A[1]+w[1]],n=[2*w[0],2*w[1]],M=lineP(n[0],n[1],I),K=[I[0]-w[1],I[1]+w[0]];
+  return{meta:{P:{A,B:Bp}},setup:async()=>{await S.fit([A,Bp,K]);ptO('A',A,'A');ptO('B',Bp,'B');segO('ab',A,Bp)},cap0:'La médiatrice de [AB]',
+   prompt:`<p>La traceuse doit peindre la médiatrice Δ du segment [AB], avec ${P2('A',A)} et ${P2('B',Bp)}.</p>`,
+   parts:[pk('Δ passe par le milieu de [AB]. Place ce milieu I&nbsp;:','I',I,(x,y)=>`Le milieu a pour coordonnées ${frH('x<sub>A</sub> + x<sub>B</sub>','2')} et ${frH('y<sub>A</sub> + y<sub>B</sub>','2')}&nbsp;: (${fmtInt(A[0])} + ${PN(Bp[0])}) ÷ 2 et (${fmtInt(A[1])} + ${PN(Bp[1])}) ÷ 2.`,
+      {key:'mid(A,B)',init:[0,0],onOk:async()=>{ptO('I',I,'I',{col:C.gold});cap(`I${PC(I)}`)}}),
+    fill(`Δ est perpendiculaire à (AB)&nbsp;: ${VC('AB')} est normal à Δ.`,`${VC('AB')} ${CV('{0}','{1}')}`,[B(n[0],'vec(A,B)[0]'),B(n[1],'vec(A,B)[1]')],`${vcm('AB',A,Bp)}.`,
+      {small:true,onOk:async()=>{vecO('n',I,n,'AB',C.n)}}),
+    fill('Une équation de Δ&nbsp;:',`${lin([[n[0],'x'],[n[1],'y']])} + {0} = 0`,[B(M.c,'lpn(mid(A,B),vec(A,B))[2]')],vs=>vs[0]&&eq(vs[0],-(n[0]*A[0]+n[1]*A[1]))?`Tu as utilisé A. Mais A n'est pas sur Δ&nbsp;: c'est I qui est sur la médiatrice. ${subst(n[0],n[1],0,I)} + c = 0.`:`I est sur Δ&nbsp;: ${subst(n[0],n[1],0,I)} + c = 0.`,
+      {onOk:async()=>{S.rm('n');await S.paintLine('m',M,{lab:'Δ',nv:n,nlab:'AB',anchor:I,keepN:false});rightO('ra',I,n,[-w[1],w[0]]);ptO('K',K,'M',{col:C.v});segO('ka',K,A,{col:C.v,dash:true});segO('kb',K,Bp,{col:C.v,dash:true});cap('Tout point M de Δ vérifie MA = MB')}})],
+   done:`Δ : ${EQL(M)}. Elle passe par I${PC(I)} et ${VC('AB')}${CV(n[0],n[1])} lui est normal.`}},
+ ()=>{let A,Bp,Cp;for(;;){A=[ri(-3,3),ri(1,4)];Bp=[ri(-6,-2),ri(-4,0)];Cp=[ri(1,6),ri(-4,0)];const ab_=vec(A,Bp),ac_=vec(A,Cp),bc=vec(Bp,Cp);
+   if(colin(ab_,ac_))continue;if(eq(d2(A,Bp),d2(A,Cp)))continue;break}
+  const n=vec(Bp,Cp).map(val),Hh=lineP(n[0],n[1],A),Mbc={a:n[0],b:n[1],c:R(-(n[0]*(Bp[0]+Cp[0])+n[1]*(Bp[1]+Cp[1])),2)};
+  const lBC={a:Cp[1]-Bp[1],b:-(Cp[0]-Bp[0]),c:0};lBC.c=-(lBC.a*Bp[0]+lBC.b*Bp[1]);const F=intOf(Hh,lBC);
+  const AB=vec(A,Bp),AC=vec(A,Cp);
+  return{meta:{P:{A,B:Bp,C:Cp}},setup:async()=>{await S.fit([A,Bp,Cp]);segO('t1',A,Bp);segO('t2',Bp,Cp);segO('t3',Cp,A);ptO('A',A,'A');ptO('B',Bp,'B',{lx:-15,ly:20});ptO('C',Cp,'C',{ly:20})},cap0:'La hauteur issue de A',
+   prompt:`<p>Dans le triangle ABC, avec ${P2('A',A)}, ${P2('B',Bp)} et ${P2('C',Cp)}, la traceuse doit peindre la hauteur h issue de A.</p>`,
+   parts:[ch('Un vecteur normal à h est&nbsp;:',[
+      OK(`${VC('BC')}${CV(n[0],n[1])}`,{v:n}),
+      NO(`${VC('AB')}${CV(AB[0],AB[1])}`,`La hauteur issue de A est perpendiculaire au côté opposé à A, c'est-à-dire à (BC), pas à (AB).`,{v:AB.map(val)}),
+      NO(`${VC('AC')}${CV(AC[0],AC[1])}`,`La hauteur issue de A est perpendiculaire au côté opposé à A, c'est-à-dire à (BC), pas à (AC).`,{v:AC.map(val)})],
+      {vt:'vec',key:'pred:colin(X,vec(B,C))',onOk:async()=>{vecO('n',A,n.map(x=>x/2),null,C.n);cap(`${VC('BC')} est normal à la hauteur`)}}),
+    fill(null,`h : ${lin([[n[0],'x'],[n[1],'y']])} + {0} = 0`,[B(Hh.c,'lpn(A,vec(B,C))[2]')],`A est sur la hauteur&nbsp;: ${subst(n[0],n[1],0,A)} + c = 0.`,
+      {onOk:async()=>{S.rm('n');await S.paintLine('h',Hh,{lab:'h',lf:.12});if(F)rightO('ra',F,n,[-n[1],n[0]]);cap(`h : ${EQL(Hh)}`)}}),
+    ch('h et la médiatrice de [BC] sont&nbsp;:',[OK('parallèles',{v:'par'}),NO('perpendiculaires',`Elles ont toutes deux ${VC('BC')} pour vecteur normal&nbsp;: elles sont parallèles, pas perpendiculaires.`,{v:'perp'}),
+      NO('sécantes, sans être perpendiculaires',`Même vecteur normal ${VC('BC')}&nbsp;: les deux droites sont parallèles. Comme AB ≠ AC, A n'est pas sur la médiatrice, elles sont distinctes.`,{v:'sec'})],
+      {vt:'tag',key:'pred:X==("conf" if same(lpn(A,vec(B,C)),lpn(mid(B,C),vec(B,C))) else "par")',onOk:async()=>{await S.paintLine('m',Mbc,{col:C.v,lab:'Δ',lf:.85,side:-1});cap('Même vecteur normal&nbsp;: deux droites parallèles')}})],
+   done:`h : ${EQL(Hh)} et la médiatrice de [BC] : ${EQL(Mbc)}&nbsp;: même vecteur normal ${VC('BC')}, ce sont deux parallèles.`}}]};
+
+/* ======================= Niveau 4 · Au plus court ======================= */
+const L4={t:'Au plus court',badge:'Projeté orthogonal d\'un point sur une droite',
+ rule:`<p>Le <b>projeté orthogonal</b> de A sur d est le point H de d tel que (AH) ⟂ d. AH est la plus courte distance de A à un point de d.</p>
+ <p>Méthode&nbsp;: 1. un vecteur directeur ${uV} de d est un vecteur normal de (AH)&nbsp;; 2. on écrit l'équation de (AH), qui passe par A&nbsp;; 3. H est l'intersection de d et de (AH)&nbsp;: on résout le système.</p>
+ <p>On peut vérifier&nbsp;: H ∈ d et ${VC('AH')}${NB}·${NB}${uV} = 0. Puis AH = √((x<sub>H</sub> − x<sub>A</sub>)² + (y<sub>H</sub> − y<sub>A</sub>)²).</p>`,
+ qs:[
+ ()=>{const hor=Math.random()<.5,k=ri(-3,3);let A;do A=[ri(-5,5),ri(-4,4)];while((hor?A[1]:A[0])===k);
+  const L=hor?{a:0,b:1,c:-k}:{a:1,b:0,c:-k},H=hor?[A[0],k]:[k,A[1]],dist=Math.abs(hor?A[1]-k:A[0]-k);
+  return{meta:{P:{A},N:{K:k,HOR:hor?1:0}},setup:async()=>{await S.fit([A,H]);lineO('d',L,{lab:'d'});ptO('A',A,'A');S.add('pl',{t:'runner',x:A[0],y:A[1],z:13})},cap0:'Le joueur en A rejoint la ligne au plus court',
+   prompt:`<p>Un joueur est en ${P2('A',A)}. Il rejoint au plus court la ligne d d'équation ${hor?'y':'x'} = ${fmtInt(k)}.</p>`,
+   parts:[pk('Le plus court chemin est perpendiculaire à d. Place le point H où il arrive&nbsp;:','H',H,(x,y)=>(hor?y===k:x===k)?`H est bien sur d, mais (AH) doit être perpendiculaire à d&nbsp;: H a ${hor?'la même abscisse':'la même ordonnée'} que A.`:`H doit être sur la ligne d, d'équation ${hor?'y':'x'} = ${fmtInt(k)}.`,
+      {key:'proj(A,hl(K,HOR))',init:A,onOk:async()=>{S.rm('pl');await S.runTo('pl',A,H,{u:hor?[1,0]:[0,1]});ptO('H',H,'H',{col:C.ok});cap(`H${PC(H)}&nbsp;: le projeté orthogonal de A sur d`)}}),
+    fill(null,'AH = {0}',[B(dist,'sqrt(d2(A,proj(A,hl(K,HOR))))')],`A et H ont ${hor?'la même abscisse':'la même ordonnée'}&nbsp;: AH = |${hor?`${fmtInt(A[1])} ${MI} ${PN(k)}`:`${fmtInt(A[0])} ${MI} ${PN(k)}`}|.`)],
+   done:`H${PC(H)} et AH = ${dist}. Sur une ligne ${hor?'horizontale':'verticale'}, on garde ${hor?'l\'abscisse':'l\'ordonnée'} de A.`}},
+ ()=>{for(;;){const [a,b]=ab({lim:3}),Hh=[ri(-3,3),ri(-2,2)],L=lineP(a,b,Hh),t=pick([1,-1,2,-2]),A=[Hh[0]+t*a,Hh[1]+t*b];if(!inView(A,7,5))continue;
+   const u=[-b,a],K1=[Hh[0]+u[0],Hh[1]+u[1]],K2=[Hh[0]-u[0],Hh[1]-u[1]];if(!inView(K1,7,5)||!inView(K2,7,5))continue;
+   const dk=K=>dot(vec(A,K),u),AH2=d2(A,Hh);
+   return{meta:{P:{A},L:{d:Lr(L)}},setup:async()=>{await S.fit([A,K1,K2]);lineO('d',L,{lab:'d'});ptO('A',A,'A');S.add('pl',{t:'runner',x:A[0],y:A[1],z:13});[Hh,K1,K2].forEach((P,i)=>ptO('k'+i,P,'',{col:C.mut,r:5}))},
+    cap0:'Trois arrivées possibles&nbsp;: laquelle est la plus courte&nbsp;?',
+    prompt:`<p>d : ${EQL(L)}. Le joueur en ${P2('A',A)} rejoint d au plus court. Un vecteur directeur de d est ${uV}${CV(-b,a)}.</p>`,
+    parts:[ch('Il arrive au point H, projeté orthogonal de A sur d&nbsp;:',[
+       OK(PC(Hh),{v:Hh}),
+       NO(PC(K1),`Ce point est sur d, mais ${VC('AK')}${NB}·${NB}${uV} = ${numH(dk(K1))}&nbsp;: le chemin n'est pas perpendiculaire à d.`,{v:K1}),
+       NO(PC(K2),`Ce point est sur d, mais ${VC('AK')}${NB}·${NB}${uV} = ${numH(dk(K2))}&nbsp;: le chemin n'est pas perpendiculaire à d.`,{v:K2})],
+       {vt:'pt',key:'pred:X==proj(A,d)',row:true,onOk:async()=>{segO('g1',A,K1,{dash:true,lab:radH(d2(A,K1)).replace(/<[^>]+>/g,''),col:'rgba(200,215,255,.4)'});segO('g2',A,K2,{dash:true,col:'rgba(200,215,255,.4)',lab:radH(d2(A,K2)).replace(/<[^>]+>/g,'')});
+         S.rm('pl');await S.runTo('pl',A,Hh,{u});S.upd('k0',{col:C.ok,lab:'H'});cap('Le chemin perpendiculaire est le plus court')}}),
+     fill(null,'AH² = {0}',[B(AH2,'d2(A,proj(A,d))')],`${VC('AH')}${CV(Hh[0]-A[0],Hh[1]-A[1])}, donc AH² = ${PN(Hh[0]-A[0])}² + ${PN(Hh[1]-A[1])}².`)],
+    done:`H${PC(Hh)} et AH = ${radH(AH2)}. Les autres arrivées sont plus loin&nbsp;: ${radH(d2(A,K1))} et ${radH(d2(A,K2))}.`}}},
+ ()=>{for(;;){const [a,b]=ab({lim:3}),Hh=[ri(-3,3),ri(-2,2)],L=lineP(a,b,Hh),t=pick([1,-1,2,-2]),A=[Hh[0]+t*a,Hh[1]+t*b];if(!inView(A,7,5))continue;
+   const M=lineP(-b,a,A);
+   return{meta:{P:{A},L:{d:Lr(L)}},setup:async()=>{await S.fit([A,Hh,[Hh[0]-b,Hh[1]+a]]);lineO('d',L,{lab:'d'});ptO('A',A,'A');S.add('pl',{t:'runner',x:A[0],y:A[1],z:13})},cap0:'Le joueur en A rejoint d au plus court',
+    prompt:`<p>d : ${EQL(L)}. On cherche le projeté orthogonal H de ${P2('A',A)} sur d.</p>`,
+    parts:[fill('1. Un vecteur directeur de d (celui du cours)&nbsp;:',`${uV} ${CV('{0}','{1}')}`,[B(-b,'dirv(d)[0]'),B(a,'dirv(d)[1]')],`Pour ax + by + c = 0, le cours donne ${uV}${CV(MI+'b','a')}&nbsp;: ici a = ${fmtInt(a)} et b = ${fmtInt(b)}.`,{small:true}),
+     fill(`2. (AH) ⟂ d&nbsp;: ${uV}${CV(-b,a)} est normal à (AH), qui passe par A.`,`(AH) : ${lin([[-b,'x'],[a,'y']])} + {0} = 0`,[B(M.c,'lpn(A,dirv(d))[2]')],`A est sur (AH)&nbsp;: ${subst(-b,a,0,A)} + c = 0.`,
+       {onOk:async()=>{await S.paintLine('e',M,{col:C.v,lab:'(AH)',nv:[-b,a],nlab:'u',anchor:A,keepN:false});cap(`(AH) : ${EQL(M)}`)}}),
+     pk('3. H est l\'intersection de d et de (AH). Place H&nbsp;:','H',Hh,(x,y)=>{const P=[x,y],o1=onL(L,P),o2=onL(M,P);return o1&&!o2?'Ce point est sur d, mais pas sur (AH).':!o1&&o2?'Ce point est sur (AH), mais pas sur d.':'H doit être à la fois sur d et sur (AH)&nbsp;: c\'est leur point d\'intersection.'},
+       {key:'proj(A,d)',init:A,onOk:async()=>{S.rm('pl');await S.runTo('pl',A,Hh,{u:[-b,a]});ptO('H',Hh,'H',{col:C.ok});cap(`H${PC(Hh)}`)}})],
+    done:`(AH) : ${EQL(M)}, et H${PC(Hh)} vérifie les deux équations&nbsp;: ${SUB(L,Hh)} = 0 et ${SUB(M,Hh)} = 0.`}}},
+ ()=>{for(;;){const [a,b]=ab({lim:3}),Hh=[ri(-3,3),ri(-2,2)],L=lineP(a,b,Hh),t=pick([1,-1,2,-2]),A=[Hh[0]+t*a,Hh[1]+t*b];if(!inView(A,7,5))continue;
+   const M=lineP(-b,a,A),AH2=t*t*(a*a+b*b),dx=Math.abs(Hh[0]-A[0])+Math.abs(Hh[1]-A[1]);
+   const vals=[AH2,AH2*AH2,dx*dx];if(new Set(vals).size<3||isSq(AH2))continue;
+   return{meta:{P:{A},L:{d:Lr(L)}},setup:async()=>{await S.fit([A,Hh,[Hh[0]-b,Hh[1]+a]]);lineO('d',L,{lab:'d'});ptO('A',A,'A');S.add('pl',{t:'runner',x:A[0],y:A[1],z:13})},cap0:'À quelle distance de la ligne est le joueur&nbsp;?',
+    prompt:`<p>d : ${EQL(L)}, de vecteur directeur ${uV}${CV(-b,a)}. Le joueur est en ${P2('A',A)}&nbsp;; H est le projeté orthogonal de A sur d.</p>`,
+    parts:[fill(`(AH) passe par A et a pour vecteur normal ${uV}&nbsp;:`,`(AH) : ${lin([[-b,'x'],[a,'y']])} + {0} = 0`,[B(M.c,'lpn(A,dirv(d))[2]')],`A est sur (AH)&nbsp;: ${subst(-b,a,0,A)} + c = 0.`,
+       {onOk:async()=>{await S.paintLine('e',M,{col:C.v,lab:'(AH)'});cap(`(AH) : ${EQL(M)}`)}}),
+     fill('Résous le système formé par les équations de d et de (AH)&nbsp;:','H({0} ; {1})',[B(Hh[0],'proj(A,d)[0]'),B(Hh[1],'proj(A,d)[1]')],
+       `Système&nbsp;: ${EQL(L)} et ${EQL(M)}. Exprime une inconnue en fonction de l'autre dans une équation, puis remplace dans l'autre.`,
+       {small:true,onOk:async()=>{S.rm('pl');await S.runTo('pl',A,Hh,{u:[-b,a]});ptO('H',Hh,'H',{col:C.ok});cap(`H${PC(Hh)}`)}}),
+     ch('La distance AH vaut&nbsp;:',[
+       OK(radH(AH2),{v:AH2}),
+       NO(String(AH2),`${AH2} est AH²&nbsp;: il reste à prendre la racine carrée.`,{v:AH2*AH2}),
+       NO(String(dx),`On n'ajoute pas les écarts de coordonnées&nbsp;: AH² = (x<sub>H</sub> − x<sub>A</sub>)² + (y<sub>H</sub> − y<sub>A</sub>)².`,{v:dx*dx})],
+       {vt:'rad',key:'pred:X==d2(A,proj(A,d))',row:true})],
+    done:`H${PC(Hh)} et AH² = ${PN(Hh[0]-A[0])}² + ${PN(Hh[1]-A[1])}² = ${AH2}, donc AH = ${radH(AH2)}.`}}},
+ ()=>{for(;;){const [a,b]=ab({lim:3,min2:5}),P=[ri(-2,2),ri(-2,2)],L=lineP(a,b,P),A=[ri(-4,4),ri(-3,4)];if(onL(L,A))continue;const H=proj(A,L);if(isIntP(H)||!inView(H,6,5))continue;
+   const M=lineP(-b,a,A),AH2=d2(A,H);
+   return{meta:{P:{A},L:{d:Lr(L)}},setup:async()=>{await S.fit([A,H.map(val),P]);lineO('d',L,{lab:'d'});ptO('A',A,'A');S.add('pl',{t:'runner',x:A[0],y:A[1],z:13})},cap0:'Cette fois, H n\'est pas sur un nœud du quadrillage',
+    prompt:`<p>d : ${EQL(L)}. On cherche le projeté orthogonal H de ${P2('A',A)} sur d.</p>`,
+    parts:[fill(`(AH) a pour vecteur normal ${uV}${CV(-b,a)}, directeur de d&nbsp;:`,`(AH) : ${lin([[-b,'x'],[a,'y']])} + {0} = 0`,[B(M.c,'lpn(A,dirv(d))[2]')],`A est sur (AH)&nbsp;: ${subst(-b,a,0,A)} + c = 0.`,
+       {onOk:async()=>{await S.paintLine('e',M,{col:C.v,lab:'(AH)'});cap(`(AH) : ${EQL(M)}`)}}),
+     fill('Résous le système (fractions acceptées, comme 7/5)&nbsp;:','H({0} ; {1})',[B(H[0],'proj(A,d)[0]'),B(H[1],'proj(A,d)[1]')],
+       `Système&nbsp;: ${EQL(L)} et ${EQL(M)}. Exprime une inconnue en fonction de l'autre, remplace, et garde les fractions.`,
+       {onOk:async()=>{S.rm('pl');await S.runTo('pl',A,H,{u:[-b,a]});ptO('H',H,'H',{col:C.ok});cap(`H${PC(H)}`)}}),
+     fill(null,'AH² = {0}',[B(AH2,'d2(A,proj(A,d))')],`AH² = (x<sub>H</sub> − x<sub>A</sub>)² + (y<sub>H</sub> − y<sub>A</sub>)² = ${PN(sub(H[0],A[0]))}² + ${PN(sub(H[1],A[1]))}².`)],
+    done:`H${PC(H)}, AH² = ${numH(AH2)}, donc AH = ${radH(AH2)}.`}}}]};
+
+/* ======================= Niveau 5 · La corde ======================= */
+const POS={sur:'sur le cercle',dedans:'à l\'intérieur du cercle',dehors:'à l\'extérieur du cercle'};
+const L5={t:'La corde',badge:'Cercle donné par son centre et son rayon',
+ rule:`<p>Le cercle 𝒞 de centre Ω(α ; β) et de rayon r &gt; 0 est l'ensemble des points M tels que ΩM = r, c'est-à-dire ΩM² = r².</p>
+ <p>Son équation&nbsp;: <b>(x − α)² + (y − β)² = r²</b> (forme canonique). Développée&nbsp;: x² + y² − 2αx − 2βy + (α² + β² − r²) = 0.</p>
+ <p>M est sur 𝒞 si ΩM² = r², à l'intérieur si ΩM² &lt; r², à l'extérieur si ΩM² &gt; r².</p>
+ <p>Le cercle de diamètre [AB] a pour centre le milieu de [AB] et pour rayon ${frH('AB','2')}.</p>`,
+ qs:[
+ ()=>{const O=[nz(-3,3),nz(-2,2)],r=ri(2,4);
+  const chs=[OK(CIRC(O[0],O[1],r*r),{v:[O[0],O[1],r*r]}),NO(CIRC(-O[0],-O[1],r*r),`Piège des signes&nbsp;: pour α = ${fmtInt(O[0])}, on écrit ${sqx('x',O[0])}.`,{v:[-O[0],-O[1],r*r]}),
+    NO(CIRC(O[0],O[1],r),`Le second membre est r², c'est-à-dire ${r}² = ${r*r}, pas ${r}.`,{v:[O[0],O[1],r]})];
+  if(O[0]!==O[1]&&O[0]!==-O[1])chs.push(NO(CIRC(O[1],O[0],r*r),`x va avec l'abscisse du centre, y avec son ordonnée.`,{v:[O[1],O[0],r*r]}));
+  return{meta:{P:{O},N:{R:r}},setup:()=>S.fit([[O[0]-r,O[1]-r],[O[0]+r,O[1]+r]],1),cap0:'Le terrain attend son cercle',
+   prompt:`<p>Pour peindre le cercle 𝒞 de centre ${P2('Ω',O)} et de rayon ${r}, on plante un piquet en Ω et on tend une corde de longueur ${r}.</p>`,
+   parts:[pk('Plante le piquet au centre Ω&nbsp;:','Ω',O,(x,y)=>x===O[1]&&y===O[0]?'Tu as échangé abscisse et ordonnée&nbsp;: on lit d\'abord x, puis y.':'Relis les coordonnées de Ω dans l\'énoncé&nbsp;: la première se lit sur l\'axe horizontal, la seconde sur l\'axe vertical.',
+      {key:'O',init:[0,0],onOk:async()=>{S.add('c~s',{t:'stake',x:O[0],y:O[1],z:11,lab:'Ω'});cap('Le piquet est planté')}}),
+    act('Tendre la corde et tracer',async()=>{await S.ropeCircle('c',O,r,{rlab:'r = '+r});cap(`Tous les points du cercle sont à ${r} de Ω`)},{doneLabel:'Cercle tracé'}),
+    ch('Une équation de 𝒞 est&nbsp;:',chs,{vt:'circ',key:'pred:X==circ(O,R*R)'})],
+   done:`𝒞 : ${CIRC(O[0],O[1],r*r)}&nbsp;: M(x ; y) est sur 𝒞 exactement quand ΩM² = ${r}².`}},
+ ()=>{const O=[ri(-2,2),ri(-1,1)],r=pick([2,3,4,5]),kind=pick(['sur','dedans','dehors']),pool=[];
+  for(let x=-r-2;x<=r+2;x++)for(let y=-r-2;y<=r+2;y++){const s=x*x+y*y;if(kind==='sur'?s===r*r:kind==='dedans'?(s<r*r&&s>=Math.max(1,r*r-2*r)):(s>r*r&&s<=r*r+2*r+1))pool.push([x,y])}
+  const v=pick(pool),M=[O[0]+v[0],O[1]+v[1]],s=v[0]*v[0]+v[1]*v[1];
+  return{meta:{P:{O,M},N:{R:r}},setup:async()=>{await S.fit([[O[0]-r,O[1]-r],[O[0]+r,O[1]+r],M],1);S.add('c~s',{t:'stake',x:O[0],y:O[1],z:11,lab:'Ω'});S.add('c',{t:'circ',cx:O[0],cy:O[1],r,z:2});ptO('M',M,'M',{col:C.v})},
+   cap0:`𝒞 : ${CIRC(O[0],O[1],r*r)}`,
+   prompt:`<p>Le cercle peint a pour équation ${CIRC(O[0],O[1],r*r)}. Un ballon est posé en ${P2('M',M)}.</p>`,
+   parts:[fill('Remplace x et y par les coordonnées de M dans le premier membre&nbsp;:',`${sqn(M[0],O[0])} + ${sqn(M[1],O[1])} = {0}`,[B(s,'d2(O,M)')],
+      `Calcule chaque parenthèse avant d'élever au carré&nbsp;: ${PN(v[0])}² + ${PN(v[1])}².`),
+    ch(`Le second membre vaut r² = ${r*r}. Le ballon est donc&nbsp;:`,['sur','dedans','dehors'].map(k=>k===kind?OK(POS[k],{v:k}):NO(POS[k],`ΩM² = ${s} et r² = ${r*r}&nbsp;: ${s<r*r?'ΩM² &lt; r², M est plus près de Ω que la corde.':s>r*r?'ΩM² &gt; r², M est plus loin de Ω que la corde.':'ΩM² = r², M vérifie l\'équation.'}`,{v:k})),
+      {vt:'tag',key:'pred:X==pos(M,circ(O,R*R))',onOk:async()=>{S.add('rp',{t:'rope',x1:O[0],y1:O[1],x2:O[0],y2:O[1],z:9});await S.tw([['rp',{x2:M[0],y2:M[1]}]],700);cap(`ΩM² = ${s}${s===r*r?' = ':s<r*r?' &lt; ':' &gt; '}${r*r} = r²`)}})],
+   done:`ΩM² = ${PN(v[0])}² + ${PN(v[1])}² = ${s} ${s===r*r?'=':s<r*r?'&lt;':'&gt;'} ${r*r}&nbsp;: M est ${POS[kind]}.`}},
+ ()=>{let O,v,A;for(;;){O=[nz(-3,3),nz(-2,2)];v=[ri(-4,4),ri(-3,3)];if(!v[0]||!v[1])continue;A=[O[0]+v[0],O[1]+v[1]];if(A[0]===-O[0]&&A[1]===-O[1])continue;if(inView(A,7,5))break}
+  const r2=v[0]*v[0]+v[1]*v[1];
+  return{meta:{P:{O,A}},setup:async()=>{const r=Math.sqrt(r2);await S.fit([[O[0]-r,O[1]-r],[O[0]+r,O[1]+r]],.8);S.add('c~s',{t:'stake',x:O[0],y:O[1],z:11,lab:'Ω'});ptO('A',A,'A')},cap0:'La corde doit aller du piquet jusqu\'à A',
+   prompt:`<p>On veut peindre le cercle 𝒞 de centre ${P2('Ω',O)} qui passe par ${P2('A',A)}.</p>`,
+   parts:[fill('Le rayon est ΩA&nbsp;:','r² = ΩA² = {0}',[B(r2,'d2(O,A)')],`ΩA² = (x<sub>A</sub> − x<sub>Ω</sub>)² + (y<sub>A</sub> − y<sub>Ω</sub>)² = ${PN(v[0])}² + ${PN(v[1])}².`,
+      {onOk:async()=>{await S.ropeCircle('c',O,Math.sqrt(r2),{ang:Math.atan2(v[1],v[0]),rlab:'r'});cap(`r = ${radH(r2)}`)}}),
+    ch('Une équation de 𝒞 est&nbsp;:',[OK(CIRC(O[0],O[1],r2),{v:[O[0],O[1],r2]}),NO(CIRC(-O[0],-O[1],r2),`Piège des signes&nbsp;: le centre Ω${PC(O)} donne ${sqx('x',O[0])} et ${sqx('y',O[1])}.`,{v:[-O[0],-O[1],r2]}),
+      NO(CIRC(A[0],A[1],r2),'Le centre du cercle est Ω, pas A&nbsp;: A est un point du cercle.',{v:[A[0],A[1],r2]})],{vt:'circ',key:'pred:X==circ(O,d2(O,A))'})],
+   done:`𝒞 : ${CIRC(O[0],O[1],r2)}, de rayon ${radH(r2)}.`}},
+ ()=>{let O,r2;for(;;){O=[nz(-4,4),nz(-3,3)];r2=ri(4,40);if(O[0]*O[0]+O[1]*O[1]!==r2)break}
+  const A=-2*O[0],Bc=-2*O[1],Cc=O[0]*O[0]+O[1]*O[1]-r2;
+  return{meta:{P:{O},N:{R2:r2}},setup:()=>{const r=Math.sqrt(r2);return S.fit([[O[0]-r,O[1]-r],[O[0]+r,O[1]+r]],.6)},cap0:'Le plan du terrain demande la forme développée',
+   prompt:`<p>Le cercle 𝒞 a pour centre ${P2('Ω',O)} et pour rayon ${radH(r2)}.</p>`,
+   parts:[act('Planter le piquet et tracer',async()=>{await S.ropeCircle('c',O,Math.sqrt(r2),{rlab:'r'});cap(`𝒞 : ${CIRC(O[0],O[1],r2)}`)},{doneLabel:'Cercle tracé'}),
+    fill('Développe et réduis l\'équation de 𝒞&nbsp;:',`${CIRC(O[0],O[1],r2)} ⇔ x² + y² + {0}x + {1}y + {2} = 0`,[B(A,'dev(circ(O,R2))[0]'),B(Bc,'dev(circ(O,R2))[1]'),B(Cc,'dev(circ(O,R2))[2]')],
+      `${sqx('x',O[0])} = ${lin([[1,'x²'],[A,'x'],[O[0]*O[0],'']])} et ${sqx('y',O[1])} = ${lin([[1,'y²'],[Bc,'y'],[O[1]*O[1],'']])}&nbsp;; puis on fait passer ${r2} dans le premier membre.`,{small:true})],
+   done:`${CIRC(O[0],O[1],r2)} ⇔ ${DEV(A,Bc,Cc)}&nbsp;: le terme constant vaut ${O[0]*O[0]} + ${O[1]*O[1]} ${MI} ${r2} = ${fmtInt(Cc)}.`}},
+ ()=>{let A,w,Bp;for(;;){A=[ri(-5,1),ri(-3,1)];w=[nz(-3,3),nz(-2,2)];Bp=[A[0]+2*w[0],A[1]+2*w[1]];if(inView(Bp,6,4))break}
+  const I=[A[0]+w[0],A[1]+w[1]],r2=w[0]*w[0]+w[1]*w[1],r=Math.sqrt(r2);
+  return{meta:{P:{A,B:Bp}},setup:async()=>{await S.fit([A,Bp,[I[0]-r,I[1]-r],[I[0]+r,I[1]+r]],.8);ptO('A',A,'A');ptO('B',Bp,'B');segO('ab',A,Bp,{dash:true})},cap0:'Un cercle de diamètre [AB]',
+   prompt:`<p>On veut peindre le cercle 𝒞 de diamètre [AB], avec ${P2('A',A)} et ${P2('B',Bp)}.</p>`,
+   parts:[pk('Le centre est le milieu I de [AB]. Plante le piquet en I&nbsp;:','I',I,(x,y)=>`I a pour coordonnées ${frH('x<sub>A</sub> + x<sub>B</sub>','2')} et ${frH('y<sub>A</sub> + y<sub>B</sub>','2')}&nbsp;: (${fmtInt(A[0])} + ${PN(Bp[0])}) ÷ 2 et (${fmtInt(A[1])} + ${PN(Bp[1])}) ÷ 2.`,
+      {key:'mid(A,B)',init:[0,0],onOk:async()=>{S.add('c~s',{t:'stake',x:I[0],y:I[1],z:11,lab:'I'});cap(`I${PC(I)}`)}}),
+    fill('Le rayon est IA&nbsp;:','r² = IA² = {0}',[B(r2,'d2(mid(A,B),A)')],`${VC('IA')}${CV(-w[0],-w[1])}, donc IA² = ${PN(-w[0])}² + ${PN(-w[1])}².`,
+      {onOk:async()=>{await S.ropeCircle('c',I,r,{slab:'I',ang:Math.atan2(-w[1],-w[0]),rlab:null});cap(`𝒞 : ${CIRC(I[0],I[1],r2)}`)}}),
+    act('Faire tourner un point M sur le cercle',async()=>{ptO('M',[I[0],I[1]+r],'M',{col:C.v,z:12});S.add('ma',{t:'seg',x1:0,y1:0,x2:A[0],y2:A[1],col:C.v,w:2.4,z:3});S.add('mb',{t:'seg',x1:0,y1:0,x2:Bp[0],y2:Bp[1],col:C.v,w:2.4,z:3});
+      S.add('rm',{t:'right',x:0,y:0,ux:1,uy:0,vx:0,vy:1,z:6});const t0=Math.atan2(-w[1],-w[0]);
+      await S.tw([],3000,{lin:true,each:e=>{const t=t0+Math.PI/2+e*2*Math.PI,x=I[0]+r*Math.cos(t),y=I[1]+r*Math.sin(t);S.objs.M.x=x;S.objs.M.y=y;
+        Object.assign(S.objs.ma,{x1:x,y1:y});Object.assign(S.objs.mb,{x1:x,y1:y});Object.assign(S.objs.rm,{x,y,ux:A[0]-x,uy:A[1]-y,vx:Bp[0]-x,vy:Bp[1]-y})}});
+      cap('L\'angle en M reste droit&nbsp;!')},{doneLabel:'Vu'}),
+    ch('Pour tout point M de 𝒞 distinct de A et de B, le triangle AMB est&nbsp;:',[OK('rectangle en M',{v:'rect'}),NO('isocèle en M','MA et MB changent quand M tourne&nbsp;: ce qui ne change pas, c\'est l\'angle droit en M.',{v:'iso'}),NO('équilatéral','AB est un diamètre&nbsp;: c\'est le plus long côté, l\'angle en M est droit.',{v:'equi'})],
+      {vt:'tag',key:'pred:X=="rect"'})],
+   done:`Centre I${PC(I)}, r² = ${r2}&nbsp;: ${CIRC(I[0],I[1],r2)}. Pour M sur ce cercle, ${VC('MA')}${NB}·${NB}${VC('MB')} = 0&nbsp;: AMB est rectangle en M.`}}]};
+
+/* ======================= Niveau 6 · Retrouver le piquet ======================= */
+const NAT={cercle:'un cercle',point:'un seul point',vide:'l\'ensemble vide'};
+const L6={t:'Retrouver le piquet',badge:'Reconnaître une équation de cercle',
+ rule:`<p>(x − α)² + (y − β)² = r² est le cercle de centre Ω(α ; β) et de rayon r. Attention aux signes&nbsp;: (x + 2)² = (x − (−2))², donc α = −2.</p>
+ <p>Pour x² + y² + ax + by + c = 0, on <b>complète les carrés</b>&nbsp;: x² − 6x = (x − 3)² − 9 et y² + 8y = (y + 4)² − 16.</p>
+ <p>On obtient (x − α)² + (y − β)² = k&nbsp;: si k &gt; 0, c'est le cercle de centre Ω(α ; β) et de rayon √k&nbsp;; si k = 0, c'est le seul point Ω&nbsp;; si k &lt; 0, c'est l'ensemble vide.</p>`,
+ qs:[
+ ()=>{const O=[nz(-4,4),nz(-3,3)],r=ri(2,5);
+  return{meta:{Q:{c:[O[0],O[1],r*r]}},setup:()=>S.fit([[O[0]-r,O[1]-r],[O[0]+r,O[1]+r]],.6),cap0:'Où planter le piquet&nbsp;?',
+   prompt:`<p>Le plan du terrain indique le cercle 𝒞 d'équation ${CIRC(O[0],O[1],r*r)}.</p>`,
+   parts:[pk('Plante le piquet au centre de 𝒞&nbsp;:','Ω',O,(x,y)=>x===-O[0]&&y===-O[1]?`Piège des signes&nbsp;: ${sqx('x',O[0])} = (x − ${PN(O[0])})², donc α = ${fmtInt(O[0])}&nbsp;; de même β = ${fmtInt(O[1])}.`:`Écris l'équation sous la forme (x − α)² + (y − β)² = r²&nbsp;: Ω(α ; β).`,
+      {key:'c[:2]',init:[0,0],onOk:async()=>{S.add('c~s',{t:'stake',x:O[0],y:O[1],z:11,lab:'Ω'});cap(`Ω${PC(O)}`)}}),
+    fill('Longueur de la corde&nbsp;:','r = {0}',[B(r,'sqrt(c[2])')],vs=>vs[0]&&eq(vs[0],r*r)?`${r*r} est r²&nbsp;: le rayon est sa racine carrée.`:`Le second membre est r² = ${r*r}.`,
+      {onOk:async()=>{await S.ropeCircle('c',O,r,{rlab:'r = '+r});cap(`Centre Ω${PC(O)}, rayon ${r}`)}})],
+   done:`${CIRC(O[0],O[1],r*r)}&nbsp;: centre Ω${PC(O)} et rayon √${r*r} = ${r}.`}},
+ ()=>{const O=[nz(-4,4),nz(-3,3)],r2=pick([4,9,16,5,10,13,8,20]),A=-2*O[0],Bc=-2*O[1],Cc=O[0]*O[0]+O[1]*O[1]-r2;
+  const tx=O[0]>0?`x² ${MI} ${2*O[0]}x = (x ${MI} {0})² ${MI} {1}`:`x² + ${-2*O[0]}x = (x + {0})² ${MI} {1}`,ty=O[1]>0?`y² ${MI} ${2*O[1]}y = (y ${MI} {0})² ${MI} {1}`:`y² + ${-2*O[1]}y = (y + {0})² ${MI} {1}`;
+  return{meta:{E:{E:[1,A,Bc,Cc]}},setup:async()=>{const r=Math.sqrt(r2);await S.fit([[O[0]-r,O[1]-r],[O[0]+r,O[1]+r]],.6);S.add('c~s',{t:'stake',x:0,y:0,z:11,lab:'?'})},cap0:'Le piquet attend à l\'origine',
+   prompt:`<p>Le plan indique ${DEV(A,Bc,Cc)}. On complète les carrés pour retrouver le centre.</p>`,
+   parts:[fill('Les termes en x&nbsp;:',tx,[B(Math.abs(O[0]),'abs(undev(E)[0])'),B(O[0]*O[0],'undev(E)[0]**2')],`On prend la moitié du coefficient de x&nbsp;: ${Math.abs(O[0])}, puis on retire son carré ${O[0]*O[0]}.`,
+      {small:true,onOk:async()=>{await S.tw([['c~s',{x:O[0]}]],700);cap(`Le piquet glisse jusqu'à x = ${fmtInt(O[0])}`)}}),
+    fill('Les termes en y&nbsp;:',ty,[B(Math.abs(O[1]),'abs(undev(E)[1])'),B(O[1]*O[1],'undev(E)[1]**2')],`La moitié du coefficient de y est ${Math.abs(O[1])}&nbsp;; on retire son carré ${O[1]*O[1]}.`,
+      {small:true,onOk:async()=>{await S.tw([['c~s',{y:O[1]}]],700);S.upd('c~s',{lab:'Ω'});cap(`Le piquet est en Ω${PC(O)}`)}}),
+    fill('L\'équation devient&nbsp;:',`${sqx('x',O[0])} + ${sqx('y',O[1])} = {0}`,[B(r2,'undev(E)[2]')],`On fait passer les nombres à droite&nbsp;: ${O[0]*O[0]} + ${O[1]*O[1]} ${Cc<0?'+':MI} ${Math.abs(Cc)}.`,
+      {onOk:async()=>{await S.ropeCircle('c',O,Math.sqrt(r2),{rlab:'r'});cap(`Centre Ω${PC(O)}, rayon ${radH(r2)}`)}})],
+   done:`${DEV(A,Bc,Cc)} ⇔ ${CIRC(O[0],O[1],r2)}&nbsp;: cercle de centre Ω${PC(O)} et de rayon ${radH(r2)}.`}},
+ ()=>{let O,r2;for(;;){O=[nz(-4,4),nz(-3,3)];r2=ri(3,30);if(O[0]*O[0]+O[1]*O[1]!==r2)break}
+  const A=-2*O[0],Bc=-2*O[1],Cc=O[0]*O[0]+O[1]*O[1]-r2;
+  return{meta:{E:{E:[1,A,Bc,Cc]}},setup:()=>{const r=Math.sqrt(r2);return S.fit([[O[0]-r,O[1]-r],[O[0]+r,O[1]+r]],.6)},cap0:'Où planter le piquet&nbsp;?',
+   prompt:`<p>𝒞 : ${DEV(A,Bc,Cc)}.</p>`,
+   parts:[ch('Le centre de 𝒞 est&nbsp;:',[OK(PC(O),{v:O}),NO(PC([-O[0],-O[1]]),`Piège des signes&nbsp;: x² ${A<0?MI:'+'} ${Math.abs(A)}x = ${sqx('x',O[0])} − ${O[0]*O[0]}, donc α = ${fmtInt(O[0])}.`,{v:[-O[0],-O[1]]}),
+      NO(PC([A,Bc]),`On prend la <b>moitié</b> des coefficients de x et de y, avec le signe contraire&nbsp;: α = ${frH(MI+'('+fmtInt(A)+')','2')}.`,{v:[A,Bc]})],
+      {vt:'pt',key:'pred:X==undev(E)[:2]',row:true,onOk:async()=>{S.add('c~s',{t:'stake',x:O[0],y:O[1],z:11,lab:'Ω'});cap(`Ω${PC(O)}`)}}),
+    fill('Et le rayon&nbsp;:','r² = {0}',[B(r2,'undev(E)[2]')],`${sqx('x',O[0])} + ${sqx('y',O[1])} = ${O[0]*O[0]} + ${O[1]*O[1]} ${Cc<0?'+':MI} ${Math.abs(Cc)}.`,
+      {onOk:async()=>{await S.ropeCircle('c',O,Math.sqrt(r2),{rlab:'r'});cap(`r = ${radH(r2)}`)}})],
+   done:`${DEV(A,Bc,Cc)} ⇔ ${CIRC(O[0],O[1],r2)}&nbsp;: Ω${PC(O)} et r = ${radH(r2)}.`}},
+ ()=>{const O=[nz(-3,3),nz(-3,3)],kind=pick(['cercle','point','vide']),k=kind==='cercle'?pick([1,4,9,5,10]):kind==='point'?0:-ri(1,9);
+  const A=-2*O[0],Bc=-2*O[1],Cc=O[0]*O[0]+O[1]*O[1]-k;
+  return{meta:{E:{E:[1,A,Bc,Cc]}},setup:async()=>{await S.fit([[O[0]-2,O[1]-2],[O[0]+2,O[1]+2]],.8)},cap0:'Cercle, point… ou rien du tout&nbsp;?',
+   prompt:`<p>Le plan indique ${DEV(A,Bc,Cc)}.</p>`,
+   parts:[fill('Complète les carrés&nbsp;:',`${sqx('x',O[0])} + ${sqx('y',O[1])} = {0}`,[B(k,'undev(E)[2]')],`${lin([[1,'x²'],[A,'x']])} = ${sqx('x',O[0])} − ${O[0]*O[0]} et ${lin([[1,'y²'],[Bc,'y']])} = ${sqx('y',O[1])} − ${O[1]*O[1]}&nbsp;; puis k = ${O[0]*O[0]} + ${O[1]*O[1]} ${Cc<0?'+':MI} ${Math.abs(Cc)}.`,
+      {hint:'Le résultat peut être négatif ou nul.',onOk:async()=>{S.add('c~s',{t:'stake',x:O[0],y:O[1],z:11,lab:'Ω'})}}),
+    ch('Cette équation décrit&nbsp;:',['cercle','point','vide'].map(t=>t===kind?OK(NAT[t],{v:t}):NO(NAT[t],k>0?`Le second membre ${k} est positif&nbsp;: c'est un cercle de rayon ${radH(k)}.`:k===0?'Une somme de deux carrés est nulle seulement si les deux carrés sont nuls&nbsp;: x = α et y = β, un seul point.':`Une somme de carrés ne peut pas valoir ${k}&nbsp;: aucun point ne vérifie l'équation.`,{v:t})),
+      {vt:'tag',key:'pred:X==nat(undev(E)[2])',onOk:async()=>{if(kind==='cercle'){await S.ropeCircle('c',O,Math.sqrt(k),{rlab:'r'});cap(`Un cercle de rayon ${radH(k)}`)}
+        else if(kind==='point'){S.add('c~p',{t:'pt',x:O[0],y:O[1],r:8,ring:true,col:C.gold,z:12});cap('Un seul point&nbsp;: Ω')}
+        else{S.add('c~x',{t:'rope',x1:O[0],y1:O[1],x2:O[0],y2:O[1],col:C.ko,z:9});await S.tw([['c~x',{x2:O[0]+1.2}]],300);await S.tw([['c~x',{x2:O[0]}]],300);cap(`r² = ${k}&nbsp;: aucune corde n'a cette longueur`)}}})],
+   done:`${DEV(A,Bc,Cc)} ⇔ ${sqx('x',O[0])} + ${sqx('y',O[1])} = ${k}&nbsp;: ${k>0?`cercle de centre Ω${PC(O)} et de rayon ${radH(k)}.`:k===0?`le seul point Ω${PC(O)}.`:'l\'ensemble vide.'}`}},
+ ()=>{const odd=Math.random()<.5;let O,r2,E,kk=1;
+  if(odd){for(;;){const p=pick([-5,-3,-1,1,3,5]),q=ri(-3,3),half=Math.random()<.5;O=[R(p,2),half&&q%2?R(q,2):R(q)];if(isZ(O[1])&&!half)continue;const Cc=ri(-6,3);r2=sub(add(mul(O[0],O[0]),mul(O[1],O[1])),Cc);if(r2.n<=0)continue;E=[1,-p,neg(mul(2,O[1])),Cc];break}}
+  else{kk=pick([2,3]);O=[R(nz(-3,3)),R(nz(-3,3))];const k2=pick([4,9,5,10,13]);r2=R(k2);const A=-2*O[0].n,Bc=-2*O[1].n,Cc=O[0].n**2+O[1].n**2-k2;E=[kk,kk*A,kk*Bc,kk*Cc]}
+  const eqH=DEV(E[1],E[2],E[3],E[0]);
+  return{meta:{E:{E}},setup:()=>{const r=Math.sqrt(val(r2)),o=O.map(val);return S.fit([[o[0]-r,o[1]-r],[o[0]+r,o[1]+r]],.6)},cap0:odd?'Un centre entre deux nœuds du quadrillage':'Une équation à simplifier d\'abord',
+   prompt:`<p>Le plan indique ${eqH}.</p>${kk>1?`<p>Commence par diviser les deux membres par ${kk}.</p>`:''}`,
+   parts:[fill('Le centre (fractions acceptées)&nbsp;:','Ω({0} ; {1})',[B(O[0],'undev(E)[0]'),B(O[1],'undev(E)[1]')],kk>1?`Divise par ${kk}&nbsp;: ${DEV(div(E[1],kk),div(E[2],kk),div(E[3],kk))}. Puis α est la moitié du coefficient de x, avec le signe contraire.`:`α est la moitié du coefficient de x, avec le signe contraire&nbsp;: α = ${frH(MI+'('+numH(E[1])+')','2')}.`,
+      {onOk:async()=>{S.add('c~s',{t:'stake',x:val(O[0]),y:val(O[1]),z:11,lab:'Ω'});cap(`Ω${PC(O)}`)}}),
+    fill('Le rayon&nbsp;:','r² = {0}',[B(r2,'undev(E)[2]')],`r² = α² + β² ${MI} (terme constant${kk>1?' après division':''}) = ${[mul(O[0],O[0]),mul(O[1],O[1])].filter(x=>!isZ(x)).map(numH).join(' + ')} ${MI} ${PN(div(E[3],kk))}.`,
+      {onOk:async()=>{await S.ropeCircle('c',O.map(val),Math.sqrt(val(r2)),{rlab:'r'});cap(`r = ${radH(r2)}`)}})],
+   done:`${eqH} ⇔ ${CIRC(O[0],O[1],r2)}&nbsp;: Ω${PC(O)} et r = ${radH(r2)}.`}}]};
+
+/* ======================= Niveau 7 · Le plan du terrain ======================= */
+const L7={t:'Le plan du terrain',badge:'Utiliser un repère pour étudier une configuration',
+ rule:`<p>On réinvestit tout&nbsp;: vecteur normal, équation d'une droite par un point et un vecteur normal, projeté orthogonal, équation de cercle.</p>
+ <p>M est sur le cercle de diamètre [AB] ⇔ ${VC('MA')}${NB}·${NB}${VC('MB')} = 0.</p>
+ <p>Un triangle rectangle est inscrit dans le cercle dont le diamètre est son hypoténuse.</p>`,
+ qs:[
+ ()=>{let A,Bp,Cp,Hh,w,m;for(;;){Bp=[ri(-6,-2),ri(-4,-1)];w=ab({lim:3});if(w[0]<0)w=[-w[0],-w[1]];m=ri(3,4);Cp=[Bp[0]+m*w[0],Bp[1]+m*w[1]];const s=ri(1,m-1);Hh=[Bp[0]+s*w[0],Bp[1]+s*w[1]];
+    const t=pick([1,2,-1,-2]);A=[Hh[0]-t*w[1],Hh[1]+t*w[0]];if(inView(A,7,5)&&inView(Cp,7,5))break}
+  const lBC=lineP(w[1],-w[0],Bp),n=vec(Bp,Cp).map(val),Hl=lineP(n[0],n[1],A),AB=vec(A,Bp).map(val);
+  return{meta:{P:{A,B:Bp,C:Cp},L:{BC:Lr(lBC)}},setup:async()=>{await S.fit([A,Bp,Cp]);segO('t1',A,Bp);segO('t3',Cp,A);lineO('bc',lBC,{col:'rgba(200,215,255,.6)',w:2.4,lab:'(BC)',lf:.95});ptO('A',A,'A');ptO('B',Bp,'B',{lx:-15,ly:22});ptO('C',Cp,'C',{ly:22})},
+   cap0:'Le pied de la hauteur issue de A',
+   prompt:`<p>Triangle ABC&nbsp;: ${P2('A',A)}, ${P2('B',Bp)}, ${P2('C',Cp)}. La droite (BC) a pour équation ${EQL(lBC)}.</p>`,
+   parts:[ch('Un vecteur normal à la hauteur issue de A&nbsp;:',[OK(`${VC('BC')}${CV(n[0],n[1])}`,{v:n}),NO(CV(w[1],-w[0]),`${CV(w[1],-w[0])} est normal à (BC)&nbsp;: il est donc parallèle à la hauteur, il la dirige.`,{v:[w[1],-w[0]]}),
+      NO(`${VC('AB')}${CV(AB[0],AB[1])}`,'La hauteur issue de A est perpendiculaire à (BC), pas à (AB).',{v:AB})],{vt:'vec',key:'pred:colin(X,vec(B,C))'}),
+    fill(null,`Hauteur : ${lin([[n[0],'x'],[n[1],'y']])} + {0} = 0`,[B(Hl.c,'lpn(A,vec(B,C))[2]')],`A est sur la hauteur&nbsp;: ${subst(n[0],n[1],0,A)} + c = 0.`,
+      {onOk:async()=>{await S.paintLine('h',Hl,{lab:'h',lf:.1});cap(`h : ${EQL(Hl)}`)}}),
+    fill('Le pied H de la hauteur est l\'intersection de (BC) et de la hauteur&nbsp;:','H({0} ; {1})',[B(Hh[0],'proj(A,lpd(B,vec(B,C)))[0]'),B(Hh[1],'proj(A,lpd(B,vec(B,C)))[1]')],
+      `Résous le système&nbsp;: ${EQL(lBC)} et ${EQL(Hl)}.`,{small:true,onOk:async()=>{ptO('H',Hh,'H',{col:C.ok});rightO('ra',Hh,w,[A[0]-Hh[0],A[1]-Hh[1]]);S.SND.zero();cap(`H${PC(Hh)} est le projeté orthogonal de A sur (BC)`)}})],
+   done:`Hauteur : ${EQL(Hl)}. Son pied H${PC(Hh)} est le projeté orthogonal de A sur (BC).`}},
+ ()=>{let I,v,w,A,Bp,Cp,on;for(;;){I=[ri(-3,3),ri(-2,2)];const r2=pick([5,10,13,25]),Lt=lattice(r2);v=pick(Lt);w=pick(Lt.filter(p=>!(p[0]===v[0]&&p[1]===v[1])&&!(p[0]===-v[0]&&p[1]===-v[1])));
+    A=[I[0]+v[0],I[1]+v[1]];Bp=[I[0]-v[0],I[1]-v[1]];on=Math.random()<.5;Cp=[I[0]+w[0],I[1]+w[1]];if(!on){const e=pick([[1,0],[0,1],[-1,0],[0,-1]]);Cp=[Cp[0]+e[0],Cp[1]+e[1]]}
+    const dd=dot(vec(Cp,A),vec(Cp,Bp));if(on!==isZ(dd))continue;if((Cp[0]===A[0]&&Cp[1]===A[1])||(Cp[0]===Bp[0]&&Cp[1]===Bp[1]))continue;if(inView(A,7,5)&&inView(Bp,7,5)&&inView(Cp,7,5))break}
+  const r2=v[0]*v[0]+v[1]*v[1],CA=vec(Cp,A).map(val),CB=vec(Cp,Bp).map(val),dd=dot(CA,CB);
+  return{meta:{P:{A,B:Bp,C:Cp}},setup:async()=>{const r=Math.sqrt(r2);await S.fit([[I[0]-r,I[1]-r],[I[0]+r,I[1]+r],Cp],.8);ptO('A',A,'A');ptO('B',Bp,'B');ptO('C',Cp,'C',{col:C.v});segO('ab',A,Bp,{dash:true})},cap0:'Le point C est-il sur le cercle de diamètre [AB]&nbsp;?',
+   prompt:`<p>${P2('A',A)}, ${P2('B',Bp)} et ${P2('C',Cp)}. On rappelle&nbsp;: M est sur le cercle de diamètre [AB] ⇔ ${VC('MA')}${NB}·${NB}${VC('MB')} = 0.</p>`,
+   parts:[fill(`Avec ${VC('CA')}${CV(CA[0],CA[1])} et ${VC('CB')}${CV(CB[0],CB[1])}&nbsp;:`,`${VC('CA')}${NB}·${NB}${VC('CB')} = {0}`,[B(dd,'dot(vec(C,A),vec(C,B))')],`${VC('CA')}${NB}·${NB}${VC('CB')} = ${fmtInt(CA[0])} × ${PN(CB[0])} + ${PN(CA[1])} × ${PN(CB[1])}.`),
+    ch('C est-il sur le cercle de diamètre [AB]&nbsp;?',[OK(on?'Oui':'Non',{v:on?'sur':'hors'}),NO(on?'Non':'Oui',on?'Le produit scalaire est nul&nbsp;: l\'angle en C est droit, C est sur le cercle.':`Le produit scalaire vaut ${numH(dd)}, pas 0&nbsp;: l'angle en C n'est pas droit.`,{v:on?'hors':'sur'})],
+      {vt:'tag',key:'pred:X==("sur" if dot(vec(C,A),vec(C,B))==0 else "hors")',row:true,onOk:async()=>{const Ii=[(A[0]+Bp[0])/2,(A[1]+Bp[1])/2];await S.ropeCircle('c',Ii,Math.sqrt(r2),{slab:'',rlab:null});segO('ca',Cp,A,{col:C.v,w:2.4});segO('cb',Cp,Bp,{col:C.v,w:2.4});if(on){rightO('ra',Cp,CA,CB);S.SND.zero()}cap(on?'C est sur le cercle&nbsp;: angle droit en C':'C n\'est pas sur le cercle')}})],
+   done:`${VC('CA')}${NB}·${NB}${VC('CB')} = ${fmtInt(CA[0])} × ${PN(CB[0])} + ${PN(CA[1])} × ${PN(CB[1])} = ${numH(dd)}&nbsp;: ${on?'C est sur le cercle de diamètre [AB].':'C n\'est pas sur le cercle de diamètre [AB].'}`}},
+ ()=>{let O,v,A;for(;;){O=[nz(-3,3),nz(-2,2)];v=pick(lattice(pick([5,10,13,25])).concat([[3,0],[0,3],[-3,0],[0,-2]]));A=[O[0]+v[0],O[1]+v[1]];if(!A[0]||!A[1]||colin(A,v)||(A[0]===-v[1]&&A[1]===v[0]))continue;if(inView(A,7,5))break}
+  const r2=v[0]*v[0]+v[1]*v[1],L=lineP(v[0],v[1],A);
+  return{meta:{P:{O,A}},setup:async()=>{const r=Math.sqrt(r2);await S.fit([[O[0]-r,O[1]-r],[O[0]+r,O[1]+r],A],.8);S.add('c',{t:'circ',cx:O[0],cy:O[1],r:Math.sqrt(r2),z:2});S.add('c~s',{t:'stake',x:O[0],y:O[1],z:11,lab:'Ω'});ptO('A',A,'A');segO('oa',O,A,{col:C.rope,w:2.6})},
+   cap0:'Une ligne perpendiculaire au rayon [ΩA], en A',
+   prompt:`<p>Le cercle de centre ${P2('Ω',O)} passe par ${P2('A',A)}. La traceuse doit peindre la droite d qui passe par A et qui est perpendiculaire à (ΩA).</p>`,
+   parts:[ch('Un vecteur normal à d est&nbsp;:',[OK(`${VC('ΩA')}${CV(v[0],v[1])}`,{v}),NO(CV(-v[1],v[0]),`${CV(-v[1],v[0])} est orthogonal à ${VC('ΩA')}&nbsp;: il dirige d, il n'est pas normal à d.`,{v:[-v[1],v[0]]}),
+      NO(CV(A[0],A[1]),`Ce sont les coordonnées du point A, pas celles d'un vecteur perpendiculaire à d. d ⟂ (ΩA)&nbsp;: c'est ${VC('ΩA')} qui est normal à d.`,{v:A})],{vt:'vec',key:'pred:colin(X,vec(O,A))',row:true}),
+    fill(null,`d : ${lin([[v[0],'x'],[v[1],'y']])} + {0} = 0`,[B(L.c,'lpn(A,vec(O,A))[2]')],`A est sur d&nbsp;: ${subst(v[0],v[1],0,A)} + c = 0.`,
+      {onOk:async()=>{await S.paintLine('d',L,{lab:'d',nv:v,nlab:'ΩA',anchor:A,keepN:false});rightO('ra',A,[-v[1],v[0]],[-v[0],-v[1]]);S.SND.zero();cap(`d : ${EQL(L)}`)}})],
+   done:`d : ${EQL(L)}. ${VC('ΩA')}${CV(v[0],v[1])} est normal à d et A est sur d.`}},
+ ()=>{let I,v,w,A,Bp,Cp;for(;;){I=[ri(-3,3),ri(-2,2)];const Lt=lattice(pick([5,10,13,25]));v=pick(Lt);w=pick(Lt.filter(p=>!(p[0]===v[0]&&p[1]===v[1])&&!(p[0]===-v[0]&&p[1]===-v[1])));
+    Bp=[I[0]+v[0],I[1]+v[1]];Cp=[I[0]-v[0],I[1]-v[1]];A=[I[0]+w[0],I[1]+w[1]];if(inView(A,7,5)&&inView(Bp,7,5)&&inView(Cp,7,5))break}
+  const r2=v[0]*v[0]+v[1]*v[1],AB=vec(A,Bp).map(val),AC=vec(A,Cp).map(val);
+  return{meta:{P:{A,B:Bp,C:Cp}},setup:async()=>{const r=Math.sqrt(r2);await S.fit([[I[0]-r,I[1]-r],[I[0]+r,I[1]+r]],.8);segO('t1',A,Bp);segO('t2',Bp,Cp);segO('t3',Cp,A);ptO('A',A,'A');ptO('B',Bp,'B');ptO('C',Cp,'C')},cap0:'Le cercle qui passe par A, B et C',
+   prompt:`<p>${P2('A',A)}, ${P2('B',Bp)} et ${P2('C',Cp)}. On cherche le cercle qui passe par les trois points.</p>`,
+   parts:[fill(`Avec ${VC('AB')}${CV(AB[0],AB[1])} et ${VC('AC')}${CV(AC[0],AC[1])}&nbsp;:`,`${VC('AB')}${NB}·${NB}${VC('AC')} = {0}`,[B(0,'dot(vec(A,B),vec(A,C))')],`${fmtInt(AB[0])} × ${PN(AC[0])} + ${PN(AB[1])} × ${PN(AC[1])}.`,
+      {onOk:async()=>{rightO('ra',A,AB,AC);S.SND.zero();cap('Le triangle ABC est rectangle en A')}}),
+    ch('Le centre du cercle passant par A, B et C est donc&nbsp;:',[OK('le milieu de [BC]',{v:'BC'}),NO('le milieu de [AB]','[AB] est un côté de l\'angle droit. Le diamètre est l\'hypoténuse [BC], opposée à l\'angle droit.',{v:'AB'}),NO('le point A','A est sur le cercle, ce n\'est pas son centre.',{v:'A'})],
+      {vt:'tag',key:'pred:X==("BC" if dot(vec(A,B),vec(A,C))==0 else "?")'}),
+    pk('Plante le piquet en ce centre I&nbsp;:','I',I,(x,y)=>`I est le milieu de [BC]&nbsp;: (${fmtInt(Bp[0])} + ${PN(Cp[0])}) ÷ 2 et (${fmtInt(Bp[1])} + ${PN(Cp[1])}) ÷ 2.`,{key:'mid(B,C)',init:A,onOk:async()=>{S.add('c~s',{t:'stake',x:I[0],y:I[1],z:11,lab:'I'})}}),
+    fill(null,'r² = IB² = {0}',[B(r2,'d2(mid(B,C),B)')],`${VC('IB')}${CV(v[0],v[1])}, donc IB² = ${PN(v[0])}² + ${PN(v[1])}².`,{onOk:async()=>{await S.ropeCircle('c',I,Math.sqrt(r2),{slab:'I',rlab:null});cap(`${CIRC(I[0],I[1],r2)}&nbsp;: le cercle passe par A, B et C`)}})],
+   done:`ABC est rectangle en A, donc le cercle a pour diamètre [BC]&nbsp;: ${CIRC(I[0],I[1],r2)}.`}},
+ ()=>{let O,ps,r2;for(;;){O=[nz(-3,3),nz(-2,2)];r2=pick([5,10,13,25]);ps=shuf(lattice(r2).slice()).slice(0,3).map(p=>[O[0]+p[0],O[1]+p[1]]);if(!ps.every(P=>inView(P,7,5)))continue;if(ps[0][0]===-O[0]&&ps[0][1]===-O[1])continue;break}
+  const [A,Bp,Cp]=ps;
+  return{meta:{P:{O,A,B:Bp,C:Cp}},setup:async()=>{const r=Math.sqrt(r2);await S.fit([[O[0]-r,O[1]-r],[O[0]+r,O[1]+r]],.8);segO('t1',A,Bp);segO('t2',Bp,Cp);segO('t3',Cp,A);ptO('A',A,'A');ptO('B',Bp,'B');ptO('C',Cp,'C');S.add('c~s',{t:'stake',x:O[0],y:O[1],z:11,lab:'Ω'})},
+   cap0:'Le piquet Ω est-il à la même distance des trois points&nbsp;?',
+   prompt:`<p>Triangle ABC&nbsp;: ${P2('A',A)}, ${P2('B',Bp)}, ${P2('C',Cp)}. On a planté un piquet en ${P2('Ω',O)}.</p>`,
+   parts:[fill('Calcule les trois carrés de distances&nbsp;:','ΩA² = {0}<br>ΩB² = {1}<br>ΩC² = {2}',[B(r2,'d2(O,A)'),B(r2,'d2(O,B)'),B(r2,'d2(O,C)')],`Par exemple ΩA² = (x<sub>A</sub> − x<sub>Ω</sub>)² + (y<sub>A</sub> − y<sub>Ω</sub>)² = ${PN(A[0]-O[0])}² + ${PN(A[1]-O[1])}².`,
+      {small:true,onOk:async()=>{for(const [id,P] of [['ra',A],['rb',Bp],['rc',Cp]]){S.add(id,{t:'rope',x1:O[0],y1:O[1],x2:O[0],y2:O[1],z:9});await S.tw([[id,{x2:P[0],y2:P[1]}]],450)}cap('Trois cordes de même longueur')}}),
+    ch('Le cercle passant par A, B et C a pour équation&nbsp;:',[OK(CIRC(O[0],O[1],r2),{v:[O[0],O[1],r2]}),NO(CIRC(-O[0],-O[1],r2),`Piège des signes&nbsp;: centre Ω${PC(O)}, donc ${sqx('x',O[0])} et ${sqx('y',O[1])}.`,{v:[-O[0],-O[1],r2]}),
+      NO(CIRC(A[0],A[1],r2),'Le centre est Ω, pas A.',{v:[A[0],A[1],r2]})],{vt:'circ',key:'pred:X==circ(O,d2(O,A))',onOk:async()=>{await S.ropeCircle('c',O,Math.sqrt(r2),{rlab:null});cap('Le cercle circonscrit au triangle ABC')}})],
+   done:`ΩA² = ΩB² = ΩC² = ${r2}&nbsp;: le cercle ${CIRC(O[0],O[1],r2)} passe par A, B et C.`}}]};
+
+[L1,L2,L3,L4,L5,L6,L7].forEach(L=>G.LV.push(L));
+G.renderLv();
+window.LT_LVX={L1,L2,L3,L4,L5,L6,L7};
+})();
+</script>
+
+<script>
+/* ======================= épreuves finales : Bronze, Argent, Or ======================= */
+(function(){
+'use strict';
+const N=window.LT_N,T=window.LT_T;
+const {R,add,sub,mul,div,neg,abs,eq,isZ,val,numH,fmtInt,PN,lin,EQ,FORM,sumfac,sqx,CIRC,DEV,subst,CV,PT,VC,radH,isSq,ri,nz,pick,shuf,ans,NB,MI,frH}=N;
+const {ab,lineP,Lr,val0,onL,same,colin,dot,vec,mid,d2,proj,inView,isIntP,lattice}=T;
+const nV=VC('n'),uV=VC('u');
+const EQL=L=>EQ(L.a,L.b,L.c),PC=P=>PT('',P[0],P[1]),P2=(nm,P)=>PT(nm,P[0],P[1]);
+/* bonne réponse en premier (le kit mélange l'affichage) */
+const qcm=(level,prompt,good,bad,explain,meta)=>({type:'qcm',level,prompt,choices:[good].concat(bad),answer:0,explain,meta});
+const trous=(level,prompt,blanks,explain,meta)=>({type:'trous',level,prompt,blanks,explain,meta});
+const BL=(r,o)=>{o=o||{};return{answers:ans(R(r)),size:o.size||3}};
+const distinctL=Ls=>{for(let i=0;i<Ls.length;i++)for(let j=i+1;j<Ls.length;j++)if(same(Ls[i],Ls[j]))return false;return true};
+const distinctV=vs=>new Set(vs.map(v=>JSON.stringify(v.map(x=>N.enc(x))))).size===vs.length;
+const CR=(O,r2)=>`centre ${PC(O)}, rayon ${radH(r2)}`;
+const POS={sur:'sur le cercle',dedans:'à l\'intérieur du cercle',dehors:'à l\'extérieur du cercle'};
+const NAT={cercle:'un cercle',point:'un seul point',vide:'l\'ensemble vide'};
+function retry(f){for(let n=0;n<3000;n++){const q=f();if(q)return q}throw new Error('tirage impossible')}
+
+/* ===================== Bronze · Les bases ===================== */
+const BRONZE={qcm:[
+ {lv:1,f:()=>retry(()=>{const [a,b]=ab({dist:true}),L=lineP(a,b,[ri(-3,3),ri(-3,3)]);
+   return qcm(1,`Un vecteur normal à la droite d d'équation ${EQL(L)} est&nbsp;:`,CV(a,b),[CV(-b,a),CV(b,a)],
+    `Les coefficients de x et de y donnent un vecteur normal&nbsp;: ${CV(a,b)}. ${CV(-b,a)} est un vecteur directeur.`,{vt:'vec',key:'pred:colin(X,nrm(d))',vals:[[a,b],[-b,a],[b,a]],data:{L:{d:Lr(L)}},steps:1})})},
+ {lv:1,f:()=>retry(()=>{const [a,b]=ab({dist:true}),L=lineP(a,b,[ri(-3,3),ri(-3,3)]);
+   return qcm(1,`Un vecteur directeur de la droite d d'équation ${EQL(L)} est&nbsp;:`,CV(-b,a),[CV(a,b),CV(a,-b)],
+    `Pour ax + by + c = 0, ${uV}${CV(MI+'b','a')} est un vecteur directeur&nbsp;: ici ${CV(-b,a)}. ${CV(a,b)} est normal.`,{vt:'vec',key:'pred:colin(X,dirv(d))',vals:[[-b,a],[a,b],[a,-b]],data:{L:{d:Lr(L)}},steps:1})})},
+ {lv:2,f:()=>retry(()=>{const [a,b]=ab({dist:true,lim:4}),A=[ri(-4,4),ri(-3,3)],L=lineP(a,b,A);if(!L.c)return null;const L1={a,b,c:-L.c},L2=lineP(b,a,A);if(!distinctL([L,L1,L2]))return null;
+   return qcm(2,`La droite passant par ${P2('A',A)} et de vecteur normal ${nV}${CV(a,b)} a pour équation&nbsp;:`,EQL(L),[EQL(L1),EQL(L2)],
+    `Équation ${FORM(a,b)}, et A vérifie ${subst(a,b,0,A)} + c = 0, donc c = ${fmtInt(L.c)}.`,{vt:'line',key:'pred:same(X,lpn(A,n))',vals:[Lr(L),Lr(L1),Lr(L2)],data:{P:{A},V:{n:[a,b]}},steps:1})})},
+ {lv:3,f:()=>retry(()=>{const [a,b]=ab({lim:4}),L=lineP(a,b,[ri(-3,3),ri(-3,3)]),kind=pick(['perp','par','sec']);let p,q;
+   if(kind==='perp'){p=-b;q=a}else if(kind==='par'){p=a;q=b}else{[p,q]=ab({lim:4});if(!(a*p+b*q)||colin([a,b],[p,q]))return null}
+   const M=lineP(p,q,[ri(-3,3),ri(-3,3)]);if(same(L,M))return null;
+   const lab={perp:'perpendiculaires',par:'parallèles',sec:'ni parallèles, ni perpendiculaires'};const others=Object.keys(lab).filter(k=>k!==kind);
+   return qcm(3,`Les droites d : ${EQL(L)} et d′ : ${EQL(M)} sont&nbsp;:`,lab[kind],others.map(k=>lab[k]),
+    `Vecteurs normaux ${CV(a,b)} et ${CV(p,q)}&nbsp;: ${kind==='perp'?`leur produit scalaire ${fmtInt(a*p)} + ${PN(b*q)} est nul.`:kind==='par'?'ils sont égaux, donc colinéaires.':`ils ne sont pas colinéaires et leur produit scalaire vaut ${fmtInt(a*p+b*q)}.`}`,
+    {vt:'tag',key:'pred:X==rel(d,e)',vals:[kind].concat(others),data:{L:{d:Lr(L),e:Lr(M)}},steps:1})})},
+ {lv:4,f:()=>retry(()=>{const hor=Math.random()<.5,k=nz(-4,4),A=[nz(-5,5),nz(-4,4)];if((hor?A[1]:A[0])===k)return null;const H=hor?[A[0],k]:[k,A[1]],W1=hor?[k,A[1]]:[A[0],k],W2=hor?[0,k]:[k,0];
+   if(!distinctV([H,W1,W2]))return null;
+   return qcm(4,`Le projeté orthogonal de ${P2('A',A)} sur la droite d'équation ${hor?'y':'x'} = ${fmtInt(k)} est le point&nbsp;:`,PC(H),[PC(W1),PC(W2)],
+    `La droite est ${hor?'horizontale':'verticale'}&nbsp;: on garde ${hor?'l\'abscisse':'l\'ordonnée'} de A, et ${hor?'y':'x'} = ${fmtInt(k)}.`,{vt:'pt',key:'pred:X==proj(A,hl(K,HOR))',vals:[H,W1,W2],data:{P:{A},N:{K:k,HOR:hor?1:0}},steps:1})})},
+ {lv:5,f:()=>retry(()=>{const O=[nz(-5,5),nz(-5,5)],r=ri(2,6);
+   return qcm(5,`Le cercle de centre ${P2('Ω',O)} et de rayon ${r} a pour équation&nbsp;:`,CIRC(O[0],O[1],r*r),[CIRC(-O[0],-O[1],r*r),CIRC(O[0],O[1],r)],
+    `(x − α)² + (y − β)² = r² avec α = ${fmtInt(O[0])}, β = ${fmtInt(O[1])} et r² = ${r*r}.`,{vt:'circ',key:'pred:X==circ(O,R*R)',vals:[[O[0],O[1],r*r],[-O[0],-O[1],r*r],[O[0],O[1],r]],data:{P:{O},N:{R:r}},steps:1})})},
+ {lv:6,f:()=>retry(()=>{const O=[nz(-5,5),nz(-5,5)],r=ri(2,6);
+   return qcm(6,`Le cercle d'équation ${CIRC(O[0],O[1],r*r)} a pour centre le point&nbsp;:`,PC(O),[PC([-O[0],-O[1]]),PC([O[0],-O[1]])],
+    `${sqx('x',O[0])} = (x − ${PN(O[0])})²&nbsp;: α = ${fmtInt(O[0])}, et de même β = ${fmtInt(O[1])}.`,{vt:'pt',key:'pred:X==c[:2]',vals:[O,[-O[0],-O[1]],[O[0],-O[1]]],data:{Q:{c:[O[0],O[1],r*r]}},steps:1})})},
+ {lv:7,f:()=>retry(()=>{const A=[ri(-5,5),ri(-4,4)],w=[nz(-3,3),nz(-3,3)],Bp=[A[0]+2*w[0],A[1]+2*w[1]],I=[A[0]+w[0],A[1]+w[1]],W1=[A[0]+Bp[0],A[1]+Bp[1]],W2=[2*w[0],2*w[1]];
+   if(!distinctV([I,W1,W2]))return null;
+   return qcm(7,`Le cercle de diamètre [AB], avec ${P2('A',A)} et ${P2('B',Bp)}, a pour centre&nbsp;:`,PC(I),[PC(W1),PC(W2)],
+    `Le centre est le milieu de [AB]&nbsp;: (${fmtInt(A[0])} + ${PN(Bp[0])}) ÷ 2 = ${fmtInt(I[0])} et (${fmtInt(A[1])} + ${PN(Bp[1])}) ÷ 2 = ${fmtInt(I[1])}.`,{vt:'pt',key:'pred:X==mid(A,B)',vals:[I,W1,W2],data:{P:{A,B:Bp}},steps:1})})}],
+trous:[
+ {lv:1,f:()=>{const [a,b]=ab({dist:true}),L=lineP(a,b,[ri(-3,3),ri(-3,3)]);
+   return trous(1,`La droite d'équation ${EQL(L)} admet pour vecteur normal ${nV}${CV(a,'{0}')}.`,[BL(b)],`Les coordonnées ${CV(a,b)} d'un vecteur normal sont les coefficients de x et de y.`,{keys:['nrm(d)[1]'],data:{L:{d:Lr(L)}},fixed:[a],steps:1})}},
+ {lv:2,f:()=>{const [a,b]=ab({lim:5}),A=[ri(-4,4),ri(-4,4)],L=lineP(a,b,A);
+   return trous(2,`La droite passant par ${P2('A',A)} et de vecteur normal ${nV}${CV(a,b)} a pour équation ${lin([[a,'x'],[b,'y']])} + {0} = 0.`,[BL(L.c)],`A vérifie l'équation&nbsp;: ${subst(a,b,0,A)} + c = 0, donc c = ${fmtInt(L.c)}.`,{keys:['lpn(A,n)[2]'],data:{P:{A},V:{n:[a,b]}},steps:1})}},
+ {lv:3,f:()=>{const [a,b]=ab({lim:4}),[p,q]=ab({lim:4}),L=lineP(a,b,[ri(-3,3),ri(-3,3)]),M=lineP(p,q,[ri(-3,3),ri(-3,3)]);
+   return trous(3,`d : ${EQL(L)} et d′ : ${EQL(M)}. Pour les vecteurs normaux ${nV}${CV(a,b)} et ${VC('n′')}${CV(p,q)}, ${nV}${NB}·${NB}${VC('n′')} = {0}.`,[BL(a*p+b*q)],`${fmtInt(a)} × ${PN(p)} + ${PN(b)} × ${PN(q)} = ${fmtInt(a*p+b*q)}${a*p+b*q?'':'&nbsp;: les droites sont perpendiculaires'}.`,{keys:['dot(nrm(d),nrm(e))'],data:{L:{d:Lr(L),e:Lr(M)}},steps:1})}},
+ {lv:4,f:()=>{const hor=Math.random()<.5,k=ri(-4,4);let A;do A=[ri(-5,5),ri(-4,4)];while((hor?A[1]:A[0])===k);const H=hor?[A[0],k]:[k,A[1]];
+   return trous(4,`Le projeté orthogonal de ${P2('A',A)} sur la droite d'équation ${hor?'y':'x'} = ${fmtInt(k)} est H({0} ; {1}).`,[BL(H[0]),BL(H[1])],`On garde ${hor?'l\'abscisse':'l\'ordonnée'} de A&nbsp;: H${PC(H)}.`,{keys:['proj(A,hl(K,HOR))[0]','proj(A,hl(K,HOR))[1]'],data:{P:{A},N:{K:k,HOR:hor?1:0}},steps:1})}},
+ {lv:5,f:()=>{const O=[nz(-5,5),nz(-5,5)],r2=pick([4,9,16,25,7,10,13]);
+   return trous(5,`Le cercle de centre ${P2('Ω',O)} et de rayon ${radH(r2)} a pour équation ${sqx('x',O[0])} + ${sqx('y',O[1])} = {0}.`,[BL(r2)],`Le second membre est r² = (${radH(r2)})² = ${r2}.`,{keys:['R2'],data:{P:{O},N:{R2:r2}},steps:1})}},
+ {lv:6,f:()=>{const O=[nz(-5,5),nz(-5,5)],r=ri(2,7);
+   return trous(6,`Le cercle d'équation ${CIRC(O[0],O[1],r*r)} a pour centre Ω({0} ; {1}) et pour rayon {2}.`,[BL(O[0]),BL(O[1]),BL(r)],`${sqx('x',O[0])} = (x − ${PN(O[0])})²&nbsp;: Ω${PC(O)}, et r = √${r*r} = ${r}.`,{keys:['c[0]','c[1]','sqrt(c[2])'],data:{Q:{c:[O[0],O[1],r*r]}},steps:1})}},
+ {lv:7,f:()=>{const A=[ri(-5,5),ri(-4,4)],w=[ri(-3,3),nz(-3,3)],Bp=[A[0]+2*w[0],A[1]+2*w[1]],I=[A[0]+w[0],A[1]+w[1]];
+   return trous(7,`Le cercle de diamètre [AB], avec ${P2('A',A)} et ${P2('B',Bp)}, a pour centre I({0} ; {1}).`,[BL(I[0]),BL(I[1])],`Le centre est le milieu de [AB]&nbsp;: I${PC(I)}.`,{keys:['mid(A,B)[0]','mid(A,B)[1]'],data:{P:{A,B:Bp}},steps:1})}},
+ {lv:5,f:()=>{const O=[ri(-3,3),ri(-3,3)],M=[O[0]+nz(-4,4),O[1]+ri(-4,4)],v=[M[0]-O[0],M[1]-O[1]];
+   return trous(5,`Pour le cercle de centre ${P2('Ω',O)} et le point ${P2('M',M)}, ΩM² = {0}.`,[BL(v[0]*v[0]+v[1]*v[1])],`ΩM² = ${PN(v[0])}² + ${PN(v[1])}² = ${v[0]*v[0]+v[1]*v[1]}.`,{keys:['d2(O,M)'],data:{P:{O,M}},steps:1})}}]};
+
+/* ===================== Argent · La maîtrise ===================== */
+const ARGENT={qcm:[
+ {lv:1,f:()=>retry(()=>{const [a,b]=ab({dist:true,lim:4}),L=lineP(a,b,[ri(-3,3),ri(-3,3)]),k=pick([-1,2,-2,3,-3]);
+   return qcm(1,`Lequel de ces vecteurs est normal à la droite d'équation ${EQL(L)}&nbsp;?`,CV(k*a,k*b),[CV(-b,a),CV(a,-b),CV(b,a)],
+    `${CV(a,b)} est normal, et tout vecteur non nul colinéaire à lui aussi&nbsp;: ${CV(k*a,k*b)} = ${fmtInt(k)} × ${CV(a,b)}.`,{vt:'vec',key:'pred:colin(X,nrm(d))',vals:[[k*a,k*b],[-b,a],[a,-b],[b,a]],data:{L:{d:Lr(L)}},steps:2})})},
+ {lv:2,f:()=>retry(()=>{const [a,b]=ab({lim:4,dist:true}),A=[nz(-4,4),nz(-4,4)],L=lineP(a,b,A);if(!L.c)return null;const L1={a,b,c:-L.c},L2=lineP(b,-a,A),L3=lineP(A[0],A[1],[a,b]);if(!distinctL([L,L1,L2,L3]))return null;
+   return qcm(2,`Une équation de la droite passant par ${P2('A',A)} et de vecteur normal ${nV}${CV(a,b)} est&nbsp;:`,EQL(L),[EQL(L1),EQL(L2),EQL(L3)],
+    `${sumfac([[a,'x',A[0]],[b,'y',A[1]]])} = 0, soit ${EQL(L)}.`,{vt:'line',key:'pred:same(X,lpn(A,n))',vals:[Lr(L),Lr(L1),Lr(L2),Lr(L3)],data:{P:{A},V:{n:[a,b]}},steps:2})})},
+ {lv:3,f:()=>retry(()=>{const [a,b]=ab({lim:4,dist:true}),L=lineP(a,b,[ri(-3,3),ri(-3,3)]),A=[ri(-4,4),ri(-4,4)];if(onL(L,A))return null;
+   const G=lineP(-b,a,A),W1=lineP(a,b,A),W2={a:-b,b:a,c:-G.c},W3=lineP(b,a,A);if(!G.c||!distinctL([G,W1,W2,W3]))return null;
+   return qcm(3,`La droite perpendiculaire à d : ${EQL(L)} passant par ${P2('A',A)} a pour équation&nbsp;:`,EQL(G),[EQL(W1),EQL(W2),EQL(W3)],
+    `Un vecteur directeur de d, ${CV(-b,a)}, est normal à la perpendiculaire&nbsp;; puis A donne c = ${fmtInt(G.c)}.`,{vt:'line',key:'pred:same(X,lpn(A,dirv(d)))',vals:[Lr(G),Lr(W1),Lr(W2),Lr(W3)],data:{L:{d:Lr(L)},P:{A}},steps:2})})},
+ {lv:4,f:()=>retry(()=>{const [a,b]=ab({lim:3}),H=[ri(-3,3),ri(-3,3)],L=lineP(a,b,H),t=pick([1,-1,2,-2]),A=[H[0]+t*a,H[1]+t*b],K=[H[0]-b,H[1]+a],S2=[2*H[0]-A[0],2*H[1]-A[1]],W=[H[1],H[0]];
+   if(!distinctV([H,K,S2,W]))return null;
+   return qcm(4,`Le projeté orthogonal de ${P2('A',A)} sur la droite d : ${EQL(L)} est&nbsp;:`,PC(H),[PC(K),PC(S2),PC(W)],
+    `(AH) passe par A avec ${CV(-b,a)} pour vecteur normal&nbsp;: ${EQL(lineP(-b,a,A))}. Son intersection avec d est H${PC(H)}.`,{vt:'pt',key:'pred:X==proj(A,d)',vals:[H,K,S2,W],data:{P:{A},L:{d:Lr(L)}},steps:3})})},
+ {lv:5,f:()=>retry(()=>{const O=[ri(-3,3),ri(-3,3)],r=pick([3,4,5]),kind=pick(['sur','dedans','dehors']),pool=[];
+   for(let x=-r-2;x<=r+2;x++)for(let y=-r-2;y<=r+2;y++){const s=x*x+y*y;if(kind==='sur'?s===r*r:kind==='dedans'?(s<r*r&&s>=Math.max(1,r*r-2*r)):(s>r*r&&s<=r*r+2*r+1))pool.push([x,y])}
+   const v=pick(pool),M=[O[0]+v[0],O[1]+v[1]],s=v[0]*v[0]+v[1]*v[1],others=Object.keys(POS).filter(k=>k!==kind);
+   return qcm(5,`Le cercle 𝒞 a pour équation ${CIRC(O[0],O[1],r*r)}. Le point ${P2('M',M)} est&nbsp;:`,POS[kind],others.map(k=>POS[k]),
+    `ΩM² = ${PN(v[0])}² + ${PN(v[1])}² = ${s} ${s===r*r?'=':s<r*r?'&lt;':'&gt;'} ${r*r} = r².`,{vt:'tag',key:'pred:X==pos(M,circ(O,R*R))',vals:[kind].concat(others),data:{P:{O,M},N:{R:r}},steps:2})})},
+ {lv:6,f:()=>retry(()=>{const O=[nz(-4,4),nz(-4,4)],r2=ri(3,30),A=-2*O[0],Bc=-2*O[1],Cc=O[0]*O[0]+O[1]*O[1]-r2;if(!Cc||isSq(r2)&&r2<10)return null;
+   const W=[[[-O[0],-O[1]],r2],[O,r2*r2],[O,Math.abs(Cc)]];if(!distinctV([[O[0],O[1],r2]].concat(W.map(([P,s])=>[P[0],P[1],s]))))return null;
+   return qcm(6,`Le cercle d'équation ${DEV(A,Bc,Cc)} a pour&nbsp;:`,CR(O,r2),W.map(([P,s])=>CR(P,s)),
+    `On complète les carrés&nbsp;: ${CIRC(O[0],O[1],r2)}.`,{vt:'cr',key:'pred:X==undev(E)',vals:[[O[0],O[1],r2]].concat(W.map(([P,s])=>[P[0],P[1],s])),data:{E:{E:[1,A,Bc,Cc]}},steps:3})})},
+ {lv:6,f:()=>{const O=[nz(-3,3),nz(-3,3)],kind=pick(['cercle','point','vide']),k=kind==='cercle'?pick([1,4,9,5,10]):kind==='point'?0:-ri(1,9),A=-2*O[0],Bc=-2*O[1],Cc=O[0]*O[0]+O[1]*O[1]-k,others=Object.keys(NAT).filter(t=>t!==kind);
+   return qcm(6,`L'ensemble des points M(x ; y) tels que ${DEV(A,Bc,Cc)} est&nbsp;:`,NAT[kind],others.map(t=>NAT[t]),
+    `En complétant les carrés&nbsp;: ${sqx('x',O[0])} + ${sqx('y',O[1])} = ${k}. ${k>0?'Second membre positif&nbsp;: un cercle.':k===0?'Somme de carrés nulle&nbsp;: un seul point.':'Une somme de carrés ne peut pas être négative.'}`,{vt:'tag',key:'pred:X==nat(undev(E)[2])',vals:[kind].concat(others),data:{E:{E:[1,A,Bc,Cc]}},steps:3})}},
+ {lv:7,f:()=>retry(()=>{const A=[ri(-4,4),ri(-4,4)],w=[nz(-3,3),nz(-3,3)],Bp=[A[0]+2*w[0],A[1]+2*w[1]],I=[A[0]+w[0],A[1]+w[1]],n=[2*w[0],2*w[1]];
+   const G=lineP(n[0],n[1],I),W1=lineP(n[0],n[1],A),W2=lineP(-n[1],n[0],I);if(!distinctL([G,W1,W2]))return null;
+   return qcm(7,`La médiatrice du segment [AB], avec ${P2('A',A)} et ${P2('B',Bp)}, a pour équation&nbsp;:`,EQL(G),[EQL(W1),EQL(W2)],
+    `Elle passe par le milieu I${PC(I)} et a pour vecteur normal ${VC('AB')}${CV(n[0],n[1])}.`,{vt:'line',key:'pred:same(X,lpn(mid(A,B),vec(A,B)))',vals:[Lr(G),Lr(W1),Lr(W2)],data:{P:{A,B:Bp}},steps:3})})}],
+trous:[
+ {lv:1,f:()=>{const [a,b]=ab({lim:4}),L=lineP(a,b,[ri(-3,3),ri(-3,3)]),k=pick([2,3,-2,-3]);
+   return trous(1,`La droite d'équation ${EQL(L)} admet pour vecteur normal ${CV(k*a,'{0}')}.`,[BL(k*b)],`Un vecteur normal est colinéaire à ${CV(a,b)}&nbsp;: ici on a multiplié par ${fmtInt(k)}.`,{keys:['K*nrm(d)[1]'],data:{L:{d:Lr(L)},N:{K:k}},fixed:[k*a],steps:2})}},
+ {lv:2,f:()=>{const [a,b]=ab({lim:5}),A=[nz(-5,5),nz(-5,5)],L=lineP(a,b,A);
+   return trous(2,`Pour la droite passant par ${P2('A',A)} de vecteur normal ${nV}${CV(a,b)}&nbsp;: ${sumfac([[a,'x',A[0]],[b,'y',A[1]]])} = 0 ⇔ {0}x + {1}y + {2} = 0.`,[BL(a),BL(b),BL(L.c)],
+    `On développe&nbsp;: ${lin([[a,'x'],[-a*A[0],''],[b,'y'],[-b*A[1],'']])} = 0, soit ${EQL(L)}.`,{keys:['lpn(A,n)[0]','lpn(A,n)[1]','lpn(A,n)[2]'],data:{P:{A},V:{n:[a,b]}},steps:2})}},
+ {lv:3,f:()=>{const A=[ri(-4,4),ri(-4,4)],w=[nz(-3,3),nz(-3,3)],Bp=[A[0]+2*w[0],A[1]+2*w[1]],I=[A[0]+w[0],A[1]+w[1]],n=[2*w[0],2*w[1]],G=lineP(n[0],n[1],I);
+   return trous(3,`La médiatrice de [AB], avec ${P2('A',A)} et ${P2('B',Bp)}, a pour équation ${lin([[n[0],'x'],[n[1],'y']])} + {0} = 0.`,[BL(G.c)],`Vecteur normal ${VC('AB')}${CV(n[0],n[1])}, et le milieu I${PC(I)} est sur la médiatrice&nbsp;: c = ${fmtInt(G.c)}.`,{keys:['lpn(mid(A,B),vec(A,B))[2]'],data:{P:{A,B:Bp}},steps:2})}},
+ {lv:4,f:()=>{const [a,b]=ab({lim:3}),H=[ri(-3,3),ri(-3,3)],L=lineP(a,b,H),t=pick([1,-1,2,-2]),A=[H[0]+t*a,H[1]+t*b];
+   return trous(4,`Le projeté orthogonal de ${P2('A',A)} sur la droite d : ${EQL(L)} est H({0} ; {1}).`,[BL(H[0]),BL(H[1])],`(AH) : ${EQL(lineP(-b,a,A))}&nbsp;; le système avec d donne H${PC(H)}.`,{keys:['proj(A,d)[0]','proj(A,d)[1]'],data:{P:{A},L:{d:Lr(L)}},steps:3})}},
+ {lv:5,f:()=>{const O=[nz(-4,4),nz(-4,4)],r2=ri(4,30);
+   return trous(5,`Le cercle de centre ${P2('Ω',O)} et de rayon ${radH(r2)} a pour équation x² + y² + {0}x + {1}y + {2} = 0.`,[BL(-2*O[0]),BL(-2*O[1]),BL(O[0]*O[0]+O[1]*O[1]-r2)],
+    `${CIRC(O[0],O[1],r2)}, puis on développe&nbsp;: ${DEV(-2*O[0],-2*O[1],O[0]*O[0]+O[1]*O[1]-r2)}.`,{keys:['dev(circ(O,R2))[0]','dev(circ(O,R2))[1]','dev(circ(O,R2))[2]'],data:{P:{O},N:{R2:r2}},steps:2})}},
+ {lv:6,f:()=>{const O=[nz(-4,4),nz(-4,4)],r2=ri(2,30),A=-2*O[0],Bc=-2*O[1],Cc=O[0]*O[0]+O[1]*O[1]-r2;
+   return trous(6,`Le cercle d'équation ${DEV(A,Bc,Cc)} a pour centre Ω({0} ; {1}) et r² = {2}.`,[BL(O[0]),BL(O[1]),BL(r2)],`En complétant les carrés&nbsp;: ${CIRC(O[0],O[1],r2)}.`,{keys:['undev(E)[0]','undev(E)[1]','undev(E)[2]'],data:{E:{E:[1,A,Bc,Cc]}},steps:3})}},
+ {lv:7,f:()=>retry(()=>{const A=[ri(-3,3),ri(1,4)],Bp=[ri(-5,-1),ri(-4,0)],Cp=[ri(1,5),ri(-4,0)];if(colin(vec(A,Bp),vec(A,Cp)))return null;const n=[Cp[0]-Bp[0],Cp[1]-Bp[1]],G=lineP(n[0],n[1],A);
+   return trous(7,`Dans le triangle ABC, avec ${P2('A',A)}, ${P2('B',Bp)} et ${P2('C',Cp)}, la hauteur issue de A a pour équation ${lin([[n[0],'x'],[n[1],'y']])} + {0} = 0.`,[BL(G.c)],
+    `Vecteur normal ${VC('BC')}${CV(n[0],n[1])} et A sur la hauteur&nbsp;: ${subst(n[0],n[1],0,A)} + c = 0, donc c = ${fmtInt(G.c)}.`,{keys:['lpn(A,vec(B,C))[2]'],data:{P:{A,B:Bp,C:Cp}},steps:2})})},
+ {lv:4,f:()=>{const [a,b]=ab({lim:3}),H=[ri(-3,3),ri(-3,3)],L=lineP(a,b,H),t=pick([1,-1,2,-2]),A=[H[0]+t*a,H[1]+t*b];
+   return trous(4,`H est le projeté orthogonal de ${P2('A',A)} sur d : ${EQL(L)}. Alors AH² = {0}.`,[BL(t*t*(a*a+b*b))],`H${PC(H)}, donc AH² = ${PN(H[0]-A[0])}² + ${PN(H[1]-A[1])}² = ${t*t*(a*a+b*b)}.`,{keys:['d2(A,proj(A,d))'],data:{P:{A},L:{d:Lr(L)}},steps:3})}}]};
+
+/* ===================== Or · L'expert ===================== */
+const OR={qcm:[
+ {lv:1,f:()=>retry(()=>{const [a,b]=ab({lim:4,dist:true}),L=lineP(a,b,[ri(-3,3),ri(-3,3)]),k=pick([2,3,-2,-3]),t=k*b,m=k*a,w1=-m,w2=-k*b*b%a===0?-k*b*b/a:k*b;
+   if(new Set([m,w1,w2]).size<3)return null;
+   return qcm(1,`Pour quelle valeur de m le vecteur ${CV('m',t)} est-il normal à la droite d'équation ${EQL(L)}&nbsp;?`,`m = ${fmtInt(m)}`,[`m = ${fmtInt(w1)}`,`m = ${fmtInt(w2)}`],
+    `${CV('m',t)} doit être colinéaire à ${CV(a,b)}&nbsp;: m × ${PN(b)} ${MI} ${PN(t)} × ${PN(a)} = 0, donc m = ${fmtInt(m)}.`,{vt:'num',key:'pred:colin((X,TT),nrm(d))',vals:[m,w1,w2],data:{L:{d:Lr(L)},N:{TT:t}},steps:3})})},
+ {lv:2,f:()=>retry(()=>{const A=[ri(-4,4),ri(-4,4)],w=[nz(-4,4),nz(-4,4)],Bp=[A[0]+w[0],A[1]+w[1]];if(Math.abs(w[0])===Math.abs(w[1]))return null;
+   const G=lineP(w[0],w[1],A),W1=lineP(w[0],w[1],Bp),W2=lineP(-w[1],w[0],A),W3={a:w[0],b:w[1],c:-G.c};if(!G.c||!distinctL([G,W1,W2,W3]))return null;
+   return qcm(2,`Sur le plan d'un terrain de Mamoudzou, une ligne passe par ${P2('A',A)} et ${P2('B',Bp)}. Le traceur doit peindre la ligne passant par A et perpendiculaire à (AB). Son équation est&nbsp;:`,EQL(G),[EQL(W1),EQL(W2),EQL(W3)],
+    `${VC('AB')}${CV(w[0],w[1])} est normal à cette ligne, qui passe par A&nbsp;: ${sumfac([[w[0],'x',A[0]],[w[1],'y',A[1]]])} = 0, soit ${EQL(G)}.`,{vt:'line',key:'pred:same(X,lpn(A,vec(A,B)))',vals:[Lr(G),Lr(W1),Lr(W2),Lr(W3)],data:{P:{A,B:Bp}},steps:3})})},
+ {lv:3,f:()=>retry(()=>{const A=[ri(-3,3),ri(1,4)],Bp=[ri(-5,-1),ri(-4,0)],Cp=[ri(1,5),ri(-4,0)];if(colin(vec(A,Bp),vec(A,Cp)))return null;if(eq(d2(A,Bp),d2(A,Cp)))return null;
+   const bc=vec(Bp,Cp).map(val),ac=vec(A,Cp).map(val),G=lineP(bc[0],bc[1],A),W1=lineP(bc[0],bc[1],[(Bp[0]+Cp[0])/2,(Bp[1]+Cp[1])/2]),W2=lineP(ac[0],ac[1],Bp),W3=lineP(-bc[1],bc[0],A);
+   if(W1.c!==Math.round(W1.c))return null;if(!distinctL([G,W1,W2,W3]))return null;
+   return qcm(3,`Dans le triangle ABC, avec ${P2('A',A)}, ${P2('B',Bp)} et ${P2('C',Cp)}, la hauteur issue de A a pour équation&nbsp;:`,EQL(G),[EQL(W1),EQL(W2),EQL(W3)],
+    `Elle passe par A et ${VC('BC')}${CV(bc[0],bc[1])} lui est normal&nbsp;: ${EQL(G)}.`,{vt:'line',key:'pred:same(X,lpn(A,vec(B,C)))',vals:[Lr(G),Lr(W1),Lr(W2),Lr(W3)],data:{P:{A,B:Bp,C:Cp}},steps:3})})},
+ {lv:4,f:()=>retry(()=>{const [a,b]=ab({lim:3}),H=[ri(-3,3),ri(-3,3)],L=lineP(a,b,H),t=pick([1,-1,2,-2,3]),A=[H[0]+t*a,H[1]+t*b],AH2=t*t*(a*a+b*b),K=[H[0]-b,H[1]+a],k2=d2(A,K).n;
+   if(isSq(AH2)||new Set([AH2,AH2*AH2,k2]).size<3)return null;
+   return qcm(4,`Un joueur en ${P2('A',A)} rejoint au plus court la ligne d : ${EQL(L)}. La longueur de sa course est&nbsp;:`,radH(AH2),[String(AH2),radH(k2)],
+    `(AH) : ${EQL(lineP(-b,a,A))} coupe d en H${PC(H)}. AH² = ${PN(H[0]-A[0])}² + ${PN(H[1]-A[1])}² = ${AH2}, donc AH = ${radH(AH2)}.`,{vt:'rad',key:'pred:X==d2(A,proj(A,d))',vals:[AH2,AH2*AH2,k2],data:{P:{A},L:{d:Lr(L)}},steps:4})})},
+ {lv:5,f:()=>retry(()=>{const O=[nz(-4,4),nz(-4,4)],v=[nz(-4,4),nz(-4,4)],A=[O[0]+v[0],O[1]+v[1]],r2=v[0]*v[0]+v[1]*v[1],C0=O[0]*O[0]+O[1]*O[1]-r2;
+   const G=[-2*O[0],-2*O[1],C0],W1=[2*O[0],2*O[1],C0],W2=[-2*O[0],-2*O[1],O[0]*O[0]+O[1]*O[1]+r2],W3=[-O[0],-O[1],C0];if(!distinctV([G,W1,W2,W3]))return null;
+   return qcm(5,`Le cercle de centre ${P2('Ω',O)} passant par ${P2('A',A)} a pour équation&nbsp;:`,DEV(...G),[DEV(...W1),DEV(...W2),DEV(...W3)],
+    `r² = ΩA² = ${r2}, puis ${CIRC(O[0],O[1],r2)} se développe en ${DEV(...G)}.`,{vt:'dev',key:'pred:X==dev(circ(O,d2(O,A)))',vals:[G,W1,W2,W3],data:{P:{O,A}},steps:3})})},
+ {lv:6,f:()=>retry(()=>{const k=pick([2,3,4]),O=[nz(-3,3),nz(-3,3)],r2=pick([4,9,5,10,13,8]),A=-2*O[0],Bc=-2*O[1],Cc=O[0]*O[0]+O[1]*O[1]-r2;if(!Cc)return null;
+   const W=[[[-O[0],-O[1]],r2],[O,r2*k],[[O[0]*k,O[1]*k],r2*k*k]];
+   return qcm(6,`Le cercle d'équation ${DEV(k*A,k*Bc,k*Cc,k)} a pour&nbsp;:`,CR(O,r2),W.map(([P,s])=>CR(P,s)),
+    `On divise par ${k}&nbsp;: ${DEV(A,Bc,Cc)}, puis on complète les carrés&nbsp;: ${CIRC(O[0],O[1],r2)}.`,{vt:'cr',key:'pred:X==undev(E)',vals:[[O[0],O[1],r2]].concat(W.map(([P,s])=>[P[0],P[1],s])),data:{E:{E:[k,k*A,k*Bc,k*Cc]}},steps:4})})},
+ {lv:6,f:()=>retry(()=>{const p=pick([-5,-3,-1,1,3,5]),q=pick([-5,-3,-1,1,3,5]),O=[R(p,2),R(q,2)],Cc=ri(-6,2),r2=sub(R(p*p+q*q,4),Cc);if(r2.n<=0)return null;
+   const W1=[R(-p,2),R(-q,2)],W2=[R(p),R(q)];
+   return qcm(6,`Le cercle d'équation ${DEV(-p,-q,Cc)} a pour centre&nbsp;:`,PC(O),[PC(W1),PC(W2)],
+    `${lin([[1,'x²'],[-p,'x']])} = ${sqx('x',O[0])} ${MI} ${numH(mul(O[0],O[0]))}&nbsp;: α = ${numH(O[0])}, de même β = ${numH(O[1])}.`,{vt:'pt',key:'pred:X==undev(E)[:2]',vals:[O,W1,W2],data:{E:{E:[1,-p,-q,Cc]}},steps:3})})},
+ {lv:7,f:()=>retry(()=>{const I=[ri(-3,3),ri(-3,3)],Lt=lattice(pick([5,10,13,25])),v=pick(Lt),w=pick(Lt.filter(p=>!(p[0]===v[0]&&p[1]===v[1])&&!(p[0]===-v[0]&&p[1]===-v[1])));
+   const Bp=[I[0]+v[0],I[1]+v[1]],Cp=[I[0]-v[0],I[1]-v[1]],A=[I[0]+w[0],I[1]+w[1]],r2=v[0]*v[0]+v[1]*v[1],J=mid(A,Bp);
+   const G=[I[0],I[1],r2],W1=[J[0],J[1],d2(J,A)],W2=[A[0],A[1],d2(A,Bp)];if(!distinctV([G,W1,W2]))return null;
+   return qcm(7,`${P2('A',A)}, ${P2('B',Bp)} et ${P2('C',Cp)}. Le cercle passant par A, B et C a pour équation&nbsp;:`,CIRC(...G),[CIRC(...W1),CIRC(...W2)],
+    `${VC('AB')}${NB}·${NB}${VC('AC')} = 0&nbsp;: ABC est rectangle en A, son hypoténuse [BC] est un diamètre. Centre I${PC(I)}, r² = IB² = ${r2}.`,
+    {vt:'circ',key:'pred:X==circ(mid(B,C),d2(mid(B,C),B)) and dot(vec(A,B),vec(A,C))==0',vals:[G,W1,W2],data:{P:{A,B:Bp,C:Cp}},steps:4})})}],
+trous:[
+ {lv:4,f:()=>retry(()=>{const [a,b]=ab({lim:3,min2:5}),P=[ri(-2,2),ri(-2,2)],L=lineP(a,b,P),A=[ri(-4,4),ri(-4,4)];if(onL(L,A))return null;const H=proj(A,L);if(isIntP(H))return null;
+   return trous(4,`Le projeté orthogonal de ${P2('A',A)} sur d : ${EQL(L)} est H({0} ; {1}). (Fractions acceptées.)`,[BL(H[0],{size:4}),BL(H[1],{size:4})],`(AH) : ${EQL(lineP(-b,a,A))}. Le système avec d donne H${PC(H)}.`,{keys:['proj(A,d)[0]','proj(A,d)[1]'],data:{P:{A},L:{d:Lr(L)}},steps:4})})},
+ {lv:6,f:()=>retry(()=>{const p=pick([-5,-3,-1,1,3,5]),q=ri(-4,4),O=[R(p,2),R(q)],Cc=ri(-6,3),r2=sub(add(R(p*p,4),R(q*q)),Cc);if(r2.n<=0)return null;
+   return trous(6,`Le cercle d'équation ${DEV(-p,-2*q,Cc)} a pour centre Ω({0} ; {1}) et r² = {2}. (Fractions acceptées.)`,[BL(O[0],{size:4}),BL(O[1]),BL(r2,{size:4})],
+    `${CIRC(O[0],O[1],r2)}&nbsp;: Ω${PC(O)} et r² = ${numH(r2)}.`,{keys:['undev(E)[0]','undev(E)[1]','undev(E)[2]'],data:{E:{E:[1,-p,-2*q,Cc]}},steps:3})})},
+ {lv:3,f:()=>retry(()=>{const [a,b]=ab({lim:4}),s=pick([1,-1,2,-2]),q=a*s,m=-b*s,L=lineP(a,b,[ri(-3,3),ri(-3,3)]),c2=ri(-6,6);
+   return trous(3,`Les droites d : ${EQL(L)} et d′ : mx ${q<0?MI:'+'} ${Math.abs(q)===1?'':Math.abs(q)}y ${c2<0?MI:'+'} ${Math.abs(c2)} = 0 sont perpendiculaires pour m = {0}.`.replace(/ \+ 0 = 0/,' = 0'),[BL(m)],
+    `d ⟂ d′ ⇔ ${CV(a,b)}${NB}·${NB}${CV('m',q)} = 0 ⇔ ${fmtInt(a)}m + ${PN(b*q)} = 0 ⇔ m = ${fmtInt(m)}.`,{keys:['solve:dot((m,QQ),nrm(d))'],data:{L:{d:Lr(L)},N:{QQ:q}},steps:3})})},
+ {lv:7,f:()=>retry(()=>{const Bp=[ri(-6,-2),ri(-4,-1)],w=ab({lim:3}),m=ri(3,4),Cp=[Bp[0]+m*w[0],Bp[1]+m*w[1]],s=ri(1,m-1),H=[Bp[0]+s*w[0],Bp[1]+s*w[1]],t=pick([1,2,-1,-2]),A=[H[0]-t*w[1],H[1]+t*w[0]];
+   if(!inView(A,8,7)||!inView(Cp,8,7))return null;
+   return trous(7,`Dans le triangle ABC, avec ${P2('A',A)}, ${P2('B',Bp)} et ${P2('C',Cp)}, le pied de la hauteur issue de A est H({0} ; {1}).`,[BL(H[0]),BL(H[1])],
+    `(BC) : ${EQL(lineP(w[1],-w[0],Bp))} et la hauteur : ${EQL(lineP(Cp[0]-Bp[0],Cp[1]-Bp[1],A))}&nbsp;; leur intersection est H${PC(H)}.`,{keys:['proj(A,lpd(B,vec(B,C)))[0]','proj(A,lpd(B,vec(B,C)))[1]'],data:{P:{A,B:Bp,C:Cp}},steps:4})})},
+ {lv:5,f:()=>{const O=[nz(-4,4),nz(-4,4)],v=[nz(-4,4),ri(-4,4)],A=[O[0]+v[0],O[1]+v[1]],r2=v[0]*v[0]+v[1]*v[1];
+   return trous(5,`Le cercle de centre ${P2('Ω',O)} passant par ${P2('A',A)} a pour équation x² + y² + {0}x + {1}y + {2} = 0.`,[BL(-2*O[0]),BL(-2*O[1]),BL(O[0]*O[0]+O[1]*O[1]-r2)],
+    `r² = ΩA² = ${r2}, et ${CIRC(O[0],O[1],r2)} ⇔ ${DEV(-2*O[0],-2*O[1],O[0]*O[0]+O[1]*O[1]-r2)}.`,{keys:['dev(circ(O,d2(O,A)))[0]','dev(circ(O,d2(O,A)))[1]','dev(circ(O,d2(O,A)))[2]'],data:{P:{O,A}},steps:3})}},
+ {lv:2,f:()=>retry(()=>{const A=[ri(-4,4),ri(-4,4)],w=[nz(-4,4),nz(-4,4)],Bp=[A[0]+w[0],A[1]+w[1]],G=lineP(-w[1],w[0],A);
+   return trous(2,`La droite (AB), avec ${P2('A',A)} et ${P2('B',Bp)}, a pour équation ${lin([[-w[1],'x'],[w[0],'y']])} + {0} = 0.`,[BL(G.c)],
+    `${VC('AB')}${CV(w[0],w[1])} dirige (AB), donc ${CV(-w[1],w[0])} lui est normal&nbsp;; A donne c = ${fmtInt(G.c)}.`,{keys:['lpn(A,rot(vec(A,B)))[2]'],data:{P:{A,B:Bp}},steps:3})})},
+ {lv:1,f:()=>retry(()=>{const [a,b]=ab({lim:4}),L=lineP(a,b,[ri(-3,3),ri(-3,3)]),k=pick([2,3,-2,-3]);
+   return trous(1,`La droite d'équation ${EQL(L)} admet pour vecteur directeur ${uV}${CV(-k*b,'{0}')}.`,[BL(k*a)],`${CV(-b,a)} dirige d, et ${uV} lui est colinéaire&nbsp;: ${uV} = ${fmtInt(k)} × ${CV(-b,a)} = ${CV(-k*b,k*a)}.`,{keys:['K*dirv(d)[1]'],data:{L:{d:Lr(L)},N:{K:k}},fixed:[-k*b],steps:3})})},
+ {lv:7,f:()=>retry(()=>{const I=[ri(-3,3),ri(-3,3)],Lt=lattice(pick([5,10,13,25])),v=pick(Lt),w=pick(Lt.filter(p=>!(p[0]===v[0]&&p[1]===v[1])&&!(p[0]===-v[0]&&p[1]===-v[1])));
+   const Bp=[I[0]+v[0],I[1]+v[1]],Cp=[I[0]-v[0],I[1]-v[1]],A=[I[0]+w[0],I[1]+w[1]],r2=v[0]*v[0]+v[1]*v[1];
+   return trous(7,`Le triangle ABC, avec ${P2('A',A)}, ${P2('B',Bp)} et ${P2('C',Cp)}, est rectangle en A. Son cercle circonscrit a pour centre I({0} ; {1}) et r² = {2}.`,[BL(I[0]),BL(I[1]),BL(r2)],
+    `L'hypoténuse [BC] est un diamètre&nbsp;: I${PC(I)}, milieu de [BC], et r² = IB² = ${r2}.`,{keys:['mid(B,C)[0]','mid(B,C)[1]','d2(mid(B,C),B)'],data:{P:{A,B:Bp,C:Cp}},steps:4})})}]};
+
+/* tirage : 6 QCM + 4 trous, mélangés, les sept niveaux représentés */
+function build(Bk){for(let n=0;n<4000;n++){const q=shuf(Bk.qcm.slice()).slice(0,6),t=shuf(Bk.trous.slice()).slice(0,4);
+    if(new Set(q.concat(t).map(x=>x.lv)).size<7)continue;
+    return shuf(q.map(x=>x.f()).concat(t.map(x=>x.f())))}
+  throw new Error('build')}
+window.LT_FIN={bronze:()=>build(BRONZE),argent:()=>build(ARGENT),or:()=>build(OR),banks:{BRONZE,ARGENT,OR}};
+})();
+</script>
+
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'la-traceuse',title:'La Traceuse',levels:7,
+  levelNames:['La boussole','Point et normale','L\'angle droit','Au plus court','La corde','Retrouver le piquet','Le plan du terrain'],
+  music:'aventure',finals:{bronze:()=>(window.LT_lastFinal=LT_FIN.bronze()),argent:()=>(window.LT_lastFinal=LT_FIN.argent()),or:()=>(window.LT_lastFinal=LT_FIN.or())}});
+LT.start();
+(function(){ /* espace insécable avant « : ; ! ? » et après « dans tout le texte affiché */
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,'\u00a0$1').replace(re2,'«\u00a0');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|TEXTAREA|INPUT)$/.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>ms.forEach(m=>{m.addedNodes.forEach(fix);if(m.type==='characterData')fix(m.target)})).observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>
