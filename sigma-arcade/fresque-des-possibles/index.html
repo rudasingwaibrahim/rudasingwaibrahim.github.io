@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La Fresque des Possibles · Sigma Arcade</title>
+<meta name="description" content="Probabilités en Seconde : issues, univers, événements, probabilité en équiprobabilité, événement contraire, loi de probabilité, intersection, réunion et arbre des possibles. Le mur du lycée est quadrillé : chaque case est une issue, le mur entier est l'univers Ω.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* VOICE : complice, précis, jamais enfantin ; on réessaie toujours.
+   IDEA : la nuit, l'élève peint une fresque sur le mur du lycée. Le mur est quadrillé : une case = une issue,
+          le mur entier = l'univers Ω. Peindre un événement, c'est peindre ses cases.
+   PICTURE : A en bleu, B en jaune ; là où les deux peintures se superposent, la case devient VERTE : A ∩ B.
+          Au compteur, chaque case verte passe deux fois : P(A) + P(B) la compte deux fois, on retire P(A ∩ B).
+   COLOUR and TYPE : nuit « océan profond », accent violet-bleu pour l'action, or pour les réussites, corail pour les erreurs ;
+          bleu, jaune, vert et violet sont les couleurs des bombes de peinture (objets) ; Outfit.
+   LAYOUT : mur et légende à gauche (collés en haut sur téléphone), carnet du graffeur à droite. */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);
+--pA:#5f86ff;--pB:#f2d15c;--pG:#4fcf86;--pC:#b98cff}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:74ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.ov{text-decoration:overline;text-decoration-thickness:.09em;text-underline-offset:0}
+
+/* barre des niveaux */
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+
+/* mise en page */
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#050a16;user-select:none;-webkit-user-select:none}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.badge{position:absolute;left:10px;top:10px;z-index:2;font:600 13px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.75);color:var(--mut);border:1px solid var(--soft);pointer-events:none;max-width:calc(100% - 150px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.count{position:absolute;right:10px;top:10px;z-index:2;font:700 14px var(--sg-font);font-variant-numeric:tabular-nums;padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.75);color:var(--gold2);border:1px solid rgba(200,168,75,.35);pointer-events:none}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(17px,1.8vw,22px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .35em}
+.capt .k{color:var(--gold2)}.capt .r{color:var(--ko)}.capt .m{color:var(--mut);font-weight:600}
+.capt .cA{color:#8fa9ff}.capt .cB{color:var(--pB)}.capt .cG{color:var(--pG)}.capt .cC{color:var(--pC)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;margin-top:8px;font-size:14px;color:var(--mut)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:14px;border-radius:4px;display:inline-block}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.cours .rule .f{display:inline-block;padding:4px 10px;border-radius:8px;background:rgba(200,168,75,.1);font-weight:700}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.5;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.prompt .pa{color:#8fa9ff;font-weight:700}.prompt .pb{color:var(--pB);font-weight:700}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.72}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.did{background:transparent;border-color:rgba(95,210,124,.5);color:var(--ok);opacity:1}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.btns:first-child{margin-top:0}
+.opts{display:grid;gap:10px}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.4 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt:disabled{cursor:default}
+.opt table,.sk-ch table{border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:15px}
+.opt td,.sk-ch td,.sk-q td,.prompt td{border:1px solid var(--line);padding:3px 9px;text-align:center}
+.opt td:first-child,.sk-ch td:first-child,.prompt td:first-child,.sk-q td:first-child{color:var(--mut);font-weight:600}
+.lt{border-collapse:collapse;margin:8px 0 2px;font-variant-numeric:tabular-nums}
+.fill{font:700 clamp(19px,2.2vw,23px)/2.3 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:3.2em;height:46px;margin:0 3px;padding:0 6px;font:700 21px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}
+.in:disabled{opacity:1}
+.fin{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;gap:3px;margin:4px 3px;line-height:1}
+.fin .in{width:2.9em;margin:0}
+.fin .fbar{width:100%;height:3px;border-radius:2px;background:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-width:52px;min-height:48px;padding:0 10px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:700 17px var(--sg-font);font-variant-numeric:tabular-nums;cursor:pointer;transition:border-color .15s,background .15s,color .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.chip:hover:not(:disabled){border-color:var(--ac)}
+.chip .dc{width:14px;height:14px;border-radius:50%;display:inline-block;flex:none}
+.chip .sr{color:#ff8a8a}
+.chip[aria-pressed=true]{color:#0b1020}
+.chip[aria-pressed=true] .sr{color:#9b1c1c}
+.chip.rA[aria-pressed=true]{background:var(--pA);border-color:var(--pA)}
+.chip.rC[aria-pressed=true]{background:var(--pC);border-color:var(--pC)}
+.chip.rI[aria-pressed=true],.chip.rU[aria-pressed=true]{background:#eef2ff;border-color:#fff}
+.chip.yes{border-color:var(--gold);background:rgba(200,168,75,.16);color:var(--gold2)}
+.chip.no{border-color:rgba(255,107,107,.45);color:rgba(255,160,150,.8);background:transparent;text-decoration:line-through}
+.chip.hint{animation:hint 1s ease-in-out 3}
+@keyframes hint{50%{box-shadow:0 0 0 4px rgba(232,199,102,.55)}}
+.chip:disabled{cursor:default}
+.chips.cards{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
+.chips.cards .chip{min-width:0;padding:0 2px;font-size:15px;gap:1px}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+/* fractions */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.sk-q .fr,.sk-ch .fr{font-size:.95em}
+/* retours */
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb .mk,.win .mk{flex:none}
+.fb b{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.win{margin-top:16px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(200,168,75,.55);background:linear-gradient(150deg,rgba(200,168,75,.12),rgba(200,168,75,.03));animation:pop .35s ease-out}
+.win .top{display:flex;gap:12px;align-items:center}
+.win .mk svg{width:60px;height:60px;flex:none}
+.win .big{font-size:22px;font-weight:800;color:var(--gold2)}
+.win p{margin:6px 0 12px}
+.mk{display:inline-flex}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+
+/* ---------- scène SVG ---------- */
+#scene text{font-family:var(--sg-font)}
+.t .bg{fill:#1a2440;stroke:rgba(190,205,240,.28);stroke-width:2}
+.t .pt,.t .tex,.t .dr{opacity:0;transition:opacity .3s}
+.t{color:var(--pA);transition:color .45s}
+.t.A{color:var(--pA)}.t.B{color:var(--pB)}.t.A.B{color:var(--pG)}.t.C{color:var(--pC)}
+.t:is(.A,.B,.C) .pt{opacity:.96}.t:is(.A,.B,.C) .tex{opacity:.5}.t:is(.A,.B,.C) .dr{opacity:.9}
+.t .lb{fill:#e9eefb;font-weight:700;transition:fill .3s;paint-order:stroke;stroke:rgba(10,16,32,.35);stroke-width:2px}
+.t:is(.A,.B,.C) .lb{fill:#0b1020;stroke:none}
+.t .lb .sr{fill:#ff8f8f}.t:is(.A,.B,.C) .lb .sr{fill:#8a1010}
+.t .ring{fill:none;stroke:#f4f7ff;stroke-width:5;stroke-dasharray:14 7;opacity:0;transition:opacity .2s}
+.t .bdg{opacity:0;transition:opacity .2s}
+.t.sel .ring,.t.sel .bdg{opacity:1}
+.t.hit .ring{opacity:1;stroke:var(--gold2);stroke-dasharray:none;stroke-width:6}
+.t.q .bg{fill:#0d1428;stroke-dasharray:8 6}
+.t.dim{opacity:.35}
+.gq{fill:var(--gold2);font-weight:800}
+.gs{stroke:rgba(5,10,22,.7);stroke-width:2}
+.gs.dup{stroke:var(--ko);stroke-width:5}
+.tag2{fill:var(--ko);font-weight:800}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:rgba(6,13,26,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .stage{aspect-ratio:auto;height:clamp(200px,34svh,330px);border-radius:14px}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:15px;border-radius:10px}
+  .legend{display:none}
+  .badge,.count{top:auto;bottom:8px;font-size:12px}
+}
+@media (max-width:520px){
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .sk-final-btn .s{display:inline!important}
+  .chips.cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media (prefers-reduced-motion:reduce){.win,.chip.hint{animation:none}.t,.t *{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>La Fresque des Possibles</h1>
+<p>La nuit, tu peins une fresque sur le mur du lycée. Le mur est quadrillé&nbsp;: chaque case est une issue, le mur entier est l'univers Ω. Peindre un événement, c'est peindre ses cases… et quand le bleu rencontre le jaune, ça fait du vert.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Le mur quadrillé : chaque case est une issue de l'expérience">
+    <svg id="scene" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <g id="decor"></g><g id="wallf"></g><g id="tree"></g><g id="tiles"></g><g id="band"></g><g id="gauge"></g><g id="fx"></g>
+    </svg>
+    <span class="badge" id="badge"></span>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+  <div class="legend" id="legend"></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div class="prompt" id="prompt"></div>
+  <div id="work"></div>
+  <div class="fb" id="fb" hidden><span class="mk" id="fbmk"></span><div><b id="fbt">Pas tout à fait.</b><p id="fbp"></p></div></div>
+  <div class="win" id="win" hidden><div class="top"><span class="mk" id="winmk"></span><div class="big" id="winx"></div></div><p id="winp"></p>
+    <div class="btns"><button class="btn or" id="next" type="button">Question suivante →</button></div></div>
+</section>
+</main>
+<script>
+/* ======================= LA FRESQUE DES POSSIBLES ======================= */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const reduceM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const red=(a,b)=>{const g=gcd(a,b)||1;return [a/g,b/g]};
+const fr=(a,b)=>`<span class="fr" data-f="${a}/${b}"><span>${a}</span><span>${b}</span></span>`;
+const frR=(a,b)=>{const [p,q]=red(a,b);return q===1?String(p):fr(p,q)};
+const NA='<span class="ov">A</span>';
+/* décimal exact (virgule) d'une fraction, ou null */
+function dec(a,b){[a,b]=red(a,b);let t=b,k2=0,k5=0;while(t%2===0){t/=2;k2++}while(t%5===0){t/=5;k5++}if(t!==1)return null;
+  const k=Math.max(k2,k5),num=a*Math.pow(10,k)/b,s=String(Math.round(num)).padStart(k+1,'0');
+  return k?(s.slice(0,-k)+','+s.slice(-k)).replace(/,?0+$/,''):s}
+const D=(a,b)=>dec(a,b);
+/* valeur d'une saisie : entier, décimal (virgule ou point) ou fraction a/b */
+function parseVal(s){s=String(s).trim().replace(/\s+/g,'').replace(',','.');let m;
+  if((m=s.match(/^(\d+)\/(\d+)$/))){const q=+m[2];return q?red(+m[1],q):null}
+  if((m=s.match(/^(\d*)\.(\d+)$/))){const k=m[2].length;return red(+(m[1]||'0')*Math.pow(10,k)+ +m[2],Math.pow(10,k))}
+  if(/^\d+$/.test(s))return [+s,1];return null}
+/* toutes les écritures acceptées d'une valeur (épreuves) */
+function ansOf(a,b,raw){const [p,q]=red(a,b),out=[q===1?String(p):`${p}/${q}`];if(raw&&raw!==out[0])out.push(raw);const d=dec(p,q);if(d&&!out.includes(d))out.push(d);return out}
+
+/* ---------- expériences (univers dénombrés) ---------- */
+const NM={P:'PILE',F:'FACE',R:'rouge',V:'vert',B:'bleu'};
+const CC={rouge:'#ff6b6b',bleu:'#7f9dff',bleue:'#7f9dff',vert:'#5fd27c',verte:'#5fd27c',jaune:'#f2d15c',noire:'#3a4258',violet:'#b98cff',R:'#ff6b6b',V:'#5fd27c',B:'#7f9dff'};
+const SUITS=[{k:'P',sym:'♠',nm:'pique',red:false},{k:'C',sym:'♥',nm:'cœur',red:true},{k:'K',sym:'♦',nm:'carreau',red:true},{k:'T',sym:'♣',nm:'trèfle',red:false}];
+const RANKS=['7','8','9','10','V','D','R','A'];
+const RW={'7':'un 7','8':'un 8','9':'un 9','10':'un 10',V:'un valet',D:'une dame',R:'un roi',A:'un as'};
+const RL={'7':'le 7','8':'le 8','9':'le 9','10':'le 10',V:'le valet',D:'la dame',R:'le roi',A:'l’as'};
+const SN={P:'pique',C:'cœur',K:'carreau',T:'trèfle'};
+const nums=n=>Array.from({length:n},(_,i)=>({k:String(i+1),v:i+1,tl:String(i+1)}));
+const TREES={pp:[['P','F'],['P','F']],pr3:[['P','F'],['R','V','B']],pd:[['P','F'],['1','2','3','4','5','6']],rr:[['R','V','B'],['R','V','B']]};
+const TTXT={pp:'On lance deux fois de suite une pièce équilibrée (P = PILE, F = FACE).',
+  pr3:'On lance une pièce équilibrée (P = PILE, F = FACE), puis on fait tourner une roue à 3 secteurs égaux&nbsp;: rouge (R), vert (V) et bleu (B).',
+  pd:'On lance une pièce équilibrée (P = PILE, F = FACE), puis un dé équilibré à 6 faces.',
+  rr:'On fait tourner deux fois de suite une roue à 3 secteurs égaux&nbsp;: rouge (R), vert (V) et bleu (B).'};
+const TNM={pp:'Deux lancers de pièce',pr3:'Une pièce puis une roue',pd:'Une pièce puis un dé',rr:'Deux tours de roue'};
+const comp=k=>/^\d$/.test(k)?{k,v:+k}:'RVB'.includes(k)?{k,c:NM[k]}:{k};
+const EXC={};
+function E(id){if(EXC[id])return EXC[id];let e,m;
+  if(id==='piece')e={txt:'On lance une pièce de monnaie équilibrée.',nm:'Une pièce',iss:[{k:'P',tl:'PILE'},{k:'F',tl:'FACE'}]};
+  else if(id==='de6')e={txt:'On lance un dé équilibré à 6 faces.',nm:'Un dé à 6 faces',iss:nums(6)};
+  else if((m=id.match(/^jet(\d+)$/))){const n=+m[1];e={txt:`Un sac contient ${n} jetons numérotés de 1 à ${n}. On tire un jeton au hasard.`,nm:`${n} jetons numérotés`,iss:nums(n)}}
+  else if(id==='roue4')e={txt:'On fait tourner une roue partagée en 4 secteurs égaux&nbsp;: rouge, bleu, vert et jaune.',nm:'Une roue à 4 secteurs',iss:['rouge','bleu','vert','jaune'].map(c=>({k:c,c,tl:c}))};
+  else if(id==='urne2')e={txt:'On tire une boule au hasard dans une urne qui contient des boules rouges et des boules bleues.',nm:'Une urne',iss:['rouge','bleue'].map(c=>({k:c,c,tl:c}))};
+  else if(id==='cartes'){const iss=[];SUITS.forEach(s=>RANKS.forEach(r=>iss.push({k:r+s.k,tl:r==='A'?'As':r,rank:r,suit:s.k,sym:s.sym,red:s.red})));
+    e={txt:'On tire une carte au hasard dans un jeu de 32 cartes&nbsp;: 7, 8, 9, 10, valet, dame, roi et as dans chacune des 4 couleurs (pique ♠, cœur ♥, carreau ♦, trèfle ♣).',nm:'Un jeu de 32 cartes',iss,cols:8}}
+  else if((m=id.match(/^(urne|sac|roue):([\d,]+)$/))){const c=m[2].split(',').map(Number),N=c.reduce((a,b)=>a+b,0),iss=[];
+    const lab=m[1]==='urne'?['verte','jaune','noire']:m[1]==='roue'?['rouge','bleu','vert','jaune']:null;
+    c.forEach((x,g)=>{for(let j=0;j<x;j++)iss.push(lab?{k:`${g}-${j}`,g,c:lab[g],tl:''}:{k:`${g}-${j}`,g,v:g+1,tl:String(g+1)})});
+    const pl=(x,s)=>`${x} boule${x>1?'s':''} ${s}${x>1?'s':''}`;
+    const txt=m[1]==='urne'?`Une urne contient ${pl(c[0],'verte')}, ${c[1]} boule${c[1]>1?'s':''} jaune${c[1]>1?'s':''} et ${c[2]} boule${c[2]>1?'s':''} noire${c[2]>1?'s':''}, soit ${N} boules. On tire une boule au hasard.`
+      :m[1]==='roue'?`Une roue est partagée en ${N} secteurs égaux&nbsp;: ${c[0]} rouge${c[0]>1?'s':''}, ${c[1]} bleu${c[1]>1?'s':''}, ${c[2]} vert${c[2]>1?'s':''} et ${c[3]} jaune${c[3]>1?'s':''}.`
+      :`Un sac contient ${N} jetons portant les numéros 1 à ${c.length}&nbsp;: ${c.map((x,g)=>`${x} jeton${x>1?'s':''} «&nbsp;${g+1}&nbsp;»`).join(', ')}. On tire un jeton au hasard.`;
+    e={kind:m[1],counts:c,N,iss,glab:lab||c.map((_,g)=>String(g+1)),txt,nm:m[1]==='urne'?`Une urne de ${N} boules`:m[1]==='roue'?`Une roue de ${N} secteurs`:`Un sac de ${N} jetons`}}
+  else if(TREES[id]){const [L1,L2]=TREES[id],iss=[];L1.forEach(a=>L2.forEach(b=>iss.push({k:a+b,tl:a+b,a:comp(a),b:comp(b)})));
+    e={tree:TREES[id],iss,txt:TTXT[id],nm:TNM[id]}}
+  else throw new Error('expérience '+id);
+  e.id=id;e.n=e.iss.length;return EXC[id]=e}
+/* ---------- événements ---------- */
+function T(ev,i){switch(ev.t){
+  case 'all':return true;case 'none':return false;
+  case 'pair':return i.v%2===0;case 'impair':return i.v%2===1;case 'mult':return i.v%ev.k===0;
+  case 'gt':return i.v>ev.k;case 'ge':return i.v>=ev.k;case 'lt':return i.v<ev.k;case 'le':return i.v<=ev.k;case 'eq':return i.v===ev.k;
+  case 'rank':return i.rank===ev.r;case 'suit':return i.suit===ev.s;case 'red':return !!i.red;case 'fig':return ['V','D','R'].includes(i.rank);
+  case 'card':return i.rank===ev.r&&i.suit===ev.s;
+  case 'col':return i.c===ev.c;case 'grp':return ev.g.includes(i.g);case 'set':return ev.s.includes(i.k);case 'is':return i.k===ev.v;
+  case 'atl':return i.a.k===ev.v||i.b.k===ev.v;case 'exa':return (i.a.k===ev.v)+(i.b.k===ev.v)===ev.n;case 'same':return i.a.k===i.b.k;
+  case 'seq':return T(ev.x,i.a)&&T(ev.y,i.b);
+  case 'not':return !T(ev.e,i);case 'or':return T(ev.a,i)||T(ev.b,i);case 'and':return T(ev.a,i)&&T(ev.b,i)}
+  throw new Error('événement '+ev.t)}
+const setOf=(e,ev)=>e.iss.filter(i=>T(ev,i)).map(i=>i.k);
+const labT=i=>i.rank?(i.tl+i.sym):i.tl||i.c;
+const labOf=(e,k)=>labT(e.iss.find(i=>i.k===k));
+const setH=(e,keys)=>'{'+keys.map(k=>labOf(e,k)).join('&nbsp;; ')+'}';
+const setL=labs=>'{'+labs.join('&nbsp;; ')+'}';
+function compPh(c){return c.t==='is'?(NM[c.v]||c.v):c.t==='eq'?String(c.k):c.t==='pair'?'un nombre pair':c.t==='impair'?'un nombre impair':c.t==='ge'?`un nombre ≥ ${c.k}`:c.t==='le'?`un nombre ≤ ${c.k}`:''}
+function ph(ev,e){switch(ev.t){
+  case 'pair':return 'nombre pair';case 'impair':return 'nombre impair';case 'mult':return `multiple de ${ev.k}`;
+  case 'gt':return `nombre &gt; ${ev.k}`;case 'ge':return `nombre ≥ ${ev.k}`;case 'lt':return `nombre &lt; ${ev.k}`;case 'le':return `nombre ≤ ${ev.k}`;case 'eq':return `obtenir ${ev.k}`;
+  case 'rank':return `tirer ${RW[ev.r]}`;case 'suit':return `tirer un ${SN[ev.s]}`;case 'red':return 'tirer une carte rouge';case 'fig':return 'tirer une figure (valet, dame ou roi)';
+  case 'card':return `tirer ${RL[ev.r]} de ${SN[ev.s]}`;
+  case 'col':return e&&e.kind==='urne'?`tirer une boule ${ev.c}`:`obtenir le ${ev.c}`;
+  case 'atl':return `obtenir au moins une fois ${NM[ev.v]}`;
+  case 'exa':return ev.n===2?`obtenir deux fois ${NM[ev.v]}`:`obtenir exactement une fois ${NM[ev.v]}`;
+  case 'same':return e&&e.id==='rr'?'obtenir deux fois la même couleur':'obtenir deux fois la même face';
+  case 'seq':return ev.x.t==='all'?`obtenir ${compPh(ev.y)} à la 2e épreuve`:`obtenir ${compPh(ev.x)} puis ${compPh(ev.y)}`;
+  case 'not':if(ev.e.t==='atl')return `ne jamais obtenir ${NM[ev.e.v]}`;return `ne pas ${ph(ev.e,e)}`}
+  return '?'}
+const q=s=>`«&nbsp;${s}&nbsp;»`;
+/* événements « intéressants » d'une expérience (ensembles distincts) */
+function evPool(e,o={}){const n=e.n,out=[],seen=new Set(),min=o.min||2,maxC=o.maxC==null?1:o.maxC;const c=[];
+  if(e.iss[0].v!=null&&!e.tree){c.push({t:'pair'},{t:'impair'});[3,4,5].forEach(k=>c.push({t:'mult',k}));for(let k=2;k<n;k++)['gt','ge','lt','le'].forEach(t=>c.push({t,k}))}
+  if(e.id==='cartes'){['A','R','D','V'].forEach(r=>c.push({t:'rank',r}));SUITS.forEach(s=>c.push({t:'suit',s:s.k}));c.push({t:'red'},{t:'fig'})}
+  shuf(c).forEach(ev=>{const s=setOf(e,ev),key=s.join(',');if(s.length<min||s.length>n-maxC||seen.has(key))return;if(o.max&&s.length>o.max)return;seen.add(key);out.push(ev)});
+  return out}
+
+/* ---------- décor (SVG original, nocturne) ---------- */
+const SVGNS='http://www.w3.org/2000/svg';
+function sv(tag,at,par){const el=document.createElementNS(SVGNS,tag);for(const k in at)el.setAttribute(k,at[k]);if(par)par.appendChild(el);return el}
+function starsH(n,seed,ymax){let s='',r=seed;const R=()=>{r=(r*9301+49297)%233280;return r/233280};
+  for(let i=0;i<n;i++)s+=`<circle cx="${(R()*1600).toFixed(0)}" cy="${(R()*ymax).toFixed(0)}" r="${(R()*1.7+.5).toFixed(1)}" fill="#fff" opacity="${(R()*.55+.2).toFixed(2)}"/>`;return s}
+function palm(x,y,sc,flip){const f=flip?-1:1;
+  return `<g transform="translate(${x} ${y}) scale(${sc*f} ${sc})" fill="#08111f"><path d="M0 0 C6 -90 -4 -180 14 -260 L22 -258 C8 -180 16 -90 12 0Z"/>
+  <path d="M18 -262 C-30 -290 -80 -270 -110 -235 C-70 -262 -30 -262 14 -252Z"/><path d="M18 -262 C60 -300 120 -290 150 -250 C110 -275 60 -275 20 -252Z"/>
+  <path d="M18 -262 C0 -310 -40 -330 -70 -330 C-30 -318 -6 -295 12 -258Z"/><path d="M18 -262 C50 -320 90 -330 120 -322 C80 -312 50 -290 24 -256Z"/>
+  <path d="M16 -262 C-10 -240 -40 -200 -50 -160 C-30 -200 -6 -232 20 -254Z"/></g>`}
+function can(x,y,col,rot){return `<g transform="translate(${x} ${y}) rotate(${rot||0})"><rect x="-17" y="-62" width="34" height="62" rx="6" fill="#2a3552"/><rect x="-17" y="-62" width="34" height="18" rx="5" fill="${col}"/>
+  <rect x="-6" y="-74" width="12" height="13" rx="3" fill="#c9d2de"/><rect x="-13" y="-38" width="5" height="30" rx="2.5" fill="#fff" opacity=".12"/></g>`}
+function decor(){$('decor').innerHTML=`<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#020611"/><stop offset=".6" stop-color="#0b1834"/><stop offset="1" stop-color="#14254a"/></linearGradient>
+  <linearGradient id="grd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121b30"/><stop offset="1" stop-color="#070c18"/></linearGradient>
+  <linearGradient id="wl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2644"/><stop offset="1" stop-color="#121b33"/></linearGradient>
+  <radialGradient id="moon"><stop offset="0" stop-color="#e9edf7" stop-opacity=".42"/><stop offset="1" stop-color="#e9edf7" stop-opacity="0"/></radialGradient>
+  <radialGradient id="pool" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe9a8" stop-opacity=".16"/><stop offset="1" stop-color="#ffe9a8" stop-opacity="0"/></radialGradient>
+  <linearGradient id="cone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9a8" stop-opacity=".2"/><stop offset="1" stop-color="#ffe9a8" stop-opacity="0"/></linearGradient>
+  <radialGradient id="sh" cx=".3" cy=".25" r=".9"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".5" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".18"/></radialGradient>
+  <pattern id="spk" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="3" cy="4" r="1.3" fill="#fff" opacity=".35"/><circle cx="12" cy="9" r="1" fill="#000" opacity=".25"/><circle cx="7" cy="15" r="1.1" fill="#fff" opacity=".2"/></pattern>
+  <pattern id="brick" width="80" height="40" patternUnits="userSpaceOnUse"><path d="M0 40H80M0 20H80M40 0V20M0 20V40M80 20V40" stroke="#0d1428" stroke-width="2" opacity=".55"/></pattern>
+  <radialGradient id="splat"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
+  <rect width="1600" height="1000" fill="url(#sky)"/>${starsH(60,11,300)}
+  <circle cx="1420" cy="96" r="80" fill="url(#moon)"/><circle cx="1420" cy="96" r="30" fill="#eef1f8"/><circle cx="1434" cy="87" r="27" fill="#0b1834"/>
+  <path d="M0 250 C200 200 330 240 470 215 C620 190 720 240 860 228 C1020 214 1120 180 1260 205 C1400 230 1500 200 1600 220 V400 H0Z" fill="#0a1428"/>
+  ${palm(120,330,1,false)}${palm(1480,330,.95,true)}${palm(1380,320,.7,false)}
+  <rect x="0" y="40" width="1600" height="840" fill="none"/>
+  <rect x="170" y="44" width="1260" height="684" rx="10" fill="url(#wl)"/><rect x="170" y="44" width="1260" height="684" fill="url(#brick)" opacity=".7"/>
+  <rect x="158" y="32" width="1284" height="20" rx="5" fill="#26345a"/>
+  <path d="M60 880 L60 120 M1540 880 L1540 120" stroke="#1c2742" stroke-width="12" stroke-linecap="round"/>
+  <path d="M40 120 h60 M1500 120 h60" stroke="#2a3656" stroke-width="12" stroke-linecap="round"/>
+  <path d="M86 128 L560 720 L170 720Z M1514 128 L1040 720 L1430 720Z" fill="url(#cone)"/>
+  <circle cx="86" cy="126" r="11" fill="#ffe9a8"/><circle cx="1514" cy="126" r="11" fill="#ffe9a8"/>
+  <ellipse cx="420" cy="600" rx="360" ry="260" fill="url(#pool)"/><ellipse cx="1180" cy="600" rx="360" ry="260" fill="url(#pool)"/>
+  <rect y="728" width="1600" height="272" fill="url(#grd)"/><path d="M0 728 H1600" stroke="#2c3a60" stroke-width="3"/>
+  <g stroke="#1f2b49" stroke-width="2" opacity=".7"><path d="M0 800 H1600 M0 890 H1600"/></g>
+  <g transform="translate(1455 735)"><path d="M0 0 L40 -560 M52 0 L92 -560" stroke="#3a4766" stroke-width="9" stroke-linecap="round"/>${[1,2,3,4,5,6,7].map(k=>`<path d="M${k*5.5} ${-k*70} L${52+k*5.5} ${-k*70}" stroke="#3a4766" stroke-width="7" stroke-linecap="round"/>`).join('')}</g>
+  ${can(110,960,'#5f86ff',-8)}${can(160,968,'#f2d15c',6)}${can(1480,962,'#b98cff',-4)}${can(1530,958,'#4fcf86',9)}
+  <g opacity=".5"><ellipse cx="135" cy="972" rx="70" ry="10" fill="#000"/><ellipse cx="1505" cy="970" rx="70" ry="10" fill="#000"/></g>`}
+
+/* ---------- moteur de scène ---------- */
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const tween=(ms,f)=>new Promise(res=>{if(reduceM||ms<=0){f(1);res();return}const t0=performance.now();
+  const step=now=>{const t=Math.min(1,(now-t0)/ms);f(ease(t));if(t<1)requestAnimationFrame(step);else res()};requestAnimationFrame(step)});
+const wait=ms=>new Promise(r=>setTimeout(r,reduceM?Math.min(ms,20):ms));
+const ST={e:null,mode:'wall',T:new Map(),gauge:null,band:null};
+const WX=250,WY=110,WW=1100,WH=560;
+function gridFor(e){const n=e.n,gap=n>16?12:n>8?16:22;let cols=e.cols||0;
+  if(!cols){let best=0;for(let c=1;c<=n;c++){const r=Math.ceil(n/c),s=Math.min((WW-gap*(c-1))/c,(WH-gap*(r-1))/r);if(s>best+.5){best=s;cols=c}}}
+  const rows=Math.ceil(n/cols);let s=Math.min((WW-gap*(cols-1))/cols,(WH-gap*(rows-1))/rows,250);
+  const w=n<=3?Math.min(s*1.3,290):s,h=s,th=rows*h+(rows-1)*gap,y0=WY+(WH-th)/2;
+  return idx=>{const r=Math.floor(idx/cols),inRow=r<rows-1?cols:n-cols*(rows-1),tw=inRow*w+(inRow-1)*gap,x0=WX+(WW-tw)/2;
+    return {x:x0+(idx%cols)*(w+gap),y:y0+r*(h+gap),w,h}}}
+function tileInner(t){const {i,w,h}=t,r=Math.min(w,h)*.14,g=t.g;let lab='';
+  const fs=Math.min(h*.42,w*.36,66);
+  if(i.rank)lab=`<text class="lb" x="${w/2}" y="${h/2}" font-size="${fs*.92}" text-anchor="middle" dominant-baseline="central">${i.tl}<tspan class="${i.red?'sr':''}" dx="3">${i.sym}</tspan></text>`;
+  else if(i.c&&!i.a&&w<70)lab=`<rect x="${w*.18}" y="${h*.2}" width="${w*.64}" height="${h*.6}" rx="${w*.2}" fill="${CC[i.c]}" stroke="#0b1020" stroke-width="2"/>`;
+  else if(i.c&&!i.a)lab=`<circle cx="${w/2}" cy="${i.tl?h*.4:h/2}" r="${Math.min(w,h)*(i.tl?.2:.26)}" fill="${CC[i.c]}" stroke="#0b1020" stroke-width="3"/>`+(i.tl?`<text class="lb" x="${w/2}" y="${h*.78}" font-size="${Math.min(fs*.5,26)}" text-anchor="middle" dominant-baseline="central">${i.tl}</text>`:'');
+  else{const L=String(i.tl),k=i.a?Math.min(h*.6,52)/fs:L.length>2?.56:L.length>1?.8:1;lab=`<text class="lb" x="${w/2}" y="${h/2}" font-size="${fs*k}" text-anchor="middle" dominant-baseline="central">${L}</text>`}
+  const d1=w*.22,d2=w*.62,dh=Math.min(h*.18,22);
+  g.innerHTML=`<rect class="bg" width="${w}" height="${h}" rx="${r}"/><rect class="pt" width="${w}" height="${h}" rx="${r}" fill="currentColor"/>
+   <rect class="tex" width="${w}" height="${h}" rx="${r}" fill="url(#spk)"/><rect class="tex" width="${w}" height="${h}" rx="${r}" fill="url(#sh)"/>
+   <path class="dr" fill="currentColor" d="M${d1-5} ${h-2} q5 ${dh} 10 0Z M${d2-4} ${h-2} q4 ${dh*.65} 8 0Z"/>${lab}
+   <rect class="ring" x="-6" y="-6" width="${w+12}" height="${h+12}" rx="${r+5}"/>
+   <g class="bdg"><circle cx="${w-6}" cy="6" r="15" fill="#f4f7ff"/><path d="M${w-13} 6 l5 5 l9 -10" stroke="#0b1020" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`}
+function mkTile(i,p,hidden){const g=sv('g',{class:'t','data-k':i.k},$('tiles'));const t={i,g,x:p.x,y:p.y,w:p.w,h:p.h};tileInner(t);place(t,hidden?0:1);ST.T.set(i.k,t);return t}
+function place(t,s){s=s==null?1:s;t.g.setAttribute('transform',`translate(${t.x+t.w/2*(1-s)} ${t.y+t.h/2*(1-s)}) scale(${s})`);t.g.style.opacity=s<.01?0:''}
+function center(k){const t=ST.T.get(k);return {x:t.x+t.w/2,y:t.y+t.h/2}}
+function frame(show,label){const f=$('wallf');if(!show){f.innerHTML='';return}
+  f.innerHTML=`<rect x="${WX-26}" y="${WY-40}" width="${WW+52}" height="${WH+66}" rx="16" fill="#0c142a" opacity=".55" stroke="rgba(190,205,240,.18)" stroke-width="2" stroke-dasharray="10 8"/>
+  <g transform="translate(${WX+WW/2} ${WY-40})"><rect x="-200" y="-30" width="400" height="60" rx="30" fill="#0c1a30" stroke="rgba(200,168,75,.6)" stroke-width="2.5"/>
+  <text id="plate" x="0" y="2" text-anchor="middle" dominant-baseline="central" font-size="34" font-weight="700" fill="#e8c766">${label||''}</text></g>`}
+const plate=s=>{const p=document.getElementById('plate');if(p)p.textContent=s};
+function count(s){$('count').textContent=s;$('count').hidden=!s}
+function stageReset(e,mode){ST.e=e;ST.mode=mode;ST.T.clear();ST.gauge=null;ST.band=null;['tiles','gauge','fx','tree','band'].forEach(id=>$(id).innerHTML='');
+  $('badge').textContent=e.nm;
+  if(mode==='tree'){frame(false);buildTree(e,true);count('')}
+  else{frame(true,mode==='build'?'Ω = { }':`Ω · ${e.n} issues`);const L=gridFor(e);e.iss.forEach((i,idx)=>mkTile(i,L(idx),mode==='build'));count(mode==='build'?'0 case':`${e.n} cases`)}
+  legend()}
+function legend(roles,nameA){const R=roles||[];const items={A:['var(--pA)',nameA&&!/span/.test(nameA)?nameA:'A'],B:['var(--pB)','B'],G:['var(--pG)','A ∩ B (bleu + jaune)'],C:['var(--pC)','contraire']};
+  $('legend').innerHTML=R.map(r=>`<span><i style="background:${items[r][0]}"></i>${items[r][1]}</span>`).join('')}
+function paint(keys,cls,on){keys.forEach(k=>{const t=ST.T.get(k);if(t)t.g.classList.toggle(cls,on!==false)})}
+function clearAll(){ST.T.forEach(t=>t.g.classList.remove('A','B','C','sel','hit','dim'))}
+function splatFx(k,col){const c=center(k),t=ST.T.get(k),R=Math.max(t.w,t.h)*.75;const el=sv('circle',{cx:c.x,cy:c.y,r:4,fill:col,opacity:.55},$('fx'));
+  tween(380,u=>{el.setAttribute('r',4+R*u);el.setAttribute('opacity',.55*(1-u))}).then(()=>el.remove())}
+const COLR={A:'#5f86ff',B:'#f2d15c',C:'#b98cff'};
+async function sprayTiles(keys,cls,ms){for(const k of keys){paint([k],cls);splatFx(k,COLR[cls]);SND.spray();await wait(ms||110)}}
+/* tache : le hasard choisit une case */
+async function splash(hit){const keys=[...ST.T.keys()];ST.T.forEach(t=>t.g.classList.remove('hit'));
+  const ball=sv('circle',{cx:800,cy:960,r:16,fill:'#f4f7ff',stroke:'#0b1020','stroke-width':3},$('fx'));
+  let x=800,y=960,prev=null;const hops=reduceM?1:9;
+  for(let h=0;h<hops;h++){let k=h===hops-1?hit:pick(keys.filter(z=>z!==prev&&z!==hit)||keys);if(!k)k=hit;prev=k;const c=center(k),x0=x,y0=y,lift=110+40*Math.random(),d=110+h*h*7;
+    await tween(d,u=>{const xx=x0+(c.x-x0)*u,yy=y0+(c.y-y0)*u-lift*4*u*(1-u);ball.setAttribute('cx',xx);ball.setAttribute('cy',yy)});x=c.x;y=c.y;if(h<hops-1)SND.tick()}
+  ball.remove();const t=ST.T.get(hit),c=center(hit),R=Math.min(t.w,t.h)*.34;
+  const blob=sv('path',{d:blobD(c.x,c.y,R),fill:'#f4f7ff',opacity:0},$('fx'));SND.splat();
+  await tween(260,u=>blob.setAttribute('opacity',.9*u));t.g.classList.add('hit');
+  setTimeout(()=>{tween(500,u=>blob.setAttribute('opacity',.9*(1-u)*.6+.0)).then(()=>blob.remove())},900)}
+function blobD(cx,cy,R){let d='';const n=14;for(let i=0;i<=n;i++){const a=i/n*Math.PI*2,r=R*(i%2?.62:1)*(0.9+((i*37)%7)/30);const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r;d+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)}return d+'Z'}
+async function popTile(k){const t=ST.T.get(k);await tween(320,u=>place(t,Math.min(1.08,u*1.08)-(u>.9?(u-.9)*.8:0)));place(t,1)}
+
+/* compteur (jauge) : les cases peintes y descendent une à une */
+const GX=250,GY=748,GW=1100,GH=54;
+function gaugeInit(n,max){const g=$('gauge');g.innerHTML='';max=Math.max(n,max||n);const sw=GW/max;ST.gauge={n,max,sw,items:[]};
+  g.innerHTML=`<rect x="${GX-8}" y="${GY-8}" width="${GW+16}" height="${GH+16}" rx="12" fill="#060b18" stroke="rgba(190,205,240,.22)" stroke-width="2"/>
+  <rect x="${GX}" y="${GY}" width="${n*sw}" height="${GH}" rx="6" fill="none" stroke="#6c8eff" stroke-width="2.5" stroke-dasharray="6 5"/>
+  ${max>n?`<rect x="${GX+n*sw}" y="${GY}" width="${(max-n)*sw}" height="${GH}" rx="6" fill="rgba(255,107,107,.08)" stroke="rgba(255,107,107,.6)" stroke-width="2" stroke-dasharray="4 6"/>`:''}
+  <text x="${GX}" y="${GY+GH+40}" font-size="32" fill="#aebfff" text-anchor="middle">0</text>
+  <text x="${Math.min(GX+n*sw,GX+GW-90)}" y="${GY+GH+40}" font-size="32" font-weight="700" fill="#e8c766" text-anchor="middle">1 = tout le mur</text>
+  <text id="gq" class="gq" x="${GX+GW}" y="${GY-20}" font-size="38" text-anchor="end"></text><text x="${GX}" y="${GY-20}" font-size="30" font-weight="600" fill="#c9d6ff">Compteur de cases</text>`}
+function gq(s){const t=document.getElementById('gq');if(t)t.textContent=s}
+async function gaugePush(keys,cls,dupSet){const G=ST.gauge;const pr=[];
+  for(const k of keys){const t=ST.T.get(k),j=G.items.length,col=getComputedStyle(t.g).color;
+    const r=sv('rect',{class:'gs'+(dupSet&&dupSet.has(k)?' dup':''),x:t.x,y:t.y,width:t.w,height:t.h,rx:8,fill:col},$('gauge'));const it={k,r,j,dup:!!(dupSet&&dupSet.has(k))};G.items.push(it);
+    const x1=GX+j*G.sw+2,y1=GY+2,w1=G.sw-4,h1=GH-4,x0=t.x,y0=t.y,w0=t.w,h0=t.h;SND.tick();
+    pr.push(tween(460,u=>{r.setAttribute('x',x0+(x1-x0)*u);r.setAttribute('y',y0+(y1-y0)*u-90*4*u*(1-u));r.setAttribute('width',w0+(w1-w0)*u);r.setAttribute('height',h0+(h1-h0)*u)}));
+    gq(`${G.items.length} case${G.items.length>1?'s':''}`);await wait(keys.length>16?45:85)}
+  await Promise.all(pr)}
+async function gaugeFix(){const G=ST.gauge,dups=G.items.filter(x=>x.dup);
+  await Promise.all(dups.map(it=>{const y0=+it.r.getAttribute('y');return tween(500,u=>{it.r.setAttribute('y',y0-120*u);it.r.setAttribute('opacity',1-u)}).then(()=>it.r.remove())}));
+  G.items=G.items.filter(x=>!x.dup);SND.pop();
+  await Promise.all(G.items.map((it,j)=>{const x0=+it.r.getAttribute('x'),x1=GX+j*G.sw+2;it.j=j;return tween(380,u=>it.r.setAttribute('x',x0+(x1-x0)*u))}));
+  gq(`${G.items.length} case${G.items.length>1?'s':''}`)}
+function dupTags(on){$('fx').querySelectorAll('.tag2').forEach(x=>x.remove());if(!on)return;const G=ST.gauge;
+  G.items.filter(x=>x.dup).forEach(it=>{const x=GX+it.j*G.sw+G.sw/2;sv('text',{class:'tag2',x,y:GY-60,'font-size':34,'text-anchor':'middle'},$('fx')).textContent='×2'})}
+
+/* bandeau (loi) : les cases se regroupent par issue */
+function bandPos(e){const N=e.n,k=e.counts.length,gi=5,gg=30;const w=(GW-(N-k)*gi-(k-1)*gg)/N,pos={},grp=[];let x=GX;
+  e.counts.forEach((c,g)=>{const x0=x;for(let j=0;j<c;j++){pos[`${g}-${j}`]={x,y:300,w,h:230};x+=w+(j<c-1?gi:0)}grp.push({x0,x1:x});x+=gg});return {pos,grp}}
+async function toBand(e,miss,labels){const {pos,grp}=bandPos(e);ST.band={grp,miss};const pr=[];let j=0;frame(true,'Bandeau entier = 1');
+  ST.T.forEach((t,k)=>{const p=pos[k],x0=t.x,y0=t.y,w0=t.w,h0=t.h,d=j++*25;
+    pr.push(wait(d).then(()=>tween(700,u=>{t.x=x0+(p.x-x0)*u;t.y=y0+(p.y-y0)*u;t.w=w0+(p.w-w0)*u;t.h=h0+(p.h-h0)*u;tileInner(t);place(t,1)})))});
+  await Promise.all(pr);ST.T.forEach(t=>{tileInner(t);place(t,1)});SND.pop();bandLabels(e,labels,miss)}
+function bandLabels(e,labels,miss){const b=$('band');b.innerHTML='';ST.band.grp.forEach((g,i)=>{const xm=(g.x0+g.x1)/2;
+  sv('path',{d:`M${g.x0} 272 V258 H${g.x1} V272`,stroke:'#aebfff','stroke-width':3,fill:'none'},b);
+  sv('text',{x:xm,y:238,'font-size':36,'font-weight':700,fill:'#f0f4ff','text-anchor':'middle'},b).textContent=e.kind==='sac'?`« ${e.glab[i]} »`:e.glab[i];
+  const tx=sv('text',{x:xm,y:606,'font-size':40,'font-weight':800,fill:i===miss?'#ff9b7a':'#e8c766','text-anchor':'middle'},b);tx.textContent=labels?labels[i]:'';
+  ST.band['l'+i]=tx;sv('path',{d:`M${g.x0} 548 V562 H${g.x1} V548`,stroke:'#aebfff','stroke-width':3,fill:'none'},b)})}
+function bandSet(i,s){const t=ST.band&&ST.band['l'+i];if(t){t.textContent=s;t.setAttribute('fill','#e8c766')}}
+
+/* arbre des possibles */
+function buildTree(e,hidden){const g=$('tree');g.innerHTML='';const [L1,L2]=e.tree,n2=L2.length,n=L1.length*n2,top=120,bot=900,sp=(bot-top)/n;
+  const X0=330,X1=640,X2=950,XT=1050,tw=250,th=Math.min(sp*.76,78);const mid=(top+bot)/2;const nodeC=k=>CC[k]||'#1a2440';
+  const nd=(x,y,k,cls)=>`<g class="${cls}" opacity="${hidden?0:1}"><circle cx="${x}" cy="${y}" r="${n>8?22:28}" fill="${CC[k]?nodeC(k):'#1a2440'}" stroke="#e9eefb" stroke-width="3"/>
+    <text x="${x}" y="${y}" font-size="${n>8?24:30}" font-weight="800" fill="${CC[k]?'#0b1020':'#f0f4ff'}" text-anchor="middle" dominant-baseline="central">${k}</text></g>`;
+  let h=`<circle cx="${X0}" cy="${mid}" r="12" fill="#e8c766"/>`;
+  L1.forEach((a,ia)=>{const y1=top+sp*(ia*n2+n2/2);h+=`<path class="br1" d="M${X0} ${mid} L${X1} ${y1}" stroke="#aebfff" stroke-width="5" fill="none" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="${hidden?100:0}"/>`;
+    L2.forEach((b,ib)=>{const y2=top+sp*(ia*n2+ib+.5);h+=`<path class="br2" d="M${X1} ${y1} L${X2} ${y2}" stroke="#8ea6ff" stroke-width="4" fill="none" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="${hidden?100:0}"/>
+      <path class="cn" d="M${X2+26} ${y2} H${XT-8}" stroke="rgba(190,205,240,.4)" stroke-width="3" stroke-dasharray="5 6" opacity="${hidden?0:1}"/>`})});
+  L1.forEach((a,ia)=>{const y1=top+sp*(ia*n2+n2/2);h+=nd(X1,y1,a,'nd1');L2.forEach((b,ib)=>{h+=nd(X2,top+sp*(ia*n2+ib+.5),b,'nd2')})});
+  h+=`<g font-size="32" font-weight="600" fill="#c9d6ff" text-anchor="middle"><text x="${X1}" y="${top-24}">1re épreuve</text><text x="${X2}" y="${top-24}">2e épreuve</text><text x="${XT+tw/2}" y="${top-24}">issues</text></g>`;
+  g.innerHTML=h;e.iss.forEach((i,idx)=>mkTile(i,{x:XT,y:top+sp*(idx+.5)-th/2,w:tw,h:th},hidden))}
+async function growTree(){const g=$('tree'),set=(sel,f)=>g.querySelectorAll(sel).forEach(f);SND.spray();
+  await tween(650,u=>set('.br1',p=>p.setAttribute('stroke-dashoffset',100*(1-u))));
+  await tween(300,u=>set('.nd1',p=>p.setAttribute('opacity',u)));SND.spray();cap('1re épreuve&nbsp;: une branche par résultat possible');
+  await tween(700,u=>set('.br2',p=>p.setAttribute('stroke-dashoffset',100*(1-u))));
+  await tween(300,u=>{set('.nd2',p=>p.setAttribute('opacity',u));set('.cn',p=>p.setAttribute('opacity',u))});
+  const ks=[...ST.T.keys()];for(const k of ks){popTile(k);SND.tick();await wait(ks.length>8?50:90)}await wait(330);
+  count(`${ks.length} issues`)}
+
+/* ---------- bruitages ---------- */
+let snd=true;try{snd=localStorage.getItem('sigma-fanfare')!=='0'}catch(e){}
+let actx=null;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,v,type,w){const a=ac();if(!a)return;const t=a.currentTime+(w||0),o=a.createOscillator(),gn=a.createGain();o.type=type||'triangle';o.frequency.value=f;
+  gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(v,t+.012);gn.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(gn);gn.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+function hiss(d,v,f){const a=ac();if(!a)return;const b=a.createBuffer(1,Math.floor(a.sampleRate*d),a.sampleRate),x=b.getChannelData(0);for(let i=0;i<x.length;i++)x[i]=(Math.random()*2-1)*Math.pow(1-i/x.length,1.5);
+  const s=a.createBufferSource(),fl=a.createBiquadFilter(),gn=a.createGain();fl.type='highpass';fl.frequency.value=f||3500;gn.gain.value=v;s.buffer=b;s.connect(fl);fl.connect(gn);gn.connect(a.destination);s.start()}
+const SND={spray(){if(snd)hiss(.16,.07)},tick(){if(snd)tone(1320,.05,.02,'sine')},pop(){if(snd){tone(660,.1,.04);tone(990,.07,.02,'sine',.03)}},
+  splat(){if(snd){hiss(.12,.12,900);tone(140,.16,.06,'sine')}},soft(){if(snd){tone(392,.2,.045,'sine');tone(330,.28,.045,'sine',.11)}},
+  win(){if(snd)[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.4,.05,'triangle',i*.1))}};
+
+/* ---------- état ---------- */
+const cap=h=>{$('capt').innerHTML=h||'&nbsp;'};
+const MAKI=m=>window.SigmaKit?SigmaKit.maki(m):'';
+let lvl=0,qi=0,run=[],Q=null,pi=0,errs=0,perr=0,busy=false,order=[];
+const GAME='fresque-des-possibles';
+function starsOf(i){try{const g=SigmaKit.passport().games[GAME];return g&&g.levels[i+1]||0}catch(e){return 0}}
+function fb(html){if(!html){$('fb').hidden=true;return}$('fbmk').innerHTML=MAKI('pense');$('fbp').innerHTML=html;$('fb').hidden=false}
+const api={err(why,sol){errs++;perr++;SND.soft();fb(why+(perr>=3&&sol?`<br><b style="display:inline;font-size:inherit">Réponse&nbsp;:</b> ${sol}`:''))},ok(){fb('');nextPart()}};
+const chipH=i=>i.rank?`${i.tl}<span class="${i.red?'sr':''}">${i.sym}</span>`:i.c&&!i.a?`<span class="dc" style="background:${CC[i.c]}"></span>${i.tl||i.c}`:labT(i);
+
+/* ---------- animations nommées ---------- */
+const ANIM={
+  async splash(p){const e=ST.e;cap('Le hasard lance sa tache de peinture…');await splash(p.hit);
+    const ev=Q.ev;cap(`Issue obtenue&nbsp;: <span class="k">${labOf(e,p.hit)}</span>`+(ev&&p.say?` <span class="m">· ${setOf(e,ev).includes(p.hit)?'case peinte&nbsp;: A est réalisé':'case non peinte&nbsp;: A n’est pas réalisé'}</span>`:''))},
+  async paintA(){const ks=setOf(ST.e,Q.ev);legend(['A']);await sprayTiles(ks,'A',ks.length>10?45:110);cap(`A = ${Q.evTxt||''} <span class="m">· ${ks.length} case${ks.length>1?'s':''} peinte${ks.length>1?'s':''} sur ${ST.e.n}</span>`)},
+  async gauge(){const ks=setOf(ST.e,Q.ev),n=ST.e.n;gaugeInit(n);await gaugePush(ks,'A');cap(`<span class="k">${ks.length}</span> case${ks.length>1?'s':''} peinte${ks.length>1?'s':''} sur <span class="k">${n}</span> <span class="m">· la part du mur peinte</span>`)},
+  async whole(){const e=ST.e,a=setOf(e,Q.ev),c=setOf(e,{t:'not',e:Q.ev});gaugeInit(e.n);await gaugePush(a,'A');await gaugePush(c,'C');
+    cap(`<span class="cA">${a.length}</span> + <span class="cC">${c.length}</span> = ${e.n} cases <span class="m">· A et ${NA} remplissent tout le mur&nbsp;: P(A) + P(${NA}) = 1</span>`)},
+  async neg(){const e=ST.e,c=setOf(e,{t:'not',e:Q.ev});legend(['A','C']);await sprayTiles(c,'C',c.length>10?40:100);
+    cap(`${NA}&nbsp;: les <span class="cC">${c.length}</span> cases <b>non</b> peintes en bleu <span class="m">· ${c.length} sur ${e.n}</span>`)},
+  async band(p){await toBand(ST.e,Q.miss,Q.bandLab);cap(Q.bandCap||'Les cases se regroupent par issue&nbsp;: chaque bloc est la part de son issue')},
+  async mix(){const e=ST.e,a=setOf(e,Q.evA),b=setOf(e,Q.evB),both=a.filter(k=>b.includes(k));legend(['A','B','G']);
+    cap('Bombe <span class="cA">bleue</span> pour A…');await sprayTiles(a,'A',a.length>10?40:100);await wait(250);
+    cap('…bombe <span class="cB">jaune</span> pour B');await sprayTiles(b,'B',b.length>10?40:100);await wait(300);
+    cap(both.length?`Bleu + jaune = <span class="cG">vert</span>&nbsp;: ${both.length} case${both.length>1?'s':''} dans A <b>et</b> dans B`:'Aucune case verte&nbsp;: aucune issue commune')},
+  async count2(){const e=ST.e,a=setOf(e,Q.evA),b=setOf(e,Q.evB),both=new Set(a.filter(k=>b.includes(k)));gaugeInit(e.n,a.length+b.length);
+    cap(`On additionne&nbsp;: d’abord les <span class="cA">${a.length}</span> cases de A…`);await gaugePush(a,'A');await wait(250);
+    cap(`…puis les <span class="cB">${b.length}</span> cases de B`);await gaugePush(b,'B',both);dupTags(true);
+    const u=a.length+b.length-both.size;
+    cap(both.size?`${a.length} + ${b.length} = <span class="r">${a.length+b.length}</span> <span class="m">· mais seulement ${u} cases peintes&nbsp;:</span> `+(both.size>1?`<span class="m">les</span> <span class="cG">${both.size} cases vertes</span> <span class="m">sont comptées deux fois</span>`:`<span class="m">la</span> <span class="cG">case verte</span> <span class="m">est comptée deux fois</span>`)
+      :`${a.length} + ${b.length} = <span class="k">${u}</span> <span class="m">· aucune case comptée deux fois</span>`)},
+  async fix(){const e=ST.e,a=setOf(e,Q.evA),b=setOf(e,Q.evB),c=a.filter(k=>b.includes(k)).length;dupTags(false);if(ST.gauge&&c)await gaugeFix();
+    cap(`${a.length} + ${b.length} − <span class="cG">${c}</span> = <span class="k">${a.length+b.length-c}</span> cases <span class="m">· chaque case peinte comptée une seule fois</span>`)},
+  async grow(){await growTree();cap(`${ST.e.n} issues au bout des branches`)},
+  async reveal(){if(Q.miss!=null)bandSet(Q.miss,Q.bandLabFull[Q.miss])},
+  async paintGrp(){const ks=setOf(ST.e,Q.ev);await sprayTiles(ks,'A',35)}
+};
+
+/* ---------- widgets du carnet ---------- */
+const W={};
+W.act=(p,box)=>{box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="btns"><button type="button" class="btn or act">${p.label}</button></div>`;
+  const b=box.querySelector('.act');b.onclick=async()=>{if(busy)return;busy=true;b.disabled=true;SND.pop();try{await ANIM[p.do](p)}finally{busy=false}
+    b.classList.add('did');b.innerHTML='✓ '+(p.doneLabel||p.label);api.ok()}};
+W.choice=(p,box)=>{const idx=shuf(p.ch.map((_,j)=>j));
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<div class="opts">${idx.map(j=>`<button type="button" class="opt" data-j="${j}">${p.ch[j].h}</button>`).join('')}</div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{if(busy)return;const c=p.ch[+b.dataset.j];
+    if(c.ok){box.querySelectorAll('.opt').forEach(x=>x.disabled=true);b.classList.add('ok');SND.pop();fb('');if(p.after){busy=true;try{await ANIM[p.after](p)}finally{busy=false}}api.ok()}
+    else{b.classList.add('ko');b.disabled=true;api.err(c.why)}})};
+/* quadriller le mur : chaque bonne issue reçoit sa case */
+W.build=(p,box)=>{const e=ST.e,ch=shuf([...e.iss.map(i=>({k:i.k,h:chipH(i),ok:1})),...p.wrong.map((w,j)=>({k:'w'+j,h:w.h,why:w.why}))]);let found=0;
+  box.innerHTML=`<p class="ask">${p.ask||'Touche les issues possibles (attention aux intrus)&nbsp;:'}</p><div class="chips">${ch.map(c=>`<button type="button" class="chip" data-k="${c.k}">${c.h}</button>`).join('')}</div>`;
+  box.querySelectorAll('.chip').forEach(b=>b.onclick=async()=>{if(busy)return;const c=ch.find(x=>x.k===b.dataset.k);b.disabled=true;
+    if(!c.ok){b.classList.add('no');api.err(c.why);return}
+    b.classList.add('yes');fb('');SND.spray();found++;splatFx(c.k,'#e8c766');popTile(c.k);
+    const got=e.iss.filter(i=>box.querySelector(`.chip[data-k="${CSS.escape(i.k)}"].yes`)).map(i=>i.k);
+    const ps=`Ω = {${got.map(k=>labOf(e,k)).join(' ; ')}}`;plate(ps.length>20?`Ω · ${found} issue${found>1?'s':''}`:ps);
+    count(`${found} case${found>1?'s':''}`);cap(`Case «&nbsp;${labOf(e,c.k)}&nbsp;» ajoutée au mur`);
+    if(found===e.n){box.querySelectorAll('.chip').forEach(x=>x.disabled=true);plate(`Ω · ${e.n} issues`);busy=true;await wait(350);busy=false;cap(`Le mur est complet&nbsp;: Ω = ${setH(e,e.iss.map(i=>i.k))}`);api.ok()}})};
+/* peindre (ou entourer) des cases */
+const LEG={A:['A'],C:['A','C'],I:['A','B','G'],U:['A','B','G']};
+const ROLE={A:{cls:'A',btn:'Valider la peinture',chip:'rA'},C:{cls:'C',btn:'Valider la peinture',chip:'rC'},I:{cls:'sel',btn:'Valider la sélection',chip:'rI'},U:{cls:'sel',btn:'Valider la sélection',chip:'rU'}};
+W.pad=(p,box)=>{const e=ST.e,R=ROLE[p.role],keys=p.keys||e.iss.map(i=>i.k),sel=new Set(),sol=new Set(p.sol);
+  const lab=k=>chipH(e.iss.find(i=>i.k===k));
+  box.innerHTML=`<p class="ask">${p.ask}</p><div class="chips${e.id==='cartes'?' cards':''}">${keys.map(k=>`<button type="button" class="chip ${R.chip}" data-k="${k}" aria-pressed="false">${lab(k)}</button>`).join('')}</div>
+    <div class="btns"><button type="button" class="btn or val">${R.btn}</button><span class="hint pc" aria-live="polite"></span></div>`;
+  if(LEG[p.role]&&p.role!=='A')legend(LEG[p.role]);else legend(['A'],p.name);
+  const pc=box.querySelector('.pc'),upd=()=>{pc.textContent=`${sel.size} case${sel.size>1?'s':''} choisie${sel.size>1?'s':''}`};upd();
+  box.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{if(busy)return;const k=b.dataset.k,on=!sel.has(k);on?sel.add(k):sel.delete(k);b.setAttribute('aria-pressed',on);
+    paint([k],R.cls,on);if(on){splatFx(k,p.role==='C'?COLR.C:p.role==='A'?COLR.A:'#f4f7ff');SND.spray()}else SND.tick();upd()});
+  box.querySelector('.val').onclick=()=>{if(busy)return;const miss=[...sol].filter(k=>!sel.has(k)),extra=[...sel].filter(k=>!sol.has(k));
+    if(!miss.length&&!extra.length){box.querySelectorAll('button').forEach(x=>x.disabled=true);SND.pop();
+      if(p.role==='I'||p.role==='U')cap(`${p.role==='I'?'A ∩ B':'A ∪ B'} = ${sol.size?setH(e,[...sol]):'aucune issue'}`);
+      else cap(`${p.name||'A'} = ${sol.size?setH(e,[...sol]):'aucune issue'} <span class="m">· ${sol.size} case${sol.size>1?'s':''} sur ${e.n}</span>`);
+      api.ok();return}
+    let why='';if(extra.length)why+=`${extra.map(k=>labOf(e,k)).join(', ')}&nbsp;: ${extra.length>1?'ces cases ne conviennent':'cette case ne convient'} pas. ${p.whyX||''} `;
+    if(miss.length)why+=`Il manque ${miss.length} case${miss.length>1?'s':''}. ${p.whyM||''}`;
+    if(perr>=2)miss.forEach(k=>{const b=box.querySelector(`.chip[data-k="${CSS.escape(k)}"]`);if(b){b.classList.remove('hint');void b.offsetWidth;b.classList.add('hint')}});
+    api.err(why.trim(),setH(e,[...sol]))}};
+/* compléter : entiers, décimaux, fractions */
+function chk(b,v){if(b.t==='f'){if(!/^\d+$/.test(v[0])||!/^\d+$/.test(v[1])||+v[1]===0)return {ok:false};const p=+v[0],q=+v[1],eqv=p*b.v[1]===q*b.v[0];
+    if(b.mode==='raw')return {ok:p===b.v[0]&&q===b.v[1],eqv,p,q};if(b.mode==='irr')return {ok:eqv&&gcd(p,q)===1,eqv,p,q};return {ok:eqv,eqv}}
+  const f=parseVal(v[0]);return {ok:!!f&&f[0]*b.v[1]===f[1]*b.v[0]}}
+const solTxt=b=>b.t==='f'?fr(b.v[0],b.v[1]):b.t==='d'?D(b.v[0],b.v[1]):String(b.v[0]);
+W.fill=(p,box)=>{const inp=(i,j,b)=>`<input class="in" data-b="${i}" data-p="${j}" inputmode="${b.t==='d'?'decimal':'numeric'}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Case ${i+1}${b.t==='f'?(j?' (dénominateur)':' (numérateur)'):''}"${b.t==='d'?' style="width:4.2em"':''}>`;
+  const t=p.tpl.replace(/\{(\d)\}/g,(_,i)=>{const b=p.bl[+i];return b.t==='f'?`<span class="fin">${inp(+i,0,b)}<span class="fbar"></span>${inp(+i,1,b)}</span>`:inp(+i,0,b)});
+  box.innerHTML=(p.ask?`<p class="ask">${p.ask}</p>`:'')+`<form class="fillf"><div class="fill">${t}</div><div class="btns"><button class="btn or" type="submit">Valider</button></div></form>`;
+  const f=box.querySelector('form'),ins=[...box.querySelectorAll('.in')];
+  f.onsubmit=async e=>{e.preventDefault();if(busy)return;if(ins.some(x=>!x.value.trim())){fb('Remplis toutes les cases avant de valider.');return}
+    let all=true,msg='';p.bl.forEach((b,i)=>{const my=ins.filter(x=>+x.dataset.b===i),r=chk(b,my.map(x=>x.value.trim()));my.forEach(x=>{x.classList.toggle('ok',r.ok);x.classList.toggle('ko',!r.ok)});
+      if(!r.ok){all=false;if(r.eqv&&b.mode==='raw')msg=msg||`La valeur est juste, mais écris ici la fraction «&nbsp;cases favorables sur cases du mur&nbsp;» sans la simplifier.`;
+        else if(r.eqv&&b.mode==='irr')msg=msg||`C’est bien la bonne valeur, mais elle se simplifie encore&nbsp;: ${r.p} et ${r.q} sont divisibles par ${gcd(r.p,r.q)}.`}});
+    if(all){ins.forEach(x=>x.disabled=true);f.querySelector('button').remove();SND.pop();fb('');if(p.after){busy=true;try{await ANIM[p.after](p)}finally{busy=false}}api.ok()}
+    else api.err(msg||p.why,p.bl.map(solTxt).join(' ; '))};
+  setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)ins[0].focus({preventScroll:true})},50)};
+
+/* ---------- déroulé d'une question ---------- */
+function partEl(){const d=document.createElement('div');d.className='part';$('work').appendChild(d);return d}
+function nextPart(){const prev=$('work').lastElementChild;if(prev)prev.classList.add('done');pi++;perr=0;
+  if(pi<Q.parts.length){const p=Q.parts[pi],box=partEl();W[p.t](p,box);scrollPart(box)}else win()}
+function scrollPart(box){if(innerWidth<=860){const r=box.getBoundingClientRect(),top=$('scol').getBoundingClientRect().bottom;if(r.top<top||r.top>innerHeight-120)scrollTo({top:scrollY+r.top-top-12,behavior:reduceM?'auto':'smooth'})}}
+function setupStage(){const e=E(Q.exp);stageReset(e,Q.mode||'wall');
+  if(Q.pre){Q.pre.forEach(([cls,ev])=>paint(setOf(e,ev),cls));legend(Q.pre.map(x=>x[0]))}
+  cap(Q.cap0||`${e.n} cases, une par issue`)}
+function newQ(){Q=LV[lvl].gens[order[qi]]();pi=0;errs=0;perr=0;setupStage();
+  $('prompt').innerHTML=Q.prompt;$('work').innerHTML='';fb('');$('win').hidden=true;
+  $('qn').textContent=`Question ${qi+1} sur ${order.length}`;dots();const box=partEl();W[Q.parts[0].t](Q.parts[0],box)}
+function dots(){const N=order.length;$('dots').innerHTML=Array.from({length:N},(_,k)=>`<span class="dot ${k<run.length?(run[k]?'g':'r'):k===qi?'c':''}"></span>`).join('')}
+function win(){fb('');SND.win();run.push(errs===0);dots();const lvlDone=run.length>=order.length;
+  $('winx').textContent=errs===0?pick(['Bravo !','Exactement !','Parfait !','Bien vu !']):pick(['C\'est ça !','Voilà !','Bien rattrapé !']);
+  $('winmk').innerHTML=MAKI(errs===0?'joie':'neutre');$('winp').innerHTML=Q.done;
+  $('next').textContent=lvlDone?'Voir le bilan du niveau':'Question suivante →';$('next').dataset.go=lvlDone?'end':'';
+  $('win').hidden=false;setTimeout(()=>scrollPart($('win')),60);renderLv()}
+function endLevel(){const L=lvl+1,sc=run.filter(Boolean).length,tot=run.length;
+  if(window.SigmaKit)SigmaKit.levelComplete({level:L,score:sc,total:tot}).then(v=>{renderLv();if(lvl+1!==L)return;if(v==='next')goLevel(Math.min(lvl+1,LV.length-1));else if(v==='replay')goLevel(lvl)})}
+$('next').onclick=()=>{if($('next').dataset.go==='end'){endLevel();return}qi++;newQ();$('scol').scrollIntoView({block:'nearest',behavior:reduceM?'auto':'smooth'})};
+function goLevel(l){lvl=l;qi=0;run=[];order=LV[l].order?LV[l].order():LV[l].gens.map((_,i)=>i);
+  $('chap').textContent=`Chapitre 16 · Probabilités`;$('lvt').textContent=`Niveau ${l+1} · ${LV[l].t}`;$('rule').innerHTML=LV[l].rule;renderLv();newQ()}
+function renderLv(){$('lv').innerHTML=LV.map((l,i)=>{const s=starsOf(i);return `<button type="button" data-l="${i}" aria-pressed="${i===lvl}">${i+1}. ${l.t}${s?`<span class="ck" aria-label="${s} étoile${s>1?'s':''}">${'★'.repeat(s)}</span>`:''}</button>`}).join('')+
+  `<span class="sp"></span><button type="button" class="tool" id="snd" aria-pressed="${snd}">♪ Bruitages : ${snd?'oui':'non'}</button>`}
+$('lv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;
+  if(b.id==='snd'){snd=!snd;try{localStorage.setItem('sigma-fanfare',snd?'1':'0')}catch(_){}renderLv();SND.pop();return}
+  goLevel(+b.dataset.l)});
+
+/* =====================================================================
+   NIVEAUX : générateurs (données pures, sérialisables pour l'audit)
+   ===================================================================== */
+const P=(ev,e)=>{const s=setOf(e,ev);return [s.length,e.n]};
+function fracFill(e,ev,label,ask){const [f,n]=P(ev,e),[a,b]=red(f,n),m={k:'p',exp:e.id,ev};
+  if(a===f)return {t:'fill',ask:ask||'Écris la probabilité&nbsp;:',tpl:`${label} = {0}`,bl:[{t:'f',v:[f,n],mode:'raw',m}],why:'P = nombre de cases peintes sur nombre de cases du mur.'};
+  return {t:'fill',ask:ask||'Écris la probabilité, puis simplifie la fraction&nbsp;:',tpl:`${label} = {0} = {1}`,bl:[{t:'f',v:[f,n],mode:'raw',m},{t:'f',v:[a,b],mode:'irr',m}],
+    why:`D’abord cases peintes sur cases du mur, puis on simplifie (on divise en haut et en bas par le même nombre).`}}
+const TYPE_CH=[{w:'élémentaire',h:'Un événement élémentaire',why:'Un événement élémentaire contient <b>une seule</b> issue&nbsp;: une seule case peinte.'},
+  {w:'certain',h:'Un événement certain',why:'Un événement certain contient <b>toutes</b> les issues&nbsp;: tout le mur est peint.'},
+  {w:'impossible',h:'Un événement impossible',why:'Un événement impossible ne contient <b>aucune</b> issue&nbsp;: aucune case peinte.'}];
+function typeChoice(e,ev){const s=setOf(e,ev).length,w=s===0?'impossible':s===e.n?'certain':s===1?'élémentaire':null;
+  return {t:'choice',ask:'Cet événement est&nbsp;:',ch:TYPE_CH.map(c=>({h:c.h,ok:c.w===w,why:c.why})),m:{k:'type',exp:e.id,ev,kind:'word'}}}
+const WRONG={de6:[['0','Un dé à 6 faces porte les nombres de 1 à 6&nbsp;: 0 n’est pas une issue.'],['7','Le dé n’a pas de face 7&nbsp;: ce n’est pas une issue possible.'],['12','12 n’est pas sur le dé (6 + 6, c’est avec deux dés).']],
+  piece:[['2','2, c’est le <b>nombre</b> d’issues, pas une issue&nbsp;: une issue est un résultat possible.'],['PF','PF est le résultat de <b>deux</b> lancers. Ici, on lance la pièce une seule fois.']],
+  roue4:[['violet','La roue n’a pas de secteur violet.'],['4','4, c’est le nombre de secteurs, pas un résultat possible.']],
+  urne2:[['verte','L’urne ne contient que des boules rouges et des boules bleues.'],['2','2, c’est le nombre de couleurs, pas une issue.']]};
+function L1build(id,more){const e=E(id),n=e.n;const wr=WRONG[id]||[['0','Les jetons sont numérotés à partir de 1&nbsp;: 0 n’est pas une issue.'],[String(n+1),`Le plus grand numéro est ${n}&nbsp;: ${n+1} n’est pas une issue.`]];
+  const parts=[{t:'build',wrong:wr.map(([h,why])=>({h,why})),m:{k:'omega',exp:id,wrong:wr.map(x=>x[0])}}];
+  if(more)parts.push(more);else parts.push({t:'fill',ask:'Compte les cases du mur&nbsp;:',tpl:'L’univers Ω contient {0} issues.',bl:[{t:'n',v:[n,1],m:{k:'count',exp:id}}],why:'Une case par issue&nbsp;: compte-les.'});
+  parts.push({t:'act',do:'splash',label:'▶ Lancer l’expérience',hit:pick(e.iss).k});
+  return {exp:id,mode:'build',prompt:`${e.txt}<br><b>Quadrille le mur</b>&nbsp;: donne une case à chaque issue possible.`,cap0:'Le mur est vide&nbsp;: à toi de le quadriller',parts,
+    done:`Ω = ${n>8?`{1&nbsp;; 2&nbsp;; …&nbsp;; ${n}}`:setH(e,e.iss.map(i=>i.k))}&nbsp;: ${n} issues. Le hasard choisit une case, sans qu’on puisse prévoir laquelle&nbsp;: c’est une <b>expérience aléatoire</b>.`}}
+function omegaChoice(e){const n=e.n,all=e.iss.map(i=>i.k),big=n>8,num=e.iss[0].v!=null;
+  const right=big?`Ω = {1&nbsp;; 2&nbsp;; …&nbsp;; ${n}}`:`Ω = ${setH(e,all)}`;
+  const ch=[{h:right,ok:true},{h:`Ω = ${n}`,why:`${n} est le <b>nombre</b> d’issues. L’univers est l’<b>ensemble</b> des issues, écrit entre accolades.`}];
+  if(num){ch.push({h:big?`Ω = {0&nbsp;; 1&nbsp;; …&nbsp;; ${n}}`:`Ω = ${setL(['0',...all])}`,why:'0 n’est pas une issue possible.'},{h:`Ω = ${setL(['1',String(n)])}`,why:'Il n’y a là que deux issues&nbsp;: il en manque.'})}
+  else{ch.push({h:`Ω = ${setH(e,all.slice(0,-1))}`,why:'Il manque une issue.'});const x=(WRONG[e.id]||[])[0];if(x)ch.push({h:`Ω = ${setL([...all.map(k=>labOf(e,k)),x[0]])}`,why:`${x[0]} n’est pas une issue possible.`})}
+  return {t:'choice',ask:'Comment écrit-on l’univers&nbsp;?',ch,m:{k:'omega',exp:e.id,kind:'set'}}}
+const ALEA=[{h:'Lancer un dé à 6 faces',exp:'de6'},{h:'Tirer une carte au hasard dans un jeu de 32 cartes',exp:'cartes'},{h:'Faire tourner une roue à 4 secteurs colorés',exp:'roue4'},{h:'Lancer une pièce de monnaie',exp:'piece'}];
+const NOTALEA=[{h:'Compter les faces d’un dé',why:'On connaît le résultat à l’avance&nbsp;: 6. Rien n’est dû au hasard.'},{h:'Calculer 6 × 7',why:'Le résultat est toujours 42&nbsp;: on peut le prévoir.'},
+  {h:'Compter les cartes d’un jeu de 32 cartes',why:'Le résultat est toujours 32.'},{h:'Compter les secteurs d’une roue à 4 secteurs',why:'Le résultat est toujours 4.'},{h:'Lire le numéro écrit sur un jeton qu’on a choisi en le regardant',why:'On a choisi le jeton en le regardant&nbsp;: on connaît le résultat.'}];
+function L1alea(){const r=pick(ALEA),e=E(r.exp);return {exp:r.exp,mode:'wall',prompt:'Une <b>expérience aléatoire</b> a plusieurs résultats possibles, sans qu’on puisse prévoir lequel se réalisera.',
+  cap0:'Quelle expérience mérite un mur&nbsp;?',parts:[{t:'choice',ask:'Laquelle de ces expériences est aléatoire&nbsp;?',ch:[{h:r.h,ok:true},...shuf(NOTALEA.slice()).slice(0,3).map(x=>({h:x.h,why:x.why}))],m:{k:'def',id:'alea',kind:'def'}},
+    {t:'fill',ask:`Voici son mur. ${e.txt}`,tpl:'L’univers Ω contient {0} issues.',bl:[{t:'n',v:[e.n,1],m:{k:'count',exp:r.exp}}],why:'Compte les cases du mur&nbsp;: une par issue.'},
+    {t:'act',do:'splash',label:'▶ Lancer l’expérience',hit:pick(e.iss).k}],done:`${r.h}&nbsp;: ${e.n} issues possibles, et personne ne peut prévoir laquelle sortira.`}}
+function L1omega(){const id=pick(['roue4','piece','jet10','jet12']),e=E(id);return {exp:id,mode:'wall',prompt:`${e.txt} Le mur est déjà quadrillé.`,cap0:`${e.n} cases, une par issue`,
+  parts:[omegaChoice(e),{t:'act',do:'splash',label:'▶ Lancer l’expérience',hit:pick(e.iss).k}],done:`L’univers s’écrit entre accolades, en citant <b>toutes</b> les issues&nbsp;: c’est le mur entier.`}}
+/* niveau 2 */
+function setChoice(e,ev,ask){const s=setOf(e,ev),right=setH(e,s),seen=new Set([right]),ch=[{h:`A = ${right}`,ok:true}],ad=(h,why)=>{if(!seen.has(h)){seen.add(h);ch.push({h:`A = ${h}`,why})}};
+  const sh={gt:'ge',ge:'gt',lt:'le',le:'lt'};if(sh[ev.t]){const s2=setOf(e,{t:sh[ev.t],k:ev.k});ad(setH(e,s2),`Attention au bord&nbsp;: ${q(ph(ev))} ${ev.t[1]==='e'?'contient':'ne contient pas'} ${ev.k}.`)}
+  const c=setOf(e,{t:'not',e:ev});if(c.length)ad(setH(e,c),'Ce sont les cases <b>non</b> peintes.');
+  ad(String(s.length),`${s.length} est le <b>nombre</b> d’issues de A. Un événement s’écrit comme un ensemble, entre accolades.`);
+  if(ch.length<4)ad(setH(e,e.iss.map(i=>i.k)),'C’est tout l’univers Ω.');
+  return {t:'choice',ask:ask||'Comment écrit-on A&nbsp;?',ch:ch.slice(0,4),m:{k:'set',exp:e.id,ev,kind:'set',name:'A'}}}
+function L2paint(){const e=E('de6'),ev=pick(evPool(e,{max:4}));return {exp:'de6',ev,evTxt:q(ph(ev)),prompt:`${e.txt}<br>Peins en bleu l’événement A = ${q(ph(ev))}.`,cap0:'Bombe bleue en main',
+  parts:[{t:'pad',role:'A',ask:'Touche les cases de A&nbsp;:',sol:setOf(e,ev),m:{k:'set',exp:'de6',ev},whyX:'Relis l’événement.',whyM:'Relis l’événement&nbsp;: une case qui le réalise doit être peinte.'},setChoice(e,ev)],
+  done:`A = ${setH(e,setOf(e,ev))}&nbsp;: un <b>événement</b> est un ensemble d’issues, celles qui le réalisent.`}}
+function L2real(){const id=pick(['jet10','jet12','cartes']),e=E(id),ev=pick(evPool(e,{max:id==='cartes'?8:6})),s=setOf(e,ev),c=setOf(e,{t:'not',e:ev}),hit=Math.random()<.5?pick(s):pick(c),yes=s.includes(hit);
+  return {exp:id,ev,evTxt:q(ph(ev)),prompt:`${e.txt}<br>Peins en bleu l’événement A = ${q(ph(ev))}, puis lance l’expérience.`,cap0:'Bombe bleue en main',
+    parts:[{t:'pad',role:'A',ask:'Touche les cases de A&nbsp;:',sol:s,m:{k:'set',exp:id,ev},whyX:'Relis l’événement.',whyM:'Relis l’événement.'},
+      {t:'act',do:'splash',label:'▶ Lancer l’expérience',hit,say:false},
+      {t:'choice',ask:`La tache est tombée sur la case ${q(labOf(e,hit))}. L’événement A est-il réalisé&nbsp;?`,ch:[{h:'Oui&nbsp;: cette case est peinte, l’issue appartient à A.',ok:yes,why:'La case touchée n’est pas peinte en bleu&nbsp;: l’issue n’appartient pas à A.'},{h:'Non&nbsp;: cette case n’est pas peinte, l’issue n’appartient pas à A.',ok:!yes,why:'La case touchée est peinte en bleu&nbsp;: l’issue appartient à A, donc A est réalisé.'},{h:'On ne peut pas savoir.',why:'L’expérience a eu lieu&nbsp;: on connaît l’issue. Il suffit de regarder si sa case est peinte.'}],m:{k:'real',exp:id,ev,hit,kind:'yn'}}],
+    done:`A est réalisé quand l’issue obtenue appartient à A. Ici, ${labOf(e,hit)} ${yes?'appartient':'n’appartient pas'} à A.`}}
+function L2type(kind){const id=pick(['de6','jet10','jet12']),e=E(id),n=e.n;let ev,txt;
+  if(kind==='el'){ev={t:'eq',k:ri(1,n)};txt=ph(ev)}
+  else if(kind==='ce'){ev=pick([{t:'le',k:n},{t:'lt',k:n+1},{t:'ge',k:1}]);txt=ph(ev)}
+  else{ev=pick([{t:'eq',k:n+1},{t:'gt',k:n},{t:'eq',k:0}]);txt=ph(ev)}
+  const s=setOf(e,ev);return {exp:id,ev,evTxt:q(txt),prompt:`${e.txt}<br>Peins en bleu l’événement A = ${q(txt)}${s.length===0?' (si aucune case ne convient, valide sans rien peindre)':''}.`,cap0:'Bombe bleue en main',
+    parts:[{t:'pad',role:'A',ask:'Touche les cases de A&nbsp;:',sol:s,m:{k:'set',exp:id,ev},whyX:'Relis l’événement.',whyM:'Relis l’événement.'},typeChoice(e,ev)],
+    done:s.length===0?'Aucune case peinte&nbsp;: A est un événement <b>impossible</b>, P(A) = 0.':s.length===n?'Tout le mur est peint&nbsp;: A est un événement <b>certain</b>, P(A) = 1.':'Une seule case peinte&nbsp;: A est un événement <b>élémentaire</b>.'}}
+/* niveau 3 */
+function L3de(){const e=E('de6'),ev=pick(evPool(e));return {exp:'de6',ev,evTxt:q(ph(ev)),prompt:`${e.txt} A = ${q(ph(ev))}. Toutes les faces ont la même chance&nbsp;: <b>équiprobabilité</b>.`,cap0:'6 cases, autant de chances chacune',
+  parts:[{t:'act',do:'paintA',label:'▶ Peindre A'},{t:'act',do:'gauge',label:'▶ Envoyer les cases au compteur'},fracFill(e,ev,'P(A)')],
+  done:`P(A) = ${fr(...P(ev,e))}${gcd(...P(ev,e))>1?' = '+frR(...P(ev,e)):''}&nbsp;: la part du mur peinte.`}}
+function L3jet(){const id=pick(['jet10','jet12','jet15','jet20']),e=E(id),ev=pick(evPool(e,{max:Math.floor(e.n*.6)})),s=setOf(e,ev);
+  return {exp:id,ev,evTxt:q(ph(ev)),prompt:`${e.txt}<br>A = ${q(ph(ev))}.`,cap0:`${e.n} cases, autant de chances chacune`,
+    parts:[{t:'pad',role:'A',ask:'Peins les cases de A&nbsp;:',sol:s,m:{k:'set',exp:id,ev},whyX:'Relis l’événement.',whyM:'Relis l’événement.'},{t:'act',do:'gauge',label:'▶ Envoyer les cases au compteur'},fracFill(e,ev,'P(A)')],
+    done:`P(A) = ${fr(s.length,e.n)}${gcd(s.length,e.n)>1?' = '+frR(s.length,e.n):''}.`}}
+function L3cartes(){const e=E('cartes'),ev=pick(evPool(e,{max:16})),[f]=P(ev,e);
+  return {exp:'cartes',ev,evTxt:q(ph(ev)),prompt:`${e.txt}<br>A = ${q(ph(ev))}.`,cap0:'32 cases, autant de chances chacune',
+    parts:[{t:'act',do:'paintA',label:'▶ Peindre A'},{t:'act',do:'gauge',label:'▶ Envoyer les cases au compteur'},fracFill(e,ev,'P(A)')],done:`P(A) = ${fr(f,32)} = ${frR(f,32)}.`}}
+const CONCEPT=[
+  ()=>({t:'choice',ask:'Une probabilité égale à 1 correspond à un événement&nbsp;:',ch:[{h:'certain',ok:true},{h:'impossible',why:'Impossible, c’est P = 0&nbsp;: aucune case peinte.'},{h:'élémentaire',why:'Élémentaire veut dire une seule issue.'}],m:{k:'def',id:'p1',kind:'def'}}),
+  ()=>({t:'choice',ask:'Si P(A) = 0, alors A est un événement&nbsp;:',ch:[{h:'impossible',ok:true},{h:'certain',why:'Certain, c’est P = 1&nbsp;: tout le mur est peint.'},{h:'élémentaire',why:'Élémentaire veut dire une seule issue.'}],m:{k:'def',id:'p0',kind:'def'}}),
+  ()=>({t:'choice',ask:'P(E) = 0,8 signifie que E a&nbsp;:',ch:[{h:'80 % de chances de se réaliser',ok:true},{h:'8 % de chances de se réaliser',why:'0,8 = 80 / 100&nbsp;: 80 %.'},{h:'0,8 % de chances de se réaliser',why:'0,8 = 80 / 100&nbsp;: 80 %.'}],m:{k:'def',id:'p08',kind:'def'}}),
+  ()=>{const bad=pick(['1,2','1,5','−0,3']);return {t:'choice',ask:'Lequel de ces nombres ne peut pas être une probabilité&nbsp;?',ch:[{h:bad,ok:true},...shuf(['0','1','0,25','0,99']).slice(0,3).map(h=>({h,why:`${h} est entre 0 et 1&nbsp;: c’est possible.`}))],m:{k:'def',id:'notp',kind:'def',bad}}}];
+function L3concept(){const [a,b]=shuf([0,1,2,3]);return {exp:'de6',prompt:'Une probabilité est un nombre compris entre 0 et 1&nbsp;: 0 si aucune case n’est peinte, 1 si tout le mur l’est.',cap0:'0&nbsp;: rien de peint · 1&nbsp;: tout le mur',
+  parts:[CONCEPT[a](),CONCEPT[b]()],done:'Une probabilité est toujours dans [0&nbsp;; 1]&nbsp;: 0 pour l’impossible, 1 pour le certain.'}}
+const URNES=[[6,3,11],[4,5,11],[8,2,10],[5,7,8],[9,4,7],[2,6,12]];
+function L3urne(){const c=pick(URNES),id='urne:'+c.join(','),e=E(id),g=ri(0,2),col=e.glab[g],ev={t:'col',c:col},f=c[g];
+  return {exp:id,ev,evTxt:q(ph(ev,e)),prompt:`${e.txt}<br>Chaque boule a la même chance d’être tirée. A = ${q(ph(ev,e))}.`,cap0:`${e.n} cases, une par boule`,
+    parts:[{t:'act',do:'paintA',label:'▶ Peindre A'},{t:'act',do:'gauge',label:'▶ Envoyer les cases au compteur'},
+      {t:'fill',ask:'Écris la probabilité, puis son écriture décimale&nbsp;:',tpl:'P(A) = {0} = {1}',bl:[{t:'f',v:[f,20],mode:'raw',m:{k:'p',exp:id,ev}},{t:'d',v:[f,20],m:{k:'p',exp:id,ev}}],why:'Boules de la couleur sur nombre total de boules, puis la division.'}],
+    done:`P(A) = ${fr(f,20)} = ${D(f,20)}.`}}
+/* niveau 4 */
+function L4de(){const e=E('de6'),ev=pick(evPool(e)),c=setOf(e,{t:'not',e:ev});return {exp:'de6',ev,evTxt:q(ph(ev)),prompt:`${e.txt} A = ${q(ph(ev))}. Le contraire ${NA} contient toutes les issues qui ne sont pas dans A.`,cap0:'Bombe violette pour le contraire',
+  parts:[{t:'act',do:'paintA',label:'▶ Peindre A en bleu'},{t:'pad',role:'C',name:NA,ask:`Peins en violet les cases de ${NA}&nbsp;:`,sol:c,m:{k:'set',exp:'de6',ev:{t:'not',e:ev}},whyX:`Une case de ${NA} n’est pas dans A.`,whyM:`Toutes les cases non bleues sont dans ${NA}.`},
+    {t:'act',do:'whole',label:'▶ Envoyer A et Ā au compteur'},
+    {t:'fill',ask:'Complète&nbsp;:',tpl:`P(A) = {0} et P(${NA}) = 1 − P(A) = {1}`,bl:[{t:'f',v:P(ev,e),mode:'val',m:{k:'p',exp:'de6',ev}},{t:'f',v:[c.length,6],mode:'val',m:{k:'pc',exp:'de6',ev}}],why:'Compte les cases bleues, puis les violettes&nbsp;: à elles deux, elles font tout le mur.'}],
+  done:`P(${NA}) = 1 − ${fr(6-c.length,6)} = ${fr(c.length,6)}&nbsp;: A et ${NA} se partagent tout le mur.`}}
+function L4mot(){const e=E('de6'),k=ri(2,4),ty=pick(['gt','ge','lt','le']),ev={t:ty,k},cs=setOf(e,{t:'not',e:ev}),cand=[{t:'gt',k},{t:'ge',k},{t:'lt',k},{t:'le',k},{t:'lt',k:k+1},{t:'gt',k:k-1}];
+  const sk=s=>s.join(','),target=sk(cs),seen=new Set(),ch=[],chEv=[];
+  const right={gt:{t:'le',k},ge:{t:'lt',k},lt:{t:'ge',k},le:{t:'gt',k}}[ty];ch.push({h:q(ph(right)),ok:true});chEv.push(right);seen.add(target);
+  cand.forEach(c=>{const s=sk(setOf(e,c));if(seen.has(s)||ch.length>=4)return;seen.add(s);ch.push({h:q(ph(c)),why:`Compare les cases&nbsp;: ${q(ph(c))} = ${setH(e,setOf(e,c))}, alors que ${NA} = ${setH(e,cs)}. Attention au bord ${k}.`});chEv.push(c)});
+  return {exp:'de6',ev,evTxt:q(ph(ev)),prompt:`${e.txt} A = ${q(ph(ev))}.`,cap0:'A en bleu&nbsp;: et son contraire&nbsp;?',pre:[['A',ev]],
+    parts:[{t:'choice',ask:`Le contraire ${NA} est l’événement&nbsp;:`,ch,m:{k:'contr',exp:'de6',ev,chEv,kind:'ev'},after:'neg'},
+      {t:'fill',ask:'Calcule&nbsp;:',tpl:`P(${NA}) = {0}`,bl:[{t:'f',v:[cs.length,6],mode:'val',m:{k:'pc',exp:'de6',ev}}],why:'Compte les cases violettes.'}],
+    done:`${NA} = ${q(ph(right))} = ${setH(e,cs)}&nbsp;: le bord ${k} est d’un seul côté.`}}
+function L4cartes(){const e=E('cartes'),ev=pick([{t:'rank',r:pick(['A','R','D','V'])},{t:'suit',s:pick(['P','C','K','T'])},{t:'fig'}]),[f]=P(ev,e),[a,b]=red(32-f,32);
+  return {exp:'cartes',ev,evTxt:q(ph(ev)),prompt:`${e.txt}<br>A = ${q(ph(ev))}, donc ${NA} = ${q('ne pas '+ph(ev))}.`,cap0:'32 cases',
+    parts:[{t:'act',do:'paintA',label:'▶ Peindre A en bleu'},{t:'act',do:'neg',label:`▶ Peindre ${NA} en violet`},
+      {t:'fill',ask:'Calcule avec la formule du contraire, puis simplifie&nbsp;:',tpl:`P(${NA}) = 1 − ${fr(f,32)} = {0} = {1}`,bl:[{t:'f',v:[32-f,32],mode:'raw',m:{k:'pc',exp:'cartes',ev}},{t:'f',v:[a,b],mode:'irr',m:{k:'pc',exp:'cartes',ev}}],why:`1 = ${fr(32,32)}&nbsp;: retire les ${f} cases bleues des 32.`}],
+    done:`P(${NA}) = 1 − ${fr(f,32)} = ${fr(32-f,32)} = ${frR(32-f,32)}.`}}
+function L4dec(){const e=E('jet20'),k=pick([3,7,9,11,13,17]),ev={t:'le',k};return {exp:'jet20',ev,evTxt:q(ph(ev)),prompt:`${e.txt} A = ${q(ph(ev))}.`,cap0:'20 cases',
+  parts:[{t:'act',do:'paintA',label:'▶ Peindre A en bleu'},{t:'fill',ask:'Écris P(A) en écriture décimale&nbsp;:',tpl:'P(A) = {0}',bl:[{t:'d',v:[k,20],m:{k:'p',exp:'jet20',ev}}],why:`${k} cases sur 20&nbsp;: ${k} ÷ 20.`},
+    {t:'act',do:'neg',label:`▶ Peindre ${NA} en violet`},{t:'fill',ask:'Puis le contraire&nbsp;:',tpl:`P(${NA}) = 1 − ${D(k,20)} = {0}`,bl:[{t:'d',v:[20-k,20],m:{k:'pc',exp:'jet20',ev}}],why:`1 − ${D(k,20)}&nbsp;: ce qu’il manque pour aller jusqu’à 1.`}],
+  done:`P(${NA}) = 1 − ${D(k,20)} = ${D(20-k,20)}.`}}
+function L4astuce(){const e=E('jet12'),k=pick([3,4]),ev={t:'ge',k},c=setOf(e,{t:'not',e:ev});return {exp:'jet12',ev,evTxt:q(ph(ev)),prompt:`${e.txt} A = ${q(ph(ev))}.<br>Astuce de graffeur&nbsp;: A a beaucoup de cases. Peins plutôt ${NA}, c’est plus court&nbsp;!`,cap0:'12 cases',
+  parts:[{t:'pad',role:'C',name:NA,ask:`Peins en violet les cases de ${NA}&nbsp;:`,sol:c,m:{k:'set',exp:'jet12',ev:{t:'not',e:ev}},whyX:`Ces cases sont dans A&nbsp;: ${q(ph(ev))}.`,whyM:`${NA} = les numéros qui ne sont pas ≥ ${k}.`},
+    {t:'fill',ask:'Calcule&nbsp;:',tpl:`P(${NA}) = {0} donc P(A) = 1 − P(${NA}) = {1}`,bl:[{t:'f',v:[c.length,12],mode:'val',m:{k:'pc',exp:'jet12',ev}},{t:'f',v:[12-c.length,12],mode:'val',m:{k:'p',exp:'jet12',ev}}],why:`${NA} a ${c.length} cases sur 12.`}],
+  done:`P(A) = 1 − ${fr(c.length,12)} = ${fr(12-c.length,12)} = ${frR(12-c.length,12)}&nbsp;: plus rapide que de compter les ${12-c.length} cases de A.`}}
+/* niveau 5 */
+function rndCounts(N,k){for(;;){const c=Array.from({length:k},()=>1);let r=N-k;while(r>0){c[ri(0,k-1)]++;r--}if(new Set(c).size>=Math.min(3,k)&&Math.max(...c)<=N*.45)return c}}
+const lawT=(heads,vals)=>`<table class="lt"><tr><td>Issue</td>${heads.map(h=>`<td>${h}</td>`).join('')}</tr><tr><td>Probabilité</td>${vals.map(v=>`<td>${v}</td>`).join('')}</tr></table>`;
+function L5urne(){const c=pick(URNES),id='urne:'+c.join(','),e=E(id);const L=c.map(x=>D(x,20));
+  return {exp:id,prompt:`${e.txt}<br>On s’intéresse à la couleur&nbsp;: les issues sont V (verte), J (jaune) et N (noire).`,cap0:`${e.n} cases, une par boule`,bandLab:['?','?','?'],bandLabFull:L,
+    parts:[{t:'act',do:'band',label:'▶ Regrouper les cases par couleur'},
+      {t:'fill',ask:'Donne la loi de probabilité (écriture décimale)&nbsp;:',tpl:'P(V) = {0}&nbsp;; P(J) = {1}&nbsp;; P(N) = {2}',bl:c.map((x,g)=>({t:'d',v:[x,20],m:{k:'p',exp:id,ev:{t:'col',c:e.glab[g]}}})),why:'Chaque bloc&nbsp;: nombre de boules de la couleur sur 20.',after:'reveal'}],
+    done:`Loi&nbsp;: ${L.join(' + ')} = 1. La somme de toutes les probabilités vaut toujours 1&nbsp;: le bandeau, c’est tout le mur.`}}
+function sacQ(N,k){const c=rndCounts(N,k),id='sac:'+c.join(','),e=E(id);return {c,id,e}}
+function L5miss(){const N=pick([12,15]),{c,id,e}=sacQ(N,pick([4,5])),miss=ri(0,c.length-1),vals=c.map((x,g)=>g===miss?'?':fr(x,N));
+  const full=c.map(x=>fr(x,N));
+  return {exp:id,miss,bandLab:c.map((x,g)=>g===miss?'?':`${x}/${N}`),bandLabFull:c.map(x=>`${x}/${N}`),
+    prompt:`${e.txt}<br>Loi de probabilité du numéro tiré&nbsp;:${lawT(c.map((_,g)=>g+1),vals)}`,cap0:`${N} cases, une par jeton`,
+    parts:[{t:'act',do:'band',label:'▶ Regrouper les cases par numéro'},
+      {t:'fill',ask:'Retrouve la probabilité manquante&nbsp;:',tpl:`p<sub>${miss+1}</sub> = {0}`,bl:[{t:'f',v:[c[miss],N],mode:'val',m:{k:'num',op:'1-sum',xs:c.filter((_,g)=>g!==miss).map(x=>[x,N])}}],why:'La somme de toutes les probabilités vaut 1&nbsp;: 1 − (somme des autres).',after:'reveal'}],
+    done:`p<sub>${miss+1}</sub> = 1 − (${c.filter((_,g)=>g!==miss).map(x=>fr(x,N)).join(' + ')}) = ${fr(c[miss],N)}.`,_fx:full}}
+function L5ev(){const N=pick([12,15]),k=5,{c,id,e}=sacQ(N,k),ev=pick([{t:'pair'},{t:'impair'},{t:'ge',k:4},{t:'le',k:2}]),gs=[1,2,3,4,5].filter(v=>T(ev,{v})).map(v=>v-1),f=gs.reduce((s,g)=>s+c[g],0);
+  return {exp:id,ev,bandLab:c.map(x=>`${x}/${N}`),prompt:`${e.txt}<br>Loi du numéro tiré&nbsp;:${lawT(c.map((_,g)=>g+1),c.map(x=>fr(x,N)))}E = ${q(ph(ev))}.`,cap0:`${N} cases, une par jeton`,
+    parts:[{t:'act',do:'band',label:'▶ Regrouper les cases par numéro'},
+      {t:'pad',role:'A',name:'E',ask:'Peins les cases de E&nbsp;:',sol:setOf(e,ev),m:{k:'set',exp:id,ev},whyX:'Relis l’événement.',whyM:'Peins tous les jetons qui réalisent E.'},
+      {t:'fill',ask:'Additionne les probabilités des issues de E&nbsp;:',tpl:'P(E) = {0}',bl:[{t:'f',v:[f,N],mode:'val',m:{k:'num',op:'sum',xs:gs.map(g=>[c[g],N])}}],why:`P(E) = ${gs.map(g=>`p<sub>${g+1}</sub>`).join(' + ')}.`}],
+    done:`P(E) = ${gs.map(g=>fr(c[g],N)).join(' + ')} = ${fr(f,N)}${gcd(f,N)>1?' = '+frR(f,N):''}.`}}
+function lawTables(){const mk=v=>v.map(x=>x<0?'−'+D(-x,100):D(x,100));const ok=pick([[20,35,45],[15,25,60],[30,30,40],[10,45,45],[25,25,50]]);
+  const bad1=ok.map((x,i)=>i===0?x-10:x),bad2=[ok[0]+ok[1]+20,-20,ok[2]],bad3=[ok[0],ok[1]+10,ok[2]+10];
+  return [{v:ok,ok:true},{v:bad1,why:`La somme vaut ${D(bad1.reduce((a,b)=>a+b,0),100)} et non 1.`},{v:bad2,why:'Une probabilité ne peut pas être négative, même si la somme vaut 1.'},{v:bad3,why:`La somme vaut ${D(bad3.reduce((a,b)=>a+b,0),100)} et non 1.`}].map(x=>({...x,h:lawT(['1','2','3'],mk(x.v))}))}
+function L5tables(){const c=rndCounts(20,4),id='roue:'+c.join(','),e=E(id),T4=lawTables();
+  return {exp:id,prompt:'Une loi de probabilité donne la probabilité de chaque issue&nbsp;: chacune est entre 0 et 1, et leur somme vaut 1.',cap0:'Le bandeau entier vaut 1',
+    parts:[{t:'choice',ask:'Lequel de ces tableaux est une loi de probabilité&nbsp;?',ch:T4.map(x=>({h:x.h,ok:!!x.ok,why:x.why})),m:{k:'loi',kind:'loi'}}],
+    done:'Une loi&nbsp;: des probabilités entre 0 et 1, de somme 1.'}}
+function L5roue(){const c=rndCounts(20,4),id='roue:'+c.join(','),e=E(id),miss=ri(0,3),L=c.map(x=>D(x,20)),pair=shuf([0,1,2,3].filter(g=>g!==miss)).slice(0,2).sort();
+  return {exp:id,miss,bandLab:L.map((x,g)=>g===miss?'?':x),bandLabFull:L,prompt:`${e.txt}<br>Loi de la couleur obtenue&nbsp;:${lawT(e.glab,L.map((x,g)=>g===miss?'?':x))}`,cap0:'20 cases, une par secteur',
+    parts:[{t:'act',do:'band',label:'▶ Regrouper les cases par couleur'},
+      {t:'fill',ask:'Probabilité manquante&nbsp;:',tpl:`P(${e.glab[miss]}) = {0}`,bl:[{t:'d',v:[c[miss],20],m:{k:'num',op:'1-sum',xs:c.filter((_,g)=>g!==miss).map(x=>[x,20])}}],why:'La somme des probabilités vaut 1.',after:'reveal'},
+      {t:'fill',ask:'Puis&nbsp;:',tpl:`P(${q(`${e.glab[pair[0]]} ou ${e.glab[pair[1]]}`)}) = {0}`,bl:[{t:'d',v:[c[pair[0]]+c[pair[1]],20],m:{k:'num',op:'sum',xs:pair.map(g=>[c[g],20])}}],why:'On additionne les probabilités des deux couleurs.'}],
+    done:`P(${e.glab[miss]}) = 1 − (${c.filter((_,g)=>g!==miss).map(x=>D(x,20)).join(' + ')}) = ${D(c[miss],20)}.`}}
+/* niveau 6 */
+function pairAB(e,o={}){const pool=evPool(e,{max:o.max||Math.ceil(e.n*.6)});for(let t=0;t<400;t++){const a=pick(pool),b=pick(pool);if(a===b)continue;const A=setOf(e,a),B=setOf(e,b),I=A.filter(k=>B.includes(k));
+  if(o.disj?I.length===0:(I.length>=1&&I.length<A.length&&I.length<B.length))return [a,b]}return null}
+function unionFill(e,a,b,after){const A=setOf(e,a),B=setOf(e,b),I=A.filter(k=>B.includes(k)),n=e.n,u=A.length+B.length-I.length;
+  return {t:'fill',ask:'Applique la formule&nbsp;:',tpl:`P(A ∪ B) = ${fr(A.length,n)} + ${fr(B.length,n)} − {0} = {1}`,bl:[{t:'f',v:[I.length,n],mode:'val',m:{k:'p',exp:e.id,ev:{t:'and',a,b}}},{t:'f',v:[u,n],mode:'val',m:{k:'pu',exp:e.id,a,b}}],
+    why:'On retire P(A ∩ B)&nbsp;: les cases vertes, comptées deux fois.',after}}
+function L6de(){const e=E('de6'),[a,b]=pairAB(e),A=setOf(e,a),B=setOf(e,b),I=A.filter(k=>B.includes(k));
+  return {exp:'de6',evA:a,evB:b,prompt:`${e.txt}<br><span class="pa">A</span> = ${q(ph(a))} et <span class="pb">B</span> = ${q(ph(b))}.`,cap0:'Deux bombes&nbsp;: bleu pour A, jaune pour B',
+    parts:[{t:'act',do:'mix',label:'▶ Peindre A en bleu, puis B en jaune'},
+      {t:'pad',role:'I',ask:'Entoure les cases de A ∩ B (dans A <b>et</b> dans B)&nbsp;:',sol:I,m:{k:'set',exp:'de6',ev:{t:'and',a,b}},whyX:'A ∩ B&nbsp;: les cases peintes deux fois, en vert.',whyM:'Cherche toutes les cases vertes.'},
+      {t:'act',do:'count2',label:'▶ Additionner P(A) + P(B) au compteur'},unionFill(e,a,b,'fix')],
+    done:`P(A ∪ B) = P(A) + P(B) − P(A ∩ B)&nbsp;: on retire les cases vertes, sinon elles seraient comptées deux fois.`}}
+function L6sets(){const e=E('de6');let a,b,A,B;for(;;){A=shuf([1,2,3,4,5,6]).slice(0,ri(2,4)).sort((x,y)=>x-y).map(String);B=shuf([1,2,3,4,5,6]).slice(0,ri(2,4)).sort((x,y)=>x-y).map(String);
+    const I=A.filter(k=>B.includes(k));if(I.length>=1&&I.length<A.length&&I.length<B.length&&A.length+B.length-I.length<6)break}
+  a={t:'set',s:A};b={t:'set',s:B};const I=A.filter(k=>B.includes(k)),U=e.iss.map(i=>i.k).filter(k=>A.includes(k)||B.includes(k)),D2=A.filter(k=>!B.includes(k)).concat(B.filter(k=>!A.includes(k))).sort();
+  const ch=[{h:`A ∩ B = ${setL(I)}`,ok:true},{h:`A ∩ B = ${setL(U)}`,why:'Ça, c’est A ∪ B (toutes les cases peintes). A ∩ B&nbsp;: seulement les vertes.'},{h:`A ∩ B = ${setL(D2)}`,why:'Ce sont les cases peintes une seule fois. A ∩ B&nbsp;: les cases dans A <b>et</b> dans B.'}];
+  return {exp:'de6',evA:a,evB:b,prompt:`${e.txt}<br><span class="pa">A</span> = ${setL(A)} et <span class="pb">B</span> = ${setL(B)}.`,cap0:'Deux bombes&nbsp;: bleu pour A, jaune pour B',
+    parts:[{t:'act',do:'mix',label:'▶ Peindre A en bleu, puis B en jaune'},{t:'choice',ask:'Quelle est l’intersection&nbsp;?',ch,m:{k:'set',exp:'de6',ev:{t:'and',a,b},kind:'set',name:'A ∩ B'}},
+      {t:'pad',role:'U',ask:'Entoure les cases de A ∪ B (dans A <b>ou</b> dans B)&nbsp;:',sol:U,m:{k:'set',exp:'de6',ev:{t:'or',a,b}},whyX:'Cette case n’est ni bleue, ni jaune, ni verte.',whyM:'A ∪ B&nbsp;: toutes les cases peintes, quelle que soit la couleur.'}],
+    done:`A ∩ B = ${setL(I)} (les vertes) et A ∪ B = ${setL(U)} (toutes les peintes).`}}
+function L6cartes(){const e=E('cartes');const a=pick([{t:'suit',s:pick(['P','C','K','T'])},{t:'red'}]),b=pick([{t:'rank',r:pick(['A','R','D','V'])},{t:'fig'}]);const [x,y]=Math.random()<.5?[a,b]:[b,a];
+  return {exp:'cartes',evA:x,evB:y,prompt:`${e.txt}<br><span class="pa">A</span> = ${q(ph(x))} et <span class="pb">B</span> = ${q(ph(y))}.`,cap0:'Deux bombes&nbsp;: bleu pour A, jaune pour B',
+    parts:[{t:'act',do:'mix',label:'▶ Peindre A en bleu, puis B en jaune'},{t:'act',do:'count2',label:'▶ Additionner P(A) + P(B) au compteur'},unionFill(e,x,y,'fix')],
+    done:`P(A ∪ B) = ${fr(setOf(e,x).length,32)} + ${fr(setOf(e,y).length,32)} − ${fr(setOf(e,{t:'and',a:x,b:y}).length,32)} = ${fr(setOf(e,{t:'or',a:x,b:y}).length,32)}.`}}
+function L6incomp(){const id=pick(['jet10','jet12']),e=E(id),[a,b]=pairAB(e,{disj:true,max:5}),A=setOf(e,a),B=setOf(e,b);
+  return {exp:id,evA:a,evB:b,prompt:`${e.txt}<br><span class="pa">A</span> = ${q(ph(a))} et <span class="pb">B</span> = ${q(ph(b))}.`,cap0:'Deux bombes&nbsp;: bleu pour A, jaune pour B',
+    parts:[{t:'act',do:'mix',label:'▶ Peindre A en bleu, puis B en jaune'},
+      {t:'choice',ask:'A et B sont-ils incompatibles&nbsp;?',ch:[{h:'Oui&nbsp;: aucune case verte, A ∩ B ne contient aucune issue.',ok:true},{h:'Non&nbsp;: A et B ont des issues communes.',why:'Regarde le mur&nbsp;: aucune case n’est verte.'},{h:'Non&nbsp;: il faudrait que P(A) + P(B) = 1.',why:'Ça, c’est la propriété du contraire. Incompatibles veut dire&nbsp;: aucune issue commune.'}],m:{k:'incq',exp:id,a,b,kind:'yn'}},
+      {t:'act',do:'count2',label:'▶ Additionner P(A) + P(B) au compteur'},
+      {t:'fill',ask:'Ici P(A ∩ B) = 0, donc&nbsp;:',tpl:`P(A ∪ B) = ${fr(A.length,e.n)} + ${fr(B.length,e.n)} = {0}`,bl:[{t:'f',v:[A.length+B.length,e.n],mode:'val',m:{k:'pu',exp:id,a,b}}],why:'Rien à retirer&nbsp;: on additionne.'}],
+    done:'A et B incompatibles&nbsp;: P(A ∩ B) = 0, donc P(A ∪ B) = P(A) + P(B).'}}
+function L6dec(){const e=E('jet20'),[a,b]=pairAB(e,{max:12}),A=setOf(e,a).length,B=setOf(e,b).length,I=setOf(e,{t:'and',a,b}).length;
+  return {exp:'jet20',evA:a,evB:b,prompt:`${e.txt}<br><span class="pa">A</span> = ${q(ph(a))} et <span class="pb">B</span> = ${q(ph(b))}.<br>On sait que P(A) = ${D(A,20)}, P(B) = ${D(B,20)} et P(A ∩ B) = ${D(I,20)}.`,cap0:'Deux bombes&nbsp;: bleu pour A, jaune pour B',
+    parts:[{t:'act',do:'mix',label:'▶ Peindre A en bleu, puis B en jaune'},{t:'act',do:'count2',label:'▶ Additionner P(A) + P(B) au compteur'},
+      {t:'fill',ask:'Calcule&nbsp;:',tpl:`P(A ∪ B) = ${D(A,20)} + ${D(B,20)} − ${D(I,20)} = {0}`,bl:[{t:'d',v:[A+B-I,20],m:{k:'pu',exp:'jet20',a,b}}],why:'P(A) + P(B) − P(A ∩ B).',after:'fix'}],
+    done:`P(A ∪ B) = ${D(A,20)} + ${D(B,20)} − ${D(I,20)} = ${D(A+B-I,20)}.`}}
+/* niveau 7 */
+function treeQ(id,ev,extra,txt){const e=E(id),s=setOf(e,ev);return {exp:id,mode:'tree',ev,prompt:`${e.txt}<br>E = ${q(txt||ph(ev,e))}.`,cap0:'Le mur devient un arbre',
+  parts:[{t:'act',do:'grow',label:'▶ Peindre l’arbre des possibles'},...(extra.pre||[]),
+    {t:'pad',role:'A',name:'E',ask:'Peins les issues de E (au bout des branches)&nbsp;:',sol:s,m:{k:'set',exp:id,ev},whyX:'Suis chaque branche jusqu’au bout et relis E.',whyM:'Vérifie chaque issue, une par une.'},
+    {t:'fill',ask:'Les issues sont équiprobables&nbsp;:',tpl:'P(E) = {0}',bl:[{t:'f',v:[s.length,e.n],mode:'val',m:{k:'p',exp:id,ev}}],why:`Issues de E sur nombre total d’issues (${e.n}).`},...(extra.post||[])],
+  done:`P(E) = ${fr(s.length,e.n)}${gcd(s.length,e.n)>1?' = '+frR(s.length,e.n):''}&nbsp;: on liste toutes les branches, on repère les issues favorables, on compte.`}}
+const cntFill=id=>({t:'fill',ask:'Compte les issues&nbsp;:',tpl:'L’arbre a {0} issues.',bl:[{t:'n',v:[E(id).n,1],m:{k:'count',exp:id}}],why:'Une issue = une branche complète, du départ jusqu’au bout.'});
+function L7pp(){return treeQ('pp',{t:'atl',v:'P'},{pre:[cntFill('pp')]})}
+function L7pp2(){const ev=pick([{t:'exa',v:'F',n:1},{t:'same'},{t:'exa',v:'P',n:1}]);const e=E('pp');
+  const chEv=[{t:'exa',v:'F',n:2},{t:'exa',v:'P',n:2},{t:'exa',v:'F',n:1},{t:'atl',v:'F'}];
+  return treeQ('pp',ev,{post:[{t:'choice',ask:`Le contraire de ${q('obtenir au moins une fois PILE')} est&nbsp;:`,ch:chEv.map((c,j)=>({h:q(ph(c,e)),ok:j===0,why:j===1?'Deux fois PILE, c’est encore «&nbsp;au moins une fois PILE&nbsp;».':j===2?'PF et FP contiennent un PILE&nbsp;: ils sont dans l’événement, pas dans son contraire.':'PF contient un PILE&nbsp;: il ne peut pas être dans le contraire.'})),m:{k:'contr',exp:'pp',ev:{t:'atl',v:'P'},chEv,kind:'ev'}}]})}
+function L7pr3(){const ev=pick([{t:'seq',x:{t:'is',v:'P'},y:{t:'is',v:'V'}},{t:'seq',x:{t:'all'},y:{t:'is',v:'R'}},{t:'seq',x:{t:'is',v:'F'},y:{t:'is',v:'B'}}]);
+  return treeQ('pr3',ev,{pre:[{t:'fill',ask:'Compte les branches&nbsp;:',tpl:'2 branches au départ, puis {0} branches au bout de chacune&nbsp;: {1} issues.',bl:[{t:'n',v:[3,1],m:{k:'n2',exp:'pr3'}},{t:'n',v:[6,1],m:{k:'count',exp:'pr3'}}],why:'La roue a 3 secteurs&nbsp;: 3 branches au bout de chaque résultat de la pièce.'}]})}
+function L7pd(){const ev=pick([{t:'seq',x:{t:'is',v:'F'},y:{t:'pair'}},{t:'seq',x:{t:'is',v:'P'},y:{t:'ge',k:5}},{t:'seq',x:{t:'is',v:'P'},y:{t:'eq',k:6}},{t:'seq',x:{t:'all'},y:{t:'le',k:2}}]);return treeQ('pd',ev,{pre:[cntFill('pd')]})}
+function L7rr(){const e=E('rr'),ev={t:'not',e:{t:'atl',v:'R'}},c=setOf(e,ev);return {exp:'rr',mode:'tree',ev,prompt:`${e.txt}<br>E = ${q('obtenir au moins une fois rouge')}. Astuce&nbsp;: passe par le contraire ${q('ne jamais obtenir rouge')}.`,cap0:'Le mur devient un arbre',
+  parts:[{t:'act',do:'grow',label:'▶ Peindre l’arbre des possibles'},cntFill('rr'),
+    {t:'pad',role:'C',name:'Ē',ask:`Peins en violet les issues de ${q('ne jamais obtenir rouge')}&nbsp;:`,sol:c,m:{k:'set',exp:'rr',ev},whyX:'Cette issue contient un R.',whyM:'Toutes les issues sans aucun R.'},
+    {t:'fill',ask:'Calcule&nbsp;:',tpl:`P(${q('ne jamais obtenir rouge')}) = {0} donc P(E) = 1 − {1} = {2}`,bl:[{t:'f',v:[4,9],mode:'val',m:{k:'p',exp:'rr',ev}},{t:'f',v:[4,9],mode:'val',m:{k:'p',exp:'rr',ev}},{t:'f',v:[5,9],mode:'val',m:{k:'pc',exp:'rr',ev}}],why:'4 issues sans rouge sur 9.'}],
+  done:`P(E) = 1 − ${fr(4,9)} = ${fr(5,9)}&nbsp;: le contraire était plus court à peindre.`}}
+
+const LV=[
+ {t:'Le mur Ω',rule:'<p>Une <b>expérience aléatoire</b> possède plusieurs résultats possibles appelés <b>issues</b>, sans qu’on puisse prévoir laquelle se réalisera.</p><p>L’ensemble de toutes les issues s’appelle l’<b>univers</b>, noté Ω. Exemple&nbsp;: dé à 6 faces, Ω = {1&nbsp;; 2&nbsp;; 3&nbsp;; 4&nbsp;; 5&nbsp;; 6}.</p><p>Sur le mur&nbsp;: une case = une issue, le mur entier = Ω.</p>',
+  gens:[()=>L1build('de6'),()=>L1build(pick(['piece','roue4','urne2'])),()=>{const n=pick([8,10,12]);return L1build('jet'+n,omegaChoice(E('jet'+n)))},L1alea,L1omega]},
+ {t:'Les événements',rule:'<p>Un <b>événement</b> est un ensemble d’une ou plusieurs issues. Exemple (dé)&nbsp;: «&nbsp;nombre pair&nbsp;» = {2&nbsp;; 4&nbsp;; 6}.</p><p>1 seule issue&nbsp;: événement <b>élémentaire</b>. Toutes les issues&nbsp;: événement <b>certain</b>. Aucune issue&nbsp;: événement <b>impossible</b>.</p><p>Sur le mur&nbsp;: un événement = les cases qu’on peint.</p>',
+  gens:[L2paint,L2real,()=>L2type('el'),()=>L2type('ce'),()=>L2type('im')],order:()=>[0,1,...shuf([2,3,4])]},
+ {t:'La part du mur',rule:'<p>La probabilité est un nombre dans [0&nbsp;; 1]. P = 0&nbsp;: impossible. P = 1&nbsp;: certain.</p><p>Quand toutes les issues ont la même chance&nbsp;: <b>équiprobabilité</b>, et</p><p><span class="f">P(A) = issues favorables à A ÷ issues totales</span></p><p>Méthode&nbsp;: repérer l’univers et le nombre total d’issues, compter les issues favorables, former et simplifier la fraction.</p>',
+  gens:[L3de,L3jet,L3cartes,L3concept,L3urne]},
+ {t:'Le négatif',rule:`<p>${NA} (contraire de A) est l’ensemble des issues n’appartenant pas à A.</p><p><span class="f">P(${NA}) = 1 − P(A)</span></p><p>Car A et ${NA} se partagent toutes les issues&nbsp;: P(A) + P(${NA}) = 1.</p>`,
+  gens:[L4de,L4mot,L4cartes,L4dec,L4astuce]},
+ {t:'Le bandeau',rule:'<p>Une <b>loi de probabilité</b> donne la probabilité de chaque issue. La somme de toutes les probabilités vaut 1.</p><p>Exemple&nbsp;: urne de 6 vertes, 3 jaunes, 11 noires (20 boules)&nbsp;: P(V) = 0,3, P(J) = 0,15, P(N) = 0,55 et 0,3 + 0,15 + 0,55 = 1.</p><p>Pour un événement, on additionne les probabilités de ses issues.</p>',
+  gens:[L5urne,L5miss,L5ev,L5tables,L5roue]},
+ {t:'Le mélange',rule:'<p>A ∩ B&nbsp;: issues communes à A et B. A ∪ B&nbsp;: issues appartenant à A ou à B.</p><p><span class="f">P(A ∪ B) = P(A) + P(B) − P(A ∩ B)</span></p><p>On soustrait P(A ∩ B) car les issues communes seraient comptées deux fois. <b>Incompatibles</b>&nbsp;: P(A ∩ B) = 0, donc P(A ∪ B) = P(A) + P(B).</p><p>Sur le mur&nbsp;: bleu (A) + jaune (B) = <b style="color:var(--pG)">vert</b> (A ∩ B).</p>',
+  gens:[L6de,L6sets,L6cartes,L6incomp,L6dec]},
+ {t:'L’arbre',rule:'<p>Un <b>arbre des possibles</b> représente toutes les issues d’une expérience à plusieurs étapes. Chaque branche correspond à une possibilité.</p><p>Méthode&nbsp;: lister toutes les branches, repérer les issues favorables, compter. Exemple&nbsp;: deux lancers d’une pièce, 4 issues PP, PF, FP, FF équiprobables&nbsp;; P(«&nbsp;au moins une fois PILE&nbsp;») = 3/4.</p>',
+  gens:[L7pp,L7pp2,L7pr3,L7pd,L7rr]}];
+
+window.FP={state:()=>({lvl,qi,nq:order.length,pi,part:Q&&Q.parts[pi],q:Q,busy,win:!$('win').hidden}),
+  levelQs:l=>LV[l].gens.map(g=>g()),go:goLevel,E,setOf};
+window.FP_start=()=>{decor();renderLv();goLevel(0)};
+})();
+</script>
+<script>
+/* =====================================================================
+   ÉPREUVES FINALES : Bronze, Argent, Or (6 QCM + 4 textes à trous)
+   ===================================================================== */
+(function(){
+'use strict';
+const {E,setOf}=window.FP;
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const red=(a,b)=>{const g=gcd(a,b)||1;return [a/g,b/g]};
+const fr=(a,b)=>`<span class="fr" data-f="${a}/${b}"><span>${a}</span><span>${b}</span></span>`;
+const V=(a,b)=>{const [p,q]=red(a,b);return q===1?String(p):fr(p,q)};
+function dec(a,b){[a,b]=red(a,b);let t=b,k2=0,k5=0;while(t%2===0){t/=2;k2++}while(t%5===0){t/=5;k5++}if(t!==1)return null;
+  const k=Math.max(k2,k5),s=String(Math.round(a*Math.pow(10,k)/b)).padStart(k+1,'0');return k?(s.slice(0,-k)+','+s.slice(-k)).replace(/,?0+$/,''):s}
+const D=(a,b)=>dec(a,b);
+const Dh=h=>D(h,100);
+function ans(a,b,raw){const [p,q]=red(a,b),o=[q===1?String(p):`${p}/${q}`];if(raw&&!o.includes(raw))o.push(raw);const d=dec(p,q);if(d&&!o.includes(d))o.push(d);return o}
+function ansD(a,b){const o=ans(a,b),d=dec(a,b);return d?[d,...o.filter(x=>x!==d)]:o}
+const de=s=>/^[aeiouéo]/i.test(s)?'d’'+s:'de '+s;
+const NA='<span class="ov">A</span>';
+const q=s=>`«&nbsp;${s}&nbsp;»`;
+const QC=(level,prompt,right,wrongs,explain,m)=>{const seen=new Set([right]),ch=[right];wrongs.forEach(w=>{if(!seen.has(w)&&ch.length<4){seen.add(w);ch.push(w)}});return {type:'qcm',level,prompt,choices:ch,answer:0,explain,m}};
+const TR=(level,prompt,blanks,explain,m)=>({type:'trous',level,prompt,blanks,explain,m});
+const setL=a=>'{'+a.join('&nbsp;; ')+'}';
+const RW={'7':'un 7','8':'un 8','9':'un 9','10':'un 10',V:'un valet',D:'une dame',R:'un roi',A:'un as'},SN={P:'pique',C:'cœur',K:'carreau',T:'trèfle'};
+const DE='On lance un dé équilibré à 6 faces.',C32='On tire une carte au hasard dans un jeu de 32 cartes (7, 8, 9, 10, valet, dame, roi, as dans chacune des 4 couleurs&nbsp;: pique, cœur, carreau, trèfle).';
+const P=(id,ev)=>[setOf(E(id),ev).length,E(id).n];
+/* valeurs distinctes : on écarte un leurre égal (en valeur) à la bonne réponse */
+function lures(right,cands){const key=x=>{const [a,b]=red(x[0],x[1]);return a+'/'+b},seen=new Set([key(right)]),out=[];cands.forEach(c=>{if(c[1]>0&&c[0]>=0&&!seen.has(key(c))){seen.add(key(c));out.push(c)}});return out}
+const vh=x=>x[1]===1?String(x[0]):V(x[0],x[1]);
+
+/* ---------- BRONZE ---------- */
+function b_omega(){const id=pick(['de6','roue4','piece']),e=E(id),all=e.iss.map(i=>i.tl||i.c),wr={de6:['0','7'],roue4:['violet'],piece:['PF']}[id];
+  return QC(1,`${e.txt} L’univers de cette expérience est&nbsp;:`,`Ω = ${setL(all)}`,[`Ω = ${e.n}`,`Ω = ${setL(all.slice(0,-1))}`,`Ω = ${setL(id==='de6'?['0',...all]:[...all,wr[0]])}`],
+    `L’univers est l’ensemble de <b>toutes</b> les issues&nbsp;: Ω = ${setL(all)} (${e.n} issues).`,{k:'omega',exp:id,kind:'set',st:1})}
+function b_type(){const v=pick([['de6',{t:'eq',k:7},'obtenir 7','impossible'],['de6',{t:'le',k:6},'obtenir un nombre ≤ 6','certain'],['de6',{t:'eq',k:ri(1,6)},null,'élémentaire'],['jet10',{t:'gt',k:10},'tirer un numéro &gt; 10','impossible'],['jet10',{t:'le',k:10},'tirer un numéro ≤ 10','certain']]);
+  const e=E(v[0]),txt=v[2]||`obtenir ${v[1].k}`;
+  return QC(2,`${e.txt} L’événement ${q(txt)} est un événement&nbsp;:`,v[3],['impossible','certain','élémentaire'].filter(w=>w!==v[3]),
+    v[3]==='impossible'?'Aucune issue ne le réalise&nbsp;: il est impossible (P = 0).':v[3]==='certain'?'Toutes les issues le réalisent&nbsp;: il est certain (P = 1).':'Une seule issue le réalise&nbsp;: il est élémentaire.',{k:'type',exp:v[0],ev:v[1],kind:'word',st:1})}
+function b_p1(){const k=ri(2,6);return QC(3,`${DE} La probabilité d’obtenir ${k} est&nbsp;:`,fr(1,6),lures([1,6],[[k,6],[1,5],[6,1]]).map(vh),`Une issue favorable sur 6 issues équiprobables&nbsp;: ${fr(1,6)}.`,{k:'p',exp:'de6',ev:{t:'eq',k},kind:'val',st:1})}
+function b_p2(){const v=pick([[{t:'ge',k:5},'nombre ≥ 5',{t:'ge',k:4}],[{t:'gt',k:3},'nombre &gt; 3',{t:'ge',k:3}],[{t:'le',k:2},'nombre ≤ 2',{t:'lt',k:2}],[{t:'lt',k:3},'nombre &lt; 3',{t:'le',k:3}],[{t:'mult',k:3},'multiple de 3',null]]);
+  const r=P('de6',v[0]),c=r[0],L=[[c,1],[c,6-c]];if(v[2])L.unshift(P('de6',v[2]));L.push([c+1,6]);
+  return QC(3,`${DE} La probabilité de l’événement ${q(v[1])} est&nbsp;:`,V(c,6),lures(r,L).map(vh),`Les issues favorables sont au nombre de ${c} sur 6&nbsp;: ${fr(c,6)} = ${V(c,6)}.`,{k:'p',exp:'de6',ev:v[0],kind:'val',st:2})}
+function b_contr(){const v=pick([[{t:'pair'},'obtenir un nombre pair','obtenir un nombre impair',{t:'impair'}],[{t:'impair'},'obtenir un nombre impair','obtenir un nombre pair',{t:'pair'}]]);
+  return {type:'qcm',level:4,prompt:`${DE} Le contraire de l’événement ${q(v[1])} est&nbsp;:`,choices:[q(v[2]),q(v[1]),q('obtenir 1'),q('obtenir un multiple de 3')],answer:0,
+    explain:`Les issues qui ne réalisent pas ${q(v[1])} réalisent ${q(v[2])}.`,m:{k:'contr',exp:'de6',ev:v[0],kind:'ev',st:1,chEv:[v[3],v[0],{t:'eq',k:1},{t:'mult',k:3}]}}}
+function b_compl(){const x=pick([10,20,30,35,40,60,70,75,80,85,90,15,25]);return QC(4,`Pour un événement A, P(A) = ${Dh(x)}. Alors P(${NA}) est égale à&nbsp;:`,Dh(100-x),[Dh(x),Dh(100+x),'1'],
+  `P(${NA}) = 1 − P(A) = 1 − ${Dh(x)} = ${Dh(100-x)}.`,{k:'num',op:'1-x',xs:[[x,100]],kind:'val',st:1})}
+function b_def(){return pick([()=>QC(3,'Une probabilité égale à 1 correspond à un événement&nbsp;:','certain',['impossible','élémentaire'],'P = 1&nbsp;: l’événement se réalise toujours, il est certain.',{k:'def',id:'p1',kind:'def',st:1}),
+  ()=>QC(3,'Si P(A) = 0, alors l’événement A est&nbsp;:','impossible',['certain','élémentaire'],'P = 0&nbsp;: aucune issue ne réalise A, il est impossible.',{k:'def',id:'p0',kind:'def',st:1})])()}
+function b_tree(){return QC(7,'On lance deux fois de suite une pièce de monnaie. Combien l’arbre des possibles a-t-il d’issues&nbsp;?','4',['2','3','6'],'Les issues sont PP, PF, FP et FF&nbsp;: 4 issues (PF et FP sont deux issues différentes).',{k:'count',exp:'pp',kind:'val',st:1})}
+function b_inter(){for(;;){const A=shuf(['1','2','3','4','5','6']).slice(0,2).sort(),B=shuf(['1','2','3','4','5','6']).slice(0,3).sort(),I=A.filter(k=>B.includes(k));if(I.length!==1)continue;
+  const U=['1','2','3','4','5','6'].filter(k=>A.includes(k)||B.includes(k)),O=['1','2','3','4','5','6'].filter(k=>(A.includes(k))!==(B.includes(k)));
+  return QC(6,`${DE} A = ${setL(A)} et B = ${setL(B)}. L’événement A ∩ B est&nbsp;:`,setL(I),[setL(U),setL(O)],`A ∩ B contient les issues communes à A et B&nbsp;: ${setL(I)}.`,{k:'set',exp:'de6',ev:{t:'and',a:{t:'set',s:A},b:{t:'set',s:B}},kind:'set',st:1})}}
+function tb_count(){const id=pick(['de6','jet10','jet12','roue4','cartes']),e=E(id);return TR(1,`${e.txt} L’univers Ω contient {0} issues.`,[{answers:[String(e.n)],size:3,m:{k:'count',exp:id}}],`Une issue par résultat possible&nbsp;: ${e.n} issues.`,{st:1})}
+function tb_p(){const n=pick([10,12,20]),k=ri(1,n),id='jet'+n;return TR(3,`${E(id).txt} La probabilité de tirer le numéro ${k} est {0}.`,[{answers:ans(1,n),size:5,m:{k:'p',exp:id,ev:{t:'eq',k}}}],`Une issue favorable sur ${n} issues équiprobables&nbsp;: 1/${n}.`,{st:1})}
+function tb_comp(){const x=pick([25,35,45,65,15,85,5,95]);return TR(4,`P(A) = ${Dh(x)}, donc P(${NA}) = {0}.`,[{answers:ansD(100-x,100),size:5,m:{k:'num',op:'1-x',xs:[[x,100]]}}],`P(${NA}) = 1 − ${Dh(x)} = ${Dh(100-x)}.`,{st:1})}
+function tb_loi(){const a=pick([10,20,30,40]),b=pick([10,20,30,40,50]);return TR(5,`Une expérience a trois issues. Sa loi de probabilité&nbsp;: P(1) = ${Dh(a)}&nbsp;; P(2) = ${Dh(b)}&nbsp;; P(3) = {0}.`,[{answers:ansD(100-a-b,100),size:5,m:{k:'num',op:'1-sum',xs:[[a,100],[b,100]]}}],`La somme vaut 1&nbsp;: P(3) = 1 − ${Dh(a)} − ${Dh(b)} = ${Dh(100-a-b)}.`,{st:1})}
+function tb_set(){const v=pick([[{t:'pair'},'nombre pair'],[{t:'impair'},'nombre impair'],[{t:'mult',k:3},'multiple de 3'],[{t:'ge',k:5},'nombre ≥ 5'],[{t:'le',k:2},'nombre ≤ 2'],[{t:'gt',k:3},'nombre &gt; 3']]),s=setOf(E('de6'),v[0]);
+  return TR(2,`${DE} L’événement A = ${q(v[1])} s’écrit, dans l’ordre croissant, A = {${s.map((_,i)=>`{${i}}`).join('&nbsp;; ')}}.`,s.map((x,i)=>({answers:[x],size:2,m:{k:'elem',exp:'de6',ev:v[0],i}})),`A = ${setL(s)}.`,{st:1})}
+
+/* ---------- ARGENT ---------- */
+function a_card(){const v=pick([[{t:'rank',r:pick(['A','R','D','V'])}],[{t:'suit',s:pick(['P','C','K','T'])}],[{t:'red'}],[{t:'fig'}]])[0],[c]=P('cartes',v);
+  const txt=v.t==='rank'?`tirer ${RW[v.r]}`:v.t==='suit'?`tirer un ${SN[v.s]}`:v.t==='red'?'tirer une carte rouge':'tirer une figure (valet, dame ou roi)';
+  return QC(3,`${C32} La probabilité ${de(txt)} est&nbsp;:`,V(c,32),lures([c,32],[[1,32],[c,1],[1,c],[c==4?8:4,32],[c,8]]).map(vh),
+    `Il y a ${c} cartes favorables sur 32&nbsp;: ${fr(c,32)} = ${V(c,32)}.`,{k:'p',exp:'cartes',ev:v,kind:'val',st:2})}
+function a_contr(){const e=E('de6'),k=ri(2,4),ty=pick(['gt','ge','lt','le']),ev={t:ty,k},nm={gt:'&gt;',ge:'≥',lt:'&lt;',le:'≤'},ph=o=>`nombre ${nm[o.t]} ${o.k}`;
+  const right={gt:{t:'le',k},ge:{t:'lt',k},lt:{t:'ge',k},le:{t:'gt',k}}[ty],tgt=setOf(e,right).join(),seen=new Set([tgt]),chEv=[right];
+  [{t:'gt',k},{t:'ge',k},{t:'lt',k},{t:'le',k},{t:'lt',k:k+1},{t:'gt',k:k-1}].forEach(c=>{const s=setOf(e,c).join();if(!seen.has(s)&&chEv.length<4){seen.add(s);chEv.push(c)}});
+  return {type:'qcm',level:4,prompt:`${DE} Le contraire de l’événement A = ${q(ph(ev))} est&nbsp;:`,choices:chEv.map(c=>q(ph(c))),answer:0,
+    explain:`${NA} contient les issues qui ne sont pas dans A&nbsp;: ${q(ph(right))} = ${setL(setOf(e,right))}. Attention au bord ${k}.`,m:{k:'contr',exp:'de6',ev,chEv,kind:'ev',st:2}}}
+function a_loi(){const N=pick([12,15,20]);let c;for(;;){c=Array.from({length:4},()=>ri(1,Math.floor(N/2)));const s=c.reduce((a,b)=>a+b,0);if(s===N&&new Set(c).size>=3)break}
+  const miss=ri(0,3),sum=N-c[miss];
+  return QC(5,`Une loi de probabilité sur les issues 1, 2, 3, 4&nbsp;: ${c.map((x,g)=>g===miss?`p<sub>${g+1}</sub> = ?`:`p<sub>${g+1}</sub> = ${fr(x,N)}`).join('&nbsp;; ')}. La valeur manquante est&nbsp;:`,
+    fr(c[miss],N),lures([c[miss],N],[[sum,N],[c[miss]+1,N],[1,N],[c[miss],N-1]]).map(x=>fr(x[0],x[1])),`La somme vaut 1&nbsp;: 1 − ${fr(sum,N)} = ${fr(c[miss],N)}.`,{k:'num',op:'1-sum',xs:c.filter((_,g)=>g!==miss).map(x=>[x,N]),kind:'val',st:2})}
+function a_unionNum(){let a,b,c;for(;;){a=ri(3,7)*10;b=ri(2,6)*10;c=ri(1,3)*10;if(c<Math.min(a,b)&&a+b-c<=100&&a+b-c>0)break}
+  return QC(6,`A et B sont deux événements tels que P(A) = ${Dh(a)}, P(B) = ${Dh(b)} et P(A ∩ B) = ${Dh(c)}. Alors P(A ∪ B) =`,Dh(a+b-c),[Dh(a+b),Dh(a+b-2*c),Dh(c)],
+    `P(A ∪ B) = P(A) + P(B) − P(A ∩ B) = ${Dh(a)} + ${Dh(b)} − ${Dh(c)} = ${Dh(a+b-c)}.`,{k:'num',op:'a+b-c',xs:[[a,100],[b,100],[c,100]],kind:'val',st:2})}
+function a_unionDe(){const e=E('de6');const evs=[[{t:'pair'},'nombre pair'],[{t:'impair'},'nombre impair'],[{t:'mult',k:3},'multiple de 3'],[{t:'ge',k:4},'nombre ≥ 4'],[{t:'le',k:3},'nombre ≤ 3'],[{t:'ge',k:5},'nombre ≥ 5'],[{t:'le',k:2},'nombre ≤ 2']];
+  for(;;){const [x,y]=shuf(evs.slice()).slice(0,2),A=setOf(e,x[0]),B=setOf(e,y[0]),I=A.filter(k=>B.includes(k));if(!I.length||I.length===A.length||I.length===B.length)continue;const u=A.length+B.length-I.length;
+    return QC(6,`${DE} A = ${q(x[1])} et B = ${q(y[1])}. P(A ∪ B) est égale à&nbsp;:`,V(u,6),lures([u,6],[[A.length+B.length,6],[I.length,6],[u-1,6],[u+1,6]]).map(vh),
+      `A ∩ B = ${setL(I)}&nbsp;: P(A ∪ B) = ${fr(A.length,6)} + ${fr(B.length,6)} − ${fr(I.length,6)} = ${V(u,6)}.`,{k:'pu',exp:'de6',a:x[0],b:y[0],kind:'val',st:3})}}
+function a_tree(){const v=pick([[{t:'atl',v:'P'},'obtenir au moins une fois PILE',[[1,2],[2,3],[1,4]]],[{t:'exa',v:'F',n:1},'obtenir exactement une fois FACE',[[1,4],[1,3],[3,4]]],[{t:'exa',v:'P',n:2},'obtenir deux fois PILE',[[1,2],[1,3],[2,4].map(x=>x)]]]);
+  const r=P('pp',v[0]);return QC(7,`On lance deux fois de suite une pièce équilibrée. La probabilité ${de(v[1])} est&nbsp;:`,V(r[0],4),lures(r,v[2]).map(vh),
+    `Arbre&nbsp;: PP, PF, FP, FF (4 issues équiprobables)&nbsp;; ${r[0]} favorable${r[0]>1?'s':''}&nbsp;: ${fr(r[0],4)}${r[0]===2?' = '+fr(1,2):''}.`,{k:'p',exp:'pp',ev:v[0],kind:'val',st:2})}
+function a_incomp(){return QC(6,'Deux événements A et B sont incompatibles lorsque&nbsp;:','A ∩ B ne contient aucune issue',['P(A) + P(B) = 1','A et B ont au moins une issue commune','A ∪ B contient toutes les issues'],
+  'Incompatibles&nbsp;: aucune issue commune, donc P(A ∩ B) = 0 et P(A ∪ B) = P(A) + P(B).',{k:'def',id:'incomp',kind:'def',st:1})}
+function a_urne(){const c=pick([[6,3,11],[4,5,11],[8,2,10],[5,7,8],[9,4,7],[2,6,12]]),g=ri(0,2),nm=['verte','jaune','noire'][g],id='urne:'+c.join(',');
+  return QC(3,`${E(id).txt} La probabilité de tirer une boule ${nm} est&nbsp;:`,D(c[g],20),lures([c[g],20],[[1,3],[c[g],1],[c[g],20-c[g]]]).map(x=>x[1]===3?fr(1,3):x[1]===1?String(x[0]):(D(x[0],x[1])||fr(x[0],x[1]))),
+    `${c[g]} boules ${nm}s sur 20, toutes équiprobables&nbsp;: ${fr(c[g],20)} = ${D(c[g],20)}. (Les 3 couleurs n’ont pas la même chance&nbsp;!)`,{k:'p',exp:id,ev:{t:'col',c:nm},kind:'val',st:2})}
+function ta_p(){const v=pick([[{t:'mult',k:3},'multiple de 3'],[{t:'pair'},'nombre pair'],[{t:'ge',k:3},'nombre ≥ 3'],[{t:'gt',k:4},'nombre &gt; 4'],[{t:'le',k:4},'nombre ≤ 4'],[{t:'lt',k:3},'nombre &lt; 3']]),[c]=P('de6',v[0]);
+  return TR(3,`${DE} La probabilité de l’événement ${q(v[1])}, sous forme irréductible, est {0}.`,[{answers:ans(c,6,`${c}/6`),size:5,m:{k:'p',exp:'de6',ev:v[0]}}],`${c} issues favorables sur 6&nbsp;: ${fr(c,6)} = ${V(c,6)}.`,{st:2})}
+function ta_compCard(){const v=pick([[{t:'rank',r:'A'},'tirer un as'],[{t:'rank',r:'R'},'tirer un roi'],[{t:'suit',s:'C'},'tirer un cœur'],[{t:'suit',s:'T'},'tirer un trèfle'],[{t:'fig'},'tirer une figure (valet, dame ou roi)']]),[c]=P('cartes',v[0]);
+  return TR(4,`${C32} A = ${q(v[1])}. Alors P(${NA}) = {0}.`,[{answers:ans(32-c,32,`${32-c}/32`),size:5,m:{k:'pc',exp:'cartes',ev:v[0]}}],`P(${NA}) = 1 − ${fr(c,32)} = ${fr(32-c,32)} = ${V(32-c,32)}.`,{st:3})}
+function ta_unionNum(){let a,b,c;for(;;){a=ri(2,7)*10;b=ri(2,6)*10;c=ri(1,4)*10;if(c<Math.min(a,b)&&a+b-c<=100)break}
+  return TR(6,`P(A) = ${Dh(a)}&nbsp;; P(B) = ${Dh(b)}&nbsp;; P(A ∩ B) = ${Dh(c)}. Donc P(A ∪ B) = {0}.`,[{answers:ansD(a+b-c,100),size:5,m:{k:'num',op:'a+b-c',xs:[[a,100],[b,100],[c,100]]}}],`${Dh(a)} + ${Dh(b)} − ${Dh(c)} = ${Dh(a+b-c)}.`,{st:2})}
+function ta_tree(){const k=ri(1,6),f=pick(['P','F']);return TR(7,`On lance une pièce équilibrée, puis un dé équilibré à 6 faces. L’arbre des possibles a {0} issues, et la probabilité d’obtenir ${q(`${f==='P'?'PILE':'FACE'} puis ${k}`)} est {1}.`,
+  [{answers:['12'],size:3,m:{k:'count',exp:'pd'}},{answers:ans(1,12),size:5,m:{k:'p',exp:'pd',ev:{t:'seq',x:{t:'is',v:f},y:{t:'eq',k}}}}],'2 × 6 = 12 issues équiprobables, dont une seule favorable&nbsp;: 1/12.',{st:2})}
+function ta_loi(){const c=pick([[6,3,11],[4,5,11],[8,2,10],[5,7,8],[9,4,7]]);return TR(5,`Urne&nbsp;: P(V) = ${D(c[0],20)} et P(J) = ${D(c[1],20)}. Les autres boules sont noires&nbsp;: P(N) = {0}.`,[{answers:ansD(c[2],20),size:5,m:{k:'num',op:'1-sum',xs:[[c[0],20],[c[1],20]]}}],
+  `P(N) = 1 − ${D(c[0],20)} − ${D(c[1],20)} = ${D(c[2],20)}.`,{st:2})}
+function ta_inter(){for(;;){const A=shuf(['1','2','3','4','5','6']).slice(0,3).sort(),B=shuf(['1','2','3','4','5','6']).slice(0,4).sort(),I=A.filter(k=>B.includes(k));if(I.length!==2)continue;
+  return TR(6,`${DE} A = ${setL(A)} et B = ${setL(B)}. Dans l’ordre croissant, A ∩ B = {{0}&nbsp;; {1}}.`,I.map((x,i)=>({answers:[x],size:2,m:{k:'elem',exp:'de6',ev:{t:'and',a:{t:'set',s:A},b:{t:'set',s:B}},i}})),`Issues communes&nbsp;: ${setL(I)}.`,{st:1})}}
+
+function a_event(){const n=pick([10,12,15]),k=n-ri(1,3),id='jet'+n,s=setOf(E(id),{t:'ge',k}).map(i=>i);
+  return QC(2,`${E(id).txt} L’événement A = ${q(`nombre ≥ ${k}`)} s’écrit&nbsp;:`,`A = ${setL(s)}`,[`A = ${setL(s.slice(1))}`,`A = ${setL([String(k-1),...s])}`,`A = ${s.length}`],
+    `A contient les numéros ${k}, ${k+1}… jusqu’à ${n}&nbsp;: A = ${setL(s)} (${k} compris, car «&nbsp;≥&nbsp;»).`,{k:'set',exp:id,ev:{t:'ge',k},kind:'set',st:1})}
+function ta_cards(){const v=pick([[{t:'rank',r:'R'},'tirer un roi'],[{t:'suit',s:'K'},'tirer un carreau'],[{t:'fig'},'tirer une figure (valet, dame ou roi)'],[{t:'red'},'tirer une carte rouge']]),c=setOf(E('cartes'),v[0]).length;
+  return TR(1,`${C32} L’univers contient {0} issues et l’événement ${q(v[1])} en contient {1}.`,[{answers:['32'],size:3,m:{k:'count',exp:'cartes'}},{answers:[String(c)],size:3,m:{k:'card',exp:'cartes',ev:v[0]}}],
+    `Une issue par carte&nbsp;: 32. L’événement contient ${c} cartes.`,{st:1})}
+/* ---------- OR ---------- */
+function o_omega(){const L=['PR','PV','PB','FR','FV','FB'];return QC(1,'On lance une pièce (P ou F), puis on fait tourner une roue à 3 secteurs égaux (R, V, B). L’univers de cette expérience est&nbsp;:',`Ω = ${setL(L)}`,
+  [`Ω = ${setL(['P','F','R','V','B'])}`,`Ω = ${setL(['PR','FV','PB'])}`,'Ω = 6'],'Une issue est un couple (résultat de la pièce, résultat de la roue)&nbsp;: 2 × 3 = 6 issues, PR, PV, PB, FR, FV, FB.',{k:'omega',exp:'pr3',kind:'set',st:2})}
+function o_type(){const v=pick([[{t:'and',a:{t:'pair'},b:{t:'ge',k:5}},'nombre pair et ≥ 5','élémentaire'],[{t:'and',a:{t:'impair'},b:{t:'mult',k:2}},'nombre impair et multiple de 2','impossible'],[{t:'or',a:{t:'pair'},b:{t:'impair'}},'nombre pair ou impair','certain'],[{t:'and',a:{t:'mult',k:3},b:{t:'gt',k:4}},'multiple de 3 et &gt; 4','élémentaire'],[{t:'and',a:{t:'le',k:2},b:{t:'ge',k:3}},'nombre ≤ 2 et ≥ 3','impossible']]);
+  return QC(2,`${DE} L’événement ${q(v[1])} est&nbsp;:`,`un événement ${v[2]}`,['impossible','certain','élémentaire'].filter(w=>w!==v[2]).map(w=>`un événement ${w}`).concat(['un événement à 2 issues']),
+    v[2]==='impossible'?'Aucune issue ne vérifie les deux conditions&nbsp;: impossible.':v[2]==='certain'?'Toutes les issues le réalisent&nbsp;: certain.':'Une seule issue vérifie les deux conditions&nbsp;: élémentaire.',{k:'type',exp:'de6',ev:v[0],kind:'word',st:2})}
+function to_jet(){const k=pick([3,4,6,7]),c=Math.floor(20/k);return TR(3,`${E('jet20').txt} L’univers a {0} issues et la probabilité de tirer un multiple de ${k}, sous forme irréductible, est {1}.`,
+  [{answers:['20'],size:3,m:{k:'count',exp:'jet20'}},{answers:ans(c,20,`${c}/20`),size:5,m:{k:'p',exp:'jet20',ev:{t:'mult',k}}}],`Les multiples de ${k} jusqu’à 20 sont ${c}&nbsp;: ${fr(c,20)} = ${V(c,20)}.`,{st:2})}
+
+function o_cardUnion(){const v=pick([[{t:'suit',s:'C'},'un cœur',{t:'rank',r:'R'},'un roi'],[{t:'red'},'une carte rouge',{t:'rank',r:'A'},'un as'],[{t:'suit',s:'T'},'un trèfle',{t:'fig'},'une figure'],[{t:'suit',s:'P'},'un pique',{t:'rank',r:'D'},'une dame'],[{t:'red'},'une carte rouge',{t:'fig'},'une figure']]);
+  const A=P('cartes',v[0])[0],B=P('cartes',v[2])[0],I=P('cartes',{t:'and',a:v[0],b:v[2]})[0],u=A+B-I;
+  return QC(6,`${C32} Quelle est la probabilité de tirer ${v[1]} ou ${v[3]}${v[3]==='une figure'?' (valet, dame ou roi)':''}&nbsp;?`,V(u,32),lures([u,32],[[A+B,32],[I,32],[A+B-2*I,32],[A,32]]).map(vh),
+    `P(A ∪ B) = ${fr(A,32)} + ${fr(B,32)} − ${fr(I,32)} = ${fr(u,32)}${gcd(u,32)>1?' = '+V(u,32):''}&nbsp;: les ${I} cartes communes ne se comptent qu’une fois.`,{k:'pu',exp:'cartes',a:v[0],b:v[2],kind:'val',st:3})}
+function o_pd(){const v=pick([[{t:'seq',x:{t:'is',v:'F'},y:{t:'ge',k:5}},'FACE puis un nombre ≥ 5',[2,6]],[{t:'seq',x:{t:'is',v:'P'},y:{t:'pair'}},'PILE puis un nombre pair',[3,6]],[{t:'seq',x:{t:'is',v:'F'},y:{t:'le',k:4}},'FACE puis un nombre ≤ 4',[4,6]],[{t:'seq',x:{t:'is',v:'P'},y:{t:'mult',k:3}},'PILE puis un multiple de 3',[2,6]]]);
+  const r=P('pd',v[0]);return QC(7,`On lance une pièce équilibrée, puis un dé équilibré à 6 faces. La probabilité d’obtenir ${q(v[1])} est&nbsp;:`,V(r[0],12),lures(r,[v[2],[r[0],8],[r[0]+6,12],[1,12]]).map(vh),
+    `L’arbre a 2 × 6 = 12 issues équiprobables, dont ${r[0]} favorables&nbsp;: ${fr(r[0],12)} = ${V(r[0],12)}.`,{k:'p',exp:'pd',ev:v[0],kind:'val',st:3})}
+function o_inter(){let a,b,u;for(;;){a=ri(3,7)*10;b=ri(3,6)*10;u=ri(5,9)*10;if(u>=Math.max(a,b)&&a+b-u>0&&a+b-u<Math.min(a,b)&&u<=100&&a+b>100)break}
+  return QC(6,`P(A) = ${Dh(a)}, P(B) = ${Dh(b)} et P(A ∪ B) = ${Dh(u)}. Alors P(A ∩ B) =`,Dh(a+b-u),[Dh(a+b),Dh(u-a),Dh(u-b),Dh(a+b+u-100)].filter(x=>x!==Dh(a+b-u)),
+    `P(A ∪ B) = P(A) + P(B) − P(A ∩ B), donc P(A ∩ B) = ${Dh(a)} + ${Dh(b)} − ${Dh(u)} = ${Dh(a+b-u)}.`,{k:'num',op:'a+b-u',xs:[[a,100],[b,100],[u,100]],kind:'val',st:3})}
+function o_rr(){const v=pick([[{t:'atl',v:'R'},'obtenir au moins une fois rouge',[[2,3],[4,9],[1,3]]],[{t:'same'},'obtenir deux fois la même couleur',[[1,9],[2,3],[1,2]]],[{t:'not',e:{t:'atl',v:'B'}},'ne jamais obtenir bleu',[[5,9],[2,3],[1,3]]]]);
+  const r=P('rr',v[0]);return QC(7,'On fait tourner deux fois de suite une roue à 3 secteurs égaux (rouge, vert, bleu). La probabilité '+de(v[1])+' est&nbsp;:',V(r[0],9),lures(r,v[2]).map(vh),
+    `L’arbre a 3 × 3 = 9 issues équiprobables, dont ${r[0]} favorables&nbsp;: ${fr(r[0],9)}${gcd(r[0],9)>1?' = '+V(r[0],9):''}.`,{k:'p',exp:'rr',ev:v[0],kind:'val',st:3})}
+function o_loiEv(){let p;for(;;){p=[ri(1,4)*5,ri(2,6)*5,0,ri(2,8)*5];p[2]=100-p[0]-p[1]-p[3];if(p[2]>=5&&new Set(p).size===4)break}
+  const r=p[2]+p[3];return QC(5,`Une loi de probabilité sur les issues 1, 2, 3, 4&nbsp;: p<sub>1</sub> = ${Dh(p[0])}&nbsp;; p<sub>2</sub> = ${Dh(p[1])}&nbsp;; p<sub>3</sub> = ?&nbsp;; p<sub>4</sub> = ${Dh(p[3])}. La probabilité d’obtenir 3 ou 4 est&nbsp;:`,Dh(r),
+    [Dh(p[3]),Dh(p[0]+p[1]),Dh(p[2]),Dh(100-p[3])].filter(x=>x!==Dh(r)),`p<sub>3</sub> = 1 − ${Dh(p[0])} − ${Dh(p[1])} − ${Dh(p[3])} = ${Dh(p[2])}, puis p<sub>3</sub> + p<sub>4</sub> = ${Dh(r)}.`,{k:'num',op:'loi-ev',xs:[[p[0],100],[p[1],100],[p[3],100]],sel:[2,3],miss:2,kind:'val',st:3})}
+function o_incomp(){let x,y;for(;;){x=ri(2,6)*5;y=ri(4,12)*5;if(x+y<100&&x!==y)break}
+  return QC(6,`A et B sont incompatibles, avec P(A) = ${Dh(x)} et P(B) = ${Dh(y)}. Alors P(A ∪ B) =`,Dh(x+y),['On ne peut pas conclure sans connaître P(A ∩ B).',Dh(Math.abs(y-x)),Dh(100-x-y)].filter(z=>z!==Dh(x+y)),
+    `Incompatibles&nbsp;: P(A ∩ B) = 0, donc P(A ∪ B) = ${Dh(x)} + ${Dh(y)} = ${Dh(x+y)}.`,{k:'num',op:'a+b',xs:[[x,100],[y,100]],kind:'val',st:2})}
+function o_compJet(){const k=pick([3,4,5]),n=20,c=Math.floor(n/k);return QC(4,`${E('jet20').txt} Quelle est la probabilité de ne pas tirer un multiple de ${k}&nbsp;?`,V(n-c,n),lures([n-c,n],[[c,n],[n-c,n+c],[k-1,k],[1,k]]).map(vh),
+  `Les multiples de ${k} sont ${c}&nbsp;: P = 1 − ${fr(c,20)} = ${fr(20-c,20)} = ${V(20-c,20)}.`,{k:'pc',exp:'jet20',ev:{t:'mult',k},kind:'val',st:3})}
+function o_setUnion(){const e=E('de6'),evs=[[{t:'pair'},'nombre pair'],[{t:'impair'},'nombre impair'],[{t:'ge',k:4},'nombre ≥ 4'],[{t:'le',k:3},'nombre ≤ 3'],[{t:'mult',k:3},'multiple de 3'],[{t:'ge',k:5},'nombre ≥ 5']];
+  for(;;){const [x,y]=shuf(evs.slice()).slice(0,2),A=setOf(e,x[0]),B=setOf(e,y[0]),I=A.filter(k=>B.includes(k)),U=e.iss.map(i=>i.k).filter(k=>A.includes(k)||B.includes(k));if(!I.length||U.length>=6||I.length===A.length||I.length===B.length)continue;
+    return QC(6,`${DE} A = ${q(x[1])} et B = ${q(y[1])}. L’événement A ∪ B est&nbsp;:`,setL(U),[setL(I),setL(A),setL(e.iss.map(i=>i.k).filter(k=>!U.includes(k)))],
+      `A = ${setL(A)}, B = ${setL(B)}&nbsp;: A ∪ B réunit les issues de A ou de B, ${setL(U)}.`,{k:'set',exp:'de6',ev:{t:'or',a:x[0],b:y[0]},kind:'set',st:2})}}
+function to_cardUnion(){const v=pick([[{t:'red'},'une carte rouge',{t:'rank',r:'R'},'un roi'],[{t:'suit',s:'C'},'un cœur',{t:'rank',r:'A'},'un as'],[{t:'suit',s:'K'},'un carreau',{t:'fig'},'une figure (valet, dame ou roi)']]);
+  const A=P('cartes',v[0])[0],B=P('cartes',v[2])[0],I=P('cartes',{t:'and',a:v[0],b:v[2]})[0],u=A+B-I;
+  return TR(6,`${C32} La probabilité de tirer ${v[1]} ou ${v[3]} est {0}.`,[{answers:ans(u,32,`${u}/32`),size:5,m:{k:'pu',exp:'cartes',a:v[0],b:v[2]}}],`${fr(A,32)} + ${fr(B,32)} − ${fr(I,32)} = ${fr(u,32)} = ${V(u,32)}.`,{st:3})}
+function to_pp(){const v=pick([[{t:'same'},'deux fois la même face'],[{t:'exa',v:'P',n:1},'exactement une fois PILE'],[{t:'exa',v:'F',n:2},'deux fois FACE'],[{t:'atl',v:'F'},'au moins une fois FACE']]),[c]=P('pp',v[0]);
+  return TR(7,`On lance deux fois de suite une pièce équilibrée. La probabilité d’obtenir ${q(v[1])} est {0}.`,[{answers:ans(c,4,`${c}/4`),size:5,m:{k:'p',exp:'pp',ev:v[0]}}],`Issues PP, PF, FP, FF&nbsp;: ${c} favorable${c>1?'s':''} sur 4.`,{st:2})}
+function to_loi2(){let p;for(;;){p=[ri(1,5)*5,ri(2,8)*5,ri(1,6)*5,0];p[3]=100-p[0]-p[1]-p[2];if(p[3]>=5&&new Set(p).size===4)break}
+  return TR(5,`Loi de probabilité sur les issues 1, 2, 3, 4&nbsp;: p<sub>1</sub> = ${Dh(p[0])}&nbsp;; p<sub>2</sub> = ${Dh(p[1])}&nbsp;; p<sub>3</sub> = ${Dh(p[2])}&nbsp;; p<sub>4</sub> = {0}. La probabilité d’obtenir un numéro pair est {1}.`,
+    [{answers:ansD(p[3],100),size:5,m:{k:'num',op:'1-sum',xs:[[p[0],100],[p[1],100],[p[2],100]]}},{answers:ansD(p[1]+p[3],100),size:5,m:{k:'num',op:'loi-ev',xs:[[p[0],100],[p[1],100],[p[2],100]],sel:[1,3],miss:3}}],
+    `p<sub>4</sub> = 1 − ${Dh(p[0])} − ${Dh(p[1])} − ${Dh(p[2])} = ${Dh(p[3])}, puis p<sub>2</sub> + p<sub>4</sub> = ${Dh(p[1]+p[3])}.`,{st:3})}
+function to_jetContr(){const k=pick([3,4,5]),c=k-1;return TR(4,`${E('jet12').txt} A = ${q(`nombre ≥ ${k}`)}. Alors P(${NA}) = {0} et P(A) = {1}.`,
+  [{answers:ans(c,12,`${c}/12`),size:5,m:{k:'pc',exp:'jet12',ev:{t:'ge',k}}},{answers:ans(12-c,12,`${12-c}/12`),size:5,m:{k:'p',exp:'jet12',ev:{t:'ge',k}}}],`${NA} = ${setL(Array.from({length:c},(_,i)=>String(i+1)))}&nbsp;: P(${NA}) = ${fr(c,12)}, P(A) = 1 − ${fr(c,12)} = ${V(12-c,12)}.`,{st:3})}
+function to_inter(){let a,b,u;for(;;){a=ri(3,7)*5;b=ri(4,12)*5;u=ri(8,18)*5;if(u>=Math.max(a,b)&&a+b-u>0&&a+b-u<Math.min(a,b)&&u<=100)break}
+  return TR(6,`P(A) = ${Dh(a)}&nbsp;; P(B) = ${Dh(b)}&nbsp;; P(A ∪ B) = ${Dh(u)}. Donc P(A ∩ B) = {0}.`,[{answers:ansD(a+b-u,100),size:5,m:{k:'num',op:'a+b-u',xs:[[a,100],[b,100],[u,100]]}}],`P(A ∩ B) = P(A) + P(B) − P(A ∪ B) = ${Dh(a+b-u)}.`,{st:3})}
+function to_pr3(){const v=pick([['P','PILE'],['F','FACE']]),w=pick([['R','rouge'],['V','vert'],['B','bleu']]);return TR(7,`On lance une pièce équilibrée, puis on fait tourner une roue à 3 secteurs égaux (rouge, vert, bleu). L’arbre a {0} issues et la probabilité d’obtenir ${q(`${v[1]} puis ${w[1]}`)} est {1}.`,
+  [{answers:['6'],size:3,m:{k:'count',exp:'pr3'}},{answers:ans(1,6),size:5,m:{k:'p',exp:'pr3',ev:{t:'seq',x:{t:'is',v:v[0]},y:{t:'is',v:w[0]}}}}],'2 × 3 = 6 issues équiprobables, une seule favorable&nbsp;: 1/6.',{st:2})}
+
+function build(qs,ts){for(;;){const out=qs.map(f=>f()).concat(ts.map(f=>f()));const pr=new Set(out.map(x=>x.prompt));if(pr.size<out.length)continue;return shuf(out)}}
+const pickN=(a,k)=>shuf(a.slice()).slice(0,k);
+const FIN={
+  bronze:()=>build(pickN([b_omega,b_type,b_p1,b_p2,b_contr,b_compl,b_def,b_tree,b_inter],6),pickN([tb_count,tb_p,tb_comp,tb_loi,tb_set],4)),
+  argent:()=>build(pickN([a_card,a_contr,a_loi,a_unionNum,a_unionDe,a_tree,a_incomp,a_urne,a_event],6),pickN([ta_p,ta_compCard,ta_unionNum,ta_tree,ta_loi,ta_inter,ta_cards],4)),
+  or:()=>build(pickN([o_cardUnion,o_pd,o_inter,o_rr,o_loiEv,o_incomp,o_compJet,o_setUnion,o_omega,o_type],6),pickN([to_cardUnion,to_pp,to_loi2,to_jetContr,to_inter,to_pr3,to_jet],4))};
+window.FP_FIN=FIN;
+})();
+</script>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+SigmaKit.init({game:'fresque-des-possibles',title:'La Fresque des Possibles',levels:7,
+  levelNames:['Le mur Ω','Les événements','La part du mur','Le négatif','Le bandeau','Le mélange','L’arbre'],
+  music:'aventure',finals:{bronze:()=>(window.FP_lastFinal=FP_FIN.bronze()),argent:()=>(window.FP_lastFinal=FP_FIN.argent()),or:()=>(window.FP_lastFinal=FP_FIN.or())}});
+FP_start();
+(function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)
+  const re=/ ([:;!?»])/g,re2=/« /g;
+  function fix(n){if(n.nodeType===3){const v=n.nodeValue,w=v.replace(re,' $1').replace(re2,'« ');if(w!==v)n.nodeValue=w;return}
+    if(n.nodeType===1&&!/^(SCRIPT|STYLE|INPUT|TEXTAREA|svg)$/i.test(n.nodeName))n.childNodes.forEach(fix)}
+  fix(document.body);
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(fix)}})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+</body>
+</html>
