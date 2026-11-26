@@ -1,0 +1,55 @@
+{%- comment -%}
+  Une carte de document. Paramètres : item, kind (cours | planche | dm | dsb | ds), label (titre par défaut).
+  - Le chemin est vérifié dans site.static_files : un document absent n'est jamais un lien (carte « En cours de construction »).
+  - Le corrigé est trouvé automatiquement : <nom>-correction.pdf à côté du sujet (ou champ correction).
+{%- endcomment -%}
+{%- assign _it = include.item -%}
+{%- assign _d = _it.dossier | default: page.dossier_pdf -%}
+{%- if _it.fichier -%}{%- assign _h = _it.fichier -%}{%- else -%}
+  {%- capture _h -%}/assets/pdf/{% if _d and _d != "" %}{{ _d }}/{% endif %}{{ _it.pdf }}{%- endcapture -%}
+{%- endif -%}
+{%- if _it.correction -%}
+  {%- if _it.correction contains "/" -%}{%- assign _c = _it.correction -%}{%- else -%}
+  {%- capture _c -%}/assets/pdf/{% if _d and _d != "" %}{{ _d }}/{% endif %}{{ _it.correction }}{%- endcapture -%}{%- endif -%}
+{%- else -%}
+  {%- assign _c = _h | remove: "-sujet.pdf" | remove: ".pdf" | append: "-correction.pdf" -%}
+{%- endif -%}
+{%- assign _ok = false -%}{%- if _sf contains _h -%}{%- assign _ok = true -%}{%- endif -%}
+{%- assign _cok = false -%}{%- if _sf contains _c -%}{%- assign _cok = true -%}{%- endif -%}
+{%- case include.kind -%}
+  {%- when "cours" -%}{%- assign _t = _it.titre | default: "Cours" -%}{%- assign _cl = "doc--cours" -%}{%- assign _ic = "doc" -%}
+  {%- when "planche" -%}{%- capture _t -%}Planche {{ _it.num }}{%- endcapture -%}{%- assign _cl = "doc--exo" -%}{%- assign _ic = "pencil" -%}
+  {%- when "dm" -%}{%- capture _t -%}DM {{ _it.num }}{%- endcapture -%}{%- assign _cl = "doc--exo" -%}{%- assign _ic = "pencil" -%}
+  {%- when "dsb" -%}{%- capture _t -%}DS blanc {{ _it.num }}{%- endcapture -%}{%- assign _cl = "doc--eval" -%}{%- assign _ic = "check" -%}
+  {%- when "ds" -%}{%- capture _t -%}DS {{ _it.num }}{%- endcapture -%}{%- assign _cl = "doc--eval" -%}{%- assign _ic = "check" -%}
+{%- endcase -%}
+{%- if _it.label -%}{%- assign _t = _it.label -%}{%- endif -%}
+{%- unless _it -%}
+  {%- case include.kind -%}
+    {%- when "cours" -%}{%- assign _t = "Cours du chapitre" -%}
+    {%- when "planche" -%}{%- assign _t = "Planches d'exercices" -%}
+    {%- when "dm" -%}{%- assign _t = "Devoirs maison" -%}
+    {%- when "dsb" -%}{%- assign _t = "Devoirs surveillés blancs" -%}
+  {%- endcase -%}
+{%- endunless -%}
+{%- assign _sub = _it.sub | default: _it.themes | default: _it.contenu -%}
+<li class="doc {{ _cl }}{% unless _ok %} doc--off{% endunless %}">
+  <span class="doc-ico">{% if _ok %}{% include icon.html n=_ic %}{% else %}{% include icon.html n="clock" %}{% endif %}</span>
+  <div>
+    <span class="doc-title">{{ _t }}</span>
+    {%- if _sub %}<span class="doc-sub">{{ _sub }}</span>{% endif %}
+    {%- if _it.duree %}<span class="doc-meta"><span class="chip chip--gold">{{ _it.duree }}</span></span>{% endif %}
+    {%- if _ok %}
+    <span class="doc-actions">
+      <a class="doc-btn" href="{{ _h }}" target="_blank" rel="noopener">{% include icon.html n="open" %}{% if include.kind == "cours" %}Ouvrir{% else %}Sujet{% endif %}<span class="sr-only"> : {{ _t }} (PDF, nouvel onglet)</span></a>
+      {%- if _cok %}
+      <a class="doc-btn doc-btn--corr" href="{{ _c }}" target="_blank" rel="noopener">{% include icon.html n="check" %}Corrigé<span class="sr-only"> : {{ _t }} (PDF, nouvel onglet)</span></a>
+      {%- endif %}
+    </span>
+    {%- elsif include.kind == "ds" %}
+    <span class="doc-state doc-state--ask">Disponible sur demande auprès du professeur</span>
+    {%- else %}
+    <span class="doc-state">En cours de construction</span>
+    {%- endif %}
+  </div>
+</li>

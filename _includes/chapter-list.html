@@ -1,119 +1,76 @@
-{% comment %}
-  _includes/chapter-list.html
-  Usage dans un .md :
-    {% include chapter-list.html %}
-  Le front matter doit contenir :
-    chapitres:
-      - num: 1
-        titre: "Calcul algébrique"
-        url: /classes/seconde205/chapitre1/
-        statut: disponible   # ou: a-venir
-      - num: 2
-        ...
-{% endcomment %}
+{%- comment -%}
+  _includes/chapter-list.html — page d'une classe.
+  Front matter : chapitres (num, titre, url, statut facultatif « a-venir », partie facultative), programme (facultatif).
+  Chaque chapitre affiche le nombre de documents réellement en ligne et les jeux Sigma Arcade associés.
+{%- endcomment -%}
+{%- include init.html -%}
+{%- include context.html -%}
+{%- assign _is_seconde = false -%}
+{%- if page.url == "/classes/seconde220/" or page.url == "/classes/seconde219/" -%}{%- assign _is_seconde = true -%}{%- endif -%}
 
-<style>
-.cl-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 10px;
-  margin: 1.5rem 0 2rem;
-}
-.cl-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 13px 16px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.10);
-  text-decoration: none;
-  color: inherit;
-  transition: background 0.15s, border-color 0.15s, transform 0.15s;
-  position: relative;
-  overflow: hidden;
-}
-.cl-item::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, rgba(99,179,255,0.06) 0%, transparent 60%);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.cl-item:hover {
-  background: rgba(255,255,255,0.09);
-  border-color: rgba(99,179,255,0.35);
-  transform: translateX(4px);
-  text-decoration: none;
-}
-.cl-item:hover::before { opacity: 1; }
-.cl-item.soon {
-  opacity: 0.45;
-  cursor: default;
-  pointer-events: none;
-}
-.cl-num {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: rgba(99,179,255,0.15);
-  border: 1px solid rgba(99,179,255,0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #63b3ff;
-}
-.cl-item.soon .cl-num {
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.10);
-  color: rgba(255,255,255,0.3);
-}
-.cl-titre {
-  flex: 1;
-  font-size: 0.92rem;
-  font-weight: 500;
-  line-height: 1.3;
-}
-.cl-arrow {
-  flex-shrink: 0;
-  font-size: 0.85rem;
-  opacity: 0.4;
-  transition: opacity 0.15s, transform 0.15s;
-}
-.cl-item:hover .cl-arrow {
-  opacity: 0.9;
-  transform: translateX(3px);
-}
-.cl-badge-soon {
-  flex-shrink: 0;
-  font-size: 0.68rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 20px;
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.28);
-  border: 1px solid rgba(255,255,255,0.08);
-}
-</style>
+{%- if page.classe == "ses" %}
+<ol class="howto howto--3" aria-label="Comment travailler un chapitre">
+  <li><span class="n" aria-hidden="true">1</span><span><b>Comprendre</b> les dossiers</span></li>
+  <li><span class="n" aria-hidden="true">2</span><span><b>S'entraîner</b> sur les exercices</span></li>
+  <li><span class="n" aria-hidden="true">3</span><span><b>Vérifier</b> ses acquis</span></li>
+</ol>
+{%- else %}
+<ol class="howto" aria-label="Comment travailler un chapitre">
+  <li><span class="n" aria-hidden="true">1</span><span><b>Comprendre</b> le cours</span></li>
+  <li><span class="n" aria-hidden="true">2</span><span><b>S'entraîner</b> sur les planches</span></li>
+  <li><span class="n" aria-hidden="true">3</span><span><b>Jouer</b> avec Sigma Arcade</span></li>
+  <li><span class="n" aria-hidden="true">4</span><span><b>Vérifier</b> avec les DS blancs</span></li>
+</ol>
+{%- endif %}
 
-<div class="cl-grid">
-{% for ch in page.chapitres %}
-  {% if ch.statut == "a-venir" %}
-  <div class="cl-item soon">
-    <div class="cl-num">{{ ch.num }}</div>
-    <span class="cl-titre">{{ ch.titre }}</span>
-    <span class="cl-badge-soon">À venir</span>
+{%- if page.programme %}
+<p class="lead">{{ page.programme }}</p>
+{%- endif %}
+
+{%- if _is_seconde %}
+<section class="revoir" aria-labelledby="t-revoir">
+  <h2 id="t-revoir">Revoir les bases du collège</h2>
+  <p>Un calcul qui bloque&nbsp;? Reprends la notion en jouant, puis reviens au chapitre.</p>
+  <div class="games">
+    {%- for j in site.data.arcade.jeux %}{% if j.remise_a_niveau %}
+    <a class="game" href="/sigma-arcade/{{ j.slug }}/"><span class="game-sym{% if j.symbole.size < 3 %} game-sym--big{% endif %}" style="--gc:{{ j.couleur }}" aria-hidden="true">{{ j.symbole }}</span><span><b>{{ j.court }}</b><small>{{ j.notion }}</small><span class="lvl">Jouer →</span></span></a>
+    {%- endif %}{% endfor %}
   </div>
-  {% else %}
-  <a class="cl-item" href="{{ ch.url }}">
-    <div class="cl-num">{{ ch.num }}</div>
-    <span class="cl-titre">{{ ch.titre }}</span>
-    <span class="cl-arrow">→</span>
-  </a>
-  {% endif %}
-{% endfor %}
-</div>
+</section>
+{%- endif %}
+
+<section aria-labelledby="t-chapitres">
+  <h2 id="t-chapitres">Les chapitres</h2>
+  {%- assign _part = "" %}
+  {%- for ch in page.chapitres %}
+    {%- if ch.partie and ch.partie != _part %}
+      {%- unless forloop.first %}</ul>{% endunless %}
+  <p class="part-title">{{ ch.partie }}</p>
+  <ul class="ch-grid">
+      {%- assign _part = ch.partie -%}
+    {%- elsif forloop.first %}
+  <ul class="ch-grid">
+    {%- endif %}
+    {%- assign _p = site.pages | where: "url", ch.url | first -%}
+    {%- assign _doc_count = 0 -%}
+    {%- if _p -%}{%- include doc-count.html p=_p -%}{%- endif -%}
+    {%- assign _ng = 0 -%}
+    {%- if _is_seconde -%}{%- for j in site.data.arcade.jeux -%}{%- if j.chapitres contains ch.num -%}{%- assign _ng = _ng | plus: 1 -%}{%- endif -%}{%- endfor -%}{%- endif %}
+    <li>
+      <a class="ch-card{% if _doc_count == 0 %} is-empty{% endif %}" href="{{ ch.url }}">
+        <span class="ch-num"><span><small>Ch.</small>{{ ch.num }}</span></span>
+        <span>
+          <span class="ch-title">{{ ch.titre }}</span>
+          <span class="ch-meta">
+            {%- if _doc_count > 0 %}<span class="chip">{{ _doc_count }} document{% if _doc_count > 1 %}s{% endif %}</span>{% else %}<span class="chip chip--off">En cours de construction</span>{% endif %}
+            {%- if _ng > 0 %}<span class="chip chip--gold">{{ _ng }} jeu{% if _ng > 1 %}x{% endif %}</span>{% endif %}
+          </span>
+        </span>
+        <span class="ch-go" aria-hidden="true">→</span>
+      </a>
+    </li>
+    {%- if forloop.last %}
+  </ul>
+    {%- endif %}
+  {%- endfor %}
+</section>

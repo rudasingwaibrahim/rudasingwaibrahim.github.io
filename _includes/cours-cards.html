@@ -1,361 +1,193 @@
-{% comment %}
-  _includes/cours-cards.html
-  Supporte :
-    - cours, planches, dm, ds_blancs, ds (avec correction optionnelle)
-    - dm_published, dsblancs_published, ds_published : true/false
-      (si absent → traité comme true → visible : retro-compat)
-    - erreurs, liens (cat: calcul / cours)
-    - dossier_pdf : chemin relatif sous /assets/pdf/
-{% endcomment %}
-<style>
-.cc a { text-decoration: none; color: inherit; }
-.cc a:hover { text-decoration: none; }
-.cc-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-  gap: 12px;
-  margin: 1rem 0 2rem;
-}
-.cc-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.11);
-  color: inherit;
-  transition: background 0.15s, border-color 0.15s, transform 0.15s;
-  position: relative;
-  overflow: hidden;
-}
-.cc-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
-  pointer-events: none;
-}
-.cc-card:hover {
-  background: rgba(255,255,255,0.09);
-  border-color: rgba(99,179,255,0.38);
-  transform: translateY(-2px);
-}
-.cc-card.locked {
-  opacity: 0.45;
-  cursor: default;
-  pointer-events: none;
-}
-.cc-ico { font-size: 24px; flex-shrink: 0; line-height: 1; margin-top: 2px; }
-.cc-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
-.cc-title { font-weight: 600; font-size: 0.92rem; line-height: 1.25; }
-.cc-sub { font-size: 0.75rem; opacity: 0.58; line-height: 1.3; }
-.cc-badge {
-  display: inline-flex;
-  align-items: center;
-  margin-top: 6px;
-  padding: 2px 10px;
-  border-radius: 20px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  width: fit-content;
-  background: rgba(99,179,255,0.18);
-  color: #63b3ff;
-  border: 1px solid rgba(99,179,255,0.28);
-}
-.cc-badge.dm   { background: rgba(110,220,140,0.14); color: #68d391; border-color: rgba(110,220,140,0.28); }
-.cc-badge.dsb  { background: rgba(246,173,85,0.14);  color: #f6ad55; border-color: rgba(246,173,85,0.28); }
-.cc-badge.soon { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.28); border-color: rgba(255,255,255,0.10); }
-/* Boutons sujet / correction dans une carte */
-.cc-btns {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-  flex-wrap: wrap;
-}
-.cc-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 12px;
-  border-radius: 7px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-decoration: none;
-  transition: background 0.15s;
-  border: 1px solid;
-}
-.cc-btn.sujet {
-  background: rgba(99,179,255,0.14);
-  color: #63b3ff;
-  border-color: rgba(99,179,255,0.28);
-}
-.cc-btn.sujet:hover { background: rgba(99,179,255,0.28); }
-.cc-btn.corr {
-  background: rgba(110,220,140,0.12);
-  color: #68d391;
-  border-color: rgba(110,220,140,0.26);
-}
-.cc-btn.corr:hover { background: rgba(110,220,140,0.24); }
-.cc-sep { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 2rem 0; }
-.cc-section {
-  font-size: 1.3rem;
-  font-weight: 700;
-  margin: 0 0 1rem;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.cc-errors {
-  background: rgba(229,62,62,0.07);
-  border: 1px solid rgba(229,62,62,0.20);
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin-bottom: 2rem;
-}
-.cc-errors ul { margin: 0; padding-left: 18px; }
-.cc-errors li { font-size: 0.86rem; opacity: 0.85; margin-bottom: 6px; line-height: 1.45; }
-.cc-errors li:last-child { margin-bottom: 0; }
-.cc-link-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 13px 16px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  margin-bottom: 10px;
-  transition: background 0.15s, border-color 0.15s;
-}
-.cc-link-row:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.14); }
-.cc-link-ico { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
-.cc-link-body { display: flex; flex-direction: column; gap: 3px; }
-.cc-link-name { font-weight: 600; font-size: 0.90rem; }
-.cc-link-desc { font-size: 0.75rem; opacity: 0.55; line-height: 1.35; }
-.cc-link-btn {
-  display: inline-block;
-  margin-top: 7px;
-  padding: 4px 14px;
-  border-radius: 7px;
-  font-size: 0.73rem;
-  font-weight: 700;
-  background: rgba(99,179,255,0.15);
-  color: #63b3ff;
-  border: 1px solid rgba(99,179,255,0.28);
-  text-decoration: none;
-  width: fit-content;
-  transition: background 0.15s;
-}
-.cc-link-btn:hover { background: rgba(99,179,255,0.28); text-decoration: none; }
-.cc-links-label {
-  font-size: 0.70rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(255,255,255,0.32);
-  margin: 1.4rem 0 0.6rem;
-}
-</style>
-<div class="cc">
-{% comment %}── COURS ──{% endcomment %}
-{% if page.cours %}
-<div class="cc-section">📘 Cours</div>
-<div class="cc-grid">
-{% for item in page.cours %}
-  <a class="cc-card" href="/assets/pdf/{% if page.dossier_pdf and page.dossier_pdf != "" %}{{ page.dossier_pdf }}/{% endif %}{{ item.pdf }}">
-    <span class="cc-ico">📄</span>
-    <div class="cc-info">
-      <span class="cc-title">{{ item.titre }}</span>
-      {% if item.sub %}<span class="cc-sub">{{ item.sub }}</span>{% endif %}
-      <span class="cc-badge">PDF</span>
-    </div>
-  </a>
-{% endfor %}
-</div>
-<hr class="cc-sep">
-{% endif %}
-{% comment %}── PLANCHES ──{% endcomment %}
-{% if page.planches %}
-<div class="cc-section">📝 Planches d'exercices</div>
-<div class="cc-grid">
-{% for item in page.planches %}
-  <div class="cc-card">
-    <span class="cc-ico">🗒️</span>
-    <div class="cc-info">
-      <span class="cc-title">Planche {{ item.num }}</span>
-      {% if item.themes %}<span class="cc-sub">{{ item.themes }}</span>{% endif %}
-      <div class="cc-btns">
-        <a class="cc-btn sujet" href="/assets/pdf/{% if page.dossier_pdf and page.dossier_pdf != "" %}{{ page.dossier_pdf }}/{% endif %}{{ item.pdf }}" target="_blank" rel="noopener">📄 Sujet</a>
-        {% if item.correction %}
-        <a class="cc-btn corr" href="/assets/pdf/{% if page.dossier_pdf and page.dossier_pdf != "" %}{{ page.dossier_pdf }}/{% endif %}{{ item.correction }}" target="_blank" rel="noopener">✓ Correction</a>
-        {% endif %}
-      </div>
-    </div>
+{%- comment -%}
+  _includes/cours-cards.html — page de chapitre en parcours guidé :
+    1 Comprendre (cours) → 2 S'entraîner (planches, DM) → 3 Jouer (Sigma Arcade) → 4 Vérifier (DS blancs, DS)
+    + erreurs fréquentes + liens utiles + navigation entre chapitres.
+  Front matter accepté (inchangé) :
+    cours, planches, dm, ds_blancs, ds (champs pdf, correction, num, titre, sub, themes, contenu, duree,
+    dossier, fichier, label) ; dossier_pdf ; dm_published, dsblancs_published, ds_published ;
+    erreurs ; liens (nom, desc, url, ico, cat) ; jeux (liste de slugs Sigma Arcade, facultatif) ;
+    sections (facultatif, ex. [cours, planches, ds]).
+  Règles :
+    - un PDF absent du dépôt n'est jamais un lien : carte « En cours de construction » ;
+    - DS non publié ou absent : « Disponible sur demande auprès du professeur » ;
+    - le corrigé <sujet>-correction.pdf est détecté automatiquement.
+{%- endcomment -%}
+{%- include init.html -%}
+{%- include context.html -%}
+{%- assign _sections = "cours,planches,dm,ds_blancs,ds,erreurs" | split: "," -%}
+{%- if page.sections -%}{%- assign _sections = page.sections -%}{%- endif -%}
+{%- assign _ses = false -%}{%- if page.matiere == "ses" -%}{%- assign _ses = true -%}{%- endif -%}
+
+{%- comment -%} Jeux Sigma Arcade liés au chapitre (classes de Seconde de mathématiques, ou champ jeux). {%- endcomment -%}
+{%- assign _games = "" | split: "" -%}
+{%- if page.jeux -%}
+  {%- for j in site.data.arcade.jeux -%}{%- if page.jeux contains j.slug -%}{%- assign _games = _games | push: j -%}{%- endif -%}{%- endfor -%}
+{%- elsif _is_chap and _base == "/classes/seconde220/" or _is_chap and _base == "/classes/seconde219/" -%}
+  {%- for j in site.data.arcade.jeux -%}{%- if j.chapitres contains _chnum -%}{%- assign _games = _games | push: j -%}{%- endif -%}{%- endfor -%}
+{%- endif -%}
+
+{%- comment -%} Nombres de documents par étape (pour la barre de parcours). {%- endcomment -%}
+{%- assign _n_cours = 0 -%}
+{%- for _it in page.cours -%}
+  {%- if _it.fichier -%}{%- assign _h = _it.fichier -%}{%- else -%}{%- assign _d = _it.dossier | default: page.dossier_pdf -%}{%- capture _h -%}/assets/pdf/{% if _d and _d != "" %}{{ _d }}/{% endif %}{{ _it.pdf }}{%- endcapture -%}{%- endif -%}
+  {%- if _sf contains _h -%}{%- assign _n_cours = _n_cours | plus: 1 -%}{%- endif -%}
+{%- endfor -%}
+{%- assign _n_ex = page.planches | size -%}{%- if page.dm_published != false -%}{%- assign _n_dm = page.dm | size -%}{%- assign _n_ex = _n_ex | plus: _n_dm -%}{%- endif -%}
+{%- assign _n_games = _games | size -%}
+
+<div class="chap">
+{%- if page.canonical_url and page.canonical_url != page.url %}
+<p class="callout note-legacy">Cette page reprend le chapitre publié dans <a href="{{ page.canonical_url }}">{% if _cls %}{{ _cls.nom }} — {% endif %}{{ page.title | replace: " - ", " — " }}</a>.</p>
+{%- endif %}
+
+<nav class="parcours-nav{% if _ses %} parcours-nav--3{% endif %}" aria-label="Étapes du chapitre">
+  <a href="#comprendre" data-step="1"><span class="n">1</span><span>Comprendre</span></a>
+  <a href="#entrainer" data-step="2"><span class="n">2</span><span>S'entraîner</span></a>
+  {%- unless _ses %}
+  <a href="#jouer" data-step="3"{% if _n_games == 0 %} class="is-off"{% endif %}><span class="n">3</span><span>Jouer</span></a>
+  {%- endunless %}
+  <a href="#verifier" data-step="4"><span class="n">{% if _ses %}3{% else %}4{% endif %}</span><span>Vérifier</span></a>
+</nav>
+
+{%- comment -%} ── 1 COMPRENDRE ── {%- endcomment -%}
+<section class="step step--comprendre" id="comprendre" aria-labelledby="t-comprendre">
+  <div class="step-head"><span class="n" aria-hidden="true">1</span><div><h2 id="t-comprendre">Comprendre</h2><p>{% if _ses %}Lis les dossiers documentaires et le cours.{% else %}Lis le cours, refais les exemples, note ce qui te pose question.{% endif %}</p></div></div>
+  <div class="block">
+    <h3 class="block-title">{% if _ses %}Dossiers et cours{% else %}Cours{% endif %}{% if _n_cours > 0 %} <span class="count">{{ _n_cours }} document{% if _n_cours > 1 %}s{% endif %} en ligne</span>{% endif %}</h3>
+    <ul class="doc-grid">
+    {%- for item in page.cours %}
+      {% include doc.html item=item kind="cours" %}
+    {%- else %}
+      {% include doc.html item=nil kind="cours" %}
+    {%- endfor %}
+    </ul>
   </div>
-{% endfor %}
-</div>
-<hr class="cc-sep">
-{% endif %}
-{% comment %}── DM (avec verrou dm_published) ──{% endcomment %}
-{% if page.dm %}
-<div class="cc-section">🏠 Devoirs maison</div>
-{% if page.dm_published != false %}
-<div class="cc-grid">
-{% for item in page.dm %}
-  <div class="cc-card">
-    <span class="cc-ico">🏠</span>
-    <div class="cc-info">
-      <span class="cc-title">DM {{ item.num }}</span>
-      {% if item.contenu %}<span class="cc-sub">{{ item.contenu }}</span>{% endif %}
-      {% if item.duree %}<span class="cc-badge dm">{{ item.duree }}</span>{% endif %}
-      <div class="cc-btns">
-        <a class="cc-btn sujet" href="/assets/pdf/{% if page.dossier_pdf and page.dossier_pdf != "" %}{{ page.dossier_pdf }}/{% endif %}{{ item.pdf }}" target="_blank" rel="noopener">📄 Sujet</a>
-        {% if item.correction %}
-        <a class="cc-btn corr" href="/assets/pdf/{% if page.dossier_pdf and page.dossier_pdf != "" %}{{ page.dossier_pdf }}/{% endif %}{{ item.correction }}" target="_blank" rel="noopener">✓ Correction</a>
-        {% endif %}
-      </div>
-    </div>
+</section>
+
+{%- comment -%} ── 2 S'ENTRAÎNER ── {%- endcomment -%}
+<section class="step step--entrainer" id="entrainer" aria-labelledby="t-entrainer">
+  <div class="step-head"><span class="n" aria-hidden="true">2</span><div><h2 id="t-entrainer">S'entraîner</h2><p>Cherche d'abord seul, puis compare avec le corrigé.</p></div></div>
+  {%- if _sections contains "planches" %}
+  <div class="block">
+    <h3 class="block-title">{% if _ses %}Exercices{% else %}Planches d'exercices{% endif %}</h3>
+    <ul class="doc-grid">
+    {%- for item in page.planches %}
+      {% include doc.html item=item kind="planche" %}
+    {%- else %}
+      {% include doc.html item=nil kind="planche" %}
+    {%- endfor %}
+    </ul>
   </div>
-{% endfor %}
-</div>
-{% else %}
-<div class="cc-grid">
-  <div class="cc-card locked">
-    <span class="cc-ico">🔒</span>
-    <div class="cc-info">
-      <span class="cc-title">DM à venir</span>
-      <span class="cc-sub">Publiés après le rendu</span>
-      <span class="cc-badge soon">À venir</span>
-    </div>
+  {%- endif %}
+  {%- if _sections contains "dm" %}
+  <div class="block">
+    <h3 class="block-title">Devoirs maison</h3>
+    <ul class="doc-grid">
+    {%- if page.dm_published == false %}
+      <li class="doc doc--exo doc--off"><span class="doc-ico">{% include icon.html n="lock" %}</span><div><span class="doc-title">Devoirs maison</span><span class="doc-sub">Les sujets sont publiés après la date de rendu.</span><span class="doc-state">À venir</span></div></li>
+    {%- else %}
+    {%- for item in page.dm %}
+      {% include doc.html item=item kind="dm" %}
+    {%- else %}
+      {% include doc.html item=nil kind="dm" %}
+    {%- endfor %}
+    {%- endif %}
+    </ul>
   </div>
-</div>
-{% endif %}
-<hr class="cc-sep">
-{% endif %}
-{% comment %}── DS BLANCS (avec verrou dsblancs_published) ──{% endcomment %}
-{% if page.ds_blancs %}
-<div class="cc-section">✍️ Devoirs surveillés blancs</div>
-{% if page.dsblancs_published != false %}
-<div class="cc-grid">
-{% for item in page.ds_blancs %}
-  <div class="cc-card">
-    <span class="cc-ico">✍️</span>
-    <div class="cc-info">
-      <span class="cc-title">DS Blanc {{ item.num }}</span>
-      {% if item.contenu %}<span class="cc-sub">{{ item.contenu }}</span>{% endif %}
-      {% if item.duree %}<span class="cc-badge dsb">{{ item.duree }}</span>{% endif %}
-      <div class="cc-btns">
-        <a class="cc-btn sujet" href="/assets/pdf/{% if page.dossier_pdf and page.dossier_pdf != "" %}{{ page.dossier_pdf }}/{% endif %}{{ item.pdf }}" target="_blank" rel="noopener">📄 Sujet</a>
-        {% if item.correction %}
-        <a class="cc-btn corr" href="/assets/pdf/{% if page.dossier_pdf and page.dossier_pdf != "" %}{{ page.dossier_pdf }}/{% endif %}{{ item.correction }}" target="_blank" rel="noopener">✓ Correction</a>
-        {% endif %}
-      </div>
-    </div>
+  {%- endif %}
+</section>
+
+{%- comment -%} ── 3 JOUER ── {%- endcomment -%}
+{%- unless _ses %}
+<section class="step step--jouer" id="jouer" aria-labelledby="t-jouer">
+  <div class="step-head"><span class="n" aria-hidden="true">3</span><div><h2 id="t-jouer">Jouer</h2><p>{% if _n_games > 0 %}Rejoue les notions du chapitre avec Sigma Arcade, jusqu'à la médaille d'or.{% else %}Pas encore de jeu pour ce chapitre : les jeux de Sigma Arcade restent ouverts pour revoir les bases.{% endif %}</p></div></div>
+  {%- if _n_games > 0 %}
+  <div class="games">
+    {%- for j in _games %}
+    <a class="game" href="/sigma-arcade/{{ j.slug }}/"><span class="game-sym{% if j.symbole.size < 3 %} game-sym--big{% endif %}" style="--gc:{{ j.couleur }}" aria-hidden="true">{{ j.symbole }}</span><span><b>{{ j.titre }}</b><small>{{ j.notion }}</small><span class="lvl">Jouer →</span></span></a>
+    {%- endfor %}
   </div>
-{% endfor %}
-</div>
-{% else %}
-<div class="cc-grid">
-  <div class="cc-card locked">
-    <span class="cc-ico">🔒</span>
-    <div class="cc-info">
-      <span class="cc-title">DS blancs à venir</span>
-      <span class="cc-sub">Publiés ultérieurement</span>
-      <span class="cc-badge soon">À venir</span>
-    </div>
+  {%- else %}
+  <p><a class="btn btn--ghost btn--sm" href="/sigma-arcade/">Voir les jeux de Sigma Arcade</a></p>
+  {%- endif %}
+</section>
+{%- endunless %}
+
+{%- comment -%} ── 4 VÉRIFIER ── {%- endcomment -%}
+<section class="step step--verifier" id="verifier" aria-labelledby="t-verifier">
+  <div class="step-head"><span class="n" aria-hidden="true">{% if _ses %}3{% else %}4{% endif %}</span><div><h2 id="t-verifier">Vérifier</h2><p>Fais un sujet en temps limité, sans le cours, puis corrige-toi.</p></div></div>
+  {%- if _sections contains "ds_blancs" %}
+  <div class="block">
+    <h3 class="block-title">Devoirs surveillés blancs</h3>
+    <ul class="doc-grid">
+    {%- if page.dsblancs_published == false %}
+      <li class="doc doc--eval doc--off"><span class="doc-ico">{% include icon.html n="lock" %}</span><div><span class="doc-title">DS blancs</span><span class="doc-sub">Publiés ultérieurement.</span><span class="doc-state">À venir</span></div></li>
+    {%- else %}
+    {%- for item in page.ds_blancs %}
+      {% include doc.html item=item kind="dsb" %}
+    {%- else %}
+      {% include doc.html item=nil kind="dsb" %}
+    {%- endfor %}
+    {%- endif %}
+    </ul>
   </div>
-</div>
-{% endif %}
-<hr class="cc-sep">
-{% endif %}
-{% comment %}── DS (avec verrou ds_published) ──{% endcomment %}
-<div class="cc-section">🧪 Devoirs surveillés</div>
-{% if page.ds_published and page.ds %}
-<div class="cc-grid">
-{% for item in page.ds %}
-  <div class="cc-card">
-    <span class="cc-ico">🧪</span>
-    <div class="cc-info">
-      <span class="cc-title">DS {{ item.num }}</span>
-      {% if item.contenu %}<span class="cc-sub">{{ item.contenu }}</span>{% endif %}
-      {% if item.duree %}<span class="cc-badge dsb">{{ item.duree }}</span>{% endif %}
-      <div class="cc-btns">
-        <a class="cc-btn sujet" href="/assets/pdf/{% if page.dossier_pdf and page.dossier_pdf != "" %}{{ page.dossier_pdf }}/{% endif %}{{ item.pdf }}" target="_blank" rel="noopener">📄 Sujet</a>
-        {% if item.correction %}
-        <a class="cc-btn corr" href="/assets/pdf/{% if page.dossier_pdf and page.dossier_pdf != "" %}{{ page.dossier_pdf }}/{% endif %}{{ item.correction }}" target="_blank" rel="noopener">✓ Correction</a>
-        {% endif %}
-      </div>
-    </div>
+  {%- endif %}
+  {%- if _sections contains "ds" %}
+  <div class="block">
+    <h3 class="block-title">{% if _ses %}Évaluations{% else %}Devoirs surveillés{% endif %}</h3>
+    <ul class="doc-grid">
+    {%- if page.ds_published == true and page.ds %}
+    {%- for item in page.ds %}
+      {% include doc.html item=item kind="ds" %}
+    {%- endfor %}
+    {%- else %}
+      <li class="doc doc--eval doc--off"><span class="doc-ico">{% include icon.html n="lock" %}</span><div><span class="doc-title">{% if _ses %}Évaluations{% else %}Devoirs surveillés{% endif %}</span><span class="doc-sub">Les sujets ne sont pas publiés en ligne.</span><span class="doc-state doc-state--ask">Disponible sur demande auprès du professeur</span></div></li>
+    {%- endif %}
+    </ul>
   </div>
-{% endfor %}
-</div>
-{% else %}
-<div class="cc-grid">
-  <div class="cc-card locked">
-    <span class="cc-ico">🔒</span>
-    <div class="cc-info">
-      <span class="cc-title">DS à venir</span>
-      <span class="cc-sub">Publiés après le passage du contrôle</span>
-      <span class="cc-badge soon">À venir</span>
-    </div>
+  {%- endif %}
+</section>
+
+{%- if _sections contains "erreurs" %}
+<section class="step" id="erreurs" aria-labelledby="t-erreurs">
+  <div class="block">
+    <h2 class="block-title" id="t-erreurs">Erreurs fréquentes</h2>
+    {%- if page.erreurs and page.erreurs.size > 0 %}
+    <ul class="errors">
+      {%- for e in page.erreurs %}
+      <li>{{ e }}</li>
+      {%- endfor %}
+    </ul>
+    {%- else %}
+    <ul class="doc-grid"><li class="doc doc--off"><span class="doc-ico">{% include icon.html n="clock" %}</span><div><span class="doc-title">Erreurs fréquentes</span><span class="doc-sub">La liste des pièges du chapitre est en cours de rédaction.</span><span class="doc-state">En cours de construction</span></div></li></ul>
+    {%- endif %}
   </div>
-</div>
-{% endif %}
-{% comment %}── ERREURS ──{% endcomment %}
-{% if page.erreurs %}
-<hr class="cc-sep">
-<div class="cc-section">⚠️ Erreurs fréquentes</div>
-<div class="cc-errors">
-  <ul>
-  {% for e in page.erreurs %}
-    <li>{{ e }}</li>
-  {% endfor %}
-  </ul>
-</div>
-{% endif %}
-{% comment %}── LIENS ──{% endcomment %}
-{% if page.liens %}
-<hr class="cc-sep">
-<div class="cc-section">🔗 Liens utiles</div>
-{% assign liens_calcul = page.liens | where: "cat", "calcul" %}
-{% assign liens_cours  = page.liens | where: "cat", "cours" %}
-{% if liens_calcul.size > 0 %}
-<div class="cc-links-label">Calculer et vérifier</div>
-{% for lien in liens_calcul %}
-<div class="cc-link-row">
-  <span class="cc-link-ico">{{ lien.ico }}</span>
-  <div class="cc-link-body">
-    <span class="cc-link-name">{{ lien.nom }}</span>
-    <span class="cc-link-desc">{{ lien.desc }}</span>
-    <a class="cc-link-btn" href="{{ lien.url }}" target="_blank" rel="noopener">→ Ouvrir</a>
+</section>
+{%- endif %}
+
+{%- if page.liens and page.liens.size > 0 %}
+<section class="step" id="liens" aria-labelledby="t-liens">
+  <div class="block">
+    <h2 class="block-title" id="t-liens">Liens utiles</h2>
+    <ul class="links">
+      {%- for l in page.liens %}
+      <li><a href="{{ l.url }}" target="_blank" rel="noopener"><span class="l-ico" aria-hidden="true">{{ l.ico }}</span><span><b>{{ l.nom }}</b><small>{{ l.desc }}</small>{% case l.cat %}{% when "calcul" %}<span class="l-cat">Calculer et vérifier</span>{% when "methode" %}<span class="l-cat">Méthode</span>{% when "exercice" or "entrainement" %}<span class="l-cat">S'entraîner</span>{% else %}<span class="l-cat">Cours</span>{% endcase %}<span class="sr-only"> (site externe, nouvel onglet)</span></span></a></li>
+      {%- endfor %}
+    </ul>
   </div>
-</div>
-{% endfor %}
-{% endif %}
-{% if liens_cours.size > 0 %}
-<div class="cc-links-label">Cours et exercices</div>
-{% for lien in liens_cours %}
-<div class="cc-link-row">
-  <span class="cc-link-ico">{{ lien.ico }}</span>
-  <div class="cc-link-body">
-    <span class="cc-link-name">{{ lien.nom }}</span>
-    <span class="cc-link-desc">{{ lien.desc }}</span>
-    <a class="cc-link-btn" href="{{ lien.url }}" target="_blank" rel="noopener">→ Ouvrir</a>
-  </div>
-</div>
-{% endfor %}
-{% endif %}
-{% for lien in page.liens %}
-  {% unless lien.cat %}
-<div class="cc-link-row">
-  <span class="cc-link-ico">{{ lien.ico }}</span>
-  <div class="cc-link-body">
-    <span class="cc-link-name">{{ lien.nom }}</span>
-    <span class="cc-link-desc">{{ lien.desc }}</span>
-    <a class="cc-link-btn" href="{{ lien.url }}" target="_blank" rel="noopener">→ Ouvrir</a>
-  </div>
-</div>
-  {% endunless %}
-{% endfor %}
-{% endif %}
+</section>
+{%- endif %}
+
+{%- if _is_chap and _cls %}
+{%- assign _prev_n = _chnum | minus: 1 -%}{%- assign _next_n = _chnum | plus: 1 -%}
+{%- capture _prev_u -%}{{ _base }}chapitre{{ _prev_n }}/{%- endcapture -%}
+{%- capture _next_u -%}{{ _base }}chapitre{{ _next_n }}/{%- endcapture -%}
+{%- assign _prev = site.pages | where: "url", _prev_u | first -%}
+{%- assign _next = site.pages | where: "url", _next_u | first -%}
+<nav class="chap-nav" aria-label="Autres chapitres">
+  {%- if _prev %}<a class="prev" href="{{ _prev.url }}"><small>← Chapitre précédent</small><b>{{ _prev.hero_subtitle | default: _prev.title }}</b></a>{% endif %}
+  {%- if _next %}<a class="next" href="{{ _next.url }}"><small>Chapitre suivant →</small><b>{{ _next.hero_subtitle | default: _next.title }}</b></a>{% endif %}
+  <a class="up" href="{{ _cls.url }}"><small>Tous les chapitres</small><b>{{ _cls.nom }}</b></a>
+</nav>
+{%- endif %}
 </div>

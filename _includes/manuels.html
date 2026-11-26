@@ -1,21 +1,32 @@
 {%- comment -%}
-  Usage : {% include manuels.html niveau="seconde" %}
-  Niveaux définis dans _data/manuels.yml : seconde, snt, premiere-spe, terminale-spe
+  Usage : {% include manuels.html niveau="seconde" %}
+  Niveaux définis dans _data/manuels.yml : seconde, snt, premiere-spe, terminale-spe
+  Un fichier absent du dépôt n'est jamais un lien.
 {%- endcomment -%}
+{%- include init.html -%}
 {%- assign bloc = site.data.manuels[include.niveau] -%}
-{%- if bloc and bloc.livres and bloc.livres.size > 0 -%}
-<section class="manuels" id="{{ include.niveau }}">
-  <h2>{{ bloc.titre }}</h2>
+{%- if bloc and bloc.livres and bloc.livres.size > 0 %}
+<section class="manuels" id="{{ include.niveau }}" aria-labelledby="m-{{ include.niveau }}">
+  <h2 id="m-{{ include.niveau }}">{{ bloc.titre }}</h2>
   <ul class="manuels-liste">
-    {%- for m in bloc.livres -%}
-      {%- if m.url -%}{%- assign lien = m.url -%}{%- else -%}{%- assign lien = m.fichier -%}{%- endif -%}
+    {%- for m in bloc.livres %}
+    {%- assign _ok = false -%}
+    {%- if m.url and m.url != "https://..." -%}{%- assign _ok = true -%}{%- assign lien = m.url -%}{%- endif -%}
+    {%- if m.fichier and _sf contains m.fichier -%}{%- assign _ok = true -%}{%- assign lien = m.fichier -%}{%- endif %}
     <li class="manuel">
+      {%- if _ok %}
       <a href="{{ lien }}" target="_blank" rel="noopener">
-        <span class="manuel-titre">{{ m.titre }}</span>
-        <span class="manuel-meta">{{ m.editeur }}{% if m.annee %} — {{ m.annee }}{% endif %}{% if m.fichier and m.url == nil %} · PDF{% endif %}</span>
+        <span class="manuel-cover" aria-hidden="true">Σ</span>
+        <span><span class="manuel-titre">{{ m.titre }}</span><span class="manuel-meta">{% if m.editeur %}{{ m.editeur }}{% if m.annee %} — {{ m.annee }}{% endif %} · {% endif %}{% if m.fichier %}PDF · s'ouvre dans un nouvel onglet{% else %}Lien externe{% endif %}</span></span>
       </a>
+      {%- else %}
+      <div class="manuel-off">
+        <span class="manuel-cover" aria-hidden="true">Σ</span>
+        <span><span class="manuel-titre">{{ m.titre }}</span><span class="manuel-meta">Disponible sur demande auprès du professeur</span></span>
+      </div>
+      {%- endif %}
     </li>
-    {%- endfor -%}
+    {%- endfor %}
   </ul>
 </section>
 {%- endif -%}

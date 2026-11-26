@@ -1,14 +1,15 @@
 ---
-title: "Chapitre 5 — Statistique descriptive"
+title: Chapitre 5 — Statistique descriptive
 permalink: /classes/bts-mec1/chapitre5/
-hero_title: "Chapitre 5"
-hero_subtitle: "Statistique descriptive"
+hero_title: Chapitre 5
+hero_subtitle: Statistique descriptive
 cours:
-  - titre: "Cours — Version élève"
-    fichier: /assets/pdf/bts-mec1/ch5/cours-eleve.pdf
-  - titre: "Cours — Version professeur"
-    fichier: /assets/pdf/bts-mec1/ch5/cours-prof.pdf
-exercices: []
-devoirs: []
+- titre: Cours — Version élève
+  fichier: /assets/pdf/bts-mec1/ch5/cours-eleve.pdf
+- titre: Cours — Version professeur
+  fichier: /assets/pdf/bts-mec1/ch5/cours-prof.pdf
+- titre: Cours complet — Statistiques à une variable
+  sub: BTS MEC
+  pdf: stat_une_variable.pdf
 ---
 {% include cours-cards.html %}

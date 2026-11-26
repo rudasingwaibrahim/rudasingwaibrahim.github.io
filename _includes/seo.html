@@ -1,0 +1,62 @@
+{%- comment -%} Titre, description, robots, canonical, Open Graph, JSON-LD. Requiert context.html. {%- endcomment -%}
+{%- assign _site_name = "Σ Sigma" -%}
+{%- assign _ptitle = page.title | replace: " - ", " — " -%}
+{%- assign _mat = "mathématiques" -%}{%- if _cls and _cls.matiere -%}{%- assign _mat = _cls.matiere | downcase -%}{%- endif -%}
+{%- if page.url == "/" -%}
+  {%- assign _title = "Σ Sigma — Cours, exercices et jeux de mathématiques de M. Rudasingwa" -%}
+  {%- assign _desc = "Σ Sigma — Cours, exercices et jeux de mathématiques de M. Rudasingwa · Lycée Younoussa Bamana, Mamoudzou (Mayotte) · Seconde, Première, Terminale, BTS, SES, SNT" -%}
+{%- elsif _is_chap and _cls -%}
+  {%- capture _title -%}{{ _ptitle }} · {{ _cls.nom }} | {{ _site_name }}{%- endcapture -%}
+  {%- capture _desc -%}{{ _ptitle }} ({{ _cls.nom }}) : cours, exercices, devoirs et corrigés de {{ _mat }} de M. Rudasingwa, lycée Younoussa Bamana (Mayotte).{%- endcapture -%}
+{%- elsif page.classe and _cls -%}
+  {%- capture _title -%}{{ _cls.nom }} — Cours, exercices et corrigés de {{ _mat }} | {{ _site_name }}{%- endcapture -%}
+  {%- capture _desc -%}{{ _cls.nom }} — Cours, exercices et corrigés de {{ _mat }} de M. Rudasingwa, lycée Younoussa Bamana (Mayotte).{%- endcapture -%}
+{%- else -%}
+  {%- capture _title -%}{{ _ptitle | default: "Accueil" }} | {{ _site_name }}{%- endcapture -%}
+  {%- capture _desc -%}{{ page.hero_subtitle | default: site.description }} — Σ Sigma, le site de mathématiques de M. Rudasingwa, lycée Younoussa Bamana (Mayotte).{%- endcapture -%}
+{%- endif -%}
+{%- if page.description -%}{%- assign _desc = page.description -%}{%- endif -%}
+{%- assign _noindex = false -%}
+{%- if page.noindex or page.sitemap == false -%}{%- assign _noindex = true -%}{%- endif -%}
+{%- if _is_chap -%}{%- include doc-count.html p=page -%}{%- if _doc_count == 0 -%}{%- assign _noindex = true -%}{%- endif -%}{%- endif -%}
+{%- assign _canon = page.canonical_url | default: page.url | replace: "index.html", "" -%}
+  <title>{{ _title | strip_newlines }}</title>
+  <meta name="description" content="{{ _desc | strip_newlines | escape }}">
+  {%- if _noindex %}
+  <meta name="robots" content="noindex, follow">
+  {%- endif %}
+  <link rel="canonical" href="{{ site.url }}{{ _canon }}">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:site_name" content="Σ Sigma — M. Rudasingwa">
+  <meta property="og:title" content="{{ _title | strip_newlines | escape }}">
+  <meta property="og:description" content="{{ _desc | strip_newlines | escape }}">
+  <meta property="og:url" content="{{ site.url }}{{ _canon }}">
+  <meta property="og:image" content="{{ site.url }}/assets/images/og-sigma.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Σ Sigma — cours, exercices et jeux de mathématiques">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ _title | strip_newlines | escape }}">
+  <meta name="twitter:description" content="{{ _desc | strip_newlines | escape }}">
+  <meta name="twitter:image" content="{{ site.url }}/assets/images/og-sigma.png">
+{%- if page.url == "/" %}
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@graph":[
+    {"@type":"WebSite","@id":"{{ site.url }}/#site","url":"{{ site.url }}/","name":"Σ Sigma","alternateName":"Sigma — M. Rudasingwa","inLanguage":"fr-FR",
+     "description":{{ _desc | jsonify }},"publisher":{"@id":"{{ site.url }}/#prof"},
+     "potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"{{ site.url }}/?q={search_term_string}"},"query-input":"required name=search_term_string"}},
+    {"@type":"Person","@id":"{{ site.url }}/#prof","name":"Ibrahim Rudasingwa","jobTitle":"Professeur de mathématiques","url":"{{ site.url }}/",
+     "worksFor":{"@type":"HighSchool","name":"Lycée Younoussa Bamana","address":{"@type":"PostalAddress","addressLocality":"Mamoudzou","addressRegion":"Mayotte","addressCountry":"FR"}}}
+  ]}
+  </script>
+{%- elsif _cls %}
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+    {"@type":"ListItem","position":1,"name":"Accueil","item":"{{ site.url }}/"},
+    {"@type":"ListItem","position":2,"name":"Classes","item":"{{ site.url }}/classes/"},
+    {"@type":"ListItem","position":3,"name":{{ _cls.nom | jsonify }},"item":"{{ site.url }}{{ _cls.url }}"}{% if _is_chap %},
+    {"@type":"ListItem","position":4,"name":{{ _ptitle | jsonify }},"item":"{{ site.url }}{{ _canon }}"}{% endif %}
+  ]}
+  </script>
+{%- endif -%}

@@ -1,0 +1,59 @@
+---
+layout: null
+permalink: /search.json
+sitemap: false
+---
+{%- include init.html -%}
+{%- comment -%}
+  Index de la recherche : t = titre, u = adresse, k = type (Classe, Chapitre, Cours, Exercices, Évaluation, Jeu, Page), c = contexte.
+  Seuls les documents réellement présents dans le dépôt sont indexés.
+{%- endcomment -%}
+[
+{%- for g in site.data.classes -%}{%- for c in g.classes %}
+{"t":{{ c.nom | jsonify }},"u":{{ c.url | jsonify }},"k":"Classe","c":{{ c.matiere | append: " · " | append: c.resume | jsonify }}},
+{%- endfor -%}{%- endfor %}
+{%- for j in site.data.arcade.jeux %}
+{"t":{{ j.titre | jsonify }},"u":"/sigma-arcade/{{ j.slug }}/","k":"Jeu","c":{{ j.notion | append: " · " | append: j.tag | jsonify }}},
+{%- endfor %}
+{"t":"Sigma Arcade","u":"/sigma-arcade/","k":"Jeu","c":"Tous les jeux, par niveau et par thème"},
+{"t":"Manuels","u":"/manuels/","k":"Page","c":"Manuels de Seconde, SNT, Première et Terminale en PDF"},
+{"t":"Contact","u":"/contact/","k":"Page","c":"Écrire au professeur"},
+{"t":"Toutes les classes","u":"/classes/","k":"Page","c":"Seconde, voie générale, voie technologique, BTS"},
+{%- for cp in site.pages -%}
+  {%- unless cp.classe and cp.chapitres -%}{%- continue -%}{%- endunless -%}
+  {%- if cp.canonical_url -%}{%- continue -%}{%- endif -%}
+  {%- assign _cname = cp.title -%}
+  {%- for ch in cp.chapitres -%}
+    {%- assign p = site.pages | where: "url", ch.url | first -%}
+    {%- capture _chlabel -%}Chapitre {{ ch.num }} — {{ ch.titre }}{%- endcapture %}
+{"t":{{ _chlabel | jsonify }},"u":{{ ch.url | jsonify }},"k":"Chapitre","c":{{ _cname | jsonify }}},
+    {%- unless p -%}{%- continue -%}{%- endunless -%}
+    {%- for _k in _doc_keys -%}
+      {%- assign _lst = p[_k] -%}
+      {%- if _k == "dm" and p.dm_published == false -%}{%- assign _lst = nil -%}{%- endif -%}
+      {%- if _k == "ds_blancs" and p.dsblancs_published == false -%}{%- assign _lst = nil -%}{%- endif -%}
+      {%- if _k == "ds" and p.ds_published != true -%}{%- assign _lst = nil -%}{%- endif -%}
+      {%- case _k -%}{%- when "cours" -%}{%- assign _kind = "Cours" -%}{%- when "planches" or "dm" -%}{%- assign _kind = "Exercices" -%}{%- else -%}{%- assign _kind = "Évaluation" -%}{%- endcase -%}
+      {%- for _it in _lst -%}
+        {%- if _it.fichier -%}{%- assign _h = _it.fichier -%}{%- else -%}
+          {%- assign _d = _it.dossier | default: p.dossier_pdf -%}
+          {%- capture _h -%}/assets/pdf/{% if _d and _d != "" %}{{ _d }}/{% endif %}{{ _it.pdf }}{%- endcapture -%}
+        {%- endif -%}
+        {%- unless _sf contains _h -%}{%- continue -%}{%- endunless -%}
+        {%- case _k -%}
+          {%- when "cours" -%}{%- assign _t = _it.titre -%}
+          {%- when "planches" -%}{%- capture _t -%}Planche {{ _it.num }}{%- endcapture -%}
+          {%- when "dm" -%}{%- capture _t -%}DM {{ _it.num }}{%- endcapture -%}
+          {%- when "ds_blancs" -%}{%- capture _t -%}DS blanc {{ _it.num }}{%- endcapture -%}
+          {%- when "ds" -%}{%- capture _t -%}DS {{ _it.num }}{%- endcapture -%}
+        {%- endcase -%}
+        {%- if _it.label -%}{%- assign _t = _it.label -%}{%- endif -%}
+        {%- capture _tt -%}{{ _t }} · {{ ch.titre }}{%- endcapture -%}
+        {%- capture _cc -%}{{ _cname }} · chapitre {{ ch.num }}{% if _it.sub %} · {{ _it.sub }}{% elsif _it.themes %} · {{ _it.themes }}{% elsif _it.contenu %} · {{ _it.contenu }}{% endif %}{%- endcapture %}
+{"t":{{ _tt | jsonify }},"u":{{ _h | jsonify }},"k":"{{ _kind }}","c":{{ _cc | jsonify }}},
+      {%- endfor -%}
+    {%- endfor -%}
+  {%- endfor -%}
+{%- endfor %}
+{"t":"Accueil","u":"/","k":"Page","c":"Σ Sigma — choisir sa classe"}
+]

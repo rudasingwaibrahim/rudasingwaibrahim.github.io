@@ -1,0 +1,19 @@
+{%- comment -%}
+  Compte les documents réellement présents d'une page de chapitre.
+  Paramètre : p (la page). Résultat : _doc_count. Nécessite _sf (chemins des fichiers statiques).
+{%- endcomment -%}
+{%- assign _doc_count = 0 -%}
+{%- assign _dp = include.p -%}
+{%- for _k in _doc_keys -%}
+  {%- assign _lst = _dp[_k] -%}
+  {%- if _k == "dm" and _dp.dm_published == false -%}{%- assign _lst = nil -%}{%- endif -%}
+  {%- if _k == "ds_blancs" and _dp.dsblancs_published == false -%}{%- assign _lst = nil -%}{%- endif -%}
+  {%- if _k == "ds" and _dp.ds_published != true -%}{%- assign _lst = nil -%}{%- endif -%}
+  {%- for _it in _lst -%}
+    {%- if _it.fichier -%}{%- assign _h = _it.fichier -%}{%- else -%}
+      {%- assign _d = _it.dossier | default: _dp.dossier_pdf -%}
+      {%- capture _h -%}/assets/pdf/{% if _d and _d != "" %}{{ _d }}/{% endif %}{{ _it.pdf }}{%- endcapture -%}
+    {%- endif -%}
+    {%- if _sf contains _h -%}{%- assign _doc_count = _doc_count | plus: 1 -%}{%- endif -%}
+  {%- endfor -%}
+{%- endfor -%}
