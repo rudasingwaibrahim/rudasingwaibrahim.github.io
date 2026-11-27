@@ -34,6 +34,11 @@ ds_blancs:
   contenu: "Ensembles de nombres · Irrationnels · Encadrements"
   duree: "55 min"
   pdf: seconde-ch6-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: seconde-ch6-activites.pdf
+- titre: Activités — Version professeur
+  pdf: seconde-ch6-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

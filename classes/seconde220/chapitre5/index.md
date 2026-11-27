@@ -34,6 +34,11 @@ ds_blancs:
   contenu: Parallélisme · Droites · Applications
   duree: "55 min"
   pdf: seconde-ch5-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: seconde-ch5-activites.pdf
+- titre: Activités — Version professeur
+  pdf: seconde-ch5-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1
