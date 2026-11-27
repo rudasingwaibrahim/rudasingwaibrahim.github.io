@@ -59,7 +59,7 @@ ds_blancs:
 - num: 3
   contenu: "Bilan du chapitre"
   pdf: seconde-ch11-dsblanc-03-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
 - num: 1
   pdf: seconde-ch11-ds-01-sujet.pdf

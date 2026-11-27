@@ -26,7 +26,7 @@ ds_blancs:
   pdf: seconde-ch1-dsblanc-01-sujet.pdf
 - num: 2
   pdf: seconde-ch1-dsblanc-02-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
 - num: 1
   pdf: seconde-ch1-ds-01-sujet.pdf

@@ -31,7 +31,7 @@ ds_blancs:
   contenu: Intervalle de confiance · Décision
   duree: "55 min"
   pdf: seconde-ch18-dsblanc-02-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
 - num: 1
   pdf: seconde-ch18-ds-01-sujet.pdf

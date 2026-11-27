@@ -34,7 +34,7 @@ ds_blancs:
   contenu: "Images · Tableau de signes · Deux fonctions"
   duree: "55 min"
   pdf: seconde-ch7-dsblanc-02-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
 - num: 1
   pdf: seconde-ch7-ds-01-sujet.pdf

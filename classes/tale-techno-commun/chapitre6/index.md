@@ -33,7 +33,7 @@ ds_blancs:
   contenu: Schéma de Bernoulli · Coefficients binomiaux · Synthèse type BAC
   duree: "2 h"
   pdf: tale-techno/tale-techno-commun-ch6-dsblanc-02-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
 - num: 1
   pdf: tale-techno/tale-techno-commun-ch6-ds-01-sujet.pdf

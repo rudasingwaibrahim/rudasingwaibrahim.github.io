@@ -34,7 +34,7 @@ ds_blancs:
   contenu: "Repérage · Distances · Projeté orthogonal · Al-Kashi"
   duree: "55 min"
   pdf: seconde-ch9-dsblanc-02-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
 - num: 1
   pdf: seconde-ch9-ds-01-sujet.pdf

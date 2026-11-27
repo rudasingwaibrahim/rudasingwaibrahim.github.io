@@ -49,7 +49,7 @@ ds_blancs:
   pdf: seconde-ch13-dsblanc-02-sujet.pdf
 - num: 3
   pdf: seconde-ch13-dsblanc-03-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
 - num: 1
   pdf: seconde-ch13-ds-01-sujet.pdf

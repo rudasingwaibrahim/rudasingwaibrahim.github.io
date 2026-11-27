@@ -34,7 +34,7 @@ ds_blancs:
   contenu: Factorisation · Produit nul
   duree: "55 min"
   pdf: seconde-ch10-dsblanc-02-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
 - num: 1
   pdf: seconde-ch10-ds-01-sujet.pdf

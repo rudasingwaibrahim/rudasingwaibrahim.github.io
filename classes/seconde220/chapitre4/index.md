@@ -33,7 +33,7 @@ ds_blancs:
   contenu: Décomposition en facteurs premiers
   duree: "55 min"
   pdf: seconde-ch4-dsblanc-02-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
 - num: 1
   pdf: seconde-ch4-ds-01-sujet.pdf

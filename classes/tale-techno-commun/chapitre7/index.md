@@ -45,7 +45,7 @@ ds_blancs:
   contenu: Changement de variable · Interpolation · Extrapolation type BAC
   duree: "2 h"
   pdf: tale-techno/tale-techno-commun-ch7-dsblanc-02-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
 - num: 1
   pdf: tale-techno/tale-techno-commun-ch7-ds-01-sujet.pdf

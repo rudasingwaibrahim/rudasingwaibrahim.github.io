@@ -61,7 +61,7 @@ ds_blancs:
   contenu: Exercices · Synthèse
   duree: "55 min"
   pdf: seconde-ch16-dsblanc-03-sujet.pdf
-ds_published: true
+ds_published: false
 ds:
 - num: 1
   pdf: seconde-ch16-ds-01-sujet.pdf
