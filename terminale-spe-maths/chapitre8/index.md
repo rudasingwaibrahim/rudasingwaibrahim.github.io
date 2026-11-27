@@ -3,6 +3,11 @@ title: Chapitre 8 — Continuité des fonctions
 permalink: /classes/terminale-spe-maths/chapitre8/
 hero_title: Chapitre 8
 hero_subtitle: Continuité — Théorème des valeurs intermédiaires et dichotomie
+cours:
+- titre: Cours — Version élève
+  pdf: terminale-spe-ch8-cours-eleve.pdf
+- titre: Cours — Version professeur
+  pdf: terminale-spe-ch8-cours-prof.pdf
 planches:
 - num: 1
   pdf: terminale-spe-ch8-planche-01.pdf

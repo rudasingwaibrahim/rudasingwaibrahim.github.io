@@ -15,6 +15,8 @@ planches:
   pdf: tale-techno/tale-techno-commun-ch1-planche-01.pdf
 - num: 2
   pdf: tale-techno/tale-techno-commun-ch1-planche-02.pdf
+- num: 3
+  pdf: tale-techno/tale-techno-commun-ch1-planche-03.pdf
 dm:
 - num: 1
   contenu: Suite arithmétique · Somme de termes · Modélisation

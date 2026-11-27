@@ -10,6 +10,9 @@ cours:
   pdf: tale-techno/tale-techno-commun-ch2-cours-prof.pdf
 - titre: Cours complet
   fichier: /assets/pdf/tale-techno/tale-techno-commun-ch2-cours.pdf
+planches:
+- num: 1
+  pdf: tale-techno/tale-techno-commun-ch2-planche-01.pdf
 dm:
 - num: 1
   contenu: Propriétés algébriques · Équations et inéquations · Taux moyen
