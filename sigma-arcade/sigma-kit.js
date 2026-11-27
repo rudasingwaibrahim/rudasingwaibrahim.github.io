@@ -25,6 +25,12 @@
      blanks:[{answers:['−3','-3'], size:4}, {answers:['moins']}], explain:'html' }
    Les réponses des trous sont comparées après normalisation (espaces, − et -,
    virgule décimale, ×/x/*, casse) ; donner toutes les écritures acceptées.
+   Accolades littérales (ensembles) : ajouter braces:true à la question ; alors
+   « {{ » affiche « { », « }} » affiche « } » et seul « {n} » reste un trou.
+     { type:'trous', braces:true, prompt:'Sur ℝ∖{{0}}, A = {{{0} ; {1}}}.', … }
+     -> « Sur ℝ∖{0}, A = { [trou 0] ; [trou 1] }. »
+   Sans braces (comportement historique, inchangé) : tout « {n} » est un trou et
+   « { », « } » isolés restent tels quels ; ℝ∖{0} s'écrit alors ℝ∖&#123;0&#125;.
    ===================================================================== */
 (function () {
   'use strict';
@@ -297,7 +303,7 @@
         var order = shuffle(q.choices.map(function (_, k) { return k; }));
         h += '<div class="sk-q">' + q.prompt + '</div><div class="sk-chs">' + order.map(function (k) { return '<button class="sk-ch" data-k="' + k + '">' + q.choices[k] + '</button>'; }).join('') + '</div>';
       } else {
-        var t = q.prompt.replace(/\{(\d+)\}/g, function (_, n) { var b = q.blanks[+n]; return '<input class="sk-in" data-b="' + n + '" autocomplete="off" autocapitalize="off" spellcheck="false" style="width:' + ((b.size || 4) + 1.5) + 'em" aria-label="Trou ' + (+n + 1) + '">'; });
+        var t = q.prompt.replace(q.braces ? /\{\{|\}\}|\{(\d+)\}/g : /\{(\d+)\}/g, function (m, n) { if (n === undefined) return m.charAt(0); var b = q.blanks[+n]; return '<input class="sk-in" data-b="' + n + '" autocomplete="off" autocapitalize="off" spellcheck="false" style="width:' + ((b.size || 4) + 1.5) + 'em" aria-label="Trou ' + (+n + 1) + '">'; });
         h += '<form class="sk-q" id="sk-tf">' + t + '<div class="sk-row"><button class="sk-btn or" type="submit">Valider</button></div></form>';
       }
       h += '<div id="sk-fb"></div>';
