@@ -207,15 +207,17 @@ function r(v,d){if(!isFinite(v))return v;const s=v<0?-1:1,w=Math.abs(Number(v.to
 function f(v,d){if(d===undefined)d=6;let x=r(v,d);if(Object.is(x,-0)||x===0)x=0;const neg=x<0;let s=Math.abs(x).toFixed(d);
   if(s.indexOf('.')>=0)s=s.replace(/0+$/,'').replace(/\.$/,'');let [i,dd]=s.split('.');
   if(i.length>=4)i=i.replace(/\B(?=(\d{3})+(?!\d))/g,' ');return (neg?'−':'')+i+(dd?','+dd:'')}
+/* écriture à d décimales FIXES (arrondi annoncé : 2,90 et non 2,9) */
+function fd(v,d){const s=f(v,d);if(!d)return s;const [i,dd]=s.split(',');return i+','+((dd||'')+'0'.repeat(d)).slice(0,d)}
 /* toutes les écritures acceptées d'un nombre arrondi à d décimales */
 function ans(v,d){const x=r(v,d),s=f(x,d),out=[s];const dec=(s.split(',')[1]||'').length;
   for(let k=dec+1;k<=Math.max(d,dec);k++){out.push(f(x,d).replace(/^([−\d ]+)(,\d*)?$/,(m,a,b)=>a+','+((b||',').slice(1)+'0'.repeat(k-dec))))}
   out.push(s.replace(/ /g,''));return [...new Set(out)]}
 /* équation réduite y = ax + b, sans « 1x », « + − » ni « 0x » */
-function eq(a,b,y,x,da,db){y=y||'y';x=x||'x';da=da===undefined?6:da;db=db===undefined?6:db;a=r(a,da);b=r(b,db);
-  let s='';if(a===0)s=f(b,db);else{s=(a===1?'':a===-1?'−':f(a,da))+x;if(b>0)s+=' + '+f(b,db);else if(b<0)s+=' − '+f(-b,db)}
+function eq(a,b,y,x,da,db,fix){y=y||'y';x=x||'x';da=da===undefined?6:da;db=db===undefined?6:db;a=r(a,da);b=r(b,db);const F=fix?fd:f;
+  let s='';if(a===0)s=F(b,db);else{s=(a===1?'':a===-1?'−':F(a,da))+x;if(b>0)s+=' + '+F(b,db);else if(b<0)s+=' − '+F(-b,db)}
   return y+' = '+s}
-function aff(a,b,x,da,db){return eq(a,b,'#',x,da,db).replace(/^# = /,'')}
+function aff(a,b,x,da,db,fix){return eq(a,b,'#',x,da,db,fix).replace(/^# = /,'')}
 function mean(a){return a.reduce((s,v)=>s+v,0)/a.length}
 function reg(xs,ys){const xm=mean(xs),ym=mean(ys);let sxy=0,sxx=0;xs.forEach((x,i)=>{sxy+=(x-xm)*(ys[i]-ym);sxx+=(x-xm)*(x-xm)});const a=sxy/sxx;return{a,b:ym-a*xm,xm,ym}}
 function sse(xs,ys,a,b){let s=0;xs.forEach((x,i)=>{const e=ys[i]-(a*x+b);s+=e*e});return s}
@@ -230,7 +232,7 @@ function nice(lo,hi,want){want=want||7;const span=Math.max(hi-lo,1e-9);const ste
   let st=steps.find(s=>span/s<=want)||1000;let a=Math.floor(lo/st+1e-9)*st,b=Math.ceil(hi/st-1e-9)*st;
   if(lo-a<.2*st)a-=st;if(b-hi<.2*st)b+=st;return[r(a,6),r(b,6),st]}
 const fmtCoord=(x,y,d)=>'('+f(x,d)+' ; '+f(y,d)+')';
-return{ri,pick,shuf,r,f,ans,eq,aff,mean,reg,sse,dec,resid,nice,fmtCoord};
+return{ri,pick,shuf,r,f,fd,ans,eq,aff,mean,reg,sse,dec,resid,nice,fmtCoord};
 })();
 
 window.LP_S=(function(){
@@ -554,10 +556,10 @@ const {act,ch,fill,place,pivot,OK,NO,BR,BW,cap}=G;
 const v=s=>`<span class="v">${s}</span>`;
 const XB='<span class="ov v">x</span>',YB='<span class="ov v">y</span>';
 const sub=(s,i)=>`${v(s)}<sub>${i}</sub>`;
-const tb=(xs,ys,o)=>{o=o||{};const xl=o.xl||sub('x','i'),yl=o.yl||sub('y','i');const td=(a,i)=>`<td${o.hl===i?' class="hl"':''}>${N.f(a)}</td>`;
-  return `<div class="tbw"><table class="tb"><tr><th>${xl}</th>${xs.map(td).join('')}</tr><tr><th>${yl}</th>${ys.map(td).join('')}</tr></table></div>`};
+const tb=(xs,ys,o)=>{o=o||{};const xl=o.xl||sub('x','i'),yl=o.yl||sub('y','i');const td=(a,i)=>`<td${o.hl===i?' class="hl"':''}>${N.f(a)}</td>`,tdy=(a,i)=>o.d===undefined?td(a,i):`<td${o.hl===i?' class="hl"':''}>${N.fd(a,o.d)}</td>`;
+  return `<div class="tbw"><table class="tb"><tr><th>${xl}</th>${xs.map(td).join('')}</tr><tr><th>${yl}</th>${ys.map(tdy).join('')}</tr></table></div>`};
 const C=(x,y)=>`<span class="nw">${N.fmtCoord(x,y)}</span>`;
-const EQ=(a,b,y,x,da,db)=>`<span class="nw">${N.eq(a,b,y,x,da,db)}</span>`;
+const EQ=(a,b,y,x,da,db,fix)=>`<span class="nw">${N.eq(a,b,y,x,da,db,fix)}</span>`;
 function frame(xs,ys,o){o=o||{};let xa=Math.min(...xs),xb=Math.max(...xs),ya=Math.min(...ys),yb=Math.max(...ys);
   if(o.x0!==undefined)xa=Math.min(xa,o.x0);if(o.x1!==undefined)xb=Math.max(xb,o.x1);if(o.y0!==undefined)ya=Math.min(ya,o.y0);if(o.y1!==undefined)yb=Math.max(yb,o.y1);
   const fx=N.nice(xa,xb,o.nx||6),fy=N.nice(ya,yb,o.ny||6);
@@ -771,8 +773,8 @@ L5.qs.push(()=>{let xs,ys,R;for(let t=0;t<500;t++){const c=N.pick(CTX.filter(c=>
           if(Math.abs(u[0]-N.r(R.a,1))<1e-9||Math.abs(u[1]-N.r(Math.abs(R.b),1))<1e-9)return 'Au <b>centième</b>, on garde deux chiffres après la virgule.';
           if(Math.abs(u[0]-Math.trunc(R.a*100)/100)<1e-9||Math.abs(u[1]-Math.trunc(Math.abs(R.b)*100)/100)<1e-9)return 'Arrondir n\'est pas tronquer&nbsp;: regarde le 3<sup>e</sup> chiffre après la virgule pour savoir s\'il faut augmenter le 2<sup>e</sup>.';
           return `Lis ${v('a')} et ${v('b')} sur l'écran puis arrondis-les au centième (deux chiffres après la virgule).`},
-        {onOk:async()=>{await drawLine(R.a,R.b);await popG('G',R.xm,R.ym);cap(`<span class="b">${N.eq(ra,rb)}</span>`)}})],
-    done:`${v('a')} ≈ ${N.f(ra)} et ${v('b')} ≈ ${N.f(rb)}&nbsp;: ${EQ(ra,rb)}.`}});
+        {onOk:async()=>{await drawLine(R.a,R.b);await popG('G',R.xm,R.ym);cap(`<span class="b">${N.eq(ra,rb,0,0,2,2,1)}</span>`)}})],
+    done:`${v('a')} ≈ ${N.fd(ra,2)} et ${v('b')} ≈ ${N.fd(rb,2)}&nbsp;: ${EQ(ra,rb,0,0,2,2,1)}.`}});
 L5.qs.push(()=>{const L=lin(5);
   return{au:{k:'reg',xs:L.xs,ys:L.ys},prompt:`${L.c.t}${tb(L.xs,L.ys)}La calculatrice donne la droite de régression ${EQ(L.a,L.b)}.`,setup(){st.frame=frame(L.xs,L.ys,{xl:L.c.xl,yl:L.c.yl});setPts(L.xs,L.ys,false);st.line={a:L.a,b:L.b}},cap0:'Contrôlons ce résultat avec G.',
     parts:[fill('Calcule les coordonnées du point moyen.',`G( {0} ; {1} )`,[BR(L.xm,3.4),BR(L.ym,3.4)],`${XB} = (${L.xs.map(x=>N.f(x)).join(' + ')}) ÷ 5 et ${YB} = (${L.ys.map(x=>N.f(x)).join(' + ')}) ÷ 5.`,{onOk:async()=>{await popG('G',L.xm,L.ym)}}),
@@ -827,7 +829,7 @@ const L7={t:'Changer de variable',badge:'Niveau 7 · Changement de variable',rul
 const lg=y=>Math.log10(y);
 function expSeries(){const c=N.pick([5,10,20,25]),q=N.pick([2,3]),n=q===3?4:5;const xs=Array.from({length:n},(_,i)=>i+1);const ys=xs.map(x=>c*Math.pow(q,x-1));
   const zs=ys.map(y=>N.r(lg(y),2));const R=N.reg(xs,zs);return{xs,ys,zs,R,c,q}}
-const P10=(a,b,da,db)=>`10<span class="sup">${N.aff(a,b,'x',da,db)}</span>`;
+const P10=(a,b,da,db,fix)=>`10<span class="sup">${N.aff(a,b,'x',da,db,fix)}</span>`;
 function zFrame(d){const zmax=Math.max(...d.zs);return{x:d.fr.x,y:[0,Math.ceil(zmax*2+.4)/2,.5],xl:'x',yl:'z = log(y)'}}
 L7.qs.push(()=>{const d=expSeries();d.fr=frame(d.xs,d.ys,{y0:0});const k=N.ri(1,d.xs.length-1);
   return{au:{k:'log',y:d.ys[k]},prompt:`Une population de micro-algues est observée en laboratoire&nbsp;: ${v('x')} est le jour de la mesure et ${v('y')} le nombre de milliers de cellules.${tb(d.xs,d.ys)}`,
@@ -838,12 +840,12 @@ L7.qs.push(()=>{const d=expSeries();d.fr=frame(d.xs,d.ys,{y0:0});const k=N.ri(1,
       ch(`Le nuage des points (${sub('x','i')} ; ${sub('z','i')}) est…`,[OK('presque aligné&nbsp;: un ajustement affine de '+v('z')+' en '+v('x')+' devient pertinent'),NO('toujours aussi courbé','Regarde la scène&nbsp;: après le changement de variable, les points se sont alignés.')])],
     done:`Avec ${v('z')} = log(${v('y')}), le nuage courbé est devenu presque aligné&nbsp;: on peut maintenant faire un ajustement affine de ${v('z')} en ${v('x')}.`}});
 L7.qs.push(()=>{const d=expSeries();d.fr=frame(d.xs,d.ys,{y0:0});const a=N.r(d.R.a,2),b=N.r(d.R.b,2);const zf=zFrame(d);
-  return{au:{k:'zreg',xs:d.xs,zs:d.zs,a,b},prompt:`On reprend une croissance de micro-algues, avec ${v('z')} = log(${v('y')}).${tb(d.xs,d.ys)}${tb(d.xs,d.zs,{yl:sub('z','i')})}La calculatrice donne la droite de régression de ${v('z')} en ${v('x')}&nbsp;: ${EQ(a,b,'z')} (coefficients arrondis au centième).`,
-    setup(){st.frame=zf;setPts(d.xs,d.zs,false);st.pts.forEach((p,i)=>p.z=d.ys[i]);st.line={a,b}},cap0:`<span class="b">${N.eq(a,b,'z')}</span>`,
-    parts:[ch(`On en déduit une relation entre ${v('y')} et ${v('x')}&nbsp;:`,[OK(`${v('y')} = ${P10(a,b)}`),NO(EQ(a,b),'Ça, c\'est l\'expression de '+v('z')+'&nbsp;! Il faut revenir à '+v('y')+'&nbsp;: log('+v('y')+') = '+N.aff(a,b)+'.'),
-        NO(`${v('y')} = log(${N.aff(a,b)})`,'Si log('+v('y')+') = '+N.aff(a,b)+', alors '+v('y')+' = 10 à la puissance '+N.aff(a,b)+'.'),NO(`${v('y')} = 10<span class="sup">${N.f(a)}</span>${v('x')} + ${N.f(b)}`,'Tout l\'exposant est '+N.aff(a,b)+'&nbsp;: '+v('y')+' = 10<span class="sup">'+N.aff(a,b)+'</span>.')]),
-      act('Revenir au modèle initial',async()=>{st.line=null;V.draw();await morph({x:d.fr.x,y:d.fr.y,xl:'x',yl:'y'},true);st.curve={f:x=>Math.pow(10,a*x+b),t:0};await S.tween(1100,t=>{st.curve.t=t;V.draw()});cap(`<span class="k">y = 10<span class="sup">${N.aff(a,b)}</span></span>`)})],
-    done:`log(${v('y')}) = ${N.aff(a,b)} donc ${v('y')} = ${P10(a,b)}&nbsp;: la courbe dorée épouse le nuage de départ.`}});
+  return{au:{k:'zreg',xs:d.xs,zs:d.zs,a,b},prompt:`On reprend une croissance de micro-algues, avec ${v('z')} = log(${v('y')}).${tb(d.xs,d.ys)}${tb(d.xs,d.zs,{yl:sub('z','i'),d:2})}La calculatrice donne la droite de régression de ${v('z')} en ${v('x')}&nbsp;: ${EQ(a,b,'z',0,2,2,1)} (coefficients arrondis au centième).`,
+    setup(){st.frame=zf;setPts(d.xs,d.zs,false);st.pts.forEach((p,i)=>p.z=d.ys[i]);st.line={a,b}},cap0:`<span class="b">${N.eq(a,b,'z',0,2,2,1)}</span>`,
+    parts:[ch(`On en déduit une relation entre ${v('y')} et ${v('x')}&nbsp;:`,[OK(`${v('y')} = ${P10(a,b,2,2,1)}`),NO(EQ(a,b,0,0,2,2,1),'Ça, c\'est l\'expression de '+v('z')+'&nbsp;! Il faut revenir à '+v('y')+'&nbsp;: log('+v('y')+') = '+N.aff(a,b,0,2,2,1)+'.'),
+        NO(`${v('y')} = log(${N.aff(a,b,0,2,2,1)})`,'Si log('+v('y')+') = '+N.aff(a,b,0,2,2,1)+', alors '+v('y')+' = 10 à la puissance '+N.aff(a,b,0,2,2,1)+'.'),NO(`${v('y')} = 10<span class="sup">${N.fd(a,2)}</span>${v('x')} + ${N.fd(b,2)}`,'Tout l\'exposant est '+N.aff(a,b,0,2,2,1)+'&nbsp;: '+v('y')+' = 10<span class="sup">'+N.aff(a,b,0,2,2,1)+'</span>.')]),
+      act('Revenir au modèle initial',async()=>{st.line=null;V.draw();await morph({x:d.fr.x,y:d.fr.y,xl:'x',yl:'y'},true);st.curve={f:x=>Math.pow(10,a*x+b),t:0};await S.tween(1100,t=>{st.curve.t=t;V.draw()});cap(`<span class="k">y = 10<span class="sup">${N.aff(a,b,0,2,2,1)}</span></span>`)})],
+    done:`log(${v('y')}) = ${N.aff(a,b,0,2,2,1)} donc ${v('y')} = ${P10(a,b,2,2,1)}&nbsp;: la courbe dorée épouse le nuage de départ.`}});
 L7.qs.push(()=>{const al=N.pick([.02,.03,.05]),be=N.pick([1.2,1.5,1.8]);const lo=0,hi=N.pick([20,40]);const xe=N.pick([hi/2,hi+10]);const ye=N.r(Math.pow(10,al*xe+be),0);
   const xs=[0,1,2,3,4].map(i=>i*hi/4),ys=xs.map(x=>Math.pow(10,al*x+be));
   const fr=frame(xs,ys.concat([ye]),{x1:Math.max(hi,xe),y0:0});
@@ -877,7 +879,7 @@ const v=s=>`<span class="v">${s}</span>`;const sub=(s,i)=>`${v(s)}<sub>${i}</sub
 const XB='<span class="ov v">x</span>',YB='<span class="ov v">y</span>';
 const tb=(xs,ys,o)=>{o=o||{};const xl=o.xl||sub('x','i'),yl=o.yl||sub('y','i');return `<div class="tbw"><table class="tb"><tr><th>${xl}</th>${xs.map(a=>`<td>${N.f(a)}</td>`).join('')}</tr><tr><th>${yl}</th>${ys.map(a=>`<td>${N.f(a)}</td>`).join('')}</tr></table></div>`};
 const C=(x,y)=>`<span class="nw">${N.fmtCoord(x,y)}</span>`;
-const EQ=(a,b,y,x,da,db)=>`<span class="nw">${N.eq(a,b,y,x,da,db)}</span>`;
+const EQ=(a,b,y,x,da,db,fix)=>`<span class="nw">${N.eq(a,b,y,x,da,db,fix)}</span>`;
 const P10=(a,b)=>`10<span class="sup">${N.aff(a,b)}</span>`;
 const FR=(n,d)=>`<span class="fr"><span>${n}</span><span>${d}</span></span>`;
 const RAD=s=>`√<span class="rad">${s}</span>`;
@@ -988,9 +990,9 @@ const Q5={qcm(T){
       return qcm(5,`Pour une série statistique, la calculatrice affiche, pour la régression linéaire (${v('a')}${v('x')} + ${v('b')})&nbsp;: ${v('a')} = ${N.f(a)} et ${v('b')} = ${N.f(b)}. La droite de régression a pour équation…`,EQ(a,b),[EQ(b,a),`${v('x')} = ${N.aff(a,b,'y')}`,EQ(a,-b)],
         `${v('a')} multiplie ${v('x')} et ${v('b')} s'ajoute&nbsp;: ${EQ(a,b)}.`,{k:'eq',a,b})}
     if(T===1){const d=messy(),ra=N.r(d.R.a,2),rb=N.r(d.R.b,2);
-      return qcm(5,`Pour la série ci-dessous, la calculatrice affiche ${v('a')} = ${N.f(d.R.a,9)} et ${v('b')} = ${N.f(d.R.b,9)}.${tb(d.xs,d.ys)}Avec des coefficients arrondis au centième, la droite de régression a pour équation…`,EQ(ra,rb),
-        [EQ(Math.trunc(d.R.a*100)/100,Math.sign(d.R.b)*Math.trunc(Math.abs(d.R.b)*100)/100),EQ(N.r(d.R.a,1),N.r(d.R.b,1)),EQ(rb,ra),EQ(ra,-rb)],
-        `Au centième&nbsp;: ${v('a')} ≈ ${N.f(ra)} et ${v('b')} ≈ ${N.f(rb)} (on regarde le 3<sup>e</sup> chiffre après la virgule pour arrondir).`,{k:'reg2',xs:d.xs,ys:d.ys})}
+      return qcm(5,`Pour la série ci-dessous, la calculatrice affiche ${v('a')} = ${N.f(d.R.a,9)} et ${v('b')} = ${N.f(d.R.b,9)}.${tb(d.xs,d.ys)}Avec des coefficients arrondis au centième, la droite de régression a pour équation…`,EQ(ra,rb,0,0,2,2,1),
+        [EQ(Math.trunc(d.R.a*100)/100,Math.sign(d.R.b)*Math.trunc(Math.abs(d.R.b)*100)/100,0,0,2,2,1),EQ(N.r(d.R.a,1),N.r(d.R.b,1)),EQ(rb,ra,0,0,2,2,1),EQ(ra,-rb,0,0,2,2,1)],
+        `Au centième&nbsp;: ${v('a')} ≈ ${N.fd(ra,2)} et ${v('b')} ≈ ${N.fd(rb,2)} (on regarde le 3<sup>e</sup> chiffre après la virgule pour arrondir).`,{k:'reg2',xs:d.xs,ys:d.ys})}
     const L=lin(5);const all=[[L.b,L.a],[L.a,-L.b],[L.a,L.b+(L.b>0?-2:2)],[-L.a,L.b]].filter(p=>Math.abs(p[0]*L.xm+p[1]-L.ym)>1e-6);
     return qcm(5,`On relève ${L.c.t}.${tb(L.xs,L.ys)}Une seule de ces équations peut être celle de la droite de régression obtenue à la calculatrice. Laquelle&nbsp;?`,EQ(L.a,L.b),all.map(p=>EQ(p[0],p[1])),
       `G${C(L.xm,L.ym)} doit appartenir à la droite&nbsp;: ${N.f(L.a)} × ${N.f(L.xm)} ${L.b<0?'−':'+'} ${N.f(Math.abs(L.b))} = ${N.f(L.ym)}. Les autres équations ne passent pas par G.`,{k:'regpick',xs:L.xs,ys:L.ys})},
@@ -999,7 +1001,7 @@ const Q5={qcm(T){
       `${v('a')} est le coefficient de ${v('x')} et ${v('b')} le terme constant&nbsp;: ${EQ(a,b)}.`,{k:'eqb',a,b})}
     if(T===1){const d=messy(),ra=N.r(d.R.a,2),rb=N.r(d.R.b,2);
       return trous(5,`Pour une série, la calculatrice affiche ${v('a')} = ${N.f(d.R.a,9)} et ${v('b')} = ${N.f(d.R.b,9)}. Avec des coefficients arrondis au centième&nbsp;: ${v('y')} = {0}${v('x')} ${rb<0?'−':'+'} {1}.`,[A(ra,2),A(Math.abs(rb),2)],
-        `Au centième&nbsp;: ${N.f(d.R.a,9)} ≈ ${N.f(ra)} et ${N.f(d.R.b,9)} ≈ ${N.f(rb)}.`,{k:'round2',a:d.R.a,b:d.R.b,sa:N.f(d.R.a,9),sb:N.f(d.R.b,9)})}
+        `Au centième&nbsp;: ${N.f(d.R.a,9)} ≈ ${N.fd(ra,2)} et ${N.f(d.R.b,9)} ≈ ${N.fd(rb,2)}.`,{k:'round2',a:d.R.a,b:d.R.b,sa:N.f(d.R.a,9),sb:N.f(d.R.b,9)})}
     const L=lin(5);return trous(5,`On relève ${L.c.t}.${tb(L.xs,L.ys)}La calculatrice donne le coefficient directeur ${v('a')} = ${N.f(L.a)} de la droite de régression, mais l'élève a oublié de noter ${v('b')}. Sachant que la droite passe par le point moyen, ${v('b')} = {0}.`,[A(L.b,3)],
       `G${C(L.xm,L.ym)}&nbsp;; ${YB} = ${v('a')}${XB} + ${v('b')} donne ${v('b')} = ${N.f(L.ym)} − ${PN(L.a)} × ${N.f(L.xm)} = ${N.f(L.b)}.`,{k:'regb',xs:L.xs,ys:L.ys,a:L.a})}};
 
@@ -1041,7 +1043,7 @@ const Q7={qcm(T){const a=N.pick([.02,.05,.3,.4]),b=N.pick([1.2,1.5,2]);
       `log(${N.f(y)}) = ${Math.round(Math.log10(y))}, car ${N.f(y)} = 10<span class="sup">${Math.round(Math.log10(y))}</span>.`,{k:'log',y,d:0})}
     if(T===1){let y;do{y=N.pick([15,25,40,60,75,120,250,350,500,800])*N.pick([1,1,10])}while(Number.isInteger(Math.log10(y)));
       return trous(7,`On pose ${v('z')} = log(${v('y')}). Pour ${v('y')} = ${N.f(y)}, on obtient ${v('z')} ≈ {0} (arrondi au centième).`,[A(N.r(Math.log10(y),2),2)],
-        `À la calculatrice, log(${N.f(y)}) ≈ ${N.f(Math.log10(y),4)}, soit ${N.f(N.r(Math.log10(y),2))} au centième.`,{k:'log',y,d:2})}
+        `À la calculatrice, log(${N.f(y)}) ≈ ${N.fd(Math.log10(y),4)}, soit ${N.fd(Math.log10(y),2)} au centième.`,{k:'log',y,d:2})}
     for(;;){const a=N.pick([.02,.03,.04,.05]),b=N.pick([1.2,1.5,1.8,2]),x=N.pick([5,10,15,20,25]);const e=a*x+b,y=Math.pow(10,e);if(Math.abs(y-Math.round(y))>.4&&Math.abs(y-Math.round(y))<.45)continue;if(Number.isInteger(N.r(e,6)))continue;
       return trous(7,`On pose ${v('z')} = log(${v('y')}) et l'ajustement affine donne ${EQ(a,b,'z')}. Pour ${v('x')} = ${x}, le modèle donne ${v('y')} ≈ {0} (arrondi à l'unité).`,[A(Math.round(y),0,4)],
         `${v('z')} = ${N.f(a)} × ${x} + ${N.f(b)} = ${N.f(e)}, puis ${v('y')} = 10<span class="sup">${N.f(e)}</span> ≈ ${N.f(Math.round(y))}.`,{k:'exp',a,b,x,d:0})}}};

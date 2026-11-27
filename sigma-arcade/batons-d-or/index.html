@@ -548,7 +548,9 @@ const CTX=[
  {ep:'Une graine de tomate germe avec la probabilité 0,8.',s:'la graine germe',e:'la graine ne germe pas',p:R(4,5),fr:false,rep:n=>`On sème ${n} graines, qui germent indépendamment les unes des autres.`,X:'le nombre de graines qui germent'},
  {ep:'Une gardienne arrête un tir au but avec la probabilité 0,25.',s:'le tir est arrêté',e:'le tir est marqué',p:R(1,4),fr:false,rep:n=>`Elle fait face à ${n} tirs au but, de façon identique et indépendante.`,X:'le nombre de tirs arrêtés'}];
 const URNS=[[3,7],[5,7],[2,3],[1,4],[2,6],[4,6],[3,5],[1,5]];
-function urn(){const [a,b]=pick(URNS);return{ep:`Une urne contient ${a} boules rouges et ${b} boules blanches, indiscernables au toucher. On tire une boule au hasard.`,s:'la boule est rouge',e:'la boule est blanche',p:R(a,a+b),fr:true,a,b,
+/* accord : 0 ou 1 boule rouge, 2 boules rouges ou plus */
+const nbB=(k,c)=>`${k} boule${k>=2?'s':''} ${c}${k>=2?'s':''}`;
+function urn(){const [a,b]=pick(URNS);return{ep:`Une urne contient ${nbB(a,'rouge')} et ${nbB(b,'blanche')}, indiscernables au toucher. On tire une boule au hasard.`,s:'la boule est rouge',e:'la boule est blanche',p:R(a,a+b),fr:true,a,b,
   rep:n=>`On effectue ${n} tirages successifs avec remise.`,X:'le nombre de boules rouges obtenues'}}
 const pH=(c,r)=>numH(r===undefined?c.p:r,c.fr);
 const pT=(c,r)=>numT(r===undefined?c.p:r,c.fr);
@@ -572,7 +574,7 @@ function q1p(c,mode){const hist=[],q=sub(one,c.p);
   return{prompt:`${c.ep} On appelle <b>succès</b> l’issue «&nbsp;${c.s}&nbsp;».`,setup:()=>wheelSetup(c),cap0:'Une épreuve de Bernoulli&nbsp;: deux issues, succès ou échec.',
     parts:[act('Lancer l’épreuve',()=>spinOnce(c,hist),{doneLabel:'Épreuve lancée'}),
       mode==='ch'?ch('Quelle est la probabilité <i>p</i> du succès&nbsp;?',[OK(pH(c))].concat(bad.map(r=>NO(pH(c,r),eq(r,q)?`${pH(c,r)}, c’est la probabilité de l’échec «&nbsp;${c.e}&nbsp;», c’est-à-dire 1 − <i>p</i>.`:c.a&&eq(r,R(c.a,c.b))?`On divise par le nombre total de boules (${c.a+c.b}), pas par le nombre de boules blanches.`:`Compte les issues favorables au succès parmi toutes les issues possibles.`))),{onOk:()=>{S.wheelLabs(['p = '+pT(c),'1 − p = '+pT(c,q)])}})
-        :fill('Complète&nbsp;:','<i>p</i> = {0}',[BR(c.p)],`Le succès est «&nbsp;${c.s}&nbsp;». ${c.a?`Il y a ${c.a} boules rouges sur ${c.a+c.b} boules.`:''}`,{onOk:()=>S.wheelLabs(['p = '+pT(c),'1 − p = ?'])}),
+        :fill('Complète&nbsp;:','<i>p</i> = {0}',[BR(c.p)],`Le succès est «&nbsp;${c.s}&nbsp;». ${c.a?`Il y a ${nbB(c.a,'rouge')} sur ${c.a+c.b} boules.`:''}`,{onOk:()=>S.wheelLabs(['p = '+pT(c),'1 − p = ?'])}),
       fill('La probabilité de l’échec est 1 − <i>p</i>.','1 − <i>p</i> = {0}',[BR(q)],`1 − ${pH(c)} = ${pH(c,q)}&nbsp;: les deux probabilités ont pour somme 1.`,{onOk:()=>{S.wheelLabs(['p = '+pT(c),'1 − p = '+pT(c,q)]);cap(`<span class="k">p = ${pT(c)}</span> <span class="m">et</span> <span class="b">1 − p = ${pT(c,q)}</span>`)}}),
       act('Relancer trois fois',async()=>{for(let i=0;i<3;i++)await spinOnce(c,hist)},{doneLabel:'Trois épreuves de plus'})],
     done:`Une <b>épreuve de Bernoulli</b> n’a que deux issues&nbsp;: le succès, de probabilité <i>p</i> = ${pH(c)}, et l’échec, de probabilité 1 − <i>p</i> = ${pH(c,q)}.`}}
@@ -618,11 +620,11 @@ function q2vals(){const c=ctxPick(),n=pick([4,5,6]);let r=null;
       ch('Quels sont les paramètres de la loi de <i>X</i>&nbsp;?',[OK(`<i>n</i> = ${n} et <i>p</i> = ${pH(c)}`),NO(`<i>n</i> = ${n+1} et <i>p</i> = ${pH(c)}`,`<i>n</i> est le nombre de répétitions&nbsp;: ${n}. Les valeurs de <i>X</i> vont de 0 à <i>n</i>, il y en a <i>n</i> + 1.`)].concat(eq(sub(one,c.p),c.p)?[]:[NO(`<i>n</i> = ${n} et <i>p</i> = ${pH(c,sub(one,c.p))}`,'<i>p</i> est la probabilité du succès, pas de l’échec.')]))],
     done:`<i>X</i> ∼ ${law(n,pH(c))} prend les valeurs 0, 1, …, ${n}.`}}
 function q2remise(){const [a,b]=pick(URNS),n=pick([3,4,5]),p=R(a,a+b),c={p,fr:true};
-  return{prompt:`Une urne contient ${a} boules rouges et ${b} boules blanches. On tire ${n} boules successivement et on note <i>X</i> le nombre de boules rouges obtenues.`,
+  return{prompt:`Une urne contient ${nbB(a,'rouge')} et ${nbB(b,'blanche')}. On tire ${n} boules successivement et on note <i>X</i> le nombre de boules rouges obtenues.`,
     setup:()=>S.reset({mode:'chart',p,lamps:Array(n).fill('idle'),showX:true,chart:{xs:Array.from({length:n+1},(_,k)=>k),ps:Array(n+1).fill(0),tok:Array(n+1).fill(0),theo:false,noGrid:true}}),
     cap0:'Pour un schéma de Bernoulli, les épreuves doivent être <b>identiques</b> et <b>indépendantes</b>.',
     parts:[ch('Pour que <i>X</i> suive une loi binomiale, les tirages doivent se faire&nbsp;:',[OK('avec remise&nbsp;: la composition de l’urne ne change pas'),NO('sans remise','Sans remise, l’urne change après chaque tirage&nbsp;: les épreuves ne sont plus identiques ni indépendantes.'),NO('peu importe','Il faut des épreuves identiques et indépendantes&nbsp;: seule la remise le garantit.')]),
-      fill('Avec remise, complète les paramètres&nbsp;:','<i>n</i> = {0} et <i>p</i> = {1}',[BR(R(n),{size:3}),BR(p)],`${n} tirages, et à chaque tirage ${a} boules rouges sur ${a+b}.`),
+      fill('Avec remise, complète les paramètres&nbsp;:','<i>n</i> = {0} et <i>p</i> = {1}',[BR(R(n),{size:3}),BR(p)],`${n} tirages, et à chaque tirage ${nbB(a,'rouge')} sur ${a+b}.`),
       act('Tirer avec remise',async()=>{const r=N.series(n,p);await S.series(r);await S.drop(r.filter(Boolean).length);cap(`<i>X</i> = <span class="k">${r.filter(Boolean).length}</span> boule${r.filter(Boolean).length>1?'s':''} rouge${r.filter(Boolean).length>1?'s':''}`)},{doneLabel:'Tirages faits'})],
     done:`Avec remise, <i>X</i> suit la loi ${law(n,numH(p,true))}.`}}
 function q2seq(){const c=ctxPick(),n=pick([6,7,8]),k=ri(2,n-2),res=shuf(Array(n).fill(false).map((_,i)=>i<k));
@@ -790,6 +792,7 @@ window.BO_X={CTX,URNS,urn,CALC,EXACT,gainsGame,sortG,Eg,sumTxt};
 
 <script>
 /* ======================= BÂTONS D'OR — trois épreuves finales ======================= */
+const nbB=(k,c)=>`${k} boule${k>=2?'s':''} ${c}${k>=2?'s':''}`;
 window.BO_FIN=(function(){
 'use strict';
 const N=window.BO_N,X=window.BO_X,{R,add,sub,mul,pw,eq,val,one,numH,numT,dec,fmtInt,ri,pick,shuf,pmfR,pmf,cdf,rnd,law,PX,EX,ptxt,ans}=N;
@@ -812,7 +815,7 @@ const L1={
    'Répondre au hasard à une question d’un QCM à 4 choix (une seule réponse juste)&nbsp;; succès&nbsp;: «&nbsp;la réponse est fausse&nbsp;»',
    ['Répondre au hasard à une question d’un QCM à 4 choix (une seule réponse juste)&nbsp;; succès&nbsp;: «&nbsp;la réponse est juste&nbsp;»','Lancer un dé équilibré à six faces&nbsp;; succès&nbsp;: «&nbsp;obtenir 3 ou 4&nbsp;»','Lancer une pièce équilibrée&nbsp;; succès&nbsp;: «&nbsp;obtenir face&nbsp;»'],
    'Trois réponses sur quatre sont fausses&nbsp;: le succès «&nbsp;réponse fausse&nbsp;» a la probabilité 3/4. Les autres succès ont pour probabilité 1/4, 1/3 et 1/2.',{k:'which',vals:nums([R(3,4),R(1,4),R(1,3),R(1,2)]),steps:1})},
- ta(){const c=urn();return trous(1,`${c.ep} Succès&nbsp;: «&nbsp;la boule est rouge&nbsp;». Sous forme de fraction irréductible, <i>p</i> = {0}.`,[BL(c.p,4)],`${c.a} boules rouges sur ${c.a+c.b} boules&nbsp;: <i>p</i> = ${numH(R(c.a,c.a+c.b),true)}.`,{k:'urnp',a:c.a,b:c.b,ans:nums([c.p])[0],steps:1})},
+ ta(){const c=urn();return trous(1,`${c.ep} Succès&nbsp;: «&nbsp;la boule est rouge&nbsp;». Sous forme de fraction irréductible, <i>p</i> = {0}.`,[BL(c.p,4)],`${nbB(c.a,'rouge')} sur ${c.a+c.b} boules&nbsp;: <i>p</i> = ${numH(R(c.a,c.a+c.b),true)}.`,{k:'urnp',a:c.a,b:c.b,ans:nums([c.p])[0],steps:1})},
  qo(){const [a,b]=pick([[3,9],[4,8],[5,10],[6,9],[2,8],[6,10]]),p=R(a,a+b),q=sub(one,p);
    const bad=[R(a,b),R(b,a+b),R(1,a+b)].filter((r,i,arr)=>!eq(r,q)&&arr.findIndex(o=>eq(o,r))===i).slice(0,3);
    return qcm(1,`Un sac contient ${a} tickets gagnants et ${b} tickets perdants. On tire un ticket au hasard&nbsp;; succès&nbsp;: «&nbsp;le ticket est gagnant&nbsp;». Quelle est la probabilité de l’échec&nbsp;?`,numH(q,true),bad.map(r=>numH(r,true)),
@@ -825,7 +828,7 @@ const L2={
    `${n} répétitions identiques et indépendantes, succès de probabilité ${pH(c)}&nbsp;: <i>X</i> ∼ ${law(n,pH(c))}.`,{k:'law',n,p:nums([c.p])[0],steps:1})},
  tb(){const n=ri(5,8),k=ri(1,n-1),res=shuf(Array(n).fill(0).map((_,i)=>i<k?'S':'É')).join('');
    return trous(2,`On répète ${n} fois une épreuve de Bernoulli. On obtient la série <span class="seq">${res}</span>. Le nombre de succès est <i>X</i> = {0}.`,[BL(R(k),3)],`On compte les S&nbsp;: il y en a ${k}.`,{k:'count',seq:res,ans:nums([R(k)])[0],steps:1})},
- qa(){const [a,b]=pick(X.URNS),n=ri(3,6);return qcm(2,`Une urne contient ${a} boules rouges et ${b} boules blanches. On tire ${n} boules successivement et on note <i>X</i> le nombre de boules rouges. <i>X</i> suit une loi binomiale lorsque les tirages sont faits&nbsp;:`,
+ qa(){const [a,b]=pick(X.URNS),n=ri(3,6);return qcm(2,`Une urne contient ${nbB(a,'rouge')} et ${nbB(b,'blanche')}. On tire ${n} boules successivement et on note <i>X</i> le nombre de boules rouges. <i>X</i> suit une loi binomiale lorsque les tirages sont faits&nbsp;:`,
    'avec remise',['sans remise','avec ou sans remise, peu importe'],'Avec remise, la composition de l’urne ne change pas&nbsp;: les épreuves sont identiques et indépendantes.',{k:'remise',steps:1})},
  ta(){const c=ctxF(()=>true),n=ri(5,15);return trous(2,`${c.ep} Succès&nbsp;: «&nbsp;${c.s}&nbsp;». ${c.rep(n)} <i>X</i> est ${c.X}. <i>X</i> suit la loi binomiale de paramètres <i>n</i> = {0} et <i>p</i> = {1}.`,[BL(R(n),3),BL(c.p,4)],`${n} répétitions&nbsp;; <i>p</i> = ${pH(c)}.`,{k:'params',n,p:nums([c.p])[0],ans:nums([R(n),c.p]),steps:1})},
  qo(){const [a,b]=pick([[3,9],[4,8],[5,10],[6,9],[2,8],[6,10]]),n=ri(4,10),p=R(a,a+b),q=sub(one,p);
