@@ -17,22 +17,27 @@ planches:
   pdf: tale-techno/tale-techno-commun-ch5-planche-02.pdf
 dm:
 - num: 1
-  contenu: Arbre pondéré · Probabilités totales · Problème médical
+  contenu: Probabilités conditionnelles · Arbres pondérés · Indépendance
   duree: "1 semaine"
   pdf: tale-techno/tale-techno-commun-ch5-dm-01-sujet.pdf
 - num: 2
-  contenu: Indépendance · Inverser le conditionnement · Problème appliqué
+  contenu: Probabilités conditionnelles · Arbres pondérés · Indépendance
   duree: "1 semaine"
   pdf: tale-techno/tale-techno-commun-ch5-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
-  contenu: QCM · Tableau croisé et indépendance · Problème
+  contenu: Probabilités conditionnelles · Arbres pondérés · Indépendance
   duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch5-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Vrai-faux · Arbres et probabilités totales
+  contenu: Probabilités conditionnelles · Arbres pondérés · Indépendance
   duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch5-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: tale-techno/tale-techno-commun-ch5-activites.pdf
+- titre: Activités — Version professeur
+  pdf: tale-techno/tale-techno-commun-ch5-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

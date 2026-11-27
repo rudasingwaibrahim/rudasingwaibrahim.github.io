@@ -15,30 +15,29 @@ planches:
   pdf: tale-techno/tale-techno-commun-ch6-planche-01.pdf
 - num: 2
   pdf: tale-techno/tale-techno-commun-ch6-planche-02.pdf
-- num: 3
-  pdf: tale-techno/tale-techno-commun-ch6-planche-03.pdf
 dm:
 - num: 1
-  contenu: Loi de probabilité · Espérance · Simulation
+  contenu: Variables aléatoires · Loi binomiale · Espérance
   duree: "1 semaine"
   pdf: tale-techno/tale-techno-commun-ch6-dm-01-sujet.pdf
 - num: 2
-  contenu: Loi binomiale · Calculatrice · Décision
+  contenu: Variables aléatoires · Loi binomiale · Espérance
   duree: "1 semaine"
   pdf: tale-techno/tale-techno-commun-ch6-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
-  contenu: Automatismes · Loi et espérance · Tirages avec remise
+  contenu: Variables aléatoires · Loi binomiale · Espérance
   duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch6-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Loi de probabilité · Espérance · Comparer des jeux
+  contenu: Variables aléatoires · Loi binomiale · Espérance
   duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch6-dsblanc-02-sujet.pdf
-- num: 3
-  contenu: Schéma de Bernoulli · Loi binomiale · Comparer deux épreuves
-  duree: "55 min"
-  pdf: tale-techno/tale-techno-commun-ch6-dsblanc-03-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: tale-techno/tale-techno-commun-ch6-activites.pdf
+- titre: Activités — Version professeur
+  pdf: tale-techno/tale-techno-commun-ch6-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1
