@@ -34,6 +34,11 @@ ds_blancs:
   contenu: "Sens de variation · Seuils · Modélisation"
   duree: "55 min"
   pdf: premiere-spe-ch7-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: premiere-spe-ch7-activites.pdf
+- titre: Activités — Version professeur
+  pdf: premiere-spe-ch7-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

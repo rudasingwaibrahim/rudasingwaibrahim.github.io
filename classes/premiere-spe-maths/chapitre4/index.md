@@ -34,6 +34,11 @@ ds_blancs:
   contenu: Variations et encadrement · Volume maximal · Paramètre
   duree: "55 min"
   pdf: premiere-spe-ch4-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: premiere-spe-ch4-activites.pdf
+- titre: Activités — Version professeur
+  pdf: premiere-spe-ch4-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

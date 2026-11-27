@@ -34,6 +34,11 @@ ds_blancs:
   contenu: Vrai-faux · V.O.D. (sujet type bac) · Vaccin et inconnue
   duree: "55 min"
   pdf: premiere-spe-ch5-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: premiere-spe-ch5-activites.pdf
+- titre: Activités — Version professeur
+  pdf: premiere-spe-ch5-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1
