@@ -31,6 +31,11 @@ ds_blancs:
   contenu: "Fonctions de référence · Inéquations · Problème"
   duree: "55 min"
   pdf: seconde-ch14-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: seconde-ch14-activites.pdf
+- titre: Activités — Version professeur
+  pdf: seconde-ch14-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

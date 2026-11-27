@@ -36,6 +36,11 @@ ds_blancs:
   contenu: "Évolutions successives et réciproques"
   duree: "55 min"
   pdf: seconde-ch11-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: seconde-ch11-activites.pdf
+- titre: Activités — Version professeur
+  pdf: seconde-ch11-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

@@ -26,6 +26,11 @@ ds_blancs:
   pdf: seconde-ch1-dsblanc-01-sujet.pdf
 - num: 2
   pdf: seconde-ch1-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: seconde-ch1-activites.pdf
+- titre: Activités — Version professeur
+  pdf: seconde-ch1-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

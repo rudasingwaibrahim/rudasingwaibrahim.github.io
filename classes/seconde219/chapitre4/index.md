@@ -33,6 +33,11 @@ ds_blancs:
   contenu: Décomposition en facteurs premiers
   duree: "55 min"
   pdf: seconde-ch4-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: seconde-ch4-activites.pdf
+- titre: Activités — Version professeur
+  pdf: seconde-ch4-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

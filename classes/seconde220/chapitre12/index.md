@@ -31,6 +31,11 @@ ds_blancs:
   contenu: Valeur absolue · Inéquations
   duree: "55 min"
   pdf: seconde-ch12-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: seconde-ch12-activites.pdf
+- titre: Activités — Version professeur
+  pdf: seconde-ch12-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

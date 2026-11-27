@@ -34,6 +34,11 @@ ds_blancs:
   contenu: "Racines carrées · Calculs · Démonstrations"
   duree: "55 min"
   pdf: seconde-ch2-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: seconde-ch2-activites.pdf
+- titre: Activités — Version professeur
+  pdf: seconde-ch2-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1
