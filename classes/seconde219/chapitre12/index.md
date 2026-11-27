@@ -13,40 +13,16 @@ planches:
   pdf: seconde-ch12-planche-01.pdf
 - num: 2
   pdf: seconde-ch12-planche-02.pdf
-- num: 3
-  pdf: seconde-ch12-planche-03.pdf
-- num: 4
-  pdf: seconde-ch12-planche-04.pdf
-- num: 5
-  pdf: seconde-ch12-planche-05.pdf
-- num: 6
-  pdf: seconde-ch12-planche-06.pdf
 dm:
 - num: 1
   contenu: Fonctions carré · Inverse · Racine
   duree: "1 semaine"
   pdf: seconde-ch12-dm-01-sujet.pdf
-- num: 2
-  contenu: Parité · Domaine · Variations · Courbes
-  duree: "1 semaine"
-  pdf: seconde-ch12-dm-02-sujet.pdf
-- num: 3
-  pdf: seconde-ch12-dm-03-sujet.pdf
-- num: 4
-  pdf: seconde-ch12-dm-04-sujet.pdf
-- num: 5
-  pdf: seconde-ch12-dm-05-sujet.pdf
-- num: 6
-  pdf: seconde-ch12-dm-06-sujet.pdf
 ds_blancs:
 - num: 1
   contenu: Fonctions de référence · Variations
   duree: "55 min"
   pdf: seconde-ch12-dsblanc-01-sujet.pdf
-- num: 2
-  contenu: Courbes · Domaine · Parité
-  duree: "55 min"
-  pdf: seconde-ch12-dsblanc-02-sujet.pdf
 ds_published: false
 ds:
 - num: 1

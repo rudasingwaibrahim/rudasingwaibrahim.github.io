@@ -10,52 +10,9 @@ cours:
   pdf: seconde-ch11-cours-prof.pdf
 - titre: Fiche méthode
   pdf: seconde-ch11-fiche-methode.pdf
-planches:
-- num: 1
-  pdf: seconde-ch11-planche-01.pdf
-- num: 2
-  pdf: seconde-ch11-planche-02.pdf
-- num: 3
-  pdf: seconde-ch11-planche-03.pdf
-- num: 4
-  pdf: seconde-ch11-planche-04.pdf
-- num: 5
-  pdf: seconde-ch11-planche-05.pdf
-- num: 6
-  pdf: seconde-ch11-planche-06.pdf
-dm:
-- num: 1
-  contenu: "Proportions et pourcentages"
-  duree: "1 semaine"
-  pdf: seconde-ch11-dm-01-sujet.pdf
-- num: 2
-  contenu: "Pourcentage d'un pourcentage"
-  duree: "1 semaine"
-  pdf: seconde-ch11-dm-02-sujet.pdf
-- num: 3
-  contenu: "Augmentations, diminutions et coefficients"
-  pdf: seconde-ch11-dm-03-sujet.pdf
-- num: 4
-  contenu: "Taux d'évolution"
-  pdf: seconde-ch11-dm-04-sujet.pdf
-- num: 5
-  contenu: "Évolutions successives"
-  pdf: seconde-ch11-dm-05-sujet.pdf
-- num: 6
-  contenu: "Évolution réciproque"
-  pdf: seconde-ch11-dm-06-sujet.pdf
-ds_blancs:
-- num: 1
-  contenu: "Proportions · Pourcentages · Évolutions simples"
-  duree: "55 min"
-  pdf: seconde-ch11-dsblanc-01-sujet.pdf
-- num: 2
-  contenu: "Taux d'évolution · Évolutions successives"
-  duree: "55 min"
-  pdf: seconde-ch11-dsblanc-02-sujet.pdf
-- num: 3
-  contenu: "Bilan du chapitre"
-  pdf: seconde-ch11-dsblanc-03-sujet.pdf
+- titre: Problèmes de pourcentages
+  sub: Fiche d'exercices corrigés (d'après Sésamath)
+  pdf: seconde-ch11-problemes-pourcentages.pdf
 ds_published: false
 ds:
 - num: 1

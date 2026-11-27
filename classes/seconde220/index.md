@@ -55,7 +55,7 @@ chapitres:
   titre: Probabilités
   url: /classes/seconde220/chapitre16/
 - num: 17
-  titre: "Systèmes d'équations et droites"
+  titre: "Droites parallèles, droites sécantes, point d'intersection"
   url: /classes/seconde220/chapitre17/
 - num: 18
   titre: Échantillonnage

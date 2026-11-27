@@ -1,8 +1,8 @@
 ---
-title: "Chapitre 17 — Systèmes d'équations et droites"
+title: "Chapitre 17 — Droites parallèles, droites sécantes, point d'intersection"
 permalink: /classes/seconde219/chapitre17/
 hero_title: Chapitre 17
-hero_subtitle: "Systèmes d'équations et droites"
+hero_subtitle: "Droites parallèles, droites sécantes, point d'intersection"
 cours:
 - titre: Cours — Version élève
   pdf: seconde-ch17-cours-eleve.pdf
@@ -16,21 +16,17 @@ planches:
 - num: 2
   pdf: seconde-ch17-planche-02.pdf
 dm:
-- num: 1
-  contenu: Systèmes 2×2 · Substitution · Combinaison
-  duree: "1 semaine"
-  pdf: seconde-ch17-dm-01-sujet.pdf
 - num: 2
   contenu: Intersection de droites · Applications
   duree: "1 semaine"
   pdf: seconde-ch17-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
-  contenu: "Systèmes d'équations · Droites"
+  contenu: Position relative · Point d'intersection · Problème
   duree: "55 min"
   pdf: seconde-ch17-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Intersection · Méthodes de résolution
+  contenu: Équations de droites · Point d'intersection · Problèmes
   duree: "55 min"
   pdf: seconde-ch17-dsblanc-02-sujet.pdf
 ds_published: false
