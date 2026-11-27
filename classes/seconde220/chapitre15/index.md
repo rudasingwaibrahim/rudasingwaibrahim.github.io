@@ -31,6 +31,11 @@ ds_blancs:
   contenu: "Parallèles · Sécantes · Intersection"
   duree: "55 min"
   pdf: seconde-ch15-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: seconde-ch15-activites.pdf
+- titre: Activités — Version professeur
+  pdf: seconde-ch15-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

@@ -31,6 +31,11 @@ ds_blancs:
   contenu: Intervalle de confiance · Décision
   duree: "55 min"
   pdf: seconde-ch18-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: seconde-ch18-activites.pdf
+- titre: Activités — Version professeur
+  pdf: seconde-ch18-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

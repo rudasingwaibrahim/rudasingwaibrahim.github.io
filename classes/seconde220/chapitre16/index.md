@@ -61,6 +61,11 @@ ds_blancs:
   contenu: Exercices · Synthèse
   duree: "55 min"
   pdf: seconde-ch16-dsblanc-03-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: seconde-ch16-activites.pdf
+- titre: Activités — Version professeur
+  pdf: seconde-ch16-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

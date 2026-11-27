@@ -20,6 +20,8 @@ dm:
   contenu: Intersection de droites · Applications
   duree: "1 semaine"
   pdf: seconde-ch17-dm-02-sujet.pdf
+- num: 1
+  pdf: seconde-ch17-dm-01-sujet.pdf
 ds_blancs:
 - num: 1
   contenu: Position relative · Point d'intersection · Problème
@@ -29,6 +31,11 @@ ds_blancs:
   contenu: Équations de droites · Point d'intersection · Problèmes
   duree: "55 min"
   pdf: seconde-ch17-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: seconde-ch17-activites.pdf
+- titre: Activités — Version professeur
+  pdf: seconde-ch17-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1
