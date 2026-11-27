@@ -34,6 +34,11 @@ ds_blancs:
   contenu: Factorisation · Produit nul
   duree: "55 min"
   pdf: seconde-ch10-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: seconde-ch10-activites.pdf
+- titre: Activités — Version professeur
+  pdf: seconde-ch10-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

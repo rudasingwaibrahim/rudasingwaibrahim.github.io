@@ -34,6 +34,11 @@ ds_blancs:
   contenu: "Intervalles · Inéquations · Valeur absolue"
   duree: "55 min"
   pdf: seconde-ch8-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: seconde-ch8-activites.pdf
+- titre: Activités — Version professeur
+  pdf: seconde-ch8-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1
