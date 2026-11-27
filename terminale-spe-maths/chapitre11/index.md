@@ -11,6 +11,8 @@ cours:
 planches:
 - num: 1
   pdf: terminale-spe-ch11-planche-01.pdf
+- num: 2
+  pdf: terminale-spe-ch11-planche-02.pdf
 dm_published: false
 dm:
 - num: 1

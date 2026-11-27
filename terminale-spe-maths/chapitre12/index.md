@@ -3,6 +3,11 @@ title: Chapitre 12 — Fonction logarithme 1/2
 permalink: /classes/terminale-spe-maths/chapitre12/
 hero_title: Chapitre 12
 hero_subtitle: Fonction logarithme népérien — Propriétés algébriques, équations et inéquations
+cours:
+- titre: Cours — Version élève
+  pdf: terminale-spe-ch12-cours-eleve.pdf
+- titre: Cours — Version professeur
+  pdf: terminale-spe-ch12-cours-prof.pdf
 planches:
 - num: 1
   pdf: terminale-spe-ch12-planche-01.pdf

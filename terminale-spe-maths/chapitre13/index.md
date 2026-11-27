@@ -3,6 +3,11 @@ title: Chapitre 13 — Fonction logarithme 2/2
 permalink: /classes/terminale-spe-maths/chapitre13/
 hero_title: Chapitre 13
 hero_subtitle: Étude de la fonction ln, dérivée de ln(u), croissances comparées
+cours:
+- titre: Cours — Version élève
+  pdf: terminale-spe-ch13-cours-eleve.pdf
+- titre: Cours — Version professeur
+  pdf: terminale-spe-ch13-cours-prof.pdf
 planches:
 - num: 1
   pdf: terminale-spe-ch13-planche-01.pdf
