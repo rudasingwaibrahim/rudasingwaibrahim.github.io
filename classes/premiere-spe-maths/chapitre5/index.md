@@ -45,7 +45,7 @@ ds:
 erreurs:
 - "Confondre $P(A \\cap B)$ et $P_A(B)$ : sur un arbre, on multiplie le long d'un chemin pour obtenir $P(A \\cap B)$"
 - "Oublier la définition $P_B(A) = \\dfrac{P(A \\cap B)}{P(B)}$, avec $P(B) \\neq 0$"
-- "Confondre indépendants et incompatibles : deux événements incompatibles de probabilités non nulles ne sont jamais indépendants"
+- "Croire que deux événements sans issue commune sont indépendants : si $A \\cap B = \\varnothing$, avec $P(A) \\neq 0$ et $P(B) \\neq 0$, alors $P(A \\cap B) = 0 \\neq P(A) \\times P(B)$"
 - "Mal utiliser la formule des probabilités totales : oublier une branche de la partition"
 - "Sur un arbre, la somme des poids partant d'un même nœud doit valoir 1"
 - "Confondre $P_B(A)$ et $P_A(B)$ : en général, ils sont différents"

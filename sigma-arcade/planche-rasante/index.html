@@ -601,14 +601,14 @@ const CTX1=[
   {lab:'Température à Mamoudzou un matin',v:'t',u:'température (°C)',tu:'heure t (h)',xs:[6,7,8,9,10,11],rate:'°C par heure',dec:['heures par °C','°C','heures'],mean:'hausse moyenne de la température'}];
 function l1q2(){const C=pick(CTX1);let ys,i,j,dy,dx;
   do{ys=[];let y=C.lab.startsWith('Temp')?ri(23,25):ri(4,20);for(const _ of C.xs){ys.push(y);y+=ri(C.lab.startsWith('Temp')?0:-3,C.lab.startsWith('Temp')?2:9)}
-    i=ri(0,C.xs.length-3);j=ri(i+1,C.xs.length-1);dx=C.xs[j]-C.xs[i];dy=ys[j]-ys[i]}while(!dy||!q(dy).div(dx).exact()||q(dy).div(dx).dec().length>5||dx<2);
+    i=ri(0,C.xs.length-3);j=ri(i+1,C.xs.length-1);dx=C.xs[j]-C.xs[i];dy=ys[j]-ys[i]}while(!dy||ys.some(y=>y<0)||!q(dy).div(dx).exact()||q(dy).div(dx).dec().length>5||dx<2);
   const fs={t:'pts',xs:C.xs.map(String),ys:ys.map(String)},tv=q(dy).div(dx),v=vfit(C.xs[0]-.5,C.xs[C.xs.length-1]+.5,ys,2);
-  const tab=`<div class="tvw"><table class="tv"><tr><th>${C.tu}</th>${C.xs.map(x=>`<td>${x}</td>`).join('')}</tr><tr><th>${C.u}</th>${ys.map(y=>`<td>${y}</td>`).join('')}</tr></table></div>`;
+  const tab=`<div class="tvw"><table class="tv"><tr><th>${C.tu}</th>${C.xs.map(x=>`<td>${x}</td>`).join('')}</tr><tr><th>${C.u}</th>${ys.map(y=>`<td>${String(y).replace('-','−')}</td>`).join('')}</tr></table></div>`;
   const ta=C.xs[i],tb=C.xs[j];
   return{spec:{f:fs},scene:sceneOf(fs,v,{title:C.lab,xl:'t',yl:'',mode:'sec',a:s(ta),h:s(dx),lab:{A:'A',M:'B'},tri:true,triLab:'d'}),
     prompt:`${C.lab}&nbsp;:${tab}`,cap0:`La planche relie t = ${ta} et t = ${tb}.`,
-    parts:[fill(`Calcule le taux de variation entre t = ${ta} et t = ${tb}&nbsp;:`,`${frac(`${ys[j]} − ${ys[i]}`,`${tb} − ${ta}`)} = {0}`,[{v:tv,q:tX(ta,tb)}],
-        `On divise la variation de la grandeur (${ys[j]} − ${ys[i]}) par la durée (${tb} − ${ta}).`,{onOk:()=>cap(`pente de la planche = <span class="k">${Dt(tv)}</span>`)}),
+    parts:[fill(`Calcule le taux de variation entre t = ${ta} et t = ${tb}&nbsp;:`,`${frac(`${(v=>v<0?'−'+(-v):v)(ys[j])} − ${(v=>v<0?'(−'+(-v)+')':v)(ys[i])}`,`${tb} − ${ta}`)} = {0}`,[{v:tv,q:tX(ta,tb)}],
+        `On divise la variation de la grandeur (${(v=>v<0?'−'+(-v):v)(ys[j])} − ${(v=>v<0?'(−'+(-v)+')':v)(ys[i])}) par la durée (${tb} − ${ta}).`,{onOk:()=>cap(`pente de la planche = <span class="k">${Dt(tv)}</span>`)}),
       ch(`Ce taux est la ${C.mean}. Son unité est&nbsp;:`,[OK(C.rate,{code:'ok'}),NO(C.dec[0],`On divise la grandeur par le temps, pas l'inverse&nbsp;: l'unité est «&nbsp;unité de la grandeur par unité de temps&nbsp;».`,{code:'no'}),
         NO(C.dec[1],`C'est l'unité de la grandeur elle-même. Un taux de variation est un quotient&nbsp;: grandeur par unité de temps.`,{code:'no'}),NO(C.dec[2],`C'est l'unité du temps. Le taux est un quotient&nbsp;: grandeur par unité de temps.`,{code:'no'})])],
     done:`Entre t = ${ta} et t = ${tb}, le taux de variation vaut ${D(tv)} ${C.rate}&nbsp;: en moyenne, c'est la pente de la planche posée sur ces deux points.`}}
@@ -718,7 +718,7 @@ function l2q5(){const isAbs=Math.random()<.5;
         NO('f′(0) = 100.',`100, c'est T(0,0001). Pour h = 0,000001, T(h) vaut 1 000&nbsp;: les valeurs ne se stabilisent pas.`,{claim:cDeq(0,100)}),
         NO('f′(0) = 0.',`La planche ne se couche pas, elle se redresse&nbsp;: T(h) devient de plus en plus grand.`,{claim:cDeq(0,0)}),
         NO('f′(0) = 1.',`1, c'est T(1). Quand h diminue, T(h) vaut 2, 10, 100… et continue de grandir.`,{claim:cDeq(0,1)})])],
-    done:`Pour h &gt; 0, T(h) = ${frac('√h','h')} = ${frac(1,'√h')}&nbsp;: 10 pour h = 0,01, 100 pour h = 0,0001… T(h) devient aussi grand qu'on veut. La racine carrée n'est pas dérivable en 0 (la planche tend à devenir verticale).`}}
+    done:`Pour h &gt; 0, T(h) = ${frac('√h','h')} = ${frac(1,'√h')}&nbsp;: 10 pour h = 0,01, 100 pour h = 0,0001… T(h) devient aussi grand qu'on veut. La racine carrée n'est pas dérivable en 0 (la pente de la planche devient aussi grande que l'on veut).`}}
 LV.push({t:'La planche raccourcit',s:'h → 0',chap:'Nombre dérivé',rule:rule2,qs:[l2q1,l2q2,l2q3,l2q4,l2q5]});
 
 /* =================================================================== */

@@ -399,7 +399,7 @@ const RULES = {
   R7b: `Probabilités totales : P(B) = P(A ∩ B) + P(${ov('A')} ∩ B)`,
   R7c: `P${sub('B')}(A) = ${fr('P(A ∩ B)', 'P(B)')}, en général différent de P${sub('A')}(B)`,
   R7d: `Les poids issus d'un même nœud ont pour somme 1`,
-  R7e: `Indépendants : P(A ∩ B) = P(A) × P(B)${NB}; incompatibles : P(A ∩ B) = 0`,
+  R7e: `Indépendants : P(A ∩ B) = P(A) × P(B)${NB}; sans issue commune (A ∩ B = ∅) : P(A ∩ B) = 0`,
   R7f: `Répétition : chaque chemin a pour probabilité le produit de ses poids${NB}; compter tous les chemins`,
   R7g: `La somme des probabilités d'une loi vaut 1`,
   R7h: `E(X) = x<sub>1</sub>P(X = x<sub>1</sub>) + … + xₙP(X = xₙ)`,
@@ -1946,10 +1946,10 @@ function g7indep(r, ok) {
   const pA = Q(r.int(1, 6), 10), pB = Q(r.int(1, 8), 10), inc = !ok || r.ch(.5);
   const pAB = inc ? Q(0) : qm(pA, pB);
   const chain = d => {
-    const L0 = inc ? L(`A et B sont incompatibles, donc ${pr('A ∩ B')} = 0.`, eq(0, 0), `A ∩ B = ∅.`) : L(`${pr('A ∩ B')} = ${D(pAB)}`, eq(S(pAB), S(pAB)), `Donnée de l'énoncé.`);
+    const L0 = inc ? L(`A et B n'ont aucune issue commune, donc ${pr('A ∩ B')} = 0.`, eq(0, 0), `A ∩ B = ∅.`) : L(`${pr('A ∩ B')} = ${D(pAB)}`, eq(S(pAB), S(pAB)), `Donnée de l'énoncé.`);
     const L1 = L(`${pr('A')} × ${pr('B')} = ${D(pA)} × ${D(pB)} = ${D(qm(pA, pB))}`, eq(`${S(pA)}*${S(pB)}`, S(qm(pA, pB))), `Produit des probabilités.`);
     let txt, claim;
-    if (d.i === 'inc') { txt = `A et B sont incompatibles, donc ils sont indépendants.`; claim = true; }
+    if (d.i === 'inc') { txt = `A et B n'ont aucune issue commune, donc ils sont indépendants.`; claim = true; }
     else if (d.i === 'zero') { txt = `${pr('A ∩ B')} = 0 : A et B sont indépendants.`; claim = true; }
     else if (d.i === 'eqc') { txt = `${pr('A ∩ B')} = ${pr('A')} × ${pr('B')} : A et B sont indépendants.`; claim = true; }
     else { claim = !inc; txt = inc ? `${pr('A ∩ B')} ≠ ${pr('A')} × ${pr('B')} : A et B ne sont pas indépendants.` : `${pr('A ∩ B')} = ${pr('A')} × ${pr('B')} : A et B sont indépendants.`; }
@@ -1957,9 +1957,9 @@ function g7indep(r, ok) {
     return [L0, L1, L2];
   };
   return mk(r, ok, {
-    name: 'g7indep', ch: [5], d: 1, task: inc ? `A et B sont deux événements incompatibles avec ${pr('A')} = ${D(pA)} et ${pr('B')} = ${D(pB)}. Sont-ils indépendants${NB}?` : `On sait que ${pr('A')} = ${D(pA)}, ${pr('B')} = ${D(pB)} et ${pr('A ∩ B')} = ${D(pAB)}. A et B sont-ils indépendants${NB}?`, chain,
-    okx: inc ? `Incompatibles avec des probabilités non nulles : jamais indépendants. Conclusion juste.` : `${pr('A ∩ B')} = ${pr('A')} × ${pr('B')} : indépendants.`,
-    vars: [{ bad: 2, dec: { i: 'inc' }, alt: [{ i: 'zero' }, { i: 'eqc' }], rule: 'R7e', x: `Incompatibles et indépendants ne signifient pas la même chose : ici ${pr('A ∩ B')} = 0 ≠ ${D(qm(pA, pB))}.` }]
+    name: 'g7indep', ch: [5], d: 1, task: inc ? `A et B sont deux événements sans issue commune (A ∩ B = ∅) avec ${pr('A')} = ${D(pA)} et ${pr('B')} = ${D(pB)}. Sont-ils indépendants${NB}?` : `On sait que ${pr('A')} = ${D(pA)}, ${pr('B')} = ${D(pB)} et ${pr('A ∩ B')} = ${D(pAB)}. A et B sont-ils indépendants${NB}?`, chain,
+    okx: inc ? `Sans issue commune, avec des probabilités non nulles : jamais indépendants. Conclusion juste.` : `${pr('A ∩ B')} = ${pr('A')} × ${pr('B')} : indépendants.`,
+    vars: [{ bad: 2, dec: { i: 'inc' }, alt: [{ i: 'zero' }, { i: 'eqc' }], rule: 'R7e', x: `« Sans issue commune » et « indépendants » ne signifient pas la même chose : ici ${pr('A ∩ B')} = 0 ≠ ${D(qm(pA, pB))}.` }]
   });
 }
 function g7node(r, ok) {

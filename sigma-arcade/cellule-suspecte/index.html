@@ -393,7 +393,7 @@ R('R5_inter', 5, 'P(A ∩ B) = P(A) × P<sub>A</sub>(B) : on multiplie le long d
 R('R5_node', 5, 'Les branches issues d\'un même nœud ont pour somme 1.');
 R('R5_tot', 5, 'Probabilités totales : P(B) = P(A) × P<sub>A</sub>(B) + P(Ā) × P<sub>Ā</sub>(B).');
 R('R5_indep', 5, 'A et B (de probabilités non nulles) sont indépendants ⇔ P(A ∩ B) = P(A) × P(B).');
-R('R5_incomp', 5, 'Deux événements incompatibles de probabilités non nulles ne sont jamais indépendants.');
+R('R5_incomp', 5, 'Deux événements sans issue commune (A ∩ B = ∅), de probabilités non nulles, ne sont jamais indépendants.');
 R('R5_range', 5, 'Une probabilité est toujours comprise entre 0 et 1.');
 R('R5_pp', 5, 'Proportion d\'une proportion : on multiplie les deux proportions.');
 R('R5_forme', 5, 'Une proportion s\'écrit en fraction, en décimal ou en pourcentage : 3/8 = 0,375 = 37,5 %.');
@@ -1172,12 +1172,12 @@ T(5, 'arbre', 2, r => {
   S.file = 'arbre-pondere'; S.title = 'Arbre pondéré';
   S.ctx = `${A} : « ${ctx[2]} » ; ${B} : « ${ctx[3]} ». Hamza a recopié l'arbre dans le tableur.`;
   treeCells(S, A, B, pa, pb, pc);
-  S.l('A10', Pc(B, A)).f('B10', '=B7/B9', F.d3, `${Pc(B, A)} = P(${A} ∩ ${B}) ÷ P(${B}).`, [['=B3', 'R5_inv', `C'est ${Pc(A, B)}, pas ${Pc(B, A)}.`], ['=B7', 'R5_cond', `Il faut diviser P(${A} ∩ ${B}) par P(${B}).`], ['=B9/B7', 'R5_range', 'Le quotient est inversé : un résultat supérieur à 1 ne peut pas être une probabilité.']]);
+  S.l('A10', `P(${ov(B)})`).f('B10', '=1-B9', F.d3, `Événement contraire : P(${ov(B)}) = 1 − P(${B}).`, [['=B9', 'R5_node', `C'est P(${B}) ; on veut l'événement contraire.`], ['=1-B7', 'R5_tot', `Il faut partir de P(${B}) tout entier, pas seulement de P(${A} ∩ ${B}).`], ['=1-B3', 'R5_cond', `C'est ${Pc(A, ov(B))}, une probabilité sachant ${A}, pas P(${ov(B)}).`]]);
   S.trap = 'B10';
   const giv = `P(${A}) = ${fl(pa)}, ${Pc(A, B)} = ${fl(pb)} et ${Pc(ov(A), B)} = ${fl(pc)}`;
   S.fin('B7', 1, `On donne ${giv}. P(${A} ∩ ${B}) =`);
   S.fin('B9', 2, `On donne ${giv}. P(${B}) =`, { steps: 3 });
-  S.fin('B10', 3, `On donne ${giv}. ${Pc(B, A)} =`, { steps: 4 });
+  S.fin('B10', 3, `On donne ${giv}. P(${ov(B)}) =`, { steps: 4 });
   return S;
 });
 
@@ -1193,12 +1193,12 @@ T(5, 'test', 3, r => {
   S.l('A5', 'P(M ∩ T)').f('B5', '=B1*B3', F.g4, 'P(M ∩ T) = P(M) × P<sub>M</sub>(T).', [['=B3', 'R5_inter', 'Il faut multiplier par P(M).'], ['=B1+B3', 'R5_inter', 'Le long d\'un chemin, on multiplie.']]);
   S.l('A6', `P(${ov('M')} ∩ T)`).f('B6', '=B2*B4', F.g4, 'P(M̄ ∩ T) = P(M̄) × P<sub>M̄</sub>(T).', [['=B1*B4', 'R5_inter', 'Le chemin passe par M̄ : on multiplie par P(M̄).']]);
   S.l('A7', 'P(T)').f('B7', '=B5+B6', F.g4, 'Probabilités totales : P(T) = P(M ∩ T) + P(M̄ ∩ T).', [['=B3+B4', 'R5_tot', 'On a oublié de pondérer par P(M) et P(M̄).'], ['=B5', 'R5_tot', 'Il manque le chemin des personnes saines testées positives.']]);
-  S.l('A8', Pc('T', 'M')).f('B8', '=B5/B7', F.d3, 'P<sub>T</sub>(M) = P(M ∩ T) ÷ P(T).', [['=B3', 'R5_inv', 'C\'est P<sub>M</sub>(T) : probabilité d\'un test positif chez un malade, pas l\'inverse.'], ['=B5', 'R5_cond', 'Il faut diviser P(M ∩ T) par P(T).'], ['=B7/B5', 'R5_range', 'Quotient inversé : une probabilité ne dépasse pas 1.']]);
+  S.l('A8', `P(${ov('T')})`).f('B8', '=1-B7', F.d3, 'Événement contraire : P(T̄) = 1 − P(T).', [['=B7', 'R5_node', 'C\'est P(T) ; on veut la probabilité d\'un test négatif.'], ['=1-B5', 'R5_tot', 'Il faut partir de P(T) tout entier, pas seulement de P(M ∩ T).'], ['=1-B3', 'R5_cond', 'C\'est P<sub>M</sub>(T̄), une probabilité sachant M, pas P(T̄).']]);
   S.tree = { A: 'M', B: 'T', root: ['B1', 'B2'], a: ['B3', null], na: ['B4', null] };
   S.trap = 'B8';
   const giv = `P(M) = ${fl(m)}, P<sub>M</sub>(T) = ${fl(s)} et P<sub>M̄</sub>(T) = ${fl(f)}`;
   S.fin('B7', 2, `Pour un test de dépistage, ${giv}. P(T) =`, { steps: 3 });
-  S.fin('B8', 3, `Pour un test de dépistage, ${giv}. La probabilité qu'une personne testée positive soit malade, P<sub>T</sub>(M), vaut :`, { steps: 4 });
+  S.fin('B8', 3, `Pour un test de dépistage, ${giv}. La probabilité qu'une personne ait un test négatif, P(T̄), vaut :`, { steps: 4 });
   S.fin('B5', 1, `Pour un test de dépistage, ${giv}. P(M ∩ T) =`);
   return S;
 });
@@ -1214,11 +1214,11 @@ T(5, 'indep', 1, r => {
   S.l('A1', 'P(A)').d('B1', pa, F.g4).l('A2', 'P(B)').d('B2', pb, F.g4).l('A3', 'P(A ∩ B)').d('B3', pab, F.g4);
   S.l('A4', 'P(A) × P(B)').f('B4', '=B1*B2', F.g4, 'Produit des deux probabilités.', [['=B1+B2', 'R5_indep', 'On compare P(A ∩ B) au produit P(A) × P(B), pas à la somme.']]);
   S.l('A5', Pc('A', 'B')).f('B5', '=B3/B1', F.g4, 'P<sub>A</sub>(B) = P(A ∩ B) ÷ P(A).', [['=B3*B1', 'R5_cond', 'P<sub>A</sub>(B) = P(A ∩ B) ÷ P(A) : on divise.'], ['=B1/B3', 'R5_range', 'Quotient inversé : une probabilité ne dépasse pas 1.']]);
-  const yes = kind === 'I', Y = 'indépendants', NO = 'non indépendants', INC = 'incompatibles donc indépendants', NC = 'on ne peut pas conclure';
-  const alts = [[yes ? NO : Y, kind === 'X' ? 'R5_incomp' : 'R5_indep', kind === 'X' ? 'Incompatibles ne veut pas dire indépendants : ici P(A ∩ B) = 0 alors que P(A) × P(B) ≠ 0.' : yes ? 'P(A ∩ B) est bien égal à P(A) × P(B).' : 'P(A ∩ B) est différent de P(A) × P(B).'],
+  const yes = kind === 'I', Y = 'indépendants', NO = 'non indépendants', INC = 'sans issue commune, donc indépendants', NC = 'on ne peut pas conclure';
+  const alts = [[yes ? NO : Y, kind === 'X' ? 'R5_incomp' : 'R5_indep', kind === 'X' ? '« Sans issue commune » ne veut pas dire indépendants : ici P(A ∩ B) = 0 alors que P(A) × P(B) ≠ 0.' : yes ? 'P(A ∩ B) est bien égal à P(A) × P(B).' : 'P(A ∩ B) est différent de P(A) × P(B).'],
     [NC, 'R5_indep', 'Les données suffisent : on compare P(A ∩ B) et P(A) × P(B).']];
-  if (kind === 'X') alts.push([INC, 'R5_incomp', 'Deux événements incompatibles de probabilités non nulles ne sont jamais indépendants.']);
-  S.l('A6', 'Conclusion').m('B6', yes ? Y : NO, null, yes ? 'P(A ∩ B) = P(A) × P(B) : A et B sont indépendants.' : kind === 'X' ? 'P(A ∩ B) = 0 ≠ P(A) × P(B) : A et B, incompatibles, ne sont pas indépendants.' : 'P(A ∩ B) ≠ P(A) × P(B) : A et B ne sont pas indépendants.', alts, kind === 'X' ? {} : { extra: [INC] });
+  if (kind === 'X') alts.push([INC, 'R5_incomp', 'Deux événements sans issue commune (A ∩ B = ∅), de probabilités non nulles, ne sont jamais indépendants.']);
+  S.l('A6', 'Conclusion').m('B6', yes ? Y : NO, null, yes ? 'P(A ∩ B) = P(A) × P(B) : A et B sont indépendants.' : kind === 'X' ? 'P(A ∩ B) = 0 ≠ P(A) × P(B) : A et B, sans issue commune, ne sont pas indépendants.' : 'P(A ∩ B) ≠ P(A) × P(B) : A et B ne sont pas indépendants.', alts, kind === 'X' ? {} : { extra: [INC] });
   S.trap = 'B6';
   S.fin('B6', 1, `On donne P(A) = ${fl(pa)}, P(B) = ${fl(pb)} et P(A ∩ B) = ${fl(pab)}. Que peut-on conclure pour les événements A et B ?`, { trous: false });
   S.fin('B5', 1, `On donne P(A) = ${fl(pa)} et P(A ∩ B) = ${fl(pab)}. P<sub>A</sub>(B) =`);

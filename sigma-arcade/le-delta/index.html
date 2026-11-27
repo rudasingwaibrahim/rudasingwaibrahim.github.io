@@ -172,7 +172,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 <header>
 <a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
 <h1>Le Delta</h1>
-<p>Une population s'écoule comme un fleuve et se ramifie en delta&nbsp;: chaque bras a l'épaisseur de son poids. «&nbsp;Sachant A&nbsp;», on ferme tous les autres bras et le bras A devient le fleuve entier. Les morceaux de B se rejoignent à la confluence… et l'on peut même remonter le courant.</p>
+<p>Une population s'écoule comme un fleuve et se ramifie en delta&nbsp;: chaque bras a l'épaisseur de son poids. «&nbsp;Sachant A&nbsp;», on ferme tous les autres bras et le bras A devient le fleuve entier. Les morceaux de B se rejoignent à la confluence….</p>
 </header>
 <nav class="lv" id="lv" aria-label="Niveaux"></nav>
 <main class="app">
@@ -989,56 +989,12 @@ LV.push({t:'La confluence',badge:'Niveau 5 · Probabilités totales',
    done:`${P(D.b)} = ${dec(PB)} et ${P(nb(D))} = ${dec(comp(PB))}.`}}]});
 
 /* =====================================================================
-   Niveau 6 · Remonter le courant (P_B(A) = P(A ∩ B) / P(B))
+   Niveau 6 · Toute la rivière (synthèse : arbre et probabilités totales)
    ===================================================================== */
 const bayesLab=(D,t)=>t;
-LV.push({t:'Remonter le courant',badge:'Niveau 6 · Sachant B, d\'où vient-on ?',
- rule:`<p>Pour «&nbsp;remonter&nbsp;» l'arbre, on applique la définition&nbsp;: ${P('A','B')} = ${frH(P('A ∩ B'),P('B'))}, avec ${P('B')} donnée par la formule des probabilités totales.</p><p>Exemple du cours (test médical)&nbsp;: ${P('M')} = 0,02, ${P('T','M')} = 0,85, ${P('T','~M')} = 0,05. ${P('T')} = 0,017 + 0,049 = 0,066 et ${P('M','T')} = ${frH('0,017','0,066')} ≈ 0,26.</p><p>Même si le test est positif, il n'y a qu'environ 26&nbsp;% de chance d'être malade&nbsp;: la maladie est rare.</p><p>Sur la scène, la confluence B devient le nouvel univers&nbsp;: on regarde de quel bras vient chaque morceau.</p>`,
- qs:[
- ()=>{let T0;for(let n=0;n<100;n++){T0=TR({ctx:1});const D=T0.D,b=round(V('by:0',D),2);if(dist([b,D.q[0],D.p[0],round(V('PB',D),2)])&&ndec(V('PB',D))<=4)break}
-  const {Y,D}=T0,l0=V('l:0:0',D),PB=V('PB',D),by=V('by:0',D),ap=round(by,2);
-  return{D,setup:()=>S.reset(tr(D),Object.assign(wl(D),{leaf:[[lv(l0),null],[lv(V('l:1:0',D)),null]],merged:'?'})),cap0:'Un test positif… mais d\'où vient-il&nbsp;?',
-   prompt:`${Y.story(D)} ${defsY(Y,D)} Le test d'une personne est positif. Quelle est la probabilité qu'elle soit malade&nbsp;?`,
-   parts:[act('Réunir les tests positifs',async()=>{await S.merge()}),
-    fill('',`${P('T')} = {0}`,[BV(D,'PB')],`${P('T')} = ${dec(l0)} + ${dec(V('l:1:0',D))}.`,{onOk:()=>{S.setLab('merged','!'+lv(PB));cap(`${P('T')} = <span class="k">${dec(PB)}</span>`)}}),
-    act('Sachant T&nbsp;: remonter le courant',async()=>{S.lab({bayes:'?'});cap('Les tests positifs deviennent le nouvel univers');await S.bayes()}),
-    fill('Part du bras M dans la confluence&nbsp;:',`${P('M','T')} = ${frH(P('M ∩ T'),P('T'))} = {0} / {1}`,[BV(D,'l:0:0'),BV(D,'PB')],`Numérateur&nbsp;: le morceau venu de M, ${dec(l0)}. Dénominateur&nbsp;: toute la confluence, ${dec(PB)}.`),
-    ch(`Donc ${P('M','T')} ≈`,[OK(dec(ap,2),{v:ap,approx:2}),
-      NO(dec(D.q[0]),`${dec(D.q[0])}, c'est ${P('T','M')}&nbsp;: la fiabilité du test chez les malades. Ici, on se place parmi les tests positifs.`,{v:D.q[0]}),
-      NO(dec(D.p[0]),`${dec(D.p[0])}, c'est ${P('M')}&nbsp;: la part des malades dans toute la population.`,{v:D.p[0]})],
-     {what:'by:0',onOk:()=>{S.setLab('bayes','!'+`_TP(M) ≈ ${dec(ap,2)}`.replace('_TP','P_T'));cap(`${P('M','T')} ≈ <span class="k">${dec(ap,2)}</span>`)}})],
-   done:cmp(ap,R(1,2))<0?`${P('M','T')} = ${frH(dec(l0),dec(PB))} ≈ ${dec(ap,2)}&nbsp;: même avec un test positif, la probabilité d'être malade n'est que d'environ ${dec(mul(ap,R(100)))}&nbsp;%, car la maladie est rare.`
-     :`${P('M','T')} = ${frH(dec(l0),dec(PB))} ≈ ${dec(ap,2)}&nbsp;: environ ${dec(mul(ap,R(100)))}&nbsp;% des tests positifs correspondent à des malades. Ce n'est pas ${P('T','M')} = ${dec(D.q[0])}.`}},
- ()=>{const D=TA(D=>{const b=V('by:0',D);return isDec(b)&&ndec(b)<=2&&ndec(V('PB',D))<=3&&!eq(b,D.q[0])}),PB=V('PB',D),by=V('by:0',D);
-  return{D,setup:()=>S.reset(tr(D),Object.assign(wl(D),{leaf:[[lv(V('l:0:0',D)),null],[lv(V('l:1:0',D)),null]],merged:'?'})),cap0:'Remonter de B vers A',
-   prompt:`On donne ${P('A')} = ${dec(D.p[0])}, ${P('B','A')} = ${dec(D.q[0])} et ${P('B','~A')} = ${dec(D.q[1])}. On cherche ${P('A','B')}.`,
-   parts:[act('Réunir les morceaux de B',async()=>{await S.merge()}),
-    fill('',`${P('B')} = {0}`,[BV(D,'PB')],`${P('B')} = ${dec(V('l:0:0',D))} + ${dec(V('l:1:0',D))}.`,{onOk:()=>{S.setLab('merged','!'+lv(PB))}}),
-    act('Sachant B&nbsp;: remonter le courant',async()=>{S.lab({bayes:'?'});await S.bayes()}),
-    fill('',`${P('A','B')} = ${frH(P('A ∩ B'),P('B'))} = {0}`,[BV(D,'by:0')],`${dec(V('l:0:0',D))} ÷ ${dec(PB)}.`,
-     {onOk:()=>{S.setLab('bayes',`!P_B(A) = ${lv(by)}`);cap(`${P('A','B')} = <span class="k">${dec(by)}</span>`)}})],
-   done:`${P('A','B')} = ${frH(dec(V('l:0:0',D)),dec(PB))} = ${dec(by)}, alors que ${P('B','A')} = ${dec(D.q[0])}.`}},
- ()=>{const {Y,D}=TR({only:[0,2,4,6]}),PB=V('PB',D),by=V('by:0',D),ap=round(by,2);
-  return{D,setup:()=>S.reset(tr(D),Object.assign(wl(D),{merged:'?'})),cap0:'D\'abord, lire la question',
-   prompt:`${Y.story(D)} ${defsY(Y,D)} On sait que ${Y.bI[0]}. Quelle est la probabilité ${Y.fQ[0]}&nbsp;?`,
-   parts:[ch('Quelle notation convient ?',[OK(NT('by:0',D),{nt:'by:0'}),
-      NO(NT('q:0',D),`${NT('q:0',D)}&nbsp;: on se placerait dans ${ev(D.f[0])}. Or on sait que ${ev(D.b)} est réalisé&nbsp;: c'est ${ev(D.b)} qui va en indice.`,{nt:'q:0'}),
-      NO(NT('l:0:0',D),`${NT('l:0:0',D)}&nbsp;: aucune restriction. Ici, on sait que ${ev(D.b)} est réalisé.`,{nt:'l:0:0'})],{what:'by:0'}),
-    act(`Réunir ${ev(D.b)}, puis remonter le courant`,async()=>{S.lab({leaf:[[lv(V('l:0:0',D)),null],[lv(V('l:1:0',D)),null]]});await S.merge();S.setLab('merged','!'+lv(PB));S.lab({bayes:'?'});await S.bayes()}),
-    fill('Arrondis au centième.',`${NT('by:0',D)} = ${frH(dec(V('l:0:0',D)),dec(PB))} ≈ {0}`,[BV(D,'by:0',{approx:2})],`Divise ${dec(V('l:0:0',D))} par ${dec(PB)}, puis arrondis au centième.`,
-     {onOk:()=>{S.setLab('bayes',`!≈ ${dec(ap,2)}`);cap(`${NT('by:0',D)} ≈ <span class="k">${dec(ap,2)}</span>`)}})],
-   done:`${NT('by:0',D)} = ${frH(NT('l:0:0',D),P(D.b))} ≈ ${dec(ap,2)}.`}},
- ()=>{const {Y,D}=TR({ctx:2,test:D=>!eq(round(V('by:0',D),2),round(V('by:1',D),2))}),PB=V('PB',D),b0=V('by:0',D),b1=V('by:1',D),a0=round(b0,2),a1=round(b1,2),big=cmp(b0,b1)>0?0:1;
-  return{D,setup:()=>S.reset(tr(D),Object.assign(wl(D),{merged:'?'})),cap0:'Une pièce défectueuse&nbsp;: A ou B&nbsp;?',
-   prompt:`${Y.story(D)} ${defsY(Y,D)} Une pièce est défectueuse. Vient-elle plutôt de la machine A ou de la machine B&nbsp;?`,
-   parts:[act('Réunir les pièces défectueuses',async()=>{S.lab({leaf:[[lv(V('l:0:0',D)),null],[lv(V('l:1:0',D)),null]]});await S.merge()}),
-    fill('',`${P('D')} = {0}`,[BV(D,'PB')],`${dec(V('l:0:0',D))} + ${dec(V('l:1:0',D))}.`,{onOk:()=>S.setLab('merged','!'+lv(PB))}),
-    act('Sachant D&nbsp;: remonter le courant',async()=>{await S.bayes()}),
-    fill('Arrondis au centième.',`${P('A','D')} ≈ {0} et ${P('~A','D')} ≈ {1}`,[BV(D,'by:0',{approx:2}),BV(D,'by:1',{approx:2})],
-     `${frH(dec(V('l:0:0',D)),dec(PB))} et ${frH(dec(V('l:1:0',D)),dec(PB))}, arrondis au centième.`,{onOk:()=>{S.setLab('bayes',`!A : ${dec(a0,2)} · B : ${dec(a1,2)}`)}}),
-    ch('Conclusion&nbsp;:',[OK(`Plutôt de la machine ${big?'B':'A'}`),NO(`Plutôt de la machine ${big?'A':'B'}`,`Compare ${dec(a0,2)} et ${dec(a1,2)}&nbsp;: la plus grande part de la confluence D vient de la machine ${big?'B':'A'}.`),
-      NO('On ne peut pas savoir','On peut&nbsp;: les deux probabilités sachant D se comparent directement.')])],
-   done:`${P('A','D')} ≈ ${dec(a0,2)} et ${P('~A','D')} ≈ ${dec(a1,2)}&nbsp;: une pièce défectueuse vient plutôt de la machine ${big?'B':'A'}.`}}]});
+LV.push({t:'Toute la rivière',badge:'Niveau 6 · Synthèse : arbre et probabilités totales',
+ rule:`<p>Pour calculer une probabilité avec un arbre pondéré&nbsp;: on lit les probabilités conditionnelles sur les branches, on multiplie le long d'un chemin pour obtenir une intersection, puis on additionne les chemins qui mènent au même événement (formule des probabilités totales).</p><p>Exemple&nbsp;: ${P('M')} = 0,02, ${P('T','M')} = 0,85 et ${P('T','~M')} = 0,05 donnent ${P('T')} = 0,02 × 0,85 + 0,98 × 0,05 = 0,017 + 0,049 = 0,066.</p>`,
+ qs:[()=>LV[2].qs[1](),()=>LV[3].qs[2](),()=>LV[4].qs[1](),()=>LV[4].qs[3]()]});
 
 /* =====================================================================
    Niveau 7 · Indépendance
@@ -1082,7 +1038,7 @@ LV.push({t:'Indépendance',badge:'Niveau 7 · Indépendance',
    parts:[fill('Calcule le produit.',`${P('A')} × ${P('B')} = {0}`,[BV(D,'prod')],`${dec(pA)} × ${dec(pB)}.`),
     ch('',[OK(ind?`Oui&nbsp;: ${P('A')} × ${P('B')} = ${P('A ∩ B')}`:`Non&nbsp;: ${P('A')} × ${P('B')} = ${dec(pr)} ≠ ${dec(pI)}`),
       ind?NO(`Non&nbsp;: ${P('A')} × ${P('B')} ≠ ${P('A ∩ B')}`,`${dec(pr)} = ${dec(pI)}&nbsp;: l'égalité est vraie.`):NO(`Oui&nbsp;: ${P('A')} × ${P('B')} = ${P('A ∩ B')}`,`${dec(pr)} ≠ ${dec(pI)}&nbsp;: l'égalité est fausse.`),
-      NO(`Oui, car ${P('A ∩ B')} ≠ 0`,'Indépendants ne veut pas dire incompatibles&nbsp;: on teste '+P('A ∩ B')+' = '+P('A')+' × '+P('B')+'.')],
+      NO(`Oui, car ${P('A ∩ B')} ≠ 0`,'Avoir des issues communes ne suffit pas&nbsp;: on teste '+P('A ∩ B')+' = '+P('A')+' × '+P('B')+'.')],
      {onOk:async()=>{S.lab({b2:T.q.map(q=>[lv(q),lv(comp(q))])});await S.gauges()}})],
    done:`${P('A')} × ${P('B')} = ${dec(pr)} ${ind?'=':'≠'} ${P('A ∩ B')} = ${dec(pI)}&nbsp;: ${ind?'A et B sont indépendants':'A et B ne sont pas indépendants'}.`}},
  ()=>{const ind=Math.random()<.5,{X,D,r,k,t}=TB({indep:ind}),w0='P:k0',w1='Pr:0:0',v0=V(w0,D),v1=V(w1,D),same=eq(v0,v1);
@@ -1145,7 +1101,7 @@ const BRONZE={qcm:[
     `Définition&nbsp;: ${P('A','B')} = ${frH(P('A ∩ B'),P('B'))} = ${frH(dec(l),dec(PB))} = ${dec(by)}.`,M('vals',D,{what:'by:0',vals:[by,mul(l,PB),l],steps:1,mx:dg(by)}))}},
  {lv:7,f:()=>{const D=PAB(true),{pA,pB}=D,pr=mul(pA,pB);
    return qcm(7,`A et B sont indépendants, ${P('A')} = ${dec(pA)} et ${P('B')} = ${dec(pB)}. Alors ${P('A ∩ B')} =`,dec(pr),[dec(add(pA,pB)),'0'],
-    `Indépendants&nbsp;: ${P('A ∩ B')} = ${P('A')} × ${P('B')} = ${dec(pA)} × ${dec(pB)} = ${dec(pr)}. Attention&nbsp;: indépendants ne veut pas dire incompatibles.`,M('vals',D,{what:'prod',vals:[pr,add(pA,pB),R(0)],steps:1,mx:dg(pr)}))}}],
+    `Indépendants&nbsp;: ${P('A ∩ B')} = ${P('A')} × ${P('B')} = ${dec(pA)} × ${dec(pB)} = ${dec(pr)}. Attention&nbsp;: indépendants ne veut pas dire «&nbsp;sans issue commune&nbsp;».`,M('vals',D,{what:'prod',vals:[pr,add(pA,pB),R(0)],steps:1,mx:dg(pr)}))}}],
 trous:[
  {lv:1,f:()=>{const {X,D,r,t}=TB(),i=ri(0,1),j=ri(0,1),c=D.c[i][j],w=`Pr:${i}:${j}`;
    return trous(1,`${X.intro(F(t))}${tabH(D,X)}${defsT(D,X)} ${NT(w,D)} = {0}`,[BL(D,w,{extra:[`${c}/${r[i]}`]})],`On reste dans la ligne ${ev(D.r[i])}&nbsp;: ${NT(w,D)} = ${frH(F(c),F(r[i]))} = ${numH(V(w,D))}.`,M('fill',D,{what:[w],steps:1,mx:1}))}},
@@ -1184,11 +1140,9 @@ const ARGENT={qcm:[
    const {Y,D}=T0,[q0,q1]=D.q,vs=[V('PB',D),add(q0,q1),div(add(q0,q1),R(2)),mul(D.p[0],q0)];
    return qcm(5,`${Y.story(D)} ${defsY(Y,D)} ${P(D.b)} =`,dec(vs[0]),vs.slice(1).map(dec),
     `Probabilités totales&nbsp;: ${P(D.b)} = ${dec(D.p[0])} × ${dec(q0)} + ${dec(D.p[1])} × ${dec(q1)} = ${dec(vs[0])}.`,M('vals',D,{what:'PB',vals:vs,steps:2,mx:dg(vs[0])}))}},
- {lv:6,f:()=>{let T0;for(let n=0;n<100;n++){T0=TR({ctx:1});const D=T0.D;if(dist([round(V('by:0',D),2),D.q[0],D.p[0]]))break}
-   const {Y,D}=T0,ap=round(V('by:0',D),2),vs=[ap,D.q[0],D.p[0]];
-   return qcm(6,`${Y.story(D)} ${defsY(Y,D)} Arrondie au centième, ${P('M','T')} vaut&nbsp;:`,dec(ap,2),[dec(D.q[0]),dec(D.p[0])],
-    `${P('T')} = ${dec(V('l:0:0',D))} + ${dec(V('l:1:0',D))} = ${dec(V('PB',D))}, puis ${P('M','T')} = ${frH(dec(V('l:0:0',D)),dec(V('PB',D)))} ≈ ${dec(ap,2)}. Ne pas confondre avec ${P('T','M')} = ${dec(D.q[0])}.`,
-    M('vals',D,{what:'by:0',approx:2,vals:vs,steps:3,mx:4}))}},
+ {lv:6,f:()=>{const D=TA(D=>{const b=V('by:0',D);return isDec(b)&&ndec(b)<=2&&ndec(V('PB',D))<=2&&!eq(b,R(1,2))&&dist([comp(b),b,comp(V('l:0:0',D))])}),l=V('l:0:0',D),PB=V('PB',D),by=V('by:0',D);
+   return qcm(6,`${P('A ∩ B')} = ${dec(l)} et ${P('B')} = ${dec(PB)}. Alors ${P('~A','B')} =`,dec(comp(by)),[dec(by),dec(comp(l))],
+    `${P('A','B')} = ${frH(dec(l),dec(PB))} = ${dec(by)}, puis ${P('~A','B')} = 1 − ${dec(by)} = ${dec(comp(by))}&nbsp;: sachant B, A et ${ev('~A')} se partagent tout l'univers.`,M('vals',D,{what:'by:1',vals:[comp(by),by,comp(l)],steps:2,mx:dg(by)}))}},
  {lv:7,f:()=>{const ind=Math.random()<.5,D=PAB(ind),{pA,pB,pI}=D,pr=mul(pA,pB);
    const good=ind?`Oui, car ${P('A')} × ${P('B')} = ${dec(pr)} = ${P('A ∩ B')}`:`Non, car ${P('A')} × ${P('B')} = ${dec(pr)} ≠ ${P('A ∩ B')}`;
    const bad=[ind?`Non, car ${P('A')} × ${P('B')} ≠ ${P('A ∩ B')}`:`Oui, car ${P('A')} × ${P('B')} = ${P('A ∩ B')}`,`Oui, car ${P('A ∩ B')} ≠ 0`];
@@ -1208,24 +1162,18 @@ trous:[
    return trous(4,`${P('A')} = ${dec(D.p[0])} et ${P('A ∩ B')} = ${dec(l)}. Alors ${P('B','A')} = {0}.`,[BL(D,'q:0')],`${P('B','A')} = ${frH(P('A ∩ B'),P('A'))} = ${frH(dec(l),dec(D.p[0]))} = ${dec(D.q[0])}.`,M('fill',D,{what:['q:0'],steps:2,mx:dg(D.q[0])}))}},
  {lv:5,f:()=>{const {Y,D}=TR();
    return trous(5,`${Y.story(D)} ${defsY(Y,D)} ${P(D.b)} = {0}`,[BL(D,'PB')],`${dec(D.p[0])} × ${dec(D.q[0])} + ${dec(D.p[1])} × ${dec(D.q[1])} = ${dec(V('PB',D))}.`,M('fill',D,{what:['PB'],steps:2,mx:dg(V('PB',D))}))}},
- {lv:6,f:()=>{const D=TA(D=>{const b=V('by:0',D);return isDec(b)&&ndec(b)<=2&&ndec(V('PB',D))<=3});
-   return trous(6,`On donne ${P('A')} = ${dec(D.p[0])}, ${P('B','A')} = ${dec(D.q[0])} et ${P('B','~A')} = ${dec(D.q[1])}. Alors ${P('B')} = {0} et ${P('A','B')} = {1}.`,[BL(D,'PB'),BL(D,'by:0')],
-    `${P('B')} = ${dec(V('l:0:0',D))} + ${dec(V('l:1:0',D))} = ${dec(V('PB',D))}, puis ${P('A','B')} = ${frH(dec(V('l:0:0',D)),dec(V('PB',D)))} = ${dec(V('by:0',D))}.`,M('fill',D,{what:['PB','by:0'],steps:2,mx:dg(V('PB',D))}))}},
+ {lv:6,f:()=>{const D=TA(D=>{const b=V('by:0',D);return isDec(b)&&ndec(b)<=2&&ndec(V('PB',D))<=3}),l=V('l:0:0',D),PB=V('PB',D);
+   return trous(6,`${P('A ∩ B')} = ${dec(l)} et ${P('B')} = ${dec(PB)}. Alors ${P('A','B')} = {0} et ${P('~A','B')} = {1}.`,[BL(D,'by:0'),BL(D,'by:1')],
+    `${P('A','B')} = ${frH(dec(l),dec(PB))} = ${dec(V('by:0',D))}, puis ${P('~A','B')} = 1 − ${dec(V('by:0',D))}.`,M('fill',D,{what:['by:0','by:1'],steps:2,mx:dg(V('by:0',D))}))}},
  {lv:7,f:()=>{const E=pick(DICE),D={type:'tree',f:E.f,b:E.b,p:E.p,q:E.q};
    return trous(7,`${E.txt} ${P(D.b)} = {0} et ${NT('q:0',D)} = {1}${isDec(V('PB',D))&&isDec(D.q[0])?'':' (sous forme de fractions)'}.`,[BL(D,'PB'),BL(D,'q:0')],
     `${P(D.b)} = ${numH(V('PB',D))} et ${NT('q:0',D)} = ${numH(D.q[0])}&nbsp;: ${eq(V('PB',D),D.q[0])?'égales, donc indépendants':'différentes, donc pas indépendants'}.`,M('fill',D,{what:['PB','q:0'],steps:2,mx:2,dice:E.txt}))}}]};
 
 /* ===================== Or · L'expert (plusieurs étapes, situations) ===================== */
 const OR={qcm:[
- {lv:6,f:()=>{let T0;for(let n=0;n<100;n++){T0=TR({ctx:1});const D=T0.D;if(dist([round(V('by:0',D),2),D.q[0],round(V('PB',D),2),D.p[0]]))break}
-   const {Y,D}=T0,ap=round(V('by:0',D),2),vs=[ap,D.q[0],round(V('PB',D),2),D.p[0]];
-   return qcm(6,`${Y.story(D)} Le test d'une personne est positif. La probabilité qu'elle soit malade, arrondie au centième, est&nbsp;:`,dec(ap,2),[dec(D.q[0]),dec(vs[2],2),dec(D.p[0])],
-    `${P('T')} = ${dec(V('PB',D))} puis ${P('M','T')} = ${frH(dec(V('l:0:0',D)),dec(V('PB',D)))} ≈ ${dec(ap,2)}${cmp(ap,R(1,2))<0?'&nbsp;: la maladie est rare, beaucoup de tests positifs viennent de personnes saines':''}. Ne pas confondre avec ${P('T','M')} = ${dec(D.q[0])}.`,
-    M('vals',D,{what:'by:0',approx:2,vals:vs,steps:3,mx:4}))}},
- {lv:6,f:()=>{const {Y,D}=TR({ctx:2,test:D=>!eq(round(V('by:0',D),2),round(V('by:1',D),2))}),a0=round(V('by:0',D),2),a1=round(V('by:1',D),2),big=cmp(a0,a1)>0?0:1,nm=['A','B'];
-   return qcm(6,`${Y.story(D)} Une pièce prise au hasard est défectueuse. Elle vient plutôt de&nbsp;:`,`la machine ${nm[big]}, car ${P(D.f[big],'D')} ≈ ${dec(big?a1:a0,2)}`,
-    [`la machine ${nm[1-big]}, car ${P(D.f[1-big],'D')} ≈ ${dec(big?a0:a1,2)}`,'on ne peut pas conclure sans le nombre de pièces'],
-    `${P('A','D')} ≈ ${dec(a0,2)} et ${P('~A','D')} ≈ ${dec(a1,2)}&nbsp;: la plus grande part des pièces défectueuses vient de la machine ${nm[big]}.`,M('usine',D,{big,steps:3,mx:4}))}},
+ {lv:6,f:()=>{const D=TA(D=>{const b=V('by:0',D);return isDec(b)&&ndec(b)<=2&&ndec(V('PB',D))<=3&&!eq(b,R(1,2))&&dist([comp(b),b,comp(V('l:0:0',D))])}),l=V('l:0:0',D),PB=V('PB',D),by=V('by:0',D);
+   return qcm(6,`${P('A ∩ B')} = ${dec(l)} et ${P('B')} = ${dec(PB)}. Alors ${P('~A','B')} =`,dec(comp(by)),[dec(by),dec(comp(l))],
+    `${P('A','B')} = ${frH(dec(l),dec(PB))} = ${dec(by)}, puis ${P('~A','B')} = 1 − ${dec(by)} = ${dec(comp(by))}&nbsp;: sachant B, A et ${ev('~A')} se partagent tout l'univers.`,M('vals',D,{what:'by:1',vals:[comp(by),by,comp(l)],steps:2,mx:dg(by)}))}},
  {lv:7,f:()=>{const ind=Math.random()<.5,{X,D,t}=TB({indep:ind}),a=V('Pr:0:0',D),b=V('P:k0',D);
    const good=ind?`Oui&nbsp;: ${NT('Pr:0:0',D)} = ${NT('P:k0',D)} = ${numH(b)}`:`Non&nbsp;: ${NT('Pr:0:0',D)} = ${numH(a)} et ${NT('P:k0',D)} = ${numH(b)}`;
    const bad=[ind?`Non&nbsp;: ${NT('Pr:0:0',D)} ≠ ${NT('P:k0',D)}`:`Oui&nbsp;: ${NT('Pr:0:0',D)} = ${NT('P:k0',D)}`,'On ne peut pas savoir sans arbre'];
@@ -1251,9 +1199,9 @@ trous:[
  {lv:5,f:()=>{const {Y,D}=TR();
    return trous(5,`${Y.story(D)} ${defsY(Y,D)} ${P(D.f[1])} = {0} et ${P(D.b)} = {1}.`,[BL(D,'p:1'),BL(D,'PB')],
     `${P(D.f[1])} = 1 − ${dec(D.p[0])}&nbsp;; ${P(D.b)} = ${dec(D.p[0])} × ${dec(D.q[0])} + ${dec(D.p[1])} × ${dec(D.q[1])} = ${dec(V('PB',D))}.`,M('fill',D,{what:['p:1','PB'],steps:3,mx:dg(V('PB',D))}))}},
- {lv:6,f:()=>{const {Y,D}=TR({only:[0,2,4,6],test:D=>!isDec(V('by:0',D))||ndec(V('by:0',D))>2});
-   return trous(6,`${Y.story(D)} ${defsY(Y,D)} On sait que ${Y.bI[0]}. La probabilité ${Y.fQ[0]}, arrondie au centième, est {0}.`,[BL(D,'by:0',{approx:2})],
-    `${P(D.b)} = ${dec(V('PB',D))}, puis ${NT('by:0',D)} = ${frH(dec(V('l:0:0',D)),dec(V('PB',D)))} ≈ ${dec(round(V('by:0',D),2),2)}.`,M('fill',D,{what:['by:0'],approx:[2],steps:3,mx:4}))}},
+ {lv:6,f:()=>{const D=TA(D=>{const b=V('by:0',D);return isDec(b)&&ndec(b)<=2&&ndec(V('PB',D))<=4}),l=V('l:0:0',D),PB=V('PB',D);
+   return trous(6,`${P('A ∩ B')} = ${dec(l)} et ${P('B')} = ${dec(PB)}. Alors ${P('A','B')} = {0} et ${P('~A','B')} = {1}.`,[BL(D,'by:0'),BL(D,'by:1')],
+    `${P('A','B')} = ${frH(dec(l),dec(PB))} = ${dec(V('by:0',D))}, puis ${P('~A','B')} = 1 − ${dec(V('by:0',D))}.`,M('fill',D,{what:['by:0','by:1'],steps:2,mx:dg(V('by:0',D))}))}},
  {lv:7,f:()=>{const D=PAB(true);
    return trous(7,`A et B sont indépendants, ${P('A')} = ${dec(D.pA)} et ${P('B')} = ${dec(D.pB)}. Alors ${P('A ∩ B')} = {0} et ${P('B','A')} = {1}.`,[BL(D,'prod'),BL(D,'qA')],
     `${P('A ∩ B')} = ${dec(D.pA)} × ${dec(D.pB)} = ${dec(V('prod',D))}, et indépendants&nbsp;: ${P('B','A')} = ${P('B')} = ${dec(D.pB)}.`,M('fill',D,{what:['prod','qA'],steps:3,mx:dg(V('prod',D))}))}},
@@ -1265,10 +1213,7 @@ trous:[
     `${P('B','A')} = ${frH(dec(l),dec(D.p[0]))} = ${dec(D.q[0])}, puis ${P('~B','A')} = 1 − ${dec(D.q[0])} = ${dec(comp(D.q[0]))}.`,M('fill',D,{what:['q:0','nq:0'],steps:3,mx:dg(l)}))}},
  {lv:5,f:()=>{const D=T3();
    return trous(5,`Trois ateliers A₁, A₂ et A₃ fabriquent respectivement ${pct(D.p[0])}, ${pct(D.p[1])} et ${pct(D.p[2])} des pièces d'une usine, avec des taux de pièces défectueuses de ${pct(D.q[0])}, ${pct(D.q[1])} et ${pct(D.q[2])}. On note D&nbsp;: «&nbsp;la pièce est défectueuse&nbsp;». ${P('D')} = {0}`,[BL(D,'PB')],
-    `${D.p.map((p,i)=>`${dec(p)} × ${dec(D.q[i])}`).join(' + ')} = ${dec(V('PB',D))}.`,M('fill',D,{what:['PB'],steps:4,mx:dg(V('PB',D))}))}},
- {lv:6,f:()=>{const D=TA(D=>{const b=V('by:0',D);return isDec(b)&&ndec(b)<=2&&ndec(V('PB',D))<=3&&ndec(V('PB',D))>=2});
-   return trous(6,`On donne ${P('A')} = ${dec(D.p[0])}, ${P('B','A')} = ${dec(D.q[0])} et ${P('B','~A')} = ${dec(D.q[1])}. Alors ${P('A','B')} = {0} et ${P('~A','B')} = {1}.`,[BL(D,'by:0'),BL(D,'by:1')],
-    `${P('B')} = ${dec(V('PB',D))}, puis ${P('A','B')} = ${frH(dec(V('l:0:0',D)),dec(V('PB',D)))} = ${dec(V('by:0',D))} et ${P('~A','B')} = 1 − ${dec(V('by:0',D))}.`,M('fill',D,{what:['by:0','by:1'],steps:3,mx:dg(V('PB',D))}))}}]};
+    `${D.p.map((p,i)=>`${dec(p)} × ${dec(D.q[i])}`).join(' + ')} = ${dec(V('PB',D))}.`,M('fill',D,{what:['PB'],steps:4,mx:dg(V('PB',D))}))}}]};
 
 /* tirage : 6 QCM + 4 trous distincts, mélangés, les sept niveaux représentés */
 function build(B){for(let n=0;n<400;n++){const q=shuf(B.qcm.slice()).slice(0,6),t=shuf(B.trous.slice()).slice(0,4);
@@ -1284,7 +1229,7 @@ window.DL_LAB=(function(){
 'use strict';
 const N=window.DL_N,S=window.DL_S,G=window.DL_G,$=id=>document.getElementById(id);
 const {R,comp,dec,numH,numT,eq,round,isDec,ndec,P}=N;
-const VIEWS=[['tree','L\'arbre'],['fa','Sachant A'],['fna','Sachant <span class="ov">A</span>'],['merge','Confluence de B'],['bayes','Remonter&nbsp;: sachant B'],['indep','Comparer les bras']];
+const VIEWS=[['tree','L\'arbre'],['fa','Sachant A'],['fna','Sachant <span class="ov">A</span>'],['merge','Confluence de B'],['indep','Comparer les bras']];
 let view='tree',busy=false;
 const data=()=>{const p=R(+$('lpa').value,20),q1=R(+$('lq1').value,20),q2=R(+$('lq2').value,20);return{type:'tree',f:['A','~A'],b:'B',p:[p,comp(p)],q:[q1,q2]}};
 const lv=r=>numT(r);
@@ -1296,7 +1241,7 @@ function labs(D){const PB=G.V('PB',D),by=eq(PB,R(0))?null:G.V('by:0',D);
 function stats(D){const PB=G.V('PB',D),l=G.V('l:0:0',D),by=eq(PB,R(0))?null:G.V('by:0',D),ind=eq(D.q[0],D.q[1]);
   $('opa').textContent=dec(D.p[0]);$('oq1').textContent=dec(D.q[0]);$('oq2').textContent=dec(D.q[1]);
   $('lstat').innerHTML=`<div><b>${dec(l)}</b><span>${P('A ∩ B')} = ${P('A')} × ${P('B','A')}</span></div><div><b>${dec(PB)}</b><span>${P('B')} (probabilités totales)</span></div>`+
-    `<div><b>${by?approxH(by):'—'}</b><span>${P('A','B')} = ${'P(A ∩ B) ÷ P(B)'.replace('P(A ∩ B)',P('A ∩ B')).replace('P(B)',P('B'))}</span></div><div><b>${ind?'Oui':'Non'}</b><span>A et B indépendants&nbsp;: ${ind?`${P('B','A')} = ${P('B')}`:`${P('B','A')} ≠ ${P('B')}`}</span></div>`}
+    `<div><b>${ind?'Oui':'Non'}</b><span>A et B indépendants&nbsp;: ${ind?`${P('B','A')} = ${P('B')}`:`${P('B','A')} ≠ ${P('B')}`}</span></div>`}
 function seg(){$('lview').innerHTML=VIEWS.map(([k,t])=>`<button type="button" data-v="${k}" aria-pressed="${k===view}">${t}</button>`).join('')}
 function pose(D){const v=view,o={focus:-1,kf:0,km:0,kb:0,kg:0};
   if(v==='fa'){o.focus=0;o.kf=1}else if(v==='fna'){o.focus=1;o.kf=1}else if(v==='merge'){o.km=1}else if(v==='bayes'){o.km=1;o.kb=eq(G.V('PB',D),R(0))?0:1}else if(v==='indep'){o.kg=1}
@@ -1317,7 +1262,7 @@ return{open,state:()=>({view,busy,D:data()})};
 <script src="/sigma-arcade/sigma-kit.js"></script>
 <script>
 SigmaKit.init({game:'le-delta',title:'Le Delta',levels:7,
-  levelNames:['Parmi…','Dans quel ordre ?','Les poids','Les chemins','La confluence','Remonter le courant','Indépendance'],
+  levelNames:['Parmi…','Dans quel ordre ?','Les poids','Les chemins','La confluence','Toute la rivière','Indépendance'],
   music:'aventure',finals:{bronze:()=>(window.DL_lastFinal=DL_FIN.bronze()),argent:()=>(window.DL_lastFinal=DL_FIN.argent()),or:()=>(window.DL_lastFinal=DL_FIN.or())}});
 DL.start();
 (function(){ // espace insécable avant « : ; ! ? » et après « dans tout le texte affiché (jeu et fenêtres du kit)

@@ -353,7 +353,7 @@ function render(){layout();const B=box();const fr=st.frame;
     if(m.tx>=1)h+=`<text x="${X(m.xm)}" y="${B.B-14}" text-anchor="middle" font-size="${mob?15:16}" font-weight="800" fill="#e8c766" stroke="#050a16" stroke-width="4" paint-order="stroke">x̄ = ${N.f(m.xm,3)}</text>`;
     if(m.ty>=1)h+=`<text x="${B.L+12}" y="${Y(m.ym)-10}" font-size="${mob?15:16}" font-weight="800" fill="#e8c766" stroke="#050a16" stroke-width="4" paint-order="stroke">ȳ = ${N.f(m.ym,3)}</text>`;
     if(m.guide){const gx=X(m.xm),gy=Y(m.ym);h+=`<path d="M${gx} ${B.B}V${gy}M${B.L} ${gy}H${gx}" stroke="#e8c766" stroke-width="1.6" stroke-dasharray="${(m.guide*6).toFixed(1)} 6" opacity=".7"/>`}}
-  // séparation en deux groupes (méthode des points moyens)
+  // séparation verticale facultative du nuage
   if(st.split!==null&&st.split!==undefined){const xs=X(st.split);h+=`<path d="M${xs} ${B.T+6}V${B.B}" stroke="rgba(200,215,255,.45)" stroke-width="1.5" stroke-dasharray="3 6"/>`}
   // points du nuage
   st.pts.forEach((p,i)=>{if(!(p.s>0))return;const x=mt>0&&p.zx!==undefined?X(p.x)+(X2(p.zx)-X(p.x))*mt:X(p.x),y=mt>0&&p.z!==undefined?Y(p.y)+(Y2(p.z)-Y(p.y))*mt:Y(p.y);const r=(mob?6.5:7.5)*p.s;
@@ -681,7 +681,7 @@ L2.qs.push(()=>{const L=lin(6);const d={xs:L.xs,ys:L.ys,xm:L.xm,ym:L.ym};
     done:`G${C(d.xm,d.ym)} résume la position du nuage. Bientôt, la droite d'ajustement va pivoter autour de lui.`}});
 
 /* ===================== NIVEAU 3 · Ajuster ===================== */
-const L3={t:'Ajuster',badge:'Niveau 3 · Ajustement affine',rule:`<p>Lorsque les points du nuage semblent <b>presque alignés</b>, on peut effectuer un <b>ajustement affine</b> par une droite d'équation ${v('y')} = ${v('a')}${v('x')} + ${v('b')} qui modélise la tendance générale.</p><p><b>Esprit critique.</b> Si le nuage est nettement courbé, il faut envisager un autre modèle ou un changement de variable.</p><p><b>Méthode des points moyens.</b> On partage le nuage en deux groupes, on calcule le point moyen ${sub('G',1)} de chaque groupe et ${sub('G',2)}, puis on trace la droite (${sub('G',1)}${sub('G',2)}).</p>`,qs:[]};
+const L3={t:'Ajuster',badge:'Niveau 3 · Ajustement affine',rule:`<p>Lorsque les points du nuage semblent <b>presque alignés</b>, on peut effectuer un <b>ajustement affine</b> par une droite d'équation ${v('y')} = ${v('a')}${v('x')} + ${v('b')} qui modélise la tendance générale.</p><p><b>Esprit critique.</b> Si le nuage est nettement courbé, il faut envisager un autre modèle ou un changement de variable.</p><p><b>Ajustement «&nbsp;au jugé&nbsp;».</b> On trace à vue une droite qui suit la direction du nuage et passe au milieu des points, autant au-dessus qu'en dessous.</p>`,qs:[]};
 function curved(){const kind=N.pick(['exp','dec']);for(let t=0;t<200;t++){
   if(kind==='exp'){const c=N.pick([2,3,4]),q=N.pick([1.5,1.6]);const xs=[1,2,3,4,5,6,7];const ys=xs.map(x=>N.r(c*Math.pow(q,x),1));if(Math.max(...ys)>200)continue;return{xs,ys,kind}}
   const xs=[1,2,3,4,5,6,7];const ys=xs.map(x=>N.r(60/x+N.pick([0,1,2]),1));return{xs,ys,kind}}}
@@ -698,18 +698,6 @@ L3.qs.push(()=>{const d=curved();const R=N.reg(d.xs,d.ys);
         NO('Oui&nbsp;: on peut toujours tracer une droite à travers un nuage.','On peut toujours tracer une droite, mais elle n\'est pas toujours pertinente&nbsp;: avant de modéliser, on observe le nuage.')]),
       act('Essayer quand même une droite',async()=>{await drawLine(R.a,R.b);await growSeg();cap('Les écarts sont grands et suivent un motif&nbsp;: la droite ne convient pas.')})],
     done:'Esprit critique&nbsp;: un nuage courbé ne se modélise pas par une droite. Au niveau 7, un changement de variable le redressera.'}});
-L3.qs.push(()=>{let xs,ys,g1,g2;for(let t=0;t<500;t++){const x0=N.pick([2,4,6,8]),dx=2;xs=[0,1,2,3,4,5].map(i=>x0+dx*i);const a=N.pick([4,5,6]),b=N.ri(0,10);
-    ys=xs.map(x=>a*x+b+N.ri(-6,6));if(ys.some(y=>y<=0))continue;g1=[N.mean(xs.slice(0,3)),N.mean(ys.slice(0,3))];g2=[N.mean(xs.slice(3)),N.mean(ys.slice(3))];
-    if(!N.dec(g1[1],0)||!N.dec(g2[1],0)||g2[1]<=g1[1])continue;break}
-  const ag=(g2[1]-g1[1])/(g2[0]-g1[0]),bg=g1[1]-ag*g1[0];
-  return{au:{k:'G12',xs,ys},prompt:`On applique la méthode des points moyens à la série suivante.${tb(xs,ys)}${sub('G',1)} est le point moyen des trois premiers points et ${sub('G',2)} celui des trois derniers.`,
-    setup(){st.frame=frame(xs,ys,{y0:0});setPts(xs,ys,false);st.pts.forEach((p,i)=>p.col=i<3?'#7fb2ff':'#b79cff');st.split=(xs[2]+xs[3])/2},cap0:'Deux groupes de trois points.',
-    parts:[fill(`Calcule les coordonnées de ${sub('G',1)}.`,`${sub('G',1)}( {0} ; {1} )`,[BR(g1[0],3),BR(g1[1],3)],(u)=>`${sub('G',1)} est le point moyen des <b>trois premiers</b> points&nbsp;: (${xs.slice(0,3).join(' + ')}) ÷ 3 et (${ys.slice(0,3).join(' + ')}) ÷ 3.`,
-        {onOk:async()=>{await popG('G1',g1[0],g1[1])}}),
-      fill(`Calcule les coordonnées de ${sub('G',2)}.`,`${sub('G',2)}( {0} ; {1} )`,[BR(g2[0],3),BR(g2[1],3)],(u)=>`${sub('G',2)} est le point moyen des <b>trois derniers</b> points&nbsp;: (${xs.slice(3).join(' + ')}) ÷ 3 et (${ys.slice(3).join(' + ')}) ÷ 3.`,
-        {onOk:async()=>{await popG('G2',g2[0],g2[1])}}),
-      act(`Tracer la droite (${sub('G',1)}${sub('G',2)})`,async()=>{await drawLine(ag,bg);cap(`La droite (G₁G₂) est une droite d'ajustement du nuage.`)})],
-    done:`${sub('G',1)}${C(g1[0],g1[1])} et ${sub('G',2)}${C(g2[0],g2[1])}&nbsp;: la droite (${sub('G',1)}${sub('G',2)}) suit la tendance du nuage. C'est la méthode des points moyens.`}});
 L3.qs.push(()=>{const L=lin(6);const fr=frame(L.xs,L.ys,{xl:L.c.xl,yl:L.c.yl});const span=fr.y[1]-fr.y[0];
   const lines=N.shuf([{a:L.a,b:L.b,ok:true},{a:-L.a,b:L.ym+L.a*L.xm,why:'Cette droite descend alors que le nuage monte (ou l\'inverse)&nbsp;: elle ne suit pas la tendance générale.'},{a:L.a,b:L.b+(L.a>0?1:-1)*N.r(span*.28,0),why:'Elle a la bonne direction, mais tous les points sont du même côté&nbsp;: elle est trop décalée pour ajuster le nuage.'}]);
   const labs=['D₁','D₂','D₃'];
@@ -936,10 +924,7 @@ const Q2={qcm(T){let d,ctx='On considère la série statistique suivante.';
     return trous(2,`On considère la série&nbsp;: ${d.xs.map((x,i)=>C(x,d.ys[i])).join(', ')}. Son point moyen est G( {0} ; {1} ).`,[A(d.xm,2,3),A(d.ym,2,3)],
       `${XB} = (${d.xs.map(x=>N.f(x)).join(' + ')}) ÷ ${n} = ${N.f(d.xm)} et ${YB} = (${d.ys.map(x=>N.f(x)).join(' + ')}) ÷ ${n} = ${N.f(d.ym)}.`,{k:'G',xs:d.xs,ys:d.ys})}};
 
-/* ---------- Niveau 3 · ajustement affine, points moyens ---------- */
-function g12(n){for(;;){const h=n/2,x0=N.ri(1,4),dx=N.pick([1,2]);const xs=Array.from({length:n},(_,i)=>x0+dx*i);const a=N.pick([3,4,5]),b=N.ri(2,12);
-  const ys=xs.map(x=>a*x+b+N.ri(-4,4));const g1=[N.mean(xs.slice(0,h)),N.mean(ys.slice(0,h))],g2=[N.mean(xs.slice(h)),N.mean(ys.slice(h))];
-  if(!N.dec(g1[0],2)||!N.dec(g1[1],2)||!N.dec(g2[0],2)||!N.dec(g2[1],2)||g2[1]<=g1[1])continue;return{xs,ys,g1,g2,h}}}
+/* ---------- Niveau 3 · ajustement affine ---------- */
 const Q3={qcm(T){
     if(T===0)return qcm(3,'Lorsque les points d\'un nuage semblent presque alignés, on peut effectuer un ajustement affine par une droite d\'équation…',
       `${v('y')} = ${v('a')}${v('x')} + ${v('b')}`,[`${v('y')} = ${v('a')}${v('x')}<span class="sup">2</span>`,`${v('y')} = ${FR(v('a'),v('x'))}`,`${v('x')} = ${v('a')}`],
@@ -950,15 +935,12 @@ const Q3={qcm(T){
           `Les valeurs de ${v('y')} doublent à chaque pas&nbsp;: le nuage se courbe nettement, une droite ne convient pas.`,{k:'concept'})}
       const L=lin(6);return qcm(3,`On relève ${L.c.t}.${tb(L.xs,L.ys)}Un ajustement affine est-il pertinent&nbsp;?`,'Oui&nbsp;: les points du nuage semblent presque alignés.',
         ['Non&nbsp;: les points ne sont pas exactement alignés.','Non&nbsp;: aucune droite ne passe par tous les points.'],'Il suffit que les points soient <b>presque</b> alignés&nbsp;: la droite modélise la tendance générale.',{k:'concept'})}
-    const d=g12(6),a=(d.g2[1]-d.g1[1])/(d.g2[0]-d.g1[0]),b=d.g1[1]-a*d.g1[0];if(!N.dec(a,2)||!N.dec(b,2))return Q3.qcm(2);
-    const af=(d.ys[5]-d.ys[0])/(d.xs[5]-d.xs[0]),bf=d.ys[0]-af*d.xs[0];
-    const bads=[N.dec(af,2)&&N.dec(bf,2)?EQ(af,bf):null,EQ(a,-b),EQ(1/a,b,'y','x',2,2),EQ(a,d.g1[1])].filter(Boolean);
-    return qcm(3,`On applique la méthode des points moyens à la série suivante, en prenant les trois premiers points puis les trois derniers.${tb(d.xs,d.ys)}La droite (${sub('G',1)}${sub('G',2)}) a pour équation…`,EQ(a,b),bads,
-      `${sub('G',1)}${C(d.g1[0],d.g1[1])} et ${sub('G',2)}${C(d.g2[0],d.g2[1])}&nbsp;: coefficient directeur (${N.f(d.g2[1])} − ${N.f(d.g1[1])}) ÷ (${N.f(d.g2[0])} − ${N.f(d.g1[0])}) = ${N.f(a)}, puis ${v('b')} = ${N.f(b)}.`,{k:'g12eq',xs:d.xs,ys:d.ys})},
-  trous(T){const d=g12(T===0?4:T===1?6:8);const which=T===0?1:N.pick([1,2]);const g=which===1?d.g1:d.g2;
-    const grp=which===1?(T===0?'deux premiers':T===1?'trois premiers':'quatre premiers'):(T===1?'trois derniers':'quatre derniers');
-    return trous(3,`Méthode des points moyens.${tb(d.xs,d.ys)}Le point moyen ${sub('G',which)} des ${grp} points a pour coordonnées ( {0} ; {1} ).`,[A(g[0],2,3),A(g[1],2,3)],
-      `On fait la moyenne des abscisses puis des ordonnées des ${grp} points&nbsp;: ${sub('G',which)}${C(g[0],g[1])}.`,{k:'G12',xs:d.xs,ys:d.ys,which})}};
+    return qcm(3,'Un ajustement affine «&nbsp;au jugé&nbsp;» consiste à…','tracer à vue une droite qui suit la direction du nuage, avec autant de points au-dessus qu\'en dessous',
+      ['relier le premier et le dernier point du nuage','tracer la droite qui passe par l\'origine du repère','relier les deux points les plus hauts du nuage'],
+      'On trace la droite à l\'œil, au milieu des points&nbsp;; on peut ensuite discuter la qualité de l\'ajustement.',{k:'concept'})},
+  trous(T){const d=T===0?meanS(4,1,9,false,1):T===1?meanS(5,1,12,false,2):meanS(6,1,12,true,2);const n=d.xs.length;
+    return trous(3,`On veut ajuster le nuage de la série ${d.xs.map((x,i)=>C(x,d.ys[i])).join(', ')}. Son point moyen est G( {0} ; {1} ).`,[A(d.xm,2,3),A(d.ym,2,3)],
+      `${XB} = (${d.xs.map(x=>N.f(x)).join(' + ')}) ÷ ${n} = ${N.f(d.xm)} et ${YB} = (${d.ys.map(x=>N.f(x)).join(' + ')}) ÷ ${n} = ${N.f(d.ym)}. La droite des moindres carrés passera par G.`,{k:'G',xs:d.xs,ys:d.ys})}};
 
 /* ---------- Niveau 4 · moindres carrés ---------- */
 const Q4={qcm(T){
