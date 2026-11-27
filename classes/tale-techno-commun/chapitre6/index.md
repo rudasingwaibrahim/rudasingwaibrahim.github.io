@@ -1,8 +1,8 @@
 ---
-title: Chapitre 6 — Loi binomiale et espérance
+title: Chapitre 6 — Variables aléatoires et loi binomiale
 permalink: /classes/tale-techno-commun/chapitre6/
 hero_title: Chapitre 6
-hero_subtitle: Loi binomiale et espérance
+hero_subtitle: Variables aléatoires et loi binomiale
 cours:
 - titre: Cours — Version élève
   pdf: tale-techno/tale-techno-commun-ch6-cours-eleve.pdf

@@ -46,7 +46,7 @@ erreurs:
 - Pour $\sin x = \sin a$, les solutions sont $x = a + 2k\pi$ ou $x = \pi - a + 2k\pi$ (et non $-a + 2k\pi$)
 - 'Se tromper de signe en dérivant : $\cos'' = -\sin$ et $\sin'' = \cos$'
 - 'Oublier le facteur $a$ : la dérivée de $x \mapsto \cos(ax+b)$ est $x \mapsto -a\sin(ax+b)$'
-- 'Garder une solution hors de l''intervalle demandé, ou en oublier une : toujours ramener les solutions dans $]-\pi;\pi]$'
-- 'Conclure qu''une fonction est paire ou impaire sans contre-exemple : pour montrer qu''elle n''est ni l''un ni l''autre, exhiber une valeur de $x$'
+- 'Garder une solution hors de l''intervalle demandé, ou en oublier une : ramener les solutions dans l''intervalle demandé (par exemple $]-\pi;\pi]$)'
+- 'Conclure qu''une fonction n''est ni paire ni impaire sans contre-exemple : il faut exhiber un réel $x$ tel que $f(-x)\neq f(x)$ et un réel (éventuellement le même) tel que $f(-x)\neq -f(x)$'
 ---
 {% include cours-cards.html %}

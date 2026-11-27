@@ -21,7 +21,7 @@ dm:
   duree: "1 semaine"
   pdf: tale-techno/tale-techno-commun-ch4-dm-01-sujet.pdf
 - num: 2
-  contenu: Fonctions homographiques · Étude complète · Problème ouvert
+  contenu: Polynôme + inverse · Étude complète · Problème ouvert
   duree: "1 semaine"
   pdf: tale-techno/tale-techno-commun-ch4-dm-02-sujet.pdf
 ds_blancs:

@@ -1,8 +1,8 @@
 ---
-title: Chapitre 1 — Suites numériques
+title: Chapitre 1 — Suites arithmétiques et géométriques
 permalink: /classes/tale-techno-commun/chapitre1/
 hero_title: Chapitre 1
-hero_subtitle: Suites numériques
+hero_subtitle: Suites arithmétiques et géométriques
 cours:
 - titre: Cours — Version élève
   pdf: tale-techno/tale-techno-commun-ch1-cours-eleve.pdf
@@ -21,7 +21,7 @@ dm:
   duree: "1 semaine"
   pdf: tale-techno/tale-techno-commun-ch1-dm-01-sujet.pdf
 - num: 2
-  contenu: Suite géométrique · Convergence · Problème ouvert
+  contenu: Suite géométrique · Somme de termes · Problème ouvert
   duree: "1 semaine"
   pdf: tale-techno/tale-techno-commun-ch1-dm-02-sujet.pdf
 ds_blancs:
@@ -30,7 +30,7 @@ ds_blancs:
   duree: "2 h"
   pdf: tale-techno/tale-techno-commun-ch1-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Sommes · Convergence · Modélisation type BAC
+  contenu: Suites arithmétiques et géométriques · Sommes · Python
   duree: "2 h"
   pdf: tale-techno/tale-techno-commun-ch1-dsblanc-02-sujet.pdf
 ds_published: true
@@ -48,7 +48,7 @@ python:
   contenu: "Sommes de carrés, de cubes et d'inverses · Versements réguliers"
 erreurs:
 - "Confondre suite arithmétique et suite géométrique : on ajoute $r$ dans un cas, on multiplie par $q$ dans l'autre"
-- "Croire que les termes d'une suite géométrique gardent toujours le même signe : si $q < 0$, ils alternent"
+- "Écrire $u_n = u_0 \\times q \\times n$ pour une suite géométrique : le terme général est $u_n = u_0 \\times q^n$ (une puissance)"
 - "Calculer $u_{n+1} - u_n$ pour reconnaître une suite géométrique : on calcule $\\dfrac{u_{n+1}}{u_n}$"
 - "Se tromper de formule : $u_n = u_0 + nr$, mais $u_n = u_1 + (n - 1)r$ si la suite commence à $u_1$"
 - "Confondre le rang $n$ et le terme $u_n$ : le rang est l'indice, le terme est la valeur"

@@ -1,8 +1,8 @@
 ---
-title: Chapitre 2 — Fonction exponentielle
+title: Chapitre 2 — Fonctions exponentielles
 permalink: /classes/tale-techno-commun/chapitre2/
 hero_title: Chapitre 2
-hero_subtitle: Fonction exponentielle
+hero_subtitle: Fonctions exponentielles
 cours:
 - titre: Cours — Version élève
   pdf: tale-techno/tale-techno-commun-ch2-cours-eleve.pdf
@@ -17,16 +17,16 @@ planches:
   pdf: tale-techno/tale-techno-commun-ch2-planche-02.pdf
 dm:
 - num: 1
-  contenu: Propriétés algébriques · Équations exponentielles · Croissance comparée
+  contenu: Propriétés algébriques · Équations et inéquations · Taux moyen
   duree: "1 semaine"
   pdf: tale-techno/tale-techno-commun-ch2-dm-01-sujet.pdf
 - num: 2
-  contenu: Dérivation · Étude de fonctions · Modélisation
+  contenu: Sens de variation de k × aˣ · Modélisation
   duree: "1 semaine"
   pdf: tale-techno/tale-techno-commun-ch2-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
-  contenu: Calculs avec exp · Équations · Dérivées
+  contenu: Calculs de puissances · Modélisation · Taux d'évolution · Étude de k × aˣ
   duree: "2 h"
   pdf: tale-techno/tale-techno-commun-ch2-dsblanc-01-sujet.pdf
 - num: 2
@@ -42,12 +42,12 @@ ds:
 - num: 3
   pdf: tale-techno/tale-techno-commun-ch2-ds-03-sujet.pdf
 erreurs:
-- "Confondre $e^{a+b} = e^a \\times e^b$ et $e^{ab}$ : la propriété concerne la somme des exposants"
-- "Écrire $e^0 = 0$ : en réalité $e^0 = 1$"
-- "Oublier que $e^x > 0$ pour tout réel $x$ : l'équation $e^x = 0$ n'a pas de solution"
-- "Se tromper dans la dérivée : $\\left(e^{kx}\\right)' = k\\,e^{kx}$"
+- "Confondre $a^{x+y} = a^x \\times a^y$ et $a^{xy}$ : pour un produit de puissances de même base, on additionne les exposants"
+- "Écrire $a^0 = 0$ : pour tout $a > 0$, $a^0 = 1$"
+- "Oublier que $a^x > 0$ pour tout réel $x$ (avec $a > 0$) : l'équation $2^x = 0$ n'a pas de solution"
+- "Conclure que $x \\mapsto k\\,a^x$ est croissante dès que $a > 1$ : si $k < 0$, le sens de variation est inversé"
 - Confondre croissance exponentielle (taux constant) et croissance linéaire (accroissement constant)
-- "Résoudre $10^x = a$ en écrivant $x = \\dfrac{a}{10}$ : la solution est $x = \\log a$, pour $a > 0$"
+- "Calculer un taux moyen en divisant le taux global par $n$ : on résout $(1 + t_m)^n = C$, d'où $t_m = C^{1/n} - 1$"
 liens:
 - nom: Khan Academy — Fonction exponentielle
   desc: Cours vidéo sur la fonction exponentielle et ses propriétés

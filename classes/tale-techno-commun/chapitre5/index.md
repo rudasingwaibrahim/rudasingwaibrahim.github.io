@@ -21,7 +21,7 @@ dm:
   duree: "1 semaine"
   pdf: tale-techno/tale-techno-commun-ch5-dm-01-sujet.pdf
 - num: 2
-  contenu: Indépendance · Bayes · Problème appliqué
+  contenu: Indépendance · Inverser le conditionnement · Problème appliqué
   duree: "1 semaine"
   pdf: tale-techno/tale-techno-commun-ch5-dm-02-sujet.pdf
 ds_blancs:

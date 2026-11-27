@@ -45,7 +45,7 @@ erreurs:
 - 'Croire que deux droites de l''espace non parallèles sont sécantes : elles peuvent être non coplanaires'
 - Affirmer que $\vec{u}$ et $\vec{v}$ dirigent un plan sans vérifier qu'ils ne sont pas colinéaires
 - 'Pour montrer que $\overrightarrow{AD}=\alpha\overrightarrow{AB}+\beta\overrightarrow{AC}$, n''utiliser que deux des trois équations : la troisième doit aussi être vérifiée'
-- Confondre « droite parallèle à un plan » (parallèle à une droite de ce plan) et « droite contenue dans le plan »
+- 'Confondre « droite strictement parallèle à un plan » et « droite parallèle à un plan » : une droite parallèle à un plan (parallèle à une droite de ce plan) peut être contenue dans ce plan'
 - 'Croire que trois vecteurs deux à deux non colinéaires forment une base : il faut qu''ils soient non coplanaires'
 - Utiliser $AB=\sqrt{(x_B-x_A)^2+(y_B-y_A)^2+(z_B-z_A)^2}$ dans un repère qui n'est pas orthonormé
 ---
