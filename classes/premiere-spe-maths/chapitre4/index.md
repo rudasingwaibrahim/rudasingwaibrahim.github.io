@@ -3,7 +3,7 @@ title: Chapitre 4 — Dérivation (Partie 2)
 permalink: /classes/premiere-spe-maths/chapitre4/
 dossier_pdf: premiere-spe-maths
 hero_title: Chapitre 4
-hero_subtitle: Dérivation — Variations et extrema
+hero_subtitle: "Dérivation — Fonction dérivée, opérations et variations"
 cours:
 - titre: Cours — Version élève
   pdf: premiere-spe-ch4-cours-eleve.pdf
@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: premiere-spe-ch4-ds-03-sujet.pdf
 erreurs:
-- "Confondre le signe de $f'$ et le signe de $f$ : $f' > 0$ signifie que $f$ est croissante, pas qu'elle est positive"
-- "Croire que $f'(a) = 0$ suffit pour un extremum : il faut que $f'$ change de signe en $a$"
+- "Confondre le signe de $f'$ et le signe de $f$ : $f' > 0$ sur un intervalle signifie que $f$ y est strictement croissante, pas qu'elle est positive"
+- "Croire que $f'(a) = 0$ suffit pour un extremum : $x \\mapsto x^3$ vérifie $f'(0) = 0$ sans extremum en $0$ ; c'est le changement de signe de $f'$ en $a$ qui garantit un extremum local"
 - Confondre extremum local et extremum global
-- "Confondre le maximum (une valeur de $f$) et l'abscisse où il est atteint"
+- "Dériver un produit comme le produit des dérivées : $(uv)' = u'v + uv'$, pas $u'v'$"
 - "Mal lire un tableau de variations : les flèches décrivent $f$, les signes décrivent $f'$"
-- "Croire que $f$ croissante implique $f > 0$ : $x \\mapsto x - 5$ est croissante et négative sur $[0\\,;4]$"
+- "Oublier le « moins 1 » dans l'exposant : $(x^n)' = n\\,x^{n-1}$, et la dérivée d'une constante est nulle"
 liens:
 - nom: Jaicompris — Variations et extrema
   desc: "Lien dérivée — variations, méthode des extrema"

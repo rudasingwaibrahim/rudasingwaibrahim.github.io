@@ -46,9 +46,9 @@ erreurs:
 - "Confondre l'image $f(a)$ et le nombre dérivé $f'(a)$"
 - "Oublier que le coefficient directeur de la tangente en $a$ est $f'(a)$"
 - "Se tromper dans l'équation de la tangente : $y = f'(a)(x - a) + f(a)$"
-- "Oublier le « moins 1 » : $(x^n)' = n\\,x^{n-1}$"
-- "Dériver un produit comme le produit des dérivées : $(uv)' = u'v + uv'$, pas $u'v'$"
-- "Oublier que la dérivée d'une constante est nulle"
+- "Remplacer directement $h$ par $0$ dans le taux $\\dfrac{f(a + h) - f(a)}{h}$ : on obtient $\\dfrac{0}{0}$, qui n'a pas de sens ; on simplifie d'abord par $h$, puis on fait tendre $h$ vers $0$"
+- "Se tromper de dénominateur dans le taux de variation entre $a$ et $b$ : on divise $f(b) - f(a)$ par $b - a$"
+- "Croire qu'une fonction définie en $a$ y est forcément dérivable : $x \\mapsto |x|$ est définie en $0$ mais n'y est pas dérivable"
 liens:
 - nom: Jaicompris — Dérivation
   desc: "Méthode complète : nombre dérivé, tangente, formules"

@@ -43,12 +43,12 @@ ds:
 - num: 3
   pdf: premiere-spe-ch12-ds-03-sujet.pdf
 erreurs:
-- "Se tromper d'angle dans Al-Kashi : dans $a^2 = b^2 + c^2 - 2bc\\cos\\widehat{A}$, l'angle $\\widehat{A}$ est opposé au côté $a$"
-- "Oublier que le théorème de Pythagore est le cas particulier $\\widehat{A} = 90^\\circ$ de la formule d'Al-Kashi"
-- "Écrire $\\vec u\\cdot\\vec v = \\lVert\\vec u\\rVert\\,\\lVert\\vec v\\rVert$ : il manque le facteur $\\cos(\\vec u, \\vec v)$"
+- "Se tromper de formule en repère orthonormé : $\\vec u\\cdot\\vec v = xx' + yy'$, et non $xy' + yx'$"
+- "Croire que deux droites sont perpendiculaires quand leurs vecteurs normaux sont colinéaires : c'est le produit scalaire de ces vecteurs normaux qui doit être nul"
+- "Écrire $\\vec u\\cdot\\vec v = \\lVert\\vec u\\rVert\\,\\lVert\\vec v\\rVert$ : il manque le facteur $\\cos\\theta$, où $\\theta$ est la mesure de l'angle entre $\\vec u$ et $\\vec v$"
 - "Utiliser $\\vec u\\cdot\\vec v = xx' + yy'$ dans un repère qui n'est pas orthonormé"
 - "Croire que $\\vec u\\cdot\\vec v = 0$ impose $\\vec u = \\vec 0$ ou $\\vec v = \\vec 0$ : les vecteurs peuvent être orthogonaux"
-- "Oublier que $\\overrightarrow{AB}\\cdot\\overrightarrow{AC} = AB \\times AH$ où $H$ est le projeté orthogonal de $C$ sur $(AB)$, avec un signe"
+- "Oublier le signe avec le projeté orthogonal $H$ de $C$ sur $(AB)$ : $\\overrightarrow{AB}\\cdot\\overrightarrow{AC} = AB \\times AH$ si $H$ appartient à la demi-droite $[AB)$, et $-AB \\times AH$ sinon"
 liens:
 - nom: "Jaicompris — Théorème d'Al-Kashi"
   desc: Méthode complète avec exercices corrigés

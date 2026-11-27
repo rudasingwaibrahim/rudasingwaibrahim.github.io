@@ -43,9 +43,9 @@ ds:
 - num: 3
   pdf: premiere-spe-ch9-ds-03-sujet.pdf
 erreurs:
-- "Oublier le cosinus : $\\vec u\\cdot\\vec v = \\lVert\\vec u\\rVert\\,\\lVert\\vec v\\rVert\\cos(\\vec u, \\vec v)$"
+- "Oublier le cosinus : $\\vec u\\cdot\\vec v = \\lVert\\vec u\\rVert\\,\\lVert\\vec v\\rVert\\cos\\theta$, où $\\theta$ est la mesure de l'angle entre $\\vec u$ et $\\vec v$ (vecteurs non nuls)"
 - Confondre orthogonalité ($\vec u\cdot\vec v = 0$) et colinéarité
-- "Se tromper de formule en repère orthonormé : $\\vec u\\cdot\\vec v = xx' + yy'$, et non $xy' + yx'$"
+- "Se tromper d'angle dans Al-Kashi : dans $a^2 = b^2 + c^2 - 2bc\\cos\\widehat{A}$, l'angle $\\widehat{A}$ est opposé au côté $a$ ; pour $\\widehat{A} = 90^\\circ$, on retrouve le théorème de Pythagore"
 - Oublier que le produit scalaire avec le vecteur nul vaut 0
 - "Confondre $\\vec u^{\\,2} = \\lVert\\vec u\\rVert^2$ et $\\lVert\\vec u\\rVert$"
 - "Oublier le signe avec le projeté orthogonal : le produit scalaire est négatif si l'angle est obtus"

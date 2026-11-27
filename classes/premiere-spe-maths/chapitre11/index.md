@@ -3,7 +3,7 @@ title: Chapitre 11 — Trigonométrie (Partie 2)
 permalink: /classes/premiere-spe-maths/chapitre11/
 dossier_pdf: premiere-spe-maths
 hero_title: Chapitre 11
-hero_subtitle: Fonctions trigonométriques cosinus et sinus
+hero_subtitle: "Trigonométrie — Cosinus et sinus d'un nombre réel"
 cours:
 - titre: Cours — Version élève
   pdf: premiere-spe-ch11-cours-eleve.pdf

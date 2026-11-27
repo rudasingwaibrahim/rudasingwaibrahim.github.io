@@ -3,7 +3,7 @@ title: Chapitre 8 — Trigonométrie (Partie 1)
 permalink: /classes/premiere-spe-maths/chapitre8/
 dossier_pdf: premiere-spe-maths
 hero_title: Chapitre 8
-hero_subtitle: "Trigonométrie — Cercle, radians et angles orientés"
+hero_subtitle: "Trigonométrie — Cercle trigonométrique, radian et enroulement"
 cours:
 - titre: Cours — Version élève
   pdf: premiere-spe-ch8-cours-eleve.pdf
