@@ -10,9 +10,6 @@ cours:
   pdf: seconde-ch11-cours-prof.pdf
 - titre: Fiche méthode
   pdf: seconde-ch11-fiche-methode.pdf
-- titre: Problèmes de pourcentages en vidéo
-  sub: Fiche QR codes
-  pdf: pourc-qr.pdf
 planches:
 - num: 1
   pdf: seconde-ch11-planche-01.pdf
