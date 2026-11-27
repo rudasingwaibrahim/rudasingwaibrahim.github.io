@@ -10,11 +10,6 @@ cours:
   pdf: tale-techno/tale-techno-commun-ch2-cours-prof.pdf
 - titre: Cours complet
   fichier: /assets/pdf/tale-techno/tale-techno-commun-ch2-cours.pdf
-planches:
-- num: 1
-  pdf: tale-techno/tale-techno-commun-ch2-planche-01.pdf
-- num: 2
-  pdf: tale-techno/tale-techno-commun-ch2-planche-02.pdf
 dm:
 - num: 1
   contenu: Propriétés algébriques · Équations et inéquations · Taux moyen
@@ -26,12 +21,12 @@ dm:
   pdf: tale-techno/tale-techno-commun-ch2-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
-  contenu: Calculs de puissances · Modélisation · Taux d'évolution · Étude de k × aˣ
-  duree: "2 h"
+  contenu: Calculs de puissances · Décroissance radioactive · Taux moyen · Étude de k × aˣ
+  duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch2-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Étude de fonctions · Modélisation type BAC
-  duree: "2 h"
+  contenu: QCM · Placement · Croissance bactérienne · Python et sommes
+  duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch2-dsblanc-02-sujet.pdf
 ds_published: false
 ds:
@@ -49,25 +44,10 @@ erreurs:
 - Confondre croissance exponentielle (taux constant) et croissance linéaire (accroissement constant)
 - "Calculer un taux moyen en divisant le taux global par $n$ : on résout $(1 + t_m)^n = C$, d'où $t_m = C^{1/n} - 1$"
 liens:
-- nom: Khan Academy — Fonction exponentielle
-  desc: Cours vidéo sur la fonction exponentielle et ses propriétés
-  url: "https://fr.khanacademy.org/math/algebra2/x2ec2f6f830c9fb89:exp/x2ec2f6f830c9fb89:exp-graph/v/graphing-exponential-functions"
-  ico: 📚
-  cat: cours
-- nom: Mathsmentales — Exponentielle
-  desc: Exercices de calcul mental sur la fonction exponentielle
+- nom: Mathsmentales — Puissances
+  desc: Exercices de calcul mental sur les puissances
   url: "https://mathsmentales.net/"
   ico: 🧠
   cat: exercice
-- nom: GeoGebra — Exponentielle interactive
-  desc: Visualiser la courbe exponentielle et ses transformations
-  url: "https://www.geogebra.org/m/sjcbepnd"
-  ico: 📐
-  cat: calcul
-- nom: Wolfram Alpha — Exponentielle
-  desc: "Calculer, dériver et intégrer des fonctions exponentielles"
-  url: "https://www.wolframalpha.com/input?i=plot+exp(x)"
-  ico: 🔢
-  cat: calcul
 ---
 {% include cours-cards.html %}

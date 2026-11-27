@@ -12,20 +12,13 @@ cours:
   fichier: /assets/pdf/tale-techno-commun-ch7-cours.pdf
 planches:
 - num: 1
-  pdf: tale-techno/tale-techno-commun-ch7-planche-01.pdf
+  label: Planche 1 · série avec corrigé
+  fichier: /assets/pdf/tale-techno-commun-ch7-planche-01.pdf
 - num: 2
-  pdf: tale-techno/tale-techno-commun-ch7-planche-02.pdf
+  label: Planche 2 · série avec corrigé
+  fichier: /assets/pdf/tale-techno-commun-ch7-planche-03.pdf
 - num: 3
   label: Planche 3 · série avec corrigé
-  fichier: /assets/pdf/tale-techno-commun-ch7-planche-01.pdf
-- num: 4
-  label: Planche 4 · série avec corrigé
-  fichier: /assets/pdf/tale-techno-commun-ch7-planche-02.pdf
-- num: 5
-  label: Planche 5 · série avec corrigé
-  fichier: /assets/pdf/tale-techno-commun-ch7-planche-03.pdf
-- num: 6
-  label: Planche 6 · série avec corrigé
   fichier: /assets/pdf/tale-techno-commun-ch7-planche-04.pdf
 dm:
 - num: 1
@@ -36,15 +29,6 @@ dm:
   contenu: Changement de variable · Modèle exponentiel · Esprit critique
   duree: "1 semaine"
   pdf: tale-techno/tale-techno-commun-ch7-dm-02-sujet.pdf
-ds_blancs:
-- num: 1
-  contenu: Nuage de points · Droite de régression · Point moyen
-  duree: "2 h"
-  pdf: tale-techno/tale-techno-commun-ch7-dsblanc-01-sujet.pdf
-- num: 2
-  contenu: Changement de variable · Interpolation · Extrapolation type BAC
-  duree: "2 h"
-  pdf: tale-techno/tale-techno-commun-ch7-dsblanc-02-sujet.pdf
 ds_published: false
 ds:
 - num: 1
@@ -59,17 +43,12 @@ erreurs:
 - "Inverser interpolation et extrapolation : interpoler c'est estimer entre les données, extrapoler c'est estimer au-delà"
 - Appliquer un ajustement affine à un nuage clairement non linéaire sans effectuer de changement de variable
 - "Oublier de revenir à $y$ après le changement de variable $z = \\log y$ : $y = 10^z$"
-- "Confondre la méthode des moindres carrés et la méthode des points moyens : deux méthodes distinctes"
+- "Croire qu'un ajustement « au jugé » est la droite des moindres carrés : celle-ci rend minimale la somme $\\sum (y_i - (ax_i + b))^2$"
 - Extrapoler trop loin du domaine observé et présenter le résultat comme fiable sans esprit critique
 liens:
 - nom: Khan Academy — Régression linéaire
   desc: Cours vidéo complet sur la droite de régression et les moindres carrés
   url: "https://fr.khanacademy.org/math/statistics-probability/describing-relationships-quantitative-data/introduction-to-trend-lines/v/fitting-a-line-to-data"
-  ico: 📚
-  cat: cours
-- nom: Khan Academy — Corrélation
-  desc: Comprendre le coefficient de corrélation et son interprétation
-  url: "https://fr.khanacademy.org/math/statistics-probability/describing-relationships-quantitative-data/scatterplots-and-correlation/v/correlation-and-causality"
   ico: 📚
   cat: cours
 - nom: GeoGebra — Régression interactive

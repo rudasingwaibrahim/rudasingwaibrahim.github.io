@@ -26,12 +26,12 @@ dm:
   pdf: tale-techno/tale-techno-commun-ch1-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
-  contenu: Suites arithmétiques · Suites géométriques · Sens de variation
-  duree: "2 h"
+  contenu: QCM · Suites arithmétiques · Modélisation · Sommes
+  duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch1-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Suites arithmétiques et géométriques · Sommes · Python
-  duree: "2 h"
+  contenu: Automatismes · Intérêts simples ou composés · Suites géométriques · Sommes
+  duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch1-dsblanc-02-sujet.pdf
 ds_published: false
 ds:
@@ -52,7 +52,8 @@ erreurs:
 - "Calculer $u_{n+1} - u_n$ pour reconnaître une suite géométrique : on calcule $\\dfrac{u_{n+1}}{u_n}$"
 - "Se tromper de formule : $u_n = u_0 + nr$, mais $u_n = u_1 + (n - 1)r$ si la suite commence à $u_1$"
 - "Confondre le rang $n$ et le terme $u_n$ : le rang est l'indice, le terme est la valeur"
-- "Croire qu'une suite géométrique de raison $0 < q < 1$ finit par s'annuler : ses termes se rapprochent de 0 sans l'atteindre"
+- "Croire qu'une suite géométrique de premier terme positif et de raison $0 < q < 1$ finit par s'annuler : $u_n = u_0 \\times q^n$ est toujours strictement positif"
+- "Se tromper de moyenne : trois termes consécutifs $a$, $b$, $c$ positifs d'une suite géométrique vérifient $b = \\sqrt{ac}$, pas $b = \\dfrac{a + c}{2}$"
 - "Se tromper de nombre de termes dans $S = (\\text{nombre de termes}) \\times \\dfrac{\\text{premier} + \\text{dernier}}{2}$"
 liens:
 - nom: Khan Academy — Suites arithmétiques
@@ -61,17 +62,17 @@ liens:
   ico: 📚
   cat: cours
 - nom: Khan Academy — Suites géométriques
-  desc: Comprendre les suites géométriques et leur convergence
+  desc: Comprendre les suites géométriques
   url: "https://fr.khanacademy.org/math/algebra/x2f8bb11595b61c86:sequences/x2f8bb11595b61c86:introduction-to-geometric-sequences/v/geometric-sequences-introduction"
   ico: 📚
   cat: cours
 - nom: GeoGebra — Suites interactives
-  desc: "Visualiser les termes d'une suite et son comportement asymptotique"
+  desc: Visualiser les termes d'une suite
   url: "https://www.geogebra.org/m/ksphynmp"
   ico: 📐
   cat: calcul
 - nom: Wolfram Alpha — Suites
-  desc: "Calculer les termes, la somme et la limite d'une suite"
+  desc: Calculer les termes et la somme d'une suite
   url: "https://www.wolframalpha.com/input?i=sequence"
   ico: 🔢
   cat: calcul

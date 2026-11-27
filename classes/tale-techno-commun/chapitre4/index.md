@@ -26,12 +26,12 @@ dm:
   pdf: tale-techno/tale-techno-commun-ch4-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
-  contenu: Fonction inverse · Sens de variation · Asymptotes
-  duree: "2 h"
+  contenu: Automatismes · Tangentes à l'hyperbole · Coût moyen
+  duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch4-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Étude de fonctions · Inéquations · Modélisation type BAC
-  duree: "2 h"
+  contenu: Coût moyen · Coût marginal · Positions relatives
+  duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch4-dsblanc-02-sujet.pdf
 ds_published: false
 ds:
@@ -49,13 +49,8 @@ erreurs:
 - "Oublier de changer le sens de l'inégalité en multipliant par un nombre négatif"
 - "Se tromper dans la dérivée : $\\left(\\dfrac{1}{x}\\right)' = -\\dfrac{1}{x^2}$"
 liens:
-- nom: Khan Academy — Fonction inverse
-  desc: Cours vidéo sur la fonction inverse et son graphe
-  url: "https://fr.khanacademy.org/math/algebra2/x2ec2f6f830c9fb89:rational/x2ec2f6f830c9fb89:rational-graphs/v/graphs-of-rational-functions"
-  ico: 📚
-  cat: cours
 - nom: Mathsmentales — Fonction inverse
-  desc: Calcul mental avec fractions et fonctions rationnelles
+  desc: Calcul mental avec des fractions
   url: "https://mathsmentales.net/"
   ico: 🧠
   cat: exercice

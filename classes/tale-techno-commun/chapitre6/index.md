@@ -17,21 +17,17 @@ planches:
   pdf: tale-techno/tale-techno-commun-ch6-planche-02.pdf
 dm:
 - num: 1
-  contenu: Loi binomiale · Espérance · Problème contextualisé
+  contenu: Loi de probabilité · Espérance · Simulation
   duree: "1 semaine"
   pdf: tale-techno/tale-techno-commun-ch6-dm-01-sujet.pdf
-- num: 2
-  contenu: Arbre · Schéma de Bernoulli · Modélisation
-  duree: "1 semaine"
-  pdf: tale-techno/tale-techno-commun-ch6-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
-  contenu: Loi binomiale · Calcul de probabilités · Espérance
-  duree: "2 h"
+  contenu: Automatismes · Loi et espérance · Tirages avec remise
+  duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch6-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Schéma de Bernoulli · Coefficients binomiaux · Synthèse type BAC
-  duree: "2 h"
+  contenu: Loi de probabilité · Espérance · Comparer des jeux
+  duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch6-dsblanc-02-sujet.pdf
 ds_published: false
 ds:
@@ -46,7 +42,7 @@ erreurs:
 - Oublier de vérifier que la somme des probabilités vaut 1 avant de calculer E(X)
 - "Utiliser la loi binomiale pour des tirages sans remise : elle suppose des épreuves identiques et indépendantes"
 - "Calculer $P(X \\geqslant k)$ terme à terme au lieu d'utiliser $1 - P(X \\leqslant k - 1)$"
-- Confondre $P(X = k)$ et $P(X \leqslant k)$ à la calculatrice (binomFdp / binomFRép)
+- Confondre $P(X = k)$ et $P(X \leqslant k)$ à la calculatrice (binompdf / binomcdf, BinomialPD / BinomialCD)
 - "Écrire $E(X) = np$ sans avoir justifié que $X$ suit la loi $\\mathcal{B}(n, p)$"
 liens:
 - nom: Khan Academy — Loi binomiale

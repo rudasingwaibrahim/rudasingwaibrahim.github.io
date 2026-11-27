@@ -26,12 +26,12 @@ dm:
   pdf: tale-techno/tale-techno-commun-ch5-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
-  contenu: Probabilité conditionnelle · Arbre pondéré · Indépendance
-  duree: "2 h"
+  contenu: QCM · Tableau croisé et indépendance · Problème
+  duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch5-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Probabilités totales · Test médical · Synthèse type BAC
-  duree: "2 h"
+  contenu: Vrai-faux · Arbres et probabilités totales
+  duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch5-dsblanc-02-sujet.pdf
 ds_published: false
 ds:
@@ -45,7 +45,7 @@ erreurs:
 - "Confondre $P(A \\cap B)$ et $P_A(B)$ : la probabilité conditionnelle restreint l'univers à $A$"
 - "Oublier que $P_A(B) = \\dfrac{P(A \\cap B)}{P(A)}$ exige $P(A) \\neq 0$"
 - "Inverser le conditionnement : $P_A(B)$ n'est pas égal à $P_B(A)$ en général"
-- "Confondre indépendance et incompatibilité : deux événements incompatibles de probabilités non nulles ne sont jamais indépendants"
+- "Croire que deux événements sans issue commune sont indépendants : si $A \\cap B = \\varnothing$, avec $P(A) \\neq 0$ et $P(B) \\neq 0$, alors $P(A \\cap B) = 0 \\neq P(A) \\times P(B)$"
 - "Oublier la formule des probabilités totales : $P(B) = P(A)\\,P_A(B) + P(\\overline{A})\\,P_{\\overline{A}}(B)$"
 - "Se tromper dans l'arbre pondéré : la somme des probabilités issues d'un même nœud vaut 1"
 - "Confondre les règles de l'arbre : on multiplie le long d'un chemin, on additionne les chemins qui mènent au même événement"
@@ -53,11 +53,6 @@ liens:
 - nom: Khan Academy — Probabilités conditionnelles
   desc: Cours vidéo complet sur les probabilités conditionnelles
   url: "https://fr.khanacademy.org/math/statistics-probability/probability-library/conditional-probability-independence/v/calculating-conditional-probability"
-  ico: 📚
-  cat: cours
-- nom: Khan Academy — Théorème de Bayes
-  desc: Comprendre le théorème de Bayes et ses applications
-  url: "https://fr.khanacademy.org/math/statistics-probability/probability-library/conditional-probability-independence/v/bayes-theorem-visualized"
   ico: 📚
   cat: cours
 - nom: GeoGebra — Arbre pondéré interactif
