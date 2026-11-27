@@ -34,6 +34,11 @@ ds_blancs:
   contenu: Formule des sinus · Triangulation
   duree: "55 min"
   pdf: premiere-spe-ch11-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: premiere-spe-ch11-activites.pdf
+- titre: Activités — Version professeur
+  pdf: premiere-spe-ch11-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1
