@@ -15,26 +15,29 @@ planches:
   pdf: tale-techno/tale-techno-commun-ch1-planche-01.pdf
 - num: 2
   pdf: tale-techno/tale-techno-commun-ch1-planche-02.pdf
-- num: 3
-  pdf: tale-techno/tale-techno-commun-ch1-planche-03.pdf
 dm:
 - num: 1
-  contenu: Suite arithmétique · Somme de termes · Modélisation
+  contenu: Suites · Modélisation · Programmes
   duree: "1 semaine"
   pdf: tale-techno/tale-techno-commun-ch1-dm-01-sujet.pdf
 - num: 2
-  contenu: Suite géométrique · Somme de termes · Problème ouvert
+  contenu: Suites géométriques · Sommes · Modélisation
   duree: "1 semaine"
   pdf: tale-techno/tale-techno-commun-ch1-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
-  contenu: QCM · Suites arithmétiques · Modélisation · Sommes
+  contenu: Suites · Modélisation · Python
   duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch1-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Automatismes · Intérêts simples ou composés · Suites géométriques · Sommes
+  contenu: Suites géométriques · Sommes · Moyennes
   duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch1-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: tale-techno/tale-techno-commun-ch1-activites.pdf
+- titre: Activités — Version professeur
+  pdf: tale-techno/tale-techno-commun-ch1-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

@@ -33,6 +33,11 @@ ds_blancs:
   contenu: Loi binomiale · Combinaisons linéaires
   duree: 1 h
   pdf: terminale-spe-ch16-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: terminale-spe-ch16-activites.pdf
+- titre: Activités — Version professeur
+  pdf: terminale-spe-ch16-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

@@ -33,6 +33,11 @@ ds_blancs:
   contenu: Équations · Signe d'une fonction avec ln
   duree: 4 h
   pdf: terminale-spe-ch12-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: terminale-spe-ch12-activites.pdf
+- titre: Activités — Version professeur
+  pdf: terminale-spe-ch12-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

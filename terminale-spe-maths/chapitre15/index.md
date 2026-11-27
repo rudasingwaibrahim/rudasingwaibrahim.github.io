@@ -33,6 +33,11 @@ ds_blancs:
   contenu: Primitives · Équations différentielles
   duree: 4 h
   pdf: terminale-spe-ch15-dsblanc-02.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: terminale-spe-ch15-activites.pdf
+- titre: Activités — Version professeur
+  pdf: terminale-spe-ch15-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

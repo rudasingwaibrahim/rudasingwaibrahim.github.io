@@ -33,6 +33,11 @@ ds_blancs:
   contenu: Limites · Opérations · Formes indéterminées
   duree: 2 h
   pdf: terminale-spe-ch1-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: terminale-spe-ch1-activites.pdf
+- titre: Activités — Version professeur
+  pdf: terminale-spe-ch1-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1
