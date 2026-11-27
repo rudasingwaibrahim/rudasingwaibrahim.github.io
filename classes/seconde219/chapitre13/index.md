@@ -13,42 +13,24 @@ planches:
   pdf: seconde-ch13-planche-01.pdf
 - num: 2
   pdf: seconde-ch13-planche-02.pdf
-- num: 3
-  pdf: seconde-ch13-planche-03.pdf
-- num: 4
-  pdf: seconde-ch13-planche-04.pdf
-- num: 5
-  pdf: seconde-ch13-planche-05.pdf
-- num: 6
-  pdf: seconde-ch13-planche-06.pdf
 dm:
 - num: 1
-  contenu: Moyenne · Médiane · Quartiles
+  contenu: Moyennes pondérées
   duree: "1 semaine"
   pdf: seconde-ch13-dm-01-sujet.pdf
 - num: 2
-  contenu: "Quartiles · Écart interquartile · Boîte à moustaches"
+  contenu: "Quartiles · Boîtes à moustaches · Valeur extrême"
   duree: "1 semaine"
   pdf: seconde-ch13-dm-02-sujet.pdf
-- num: 3
-  pdf: seconde-ch13-dm-03-sujet.pdf
-- num: 4
-  pdf: seconde-ch13-dm-04-sujet.pdf
-- num: 5
-  pdf: seconde-ch13-dm-05-sujet.pdf
-- num: 6
-  pdf: seconde-ch13-dm-06-sujet.pdf
 ds_blancs:
 - num: 1
-  contenu: Statistiques · Moyenne · Médiane
+  contenu: Moyennes · Linéarité
   duree: "55 min"
   pdf: seconde-ch13-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Quartiles · Diagrammes · Dispersion
+  contenu: Médiane · Quartiles · Écart type
   duree: "55 min"
   pdf: seconde-ch13-dsblanc-02-sujet.pdf
-- num: 3
-  pdf: seconde-ch13-dsblanc-03-sujet.pdf
 ds_published: false
 ds:
 - num: 1
@@ -57,9 +39,6 @@ ds:
   pdf: seconde-ch13-ds-02-sujet.pdf
 - num: 3
   pdf: seconde-ch13-ds-03-sujet.pdf
-- num: bis
-  label: DS bis
-  pdf: seconde-ch13-ds-special.pdf
 erreurs:
 - "Confondre moyenne et médiane : la médiane partage la série ordonnée en deux groupes de même effectif"
 - Oublier de pondérer chaque valeur par son effectif dans le calcul de la moyenne

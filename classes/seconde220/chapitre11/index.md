@@ -13,6 +13,29 @@ cours:
 - titre: Problèmes de pourcentages
   sub: Fiche d'exercices corrigés (d'après Sésamath)
   pdf: seconde-ch11-problemes-pourcentages.pdf
+planches:
+- num: 1
+  pdf: seconde-ch11-planche-01.pdf
+- num: 2
+  pdf: seconde-ch11-planche-02.pdf
+dm:
+- num: 1
+  contenu: "Livret · Python · Chiffre d'affaires"
+  duree: "1 semaine"
+  pdf: seconde-ch11-dm-01-sujet.pdf
+- num: 2
+  contenu: "Évolutions et fonctions · Inflation"
+  duree: "1 semaine"
+  pdf: seconde-ch11-dm-02-sujet.pdf
+ds_blancs:
+- num: 1
+  contenu: "Proportions · Coefficients · TVA"
+  duree: "55 min"
+  pdf: seconde-ch11-dsblanc-01-sujet.pdf
+- num: 2
+  contenu: "Évolutions successives et réciproques"
+  duree: "55 min"
+  pdf: seconde-ch11-dsblanc-02-sujet.pdf
 ds_published: false
 ds:
 - num: 1

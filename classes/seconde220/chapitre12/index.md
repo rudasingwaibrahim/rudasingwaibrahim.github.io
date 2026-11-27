@@ -18,11 +18,19 @@ dm:
   contenu: Fonctions carré · Inverse · Racine
   duree: "1 semaine"
   pdf: seconde-ch12-dm-01-sujet.pdf
+- num: 2
+  contenu: Valeur absolue · Fonctions de référence
+  duree: "1 semaine"
+  pdf: seconde-ch12-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
   contenu: Fonctions de référence · Variations
   duree: "55 min"
   pdf: seconde-ch12-dsblanc-01-sujet.pdf
+- num: 2
+  contenu: Valeur absolue · Inéquations
+  duree: "55 min"
+  pdf: seconde-ch12-dsblanc-02-sujet.pdf
 ds_published: false
 ds:
 - num: 1
