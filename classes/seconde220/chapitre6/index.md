@@ -27,11 +27,11 @@ dm:
   pdf: seconde-ch6-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
-  contenu: Ensembles de nombres · Intervalles
+  contenu: "Ensembles de nombres · Encadrements · Démonstration"
   duree: "55 min"
   pdf: seconde-ch6-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Rationnels · Irrationnels · Valeur absolue
+  contenu: "Ensembles de nombres · Irrationnels · Encadrements"
   duree: "55 min"
   pdf: seconde-ch6-dsblanc-02-sujet.pdf
 ds_published: true

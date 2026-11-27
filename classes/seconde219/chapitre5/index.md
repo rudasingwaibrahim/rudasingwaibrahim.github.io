@@ -18,13 +18,21 @@ planches:
   pdf: seconde-ch5-planche-02.pdf
 dm:
 - num: 1
+  contenu: Colinéarité · Déterminant
+  duree: "1 semaine"
   pdf: seconde-ch5-dm-01-sujet.pdf
 - num: 2
+  contenu: Alignement · Parallélisme · Applications
+  duree: "1 semaine"
   pdf: seconde-ch5-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
+  contenu: Colinéarité · Déterminant · Alignement
+  duree: "55 min"
   pdf: seconde-ch5-dsblanc-01-sujet.pdf
 - num: 2
+  contenu: Parallélisme · Droites · Applications
+  duree: "55 min"
   pdf: seconde-ch5-dsblanc-02-sujet.pdf
 ds_published: true
 ds:

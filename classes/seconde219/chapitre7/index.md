@@ -18,13 +18,21 @@ planches:
   pdf: seconde-ch7-planche-02.pdf
 dm:
 - num: 1
+  contenu: Image · Antécédent · Domaine de définition
+  duree: "1 semaine"
   pdf: seconde-ch7-dm-01-sujet.pdf
 - num: 2
+  contenu: Lecture graphique · Tableau de valeurs
+  duree: "1 semaine"
   pdf: seconde-ch7-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
+  contenu: Fonctions · Image · Antécédent
+  duree: "55 min"
   pdf: seconde-ch7-dsblanc-01-sujet.pdf
 - num: 2
+  contenu: "Images · Tableau de signes · Deux fonctions"
+  duree: "55 min"
   pdf: seconde-ch7-dsblanc-02-sujet.pdf
 ds_published: true
 ds:

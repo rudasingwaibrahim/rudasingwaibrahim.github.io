@@ -27,11 +27,11 @@ dm:
   pdf: seconde-ch2-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
-  contenu: Puissances · Racines · Simplification
+  contenu: "Fractions · Puissances · Notation scientifique"
   duree: "55 min"
   pdf: seconde-ch2-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Notation scientifique · Calcul
+  contenu: "Racines carrées · Calculs · Démonstrations"
   duree: "55 min"
   pdf: seconde-ch2-dsblanc-02-sujet.pdf
 ds_published: true

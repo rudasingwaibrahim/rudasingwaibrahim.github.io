@@ -19,7 +19,7 @@ dm:
   duree: "1 semaine"
   pdf: seconde-ch15-dm-01-sujet.pdf
 - num: 2
-  contenu: Droites parallèles · Perpendiculaires
+  contenu: "Droites parallèles · Droites sécantes"
   duree: "1 semaine"
   pdf: seconde-ch15-dm-02-sujet.pdf
 ds_blancs:
@@ -28,7 +28,7 @@ ds_blancs:
   duree: "55 min"
   pdf: seconde-ch15-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Parallèles · Perpendiculaires · Intersection
+  contenu: "Parallèles · Sécantes · Intersection"
   duree: "55 min"
   pdf: seconde-ch15-dsblanc-02-sujet.pdf
 ds_published: true

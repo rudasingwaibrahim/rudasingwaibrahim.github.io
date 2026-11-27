@@ -18,13 +18,21 @@ planches:
   pdf: seconde-ch10-planche-02.pdf
 dm:
 - num: 1
+  contenu: Équations du 1er degré · Tableau de signes
+  duree: "1 semaine"
   pdf: seconde-ch10-dm-01-sujet.pdf
 - num: 2
+  contenu: Inéquations · Factorisation · Produit nul
+  duree: "1 semaine"
   pdf: seconde-ch10-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
+  contenu: Équations · Inéquations · Tableau de signes
+  duree: "55 min"
   pdf: seconde-ch10-dsblanc-01-sujet.pdf
 - num: 2
+  contenu: Factorisation · Produit nul
+  duree: "55 min"
   pdf: seconde-ch10-dsblanc-02-sujet.pdf
 ds_published: true
 ds:

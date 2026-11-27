@@ -15,13 +15,21 @@ planches:
   pdf: seconde-ch14-planche-02.pdf
 dm:
 - num: 1
+  contenu: Tableau de variations · Extrema
+  duree: "1 semaine"
   pdf: seconde-ch14-dm-01-sujet.pdf
 - num: 2
+  contenu: "Fonctions de référence · Démonstrations · Optimisation"
+  duree: "1 semaine"
   pdf: seconde-ch14-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
+  contenu: Variations · Tableau · Extrema
+  duree: "55 min"
   pdf: seconde-ch14-dsblanc-01-sujet.pdf
 - num: 2
+  contenu: "Fonctions de référence · Inéquations · Problème"
+  duree: "55 min"
   pdf: seconde-ch14-dsblanc-02-sujet.pdf
 ds_published: true
 ds:

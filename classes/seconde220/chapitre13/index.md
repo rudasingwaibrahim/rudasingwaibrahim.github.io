@@ -27,7 +27,7 @@ dm:
   duree: "1 semaine"
   pdf: seconde-ch13-dm-01-sujet.pdf
 - num: 2
-  contenu: Histogramme · Boîte à moustaches · Écart-type
+  contenu: "Quartiles · Écart interquartile · Boîte à moustaches"
   duree: "1 semaine"
   pdf: seconde-ch13-dm-02-sujet.pdf
 - num: 3

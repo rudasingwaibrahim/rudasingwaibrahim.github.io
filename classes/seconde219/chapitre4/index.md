@@ -18,13 +18,20 @@ planches:
   pdf: seconde-ch4-planche-02.pdf
 dm:
 - num: 1
+  contenu: Multiples et diviseurs · Critères
+  duree: "1 semaine"
   pdf: seconde-ch4-dm-01-sujet.pdf
 - num: 2
+  duree: "1 semaine"
   pdf: seconde-ch4-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
+  contenu: "Multiples · Diviseurs · Parité · Nombres premiers"
+  duree: "55 min"
   pdf: seconde-ch4-dsblanc-01-sujet.pdf
 - num: 2
+  contenu: Décomposition en facteurs premiers
+  duree: "55 min"
   pdf: seconde-ch4-dsblanc-02-sujet.pdf
 ds_published: true
 ds:

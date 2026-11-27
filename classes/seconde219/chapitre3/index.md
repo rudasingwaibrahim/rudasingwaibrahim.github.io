@@ -18,13 +18,21 @@ planches:
   pdf: seconde-ch3-planche-02.pdf
 dm:
 - num: 1
+  contenu: Vecteurs égaux · Relation de Chasles
+  duree: "1 semaine"
   pdf: seconde-ch3-dm-01-sujet.pdf
 - num: 2
+  contenu: "Relation de Chasles · Parallélogramme · Varignon"
+  duree: "1 semaine"
   pdf: seconde-ch3-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
+  contenu: Vecteurs · Chasles · Translation
+  duree: "55 min"
   pdf: seconde-ch3-dsblanc-01-sujet.pdf
 - num: 2
+  contenu: "Sommes de vecteurs · Relation de Chasles · Varignon"
+  duree: "55 min"
   pdf: seconde-ch3-dsblanc-02-sujet.pdf
 ds_published: true
 ds:

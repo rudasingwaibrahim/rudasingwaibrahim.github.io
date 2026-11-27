@@ -23,8 +23,12 @@ planches:
   pdf: seconde-ch13-planche-06.pdf
 dm:
 - num: 1
+  contenu: Moyenne · Médiane · Quartiles
+  duree: "1 semaine"
   pdf: seconde-ch13-dm-01-sujet.pdf
 - num: 2
+  contenu: "Quartiles · Écart interquartile · Boîte à moustaches"
+  duree: "1 semaine"
   pdf: seconde-ch13-dm-02-sujet.pdf
 - num: 3
   pdf: seconde-ch13-dm-03-sujet.pdf
@@ -36,8 +40,12 @@ dm:
   pdf: seconde-ch13-dm-06-sujet.pdf
 ds_blancs:
 - num: 1
+  contenu: Statistiques · Moyenne · Médiane
+  duree: "55 min"
   pdf: seconde-ch13-dsblanc-01-sujet.pdf
 - num: 2
+  contenu: Quartiles · Diagrammes · Dispersion
+  duree: "55 min"
   pdf: seconde-ch13-dsblanc-02-sujet.pdf
 - num: 3
   pdf: seconde-ch13-dsblanc-03-sujet.pdf

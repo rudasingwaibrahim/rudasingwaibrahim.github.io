@@ -54,7 +54,7 @@ ds_blancs:
   duree: "55 min"
   pdf: seconde-ch16-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Arbre · Tableau · Loi équirépartie
+  contenu: "Loi de probabilité · Réunion et intersection · Arbre"
   duree: "55 min"
   pdf: seconde-ch16-dsblanc-02-sujet.pdf
 - num: 3

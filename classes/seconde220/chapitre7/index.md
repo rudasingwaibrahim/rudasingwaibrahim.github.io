@@ -31,7 +31,7 @@ ds_blancs:
   duree: "55 min"
   pdf: seconde-ch7-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Domaine · Lecture graphique · Tableau
+  contenu: "Images · Tableau de signes · Deux fonctions"
   duree: "55 min"
   pdf: seconde-ch7-dsblanc-02-sujet.pdf
 ds_published: true

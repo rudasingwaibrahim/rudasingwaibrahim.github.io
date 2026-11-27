@@ -31,7 +31,7 @@ ds_blancs:
   duree: "55 min"
   pdf: seconde-ch9-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Vecteurs · Norme · Milieu · Applications
+  contenu: "Repérage · Distances · Projeté orthogonal · Al-Kashi"
   duree: "55 min"
   pdf: seconde-ch9-dsblanc-02-sujet.pdf
 ds_published: true

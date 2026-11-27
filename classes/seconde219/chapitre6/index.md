@@ -18,13 +18,21 @@ planches:
   pdf: seconde-ch6-planche-02.pdf
 dm:
 - num: 1
+  contenu: "Ensembles N, Z, Q, R · Appartenance"
+  duree: "1 semaine"
   pdf: seconde-ch6-dm-01-sujet.pdf
 - num: 2
+  contenu: Rationnels et irrationnels · Comparaison
+  duree: "1 semaine"
   pdf: seconde-ch6-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
+  contenu: "Ensembles de nombres · Encadrements · Démonstration"
+  duree: "55 min"
   pdf: seconde-ch6-dsblanc-01-sujet.pdf
 - num: 2
+  contenu: "Ensembles de nombres · Irrationnels · Encadrements"
+  duree: "55 min"
   pdf: seconde-ch6-dsblanc-02-sujet.pdf
 ds_published: true
 ds:

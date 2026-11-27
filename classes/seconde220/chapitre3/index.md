@@ -22,7 +22,7 @@ dm:
   duree: "1 semaine"
   pdf: seconde-ch3-dm-01-sujet.pdf
 - num: 2
-  contenu: Translation · Milieu · Vecteurs opposés
+  contenu: "Relation de Chasles · Parallélogramme · Varignon"
   duree: "1 semaine"
   pdf: seconde-ch3-dm-02-sujet.pdf
 ds_blancs:
@@ -31,7 +31,7 @@ ds_blancs:
   duree: "55 min"
   pdf: seconde-ch3-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Coordonnées · Milieu · Vecteurs opposés
+  contenu: "Sommes de vecteurs · Relation de Chasles · Varignon"
   duree: "55 min"
   pdf: seconde-ch3-dsblanc-02-sujet.pdf
 ds_published: true

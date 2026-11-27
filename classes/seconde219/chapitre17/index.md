@@ -17,13 +17,21 @@ planches:
   pdf: seconde-ch17-planche-02.pdf
 dm:
 - num: 1
+  contenu: Systèmes 2×2 · Substitution · Combinaison
+  duree: "1 semaine"
   pdf: seconde-ch17-dm-01-sujet.pdf
 - num: 2
+  contenu: Intersection de droites · Applications
+  duree: "1 semaine"
   pdf: seconde-ch17-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
+  contenu: "Systèmes d'équations · Droites"
+  duree: "55 min"
   pdf: seconde-ch17-dsblanc-01-sujet.pdf
 - num: 2
+  contenu: Intersection · Méthodes de résolution
+  duree: "55 min"
   pdf: seconde-ch17-dsblanc-02-sujet.pdf
 ds_published: true
 ds:

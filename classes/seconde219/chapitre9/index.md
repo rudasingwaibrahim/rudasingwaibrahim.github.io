@@ -18,13 +18,21 @@ planches:
   pdf: seconde-ch9-planche-02.pdf
 dm:
 - num: 1
+  contenu: Coordonnées · Vecteur AB · Milieu
+  duree: "1 semaine"
   pdf: seconde-ch9-dm-01-sujet.pdf
 - num: 2
+  contenu: Distance · Norme · Repérage
+  duree: "1 semaine"
   pdf: seconde-ch9-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
+  contenu: Repérage · Coordonnées · Distance
+  duree: "55 min"
   pdf: seconde-ch9-dsblanc-01-sujet.pdf
 - num: 2
+  contenu: "Repérage · Distances · Projeté orthogonal · Al-Kashi"
+  duree: "55 min"
   pdf: seconde-ch9-dsblanc-02-sujet.pdf
 ds_published: true
 ds:

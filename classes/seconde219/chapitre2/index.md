@@ -18,13 +18,21 @@ planches:
   pdf: seconde-ch2-planche-02.pdf
 dm:
 - num: 1
+  contenu: Puissances entières · Notation scientifique
+  duree: "1 semaine"
   pdf: seconde-ch2-dm-01-sujet.pdf
 - num: 2
+  contenu: Racines carrées · Simplification
+  duree: "1 semaine"
   pdf: seconde-ch2-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
+  contenu: "Fractions · Puissances · Notation scientifique"
+  duree: "55 min"
   pdf: seconde-ch2-dsblanc-01-sujet.pdf
 - num: 2
+  contenu: "Racines carrées · Calculs · Démonstrations"
+  duree: "55 min"
   pdf: seconde-ch2-dsblanc-02-sujet.pdf
 ds_published: true
 ds:

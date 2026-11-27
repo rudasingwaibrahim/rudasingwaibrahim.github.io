@@ -28,23 +28,36 @@ planches:
   pdf: seconde-ch11-planche-06.pdf
 dm:
 - num: 1
+  contenu: "Proportions et pourcentages"
+  duree: "1 semaine"
   pdf: seconde-ch11-dm-01-sujet.pdf
 - num: 2
+  contenu: "Pourcentage d'un pourcentage"
+  duree: "1 semaine"
   pdf: seconde-ch11-dm-02-sujet.pdf
 - num: 3
+  contenu: "Augmentations, diminutions et coefficients"
   pdf: seconde-ch11-dm-03-sujet.pdf
 - num: 4
+  contenu: "Taux d'évolution"
   pdf: seconde-ch11-dm-04-sujet.pdf
 - num: 5
+  contenu: "Évolutions successives"
   pdf: seconde-ch11-dm-05-sujet.pdf
 - num: 6
+  contenu: "Évolution réciproque"
   pdf: seconde-ch11-dm-06-sujet.pdf
 ds_blancs:
 - num: 1
+  contenu: "Proportions · Pourcentages · Évolutions simples"
+  duree: "55 min"
   pdf: seconde-ch11-dsblanc-01-sujet.pdf
 - num: 2
+  contenu: "Taux d'évolution · Évolutions successives"
+  duree: "55 min"
   pdf: seconde-ch11-dsblanc-02-sujet.pdf
 - num: 3
+  contenu: "Bilan du chapitre"
   pdf: seconde-ch11-dsblanc-03-sujet.pdf
 ds_published: true
 ds:

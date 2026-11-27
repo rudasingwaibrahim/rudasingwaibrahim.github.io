@@ -19,7 +19,7 @@ dm:
   duree: "1 semaine"
   pdf: seconde-ch14-dm-01-sujet.pdf
 - num: 2
-  contenu: Croissance · Décroissance · Lecture graphique
+  contenu: "Fonctions de référence · Démonstrations · Optimisation"
   duree: "1 semaine"
   pdf: seconde-ch14-dm-02-sujet.pdf
 ds_blancs:
@@ -28,7 +28,7 @@ ds_blancs:
   duree: "55 min"
   pdf: seconde-ch14-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Croissance · Décroissance · Graphique
+  contenu: "Fonctions de référence · Inéquations · Problème"
   duree: "55 min"
   pdf: seconde-ch14-dsblanc-02-sujet.pdf
 ds_published: true

@@ -17,11 +17,9 @@ planches:
   pdf: seconde-ch18-planche-02.pdf
 dm:
 - num: 1
-  contenu: Intervalle de fluctuation · Simulation
   duree: "1 semaine"
   pdf: seconde-ch18-dm-01-sujet.pdf
 - num: 2
-  contenu: Estimation · Prise de décision statistique
   duree: "1 semaine"
   pdf: seconde-ch18-dm-02-sujet.pdf
 ds_blancs:

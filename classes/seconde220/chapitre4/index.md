@@ -22,12 +22,11 @@ dm:
   duree: "1 semaine"
   pdf: seconde-ch4-dm-01-sujet.pdf
 - num: 2
-  contenu: Nombres premiers · Décomposition
   duree: "1 semaine"
   pdf: seconde-ch4-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
-  contenu: Divisibilité · Nombres premiers · PGCD
+  contenu: "Multiples · Diviseurs · Parité · Nombres premiers"
   duree: "55 min"
   pdf: seconde-ch4-dsblanc-01-sujet.pdf
 - num: 2

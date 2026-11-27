@@ -31,7 +31,7 @@ ds_blancs:
   duree: "55 min"
   pdf: seconde-ch8-dsblanc-01-sujet.pdf
 - num: 2
-  contenu: Ensembles de nombres · Équations
+  contenu: "Intervalles · Inéquations · Valeur absolue"
   duree: "55 min"
   pdf: seconde-ch8-dsblanc-02-sujet.pdf
 ds_published: true
