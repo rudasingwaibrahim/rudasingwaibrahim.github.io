@@ -33,6 +33,11 @@ ds_blancs:
   contenu: Coût moyen · Coût marginal · Positions relatives
   duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch4-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: tale-techno/tale-techno-commun-ch4-activites.pdf
+- titre: Activités — Version professeur
+  pdf: tale-techno/tale-techno-commun-ch4-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1
