@@ -145,6 +145,7 @@ main.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 40px;display:gr
 .fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:.8em;line-height:1.1;margin:0 .12em}
 .fr>span:first-child{border-bottom:1.5px solid currentColor;padding:0 .2em}.fr>span:last-child{padding:0 .2em}
 .rt{white-space:nowrap}.rt>span{border-top:1.5px solid currentColor;padding:0 .08em;margin-left:.04em}
+.cv{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.08;font-size:.8em;margin:0 .12em;padding:.06em .32em;border-left:.09em solid currentColor;border-right:.09em solid currentColor;border-radius:.55em/1.4em}
 .vec{display:inline-block;position:relative;padding-top:.32em;line-height:1}
 .vec::before{content:"";position:absolute;left:.04em;right:.18em;top:.12em;border-top:1.5px solid currentColor}
 .vec::after{content:"";position:absolute;right:0;top:-.06em;border:.2em solid transparent;border-left:.34em solid currentColor;border-right:0}
@@ -242,6 +243,7 @@ const S = r => { r = Q(r); return r.d === 1 ? `(${r.n})` : `(${r.n}/${r.d})`; };
 const sup = s => `<sup>${s}</sup>`, sub = s => `<sub>${s}</sub>`;
 const SUP = { 1: '', 2: '²', 3: '³', 4: '⁴' };
 const vec = s => `<span class="vec">${s}</span>`;
+const col = (a, b) => `<span class="cv"><span>${a}</span><span>${b}</span></span>`; // coordonnées d'un vecteur en colonne, comme dans le cours
 const ov = s => `<span class="ov">${s}</span>`;
 const rt = s => `<span class="rt">√<span>${s}</span></span>`;
 const nw = s => `<span class="nw">${s}</span>`;
@@ -346,6 +348,8 @@ const RULES = {
   R2k: `Le maximum est la valeur f(x<sub>0</sub>), pas l'abscisse x<sub>0</sub>`,
   R2m: `f′(a) se calcule avec l'expression de f′, pas avec celle de f`,
   R2o: `(${rt('x')})′ = ${fr('1', '2' + rt('x'))}${NB}; (${fr('1', 'x')})′ = −${fr('1', 'x²')}`,
+  R2p: `f′(a) est la limite, quand h tend vers 0, du taux d'accroissement ${fr('f(a + h) − f(a)', 'h')}`,
+  R2r: `(a + h)² = a² + 2ah + h²`,
   /* 3 · suites */
   R3a: `Si la suite commence à u<sub>0</sub>, le k-ième terme est u${sub('k − 1')}`,
   R3b: `Récurrence : u${sub('n+1')} se calcule à partir du terme u${sub('n')}, pas de l'indice n`,
@@ -373,14 +377,14 @@ const RULES = {
   R4k: `Al-Kashi : BC² = AB² + AC² − 2 × AB × AC × cos Â`,
   R4l: `${vec('AB')}·${vec('AC')} = AB × AH si ${vec('AB')} et ${vec('AH')} ont le même sens, −AB × AH sinon`,
   /* 5 · géométrie repérée */
-  R5a: `ax + by + c = 0 : ${vec('n')}(a${NB}; b) normal, ${vec('u')}(−b${NB}; a) directeur`,
+  R5a: `ax + by + c = 0 : ${vec('n')}${col('a', 'b')} normal, ${vec('u')}${col('−b', 'a')} directeur`,
   R5b: `Le point A vérifie l'équation : on en déduit c`,
   R5c: `Cercle de centre Ω(a${NB}; b) et de rayon r : (x − a)² + (y − b)² = r²`,
   R5d: `Compléter le carré : x² − 2kx = (x − k)² − k²`,
   R5e: `(x − a)² + (y − b)² = R (R > 0) : le rayon est ${rt('R')}`,
   R5f: `M est sur le cercle de diamètre [AB] ⇔ ${vec('MA')}·${vec('MB')} = 0`,
   R5h: `Tout vecteur non nul colinéaire à un vecteur directeur est directeur`,
-  R5i: `Coordonnées : ${vec('AB')}(x${sub('B')} − x${sub('A')}${NB}; y${sub('B')} − y${sub('A')})`,
+  R5i: `Coordonnées : ${vec('AB')}${col('x' + sub('B') + ' − x' + sub('A'), 'y' + sub('B') + ' − y' + sub('A'))}`,
   R5k: `H ∈ d : ses coordonnées vérifient l'équation complète ax + by + c = 0`,
   /* 6 · exponentielle */
   R6a: `e${sup('a+b')} = e${sup('a')} × e${sup('b')} (ni e${sup('a')} + e${sup('b')}, ni e${sup('ab')})`,
@@ -526,7 +530,7 @@ function g1negdelta(r, ok) {
     return [L0, L1, L2];
   };
   return mk(r, ok, {
-    ch: [1, 3], d: 1, task: `Résoudre f(x) = 0 puis donner le signe de f(x) = ${F.h}.`, chain,
+    name: 'g1negdelta', ch: [3], d: 1, task: `Résoudre f(x) = 0 puis donner le signe de f(x) = ${F.h}.`, chain,
     okx: `Δ = ${N(D0)} < 0 : pas de racine, et le trinôme a partout le signe de a = ${N(a)}.`,
     vars: [
       { bad: 1, dec: { root: true }, alt: [{ one: true }, { two: true }], rule: 'R1e', x: `Δ = ${N(D0)} < 0 : ${rt('Δ')} n'existe pas. L'élève a utilisé ${rt(-D0)}, la racine de −Δ : il n'y a aucune racine réelle.` },
@@ -583,7 +587,7 @@ function g1roots(r, ok) {
   const canPlus = b * b + 4 * a * c < 0;
   const lo = qv(x1) < qv(x2) ? x1 : x2, hi = qv(x1) < qv(x2) ? x2 : x1;
   return mk(r, ok, {
-    name: 'g1roots', ch: [1, 3], d: 2, task: `Résoudre ${F.h} = 0 puis factoriser.`, chain,
+    name: 'g1roots', ch: [3], d: 2, task: `Résoudre ${F.h} = 0 puis factoriser.`, chain,
     okx: `Δ = ${N(D0)}, les racines ${N(lo)} et ${N(hi)} sont justes, et le coefficient a = ${N(a)} reste en facteur.`,
     vars: [
       { bad: 0, dec: { co: 'sign' }, alt: [{ co: 'aneg' }, { co: 'swap' }], rule: 'R1o', x: `Dans ${F.h}, le terme en x est ${poly([b, 0]).h} : b = ${N(b)}, avec son signe.` },
@@ -729,7 +733,7 @@ function g2power(r, ok) {
     return [L0, L1, L2];
   };
   return mk(r, ok, {
-    name: 'g2power', ch: [2, 4], d: 1, task: `Calculer f′(x) puis f′(${N(x0)}) pour f(x) = ${F.h}.`, chain,
+    name: 'g2power', ch: [4], d: 1, task: `Calculer f′(x) puis f′(${N(x0)}) pour f(x) = ${F.h}.`, chain,
     okx: `L'exposant baisse de 1, la constante ${N(c)} disparaît et f′(${N(x0)}) est calculé avec f′.`,
     vars: [
       { bad: 0, dec: { pw: 'keep' }, alt: [{ kc: true }, { pw: 'keep', kc: true }], rule: 'R2a', x: `(x${SUP[n]})′ = ${n}x${SUP[n - 1] || ''} : l'exposant diminue de 1.` },
@@ -765,7 +769,7 @@ function g2product(r, ok) {
     return [L0, L1, L2];
   };
   return mk(r, ok, {
-    name: 'g2product', ch: [2, 4], d: 2, task: `Dériver f(x) = ${F}.`, chain,
+    name: 'g2product', ch: [4], d: 2, task: `Dériver f(x) = ${F}.`, chain,
     okx: `u′v + uv′ est bien appliquée, et la constante de v disparaît en dérivant.`,
     vars: [
       { bad: 1, dec: { f: 'uv' }, alt: [{ f: 'minus' }, { f: 'half' }], rule: 'R2c', x: `La dérivée d'un produit n'est pas le produit des dérivées : (uv)′ = u′v + uv′.` },
@@ -798,6 +802,61 @@ function g2quot(r, ok) {
     ]
   });
 }
+/* chapitre 2 : nombre dérivé par le taux d'accroissement (cours ch2, méthode 1.3) */
+function g2taux(r, ok) {
+  const a = r.nz(-4, 4), p = r.nz(-5, 5), A2 = 2 * a + p;
+  if (A2 === 0 || A2 === 1 || A2 === -1) throw new Error('retry');
+  const F = poly([1, p, 0]), fa = a * a + p * a;
+  const chain = d => {
+    const lin = d.sq ? p : A2;           // oubli du double produit : (a + h)² = a² + h²
+    const L0 = L(`f(${N(a)} + h) − f(${N(a)}) = (${N(a)} + h)²${p === 1 ? ' + ' : p === -1 ? ' ' + MN + ' ' : tH(p)}(${N(a)} + h) − ${P(fa)} = ${lin ? poly([lin, 0], 'h').h + ' + ' : ''}h²`,
+      eq(`(${a}+h)**2+(${p})*(${a}+h)-(${fa})`, `(${lin})*h+h**2`), `On développe : (a + h)² = a² + 2ah + h².`);
+    const L1 = d.nodiv ? L(`Taux d'accroissement : ${poly([lin, 0], 'h').h} + h²`, eq(`((${lin})*h+h**2)/h`, `(${lin})*h+h**2`))
+      : L(`Taux d'accroissement : ${fr(poly([lin, 0], 'h').h + ' + h²', 'h')} = ${lin ? N(lin) + ' + h' : 'h'}`, eq(`((${lin})*h+h**2)/h`, `(${lin})+h`), `On divise par h ≠ 0.`);
+    let L2;
+    const lim = d.nodiv ? 0 : lin;
+    if (d.keeph) L2 = L(`Donc f′(${N(a)}) = ${N(lim)} + h`, eq(`${lim}`, `${lim}+h`));
+    else if (d.one) L2 = L(`Donc f′(${N(a)}) = ${N(lim + 1)}`, eq(`${lim}`, `${lim + 1}`));
+    else L2 = L(`Quand h tend vers 0, ${d.nodiv ? 'cette expression' : (lim ? N(lim) + ' + h' : 'h')} tend vers ${N(lim)} : f′(${N(a)}) = ${N(lim)}`, eq(`limit((${d.nodiv ? `(${lin})*h+h**2` : `(${lin})+h`}),h,0)`, `${lim}`), `Le nombre dérivé est la limite du taux d'accroissement.`);
+    return [L0, L1, L2];
+  };
+  return mk(r, ok, {
+    name: 'g2taux', ch: [2], d: 1, task: `f(x) = ${F.h}. Calculer le taux d'accroissement de f entre ${N(a)} et ${N(a)} + h (h ≠ 0), puis en déduire f′(${N(a)}).`, chain,
+    okx: `(${N(a)} + h)² est bien développé avec le double produit, on divise par h puis on fait tendre h vers 0 : f′(${N(a)}) = ${N(A2)}.`,
+    vars: [
+      { bad: 0, dec: { sq: true }, alt: [L(`f(${N(a)} + h) − f(${N(a)}) = ${poly([A2 + 1, 0], 'h').h} + h²`, eq(`(${a}+h)**2+(${p})*(${a}+h)-(${fa})`, `(${A2 + 1})*h+h**2`)), L(`f(${N(a)} + h) − f(${N(a)}) = ${poly([A2, 0], 'h').h}`, eq(`(${a}+h)**2+(${p})*(${a}+h)-(${fa})`, `(${A2})*h`))], rule: 'R2r', off: p === 0 && a === 0, x: `(${N(a)} + h)² = ${a * a} ${a < 0 ? MN : '+'} ${Math.abs(2 * a)}h + h² : il ne faut pas oublier le double produit.` },
+      { bad: 2, dec: { keeph: true }, alt: [{ one: true }, L(`Donc f′(${N(a)}) = 0`, eq(`${A2}`, '0'))], rule: 'R2p', x: `f′(${N(a)}) est la <b>limite</b> de ${N(A2)} + h quand h tend vers 0 : f′(${N(a)}) = ${N(A2)}. Un nombre dérivé ne dépend pas de h.` },
+      { bad: 1, dec: { nodiv: true }, alt: [L(`Taux d'accroissement : ${fr(poly([A2, 0], 'h').h + ' + h²', 'h')} = ${N(A2)} + h²`, eq(`((${A2})*h+h**2)/h`, `(${A2})+h**2`)), L(`Taux d'accroissement : ${fr(poly([A2, 0], 'h').h + ' + h²', 'h')} = ${N(A2)}`, eq(`((${A2})*h+h**2)/h`, `${A2}`))], rule: 'R2p', x: `Le taux d'accroissement est le <b>quotient</b> ${fr('f(a + h) − f(a)', 'h')} : on divise par h, ce qui donne ${N(A2)} + h.` }
+    ]
+  });
+}
+/* chapitre 2 : équation de la tangente quand f(a) et f′(a) sont donnés (cours ch2, exercice 2.3) */
+function g2tanD(r, ok) {
+  const a = r.nz(-4, 5), fa = r.nz(-7, 7), fpa = r.nz(-5, 5);
+  if (fa === fpa || Math.abs(fpa) === 1 || a === fa || a === fpa) throw new Error('retry');
+  const chain = d => {
+    let m = fpa, k = fa, xs = a, form = `y = f′(${N(a)})(x − ${P(a)}) + f(${N(a)})`;
+    if (d.t === 'swap') { m = fa; k = fpa; form = `y = f(${N(a)})(x − ${P(a)}) + f′(${N(a)})`; }
+    if (d.t === 'sign') { xs = -a; form = `y = f′(${N(a)})(x + ${P(a)}) + f(${N(a)})`; }
+    if (d.t === 'noa') { xs = 0; form = `y = f′(${N(a)})x + f(${N(a)})`; }
+    const mH = m === 1 ? '' : m === -1 ? MN : N(m);
+    const L0 = L(`T : ${form}`, eq(`(${fpa})*(x-(${a}))+(${fa})`, `(${m})*(x-(${xs}))+(${k})`), `La tangente en a a pour équation y = f′(a)(x − a) + f(a).`);
+    const L1 = L(`T : y = ${mH}${xs === 0 ? 'x' : bx(xs)}${tH(k)}`, eq(`(${m})*(x-(${xs}))+(${k})`, `(${m})*(x-(${xs}))+(${k})`), `f(${N(a)}) = ${N(fa)} et f′(${N(a)}) = ${N(fpa)}.`);
+    const e = poly([m, -m * xs + k]);
+    const L2 = d.dev ? L(`T : y = ${poly([m, -m * xs - k]).h}`, eq(`(${m})*(x-(${xs}))+(${k})`, poly([m, -m * xs - k]).s))
+      : L(`T : y = ${e.h}`, eq(`(${m})*(x-(${xs}))+(${k})`, e.s), `On développe et on réduit.`);
+    return [L0, L1, L2];
+  };
+  return mk(r, ok, {
+    name: 'g2tanD', ch: [2], d: 2, task: `f est dérivable sur ℝ, avec f(${N(a)}) = ${N(fa)} et f′(${N(a)}) = ${N(fpa)}. Déterminer l'équation réduite de la tangente T à la courbe de f au point d'abscisse ${N(a)}.`, chain,
+    okx: `Coefficient directeur f′(${N(a)}) = ${N(fpa)}, point de contact d'ordonnée f(${N(a)}) = ${N(fa)} : la formule est bien appliquée.`,
+    vars: [
+      { bad: 0, dec: { t: 'swap' }, alt: [{ t: 'sign' }, { t: 'noa' }], rule: 'R2e', x: `Le coefficient directeur de la tangente est f′(${N(a)}) = ${N(fpa)}, et c'est f(${N(a)}) = ${N(fa)} qu'on ajoute.` },
+      { bad: 0, dec: { t: 'sign' }, alt: [{ t: 'swap' }, { t: 'noa' }], rule: 'R2e', x: `On écrit (x − a) avec a = ${N(a)}, soit ${bx(a)}.` },
+      { bad: 2, dec: { dev: true }, alt: [L(`T : y = ${poly([-fpa, fpa * a + fa]).h}`, eq(`(${fpa})*(x-(${a}))+(${fa})`, poly([-fpa, fpa * a + fa]).s)), L(`T : y = ${poly([fpa, fa - a]).h}`, eq(`(${fpa})*(x-(${a}))+(${fa})`, poly([fpa, fa - a]).s))], rule: 'R2e', x: `${N(fpa)}${bx(a)}${tH(fa)} = ${poly([fpa, -fpa * a + fa]).h} : on développe sans changer le signe de f(${N(a)}).` }
+    ]
+  });
+}
 function g2tan(r, ok) {
   const p = r.int(-5, 5), q = r.nz(-6, 6), a = r.nz(-3, 3), cub = r.ch(.35);
   const F = cub ? poly([1, 0, p, q]) : poly([1, p, q]);
@@ -818,7 +877,7 @@ function g2tan(r, ok) {
     return [L0, L1, L2, L3];
   };
   return mk(r, ok, {
-    ch: [2], d: 2, task: `Déterminer l'équation réduite de la tangente T à la courbe de f(x) = ${F.h} au point d'abscisse ${N(a)}.`, chain,
+    name: 'g2tan', ch: [4], d: 2, task: `Déterminer l'équation réduite de la tangente T à la courbe de f(x) = ${F.h} au point d'abscisse ${N(a)}.`, chain,
     okx: `Coefficient directeur f′(${N(a)}) = ${N(fpa)}, ordonnée du point f(${N(a)}) = ${N(fa)} : la formule est appliquée correctement.`,
     vars: [
       { bad: 2, dec: { t: 'swap' }, alt: [{ t: 'sign' }, { t: 'noa' }], rule: 'R2e', x: `Le coefficient directeur de la tangente est f′(${N(a)}) = ${N(fpa)}, et f(${N(a)}) = ${N(fa)} est ajouté.` },
@@ -851,7 +910,7 @@ function g2approx(r, ok) {
     return [L0, L1, L2];
   };
   return mk(r, ok, {
-    name: 'g2approx', ch: [2], d: 1, task: `On pose f(x) = ${fH}. Donner une valeur approchée de f(${D(ah)}) à l'aide de l'approximation affine de f en ${N(a)}.`, chain,
+    name: 'g2approx', ch: [4], d: 1, task: `On pose f(x) = ${fH}. Donner une valeur approchée de f(${D(ah)}) à l'aide de l'approximation affine de f en ${N(a)}.`, chain,
     okx: `f(a + h) ≈ f(a) + f′(a)h est appliquée avec a = ${N(a)} et h = ${D(h)}.`,
     vars: [
       { bad: 1, dec: { ap: 'noh' }, alt: [{ ap: 'swap' }, { ap: 'only' }], rule: 'R2f', x: `Le terme ajouté à f(${N(a)}) est f′(${N(a)}) × h, et non h seul.` },
@@ -1112,20 +1171,25 @@ function g3pct(r, ok) {
   });
 }
 function g3count(r, ok) {
-  const a = r.int(-5, 10), rr = r.nz(-4, 6), Nn = r.int(9, 30), uN = a + Nn * rr;
-  if (a + uN === 0) throw new Error('retry');
-  const chain = d => {
-    const L0 = L(`u${sub(Nn)} = u<sub>0</sub> + ${Nn}r = ${N(a)} + ${Nn} × ${P(rr)} = ${N(uN)}`, eq(`${a}+${Nn}*(${rr})`, uN), `Terme général d'une suite arithmétique.`);
+  /* méthode du cours (ch10, partie 4, exercice 2) : S = (n + 1)u0 + r(1 + 2 + … + n) */
+  const a = r.nz(-5, 10), rr = r.nz(-4, 6), Nn = r.int(9, 30);
+  const chain = (d, upto) => {
     const c = d.c === 'N' ? Nn : d.c === 'Nm' ? Nn - 1 : d.c === 'N2' ? Nn + 2 : Nn + 1;
-    const L1 = L(`La somme u<sub>0</sub> + u<sub>1</sub> + … + u${sub(Nn)} compte ${c} termes.`, { k: 'count', a: 0, b: Nn, c }, `De 0 à ${Nn}, il y a ${Nn} + 1 = ${Nn + 1} indices.`);
-    const Sv = qd(qm(c, a + uN), 2);
-    const L2 = L(`S = ${c} × ${fr(`${N(a)} + ${P(uN)}`, 2)} = ${N(Sv)}`, eq(`${c}*((${a})+(${uN}))/2`, S(Sv)), `Somme = nombre de termes × (premier + dernier)/2.`);
+    const L0 = L(`S = u<sub>0</sub> + (u<sub>0</sub> + r) + … + (u<sub>0</sub> + ${Nn}r) compte ${c} termes.`, { k: 'count', a: 0, b: Nn, c }, `De 0 à ${Nn}, il y a ${Nn} + 1 = ${Nn + 1} indices.`);
+    if (upto === 0) return [L0];
+    const T = d.g === 'm' ? Nn * (Nn - 1) / 2 : d.g === 'sq' ? Nn * Nn / 2 : Nn * (Nn + 1) / 2;
+    const gH = d.g === 'm' ? `${Nn} × ${Nn - 1}` : d.g === 'sq' ? `${Nn}²` : `${Nn} × ${Nn + 1}`;
+    const L1 = L(`S = ${c}u<sub>0</sub> + r(1 + 2 + … + ${Nn}) = ${c} × ${P(a)} + ${P(rr)} × ${fr(gH, 2)}`, eq(`${c}*(${a})+(${rr})*${Nn}*(${Nn}+1)/2`, `${c}*(${a})+(${rr})*(${T})`), `1 + 2 + … + n = ${fr('n(n + 1)', 2)}.`);
+    if (upto === 1) return [L0, L1];
+    const Sv = qa(qm(c, a), qm(rr, Q(T)));
+    const L2 = L(`S = ${N(c * a)} ${rr * T < 0 ? MN : '+'} ${N(Q(Math.abs(rr * T)))} = ${N(Sv)}`, eq(`${c}*(${a})+(${rr})*(${T})`, S(Sv)), `Calcul.`);
     return [L0, L1, L2];
   };
   return mk(r, ok, {
     name: 'g3count', ch: [10], d: 2, task: `(u${sub('n')}) est arithmétique de premier terme u<sub>0</sub> = ${N(a)} et de raison r = ${N(rr)}. Calculer S = u<sub>0</sub> + u<sub>1</sub> + … + u${sub(Nn)}.`, chain,
-    okx: `De u<sub>0</sub> à u${sub(Nn)}, il y a bien ${Nn + 1} termes.`,
-    vars: [{ bad: 1, dec: { c: 'N' }, alt: [{ c: 'Nm' }, { c: 'N2' }], rule: 'R3h', x: `Les indices vont de 0 à ${Nn} : cela fait ${Nn} + 1 = ${Nn + 1} termes.` }]
+    okx: `De u<sub>0</sub> à u${sub(Nn)}, il y a bien ${Nn + 1} termes, et 1 + 2 + … + ${Nn} = ${Nn * (Nn + 1) / 2}.`,
+    vars: [{ bad: 0, dec: { c: 'N' }, alt: [{ c: 'Nm' }, { c: 'N2' }], rule: 'R3h', x: `Les indices vont de 0 à ${Nn} : cela fait ${Nn} + 1 = ${Nn + 1} termes, donc ${Nn + 1}u<sub>0</sub>.` },
+      { bad: 1, dec: { g: 'm' }, alt: [{ g: 'sq' }, L(`S = ${Nn + 1}u<sub>0</sub> + r(1 + 2 + … + ${Nn}) = ${Nn + 1} × ${P(a)} + ${P(rr)} × ${Nn}`, eq(`${Nn + 1}*(${a})+(${rr})*${Nn}*(${Nn}+1)/2`, `${Nn + 1}*(${a})+(${rr})*${Nn}`))], rule: 'R3k', x: `1 + 2 + … + ${Nn} = ${fr(`${Nn} × ${Nn + 1}`, 2)} = ${Nn * (Nn + 1) / 2}.` }]
   });
 }
 function g3gsum(r, ok) {
@@ -1182,7 +1246,7 @@ function g3lim(r, ok) {
     return [L0, L1, L2];
   };
   return mk(r, ok, {
-    name: 'g3lim', ch: [7], d: 3, task: `(u${sub('n')}) est définie pour n ⩾ ${kind === 'lin' ? 0 : 1} par u${sub('n')} = ${e.h}. Étudier son sens de variation et conjecturer sa limite.`, chain,
+    name: 'g3lim', ch: [10], d: 3, task: `(u${sub('n')}) est définie pour n ⩾ ${kind === 'lin' ? 0 : 1} par u${sub('n')} = ${e.h}. Étudier son sens de variation et conjecturer sa limite.`, chain,
     okx: kind === 'lin' ? `Croissante et sans plafond : la conjecture +∞ est juste.` : `Croissante mais toujours inférieure à ${c} : la conjecture d'une limite finie est juste.`,
     vars: [{ bad: 2, dec: { l: 1 }, alt: [{ l: 2 }, { l: 3 }], rule: 'R3l', x: kind === 'lin' ? `Être croissante ne donne pas une limite finie : ici u${sub('n')} grandit sans fin et tend vers +∞.` : `Être croissante n'impose pas de tendre vers +∞ : ici u${sub('n')} se rapproche de ${c}.` }]
   });
@@ -1241,7 +1305,7 @@ function g4same(r, ok) {
     return [L0, L1, L2];
   };
   return mk(r, ok, {
-    name: 'g4same', ch: [8, 11], d: 1, task: `Calculer ${f}(${piH(a)}).`, chain,
+    name: 'g4same', name: 'g4same', ch: [11], d: 1, task: `Calculer ${f}(${piH(a)}).`, chain,
     okx: `${piH(a)} et ${piH(b)} sont différents mais associés au même point : leurs ${f === 'cos' ? 'cosinus' : 'sinus'} sont égaux.`,
     vars: [
       { bad: 1, dec: { e: 'eq' }, alt: [{ e: 'x' }, { e: 'O' }], rule: 'R4c', x: `${piH(a)} ≠ ${piH(b)} : ces réels diffèrent de ${piH(Q(2 * k))}, ils sont seulement associés au même point du cercle.` },
@@ -1294,7 +1358,7 @@ function g4assoc(r, ok) {
   };
   const others = ['x', 'y', 'O'].filter(z => z !== AX[type]);
   return mk(r, ok, {
-    name: 'g4assoc', ch: [8, 11], d: 2, task: `Par lecture du cercle trigonométrique, déterminer cos(${piH(a)}) et sin(${piH(a)}).`, chain,
+    name: 'g4assoc', name: 'g4assoc', ch: [11], d: 2, task: `Par lecture du cercle trigonométrique, déterminer cos(${piH(a)}) et sin(${piH(a)}).`, chain,
     okx: `La symétrie par rapport à ${AXN[AX[type]]} est la bonne, et les signes en découlent.`,
     vars: [
       { bad: 2, dec: { sv: true }, alt: [{ cv: true }, { cv: true, sv: true }], rule: 'R4e', x: `Symétrie par rapport à ${AXN[AX[type]]} : ${type === 'pi-' ? 'le cosinus change de signe, le sinus est conservé' : type === 'neg' ? 'le cosinus est conservé, le sinus change de signe' : 'cosinus et sinus changent de signe'}.` },
@@ -1319,7 +1383,7 @@ function g4quad(r, ok) {
     return [L0, L1, L2];
   };
   return mk(r, ok, {
-    name: 'g4quad', ch: [8, 11], d: 2, task: `Déterminer le signe de cos(${piH(x)}) et celui de sin(${piH(x)}).`, chain,
+    name: 'g4quad', name: 'g4quad', ch: [11], d: 2, task: `Déterminer le signe de cos(${piH(x)}) et celui de sin(${piH(x)}).`, chain,
     okx: `Position du point et signes sont cohérents : cos(${piH(x)}) ${cs === '-' ? '<' : '>'} 0 et sin(${piH(x)}) ${ss === '-' ? '<' : '>'} 0.`,
     vars: [
       { bad: 2, dec: { s: true }, alt: [{ c: true }, { c: true, s: true }], rule: 'R4f', x: `Au-${ss === '-' ? 'dessous' : 'dessus'} de l'axe des abscisses, le sinus est ${ss === '-' ? 'négatif' : 'positif'}.` },
@@ -1348,7 +1412,7 @@ function g4dotcos(r, ok) {
     return [L0, L1, L2];
   };
   return mk(r, ok, {
-    name: 'g4dotcos', ch: [9, 12], d: 1, task: `‖${vec('u')}‖ = ${m}, ‖${vec('v')}‖ = ${n} et l'angle (${vec('u')}, ${vec('v')}) mesure ${piH(th)}. Calculer ${vec('u')}·${vec('v')} puis (${vec('u')} + ${vec('v')})·${vec('v')}.`, chain,
+    name: 'g4dotcos', ch: [9], d: 1, task: `‖${vec('u')}‖ = ${m}, ‖${vec('v')}‖ = ${n} et l'angle (${vec('u')}, ${vec('v')}) mesure ${piH(th)}. Calculer ${vec('u')}·${vec('v')} puis (${vec('u')} + ${vec('v')})·${vec('v')}.`, chain,
     okx: `Le cosinus de l'angle est bien présent, et ${vec('v')}² = ‖${vec('v')}‖² = ${n * n}.`,
     vars: [
       { bad: 0, dec: { nc: 'no' }, alt: [{ nc: 'sin' }, { nc: 'sum' }], rule: 'R4g', off: qe(th, Q(1, 4)), x: `Le produit scalaire n'est pas le produit des normes : il faut multiplier par cos(${piH(th)}) = ${cv.h}.` },
@@ -1380,7 +1444,7 @@ function g4dotco(r, ok) {
     return [L0, L1, L2];
   };
   return mk(r, ok, {
-    name: 'g4dotco', ch: [9, 12], d: 1, task: `Dans un repère orthonormé, ${vc('u', a, b)} et ${vc('v', c, d_)}. Ces vecteurs sont-ils orthogonaux${NB}?`, chain,
+    name: 'g4dotco', ch: [12], d: 1, task: `Dans un repère orthonormé, ${vc('u', a, b)} et ${vc('v', c, d_)}. Ces vecteurs sont-ils orthogonaux${NB}?`, chain,
     okx: orth ? `${vec('u')}·${vec('v')} = 0 traduit l'orthogonalité, et c'est la conclusion écrite.` : `${vec('u')}·${vec('v')} = ${N(dot)} ≠ 0 : pas d'orthogonalité, conclusion juste.`,
     vars: [
       { bad: 0, dec: { f: 'xy' }, alt: [{ f: 'm' }, { f: 'xx' }], rule: 'R4h', x: `En repère orthonormé, on multiplie abscisse par abscisse et ordonnée par ordonnée : xx′ + yy′.` },
@@ -1395,7 +1459,7 @@ function g4norm(r, ok) {
   const xB = xA + dx, yB = yA + dy, s2 = dx * dx + dy * dy, isq = Number.isInteger(Math.sqrt(s2));
   const ABH = `${rt(s2)}${isq ? ' = ' + Math.sqrt(s2) : sqrtS(s2)[0] > 1 ? ' = ' + sqrtH(s2) : ''}`;
   const chain = d => {
-    const L0 = L(`${vec('AB')}(${N(xB)} − ${P(xA)}${NB}; ${N(yB)} − ${P(yA)}) = (${N(dx)}${NB}; ${N(dy)})`, { k: 'vecAB', P: [String(xA), String(yA)], Q: [String(xB), String(yB)], v: [String(dx), String(dy)] }, `x${sub('B')} − x${sub('A')} et y${sub('B')} − y${sub('A')}.`);
+    const L0 = L(`${vec('AB')}${col(N(xB) + ' − ' + P(xA), N(yB) + ' − ' + P(yA))}, soit ${vc('AB', dx, dy)}`, { k: 'vecAB', P: [String(xA), String(yA)], Q: [String(xB), String(yB)], v: [String(dx), String(dy)] }, `x${sub('B')} − x${sub('A')} et y${sub('B')} − y${sub('A')}.`);
     const L1 = L(`${vec('AB')}² = ${P(dx)}² + ${P(dy)}² = ${s2}`, eq(`(${dx})**2+(${dy})**2`, s2), `Carré scalaire en repère orthonormé.`);
     let L2;
     if (d.n === 'sq') L2 = L(`AB = ${s2}`, eq(`sqrt(${s2})`, s2));
@@ -1405,7 +1469,7 @@ function g4norm(r, ok) {
     return [L0, L1, L2];
   };
   return mk(r, ok, {
-    name: 'g4norm', ch: [9], d: 1, task: `Dans un repère orthonormé, A(${N(xA)}${NB}; ${N(yA)}) et B(${N(xB)}${NB}; ${N(yB)}). Calculer AB.`, chain,
+    name: 'g4norm', ch: [12], d: 1, task: `Dans un repère orthonormé, A(${N(xA)}${NB}; ${N(yA)}) et B(${N(xB)}${NB}; ${N(yB)}). Calculer AB.`, chain,
     okx: `${vec('AB')}² = AB², et AB est bien la racine carrée de ${s2}.`,
     vars: [{ bad: 2, dec: { n: 'sq' }, alt: [{ n: 'half' }, { n: 'sum' }], rule: 'R4i', x: `${s2} est AB² : la longueur est AB = ${ABH}.` }]
   });
@@ -1435,7 +1499,7 @@ function g4kashi(r, ok) {
     return [L0, L1, L2];
   };
   return mk(r, ok, {
-    name: 'g4kashi', ch: [9, 12], d: 2, task: `Dans le triangle ABC, AB = ${c}, AC = ${b} et Â = ${A}°. Calculer BC.`, chain,
+    name: 'g4kashi', ch: [9], d: 2, task: `Dans le triangle ABC, AB = ${c}, AC = ${b} et Â = ${A}°. Calculer BC.`, chain,
     okx: `La formule d'Al-Kashi est écrite avec le signe −, et cos ${A}° = ${D(cA)}.`,
     vars: [
       { bad: 0, dec: { p: 'plus' }, alt: [{ p: 'no2' }, { p: 'sin' }], rule: 'R4k', x: `Al-Kashi : BC² = AB² + AC² − 2 × AB × AC × cos Â (signe −).` },
@@ -1462,7 +1526,7 @@ function g4proj(r, ok) {
     return [L0, L1, L2];
   };
   return mk(r, ok, {
-    name: 'g4proj', ch: [9, 12], d: 3, task: `ABC est un triangle et H est le projeté orthogonal de C sur la droite (AB). On sait que AB = ${c}, AH = ${h} et que H est ${same ? 'sur la demi-droite [AB)' : 'sur la demi-droite opposée à [AB) (de l’autre côté de A par rapport à B)'}. Calculer ${vec('AB')}·${vec('AC')}.`, chain,
+    name: 'g4proj', ch: [9], d: 3, task: `ABC est un triangle et H est le projeté orthogonal de C sur la droite (AB). On sait que AB = ${c}, AH = ${h} et que H est ${same ? 'sur la demi-droite [AB)' : 'sur la demi-droite opposée à [AB) (de l’autre côté de A par rapport à B)'}. Calculer ${vec('AB')}·${vec('AC')}.`, chain,
     okx: same ? `H est du côté de B : les vecteurs ont le même sens, le produit scalaire est positif.` : `H est de l'autre côté de A : sens contraires, le produit scalaire est négatif.`,
     vars: [
       { bad: 2, dec: { s: 'plus' }, alt: [{ s: 'sum' }, { s: 'half' }], rule: 'R4l', off: same, x: `${vec('AB')} et ${vec('AH')} sont de sens contraires : ${vec('AB')}·${vec('AC')} = −AB × AH = ${N(-c * h)}.` },
@@ -1474,7 +1538,7 @@ function g4proj(r, ok) {
 /* =====================================================================
    NIVEAU 5 · GÉOMÉTRIE REPÉRÉE (ch12, ch14)
    ===================================================================== */
-const vc = (n, a, b) => `${vec(n)}(${N(a)}${NB}; ${N(b)})`;
+const vc = (n, a, b) => `${vec(n)}${col(N(a), N(b))}`;
 function g5nd(r, ok) {
   const a = r.nz(-6, 6), b = r.nz(-6, 6), c = r.int(-9, 9), k = r.pick([2, -1, 3, -2]);
   if (Math.abs(a) === Math.abs(b)) throw new Error('retry');
@@ -1482,7 +1546,7 @@ function g5nd(r, ok) {
   const chain = d => {
     const L0 = L(`${vc('n', a, b)} est un vecteur normal à d.`, { k: 'normal', L: LS, n: [String(a), String(b)] }, `Coefficients de x et de y.`);
     const u = d.u === 'ab' ? [a, b] : d.u === 'ba' ? [b, a] : d.u === 'ma' ? [-a, b] : [-b, a];
-    const L1 = L(`${vc('u', u[0], u[1])} est un vecteur directeur de d.`, { k: 'dirv', L: LS, u: u.map(String) }, `(−b${NB}; a) est directeur.`);
+    const L1 = L(`${vc('u', u[0], u[1])} est un vecteur directeur de d.`, { k: 'dirv', L: LS, u: u.map(String) }, `${col('−b', 'a')} est directeur.`);
     const w = [k * u[0], k * u[1]];
     let L2;
     if (d.w === 'not') L2 = L(`${vc('w', w[0], w[1])} n'est pas un vecteur directeur de d, car ${vec('w')} ≠ ${vec('u')}.`, { k: 'notcolin', u: u.map(String), w: w.map(String) });
@@ -1493,9 +1557,9 @@ function g5nd(r, ok) {
   };
   return mk(r, ok, {
     name: 'g5nd', ch: [12, 14], d: 1, task: `d est la droite d'équation ${Ld} = 0. Donner un vecteur normal et des vecteurs directeurs de d.`, chain,
-    okx: `(a${NB}; b) est normal, (−b${NB}; a) est directeur, et tout multiple non nul d'un vecteur directeur l'est aussi.`,
+    okx: `${col('a', 'b')} est normal, ${col('−b', 'a')} est directeur, et tout multiple non nul d'un vecteur directeur l'est aussi.`,
     vars: [
-      { bad: 1, dec: { u: 'ab' }, alt: [{ u: 'ba' }, { u: 'ma' }], rule: 'R5a', x: `${vc('n', a, b)} est normal : un vecteur directeur est (−b${NB}; a) = (${N(-b)}${NB}; ${N(a)}).` },
+      { bad: 1, dec: { u: 'ab' }, alt: [{ u: 'ba' }, { u: 'ma' }], rule: 'R5a', x: `${vc('n', a, b)} est normal : un vecteur directeur est ${col('−b', 'a')} = (${N(-b)}${NB}; ${N(a)}).` },
       { bad: 2, dec: { w: 'not' }, alt: [{ w: 'n' }, { w: 'k' }], rule: 'R5h', x: `Une droite a une infinité de vecteurs directeurs : ${vec('w')} = ${N(k)}${vec('u')} en est un.` }
     ]
   });
@@ -1505,7 +1569,7 @@ function g5eqn(r, ok) {
   if (a * xA + b * yA === 0 || Math.abs(a) === Math.abs(b)) throw new Error('retry');
   const chain = d => {
     const pq = d.dir === 'd' ? [-b, a] : d.dir === 'sw' ? [b, a] : d.dir === 'ng' ? [a, -b] : [a, b];
-    const L0 = L(`d a une équation de la forme ${poly([pq[0], 0]).h}${tm(pq[1], 'y')} + c = 0.`, { k: 'colin', u: [String(a), String(b)], w: pq.map(String) }, `${vec('n')}(a${NB}; b) normal ⇔ équation ax + by + c = 0.`);
+    const L0 = L(`d a une équation de la forme ${poly([pq[0], 0]).h}${tm(pq[1], 'y')} + c = 0.`, { k: 'colin', u: [String(a), String(b)], w: pq.map(String) }, `${vec('n')}${col('a', 'b')} normal ⇔ équation ax + by + c = 0.`);
     const val = pq[0] * xA + pq[1] * yA, cc = d.c === 'sg' ? val : d.c === 'z' ? 0 : d.c === 'dbl' ? -2 * val : -val;
     const L1 = L(`A ∈ d : ${N(pq[0])} × ${P(xA)} + ${P(pq[1])} × ${P(yA)} + c = 0, donc c = ${N(cc)}.`, { k: 'sol', lhs: `(${pq[0]})*(${xA})+(${pq[1]})*(${yA})+c`, rel: '=', rhs: '0', v: 'c', S: setS([cc]) }, `${N(val)} + c = 0.`);
     const L2 = L(`d : ${poly([pq[0], 0]).h}${tm(pq[1], 'y')}${tH(cc)} = 0`, eq(`(${pq[0]})*x+(${pq[1]})*y+(${cc})`, `(${pq[0]})*x+(${pq[1]})*y+(${cc})`), `On remplace c.`);
@@ -1515,7 +1579,7 @@ function g5eqn(r, ok) {
     name: 'g5eqn', ch: [12, 14], d: 1, task: `Déterminer une équation cartésienne de la droite d passant par A(${N(xA)}${NB}; ${N(yA)}) et de vecteur normal ${vc('n', a, b)}.`, chain,
     okx: `Les coefficients de x et y sont ceux de ${vec('n')}, et c est déterminé par A.`,
     vars: [
-      { bad: 0, dec: { dir: 'd' }, alt: [{ dir: 'sw' }, { dir: 'ng' }], rule: 'R5a', x: `${vec('n')}(a${NB}; b) normal donne directement ax + by + c = 0 : ${poly([a, 0]).h}${tm(b, 'y')} + c = 0.` },
+      { bad: 0, dec: { dir: 'd' }, alt: [{ dir: 'sw' }, { dir: 'ng' }], rule: 'R5a', x: `${vec('n')}${col('a', 'b')} normal donne directement ax + by + c = 0 : ${poly([a, 0]).h}${tm(b, 'y')} + c = 0.` },
       { bad: 1, dec: { c: 'sg' }, alt: [{ c: 'z' }, { c: 'dbl' }], rule: 'R5b', x: `${N(a * xA + b * yA)} + c = 0 donne c = ${N(-(a * xA + b * yA))}.` }
     ]
   });
@@ -1590,37 +1654,43 @@ function g5diam(r, ok) {
     return [L0, L1, L2];
   };
   return mk(r, ok, {
-    name: 'g5diam', ch: [12, 14], d: 2, task: `${pt('A', A)}, ${pt('B', B)} et ${pt('M', M)}. Le point M appartient-il au cercle de diamètre [AB]${NB}?`, chain,
+    name: 'g5diam', ch: [12], d: 2, task: `${pt('A', A)}, ${pt('B', B)} et ${pt('M', M)}. Le point M appartient-il au cercle de diamètre [AB]${NB}?`, chain,
     okx: `Le critère ${vec('MA')}·${vec('MB')} = 0 est appliqué correctement.`,
     vars: [
       { bad: 2, dec: { c: 'milieu' }, alt: [{ c: 'off' }, { c: 'par' }], rule: 'R5f', x: `${vec('MA')}·${vec('MB')} = 0 signifie que le triangle AMB est rectangle en M : M est sur le cercle de diamètre [AB] (son milieu est le centre O(${N(O[0])}${NB}; ${N(O[1])})).` },
-      { bad: 0, dec: { v: 'a' }, alt: [{ v: 'b' }, { v: 'ab' }], rule: 'R5i', x: `${vec('MA')} a pour coordonnées (x${sub('A')} − x${sub('M')}${NB}; y${sub('A')} − y${sub('M')}).` }
+      { bad: 0, dec: { v: 'a' }, alt: [{ v: 'b' }, { v: 'ab' }], rule: 'R5i', x: `${vec('MA')}${col('x' + sub('A') + ' − x' + sub('M'), 'y' + sub('A') + ' − y' + sub('M'))}.` }
     ]
   });
 }
 function g5proj(r, ok) {
+  /* méthode du cours (ch14, partie 3) : (AH) a pour vecteur directeur le vecteur normal n de d ; on écrit son équation, puis on résout le système */
   const a = r.nz(-3, 3), b = r.nz(-3, 3), H = [r.int(-4, 4), r.int(-4, 4)], t = r.pick([1, -1, 2, -2]);
   const c = -(a * H[0] + b * H[1]), A = [H[0] - t * a, H[1] - t * b];
-  if (c === 0 || a + b === a * a + b * b || a + b === 0) throw new Error('retry');
-  const Ld = poly([a, 0]).h + tm(b, 'y') + tH(c);
+  if (c === 0 || Math.abs(a) === Math.abs(b)) throw new Error('retry');
+  const Ld = poly([a, 0]).h + tm(b, 'y') + tH(c), LS = [String(a), String(b), String(c)];
+  const c2 = -(b * A[0] - a * A[1]);                          // (AH) : bx − ay + c2 = 0
+  const solve = (cd, cc) => { const D = a * a + b * b; return [Q(-a * cd - b * cc, D), Q(-b * cd + a * cc, D)]; }; // a x + b y + cd = 0 et b x − a y + cc = 0
+  const lineAH = cc => poly([b, 0]).h + tm(-a, 'y') + (cc === null ? ' + c′' : tH(cc));
   const chain = (d, upto) => {
-    const Px = poly([a, A[0]], 's'), Py = poly([b, A[1]], 's');
-    const L0 = L(`H = A + s${vec('n')} avec ${vc('n', a, b)} : H(${Px.h}${NB}; ${Py.h})`, { k: 'param', L: [String(a), String(b), String(c)], A: A.map(String), vec: [String(a), String(b)], P: [Px.s, Py.s] }, `La droite (AH) est dirigée par le vecteur normal ${vec('n')}.`);
-    const cc = d.c === 'no' ? 0 : d.c === 'sg' ? -c : c;
-    const k2 = d.c === 'k2' ? a + b : a * a + b * b, k1 = a * A[0] + b * A[1] + cc;
-    const L1 = L(`H ∈ d ⇔ ${a === 1 ? '' : a === -1 ? MN : N(a)}(${Px.h})${tm(b, '(' + Py.h + ')')}${tH(cc)} = 0 ⇔ ${poly([k2, k1], 's').h} = 0`, eq(`(${a})*(${Px.s})+(${b})*(${Py.s})+(${c})`, poly([k2, k1], 's').s), `On remplace dans l'équation de d.`);
+    const L0 = d.par ? L(`(AH) ⊥ d, donc (AH) : ${poly([a, 0]).h}${tm(b, 'y')} + c′ = 0`, { k: 'dirv', L: [String(a), String(b), '0'], u: [String(a), String(b)] })
+      : L(`${vc('n', a, b)} est normal à d, donc directeur de (AH) : (AH) a une équation de la forme ${lineAH(null)} = 0.`, { k: 'dirv', L: [String(b), String(-a), '0'], u: [String(a), String(b)] }, `(AH) ⊥ d : un vecteur normal à d dirige (AH).`);
+    if (upto === 0) return [L0];
+    const cc = d.sg ? -c2 : d.no ? 0 : c2;
+    const L1 = L(`A ∈ (AH) : ${N(b)} × ${P(A[0])} ${MN} ${P(a)} × ${P(A[1])} + c′ = 0, donc c′ = ${N(cc)}`, eq(`-((${b})*(${A[0]})-(${a})*(${A[1]}))`, cc), `Les coordonnées de A vérifient l'équation de (AH).`);
     if (upto === 1) return [L0, L1];
-    if (k2 === 0) throw new Error('retry');
-    const s = Q(-k1, k2);
-    const L2 = L(`⇔ s = ${N(s)}`, { k: 'sol', lhs: poly([k2, k1], 's').s, rel: '=', rhs: '0', v: 's', S: setS([s]) }, `Équation du premier degré.`);
-    const Hx = qa(A[0], qm(a, s)), Hy = qa(A[1], qm(b, s));
-    const L3 = L(`H(${N(Hx)}${NB}; ${N(Hy)})`, { k: 'pt', P: [Px.s, Py.s], v: 's', t: S(s), H: [S(Hx), S(Hy)] }, `On remplace s.`);
-    return [L0, L1, L2, L3];
+    const [hx, hy] = solve(d.noc ? 0 : c, cc);
+    const L2 = L(`H vérifie le système ${Ld} = 0 et ${lineAH(cc)} = 0 : H(${N(hx)}${NB}; ${N(hy)})`,
+      AND(eq(`(${b})*(${S(hx)})-(${a})*(${S(hy)})+(${cc})`, 0), eq(`(${a})*(${S(hx)})+(${b})*(${S(hy)})+(${c})`, 0)), `H est sur d et sur (AH).`);
+    return [L0, L1, L2];
   };
   return mk(r, ok, {
     name: 'g5proj', ch: [14], d: 3, task: `d : ${Ld} = 0 et A(${N(A[0])}${NB}; ${N(A[1])}). Déterminer les coordonnées du projeté orthogonal H de A sur d.`, chain,
-    okx: `La droite (AH) est dirigée par ${vec('n')}, et H vérifie l'équation complète de d.`,
-    vars: [{ bad: 1, dec: { c: 'no' }, alt: [{ c: 'sg' }, { c: 'k2' }], rule: 'R5k', x: `H ∈ d : ses coordonnées vérifient ${Ld} = 0, constante ${N(c)} comprise.` }]
+    okx: `(AH) est dirigée par ${vec('n')}, passe par A, et H vérifie les deux équations, constante de d comprise.`,
+    vars: [
+      { bad: 2, dec: { noc: true }, alt: [L(`H vérifie le système ${Ld} = 0 et ${lineAH(c2)} = 0 : H(${N(A[0])}${NB}; ${N(A[1])})`, AND(eq(`(${b})*(${A[0]})-(${a})*(${A[1]})+(${c2})`, 0), eq(`(${a})*(${A[0]})+(${b})*(${A[1]})+(${c})`, 0))),
+        L(`H vérifie le système ${Ld} = 0 et ${lineAH(c2)} = 0 : H(${N(H[1])}${NB}; ${N(H[0])})`, AND(eq(`(${b})*(${H[1]})-(${a})*(${H[0]})+(${c2})`, 0), eq(`(${a})*(${H[1]})+(${b})*(${H[0]})+(${c})`, 0)))], rule: 'R5k', off: H[0] === H[1], x: `H ∈ d : ses coordonnées vérifient l'équation complète ${Ld} = 0, constante ${N(c)} comprise.` },
+      { bad: 1, dec: { sg: true }, alt: [{ no: true }, L(`A ∈ (AH) : ${N(b)} × ${P(A[0])} ${MN} ${P(a)} × ${P(A[1])} + c′ = 0, donc c′ = ${N(c)}`, eq(`-((${b})*(${A[0]})-(${a})*(${A[1]}))`, c))], rule: 'R5b', off: c2 === 0, x: `${N(b)} × ${P(A[0])} ${MN} ${P(a)} × ${P(A[1])} = ${N(-c2)}, donc ${N(-c2)} + c′ = 0 et c′ = ${N(c2)}.` }
+    ]
   });
 }
 
@@ -2125,7 +2195,7 @@ function g7lin(r, ok) {
    ===================================================================== */
 const LEVELS = [
   { name: 'Second degré', short: 'Second degré', ch: [1, 3], gens: [[g1canon, 1], [g1sumprod, 1], [g1negdelta, 1], [g1max, 1], [g1roots, 2], [g1double, 2], [g1neg, 2], [g1ineq, 3]] },
-  { name: 'Dérivation', short: 'Dérivation', ch: [2, 4, 6], gens: [[g2power, 1], [g2max, 1], [g2approx, 1], [g2product, 2], [g2quot, 2], [g2tan, 2], [g2signf, 2], [g2fake, 3], [g2bornes, 3]] },
+  { name: 'Dérivation', short: 'Dérivation', ch: [2, 4, 6], gens: [[g2taux, 1], [g2tanD, 2], [g2power, 1], [g2max, 1], [g2approx, 1], [g2product, 2], [g2quot, 2], [g2tan, 2], [g2signf, 2], [g2fake, 3], [g2bornes, 3]] },
   { name: 'Suites', short: 'Suites', ch: [7, 10], gens: [[g3rank, 1], [g3rec, 1], [g3arith, 1], [g3pct, 1], [g3gauss, 1], [g3fvar, 2], [g3count, 2], [g3gsum, 2], [g3next, 3], [g3lim, 3]] },
   { name: 'Trigonométrie et produit scalaire', short: 'Trigo et produit scalaire', ch: [8, 9, 11, 12], gens: [[g4rad, 1], [g4same, 1], [g4val, 1], [g4dotcos, 1], [g4dotco, 1], [g4norm, 1], [g4assoc, 2], [g4quad, 2], [g4kashi, 2], [g4proj, 3]] },
   { name: 'Géométrie repérée', short: 'Géométrie repérée', ch: [12, 14], gens: [[g5nd, 1], [g5eqn, 1], [g5circ, 1], [g5recog, 2], [g5diam, 2], [g5proj, 3]] },
@@ -2192,7 +2262,7 @@ const BQ = [
     return qcmFromChoices(4, `Dans un repère orthonormé, ${vc('u', a, b)} et ${vc('v', c, d)}. ${vec('u')}·${vec('v')} =`, opts.map(x => ({ h: N(x), s: eq(`(${a})*(${c})+(${b})*(${d})`, x) })), `xx′ + yy′ = ${N(a)} × ${P(c)} + ${P(b)} × ${P(d)} = ${N(v)}.`, r); },
   r => { const a = r.nz(-6, 6), b = r.nz(-6, 6), c = r.int(-8, 8); if (Math.abs(a) === Math.abs(b)) throw new Error('retry');
     const LS = [String(a), String(b), String(c)], opts = [[a, b], [-b, a], [b, a], [a, -b]];
-    return qcmFromChoices(5, `Un vecteur normal à la droite d'équation ${poly([a, 0]).h}${tm(b, 'y')}${tH(c)} = 0 est :`, opts.map(([p, q]) => ({ h: vc('n', p, q), s: { k: 'normal', L: LS, n: [String(p), String(q)] } })), `Le vecteur (a${NB}; b) des coefficients de x et y est normal : ${vc('n', a, b)}.`, r); },
+    return qcmFromChoices(5, `Un vecteur normal à la droite d'équation ${poly([a, 0]).h}${tm(b, 'y')}${tH(c)} = 0 est :`, opts.map(([p, q]) => ({ h: vc('n', p, q), s: { k: 'normal', L: LS, n: [String(p), String(q)] } })), `Le vecteur ${col('a', 'b')} des coefficients de x et y est normal : ${vc('n', a, b)}.`, r); },
   r => { const a = r.nz(-5, 5), b = r.nz(-5, 5), rr = r.int(2, 6); if (a === b || a === -b) throw new Error('retry');
     const E = `(x-(${a}))**2+(y-(${b}))**2-${rr * rr}`, opts = [[a, b], [-a, -b], [b, a], [a, -b]];
     return qcmFromChoices(5, `Le cercle d'équation ${bx(a)}² + ${bx(b, 'y')}² = ${rr * rr} a pour centre :`, opts.map(([p, q]) => ({ h: `Ω(${N(p)}${NB}; ${N(q)})`, s: { k: 'circle', E, C: [String(p), String(q)], r: String(rr) } })), `(x − a)² + (y − b)² = r² : centre (a${NB}; b) = (${N(a)}${NB}; ${N(b)}).`, r); },

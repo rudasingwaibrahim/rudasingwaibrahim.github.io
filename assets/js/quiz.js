@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════
    Σ Sigma — Entraînement interactif des chapitres (toutes classes)
    Questions flash (5 min) · QCM intermédiaire · Texte à trous · QCM final
-   + « Pour aller plus loin » (clé facultative approfondissement : comme le QCM intermédiaire, 6 questions par défaut)
+   + « Approfondissement » (clé facultative approfondissement : comme le QCM intermédiaire, 6 questions par défaut)
    Données : /assets/quiz/<dossier>/chN.json (attribut data-quiz du bloc ; dossier de la classe
    dans data-quiz-dir, table _data/quiz.yml : seconde, tale-techno-commun…).
    Identifiants des scores et des statistiques : <dossier>/chN et <dossier>/revisions
@@ -56,7 +56,7 @@
     trous: { nom: 'Texte à trous', court: 'trous' },
     qcm_final: { nom: 'QCM final', court: 'QCM final' },
     /* facultative : présente seulement si la clé existe dans chN.json ; correction immédiate, sans seuil */
-    approfondissement: { nom: 'Pour aller plus loin', court: 'approfondissement' }
+    approfondissement: { nom: 'Approfondissement', court: 'approfondissement' }
   };
 
   /* ── Outils ─────────────────────────────────────────────────────── */
