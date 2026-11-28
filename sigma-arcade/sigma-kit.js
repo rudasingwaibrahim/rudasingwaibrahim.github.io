@@ -34,6 +34,17 @@
      -> « Sur ℝ∖{0}, A = { [trou 0] ; [trou 1] }. »
    Sans braces (comportement historique, inchangé) : tout « {n} » est un trou et
    « { », « } » isolés restent tels quels ; ℝ∖{0} s'écrit alors ℝ∖&#123;0&#125;.
+
+   Épreuve Platine (facultative, après Or, ouverte à tous, sans verrou) :
+   SigmaKit.addFinal('platine', () => [questions…], {n:12})   (ou finals.platine dans init)
+   Un jeu sans épreuve Platine s'affiche exactement comme avant. Accès direct : ?epreuve=platine.
+   Champs facultatifs (Platine) : tag, title, consigne. Types supplémentaires :
+   { type:'qcm', fixed:true, … }            choix affichés dans l'ordre donné (Toujours / Parfois / Jamais)
+   { type:'demo', prompt:'html … {0} …', blanks:[{ok:'distributivité', bad:['…','…']}], explain }
+                                            démonstration à compléter (listes déroulantes, texte brut)
+   { type:'ordre', prompt:'html', steps:['étape 1', 'étape 2', …] (dans le bon ordre), explain }
+   { type:'faute', prompt:'html', lines:['énoncé', 'ligne 1', …], wrong:k (k ≥ 1),
+     reasons:['raison juste', 'leurre', …] (la première est la bonne), explain }
    ===================================================================== */
 (function () {
   'use strict';
@@ -136,7 +147,40 @@
     '@keyframes sktail{50%{transform:rotate(6deg)}}',
     '@media (prefers-reduced-motion:reduce){.sk-ov,.sk-card,.sk-big .sk-stars svg,.sk-maki .arm-r,.sk-maki .tail{animation:none!important}}',
     '.sk-final-btn .s{display:none}',
-    '@media (max-width:520px){.sk-head{padding:18px 16px 6px}.sk-head svg{width:72px;height:72px}.sk-body{padding:6px 16px 18px}.sk-final-btn .l{display:none}.sk-final-btn .s{display:inline}}'
+    '@media (max-width:520px){.sk-head{padding:18px 16px 6px}.sk-head svg{width:72px;height:72px}.sk-body{padding:6px 16px 18px}.sk-final-btn .l{display:none}.sk-final-btn .s{display:inline}}',
+    /* épreuve Platine : raisonnement et démonstration */
+    '.sk-ti.pt{border-color:rgba(214,224,240,.45);background:linear-gradient(150deg,rgba(214,224,240,.10),rgba(255,255,255,.02) 65%)}.sk-ti.pt.got{border-color:rgba(232,238,248,.75)}',
+    '.sk-pt{font-size:clamp(19px,2.4vw,22px);font-weight:700;line-height:1.3;margin:2px 0 4px}',
+    '.sk-cons{margin:0 0 8px;color:var(--sk-mut)}',
+    '.sk-pq{font-size:18px;line-height:1.6;margin:4px 0 6px}.sk-pq p{margin:6px 0}.sk-pq ol:not(.sk-ord){padding-left:1.5em;margin:8px 0}.sk-pq ol:not(.sk-ord) li{margin:10px 0}',
+    '.sk-pq .sk-q{font-size:18px;font-weight:600;margin:4px 0 10px}',
+    '.sk-sel{min-height:44px;max-width:100%;margin:2px 0;padding:0 8px;font:600 17px var(--sg-font,Outfit,system-ui,sans-serif);border:1.5px solid var(--sk-line);border-bottom:3px solid var(--sk-or);',
+    'border-radius:10px;background:var(--sk-bg);color:var(--sk-ink);vertical-align:middle;cursor:pointer}',
+    '.sk-sel.ok{border-color:var(--sk-ok)}.sk-sel.ko{border-color:var(--sk-ko)}.sk-sel:disabled{opacity:1;cursor:default}',
+    '.sk-good{color:var(--sk-ok);font-weight:700;margin-left:6px}',
+    '.sk-bg{display:grid;gap:6px;margin:6px 0 8px}.sk-bg .sk-bo{min-height:44px;padding:8px 14px;font:500 16px/1.4 var(--sg-font,Outfit,system-ui,sans-serif)}',
+    '.sk-bo[aria-pressed=true]{border-color:var(--sk-or);background:rgba(108,142,255,.16);box-shadow:inset 0 0 0 1.5px var(--sk-or)}.sk-bo.ok,.sk-bo.ko{box-shadow:none}',
+    '.sk-ord{list-style:none;padding:0;margin:10px 0;display:grid;gap:8px;counter-reset:skst}',
+    '.sk-it{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 8px 8px 10px;border:1.5px solid var(--sk-line);border-radius:12px;background:var(--sk-bg);margin:0}',
+    '.sk-it::before{counter-increment:skst;content:counter(skst);width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);display:grid;place-items:center;font-weight:700;font-size:14px}',
+    '.sk-mvs{display:flex;gap:6px}',
+    '.sk-mv{width:44px;height:44px;border-radius:10px;border:1.5px solid var(--sk-line);background:rgba(255,255,255,.06);color:var(--sk-ink);font-size:16px;cursor:pointer}',
+    '.sk-mv:hover:not(:disabled){border-color:var(--sk-or)}.sk-mv:disabled{opacity:.35;cursor:default}',
+    '.sk-it.ok{border-color:var(--sk-ok)}.sk-it.ko{border-color:var(--sk-ko)}',
+    '.sk-it.moved{animation:skmv .35s ease-out}@keyframes skmv{from{background:rgba(108,142,255,.22)}to{background:var(--sk-bg)}}',
+    '.sk-lines,.sk-chs.pl{display:grid;gap:8px;margin:6px 0 10px}.sk-chs.pl.row{grid-template-columns:repeat(3,minmax(0,1fr))}',
+    '.sk-l0,.sk-ln{display:flex;gap:4px 14px;align-items:baseline;flex-wrap:wrap;width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid var(--sk-line);background:var(--sk-bg);color:var(--sk-ink);',
+    'font:600 18px/1.4 var(--sg-font,Outfit,system-ui,sans-serif);text-align:left;min-height:48px}',
+    '.sk-l0{border-style:dashed}.sk-ln{cursor:pointer}.sk-num{font-size:13px;color:var(--sk-mut);font-weight:600;min-width:4.4em}',
+    '.sk-chs.pl .sk-ch{min-height:48px;font:500 17px/1.45 var(--sg-font,Outfit,system-ui,sans-serif)}.sk-chs.pl.row .sk-ch{text-align:center;font-weight:700}',
+    '.sk-ln:hover:not(:disabled),.sk-rs:hover:not(:disabled){border-color:var(--sk-or)}',
+    '.sk-ln[aria-pressed=true],.sk-rs[aria-pressed=true]{border-color:var(--sk-or);background:rgba(108,142,255,.16);box-shadow:inset 0 0 0 1.5px var(--sk-or)}',
+    '.sk-ln:disabled,.sk-rs:disabled{cursor:default}',
+    '.sk-ln.ok,.sk-rs.ok{border-color:var(--sk-ok);background:rgba(95,210,124,.12);box-shadow:none}.sk-ln.ko,.sk-rs.ko{border-color:var(--sk-ko);background:rgba(255,107,107,.1);box-shadow:none}',
+    '.sk-sub{font-weight:700;margin:12px 0 4px!important}.sk-sol{margin:4px 0 8px;padding-left:1.4em}.sk-sol li{margin:4px 0}',
+    '.sk-eq{font:700 clamp(20px,2.4vw,26px)/1.4 var(--sg-font,Outfit,system-ui,sans-serif);margin:10px 0}',
+    '.sk-ln:focus-visible,.sk-mv:focus-visible,.sk-sel:focus-visible{outline:3px solid var(--sk-or);outline-offset:2px}',
+    '@media (max-width:560px){.sk-it{grid-template-columns:28px minmax(0,1fr)}.sk-mvs{grid-column:2;justify-self:end}.sk-chs.pl.row{grid-template-columns:minmax(0,1fr)}.sk-pq{font-size:17px}.sk-l0,.sk-ln{font-size:17px}}'
   ].join('');
   var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
 
@@ -244,26 +288,33 @@
   function norm(s) {
     return String(s).toLowerCase().replace(/\s+/g, '').replace(/[−–—]/g, '-').replace(/,/g, '.').replace(/[×*·]/g, 'x').replace(/^\+/, '');
   }
+  function esc(x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   /* ---------------- trois épreuves : Bronze, Argent, Or ---------------- */
   var TIERS = [
     { id: 'bronze', name: 'Bronze', sub: 'Les bases', desc: 'Les automatismes indispensables\u00a0: une étape, des nombres simples.', col: '#cd7f32', col2: '#8a4f1c' },
     { id: 'argent', name: 'Argent', sub: 'La maîtrise', desc: 'Toute la notion, avec les pièges classiques.', col: '#c9d2de', col2: '#7d8896' },
-    { id: 'or', name: 'Or', sub: 'L’expert', desc: 'Plusieurs étapes, des notions mélangées, des situations concrètes.', col: '#e8c766', col2: '#a8862c' }
+    { id: 'or', name: 'Or', sub: 'L’expert', desc: 'Plusieurs étapes, des notions mélangées, des situations concrètes.', col: '#e8c766', col2: '#a8862c' },
+    { id: 'platine', name: 'Platine', sub: 'Le raisonnement', desc: 'On corse un peu les choses\u00a0: démontrer, remettre des étapes dans l’ordre, débusquer l’étape fausse, justifier.', col: '#eef2f8', col2: '#5f6f86' }
   ];
   function tierOf(id) { for (var k = 0; k < TIERS.length; k++) if (TIERS[k].id === id) return TIERS[k]; return TIERS[1]; }
   function medal(id, earned) {
-    var t = tierOf(id), c = earned ? t.col : 'rgba(200,215,255,.22)', c2 = earned ? t.col2 : 'rgba(200,215,255,.35)', u = 'skm' + id + (earned ? 1 : 0);
-    return '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M15 3h7l4 12h-7zM33 3h-7l-4 12h7z" fill="' + (earned ? '#6c8eff' : 'rgba(108,142,255,.25)') + '"/>' +
+    var t = tierOf(id), c = earned ? t.col : 'rgba(200,215,255,.22)', c2 = earned ? t.col2 : 'rgba(200,215,255,.35)', u = 'skm' + id + (earned ? 1 : 0), pt = id === 'platine';
+    return '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M15 3h7l4 12h-7zM33 3h-7l-4 12h7z" fill="' + (earned ? (pt ? '#9d8cff' : '#6c8eff') : 'rgba(108,142,255,.25)') + '"/>' +
       '<defs><radialGradient id="' + u + '" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity="' + (earned ? '.75' : '.1') + '"/><stop offset=".45" stop-color="' + c + '"/><stop offset="1" stop-color="' + c2 + '"/></radialGradient></defs>' +
       '<circle cx="24" cy="30" r="14" fill="url(#' + u + ')" stroke="' + c2 + '" stroke-width="1.5"/><circle cx="24" cy="30" r="9.5" fill="none" stroke="' + c2 + '" stroke-width="1" opacity=".7"/>' +
-      '<text x="24" y="34.5" text-anchor="middle" font-family="Outfit,sans-serif" font-weight="800" font-size="12" fill="' + c2 + '">Σ</text></svg>';
+      '<text x="24" y="34.5" text-anchor="middle" font-family="Outfit,sans-serif" font-weight="800" font-size="12" fill="' + c2 + '">Σ</text>' +
+      (pt ? '<path d="M35.5 16.5l1.1 2.6 2.6 1.1-2.6 1.1-1.1 2.6-1.1-2.6-2.6-1.1 2.6-1.1z" fill="' + (earned ? '#fff' : 'rgba(200,215,255,.35)') + '" stroke="' + c2 + '" stroke-width=".6"/>' : '') + '</svg>';
   }
+  var extra = {}, extraMeta = {};                    // épreuves ajoutées par addFinal (Platine)
   function finalsOf() {
     if (!cfg) return {};
-    if (cfg.finals) return cfg.finals;
-    return cfg.buildFinal ? { argent: cfg.buildFinal } : {};
+    var F = cfg.finals ? cfg.finals : cfg.buildFinal ? { argent: cfg.buildFinal } : {};
+    if (!Object.keys(extra).length) return F;
+    var o = {}; Object.keys(F).forEach(function (k) { o[k] = F[k]; }); Object.keys(extra).forEach(function (k) { o[k] = extra[k]; });
+    return o;
   }
+  function addFinal(id, fn, meta) { extra[id] = fn; extraMeta[id] = meta || {}; if (cfg && !document.querySelector('.sk-final-btn')) { if (document.body) mountFinalButton(); else document.addEventListener('DOMContentLoaded', mountFinalButton); } refreshButton(); }
   function rec(g) {                                   // migration : ancienne épreuve unique → Argent
     if (!g.finals) { g.finals = {}; if (g.final) g.finals.argent = g.final; }
     return g.finals;
@@ -273,7 +324,7 @@
   function unlocked(id) {
     var F = finalsOf(); if (!F[id]) return false; if (prof()) return true;
     var p = load(), f = rec(gameRec(p, cfg.game));
-    if (id === 'bronze') return true;
+    if (id === 'bronze' || id === 'platine') return true;
     if (id === 'argent') return !F.bronze || !!(f.bronze && f.bronze.acquis) || !!(f.argent);
     if (id === 'or') return !!(f.argent && f.argent.acquis) || !!(f.or);
     return false;
@@ -289,16 +340,16 @@
   function chooser() {
     var F = finalsOf(), p = load(), f = rec(gameRec(p, cfg.game));
     var cards = TIERS.filter(function (t) { return F[t.id]; }).map(function (t) {
-      var r = f[t.id], open = unlocked(t.id), got = !!(r && r.acquis);
+      var r = f[t.id], open = unlocked(t.id), got = !!(r && r.acquis), nq = t.id === 'platine' && extraMeta.platine && extraMeta.platine.n;
       var st = got ? '<span class="sk-ti-st ok">Médaille obtenue · record ' + r.best + ' / ' + r.total + '</span>'
         : r ? '<span class="sk-ti-st">Record\u00a0: ' + r.best + ' / ' + r.total + ' · il faut ' + Math.ceil(.8 * r.total) + '</span>'
-        : open ? '<span class="sk-ti-st">À tenter</span>'
+        : open ? '<span class="sk-ti-st">À tenter' + (nq ? ' · ' + nq + ' questions, ' + Math.ceil(.8 * nq) + ' bonnes réponses pour la médaille' : '') + '</span>'
         : '<span class="sk-ti-st lock">🔒 Obtiens d’abord la médaille ' + (t.id === 'or' ? 'd’Argent' : 'de Bronze') + '</span>';
-      return '<div class="sk-ti' + (open ? '' : ' locked') + (got ? ' got' : '') + '">' + medal(t.id, got) +
+      return '<div class="sk-ti' + (open ? '' : ' locked') + (got ? ' got' : '') + (t.id === 'platine' ? ' pt' : '') + '">' + medal(t.id, got) +
         '<div class="sk-ti-t"><b>' + t.name + ' · ' + t.sub + '</b><span>' + t.desc + '</span>' + st + '</div>' +
         '<button class="sk-btn ' + (open ? 'or' : 'gh') + '" data-t="' + t.id + '"' + (open ? '' : ' disabled') + '>' + (r ? 'Rejouer' : 'Commencer') + '</button></div>';
     }).join('');
-    var m = modal('<div class="sk-head">' + maki('pense') + '<div><h2>Épreuves finales</h2><p>' + cfg.title + ' · 10 questions sans aide, 8 bonnes réponses pour la médaille.</p></div></div>' +
+    var m = modal('<div class="sk-head">' + maki('pense') + '<div><h2>Épreuves finales</h2><p>' + cfg.title + (F.platine ? ' · Bronze, Argent, Or\u00a0: 10 questions sans aide, 8 bonnes réponses pour la médaille. Platine\u00a0: un défi de raisonnement, ouvert à tous.' : ' · 10 questions sans aide, 8 bonnes réponses pour la médaille.') + '</p></div></div>' +
       '<div class="sk-body"><div class="sk-tis">' + cards + '</div>' +
       '<details class="sk-prof"><summary>Professeur\u00a0: débloquer les trois épreuves</summary>' +
       '<form class="sk-prof-f"><input class="sk-in" style="width:9em" placeholder="code" aria-label="Code professeur" autocomplete="off"><button class="sk-btn gh" type="submit">Débloquer</button><span class="sk-prof-m"></span></form></details>' +
@@ -315,23 +366,84 @@
     };
   }
   function runFinal(tier) {
-    var T = tierOf(tier), Q = finalsOf()[tier](), i = 0, score = 0, res = [];
+    var PTAG = { demo: ' · Démonstration à compléter', ordre: ' · Étapes à remettre dans l’ordre', faute: ' · Trouver l’étape fausse' };
+    var T = tierOf(tier), Q = finalsOf()[tier](), i = 0, score = 0, res = [], PT = tier === 'platine';
     var m = modal('<div class="sk-head">' + medal(tier, true) + '<div><h2>Épreuve ' + T.name + '</h2><p>' + cfg.title + ' · ' + T.sub + ' · ' + Q.length + ' questions, sans aide.</p></div></div><div class="sk-body" id="sk-fin"></div>');
     var box = m.el.querySelector('#sk-fin');
     function prog() { return '<div class="sk-prog">' + Q.map(function (_, k) { return '<span class="' + (k < res.length ? (res[k] ? 'g' : 'r') : k === i ? 'c' : '') + '"></span>'; }).join('') + '</div>'; }
     function show() {
-      var q = Q[i], h = prog() + '<span class="sk-tag">Question ' + (i + 1) + ' sur ' + Q.length + (q.type === 'qcm' ? ' · QCM' : ' · Texte à trous') + '</span>';
-      if (q.type === 'qcm') {
+      var q = Q[i], h = prog() + '<span class="sk-tag">Question ' + (i + 1) + ' sur ' + Q.length + (PT && q.tag ? ' · ' + q.tag : PTAG[q.type] || (q.type === 'qcm' ? ' · QCM' : ' · Texte à trous')) + '</span>';
+      if (PT && q.title) h += '<div class="sk-pt">' + q.title + '</div>';
+      if (PT && q.consigne) h += '<p class="sk-cons">' + q.consigne + '</p>';
+      if (q.type === 'qcm' && PT) {
+        var ord2 = q.fixed ? q.choices.map(function (_, k) { return k; }) : shuffle(q.choices.map(function (_, k) { return k; }));
+        h += '<div class="sk-pq"><div class="sk-q">' + q.prompt + '</div><div class="sk-chs pl' + (q.fixed ? ' row' : '') + '">' + ord2.map(function (k) { return '<button class="sk-ch" data-k="' + k + '">' + q.choices[k] + '</button>'; }).join('') + '</div></div>';
+      } else if (q.type === 'qcm') {
         var order = shuffle(q.choices.map(function (_, k) { return k; }));
         h += '<div class="sk-q">' + q.prompt + '</div><div class="sk-chs">' + order.map(function (k) { return '<button class="sk-ch" data-k="' + k + '">' + q.choices[k] + '</button>'; }).join('') + '</div>';
+      } else if (q.type === 'demo') {
+        var d = q.prompt.replace(/\{(\d+)\}/g, function (m, n) { var b = q.blanks[+n], os = shuffle([b.ok].concat(b.bad));
+          if (os.some(function (o) { return String(o).length > 22; }))      // réponses longues : boutons (le texte passe à la ligne)
+            return '<span class="sk-bg" data-b="' + n + '" role="group" aria-label="Case ' + (+n + 1) + '">' + os.map(function (o) {
+              return '<button type="button" class="sk-ch sk-bo" data-v="' + esc(o) + '" aria-pressed="false">' + esc(o) + '</button>'; }).join('') + '</span>';
+          return '<select class="sk-sel" data-b="' + n + '" aria-label="Case ' + (+n + 1) + '"><option value="">…</option>' +
+            os.map(function (o) { return '<option value="' + esc(o) + '">' + esc(o) + '</option>'; }).join('') + '</select>'; });
+        h += '<form class="sk-pq" id="sk-tf"><div class="sk-demo">' + d + '</div><div class="sk-row"><button class="sk-btn or" type="submit">Valider</button></div></form>';
+      } else if (q.type === 'ordre') {
+        var o, idn = q.steps.map(function (_, k) { return k; });
+        do { o = shuffle(idn.slice()); } while (q.steps.length > 1 && o.every(function (k, j) { return k === j; }));
+        h += '<form class="sk-pq" id="sk-tf">' + (q.prompt ? '<div class="sk-q">' + q.prompt + '</div>' : '') + '<ol class="sk-ord">' + o.map(function (k) {
+          return '<li class="sk-it" data-k="' + k + '"><span>' + q.steps[k] + '</span><span class="sk-mvs"><button type="button" class="sk-mv" data-mv="-1" aria-label="Monter cette étape">▲</button>' +
+            '<button type="button" class="sk-mv" data-mv="1" aria-label="Descendre cette étape">▼</button></span></li>'; }).join('') + '</ol>' +
+          '<div class="sk-row"><button class="sk-btn or" type="submit">Valider</button></div></form>';
+      } else if (q.type === 'faute') {
+        var rs = shuffle(q.reasons.map(function (_, k) { return k; }));
+        h += '<form class="sk-pq" id="sk-tf">' + (q.prompt ? '<div class="sk-q">' + q.prompt + '</div>' : '') +
+          '<p class="sk-sub">1. Quelle ligne est fausse\u00a0?</p><div class="sk-lines" role="group" aria-label="Lignes du calcul">' + q.lines.map(function (l, k) {
+            return k === 0 ? '<div class="sk-l0"><span class="sk-num">Énoncé</span><span>' + l + '</span></div>'
+              : '<button type="button" class="sk-ln" data-i="' + k + '" aria-pressed="false"><span class="sk-num">Ligne ' + k + '</span><span>' + l + '</span></button>'; }).join('') + '</div>' +
+          '<p class="sk-sub">2. Pourquoi est-elle fausse\u00a0?</p><div class="sk-chs pl" role="group" aria-label="Raisons">' + rs.map(function (k) {
+            return '<button type="button" class="sk-ch sk-rs" data-r="' + k + '" aria-pressed="false">' + q.reasons[k] + '</button>'; }).join('') + '</div>' +
+          '<div class="sk-row"><button class="sk-btn or" type="submit">Valider</button></div></form>';
       } else {
         var t = q.prompt.replace(q.braces ? /\{\{|\}\}|\{(\d+)\}/g : /\{(\d+)\}/g, function (m, n) { if (n === undefined) return m.charAt(0); var b = q.blanks[+n]; return '<input class="sk-in" data-b="' + n + '" autocomplete="off" autocapitalize="off" spellcheck="false" style="width:' + ((b.size || 4) + 1.5) + 'em" aria-label="Trou ' + (+n + 1) + '">'; });
         h += '<form class="sk-q" id="sk-tf">' + t + '<div class="sk-row"><button class="sk-btn or" type="submit">Valider</button></div></form>';
       }
       h += '<div id="sk-fb"></div>';
       box.innerHTML = h; box.parentNode.scrollTop = 0;
-      var f = box.querySelector('.sk-ch,.sk-in'); if (f) f.focus();
+      var f = box.querySelector(q.type === 'faute' ? '.sk-ln' : '.sk-ch,.sk-in,.sk-sel,.sk-mv'); if (f) f.focus();
+      function bval(x) { if (x.tagName === 'SELECT') return x.value; var o = x.querySelector('[aria-pressed=true]'); return o ? o.getAttribute('data-v') : ''; }
       if (q.type === 'qcm') box.querySelectorAll('.sk-ch').forEach(function (b) { b.onclick = function () { answer(+b.dataset.k === q.answer, b); }; });
+      else if (q.type === 'demo' || q.type === 'ordre' || q.type === 'faute') {
+        var fm = box.querySelector('#sk-tf'), wait = function (t) { box.querySelector('#sk-fb').innerHTML = '<div class="sk-fb ko">' + t + '</div>'; };
+        fm.addEventListener('click', function (e) {
+          var b = e.target.closest('button'); if (!b || b.type === 'submit' || b.disabled) return;
+          if (b.classList.contains('sk-mv')) {
+            var li = b.closest('.sk-it'), dd = +b.dataset.mv, sib = dd < 0 ? li.previousElementSibling : li.nextElementSibling; if (!sib) return;
+            if (dd < 0) li.parentNode.insertBefore(li, sib); else li.parentNode.insertBefore(sib, li);
+            li.classList.remove('moved'); void li.offsetWidth; li.classList.add('moved'); b.focus(); return;
+          }
+          if (b.classList.contains('sk-ln') || b.classList.contains('sk-rs') || b.classList.contains('sk-bo')) {
+            b.parentNode.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+            box.querySelector('#sk-fb').innerHTML = '';
+          }
+        });
+        fm.onsubmit = function (e) {
+          e.preventDefault();
+          if (q.type === 'demo') {
+            var ss = [].slice.call(box.querySelectorAll('.sk-sel,.sk-bg'));
+            if (ss.some(function (x) { return !bval(x); })) return wait('Choisis une réponse dans chaque case avant de valider.');
+            answer(ss.every(function (x) { return bval(x) === q.blanks[+x.dataset.b].ok; }));
+          } else if (q.type === 'ordre') {
+            answer([].slice.call(box.querySelectorAll('.sk-it')).every(function (li, j) { return +li.dataset.k === j; }));
+          } else {
+            var l = box.querySelector('.sk-ln[aria-pressed=true]'), r = box.querySelector('.sk-rs[aria-pressed=true]');
+            if (!l) return wait('Choisis d’abord la ligne fausse.');
+            if (!r) return wait('Choisis maintenant la raison de l’erreur.');
+            answer(+l.dataset.i === q.wrong && r.dataset.r === '0');
+          }
+        };
+      }
       else box.querySelector('#sk-tf').onsubmit = function (e) {
         e.preventDefault(); var ok = true, empty = false;
         box.querySelectorAll('.sk-in').forEach(function (inp) {
@@ -345,14 +457,35 @@
     }
     function answer(ok, btn) {
       var q = Q[i]; res.push(ok); if (ok) score++;
+      var det = '';
       if (q.type === 'qcm') box.querySelectorAll('.sk-ch').forEach(function (b) { b.disabled = true; if (+b.dataset.k === q.answer) b.classList.add('ok'); else if (b === btn) b.classList.add('ko'); });
+      else if (q.type === 'demo' || q.type === 'ordre' || q.type === 'faute') {
+        var sb2 = box.querySelector('#sk-tf button[type=submit]'); if (sb2) sb2.parentNode.remove();
+        if (q.type === 'demo') {
+          box.querySelectorAll('.sk-sel').forEach(function (x) { var ok1 = x.value === q.blanks[+x.dataset.b].ok; x.classList.add(ok1 ? 'ok' : 'ko'); x.disabled = true;
+            if (!ok1) x.insertAdjacentHTML('afterend', '<span class="sk-good">→\u00a0' + esc(q.blanks[+x.dataset.b].ok) + '</span>'); });
+          box.querySelectorAll('.sk-bg').forEach(function (g) { var good = q.blanks[+g.dataset.b].ok;
+            g.querySelectorAll('.sk-bo').forEach(function (o) { o.disabled = true; var v1 = o.getAttribute('data-v');
+              if (v1 === good) o.classList.add('ok'); else if (o.getAttribute('aria-pressed') === 'true') o.classList.add('ko'); }); });
+        }
+        else if (q.type === 'ordre') {
+          box.querySelectorAll('.sk-it').forEach(function (li, j) { li.classList.add(+li.dataset.k === j ? 'ok' : 'ko'); });
+          box.querySelectorAll('.sk-mv').forEach(function (b) { b.disabled = true; });
+          if (!ok) det = '<p><b>Le bon ordre\u00a0:</b></p><ol class="sk-sol">' + q.steps.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ol>';
+        } else {
+          box.querySelectorAll('.sk-ln,.sk-rs').forEach(function (b) { b.disabled = true;
+            var good = b.classList.contains('sk-ln') ? +b.dataset.i === q.wrong : b.dataset.r === '0';
+            if (good) b.classList.add('ok'); else if (b.getAttribute('aria-pressed') === 'true') b.classList.add('ko'); });
+          if (!ok) det = '<p>La ligne fausse est la ligne ' + q.wrong + '. ' + q.reasons[0] + '</p>';
+        }
+      }
       else {
         box.querySelectorAll('.sk-in').forEach(function (inp) { inp.disabled = true; inp.classList.add(inp.dataset.good === '1' ? 'ok' : 'ko'); });
         var sb = box.querySelector('#sk-tf button'); if (sb) sb.remove();
       }
       var sol = q.type === 'trous' && !ok ? '<br>Réponse attendue&nbsp;: ' + q.blanks.map(function (b) { return '<b style="display:inline">' + b.answers[0] + '</b>'; }).join(', ') + '.' : '';
       fanfare(ok ? 'ok' : 'none');
-      box.querySelector('#sk-fb').innerHTML = '<div class="sk-fb ' + (ok ? 'ok' : 'ko') + '"><b>' + (ok ? 'Exact\u00a0!' : 'Pas tout à fait.') + '</b>' + (q.explain || '') + sol + '</div>' +
+      box.querySelector('#sk-fb').innerHTML = '<div class="sk-fb ' + (ok ? 'ok' : 'ko') + '"><b>' + (ok ? 'Exact\u00a0!' : PT ? 'Pas tout à fait. Regardons ensemble pourquoi.' : 'Pas tout à fait.') + '</b>' + det + (q.explain || '') + sol + '</div>' +
         '<div class="sk-row"><button class="sk-btn" id="sk-nx">' + (i < Q.length - 1 ? 'Question suivante →' : 'Voir mon résultat') + '</button></div>';
       box.querySelector('.sk-prog').outerHTML = prog();
       if (E()) { var efb = box.querySelector('#sk-fb .sk-fb'); if (ok) E().ok({ into: efb, sound: false }); else E().ko({ into: efb, hint: 'correction' }); }
@@ -370,13 +503,13 @@
       var advice = wl.length ? '<p style="margin:14px 0 4px"><b>À revoir&nbsp;:</b></p><ul class="sk-list">' + wl.map(function (l) {
         return '<li>Niveau ' + l + (cfg.levelNames && cfg.levelNames[l - 1] ? ' · ' + cfg.levelNames[l - 1] : '') + '</li>'; }).join('') + '</ul>' : '';
       var nx = v === 'a' ? nextTier(tier) : null;
-      var head = v === 'a' ? (first ? 'Médaille ' + (tier === 'or' ? 'd’Or' : tier === 'argent' ? 'd’Argent' : 'de Bronze') + '\u00a0!' : 'Encore réussi\u00a0!') : v === 'b' ? 'Presque\u00a0!' : 'À retravailler';
+      var head = v === 'a' ? (first ? 'Médaille ' + (tier === 'platine' ? 'de Platine' : tier === 'or' ? 'd’Or' : tier === 'argent' ? 'd’Argent' : 'de Bronze') + '\u00a0!' : 'Encore réussi\u00a0!') : v === 'b' ? 'Presque\u00a0!' : PT ? 'Un beau défi' : 'À retravailler';
       box.parentNode.querySelector('.sk-head').innerHTML = (v === 'a' ? medal(tier, true) : maki(v === 'b' ? 'joie' : 'pense')) +
         '<div><h2>' + head + '</h2><p>' + cfg.title + ' · Épreuve ' + T.name + '</p></div>';
       box.innerHTML = '<div class="sk-res">' + score + '<small> / ' + tot + '</small></div>' +
-        '<span class="sk-verdict ' + v + '">' + (v === 'a' ? (tier === 'bronze' ? 'Les bases sont en place' : tier === 'argent' ? 'Notion acquise' : 'Notion maîtrisée') : v === 'b' ? 'En cours d’acquisition' : 'Pas encore acquis') + '</span>' +
-        (v === 'a' ? '<div class="sk-trophy">' + maki('bravo') + '<span>' + (first ? 'Médaille ajoutée à ton Passeport Sigma Arcade\u00a0!' : 'Ta médaille est déjà dans ton Passeport.') + (nx ? ' L’épreuve ' + tierOf(nx).name + ' est débloquée.' : '') + '</span></div>'
-          : '<p style="margin:12px 0 0">Il faut ' + need + ' bonnes réponses sur ' + tot + ' pour la médaille. Les questions changent à chaque essai.</p>') +
+        '<span class="sk-verdict ' + v + '">' + (v === 'a' ? (tier === 'bronze' ? 'Les bases sont en place' : tier === 'argent' ? 'Notion acquise' : PT ? 'Raisonnement solide' : 'Notion maîtrisée') : v === 'b' ? (PT ? 'Raisonnement en construction' : 'En cours d’acquisition') : PT ? 'Le raisonnement se travaille' : 'Pas encore acquis') + '</span>' +
+        (v === 'a' ? '<div class="sk-trophy">' + maki('bravo') + '<span>' + (first ? 'Médaille ajoutée à ton Passeport Sigma Arcade\u00a0!' : 'Ta médaille est déjà dans ton Passeport.') + (nx ? (nx === 'platine' ? ' Envie d’un défi\u00a0? L’épreuve Platine t’attend.' : ' L’épreuve ' + tierOf(nx).name + ' est débloquée.') : '') + '</span></div>'
+          : '<p style="margin:12px 0 0">Il faut ' + need + ' bonnes réponses sur ' + tot + ' pour la médaille. ' + (PT ? 'Relis les corrections\u00a0: les questions changent à chaque essai.' : 'Les questions changent à chaque essai.') + '</p>') +
         advice +
         '<div class="sk-row">' + (nx ? '<button class="sk-btn or" id="sk-next">Tenter l’épreuve ' + tierOf(nx).name + ' →</button>' : '') +
         '<button class="sk-btn ' + (nx ? 'gh' : 'or') + '" id="sk-again">Recommencer cette épreuve</button><button class="sk-btn gh" id="sk-close">Fermer</button>' +
@@ -392,15 +525,23 @@
   /* ---------------- bouton « Épreuves » ---------------- */
   function mountFinalButton() {
     var b = document.createElement('button'); b.type = 'button'; b.className = 'sk-final-btn sk-launch';
-    b.innerHTML = medal('or', true) + '<span class="l">Épreuves finales</span><span class="s">Épreuves</span>'; b.title = 'Épreuves finales\u00a0: Bronze, Argent, Or';
+    b.innerHTML = medal('or', true) + '<span class="l">Épreuves finales</span><span class="s">Épreuves</span>'; b.title = 'Épreuves finales\u00a0: Bronze, Argent, Or' + (finalsOf().platine ? ', Platine' : '');
     b.onclick = function () { openFinal(); };
     var hdr = document.querySelector('header');
     if (hdr) { b.classList.remove('sk-launch'); b.style.margin = '8px 0 0'; hdr.appendChild(b); }
     else document.body.appendChild(b);
   }
 
+  function refreshButton() { var b = document.querySelector('.sk-final-btn'); if (b && cfg) b.title = 'Épreuves finales\u00a0: Bronze, Argent, Or' + (finalsOf().platine ? ', Platine' : ''); }
+  function direct() {                                 // accès direct : ?epreuve=bronze|argent|or|platine
+    var t = ''; try { t = (new URLSearchParams(location.search).get('epreuve') || '').toLowerCase().trim(); } catch (e) {}
+    if (!t) return; var go = function () { setTimeout(function () { if (finalsOf()[t] && !document.querySelector('.sk-ov')) openFinal(t); }, 80); };
+    if (document.readyState === 'complete') go(); else window.addEventListener('load', go);
+  }
   function init(c) {
     cfg = c; var p = load(), g = gameRec(p, c.game); g.title = c.title; rec(g); save(p);
+    if (c.finals && c.finals.platine && !extraMeta.platine) extraMeta.platine = c.platineMeta || {};
+    direct();
     if (Object.keys(finalsOf()).length) { if (document.body) mountFinalButton(); else document.addEventListener('DOMContentLoaded', mountFinalButton); }
     if (c.encourage !== false && ENC_SKIP.indexOf(c.game) < 0) enc(function (Enc) {
       function go() { Enc.watch(c.encourageWatch || {}); }
@@ -408,7 +549,7 @@
     });
   }
 
-  window.SigmaKit = { init: init, levelComplete: levelComplete, openFinal: openFinal, medal: medal, tiers: TIERS, fanfare: fanfare, maki: maki,
+  window.SigmaKit = { init: init, levelComplete: levelComplete, openFinal: openFinal, addFinal: addFinal, _finals: function () { return finalsOf(); }, _meta: function () { return extraMeta; }, medal: medal, tiers: TIERS, fanfare: fanfare, maki: maki,
     stars: stars, trophy: trophy, passport: load, starsFor: starsFor, _norm: norm, _cfg: function () { return cfg; },
     encourage: function (ok, o) { var X = E(); if (!X) return ''; return ok ? X.ok(o || {}) : X.ko(o || {}); } };
 })();
