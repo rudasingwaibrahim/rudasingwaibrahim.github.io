@@ -13,6 +13,8 @@ cours:
 planches:
 - num: 1
   pdf: tale-techno/tale-techno-commun-ch2-planche-01.pdf
+- num: 2
+  pdf: tale-techno/tale-techno-commun-ch2-planche-02.pdf
 dm:
 - num: 1
   contenu: Propriétés algébriques · Équations et inéquations · Taux moyen
@@ -31,6 +33,11 @@ ds_blancs:
   contenu: QCM · Placement · Croissance bactérienne · Python et sommes
   duree: "55 min"
   pdf: tale-techno/tale-techno-commun-ch2-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: tale-techno/tale-techno-commun-ch2-activites.pdf
+- titre: Activités — Version professeur
+  pdf: tale-techno/tale-techno-commun-ch2-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

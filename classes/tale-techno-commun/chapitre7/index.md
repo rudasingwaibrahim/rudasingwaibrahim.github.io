@@ -10,25 +10,6 @@ cours:
   pdf: tale-techno/tale-techno-commun-ch7-cours-prof.pdf
 - titre: Cours complet — Statistiques à deux variables
   fichier: /assets/pdf/tale-techno-commun-ch7-cours.pdf
-planches:
-- num: 1
-  label: Planche 1 · série avec corrigé
-  fichier: /assets/pdf/tale-techno-commun-ch7-planche-01.pdf
-- num: 2
-  label: Planche 2 · série avec corrigé
-  fichier: /assets/pdf/tale-techno-commun-ch7-planche-03.pdf
-- num: 3
-  label: Planche 3 · série avec corrigé
-  fichier: /assets/pdf/tale-techno-commun-ch7-planche-04.pdf
-dm:
-- num: 1
-  contenu: Régression linéaire · Méthode des moindres carrés · Prévision
-  duree: "1 semaine"
-  pdf: tale-techno/tale-techno-commun-ch7-dm-01-sujet.pdf
-- num: 2
-  contenu: Changement de variable · Modèle exponentiel · Esprit critique
-  duree: "1 semaine"
-  pdf: tale-techno/tale-techno-commun-ch7-dm-02-sujet.pdf
 ds_published: false
 ds:
 - num: 1

@@ -15,24 +15,11 @@ planches:
   pdf: tale-techno/tale-techno-commun-ch3-planche-01.pdf
 - num: 2
   pdf: tale-techno/tale-techno-commun-ch3-planche-02.pdf
-dm:
-- num: 1
-  contenu: Propriétés du log · Équations logarithmiques · Décibels
-  duree: "1 semaine"
-  pdf: tale-techno/tale-techno-commun-ch3-dm-01-sujet.pdf
-- num: 2
-  contenu: Échelle de Richter · pH · Problèmes appliqués
-  duree: "1 semaine"
-  pdf: tale-techno/tale-techno-commun-ch3-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
   contenu: Calculs avec log · Équations · Inéquations
   duree: "2 h"
   pdf: tale-techno/tale-techno-commun-ch3-dsblanc-01-sujet.pdf
-- num: 2
-  contenu: Applications · Modélisation type BAC
-  duree: "2 h"
-  pdf: tale-techno/tale-techno-commun-ch3-dsblanc-02-sujet.pdf
 ds_published: false
 ds:
 - num: 1

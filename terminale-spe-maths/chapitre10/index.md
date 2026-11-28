@@ -33,6 +33,11 @@ ds_blancs:
   contenu: Points d'inflexion · Logarithme · Démonstration au programme
   duree: 4 h
   pdf: terminale-spe-ch10-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: terminale-spe-ch10-activites.pdf
+- titre: Activités — Version professeur
+  pdf: terminale-spe-ch10-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1
