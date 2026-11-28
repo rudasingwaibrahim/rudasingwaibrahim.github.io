@@ -37,6 +37,19 @@
   var SID = LIST.length ? DIR + '/revisions' : DIR + '/ch' + CH;
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var NB = ' ';
+  /* Encouragements (phrases, applaudissements, bilan de progression) : module commun, chargé à la demande. */
+  var encP = null;
+  function needEnc() {
+    if (window.SigmaEncourage) return Promise.resolve(window.SigmaEncourage);
+    if (encP) return encP;
+    encP = new Promise(function (res) {
+      var s = doc.createElement('script'); s.src = '/assets/js/encouragements.js?v=1'; s.async = true;
+      s.onload = function () { res(window.SigmaEncourage || null); }; s.onerror = function () { res(null); };
+      doc.head.appendChild(s);
+    });
+    return encP;
+  }
+  function E() { return window.SigmaEncourage || null; }
   var ACT = {
     flash: { nom: 'Questions flash', court: 'flash' },
     qcm_inter: { nom: 'QCM intermédiaire', court: 'QCM' },
@@ -288,6 +301,7 @@
   });
   dlg.addEventListener('click', function (e) { if (e.target === dlg) close(); });
   dlg.querySelector('.qz-close').addEventListener('click', close);
+  needEnc().then(function (enc) { if (enc) dlg.querySelector('.qz-head').insertBefore(enc.soundButton(), dlg.querySelector('.qz-close')); });
 
   function open(act, from) {
     opener = from || doc.activeElement;
@@ -297,7 +311,7 @@
     $body.innerHTML = '<p class="qz-loading">Chargement…</p>'; $foot.innerHTML = '';
     dlg.querySelector('.qz-close').focus();
     gcount(act);
-    Promise.all([loadData(), needKatex()]).then(function () {
+    Promise.all([loadData(), needKatex(), needEnc()]).then(function () {
       if (dlg.hidden) return;
       start(act);
     }).catch(function () {
@@ -343,6 +357,7 @@
     stopTimer();
     var d = DATA[act];
     if (!d) { $body.innerHTML = '<p class="qz-msg">Cette activité n\'est pas encore prête.</p>'; return; }
+    if (E()) E().reset();
     if (act === 'trous') return startTrous(d);
     return startQuiz(act, d);
   }
@@ -437,7 +452,8 @@
       fb.hidden = false; fb.className = 'qz-fb ' + (ok ? 'qz-fb--ok' : 'qz-fb--ko');
       fb.innerHTML = '<p class="qz-fb-t">' + (ok ? 'Bonne réponse' + NB + '!' : (rep ? 'Pas tout à fait.' : 'Voici la réponse.') + ' Réponse attendue' + NB + ': ' + md(good)) + '</p>' +
         (q.expl ? '<p class="qz-fb-e">' + md(q.expl) + '</p>' : '');
-      say(ok ? 'Bonne réponse.' : 'Réponse incorrecte.');
+      var enc = E(), ph = enc ? (ok ? enc.ok({ into: fb, announce: false }) : enc.ko({ into: fb, hint: 'correction', announce: false })) : '';
+      say((ok ? 'Bonne réponse.' : 'Réponse incorrecte.') + (ph ? ' ' + ph : ''));
       $foot.innerHTML = '';
       var last = i === qs.length - 1;
       var nx = btn(last ? 'Voir le bilan' : 'Question suivante', 'btn btn--sm qz-main', function () { i++; if (i < qs.length) { show(); scrollTop(); } else end(); });
@@ -537,7 +553,8 @@
         fb.hidden = false; fb.className = 'qz-fb ' + (ok === inputs.length ? 'qz-fb--ok' : 'qz-fb--ko');
         fb.innerHTML = '<p class="qz-fb-t">' + ok + ' trou' + (ok > 1 ? 's' : '') + ' juste' + (ok > 1 ? 's' : '') + ' sur ' + inputs.length + (ok === inputs.length ? NB + '!' : '. Les réponses attendues sont affichées en vert.') + '</p>' +
           (T.expl ? '<p class="qz-fb-e">' + md(T.expl) + '</p>' : '');
-        say(ok + ' sur ' + inputs.length);
+        var enc = E(), ph = enc ? (ok === inputs.length ? enc.ok({ into: fb, announce: false }) : enc.ko({ into: fb, hint: 'correction', announce: false })) : '';
+        say(ok + ' sur ' + inputs.length + (ph ? '. ' + ph : ''));
         $foot.innerHTML = '';
         var last = i === texts.length - 1;
         var nx = btn(last ? 'Voir le bilan' : 'Texte suivant', 'btn btn--sm qz-main', function () { i++; if (i < texts.length) { show(); scrollTop(); } else end(); });
@@ -567,6 +584,7 @@
       (extra ? '<p class="qz-score-x">' + esc(extra) + '</p>' : '') +
       (passMsg ? '<p class="qz-score-x qz-pass">' + esc(passMsg) + '</p>' : '') + '</div>');
     $body.appendChild(head);
+    var enc = E(), eb = enc ? enc.bilan({ key: 'quiz/' + SID + '/' + act, score: score, total: n, into: head.querySelector('div'), announce: false, noHead: true }) : null;
     if (review.length) {
       $body.appendChild(el('h3', 'qz-rev-t', isFinal ? 'Correction détaillée' : (act === 'trous' ? 'Textes à revoir' : 'Tes erreurs, corrigées')));
       var ol = el('ol', 'qz-rev');
@@ -591,7 +609,7 @@
     $foot.appendChild(btn('Fermer', 'btn btn--ghost btn--sm', close));
     var again = btn('Recommencer (nouveau tirage)', 'btn btn--sm qz-main', function () { scrollTop(); start(act); });
     $foot.appendChild(again);
-    say('Bilan : ' + score + ' sur ' + n);
+    say('Bilan : ' + score + ' sur ' + n + (eb ? '. ' + eb.text : ''));
     scrollTop();
     setTimeout(function () { again.focus({ preventScroll: true }); }, 30);
   }

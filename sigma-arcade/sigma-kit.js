@@ -18,6 +18,9 @@
    SigmaKit.maki(mood)         renvoie le SVG de Maki : 'joie' | 'neutre' | 'pense' | 'bravo'
    SigmaKit.stars(n, total=3)  renvoie le HTML d'une rangée d'étoiles
    SigmaKit.passport()         renvoie l'objet Passeport (lecture)
+   SigmaKit.encourage(ok, {after|into, hint}) phrase d'encouragement (module
+                               /assets/js/encouragements.js, chargé par le kit ;
+                               #win/#fb suivis automatiquement, init({encourage:false}) pour couper)
 
    Format d'une question d'Épreuve finale :
    { type:'qcm',   level:3, prompt:'html', choices:['html',…], answer:indexBonneRéponse, explain:'html' }
@@ -43,6 +46,24 @@
   function gameRec(p, g) { p.games[g] = p.games[g] || { levels: {}, final: null, title: '' }; return p.games[g]; }
 
   var cfg = null;
+
+  /* ---------------- encouragements (module commun du site) ----------------
+     /assets/js/encouragements.js : phrases après chaque réponse, applaudissements,
+     bilan de progression. Les panneaux #win / #fb des jeux sont suivis automatiquement,
+     sauf pour les jeux de ENC_SKIP (en cours de modification : à retirer ensuite). */
+  var ENC_SKIP = ['cellule-suspecte', 'detective-erreur', 'zero-defaut', 'sans-faux-pas', 'le-sonar', 'aire-libre'];
+  var encWait = [];
+  function enc(cb) {
+    if (window.SigmaEncourage) { cb(window.SigmaEncourage); return; }
+    encWait.push(cb);
+    if (encWait.length > 1) return;
+    var s = document.createElement('script'); s.src = '/assets/js/encouragements.js?v=1'; s.async = true;
+    s.onload = function () { var E = window.SigmaEncourage, w = encWait; encWait = []; if (E) w.forEach(function (f) { try { f(E); } catch (e) {} }); };
+    s.onerror = function () { encWait = []; };
+    (document.head || document.documentElement).appendChild(s);
+  }
+  function E() { return window.SigmaEncourage || null; }
+  enc(function () {});
 
   /* ---------------- styles communs ---------------- */
   var CSS = [
@@ -215,6 +236,7 @@
         '<button class="sk-btn gh" data-v="replay">Rejouer ce niveau</button>' +
         (last ? '' : '<button class="sk-btn gh" data-v="final">Épreuves finales</button>') + '</div></div>', function (v) { if (v === 'final') setTimeout(function () { openFinal(); }, 60); res(v || 'close'); });
       m.el.addEventListener('click', function (e) { var b = e.target.closest('[data-v]'); if (b) m.close(b.dataset.v); });
+      if (E()) E().bilan({ key: 'arcade/' + cfg.game + '/niveau' + o.level, score: o.score, total: o.total, after: m.el.querySelector('.sk-body > p'), sound: false, noHead: true });
     });
   }
 
@@ -333,6 +355,7 @@
       box.querySelector('#sk-fb').innerHTML = '<div class="sk-fb ' + (ok ? 'ok' : 'ko') + '"><b>' + (ok ? 'Exact\u00a0!' : 'Pas tout à fait.') + '</b>' + (q.explain || '') + sol + '</div>' +
         '<div class="sk-row"><button class="sk-btn" id="sk-nx">' + (i < Q.length - 1 ? 'Question suivante →' : 'Voir mon résultat') + '</button></div>';
       box.querySelector('.sk-prog').outerHTML = prog();
+      if (E()) { var efb = box.querySelector('#sk-fb .sk-fb'); if (ok) E().ok({ into: efb, sound: false }); else E().ko({ into: efb, hint: 'correction' }); }
       var nx = box.querySelector('#sk-nx'); nx.focus(); nx.onclick = function () { i++; if (i < Q.length) show(); else end(); };
     }
     function end() {
@@ -361,6 +384,7 @@
       if (nx) box.querySelector('#sk-next').onclick = function () { m.close(); setTimeout(function () { runFinal(nx); }, 60); };
       box.querySelector('#sk-again').onclick = function () { m.close(); setTimeout(function () { runFinal(tier); }, 60); };
       box.querySelector('#sk-close').onclick = function () { m.close(); };
+      if (E()) E().bilan({ key: 'arcade/' + cfg.game + '/' + tier, score: score, total: tot, after: box.querySelector('.sk-verdict'), sound: false, noHead: true });
     }
     show();
   }
@@ -378,8 +402,13 @@
   function init(c) {
     cfg = c; var p = load(), g = gameRec(p, c.game); g.title = c.title; rec(g); save(p);
     if (Object.keys(finalsOf()).length) { if (document.body) mountFinalButton(); else document.addEventListener('DOMContentLoaded', mountFinalButton); }
+    if (c.encourage !== false && ENC_SKIP.indexOf(c.game) < 0) enc(function (Enc) {
+      function go() { Enc.watch(c.encourageWatch || {}); }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+    });
   }
 
   window.SigmaKit = { init: init, levelComplete: levelComplete, openFinal: openFinal, medal: medal, tiers: TIERS, fanfare: fanfare, maki: maki,
-    stars: stars, trophy: trophy, passport: load, starsFor: starsFor, _norm: norm, _cfg: function () { return cfg; } };
+    stars: stars, trophy: trophy, passport: load, starsFor: starsFor, _norm: norm, _cfg: function () { return cfg; },
+    encourage: function (ok, o) { var X = E(); if (!X) return ''; return ok ? X.ok(o || {}) : X.ko(o || {}); } };
 })();

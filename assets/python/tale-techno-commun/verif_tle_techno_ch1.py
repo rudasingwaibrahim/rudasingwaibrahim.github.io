@@ -20,6 +20,35 @@ import io as _io
 import re as _re
 import contextlib as _contextlib
 
+# Encouragements (Sigma) : une phrase variée après chaque vérification.
+import random as _random
+
+_BRAVO = [
+    "Bien raisonné !", "Tu vois, tu en es capable.", "Ta méthode est la bonne.",
+    "Ton programme fonctionne : c'est toi qui l'as écrit.", "Bravo, tu as pris le temps de réfléchir.",
+    "C'est juste : ton travail paie.", "Belle rigueur !", "Tu progresses, continue comme ça.",
+    "Bien joué : étape par étape, tu y arrives.", "Excellent : le code et les maths vont ensemble.",
+    "Juste ! Garde cette méthode, elle fonctionne.", "Tu as trouvé : la programmation, c'est aussi pour toi.",
+    "Solide ! Ton raisonnement est clair.", "Bravo : la persévérance, ça marche.",
+    "Réussi ! Et ce n'est pas de la chance.",
+]
+_COURAGE = [
+    "Une erreur, c'est une étape : relis le conseil ci-dessus.", "Pas encore, mais tu cherches : c'est comme ça qu'on apprend.",
+    "Ce n'est pas grave : corrige une ligne à la fois, puis relance.", "Tout le monde fait des erreurs en programmant. Continue.",
+    "Chaque message d'erreur te rapproche du bon programme.", "Respire, relis ton code : la solution est à ta portée.",
+    "Une erreur repérée aujourd'hui, c'est une erreur évitée demain.", "Garde confiance : le conseil te donne la piste.",
+    "Courage : comprendre une erreur, c'est apprendre deux fois.", "Essaie ta fonction sur un petit exemple : ça aide souvent.",
+    "Tu as le droit de te tromper : c'est comme ça qu'on progresse.", "Ne lâche rien : relance la vérification après ta correction.",
+]
+
+
+def _bravo():
+    print("  ★ " + _random.choice(_BRAVO))
+
+
+def _courage():
+    print("  ➜ " + _random.choice(_COURAGE))
+
 _LIMITE = 300000      # nombre de lignes exécutées avant de conclure à une boucle sans fin
 _RETURN = ("Le return doit être aligné avec le mot for (ou while) : s'il est décalé à l'intérieur de la boucle, "
            "la fonction s'arrête dès le premier tour.")
@@ -137,45 +166,54 @@ def _verifier(test, noms, aide=None):
             print("✘ Pas encore : Python ne connaît pas encore « " + nom + " ».")
             print("  → Exécute d'abord la cellule où tu as écrit " + nom
                   + " (Maj + Entrée), puis relance cette vérification.")
+            _courage()
             return
         obj = g[nom]
         if obj is Ellipsis:
             print("✘ Pas encore : « " + nom + " » vaut encore ... .")
             print("  → Remplace les ... par ta réponse, exécute la cellule, puis relance cette vérification.")
+            _courage()
             return
         code = getattr(obj, "__code__", None)
         if code is not None and _contient_points(code):
             print("✘ Pas encore : il reste des ... à remplacer dans ta fonction " + nom + ".")
             print("  → Remplace chaque ... par ton code, exécute la cellule de ta fonction,"
                   " puis relance cette vérification.")
+            _courage()
             return
         objets.append(obj)
     try:
         bilan = _executer(test, objets, g)
     except _PasEncore as e:
         print("✘ Pas encore : " + str(e))
+        _courage()
         return
     except _TropLong:
         print("✘ Pas encore : ta fonction ne s'arrête pas (sa boucle a fait des centaines de milliers de tours).")
         print("  → " + aide.get("boucle", "Vérifie ta boucle while : la variable testée doit changer à chaque "
                                           "tour, pour que la condition finisse par devenir fausse."))
+        _courage()
         return
     except NameError as e:
         nom = _nom_inconnu(e)
         print("✘ Pas encore : ta fonction utilise le nom « " + nom + " », que Python ne connaît pas.")
         print("  → Vérifie son orthographe (Python distingue majuscules et minuscules). "
               "Si c'est une fonction écrite plus haut dans le carnet, exécute d'abord sa cellule.")
+        _courage()
         return
     except ZeroDivisionError:
         print("✘ Pas encore : ta fonction divise par 0, ce qui est impossible.")
         print("  → " + aide.get("division", "Repère la division (/, // ou %) dont le diviseur vaut 0."))
+        _courage()
         return
     except IndexError:
         print("✘ Pas encore : ta fonction demande un élément de la liste qui n'existe pas (indice trop grand).")
         print("  → " + aide.get("indice", "Les indices d'une liste de longueur n vont de 0 à n - 1."))
+        _courage()
         return
     except RecursionError:
         print("✘ Pas encore : ta fonction s'appelle elle-même sans jamais s'arrêter.")
+        _courage()
         return
     except TypeError as e:
         texte = str(e)
@@ -188,13 +226,16 @@ def _verifier(test, noms, aide=None):
             print("✘ Pas encore : ta fonction fait un calcul impossible "
                   "(par exemple avec un texte au lieu d'un nombre).")
             print("  → " + aide.get("calcul", "Relis chaque ligne de ta fonction : chaque calcul doit porter sur des nombres."))
+        _courage()
         return
     except Exception:
         print("✘ Pas encore : ta fonction s'arrête sur une erreur.")
         print("  → Appelle ta fonction toute seule dans une nouvelle cellule (par exemple avec un petit nombre)"
               " pour voir le message de Python, puis relis ton code ligne par ligne.")
+        _courage()
         return
     print("✔ Juste : " + bilan)
+    _bravo()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
