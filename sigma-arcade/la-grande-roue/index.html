@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La Grande Roue · Sigma Arcade</title>
+<meta name="description" content="Fonctions cosinus et sinus en Terminale spécialité mathématiques (chapitre 17) : valeurs remarquables, périodicité, parité, dérivées de cos(ax + b) et sin(ax + b), variations, équations cos x = a et inéquations cos x ⩽ a sur [−π ; π], étude de fonction. Une grande roue tourne et déroule les courbes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* ===== Moteur commun « Terminale spé » (inliné dans chaque jeu) — mise en page Sigma Arcade ===== */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);--pos:var(--sg-pos);--neg:var(--sg-neg)}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:74ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible,.stage:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:1000/560;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#040914;user-select:none;-webkit-user-select:none}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg text{font-family:var(--sg-font)}
+.badge{position:absolute;left:10px;top:10px;z-index:2;font:600 13px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--mut);border:1px solid var(--soft);pointer-events:none;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge:empty{display:none}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,23px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .45em}
+.capt .k{color:var(--gold2)}.capt .b{color:#9fb4ff}.capt .p{color:var(--pos)}.capt .n{color:var(--neg)}.capt .g{color:var(--ok)}.capt .m{color:var(--mut);font-weight:600}.capt .r{color:var(--ko)}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin:8px 0 0;font-size:14px;color:var(--mut)}
+.legend i{display:inline-block;width:18px;height:4px;border-radius:2px;margin-right:6px;vertical-align:4px}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.55;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.78}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.opts{display:grid;gap:10px}
+.opts.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr))}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.45 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt.rv{border-color:var(--gold);background:rgba(200,168,75,.12)}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(19px,2.2vw,22px)/2.2 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.6em;height:46px;margin:0 3px;padding:0 6px;font:700 20px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.w{width:6.4em}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}.in.rv{border-color:var(--gold);color:var(--gold2)}
+.in:disabled{opacity:1}
+.sl{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.sl input[type=range]{flex:1 1 220px;height:44px;accent-color:var(--ac);cursor:pointer}
+.sl output{font:700 20px var(--sg-font);font-variant-numeric:tabular-nums;min-width:6em;color:var(--gold2)}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+.v{font-style:italic}
+.nw{white-space:nowrap}
+sup,sub{font-size:.7em;line-height:0}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-size:.95em}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.ov{text-decoration:overline}
+.vec{display:inline-block;position:relative;padding-top:.18em}
+.vec::before{content:"";position:absolute;left:.05em;right:.05em;top:.05em;border-top:1.6px solid currentColor}
+.vec::after{content:"";position:absolute;right:0;top:-.12em;border:.2em solid transparent;border-left:.32em solid currentColor;border-right:0}
+.tbw{overflow-x:auto;margin:4px 0 10px;-webkit-overflow-scrolling:touch}
+.tb{border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:17px}
+.tb th,.tb td{padding:5px 11px;border:1px solid var(--soft);text-align:center;white-space:nowrap}
+.tb th{font-weight:700;color:#aebfff;background:rgba(108,142,255,.08)}
+.sk-q .tb{font-size:17px;margin:6px 0}
+.code{margin:4px 0 12px;border-radius:14px;background:linear-gradient(160deg,#0c1426,#070d1b);border:1px solid rgba(127,178,255,.25);padding:12px 14px;font:500 15px/1.6 var(--sg-mono);color:#dbe6ff;overflow-x:auto;white-space:pre}
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb.good{background:rgba(95,210,124,.08);border-left-color:var(--ok)}
+.fb.rv{background:rgba(200,168,75,.09);border-left-color:var(--gold)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b.t{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.mk{display:inline-flex;flex:none}
+.fb>div{min-width:0;flex:1}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:#060d1a;border-bottom:1px solid var(--soft)}
+  .stage{max-height:36svh;margin:auto}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+  .legend{display:none}
+}
+@media (max-width:700px){header{padding-top:62px}}
+@media (max-width:520px){
+  .badge{display:none}
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .opt{font-size:16px;padding:10px 12px}
+  .tb{font-size:15.5px}.tb th,.tb td{padding:4px 8px}
+  .code{font-size:13.5px}
+}
+.chipch{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);color:var(--mut);font-size:15px}
+.chipch b{color:var(--gold2)}.chipch a{display:inline-flex;align-items:center;min-height:44px;margin-left:10px;color:var(--ink);font-weight:600;border-bottom:2px solid var(--ac);text-decoration:none}
+
+
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>La Grande Roue</h1>
+<p>La nuit, une grande roue tourne. Quand la nacelle a parcouru l'arc <span class="v">x</span>, son abscisse est cos <span class="v">x</span> et sa hauteur sin <span class="v">x</span>&nbsp;: à droite, les courbes se déroulent. Un tour complet, et tout recommence. Résoudre cos <span class="v">x</span> = <span class="v">a</span>, c'est trouver les nacelles alignées sur la verticale <span class="v">a</span>.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Grande roue (cercle trigonométrique) avec une nacelle, et courbes de cosinus et sinus déroulées à droite" tabindex="-1">
+    <svg id="scene" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+    <span class="badge" id="badge"></span>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+  <div class="legend" id="legend"><span><i style="background:#e8c766"></i>nacelle : le point d'arc x</span><span><i style="background:#7fe0c8"></i>courbe déroulée</span><span><i style="background:#5fd27c"></i>solutions</span></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div id="q" aria-live="polite"></div>
+</section>
+</main>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+/* ===== Moteur commun des jeux Sigma Arcade « Terminale spé » (inliné dans chaque jeu) =====
+   TS.run(GAME) avec GAME = {slug,title,chapter,music,levels:[{t,rule,n,gen(i)}],scene:{init(svg),reset(lv)},finals:{bronze,argent,or}}
+   Une question : {prompt, setup?, cap0?, parts:[part…]}. Parties :
+     {k:'choice', ask, opts:[{h, ok, why}], g2?, sol?, onOk?, chk?}
+     {k:'fill', ask, tpl:'… {0} …', blanks:[{a:[réponses], w?}], why?:(vals)=>html, sol?, onOk?, chk?}
+     {k:'slide', ask, min, max, step, v0, fmt(v), on(v), ok(v), target, why?(v), sol?, onOk?}
+   Deuxième erreur : la réponse est donnée (jamais d'échec), la question n'est pas comptée « du premier coup ». */
+(function () {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TS = window.TS = { speed: 1 };
+const sleep = TS.sleep = ms => new Promise(r => setTimeout(r, RM ? Math.min(ms, 20) : ms * TS.speed));
+TS.tween = (ms, fn, ease) => {
+  ease = ease || (e => e < .5 ? 2 * e * e : 1 - Math.pow(-2 * e + 2, 2) / 2);
+  if (RM || TS.speed < .05) { fn(1); return Promise.resolve(); }
+  ms *= TS.speed;
+  return new Promise(res => { const t0 = performance.now(); function f(t) { const k = Math.min(1, (t - t0) / ms); fn(ease(k)); if (k < 1) requestAnimationFrame(f); else res(); } requestAnimationFrame(f); });
+};
+/* ---------- hasard ---------- */
+const rint = TS.rint = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = TS.pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = TS.shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+TS.nz = (a, b) => { let v; do v = rint(a, b); while (v === 0); return v; };
+const gcd = TS.gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };
+/* ---------- écritures françaises ---------- */
+const M = '−', NB = ' ';
+TS.M = M; TS.NB = NB;
+TS.num = (x, dec) => {   // nombre → « −3,25 »
+  if (dec !== undefined) x = Math.round(x * Math.pow(10, dec)) / Math.pow(10, dec);
+  if (Object.is(x, -0)) x = 0;
+  let s = String(Math.abs(x));
+  if (/e/.test(s)) s = Math.abs(x).toFixed(12).replace(/0+$/, '').replace(/\.$/, '');
+  if (dec !== undefined && dec > 0 && s.indexOf('.') < 0 && false) s += '';
+  const [i, d] = s.split('.');
+  const ii = i.length > 4 ? i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : i;
+  return (x < 0 ? M : '') + ii + (d ? ',' + d : '');
+};
+TS.fix = (x, dec) => {   // arrondi affiché avec exactement dec décimales
+  const r = Math.round(x * Math.pow(10, dec)) / Math.pow(10, dec);
+  let s = Math.abs(r).toFixed(dec).replace('.', ',');
+  return (r < 0 && Number(s.replace(',', '.')) !== 0 ? M : '') + s;
+};
+TS.Q = (n, d = 1) => { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d); return { n: n / g, d: d / g }; };
+TS.frac = (a, b) => `<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+TS.fq = (n, d = 1, o = {}) => {   // fraction réduite en HTML (signe devant)
+  const q = TS.Q(n, d);
+  if (q.d === 1) return TS.num(q.n);
+  return (q.n < 0 ? M : '') + TS.frac(Math.abs(q.n), q.d);
+};
+TS.ft = (n, d = 1) => { const q = TS.Q(n, d); return q.d === 1 ? TS.num(q.n) : TS.num(q.n) + '/' + q.d; };   // fraction en ligne « −3/4 »
+TS.fs = (n, d = 1) => { const q = TS.Q(n, d); return q.d === 1 ? String(q.n) : '(' + q.n + ')/(' + q.d + ')'; }; // fraction sympy
+TS.v = s => `<span class="v">${s}</span>`;
+TS.sup = s => `<sup>${s}</sup>`;
+TS.vec = s => `<span class="vec">${s}</span>`;
+/* polynôme / combinaison linéaire : terms = [[coef, 'x²'], [coef, 'x'], [coef, '']] → « 3x² − x + 2 » */
+TS.lin = (terms, o = {}) => {
+  let out = '';
+  for (const [c0, m] of terms) {
+    let c = c0; if (c === 0) continue;
+    const neg = c < 0, a = Math.abs(c);
+    let body = m === '' ? TS.num(a) : (a === 1 ? '' : TS.num(a)) + m;
+    if (!out) out = (neg ? M : '') + body; else out += (neg ? ' ' + M + ' ' : ' + ') + body;
+  }
+  return out || '0';
+};
+/* ---------- sons (bruitages) ---------- */
+let AC = null;
+const sfxOn = () => { try { return localStorage.getItem('sigma-fanfare') !== '0'; } catch (e) { return true; } };
+TS.sfx = type => {
+  if (!sfxOn()) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    const notes = { ok: [[660, 0], [880, .09]], ko: [[220, 0], [180, .1]], tick: [[1200, 0]], whoosh: [[300, 0], [520, .06], [760, .12]], ding: [[988, 0], [1318, .08]] }[type] || [[600, 0]];
+    for (const [f, t] of notes) {
+      const o = AC.createOscillator(), g = AC.createGain(), t0 = AC.currentTime + t;
+      o.type = type === 'ko' ? 'triangle' : 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(type === 'tick' ? .04 : .09, t0 + .015); g.gain.exponentialRampToValueAtTime(.0001, t0 + .22);
+      o.connect(g).connect(AC.destination); o.start(t0); o.stop(t0 + .25);
+    }
+  } catch (e) {}
+};
+/* ---------- épreuves finales ---------- */
+const strip = h => String(h).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+TS.qcm = (o) => {   // {prompt, good, bad:[…], explain, chk, tpl}
+  const all = [o.good].concat(o.bad);
+  const keys = all.map(h => strip(h).toLowerCase());
+  if (new Set(keys).size !== keys.length) throw new Error('choix en double : ' + keys.join(' | '));
+  const idx = shuffle(all.map((_, i) => i));
+  const q = { type: 'qcm', prompt: o.prompt, choices: idx.map(i => all[i]), answer: idx.indexOf(0), explain: o.explain, tpl: o.tpl || '' };
+  if (o.chk) { q.chk = Object.assign({}, o.chk); if (o.chk.vals) q.chk.vals = idx.map(i => o.chk.vals[i]); }
+  return q;
+};
+TS.trous = (o) => {   // {prompt, blanks:[[réponses…]…], explain, chk, braces}
+  const q = { type: 'trous', prompt: o.prompt, blanks: o.blanks.map(a => ({ answers: a, size: o.size || Math.max(3, Math.max(...a.map(s => String(s).length)) + 1) })), explain: o.explain, tpl: o.tpl || '' };
+  if (o.braces) q.braces = true;
+  if (o.chk) q.chk = o.chk;
+  return q;
+};
+/* bank[L-1] = {q:[gen(d)…], t:[gen(d)…]} ; d = 0 (Bronze), 1 (Argent), 2 (Or) → 10 questions : 6 QCM + 4 trous, tous niveaux */
+TS.compose = (bank, d) => {
+  for (let att = 0; att < 60; att++) {
+    try {
+      const L = shuffle(bank.map((_, i) => i + 1));
+      const tL = L.slice(0, 4), qL = L.slice(4);
+      while (qL.length < 6) qL.push(pick(bank.map((_, i) => i + 1)));
+      const out = [], seen = new Set();
+      const mk = (lv, kind) => {
+        for (let k = 0; k < 30; k++) {
+          const g = pick(bank[lv - 1][kind]); const q = g(d); q.level = lv;
+          const key = strip(q.prompt);
+          if (seen.has(key)) continue; seen.add(key); return q;
+        }
+        throw new Error('doublons');
+      };
+      tL.forEach(lv => out.push(mk(lv, 't')));
+      qL.forEach(lv => out.push(mk(lv, 'q')));
+      return shuffle(out);
+    } catch (e) { if (att === 59) throw e; }
+  }
+};
+/* ---------- moteur de jeu ---------- */
+const G = TS.G = { lv: 1, qi: 0, qs: [], res: [], pi: 0, tries: 0, busy: false, first: true, game: null };
+let GAME = null;
+const kitNorm = s => String(s).toLowerCase().replace(/\s+/g, '').replace(/[−–—]/g, '-').replace(/,/g, '.').replace(/[×*·]/g, 'x').replace(/^\+/, '');
+TS.cap = h => { $('#capt').innerHTML = h || ''; };
+TS.badge = h => { $('#badge').innerHTML = h || ''; };
+function stars(lv) { try { const g = SigmaKit.passport().games[GAME.slug]; const n = g && g.levels && g.levels[lv] || 0; return n ? '★'.repeat(n) : ''; } catch (e) { return ''; } }
+function lvBar() {
+  const nav = $('#lv'); nav.innerHTML = '';
+  GAME.levels.forEach((L, i) => {
+    if (GAME.only && !GAME.only.includes(i + 1)) return;
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.lv = i + 1;
+    b.setAttribute('aria-pressed', String(G.lv === i + 1));
+    const s = stars(i + 1);
+    b.innerHTML = `${i + 1}. ${L.t}${s ? `<span class="ck" aria-label="${s.length} étoile${s.length > 1 ? 's' : ''}">${s}</span>` : ''}`;
+    b.onclick = () => { if (!G.busy) start(i + 1); };
+    nav.appendChild(b);
+  });
+  const sp = document.createElement('span'); sp.className = 'sp'; nav.appendChild(sp);
+  const t = document.createElement('button'); t.type = 'button'; t.className = 'tool'; t.id = 'sfx';
+  const lab = () => { const on = sfxOn(); t.setAttribute('aria-pressed', String(on)); t.textContent = '♪ Bruitages : ' + (on ? 'oui' : 'non'); };
+  t.onclick = () => { try { localStorage.setItem('sigma-fanfare', sfxOn() ? '0' : '1'); } catch (e) {} lab(); };
+  lab(); nav.appendChild(t);
+}
+function dots() {
+  $('#dots').innerHTML = G.qs.map((_, i) => `<span class="dot${i === G.qi ? ' c' : G.res[i] === true ? ' g' : G.res[i] === false ? ' r' : ''}"></span>`).join('');
+  $('#qn').textContent = `Question ${G.qi + 1} sur ${G.qs.length}`;
+}
+async function start(lv) {
+  G.lv = lv; G.qi = 0; G.res = []; G.busy = false;
+  const L = GAME.levels[lv - 1];
+  G.qs = Array.from({ length: L.n || 5 }, () => null);
+  $('#chap').textContent = `${GAME.chapter} · Niveau ${lv} sur ${GAME.levels.length}`;
+  $('#lvt').textContent = `Niveau ${lv} · ${L.t}`;
+  $('#rule').innerHTML = L.rule;
+  $('#cours').open = !GAME.coursClosed && !!(window.innerWidth > 860 && !stars(lv));
+  lvBar();
+  if (GAME.scene.reset) GAME.scene.reset(lv);
+  await showQ();
+}
+TS.start = start;
+async function showQ() {
+  const L = GAME.levels[G.lv - 1];
+  const q = G.qs[G.qi] = L.gen(G.qi);
+  G.pi = 0; G.first = true; G.busy = true;
+  dots();
+  const box = $('#q');
+  box.innerHTML = `<p class="prompt">${q.prompt}</p><div id="parts"></div>`;
+  if (GAME.scene.reset) GAME.scene.reset(G.lv);
+  TS.badge(q.badge || ''); TS.cap(q.cap0 || '');
+  try { if (q.setup) await q.setup(); } catch (e) { console.error(e); } finally { G.busy = false; }
+  showPart();
+}
+function fb(part, kind, html) {
+  const el = part._el.querySelector('.fb') || part._el.appendChild(document.createElement('div'));
+  el.className = 'fb' + (kind === 'ok' ? ' good' : kind === 'rv' ? ' rv' : '');
+  const mood = kind === 'ok' ? 'joie' : 'pense';
+  const t = kind === 'ok' ? 'Exact !' : kind === 'rv' ? 'Voici la réponse.' : 'Pas tout à fait…';
+  el.innerHTML = `<span class="mk">${SigmaKit.maki(mood)}</span><div><b class="t">${t}</b><p>${html || ''}</p></div>`;
+}
+function showPart() {
+  const q = G.qs[G.qi], part = q.parts[G.pi];
+  G.tries = 0;
+  const el = document.createElement('div'); el.className = 'part'; part._el = el;
+  $('#parts').appendChild(el);
+  if (part.ask) el.insertAdjacentHTML('beforeend', `<p class="ask">${part.ask}</p>`);
+  if (part.k === 'choice') {
+    const box = document.createElement('div'); box.className = 'opts' + (part.g2 ? ' g2' : '');
+    part.opts.forEach((o, k) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.dataset.k = k; b.innerHTML = o.h;
+      b.onclick = () => answerChoice(part, k); box.appendChild(b);
+    });
+    el.appendChild(box);
+  } else if (part.k === 'fill') {
+    let i = 0;
+    const h = part.tpl.replace(/\{(\d+)\}/g, (_, n) => `<input class="in${part.blanks[+n].w ? ' w' : ''}" data-b="${n}" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="${part.blanks[+n].txt ? 'text' : 'decimal'}" aria-label="Réponse ${+n + 1}">`);
+    el.insertAdjacentHTML('beforeend', `<div class="fill">${h}</div><div class="btns"><button type="button" class="btn or" data-ok>Valider</button></div>`);
+    el.querySelectorAll('.in').forEach(inp => inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); answerFill(part); } }));
+    el.querySelector('[data-ok]').onclick = () => answerFill(part);
+    setTimeout(() => { const f = el.querySelector('.in'); if (f && window.innerWidth > 860) f.focus({ preventScroll: true }); }, 30);
+  } else if (part.k === 'slide') {
+    el.insertAdjacentHTML('beforeend', `<div class="sl"><input type="range" min="${part.min}" max="${part.max}" step="${part.step}" value="${part.v0}" aria-label="${strip(part.ask || 'Curseur')}"><output></output></div><div class="btns"><button type="button" class="btn or" data-ok>Valider</button></div>`);
+    const r = el.querySelector('input'), out = el.querySelector('output');
+    const upd = () => { const v = +r.value; out.innerHTML = part.fmt ? part.fmt(v) : TS.num(v); if (part.on) part.on(v); };
+    r.addEventListener('input', upd); upd();
+    el.querySelector('[data-ok]').onclick = () => answerSlide(part);
+  }
+}
+async function success(part, revealed) {
+  G.busy = true;
+  part._el.querySelectorAll('button,input').forEach(b => b.disabled = true);
+  part._el.classList.add('done');
+  fb(part, revealed ? 'rv' : 'ok', part.sol || '');
+  if (!revealed) TS.sfx('ok');
+  try { if (part.onOk) await part.onOk(); } catch (e) { console.warn(e); }
+  G.busy = false;
+  const q = G.qs[G.qi];
+  if (G.pi + 1 < q.parts.length) { G.pi++; showPart(); return; }
+  G.res[G.qi] = G.first; dots();
+  const last = G.qi + 1 >= G.qs.length;
+  const nx = document.createElement('div'); nx.className = 'btns';
+  nx.innerHTML = `<button type="button" class="btn or" id="nx">${last ? 'Terminer le niveau' : 'Question suivante →'}</button>`;
+  $('#parts').appendChild(nx);
+  const b = $('#nx'); b.onclick = () => next();
+  if (window.innerWidth > 860) b.focus({ preventScroll: true });
+}
+function miss(part, html) { G.first = false; G.tries++; TS.sfx('ko'); fb(part, 'ko', html); }
+async function answerChoice(part, k) {
+  if (G.busy) return;
+  const o = part.opts[k], btn = part._el.querySelector(`.opt[data-k="${k}"]`);
+  if (o.ok) { btn.classList.add('ok'); success(part, false); return; }
+  btn.classList.add('ko'); btn.disabled = true;
+  miss(part, o.why || 'Relis la question et le cours.');
+  if (part.onMiss) { G.busy = true; try { await part.onMiss(k); } catch (e) { console.warn(e); } G.busy = false; }
+  if (G.tries >= 2) { const kk = part.opts.findIndex(x => x.ok); part._el.querySelector(`.opt[data-k="${kk}"]`).classList.add('rv'); success(part, true); }
+}
+function answerFill(part) {
+  if (G.busy) return;
+  const ins = [...part._el.querySelectorAll('.in')];
+  const vals = ins.map(i => i.value);
+  if (vals.some(v => !v.trim())) { ins.find(i => !i.value.trim()).focus(); return; }
+  const good = ins.map((inp, n) => part.blanks[n].a.some(a => kitNorm(a) === kitNorm(inp.value)));
+  ins.forEach((inp, n) => { inp.classList.toggle('ok', good[n]); inp.classList.toggle('ko', !good[n]); });
+  if (good.every(Boolean)) { success(part, false); return; }
+  miss(part, typeof part.why === 'function' ? part.why(vals, good) : (part.why || 'Vérifie ton calcul.'));
+  if (G.tries >= 2) { ins.forEach((inp, n) => { if (!good[n]) { inp.value = part.blanks[n].a[0]; inp.classList.remove('ko'); inp.classList.add('rv'); } }); success(part, true); }
+}
+function answerSlide(part) {
+  if (G.busy) return;
+  const r = part._el.querySelector('input[type=range]'), v = +r.value;
+  if (part.ok(v)) { success(part, false); return; }
+  miss(part, typeof part.why === 'function' ? part.why(v) : (part.why || 'Ajuste encore le curseur.'));
+  if (G.tries >= 2) { r.value = part.target; r.dispatchEvent(new Event('input')); success(part, true); }
+}
+async function next() {
+  if (G.busy) return;
+  if (G.qi + 1 < G.qs.length) { G.qi++; await showQ(); return; }
+  const score = G.res.filter(x => x === true).length;
+  const v = await SigmaKit.levelComplete({ level: G.lv, score, total: G.qs.length });
+  lvBar();
+  const nxt = GAME.only ? GAME.only.find(l => l > G.lv) : G.lv + 1;
+  if (v === 'next' && nxt && nxt <= GAME.levels.length) start(nxt);
+  else if (v === 'next' && GAME.only) start(G.lv);
+  else if (v === 'replay') start(G.lv);
+}
+/* crochet de test */
+window.TSG = {
+  state() {
+    const q = G.qs[G.qi], p = q && q.parts[G.pi];
+    let ans = null;
+    if (p) ans = p.k === 'choice' ? p.opts.findIndex(o => o.ok) : p.k === 'fill' ? p.blanks.map(b => b.a[0]) : p.target;
+    return { lv: G.lv, qi: G.qi, n: G.qs.length, pi: G.pi, np: q ? q.parts.length : 0, kind: p ? p.k : null, ans, busy: G.busy, nOpts: p && p.opts ? p.opts.length : 0, done: !!document.querySelector('#nx') };
+  },
+  dumpLevel(lv, i) {   // pour l'audit : question sérialisée (sans fonctions)
+    const q = GAME.levels[lv - 1].gen(i);
+    return { prompt: q.prompt, parts: q.parts.map(p => ({ k: p.k, ask: p.ask || '', opts: p.opts ? p.opts.map(o => ({ h: o.h, ok: !!o.ok, why: o.why || '' })) : null, tpl: p.tpl || null, blanks: p.blanks || null, min: p.min, max: p.max, step: p.step, target: p.target, okT: p.k === 'slide' ? p.ok(p.target) : null, okMin: p.k === 'slide' ? p.ok(p.min) : null, chk: p.chk || null, sol: p.sol || '' })) };
+  },
+  finals: () => GAME.finals,
+  start: lv => start(lv)
+};
+TS.run = (game) => {
+  GAME = game; G.game = game;
+  SigmaKit.init({ game: game.slug, title: game.title, levels: game.levels.length, levelNames: game.levels.map(l => l.t), music: game.music || 'aventure', finals: game.finals });
+  game.scene.init($('#scene'));
+  lvBar();
+  let lv = 1;
+  const m = location.hash.match(/niveau-?(\d)/); if (m) lv = Math.min(game.levels.length, Math.max(1, +m[1]));
+  if (game.only && game.only.length) {
+    if (!game.only.includes(lv)) lv = game.only[0];
+    const c = document.createElement('p'); c.className = 'chipch'; c.id = 'chipch';
+    c.innerHTML = game.chipHTML || 'Filtre actif.';
+    $('#lv').insertAdjacentElement('afterend', c);
+  }
+  start(lv);
+};
+})();
+
+</script>
+<script>
+/* ===== Module de tracé commun (repère animé) — jeux d'analyse Terminale spé =====
+   PL.init(svg, {bg, fg, box}) ; PL.frame({x0,x1,y0,y1}) ; PL.add(item) ; PL.clear() ; PL.draw()
+   Éléments : curve{f,a,b,col,w,dash,op,cut} · area{f,g,a,b,col,op} · hl{y,col,w,dash,lab} · vl{x,…} · pt{x,y,col,r,lab,open,dy}
+              seg{x1,y1,x2,y2,col,w,dash,arrow} · txt{x,y,s,col,size,anchor,px} · band{x0,x1,col,op} · hband{y0,y1,col,op} · poly{pts,col,op,stroke} */
+const PL = (() => {
+  let svg = null, BG = null, FG = null;
+  const st = { fr: { x0: -1, x1: 5, y0: -1, y1: 5 }, box: { l: 54, r: 976, t: 26, b: 534 }, items: [], axes: true, grid: true, xlab: 'x', ylab: 'y', tick: null };
+  const X = x => st.box.l + (x - st.fr.x0) / (st.fr.x1 - st.fr.x0) * (st.box.r - st.box.l);
+  const Y = y => st.box.b - (y - st.fr.y0) / (st.fr.y1 - st.fr.y0) * (st.box.b - st.box.t);
+  const IX = px => st.fr.x0 + (px - st.box.l) / (st.box.r - st.box.l) * (st.fr.x1 - st.fr.x0);
+  const f1 = v => (Math.round(v * 10) / 10).toString();
+  function nice(span) { const raw = span / 8, p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p; return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * p; }
+  function path(f, a, b, n = 260) {
+    let d = '', pen = false; const lo = st.fr.y0 - (st.fr.y1 - st.fr.y0) * 2, hi = st.fr.y1 + (st.fr.y1 - st.fr.y0) * 2;
+    for (let i = 0; i <= n; i++) {
+      const x = a + (b - a) * i / n; let y; try { y = f(x); } catch (e) { y = NaN; }
+      if (!isFinite(y) || y < lo || y > hi) { pen = false; continue; }
+      d += (pen ? 'L' : 'M') + f1(X(x)) + ' ' + f1(Y(y)); pen = true;
+    }
+    return d;
+  }
+  const lab = (s, x, y, col, size = 18, anchor = 'middle', w = 700) => `<text x="${f1(x)}" y="${f1(y)}" text-anchor="${anchor}" font-size="${size}" font-weight="${w}" fill="${col}" paint-order="stroke" stroke="#050b18" stroke-width="4" stroke-linejoin="round">${s}</text>`;
+  function axes() {
+    const { x0, x1, y0, y1 } = st.fr; let h = '';
+    const sx = st.tick && st.tick.x || nice(x1 - x0), sy = st.tick && st.tick.y || nice(y1 - y0);
+    const fmt = v => TS.num(Math.round(v * 1e6) / 1e6);
+    if (st.grid) {
+      for (let v = Math.ceil(x0 / sx) * sx; v <= x1 + 1e-9; v += sx) h += `<line x1="${f1(X(v))}" x2="${f1(X(v))}" y1="${st.box.t}" y2="${st.box.b}" stroke="rgba(120,160,255,.09)"/>`;
+      for (let v = Math.ceil(y0 / sy) * sy; v <= y1 + 1e-9; v += sy) h += `<line y1="${f1(Y(v))}" y2="${f1(Y(v))}" x1="${st.box.l}" x2="${st.box.r}" stroke="rgba(120,160,255,.09)"/>`;
+    }
+    if (!st.axes) return h;
+    const ax = Math.min(Math.max(0, y0), y1), ay = Math.min(Math.max(0, x0), x1);
+    h += `<line x1="${st.box.l}" x2="${st.box.r}" y1="${f1(Y(ax))}" y2="${f1(Y(ax))}" stroke="rgba(200,215,255,.55)" stroke-width="1.6"/><line y1="${st.box.t}" y2="${st.box.b}" x1="${f1(X(ay))}" x2="${f1(X(ay))}" stroke="rgba(200,215,255,.55)" stroke-width="1.6"/>`;
+    h += `<path d="M${st.box.r} ${f1(Y(ax))} l-9 -5 v10z M${f1(X(ay))} ${st.box.t} l-5 9 h10z" fill="rgba(200,215,255,.7)"/>`;
+    for (let v = Math.ceil(x0 / sx) * sx; v <= x1 + 1e-9; v += sx) { if (Math.abs(v) < 1e-9) continue; h += `<line x1="${f1(X(v))}" x2="${f1(X(v))}" y1="${f1(Y(ax) - 4)}" y2="${f1(Y(ax) + 4)}" stroke="rgba(200,215,255,.6)"/>` + lab((st.fmtx || fmt)(v), X(v), Y(ax) + 20, 'rgba(200,215,255,.75)', 14, 'middle', 500); }
+    for (let v = Math.ceil(y0 / sy) * sy; v <= y1 + 1e-9; v += sy) { if (Math.abs(v) < 1e-9) continue; h += `<line y1="${f1(Y(v))}" y2="${f1(Y(v))}" x1="${f1(X(ay) - 4)}" x2="${f1(X(ay) + 4)}" stroke="rgba(200,215,255,.6)"/>` + lab(fmt(v), X(ay) - 8, Y(v) + 5, 'rgba(200,215,255,.75)', 14, 'end', 500); }
+    h += lab('0', X(ay) - 8, Y(ax) + 18, 'rgba(200,215,255,.6)', 13, 'end', 500);
+    h += lab(`<tspan font-style="italic">${st.xlab}</tspan>`, st.box.r - 6, Y(ax) - 10, 'rgba(200,215,255,.8)', 16, 'end') + lab(`<tspan font-style="italic">${st.ylab}</tspan>`, X(ay) + 14, st.box.t + 14, 'rgba(200,215,255,.8)', 16, 'start');
+    return h;
+  }
+  function item(o) {
+    if (o.hide) return '';
+    const op = o.op === undefined ? 1 : o.op;
+    switch (o.t) {
+      case 'curve': { const d = path(o.f, o.a === undefined ? st.fr.x0 : o.a, o.b === undefined ? st.fr.x1 : o.b, o.n); return `<path d="${d}" fill="none" stroke="${o.col || '#9fb4ff'}" stroke-width="${o.w || 3.2}" stroke-linecap="round" stroke-linejoin="round"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''} opacity="${op}"${o.glow ? ' filter="url(#pl-glow)"' : ''}/>`; }
+      case 'area': {
+        const a = o.a, b = o.b, n = 160, g = o.g || (() => 0); let d = '';
+        for (let i = 0; i <= n; i++) { const x = a + (b - a) * i / n; d += (i ? 'L' : 'M') + f1(X(x)) + ' ' + f1(Y(Math.max(st.fr.y0 - 1, Math.min(st.fr.y1 + 1, o.f(x))))); }
+        for (let i = n; i >= 0; i--) { const x = a + (b - a) * i / n; d += 'L' + f1(X(x)) + ' ' + f1(Y(Math.max(st.fr.y0 - 1, Math.min(st.fr.y1 + 1, g(x))))); }
+        return `<path d="${d}Z" fill="${o.col || '#6c8eff'}" opacity="${op * (o.alpha || .3)}" stroke="none"/>`;
+      }
+      case 'hl': return `<line x1="${f1(o.a !== undefined ? X(o.a) : st.box.l)}" x2="${f1(o.b !== undefined ? X(o.b) : st.box.r)}" y1="${f1(Y(o.y))}" y2="${f1(Y(o.y))}" stroke="${o.col || '#e8c766'}" stroke-width="${o.w || 2.4}"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''} opacity="${op}"/>` + (o.lab ? lab(o.lab, (o.lx !== undefined ? X(o.lx) : st.box.r - 8), Y(o.y) - 9, o.col || '#e8c766', o.size || 17, o.lx !== undefined ? 'middle' : 'end') : '');
+      case 'vl': return `<line y1="${f1(o.a !== undefined ? Y(o.a) : st.box.t)}" y2="${f1(o.b !== undefined ? Y(o.b) : st.box.b)}" x1="${f1(X(o.x))}" x2="${f1(X(o.x))}" stroke="${o.col || '#e8c766'}" stroke-width="${o.w || 2.4}"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''} opacity="${op}"/>` + (o.lab ? lab(o.lab, X(o.x), (o.ly !== undefined ? Y(o.ly) : st.box.t + 16), o.col || '#e8c766', o.size || 17) : '');
+      case 'pt': return `<g opacity="${op}">${o.halo ? `<circle cx="${f1(X(o.x))}" cy="${f1(Y(o.y))}" r="${(o.r || 6) * 2.6}" fill="${o.col || '#e8c766'}" opacity=".22"/>` : ''}<circle cx="${f1(X(o.x))}" cy="${f1(Y(o.y))}" r="${o.r || 6}" fill="${o.open ? '#050b18' : (o.col || '#e8c766')}" stroke="${o.col || '#e8c766'}" stroke-width="2.4"/>${o.lab ? lab(o.lab, X(o.x) + (o.dx || 0), Y(o.y) + (o.dy === undefined ? -14 : o.dy), o.lcol || o.col || '#e8c766', o.size || 16, o.anchor || 'middle') : ''}</g>`;
+      case 'seg': return `<line x1="${f1(X(o.x1))}" y1="${f1(Y(o.y1))}" x2="${f1(X(o.x2))}" y2="${f1(Y(o.y2))}" stroke="${o.col || '#e8c766'}" stroke-width="${o.w || 2.4}"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''} opacity="${op}"${o.arrow ? ' marker-end="url(#pl-ar)"' : ''} stroke-linecap="round"/>`;
+      case 'txt': return `<g opacity="${op}">${lab(o.s, o.px ? o.x : X(o.x), o.px ? o.y : Y(o.y), o.col || '#f0f4ff', o.size || 18, o.anchor || 'middle', o.wt || 700)}</g>`;
+      case 'band': return `<rect x="${f1(X(o.x0))}" width="${f1(Math.max(0, X(o.x1) - X(o.x0)))}" y="${st.box.t}" height="${st.box.b - st.box.t}" fill="${o.col || '#6c8eff'}" opacity="${op * (o.alpha || .14)}"/>`;
+      case 'hband': return `<rect y="${f1(Y(o.y1))}" height="${f1(Math.max(0, Y(o.y0) - Y(o.y1)))}" x="${st.box.l}" width="${st.box.r - st.box.l}" fill="${o.col || '#6c8eff'}" opacity="${op * (o.alpha || .14)}"/>`;
+      case 'poly': return `<path d="${o.pts.map((p, i) => (i ? 'L' : 'M') + f1(X(p[0])) + ' ' + f1(Y(p[1]))).join('')}${o.close ? 'Z' : ''}" fill="${o.fill || 'none'}" stroke="${o.col || '#e8c766'}" stroke-width="${o.w || 2.4}" opacity="${op}"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''} stroke-linejoin="round"/>`;
+      case 'raw': return o.svg(X, Y);
+    }
+    return '';
+  }
+  function draw() {
+    if (!svg) return;
+    let h = `<defs><filter id="pl-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <marker id="pl-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#e8c766"/></marker></defs>`;
+    h += BG ? BG(X, Y, st) : '<rect width="1000" height="560" fill="#050b18"/>';
+    h += axes();
+    h += `<g>${st.items.filter(o => o.under).map(item).join('')}${st.items.filter(o => !o.under).map(item).join('')}</g>`;
+    if (FG) h += FG(X, Y, st);
+    svg.innerHTML = h;
+  }
+  return {
+    st, X, Y, IX, draw, lab,
+    init(s, o = {}) { svg = s; BG = o.bg || null; FG = o.fg || null; if (o.box) st.box = o.box; draw(); },
+    frame(fr, o = {}) { st.fr = Object.assign({}, fr); st.tick = o.tick || null; st.fmtx = o.fmtx || null; if (o.xlab) st.xlab = o.xlab; if (o.ylab) st.ylab = o.ylab; draw(); },
+    async zoom(fr, ms = 700) { const a = Object.assign({}, st.fr); await TS.tween(ms, e => { for (const k of ['x0', 'x1', 'y0', 'y1']) st.fr[k] = a[k] + (fr[k] - a[k]) * e; draw(); }); },
+    add(o) { st.items.push(o); draw(); return o; },
+    rm(o) { st.items = st.items.filter(x => x !== o); draw(); },
+    clear() { st.items = []; draw(); },
+    async fade(o, to = 1, ms = 400) { const a = o.op === undefined ? 1 : o.op; await TS.tween(ms, e => { o.op = a + (to - a) * e; draw(); }); },
+    async anim(o, props, ms = 600) { const a = {}; for (const k in props) a[k] = o[k]; await TS.tween(ms, e => { for (const k in props) o[k] = a[k] + (props[k] - a[k]) * e; draw(); }); },
+    async grow(o, ms = 900) { const b = o.b, a = o.a; await TS.tween(ms, e => { o.b = a + (b - a) * Math.max(.001, e); draw(); }); o.b = b; draw(); }
+  };
+})();
+
+/* ===== La Grande Roue — Fonctions cosinus et sinus (Terminale spé, chapitre 17) =====
+   IDÉE : une grande roue de fête foraine, la nuit. La nacelle dorée tourne sur le cercle trigonométrique ; quand elle a
+   parcouru l'arc x, son ombre horizontale (cos x) et sa hauteur (sin x) se déroulent à droite et tracent les courbes de cos
+   et de sin. Un tour complet = 2π : la courbe recommence (périodicité). Résoudre cos x = a, c'est chercher les nacelles
+   à la même abscisse ; cos x ⩽ a, c'est l'arc de la roue à gauche de la verticale d'abscisse a. */
+'use strict';
+const { v, frac, num, fq, lin, M, NB, pick, rint, shuffle, nz, sleep, tween } = TS;
+const X = v('x');
+const nb = x => [num(x), String(x), num(x).replace('−', '-')].filter((s, i, a) => a.indexOf(s) === i);
+const withV = p => { p.chk.vals = p.opts.map(o => o.val); return p; };
+const PI = Math.PI;
+/* angles remarquables : [valeur, html, sympy, cos html, cos sympy, sin html, sin sympy] */
+const sq = (n, d) => frac('√' + n, d);
+const ANG = [
+  [PI / 6, frac('π', 6), 'pi/6', sq(3, 2), 'sqrt(3)/2', frac(1, 2), '1/2'],
+  [PI / 4, frac('π', 4), 'pi/4', sq(2, 2), 'sqrt(2)/2', sq(2, 2), 'sqrt(2)/2'],
+  [PI / 3, frac('π', 3), 'pi/3', frac(1, 2), '1/2', sq(3, 2), 'sqrt(3)/2'],
+  [PI / 2, frac('π', 2), 'pi/2', '0', '0', '1', '1'],
+  [2 * PI / 3, frac('2π', 3), '2*pi/3', M + frac(1, 2), '-1/2', sq(3, 2), 'sqrt(3)/2'],
+  [3 * PI / 4, frac('3π', 4), '3*pi/4', M + sq(2, 2), '-sqrt(2)/2', sq(2, 2), 'sqrt(2)/2'],
+  [5 * PI / 6, frac('5π', 6), '5*pi/6', M + sq(3, 2), '-sqrt(3)/2', frac(1, 2), '1/2'],
+  [PI, 'π', 'pi', M + '1', '-1', '0', '0']];
+const VALS = [['0', '0'], [frac(1, 2), '1/2'], [sq(2, 2), 'sqrt(2)/2'], [sq(3, 2), 'sqrt(3)/2'], ['1', '1'], [M + frac(1, 2), '-1/2'], [M + sq(2, 2), '-sqrt(2)/2'], [M + sq(3, 2), '-sqrt(3)/2'], [M + '1', '-1']];
+/* ---------- scène : la roue à gauche, les courbes à droite ---------- */
+const W = { cx: 185, cy: 285, R: 125, ang: 0, show: true, mode: 'cos', marks: [], arc: null, vline: null };
+const BG = () => { let h = `<defs><linearGradient id="gr-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101d3c"/><stop offset="1" stop-color="#050a18"/></linearGradient></defs><rect width="1000" height="560" fill="url(#gr-bg)"/>`;
+  for (let i = 0; i < 26; i++) { const x = (i * 97) % 1000, y = (i * 53) % 260; h += `<circle cx="${x}" cy="${y}" r="1.1" fill="#dfe7ff" opacity=".35"/>`; }
+  h += `<path d="M${W.cx - 70} 540 L${W.cx} ${W.cy} L${W.cx + 70} 540" stroke="#2b3d66" stroke-width="7" fill="none"/>`;
+  return h; };
+const FG = (Xf, Yf) => {
+  const { cx, cy, R } = W; let h = `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="rgba(159,180,255,.55)" stroke-width="3"/>`;
+  for (let k = 0; k < 12; k++) { const t = k * PI / 6, x = cx + R * Math.cos(t), y = cy - R * Math.sin(t); h += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(159,180,255,.16)" stroke-width="1.5"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="rgba(232,199,102,.35)"/>`; }
+  h += `<line x1="${cx - R - 14}" y1="${cy}" x2="${cx + R + 14}" y2="${cy}" stroke="rgba(200,215,255,.45)"/><line x1="${cx}" y1="${cy - R - 14}" x2="${cx}" y2="${cy + R + 14}" stroke="rgba(200,215,255,.45)"/>`;
+  if (W.arc) { const [a, b, col] = W.arc; let d = ''; for (let i = 0; i <= 60; i++) { const t = a + (b - a) * i / 60; d += (i ? 'L' : 'M') + (cx + R * Math.cos(t)).toFixed(1) + ' ' + (cy - R * Math.sin(t)).toFixed(1); } h += `<path d="${d}" stroke="${col}" stroke-width="9" fill="none" stroke-linecap="round" opacity=".85"/>`; }
+  if (W.vline !== null) { const x = cx + R * W.vline; h += `<line x1="${x.toFixed(1)}" y1="${cy - R - 10}" x2="${x.toFixed(1)}" y2="${cy + R + 10}" stroke="#e8c766" stroke-width="2.4" stroke-dasharray="7 5"/>`; }
+  for (const m of W.marks) { const x = cx + R * Math.cos(m.t), y = cy - R * Math.sin(m.t); h += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9" fill="${m.col}" stroke="#050b18" stroke-width="2"/>`; }
+  if (W.show) { const t = W.ang, x = cx + R * Math.cos(t), y = cy - R * Math.sin(t), val = W.mode === 'cos' ? Math.cos(t) : Math.sin(t);
+    h += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#e8c766" stroke-width="2.4"/>`;
+    if (W.mode === 'sin') h += `<line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${Xf(Math.min(PL.st.fr.x1, Math.max(PL.st.fr.x0, t))).toFixed(1)}" y2="${Yf(val).toFixed(1)}" stroke="rgba(232,199,102,.45)" stroke-width="1.6" stroke-dasharray="4 5"/>`;
+    else h += `<line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${x.toFixed(1)}" y2="${cy}" stroke="#7fe0c8" stroke-width="2.4"/><circle cx="${x.toFixed(1)}" cy="${cy}" r="5" fill="#7fe0c8"/>`;
+    h += `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><path d="M-13 -4 h26 l-4 16 h-18z" fill="#e8c766" stroke="#7a5a10" stroke-width="1.5"/><circle cx="0" cy="-8" r="3" fill="#c8a84b"/></g>`;
+    if (t >= PL.st.fr.x0 && t <= PL.st.fr.x1) h += `<circle cx="${Xf(t).toFixed(1)}" cy="${Yf(val).toFixed(1)}" r="7" fill="#e8c766" stroke="#050b18" stroke-width="2"/>`; }
+  return h;
+};
+const SC = {
+  init(svg) { PL.init(svg, { bg: BG, fg: FG, box: { l: 360, r: 980, t: 40, b: 520 } }); },
+  reset() { PL.clear(); W.ang = 0; W.show = true; W.marks = []; W.arc = null; W.vline = null; TS.cap(''); },
+  setup(mode = 'cos', fr = { x0: -PI - .2, x1: PI + .2, y0: -1.4, y1: 1.4 }) { W.mode = mode; PL.frame(fr, { tick: { x: PI / 2, y: .5 }, fmtx: piLab }); },
+  async turn(t, ms = 900) { const a = W.ang; await tween(ms, e => { W.ang = a + (t - a) * e; PL.draw(); }); },
+  async unroll(f, a, b, col = '#7fe0c8', ms = 1200) { const c = PL.add({ t: 'curve', f, a, b: a + 1e-6, col, w: 3.4, glow: true }); W.ang = a; await tween(ms, e => { c.b = a + (b - a) * Math.max(.001, e); W.ang = c.b; PL.draw(); }, e => e); return c; }
+};
+const angPick = () => pick(ANG);
+const AH = a => a[1];
+function piLab(v) { const k = Math.round(v / (PI / 2)); if (Math.abs(v - k * PI / 2) > 1e-6) return TS.num(v); const s = k < 0 ? M : ''; const a = Math.abs(k); return a === 0 ? '0' : a % 2 === 0 ? s + (a / 2 === 1 ? '' : a / 2) + 'π' : s + (a === 1 ? '' : a) + 'π/2'; }
+/* ---------- niveau 1 : valeurs remarquables ---------- */
+function q1(i) {
+  const A = angPick(), neg = Math.random() < .4, mode = i % 2 ? 'sin' : 'cos';
+  const t = neg ? -A[0] : A[0], th = (neg ? M : '') + A[1];
+  const val = mode === 'cos' ? [A[3], A[4]] : (neg ? [A[5] === '0' ? '0' : M + A[5], A[6] === '0' ? '0' : `-(${A[6]})`] : [A[5], A[6]]);
+  const pool = VALS.filter(vv => { try { return Math.abs(eval(vv[1].replace(/sqrt\((\d)\)/g, 'Math.sqrt($1)')) - eval(val[1].replace(/sqrt\((\d)\)/g, 'Math.sqrt($1)'))) > 1e-9; } catch (e) { return false; } });
+  const bad = shuffle(pool).slice(0, 3);
+  const so = shuffle([{ h: val[0], ok: true, val: val[1] }].concat(bad.map(b => ({ h: b[0], ok: false, val: b[1], why: `Place la nacelle en ${th} : son ${mode === 'cos' ? 'abscisse' : 'ordonnée'} n'est pas ${b[0]}.` }))));
+  return { prompt: `La nacelle a parcouru l'arc ${X} = ${th} sur le cercle trigonométrique.`, cap0: `<span class="m">${mode} ${X}, ${mode === 'cos' ? 'abscisse' : 'ordonnée'} de la nacelle</span>`,
+    setup: async () => { SC.setup(mode); PL.add({ t: 'curve', f: mode === 'cos' ? Math.cos : Math.sin, a: -PI, b: PI, col: 'rgba(127,224,200,.25)', w: 2 }); },
+    parts: [withV({ k: 'choice', g2: true, ask: `${mode}(${th}) =`, opts: so, sol: `${mode}(${th}) = ${val[0]}.`, chk: { t: 'expr', truth: `${mode}(${neg ? '-' : ''}${A[2]})` }, onOk: async () => { await SC.turn(t, 1000); TS.cap(`<span class="k">${mode}(${th}) = ${val[0]}</span>`); } })] };
+}
+/* ---------- niveau 2 : périodique et pair/impair ---------- */
+function q2(i) {
+  const t = i % 4;
+  if (t === 0) { const A = angPick(), k = pick([1, 2, -1]); const xh = `${A[1]} + ${k === 1 ? '' : k === -1 ? M : k}2π`.replace('+ −', '− ');
+    return { prompt: `La roue fait ${Math.abs(k)} tour${Math.abs(k) > 1 ? 's' : ''} complet${Math.abs(k) > 1 ? 's' : ''} ${k > 0 ? 'de plus' : 'en arrière'} : ${X} = ${xh}.`, cap0: '<span class="m">Un tour = 2π</span>',
+      setup: async () => { SC.setup('cos', { x0: -.3, x1: 4 * PI + .3, y0: -1.4, y1: 1.4 }); },
+      parts: [{ k: 'choice', ask: `cos(${xh}) =`, opts: shuffle([{ h: `cos(${A[1]})`, ok: true }, { h: `cos(${A[1]}) + ${Math.abs(2 * k)}π`, ok: false, why: 'cos(x + 2kπ) = cos x : on ne rajoute rien.' }, { h: `${M}cos(${A[1]})`, ok: false, why: 'Un tour complet ramène la nacelle au même endroit.' }]), sol: 'cos est 2π-périodique.', onOk: async () => { await SC.unroll(Math.cos, 0, 4 * PI, '#7fe0c8', 1600); } }] }; }
+  const A = angPick(), mode = t === 1 ? 'cos' : 'sin';
+  const good = mode === 'cos' ? `cos(${A[1]})` : `${M}sin(${A[1]})`;
+  return { prompt: `La nacelle tourne dans l'autre sens : ${X} = ${M}${A[1]}.`, cap0: `<span class="m">cos est paire, sin est impaire</span>`,
+    setup: async () => { SC.setup(mode); PL.add({ t: 'curve', f: mode === 'cos' ? Math.cos : Math.sin, a: -PI, b: PI, col: 'rgba(127,224,200,.35)', w: 2.4 }); },
+    parts: [{ k: 'choice', ask: `${mode}(${M}${A[1]}) =`, opts: shuffle([{ h: good, ok: true }, { h: mode === 'cos' ? `${M}cos(${A[1]})` : `sin(${A[1]})`, ok: false, why: mode === 'cos' ? 'cos(−x) = cos x : la fonction cos est paire.' : 'sin(−x) = −sin x : la fonction sin est impaire.' }, { h: mode === 'cos' ? `sin(${A[1]})` : `cos(${A[1]})`, ok: false, why: 'On ne change pas de fonction.' }]), sol: mode === 'cos' ? 'cos(−x) = cos x : courbe symétrique par rapport à l\'axe des ordonnées.' : 'sin(−x) = −sin x : courbe symétrique par rapport à l\'origine.',
+      onOk: async () => { await SC.turn(A[0], 600); W.marks = [{ t: A[0], col: '#7fe0c8' }]; await SC.turn(-A[0], 1100); } }] };
+}
+/* ---------- niveau 3 : les dérivées ---------- */
+function q3(i) {
+  const t = pick(['ab', 'comp', 'comp']);
+  if (t === 'ab') { const a = nz(-3, 3), b = nz(-3, 3), fh = lin([[a, 'cos ' + X], [b, 'sin ' + X]]), fs = `${a}*cos(x)+(${b})*sin(x)`;
+    const so = shuffle([{ h: lin([[-a, 'sin ' + X], [b, 'cos ' + X]]), ok: true, val: `${-a}*sin(x)+(${b})*cos(x)` }, { h: lin([[a, 'sin ' + X], [b, 'cos ' + X]]), ok: false, val: `${a}*sin(x)+(${b})*cos(x)`, why: 'cos′ = −sin : attention au signe.' }, { h: lin([[-a, 'sin ' + X], [-b, 'cos ' + X]]), ok: false, val: `${-a}*sin(x)-(${b})*cos(x)`, why: 'sin′ = cos (sans signe moins).' }]);
+    return { prompt: `f(${X}) = ${fh}.`, cap0: '<span class="m">La pente de la courbe déroulée</span>', setup: async () => { SC.setup('sin'); W.show = false; PL.add({ t: 'curve', f: x => a * Math.cos(x) + b * Math.sin(x), a: -PI, b: PI, col: '#7fe0c8', w: 3.4, glow: true }); },
+      parts: [withV({ k: 'choice', ask: 'f′(' + X + ') =', opts: so, sol: 'cos′ = −sin et sin′ = cos.', chk: { t: 'deriv', f: fs }, onOk: async () => { W.show = true; PL.draw(); } })] };
+  }
+  const a = pick([2, 3, -2, 4]), b = rint(-3, 3), tr = pick(['cos', 'sin']);
+  const u = lin([[a, X], [b, '']]), fs = `${tr}(${a}*x+(${b}))`;
+  const good = tr === 'cos' ? lin([[-a, `sin(${u})`]]) : lin([[a, `cos(${u})`]]), gs = tr === 'cos' ? `${-a}*sin(${a}*x+(${b}))` : `${a}*cos(${a}*x+(${b}))`;
+  const b1 = tr === 'cos' ? `${M}sin(${u})` : `cos(${u})`, b1s = tr === 'cos' ? `-sin(${a}*x+(${b}))` : `cos(${a}*x+(${b}))`;
+  const b2 = tr === 'cos' ? lin([[a, `sin(${u})`]]) : lin([[-a, `cos(${u})`]]), b2s = tr === 'cos' ? `${a}*sin(${a}*x+(${b}))` : `${-a}*cos(${a}*x+(${b}))`;
+  const so = shuffle([{ h: good, ok: true, val: gs }, { h: b1, ok: false, val: b1s, why: `On n'oublie pas le facteur a = ${num(a)}.` }, { h: b2, ok: false, val: b2s, why: tr === 'cos' ? 'cos′ = −sin.' : 'sin′ = cos.' }]);
+  return { prompt: `f(${X}) = ${tr}(${u}).`, cap0: `<span class="m">La roue tourne ${Math.abs(a)} fois plus vite</span>`, setup: async () => { SC.setup(tr); PL.add({ t: 'curve', f: x => tr === 'cos' ? Math.cos(a * x + b) : Math.sin(a * x + b), a: -PI, b: PI, col: '#7fe0c8', w: 3.4, glow: true }); },
+    parts: [withV({ k: 'choice', ask: 'f′(' + X + ') =', opts: so, sol: `La dérivée de ${X} ↦ ${tr}(a${X} + b) est ${X} ↦ ${tr === 'cos' ? '−a sin' : 'a cos'}(a${X} + b).`, chk: { t: 'deriv', f: fs } })] };
+}
+/* ---------- niveau 4 : variations ---------- */
+function q4(i) {
+  const t = i % 3;
+  if (t < 2) { const tr = t ? 'sin' : 'cos';
+    return { prompt: `Sens de variation de ${tr} sur ${tr === 'cos' ? '[0 ; π]' : '[−π/2 ; π/2]'}.`, cap0: '<span class="m">La nacelle monte… ou descend</span>',
+      setup: async () => { SC.setup(tr); },
+      parts: [{ k: 'choice', ask: `${tr}′(${X}) = ${tr === 'cos' ? M + 'sin ' + X : 'cos ' + X} est, sur cet intervalle :`, opts: shuffle([{ h: tr === 'cos' ? 'négative : cos est décroissante' : 'positive : sin est croissante', ok: true }, { h: tr === 'cos' ? 'positive : cos est croissante' : 'négative : sin est décroissante', ok: false, why: tr === 'cos' ? 'Sur [0 ; π], sin x ⩾ 0, donc −sin x ⩽ 0.' : 'Sur [−π/2 ; π/2], cos x ⩾ 0.' }, { h: 'de signe variable', ok: false, why: 'Regarde la nacelle : son signe ne change pas sur cet intervalle.' }]),
+        sol: tr === 'cos' ? 'cos décroît de 1 à −1 sur [0 ; π].' : 'sin croît de −1 à 1 sur [−π/2 ; π/2].', onOk: async () => { await SC.unroll(tr === 'cos' ? Math.cos : Math.sin, tr === 'cos' ? 0 : -PI / 2, tr === 'cos' ? PI : PI / 2); } }] };
+  }
+  const k = pick([2, 3]), c = rint(-2, 2), f = x => k * Math.sin(x) + c;
+  return { prompt: `f(${X}) = ${k} sin ${X}${c ? (c > 0 ? ' + ' + c : ' − ' + (-c)) : ''} sur [−π ; π].`, cap0: '<span class="m">Maximum : la nacelle au sommet</span>',
+    setup: async () => { SC.setup('sin', { x0: -PI - .2, x1: PI + .2, y0: c - k - 1, y1: c + k + 1 }); W.show = false; PL.add({ t: 'curve', f, a: -PI, b: PI, col: '#7fe0c8', w: 3.4, glow: true }); },
+    parts: [{ k: 'fill', ask: 'Maximum de f sur [−π ; π] :', tpl: 'max = {0}', blanks: [{ a: nb(k + c) }], why: `sin ${X} ⩽ 1, avec égalité en π/2.`, sol: `f(π/2) = ${k} + ${c < 0 ? '(' + num(c) + ')' : c} = ${num(k + c)}.`, chk: { t: 'expr', truth: `${k}*sin(pi/2)+(${c})`, ans: String(k + c) }, onOk: async () => { PL.add({ t: 'pt', x: PI / 2, y: k + c, col: '#e8c766', r: 8, halo: true, lab: 'max' }); W.show = true; W.mode = 'sin'; await SC.turn(PI / 2); } }] };
+}
+/* ---------- niveau 5 : cos x = a ---------- */
+const EQ = [[PI / 3, frac('π', 3), frac(1, 2), '1/2'], [PI / 4, frac('π', 4), sq(2, 2), 'sqrt(2)/2'], [PI / 6, frac('π', 6), sq(3, 2), 'sqrt(3)/2'], [2 * PI / 3, frac('2π', 3), M + frac(1, 2), '-1/2'], [3 * PI / 4, frac('3π', 4), M + sq(2, 2), '-sqrt(2)/2'], [5 * PI / 6, frac('5π', 6), M + sq(3, 2), '-sqrt(3)/2'], [PI / 2, frac('π', 2), '0', '0']];
+function q5(i) {
+  const E = pick(EQ);
+  const so = shuffle([{ h: `S = {${M}${E[1]} ; ${E[1]}}`, ok: true, val: `{-${E[1].replace(/<[^>]+>/g, '') === 'π' ? 'pi' : 0}}` },
+    { h: `S = {${E[1]}}`, ok: false, why: 'Il y a deux nacelles à cette abscisse : x = ±α.' }, { h: `S = {${E[1]} ; π − ${E[1]}}`, ok: false, why: 'π − α donne la même ORDONNÉE (sinus), pas la même abscisse.' }]);
+  return { prompt: `Résous dans ]−π ; π] l'équation cos ${X} = ${E[2]}.`, cap0: '<span class="m">Toutes les nacelles d\'abscisse</span> <span class="k">' + E[2] + '</span>',
+    setup: async () => { SC.setup('cos'); PL.add({ t: 'curve', f: Math.cos, a: -PI, b: PI, col: 'rgba(127,224,200,.45)', w: 2.4 }); W.vline = Math.cos(E[0]); PL.add({ t: 'hl', y: Math.cos(E[0]), col: '#e8c766', dash: '8 6' }); },
+    parts: [{ k: 'choice', ask: 'Ensemble des solutions :', opts: so.map(o => { delete o.val; return o; }), sol: `cos(${E[1]}) = ${E[2]} et cos est paire : ${X} = ${M}${E[1]} ou ${X} = ${E[1]}.`,
+      onOk: async () => { W.marks = [{ t: E[0], col: '#5fd27c' }, { t: -E[0], col: '#5fd27c' }]; await SC.turn(E[0], 700); await SC.turn(-E[0], 900); PL.add({ t: 'pt', x: E[0], y: Math.cos(E[0]), col: '#5fd27c', r: 8, halo: true }); PL.add({ t: 'pt', x: -E[0], y: Math.cos(E[0]), col: '#5fd27c', r: 8, halo: true }); } }] };
+}
+/* ---------- niveau 6 : cos x ⩽ a ---------- */
+function q6(i) {
+  const E = pick(EQ.slice(0, 6)), le = Math.random() < .5, a = Math.cos(E[0]);
+  const A = E[1], good = le ? `[−π ; ${M}${A}] ∪ [${A} ; π]` : `[${M}${A} ; ${A}]`, bad = le ? `[${M}${A} ; ${A}]` : `[−π ; ${M}${A}] ∪ [${A} ; π]`;
+  return { prompt: `Résous sur [−π ; π] l'inéquation cos ${X} ${le ? '⩽' : '⩾'} ${E[2]}.`, cap0: `<span class="m">Les nacelles ${le ? 'à gauche' : 'à droite'} de la verticale</span>`,
+    setup: async () => { SC.setup('cos'); PL.add({ t: 'curve', f: Math.cos, a: -PI, b: PI, col: 'rgba(127,224,200,.5)', w: 2.4 }); W.vline = a; PL.add({ t: 'hl', y: a, col: '#e8c766', dash: '8 6' }); },
+    parts: [{ k: 'choice', ask: 'S =', opts: shuffle([{ h: good, ok: true }, { h: bad, ok: false, why: le ? 'cos x ⩽ a : les nacelles À GAUCHE de la verticale x = a, loin de l\'arc 0.' : 'cos x ⩾ a : les nacelles À DROITE de la verticale, autour de l\'arc 0.' }, { h: `[${A} ; π]`, ok: false, why: 'N\'oublie pas les arcs négatifs : cos est paire.' }]),
+      sol: `α = ${A} vérifie cos α = ${E[2]} ; S = ${good}.`, onOk: async () => { if (le) { W.arc = [E[0], 2 * PI - E[0], '#5fd27c']; PL.add({ t: 'band', x0: -PI, x1: -E[0], col: '#5fd27c', alpha: .14, under: true }); PL.add({ t: 'band', x0: E[0], x1: PI, col: '#5fd27c', alpha: .14, under: true }); } else { W.arc = [-E[0], E[0], '#5fd27c']; PL.add({ t: 'band', x0: -E[0], x1: E[0], col: '#5fd27c', alpha: .14, under: true }); } await SC.turn(le ? PI : 0, 900); } }] };
+}
+/* ---------- niveau 7 : étude complète ---------- */
+function q7(i) {
+  const f = x => 2 * Math.cos(x) + x;
+  return { prompt: `f(${X}) = 2 cos ${X} + ${X} sur [0 ; π].`, cap0: '<span class="m">Où la pente s\'annule-t-elle ?</span>',
+    setup: async () => { SC.setup('sin', { x0: -.2, x1: PI + .2, y0: -1.5, y1: 3 }); W.show = false; PL.add({ t: 'curve', f, a: 0, b: PI, col: '#7fe0c8', w: 3.4, glow: true }); },
+    parts: [withV({ k: 'choice', ask: 'f′(' + X + ') =', opts: shuffle([{ h: `1 − 2 sin ${X}`, ok: true, val: '1-2*sin(x)' }, { h: `1 + 2 sin ${X}`, ok: false, val: '1+2*sin(x)', why: 'cos′ = −sin.' }, { h: `−2 sin ${X}`, ok: false, val: '-2*sin(x)', why: 'La dérivée de x vaut 1.' }]), sol: `f′(${X}) = 1 − 2 sin ${X}.`, chk: { t: 'deriv', f: '2*cos(x)+x' } }),
+      { k: 'choice', ask: `f′(${X}) ⩾ 0 ⇔ sin ${X} ⩽ ${frac(1, 2)} ⇔`, opts: shuffle([{ h: `${X} ∈ [0 ; ${frac('π', 6)}] ∪ [${frac('5π', 6)} ; π]`, ok: true }, { h: `${X} ∈ [${frac('π', 6)} ; ${frac('5π', 6)}]`, ok: false, why: 'Sur cet arc, la hauteur de la nacelle dépasse 1/2.' }, { h: `${X} ∈ [0 ; ${frac('π', 3)}]`, ok: false, why: 'sin(π/6) = 1/2, pas sin(π/3).' }]),
+        sol: `f croît sur [0 ; π/6], décroît sur [π/6 ; 5π/6], croît sur [5π/6 ; π] : maximum local en π/6.`, onOk: async () => { W.show = true; W.mode = 'sin'; W.vline = null; W.arc = [PI / 6, 5 * PI / 6, '#ff9b7a']; await SC.turn(PI / 6, 700); PL.add({ t: 'pt', x: PI / 6, y: f(PI / 6), col: '#e8c766', r: 8, halo: true, lab: 'max local' }); PL.add({ t: 'pt', x: 5 * PI / 6, y: f(5 * PI / 6), col: '#e8c766', r: 8, halo: true, lab: 'min local', dy: 28 }); } }] };
+}
+
+/* ===== La Grande Roue — épreuves finales ===== */
+const FQ = {
+1: { q: [d => { const A = angPick(), mode = pick(['cos', 'sin']); const val = mode === 'cos' ? [A[3], A[4]] : [A[5], A[6]];
+      const bad = shuffle(VALS.filter(vv => Math.abs(eval(vv[1].replace(/sqrt\((\d)\)/g, 'Math.sqrt($1)')) - eval(val[1].replace(/sqrt\((\d)\)/g, 'Math.sqrt($1)'))) > 1e-9)).slice(0, 3);
+      return Object.assign(TS.qcm({ prompt: `${mode}(${A[1]}) =`, good: val[0], bad: bad.map(b => b[0]), explain: `Valeur remarquable : ${mode}(${A[1]}) = ${val[0]}.`, chk: { t: 'expr', truth: `${mode}(${A[2]})`, vals: [val[1]].concat(bad.map(b => b[1])) }, tpl: 'val' }), { steps: 1 + d }); }],
+   t: [d => Object.assign(TS.trous({ prompt: `cos(π) = {0}`, blanks: [['−1', '-1']], explain: 'La nacelle est à l\'opposé du point de départ.', chk: { t: 'expr', truth: 'cos(pi)', ans: '-1' }, tpl: 'cospi' }), { steps: 1 + d }),
+       d => Object.assign(TS.trous({ prompt: `sin(${frac('π', 2)}) = {0}`, blanks: [['1']], explain: 'Le sommet de la roue.', chk: { t: 'expr', truth: 'sin(pi/2)', ans: '1' }, tpl: 'sinpi2' }), { steps: 1 + d })] },
+2: { q: [d => Object.assign(TS.qcm({ prompt: `Pour tout réel ${X}, sin(−${X}) =`, good: `${M}sin ${X}`, bad: [`sin ${X}`, `cos ${X}`, `${M}cos ${X}`], explain: 'sin est impaire.', chk: { t: 'expr', truth: 'sin(-x)', vals: ['-sin(x)', 'sin(x)', 'cos(x)', '-cos(x)'] }, tpl: 'impaire' }), { steps: 1 + d }),
+      d => Object.assign(TS.qcm({ prompt: `Pour tout réel ${X}, cos(${X} + 2π) =`, good: `cos ${X}`, bad: [`cos ${X} + 2π`, `${M}cos ${X}`, `sin ${X}`], explain: 'cos est 2π-périodique.', chk: { t: 'expr', truth: 'cos(x+2*pi)', vals: ['cos(x)', 'cos(x)+2*pi', '-cos(x)', 'sin(x)'] }, tpl: 'period' }), { steps: 1 + d })],
+   t: [d => Object.assign(TS.trous({ prompt: `La fonction cosinus est périodique de période {0}.`, blanks: [['2π', '2pi', '2 π']], explain: 'cos(x + 2π) = cos x.', chk: { t: 'fixed' }, tpl: 'per-t' }), { steps: 1 + d })] },
+3: { q: [d => { const a = pick([2, 3, -2, 4]), b = rint(-3, 3), u = lin([[a, X], [b, '']]);
+      return Object.assign(TS.qcm({ prompt: `La dérivée de f(${X}) = cos(${u}) est f′(${X}) =`, good: lin([[-a, `sin(${u})`]]), bad: [`${M}sin(${u})`, lin([[a, `sin(${u})`]]), lin([[-a, `cos(${u})`]])], explain: 'cos(ax + b) a pour dérivée −a sin(ax + b).', chk: { t: 'deriv', f: `cos(${a}*x+(${b}))`, vals: [`${-a}*sin(${a}*x+(${b}))`, `-sin(${a}*x+(${b}))`, `${a}*sin(${a}*x+(${b}))`, `${-a}*cos(${a}*x+(${b}))`] }, tpl: 'dcos' }), { steps: 1 + d }); }],
+   t: [d => { const a = pick([2, 3, 4, 5]); return Object.assign(TS.trous({ prompt: `La dérivée de ${X} ↦ sin(${a}${X}) est ${X} ↦ {0}cos(${a}${X}).`, blanks: [nb(a)], explain: `On multiplie par a = ${a}.`, chk: { t: 'expr', truth: `diff(sin(${a}*x),x)/cos(${a}*x)`, ans: String(a) }, tpl: 'dsin' }), { steps: 1 + d }); }] },
+4: { q: [d => Object.assign(TS.qcm({ prompt: 'Sur [0 ; π], la fonction cosinus est :', good: 'strictement décroissante', bad: ['strictement croissante', 'croissante puis décroissante', 'constante'], explain: 'cos′ = −sin ⩽ 0 sur [0 ; π].', tpl: 'var' }), { steps: 1 + d })],
+   t: [d => { const k = pick([2, 3]), c = rint(-2, 2); return Object.assign(TS.trous({ prompt: `Le maximum de ${X} ↦ ${k} sin ${X}${c ? (c > 0 ? ' + ' + c : ' − ' + (-c)) : ''} sur ℝ vaut {0}.`, blanks: [nb(k + c)], explain: 'sin x ⩽ 1.', chk: { t: 'expr', truth: `${k}+(${c})`, ans: String(k + c) }, tpl: 'max' }), { steps: 1 + d }); }] },
+5: { q: [d => { const E = pick(EQ); return Object.assign(TS.qcm({ prompt: `Dans ]−π ; π], l'équation cos ${X} = ${E[2]} a pour ensemble de solutions :`, good: `{${M}${E[1]} ; ${E[1]}}`, bad: [`{${E[1]}}`, `{${E[1]} ; π − ${E[1]}}`, `{${E[1]} ; ${E[1]} + 2π}`], explain: 'cos x = cos α ⇔ x = ±α + 2kπ.', tpl: 'eq' }), { steps: 2 + d }); }],
+   t: [d => { const E = pick(EQ.filter(e => e[0] !== PI / 2)); return Object.assign(TS.trous({ prompt: `Dans ]−π ; π], l'équation cos ${X} = ${E[2]} a {0} solution(s).`, blanks: [['2']], explain: 'x = ±α.', chk: { t: 'expr', truth: `card(solveset(cos(x)-(${E[3]}),x,Interval.Lopen(-pi,pi)))`, ans: '2' }, tpl: 'nb' }), { steps: 1 + d }); }] },
+6: { q: [d => { const E = pick(EQ.slice(0, 6)); return Object.assign(TS.qcm({ prompt: `Sur [−π ; π], cos ${X} ⩾ ${E[2]} ⇔ ${X} ∈`, good: `[${M}${E[1]} ; ${E[1]}]`, bad: [`[−π ; ${M}${E[1]}] ∪ [${E[1]} ; π]`, `[${E[1]} ; π]`, `[0 ; ${E[1]}]`], explain: 'cos x ⩾ a : arc autour de 0.', tpl: 'ineq' }), { steps: 2 + d }); }],
+   t: [d => Object.assign(TS.trous({ prompt: `Sur [−π ; π], l'inéquation cos ${X} ⩽ −1 a pour solutions ${X} = −π et ${X} = {0}.`, blanks: [['π', 'pi']], explain: 'cos x = −1 ⇔ x = ±π sur [−π ; π].', chk: { t: 'fixed' }, tpl: 'ineq-t' }), { steps: 2 + d })] },
+7: { q: [d => Object.assign(TS.qcm({ prompt: `f(${X}) = 2 cos ${X} + ${X} sur [0 ; π]. f′(${X}) =`, good: `1 − 2 sin ${X}`, bad: [`1 + 2 sin ${X}`, `${M}2 sin ${X}`, `2 cos ${X} + 1`], explain: 'cos′ = −sin.', chk: { t: 'deriv', f: '2*cos(x)+x', vals: ['1-2*sin(x)', '1+2*sin(x)', '-2*sin(x)', '2*cos(x)+1'] }, tpl: 'etude' }), { steps: 2 + d })],
+   t: [d => Object.assign(TS.trous({ prompt: `Sur [0 ; π], sin ${X} = ${frac(1, 2)} pour ${X} = ${frac('π', 6)} et ${X} = ${frac('{0}', 6)}.`, blanks: [['5π', '5pi', '5 π']], explain: 'sin(π − x) = sin x : π − π/6 = 5π/6.', chk: { t: 'fixed' }, tpl: 'sin-t' }), { steps: 2 + d })] }
+};
+const BANK = [1, 2, 3, 4, 5, 6, 7].map(l => FQ[l]);
+const FINALS = { bronze: () => TS.compose(BANK, 0), argent: () => TS.compose(BANK, 1), or: () => TS.compose(BANK, 2) };
+
+TS.run({ slug: 'la-grande-roue', title: 'La Grande Roue', chapter: 'Fonctions trigonométriques · chapitre 17', music: 'aventure', scene: SC, finals: FINALS, levels: [
+  { t: 'Valeurs remarquables', n: 5, gen: q1, rule: `<p>Le point du cercle trigonométrique associé au réel ${X} a pour coordonnées (cos ${X} ; sin ${X}) : cos ${X} est son abscisse, sin ${X} son ordonnée.</p><p>cos(π/6) = √3/2, cos(π/4) = √2/2, cos(π/3) = 1/2 ; sin(π/6) = 1/2, sin(π/4) = √2/2, sin(π/3) = √3/2.</p>` },
+  { t: 'Un tour, un miroir', n: 4, gen: q2, rule: `<p>cos et sin sont 2π-périodiques : cos(${X} + 2π) = cos ${X}, sin(${X} + 2π) = sin ${X}.</p><p>cos est paire : cos(−${X}) = cos ${X} ; sin est impaire : sin(−${X}) = −sin ${X}.</p>` },
+  { t: 'Les dérivées', n: 4, gen: q3, rule: `<p>cos′ = −sin et sin′ = cos.</p><p>La dérivée de ${X} ↦ cos(a${X} + b) est ${X} ↦ −a sin(a${X} + b) ; celle de ${X} ↦ sin(a${X} + b) est ${X} ↦ a cos(a${X} + b).</p>` },
+  { t: 'Variations', n: 3, gen: q4, rule: `<p>Sur [0 ; π], sin ${X} ⩾ 0, donc cos est décroissante (de 1 à −1). Sur [−π/2 ; π/2], cos ${X} ⩾ 0, donc sin est croissante (de −1 à 1).</p><p>Pour tout réel ${X} : −1 ⩽ cos ${X} ⩽ 1 et −1 ⩽ sin ${X} ⩽ 1.</p>` },
+  { t: 'cos x = a', n: 4, gen: q5, rule: `<p>Si |a| &gt; 1, pas de solution. Sinon, on cherche une solution α, puis cos ${X} = cos α ⇔ ${X} = ±α + 2kπ, k ∈ ℤ ; on garde les solutions de l'intervalle demandé.</p>` },
+  { t: 'cos x ⩽ a', n: 4, gen: q6, rule: `<p>Soit a ∈ ]−1 ; 1[ et α ∈ ]0 ; π[ tel que cos α = a. Sur [−π ; π] : cos ${X} ⩽ a ⇔ ${X} ∈ [−π ; −α] ∪ [α ; π] et cos ${X} ⩾ a ⇔ ${X} ∈ [−α ; α].</p>` },
+  { t: 'Étude complète', n: 2, gen: q7, rule: `<p>Méthode : période et parité pour réduire l'intervalle ; dérivée (formules de composition) ; signe de f′ lu sur le cercle trigonométrique ; tableau de variations.</p>` }] });
+
+</script>
+</body>
+</html>

@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le Courant · Sigma Arcade</title>
+<meta name="description" content="Primitives et équations différentielles en Terminale spécialité mathématiques (chapitre 15) : lecture inverse du tableau des dérivées, famille F + k, condition initiale, linéarité, formes u′uⁿ, u′/u, u′eᵘ, équations y′ = ay et y′ = ay + b, solution particulière, méthode d'Euler. Un kayak suit le courant d'un champ de pentes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/sigma-arcade/sigma-theme.css">
+<style>
+/* ===== Moteur commun « Terminale spé » (inliné dans chaque jeu) — mise en page Sigma Arcade ===== */
+:root{
+--ink:var(--sg-text);--mut:var(--sg-muted);--line:var(--sg-border-strong);--soft:var(--sg-border);
+--ac:var(--sg-accent);--acsoft:var(--sg-accent-soft);--on:var(--sg-on-accent);--ok:var(--sg-ok);--ko:var(--sg-coral);
+--gold:var(--sg-gold);--gold2:var(--sg-gold-bright);--solid:var(--sg-panel-solid);--raise:var(--sg-raise);--pos:var(--sg-pos);--neg:var(--sg-neg)}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font:17px/1.55 var(--sg-font)}
+header{max-width:1320px;margin:auto;padding:18px max(3vw,16px) 4px}
+h1{font-size:clamp(32px,4vw,46px);font-weight:800;letter-spacing:-.01em;line-height:1.08;margin:2px 0 6px}
+header p{margin:0;color:var(--mut);max-width:74ch}
+.back{display:inline-flex;align-items:center;min-height:32px;margin:0 0 6px;font-weight:600;text-decoration:none;border-bottom:2px solid var(--ac)}
+button{font-family:var(--sg-font)}
+button:focus-visible,input:focus-visible,summary:focus-visible,.stage:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.lv{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lv button{min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:600 15px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s}
+.lv button:hover{background:var(--sg-hover);border-color:var(--ac)}
+.lv button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -10px var(--sg-glow)}
+.lv .ck{margin-left:6px;color:var(--gold2);letter-spacing:-1px}
+.lv button[aria-pressed=true] .ck{color:#3b2c00}
+.lv .sp{flex:1}
+.lv .tool{border-style:dashed;font-size:14px;padding:0 11px}
+.lv .tool[aria-pressed=true]{background:var(--acsoft);color:var(--ink);border-color:var(--ac);box-shadow:none}
+.app{max-width:1320px;margin:auto;padding:14px max(3vw,16px) 48px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr);gap:clamp(18px,2.4vw,32px);align-items:start}
+.scol{position:sticky;top:10px}
+.stage{position:relative;aspect-ratio:1000/560;border-radius:16px;overflow:hidden;border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);background:#040914;user-select:none;-webkit-user-select:none}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage svg text{font-family:var(--sg-font)}
+.badge{position:absolute;left:10px;top:10px;z-index:2;font:600 13px var(--sg-font);padding:3px 11px;border-radius:999px;background:rgba(4,9,20,.72);color:var(--mut);border:1px solid var(--soft);pointer-events:none;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge:empty{display:none}
+.capt{margin-top:10px;min-height:54px;padding:10px 16px;border-radius:14px;background:linear-gradient(150deg,#10213d,#081224 75%);border:1px solid var(--soft);
+  font:700 clamp(18px,1.9vw,23px)/1.35 var(--sg-font);text-align:center;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .45em}
+.capt .k{color:var(--gold2)}.capt .b{color:#9fb4ff}.capt .p{color:var(--pos)}.capt .n{color:var(--neg)}.capt .g{color:var(--ok)}.capt .m{color:var(--mut);font-weight:600}.capt .r{color:var(--ko)}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin:8px 0 0;font-size:14px;color:var(--mut)}
+.legend i{display:inline-block;width:18px;height:4px;border-radius:2px;margin-right:6px;vertical-align:4px}
+.panel{background:var(--sg-panel);border:1px solid var(--soft);box-shadow:var(--sg-shadow-card);border-radius:16px;padding:20px clamp(16px,2.2vw,26px)}
+.chap{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aebfff}
+.panel h2{font-size:24px;line-height:1.2;margin:2px 0 10px}
+.cours{margin:0 0 14px;border:1px solid var(--soft);border-radius:12px;background:rgba(255,255,255,.025)}
+.cours summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 14px;font-weight:600;color:var(--mut);list-style:none}
+.cours summary::-webkit-details-marker{display:none}
+.cours summary::before{content:"▸";margin-right:8px;transition:transform .2s}
+.cours[open] summary::before{transform:rotate(90deg)}
+.cours .rule{padding:0 14px 12px;border-left:4px solid var(--gold);margin:0 14px 12px;font-size:16px}
+.cours .rule p{margin:6px 0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.c{background:var(--ac);box-shadow:0 0 0 3px var(--acsoft)}.dot.g{background:var(--ok)}.dot.r{background:var(--ko)}
+.qn{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+.prompt{font-size:18px;line-height:1.55;margin:0 0 12px}
+.prompt b{color:var(--gold2)}
+.part{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--soft)}
+.part:first-child{border-top:0;padding-top:0;margin-top:0}
+.part.done{opacity:.78}
+.ask{font-weight:600;margin:0 0 10px}
+.btn{min-height:48px;padding:0 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--raise);color:var(--ink);font:600 16px var(--sg-font);cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){border-color:var(--ac);background:#18305a}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.or{background:var(--ac);color:var(--on);border-color:var(--ac);box-shadow:0 6px 20px -8px var(--sg-glow)}.btn.or:hover:not(:disabled){background:#86a2ff;border-color:#86a2ff}
+.btn.gh{background:transparent}.btn.gh:hover:not(:disabled){background:var(--sg-hover)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.opts{display:grid;gap:10px}
+.opts.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr))}
+.opt{min-height:52px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--solid);color:var(--ink);font:600 17px/1.45 var(--sg-font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.opt:hover:not(:disabled){border-color:var(--ac);background:rgba(108,142,255,.1)}
+.opt.ok{border-color:var(--ok);background:rgba(95,210,124,.14)}.opt.ko{border-color:var(--ko);background:rgba(255,107,107,.1);opacity:.75}
+.opt.rv{border-color:var(--gold);background:rgba(200,168,75,.12)}
+.opt:disabled{cursor:default}
+.fill{font:700 clamp(19px,2.2vw,22px)/2.2 var(--sg-font);font-variant-numeric:tabular-nums}
+.in{width:4.6em;height:46px;margin:0 3px;padding:0 6px;font:700 20px var(--sg-font);text-align:center;border:1.5px solid var(--line);border-bottom:3px solid var(--ac);border-radius:10px;background:var(--solid);color:var(--ink);vertical-align:middle}
+.in.w{width:6.4em}
+.in.ok{border-color:var(--ok);color:var(--ok)}.in.ko{border-color:var(--ko);color:var(--ko)}.in.rv{border-color:var(--gold);color:var(--gold2)}
+.in:disabled{opacity:1}
+.sl{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.sl input[type=range]{flex:1 1 220px;height:44px;accent-color:var(--ac);cursor:pointer}
+.sl output{font:700 20px var(--sg-font);font-variant-numeric:tabular-nums;min-width:6em;color:var(--gold2)}
+.hint{color:var(--mut);font-size:15px;margin:8px 0 0}
+.v{font-style:italic}
+.nw{white-space:nowrap}
+sup,sub{font-size:.7em;line-height:0}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;line-height:1.15;font-size:.95em}
+.fr>span{padding:0 .22em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+.ov{text-decoration:overline}
+.vec{display:inline-block;position:relative;padding-top:.18em}
+.vec::before{content:"";position:absolute;left:.05em;right:.05em;top:.05em;border-top:1.6px solid currentColor}
+.vec::after{content:"";position:absolute;right:0;top:-.12em;border:.2em solid transparent;border-left:.32em solid currentColor;border-right:0}
+.tbw{overflow-x:auto;margin:4px 0 10px;-webkit-overflow-scrolling:touch}
+.tb{border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:17px}
+.tb th,.tb td{padding:5px 11px;border:1px solid var(--soft);text-align:center;white-space:nowrap}
+.tb th{font-weight:700;color:#aebfff;background:rgba(108,142,255,.08)}
+.sk-q .tb{font-size:17px;margin:6px 0}
+.code{margin:4px 0 12px;border-radius:14px;background:linear-gradient(160deg,#0c1426,#070d1b);border:1px solid rgba(127,178,255,.25);padding:12px 14px;font:500 15px/1.6 var(--sg-mono);color:#dbe6ff;overflow-x:auto;white-space:pre}
+.fb{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(255,107,107,.07);border-left:4px solid var(--ko)}
+.fb.good{background:rgba(95,210,124,.08);border-left-color:var(--ok)}
+.fb.rv{background:rgba(200,168,75,.09);border-left-color:var(--gold)}
+.fb .mk svg{width:52px;height:52px;flex:none}
+.fb b.t{display:block;font-size:18px}
+.fb p{margin:2px 0 0}
+.mk{display:inline-flex;flex:none}
+.fb>div{min-width:0;flex:1}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);padding-top:8px}
+  .scol{top:0;z-index:6;margin:0 calc(-1 * max(3vw,16px));padding:6px max(3vw,16px) 8px;background:#060d1a;border-bottom:1px solid var(--soft)}
+  .stage{max-height:36svh;margin:auto}
+  .capt{margin-top:6px;min-height:40px;padding:5px 10px;font-size:16px;border-radius:10px}
+  .legend{display:none}
+}
+@media (max-width:700px){header{padding-top:62px}}
+@media (max-width:520px){
+  .badge{display:none}
+  .lv{gap:6px}.lv button{padding:0 11px;font-size:14px}
+  .panel{padding:16px 14px}
+  .panel h2{font-size:21px}
+  .prompt{font-size:17px}
+  .opt{font-size:16px;padding:10px 12px}
+  .tb{font-size:15.5px}.tb th,.tb td{padding:4px 8px}
+  .code{font-size:13.5px}
+}
+.chipch{max-width:1320px;margin:10px auto 0;padding:0 max(3vw,16px);color:var(--mut);font-size:15px}
+.chipch b{color:var(--gold2)}.chipch a{display:inline-flex;align-items:center;min-height:44px;margin-left:10px;color:var(--ink);font-weight:600;border-bottom:2px solid var(--ac);text-decoration:none}
+
+
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="/sigma-arcade/">← Sigma Arcade</a>
+<h1>Le Courant</h1>
+<p>Une équation différentielle est un courant marin&nbsp;: en chaque point, une petite flèche donne la pente imposée. Une solution est la trace d'un kayak lâché dans le courant. Les primitives forment une flottille décalée d'une constante, et la méthode d'Euler avance à petits pas.</p>
+</header>
+<nav class="lv" id="lv" aria-label="Niveaux"></nav>
+<main class="app">
+<div class="scol" id="scol">
+  <div class="stage" id="stage" role="img" aria-label="Champ de flèches de pente, courbes solutions tracées par un kayak, solution constante" tabindex="-1">
+    <svg id="scene" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+    <span class="badge" id="badge"></span>
+  </div>
+  <div class="capt" id="capt" aria-live="polite"></div>
+  <div class="legend" id="legend"><span><i style="background:#7fd8ff"></i>courant : pente imposée</span><span><i style="background:#e8c766"></i>trace du kayak : une solution</span><span><i style="background:#7fe0c8"></i>solution constante</span></div>
+</div>
+<section class="panel" id="panel">
+  <div class="chap" id="chap"></div>
+  <h2 id="lvt"></h2>
+  <details class="cours" id="cours"><summary>Le cours</summary><div class="rule" id="rule"></div></details>
+  <div class="qhead"><div class="dots" id="dots"></div><span class="qn" id="qn"></span></div>
+  <div id="q" aria-live="polite"></div>
+</section>
+</main>
+<script>window.SIGMA_MUSIC_STYLE='aventure'</script>
+<script src="/sigma-arcade/sigma-music.js"></script>
+<script src="/sigma-arcade/sigma-kit.js"></script>
+<script>
+/* ===== Moteur commun des jeux Sigma Arcade « Terminale spé » (inliné dans chaque jeu) =====
+   TS.run(GAME) avec GAME = {slug,title,chapter,music,levels:[{t,rule,n,gen(i)}],scene:{init(svg),reset(lv)},finals:{bronze,argent,or}}
+   Une question : {prompt, setup?, cap0?, parts:[part…]}. Parties :
+     {k:'choice', ask, opts:[{h, ok, why}], g2?, sol?, onOk?, chk?}
+     {k:'fill', ask, tpl:'… {0} …', blanks:[{a:[réponses], w?}], why?:(vals)=>html, sol?, onOk?, chk?}
+     {k:'slide', ask, min, max, step, v0, fmt(v), on(v), ok(v), target, why?(v), sol?, onOk?}
+   Deuxième erreur : la réponse est donnée (jamais d'échec), la question n'est pas comptée « du premier coup ». */
+(function () {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TS = window.TS = { speed: 1 };
+const sleep = TS.sleep = ms => new Promise(r => setTimeout(r, RM ? Math.min(ms, 20) : ms * TS.speed));
+TS.tween = (ms, fn, ease) => {
+  ease = ease || (e => e < .5 ? 2 * e * e : 1 - Math.pow(-2 * e + 2, 2) / 2);
+  if (RM || TS.speed < .05) { fn(1); return Promise.resolve(); }
+  ms *= TS.speed;
+  return new Promise(res => { const t0 = performance.now(); function f(t) { const k = Math.min(1, (t - t0) / ms); fn(ease(k)); if (k < 1) requestAnimationFrame(f); else res(); } requestAnimationFrame(f); });
+};
+/* ---------- hasard ---------- */
+const rint = TS.rint = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = TS.pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = TS.shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+TS.nz = (a, b) => { let v; do v = rint(a, b); while (v === 0); return v; };
+const gcd = TS.gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };
+/* ---------- écritures françaises ---------- */
+const M = '−', NB = ' ';
+TS.M = M; TS.NB = NB;
+TS.num = (x, dec) => {   // nombre → « −3,25 »
+  if (dec !== undefined) x = Math.round(x * Math.pow(10, dec)) / Math.pow(10, dec);
+  if (Object.is(x, -0)) x = 0;
+  let s = String(Math.abs(x));
+  if (/e/.test(s)) s = Math.abs(x).toFixed(12).replace(/0+$/, '').replace(/\.$/, '');
+  if (dec !== undefined && dec > 0 && s.indexOf('.') < 0 && false) s += '';
+  const [i, d] = s.split('.');
+  const ii = i.length > 4 ? i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : i;
+  return (x < 0 ? M : '') + ii + (d ? ',' + d : '');
+};
+TS.fix = (x, dec) => {   // arrondi affiché avec exactement dec décimales
+  const r = Math.round(x * Math.pow(10, dec)) / Math.pow(10, dec);
+  let s = Math.abs(r).toFixed(dec).replace('.', ',');
+  return (r < 0 && Number(s.replace(',', '.')) !== 0 ? M : '') + s;
+};
+TS.Q = (n, d = 1) => { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d); return { n: n / g, d: d / g }; };
+TS.frac = (a, b) => `<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+TS.fq = (n, d = 1, o = {}) => {   // fraction réduite en HTML (signe devant)
+  const q = TS.Q(n, d);
+  if (q.d === 1) return TS.num(q.n);
+  return (q.n < 0 ? M : '') + TS.frac(Math.abs(q.n), q.d);
+};
+TS.ft = (n, d = 1) => { const q = TS.Q(n, d); return q.d === 1 ? TS.num(q.n) : TS.num(q.n) + '/' + q.d; };   // fraction en ligne « −3/4 »
+TS.fs = (n, d = 1) => { const q = TS.Q(n, d); return q.d === 1 ? String(q.n) : '(' + q.n + ')/(' + q.d + ')'; }; // fraction sympy
+TS.v = s => `<span class="v">${s}</span>`;
+TS.sup = s => `<sup>${s}</sup>`;
+TS.vec = s => `<span class="vec">${s}</span>`;
+/* polynôme / combinaison linéaire : terms = [[coef, 'x²'], [coef, 'x'], [coef, '']] → « 3x² − x + 2 » */
+TS.lin = (terms, o = {}) => {
+  let out = '';
+  for (const [c0, m] of terms) {
+    let c = c0; if (c === 0) continue;
+    const neg = c < 0, a = Math.abs(c);
+    let body = m === '' ? TS.num(a) : (a === 1 ? '' : TS.num(a)) + m;
+    if (!out) out = (neg ? M : '') + body; else out += (neg ? ' ' + M + ' ' : ' + ') + body;
+  }
+  return out || '0';
+};
+/* ---------- sons (bruitages) ---------- */
+let AC = null;
+const sfxOn = () => { try { return localStorage.getItem('sigma-fanfare') !== '0'; } catch (e) { return true; } };
+TS.sfx = type => {
+  if (!sfxOn()) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    const notes = { ok: [[660, 0], [880, .09]], ko: [[220, 0], [180, .1]], tick: [[1200, 0]], whoosh: [[300, 0], [520, .06], [760, .12]], ding: [[988, 0], [1318, .08]] }[type] || [[600, 0]];
+    for (const [f, t] of notes) {
+      const o = AC.createOscillator(), g = AC.createGain(), t0 = AC.currentTime + t;
+      o.type = type === 'ko' ? 'triangle' : 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(type === 'tick' ? .04 : .09, t0 + .015); g.gain.exponentialRampToValueAtTime(.0001, t0 + .22);
+      o.connect(g).connect(AC.destination); o.start(t0); o.stop(t0 + .25);
+    }
+  } catch (e) {}
+};
+/* ---------- épreuves finales ---------- */
+const strip = h => String(h).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+TS.qcm = (o) => {   // {prompt, good, bad:[…], explain, chk, tpl}
+  const all = [o.good].concat(o.bad);
+  const keys = all.map(h => strip(h).toLowerCase());
+  if (new Set(keys).size !== keys.length) throw new Error('choix en double : ' + keys.join(' | '));
+  const idx = shuffle(all.map((_, i) => i));
+  const q = { type: 'qcm', prompt: o.prompt, choices: idx.map(i => all[i]), answer: idx.indexOf(0), explain: o.explain, tpl: o.tpl || '' };
+  if (o.chk) { q.chk = Object.assign({}, o.chk); if (o.chk.vals) q.chk.vals = idx.map(i => o.chk.vals[i]); }
+  return q;
+};
+TS.trous = (o) => {   // {prompt, blanks:[[réponses…]…], explain, chk, braces}
+  const q = { type: 'trous', prompt: o.prompt, blanks: o.blanks.map(a => ({ answers: a, size: o.size || Math.max(3, Math.max(...a.map(s => String(s).length)) + 1) })), explain: o.explain, tpl: o.tpl || '' };
+  if (o.braces) q.braces = true;
+  if (o.chk) q.chk = o.chk;
+  return q;
+};
+/* bank[L-1] = {q:[gen(d)…], t:[gen(d)…]} ; d = 0 (Bronze), 1 (Argent), 2 (Or) → 10 questions : 6 QCM + 4 trous, tous niveaux */
+TS.compose = (bank, d) => {
+  for (let att = 0; att < 60; att++) {
+    try {
+      const L = shuffle(bank.map((_, i) => i + 1));
+      const tL = L.slice(0, 4), qL = L.slice(4);
+      while (qL.length < 6) qL.push(pick(bank.map((_, i) => i + 1)));
+      const out = [], seen = new Set();
+      const mk = (lv, kind) => {
+        for (let k = 0; k < 30; k++) {
+          const g = pick(bank[lv - 1][kind]); const q = g(d); q.level = lv;
+          const key = strip(q.prompt);
+          if (seen.has(key)) continue; seen.add(key); return q;
+        }
+        throw new Error('doublons');
+      };
+      tL.forEach(lv => out.push(mk(lv, 't')));
+      qL.forEach(lv => out.push(mk(lv, 'q')));
+      return shuffle(out);
+    } catch (e) { if (att === 59) throw e; }
+  }
+};
+/* ---------- moteur de jeu ---------- */
+const G = TS.G = { lv: 1, qi: 0, qs: [], res: [], pi: 0, tries: 0, busy: false, first: true, game: null };
+let GAME = null;
+const kitNorm = s => String(s).toLowerCase().replace(/\s+/g, '').replace(/[−–—]/g, '-').replace(/,/g, '.').replace(/[×*·]/g, 'x').replace(/^\+/, '');
+TS.cap = h => { $('#capt').innerHTML = h || ''; };
+TS.badge = h => { $('#badge').innerHTML = h || ''; };
+function stars(lv) { try { const g = SigmaKit.passport().games[GAME.slug]; const n = g && g.levels && g.levels[lv] || 0; return n ? '★'.repeat(n) : ''; } catch (e) { return ''; } }
+function lvBar() {
+  const nav = $('#lv'); nav.innerHTML = '';
+  GAME.levels.forEach((L, i) => {
+    if (GAME.only && !GAME.only.includes(i + 1)) return;
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.lv = i + 1;
+    b.setAttribute('aria-pressed', String(G.lv === i + 1));
+    const s = stars(i + 1);
+    b.innerHTML = `${i + 1}. ${L.t}${s ? `<span class="ck" aria-label="${s.length} étoile${s.length > 1 ? 's' : ''}">${s}</span>` : ''}`;
+    b.onclick = () => { if (!G.busy) start(i + 1); };
+    nav.appendChild(b);
+  });
+  const sp = document.createElement('span'); sp.className = 'sp'; nav.appendChild(sp);
+  const t = document.createElement('button'); t.type = 'button'; t.className = 'tool'; t.id = 'sfx';
+  const lab = () => { const on = sfxOn(); t.setAttribute('aria-pressed', String(on)); t.textContent = '♪ Bruitages : ' + (on ? 'oui' : 'non'); };
+  t.onclick = () => { try { localStorage.setItem('sigma-fanfare', sfxOn() ? '0' : '1'); } catch (e) {} lab(); };
+  lab(); nav.appendChild(t);
+}
+function dots() {
+  $('#dots').innerHTML = G.qs.map((_, i) => `<span class="dot${i === G.qi ? ' c' : G.res[i] === true ? ' g' : G.res[i] === false ? ' r' : ''}"></span>`).join('');
+  $('#qn').textContent = `Question ${G.qi + 1} sur ${G.qs.length}`;
+}
+async function start(lv) {
+  G.lv = lv; G.qi = 0; G.res = []; G.busy = false;
+  const L = GAME.levels[lv - 1];
+  G.qs = Array.from({ length: L.n || 5 }, () => null);
+  $('#chap').textContent = `${GAME.chapter} · Niveau ${lv} sur ${GAME.levels.length}`;
+  $('#lvt').textContent = `Niveau ${lv} · ${L.t}`;
+  $('#rule').innerHTML = L.rule;
+  $('#cours').open = !GAME.coursClosed && !!(window.innerWidth > 860 && !stars(lv));
+  lvBar();
+  if (GAME.scene.reset) GAME.scene.reset(lv);
+  await showQ();
+}
+TS.start = start;
+async function showQ() {
+  const L = GAME.levels[G.lv - 1];
+  const q = G.qs[G.qi] = L.gen(G.qi);
+  G.pi = 0; G.first = true; G.busy = true;
+  dots();
+  const box = $('#q');
+  box.innerHTML = `<p class="prompt">${q.prompt}</p><div id="parts"></div>`;
+  if (GAME.scene.reset) GAME.scene.reset(G.lv);
+  TS.badge(q.badge || ''); TS.cap(q.cap0 || '');
+  try { if (q.setup) await q.setup(); } catch (e) { console.error(e); } finally { G.busy = false; }
+  showPart();
+}
+function fb(part, kind, html) {
+  const el = part._el.querySelector('.fb') || part._el.appendChild(document.createElement('div'));
+  el.className = 'fb' + (kind === 'ok' ? ' good' : kind === 'rv' ? ' rv' : '');
+  const mood = kind === 'ok' ? 'joie' : 'pense';
+  const t = kind === 'ok' ? 'Exact !' : kind === 'rv' ? 'Voici la réponse.' : 'Pas tout à fait…';
+  el.innerHTML = `<span class="mk">${SigmaKit.maki(mood)}</span><div><b class="t">${t}</b><p>${html || ''}</p></div>`;
+}
+function showPart() {
+  const q = G.qs[G.qi], part = q.parts[G.pi];
+  G.tries = 0;
+  const el = document.createElement('div'); el.className = 'part'; part._el = el;
+  $('#parts').appendChild(el);
+  if (part.ask) el.insertAdjacentHTML('beforeend', `<p class="ask">${part.ask}</p>`);
+  if (part.k === 'choice') {
+    const box = document.createElement('div'); box.className = 'opts' + (part.g2 ? ' g2' : '');
+    part.opts.forEach((o, k) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.dataset.k = k; b.innerHTML = o.h;
+      b.onclick = () => answerChoice(part, k); box.appendChild(b);
+    });
+    el.appendChild(box);
+  } else if (part.k === 'fill') {
+    let i = 0;
+    const h = part.tpl.replace(/\{(\d+)\}/g, (_, n) => `<input class="in${part.blanks[+n].w ? ' w' : ''}" data-b="${n}" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="${part.blanks[+n].txt ? 'text' : 'decimal'}" aria-label="Réponse ${+n + 1}">`);
+    el.insertAdjacentHTML('beforeend', `<div class="fill">${h}</div><div class="btns"><button type="button" class="btn or" data-ok>Valider</button></div>`);
+    el.querySelectorAll('.in').forEach(inp => inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); answerFill(part); } }));
+    el.querySelector('[data-ok]').onclick = () => answerFill(part);
+    setTimeout(() => { const f = el.querySelector('.in'); if (f && window.innerWidth > 860) f.focus({ preventScroll: true }); }, 30);
+  } else if (part.k === 'slide') {
+    el.insertAdjacentHTML('beforeend', `<div class="sl"><input type="range" min="${part.min}" max="${part.max}" step="${part.step}" value="${part.v0}" aria-label="${strip(part.ask || 'Curseur')}"><output></output></div><div class="btns"><button type="button" class="btn or" data-ok>Valider</button></div>`);
+    const r = el.querySelector('input'), out = el.querySelector('output');
+    const upd = () => { const v = +r.value; out.innerHTML = part.fmt ? part.fmt(v) : TS.num(v); if (part.on) part.on(v); };
+    r.addEventListener('input', upd); upd();
+    el.querySelector('[data-ok]').onclick = () => answerSlide(part);
+  }
+}
+async function success(part, revealed) {
+  G.busy = true;
+  part._el.querySelectorAll('button,input').forEach(b => b.disabled = true);
+  part._el.classList.add('done');
+  fb(part, revealed ? 'rv' : 'ok', part.sol || '');
+  if (!revealed) TS.sfx('ok');
+  try { if (part.onOk) await part.onOk(); } catch (e) { console.warn(e); }
+  G.busy = false;
+  const q = G.qs[G.qi];
+  if (G.pi + 1 < q.parts.length) { G.pi++; showPart(); return; }
+  G.res[G.qi] = G.first; dots();
+  const last = G.qi + 1 >= G.qs.length;
+  const nx = document.createElement('div'); nx.className = 'btns';
+  nx.innerHTML = `<button type="button" class="btn or" id="nx">${last ? 'Terminer le niveau' : 'Question suivante →'}</button>`;
+  $('#parts').appendChild(nx);
+  const b = $('#nx'); b.onclick = () => next();
+  if (window.innerWidth > 860) b.focus({ preventScroll: true });
+}
+function miss(part, html) { G.first = false; G.tries++; TS.sfx('ko'); fb(part, 'ko', html); }
+async function answerChoice(part, k) {
+  if (G.busy) return;
+  const o = part.opts[k], btn = part._el.querySelector(`.opt[data-k="${k}"]`);
+  if (o.ok) { btn.classList.add('ok'); success(part, false); return; }
+  btn.classList.add('ko'); btn.disabled = true;
+  miss(part, o.why || 'Relis la question et le cours.');
+  if (part.onMiss) { G.busy = true; try { await part.onMiss(k); } catch (e) { console.warn(e); } G.busy = false; }
+  if (G.tries >= 2) { const kk = part.opts.findIndex(x => x.ok); part._el.querySelector(`.opt[data-k="${kk}"]`).classList.add('rv'); success(part, true); }
+}
+function answerFill(part) {
+  if (G.busy) return;
+  const ins = [...part._el.querySelectorAll('.in')];
+  const vals = ins.map(i => i.value);
+  if (vals.some(v => !v.trim())) { ins.find(i => !i.value.trim()).focus(); return; }
+  const good = ins.map((inp, n) => part.blanks[n].a.some(a => kitNorm(a) === kitNorm(inp.value)));
+  ins.forEach((inp, n) => { inp.classList.toggle('ok', good[n]); inp.classList.toggle('ko', !good[n]); });
+  if (good.every(Boolean)) { success(part, false); return; }
+  miss(part, typeof part.why === 'function' ? part.why(vals, good) : (part.why || 'Vérifie ton calcul.'));
+  if (G.tries >= 2) { ins.forEach((inp, n) => { if (!good[n]) { inp.value = part.blanks[n].a[0]; inp.classList.remove('ko'); inp.classList.add('rv'); } }); success(part, true); }
+}
+function answerSlide(part) {
+  if (G.busy) return;
+  const r = part._el.querySelector('input[type=range]'), v = +r.value;
+  if (part.ok(v)) { success(part, false); return; }
+  miss(part, typeof part.why === 'function' ? part.why(v) : (part.why || 'Ajuste encore le curseur.'));
+  if (G.tries >= 2) { r.value = part.target; r.dispatchEvent(new Event('input')); success(part, true); }
+}
+async function next() {
+  if (G.busy) return;
+  if (G.qi + 1 < G.qs.length) { G.qi++; await showQ(); return; }
+  const score = G.res.filter(x => x === true).length;
+  const v = await SigmaKit.levelComplete({ level: G.lv, score, total: G.qs.length });
+  lvBar();
+  const nxt = GAME.only ? GAME.only.find(l => l > G.lv) : G.lv + 1;
+  if (v === 'next' && nxt && nxt <= GAME.levels.length) start(nxt);
+  else if (v === 'next' && GAME.only) start(G.lv);
+  else if (v === 'replay') start(G.lv);
+}
+/* crochet de test */
+window.TSG = {
+  state() {
+    const q = G.qs[G.qi], p = q && q.parts[G.pi];
+    let ans = null;
+    if (p) ans = p.k === 'choice' ? p.opts.findIndex(o => o.ok) : p.k === 'fill' ? p.blanks.map(b => b.a[0]) : p.target;
+    return { lv: G.lv, qi: G.qi, n: G.qs.length, pi: G.pi, np: q ? q.parts.length : 0, kind: p ? p.k : null, ans, busy: G.busy, nOpts: p && p.opts ? p.opts.length : 0, done: !!document.querySelector('#nx') };
+  },
+  dumpLevel(lv, i) {   // pour l'audit : question sérialisée (sans fonctions)
+    const q = GAME.levels[lv - 1].gen(i);
+    return { prompt: q.prompt, parts: q.parts.map(p => ({ k: p.k, ask: p.ask || '', opts: p.opts ? p.opts.map(o => ({ h: o.h, ok: !!o.ok, why: o.why || '' })) : null, tpl: p.tpl || null, blanks: p.blanks || null, min: p.min, max: p.max, step: p.step, target: p.target, okT: p.k === 'slide' ? p.ok(p.target) : null, okMin: p.k === 'slide' ? p.ok(p.min) : null, chk: p.chk || null, sol: p.sol || '' })) };
+  },
+  finals: () => GAME.finals,
+  start: lv => start(lv)
+};
+TS.run = (game) => {
+  GAME = game; G.game = game;
+  SigmaKit.init({ game: game.slug, title: game.title, levels: game.levels.length, levelNames: game.levels.map(l => l.t), music: game.music || 'aventure', finals: game.finals });
+  game.scene.init($('#scene'));
+  lvBar();
+  let lv = 1;
+  const m = location.hash.match(/niveau-?(\d)/); if (m) lv = Math.min(game.levels.length, Math.max(1, +m[1]));
+  if (game.only && game.only.length) {
+    if (!game.only.includes(lv)) lv = game.only[0];
+    const c = document.createElement('p'); c.className = 'chipch'; c.id = 'chipch';
+    c.innerHTML = game.chipHTML || 'Filtre actif.';
+    $('#lv').insertAdjacentElement('afterend', c);
+  }
+  start(lv);
+};
+})();
+
+</script>
+<script>
+/* ===== Module de tracé commun (repère animé) — jeux d'analyse Terminale spé =====
+   PL.init(svg, {bg, fg, box}) ; PL.frame({x0,x1,y0,y1}) ; PL.add(item) ; PL.clear() ; PL.draw()
+   Éléments : curve{f,a,b,col,w,dash,op,cut} · area{f,g,a,b,col,op} · hl{y,col,w,dash,lab} · vl{x,…} · pt{x,y,col,r,lab,open,dy}
+              seg{x1,y1,x2,y2,col,w,dash,arrow} · txt{x,y,s,col,size,anchor,px} · band{x0,x1,col,op} · hband{y0,y1,col,op} · poly{pts,col,op,stroke} */
+const PL = (() => {
+  let svg = null, BG = null, FG = null;
+  const st = { fr: { x0: -1, x1: 5, y0: -1, y1: 5 }, box: { l: 54, r: 976, t: 26, b: 534 }, items: [], axes: true, grid: true, xlab: 'x', ylab: 'y', tick: null };
+  const X = x => st.box.l + (x - st.fr.x0) / (st.fr.x1 - st.fr.x0) * (st.box.r - st.box.l);
+  const Y = y => st.box.b - (y - st.fr.y0) / (st.fr.y1 - st.fr.y0) * (st.box.b - st.box.t);
+  const IX = px => st.fr.x0 + (px - st.box.l) / (st.box.r - st.box.l) * (st.fr.x1 - st.fr.x0);
+  const f1 = v => (Math.round(v * 10) / 10).toString();
+  function nice(span) { const raw = span / 8, p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p; return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * p; }
+  function path(f, a, b, n = 260) {
+    let d = '', pen = false; const lo = st.fr.y0 - (st.fr.y1 - st.fr.y0) * 2, hi = st.fr.y1 + (st.fr.y1 - st.fr.y0) * 2;
+    for (let i = 0; i <= n; i++) {
+      const x = a + (b - a) * i / n; let y; try { y = f(x); } catch (e) { y = NaN; }
+      if (!isFinite(y) || y < lo || y > hi) { pen = false; continue; }
+      d += (pen ? 'L' : 'M') + f1(X(x)) + ' ' + f1(Y(y)); pen = true;
+    }
+    return d;
+  }
+  const lab = (s, x, y, col, size = 18, anchor = 'middle', w = 700) => `<text x="${f1(x)}" y="${f1(y)}" text-anchor="${anchor}" font-size="${size}" font-weight="${w}" fill="${col}" paint-order="stroke" stroke="#050b18" stroke-width="4" stroke-linejoin="round">${s}</text>`;
+  function axes() {
+    const { x0, x1, y0, y1 } = st.fr; let h = '';
+    const sx = st.tick && st.tick.x || nice(x1 - x0), sy = st.tick && st.tick.y || nice(y1 - y0);
+    const fmt = v => TS.num(Math.round(v * 1e6) / 1e6);
+    if (st.grid) {
+      for (let v = Math.ceil(x0 / sx) * sx; v <= x1 + 1e-9; v += sx) h += `<line x1="${f1(X(v))}" x2="${f1(X(v))}" y1="${st.box.t}" y2="${st.box.b}" stroke="rgba(120,160,255,.09)"/>`;
+      for (let v = Math.ceil(y0 / sy) * sy; v <= y1 + 1e-9; v += sy) h += `<line y1="${f1(Y(v))}" y2="${f1(Y(v))}" x1="${st.box.l}" x2="${st.box.r}" stroke="rgba(120,160,255,.09)"/>`;
+    }
+    if (!st.axes) return h;
+    const ax = Math.min(Math.max(0, y0), y1), ay = Math.min(Math.max(0, x0), x1);
+    h += `<line x1="${st.box.l}" x2="${st.box.r}" y1="${f1(Y(ax))}" y2="${f1(Y(ax))}" stroke="rgba(200,215,255,.55)" stroke-width="1.6"/><line y1="${st.box.t}" y2="${st.box.b}" x1="${f1(X(ay))}" x2="${f1(X(ay))}" stroke="rgba(200,215,255,.55)" stroke-width="1.6"/>`;
+    h += `<path d="M${st.box.r} ${f1(Y(ax))} l-9 -5 v10z M${f1(X(ay))} ${st.box.t} l-5 9 h10z" fill="rgba(200,215,255,.7)"/>`;
+    for (let v = Math.ceil(x0 / sx) * sx; v <= x1 + 1e-9; v += sx) { if (Math.abs(v) < 1e-9) continue; h += `<line x1="${f1(X(v))}" x2="${f1(X(v))}" y1="${f1(Y(ax) - 4)}" y2="${f1(Y(ax) + 4)}" stroke="rgba(200,215,255,.6)"/>` + lab(fmt(v), X(v), Y(ax) + 20, 'rgba(200,215,255,.75)', 14, 'middle', 500); }
+    for (let v = Math.ceil(y0 / sy) * sy; v <= y1 + 1e-9; v += sy) { if (Math.abs(v) < 1e-9) continue; h += `<line y1="${f1(Y(v))}" y2="${f1(Y(v))}" x1="${f1(X(ay) - 4)}" x2="${f1(X(ay) + 4)}" stroke="rgba(200,215,255,.6)"/>` + lab(fmt(v), X(ay) - 8, Y(v) + 5, 'rgba(200,215,255,.75)', 14, 'end', 500); }
+    h += lab('0', X(ay) - 8, Y(ax) + 18, 'rgba(200,215,255,.6)', 13, 'end', 500);
+    h += lab(`<tspan font-style="italic">${st.xlab}</tspan>`, st.box.r - 6, Y(ax) - 10, 'rgba(200,215,255,.8)', 16, 'end') + lab(`<tspan font-style="italic">${st.ylab}</tspan>`, X(ay) + 14, st.box.t + 14, 'rgba(200,215,255,.8)', 16, 'start');
+    return h;
+  }
+  function item(o) {
+    if (o.hide) return '';
+    const op = o.op === undefined ? 1 : o.op;
+    switch (o.t) {
+      case 'curve': { const d = path(o.f, o.a === undefined ? st.fr.x0 : o.a, o.b === undefined ? st.fr.x1 : o.b, o.n); return `<path d="${d}" fill="none" stroke="${o.col || '#9fb4ff'}" stroke-width="${o.w || 3.2}" stroke-linecap="round" stroke-linejoin="round"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''} opacity="${op}"${o.glow ? ' filter="url(#pl-glow)"' : ''}/>`; }
+      case 'area': {
+        const a = o.a, b = o.b, n = 160, g = o.g || (() => 0); let d = '';
+        for (let i = 0; i <= n; i++) { const x = a + (b - a) * i / n; d += (i ? 'L' : 'M') + f1(X(x)) + ' ' + f1(Y(Math.max(st.fr.y0 - 1, Math.min(st.fr.y1 + 1, o.f(x))))); }
+        for (let i = n; i >= 0; i--) { const x = a + (b - a) * i / n; d += 'L' + f1(X(x)) + ' ' + f1(Y(Math.max(st.fr.y0 - 1, Math.min(st.fr.y1 + 1, g(x))))); }
+        return `<path d="${d}Z" fill="${o.col || '#6c8eff'}" opacity="${op * (o.alpha || .3)}" stroke="none"/>`;
+      }
+      case 'hl': return `<line x1="${f1(o.a !== undefined ? X(o.a) : st.box.l)}" x2="${f1(o.b !== undefined ? X(o.b) : st.box.r)}" y1="${f1(Y(o.y))}" y2="${f1(Y(o.y))}" stroke="${o.col || '#e8c766'}" stroke-width="${o.w || 2.4}"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''} opacity="${op}"/>` + (o.lab ? lab(o.lab, (o.lx !== undefined ? X(o.lx) : st.box.r - 8), Y(o.y) - 9, o.col || '#e8c766', o.size || 17, o.lx !== undefined ? 'middle' : 'end') : '');
+      case 'vl': return `<line y1="${f1(o.a !== undefined ? Y(o.a) : st.box.t)}" y2="${f1(o.b !== undefined ? Y(o.b) : st.box.b)}" x1="${f1(X(o.x))}" x2="${f1(X(o.x))}" stroke="${o.col || '#e8c766'}" stroke-width="${o.w || 2.4}"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''} opacity="${op}"/>` + (o.lab ? lab(o.lab, X(o.x), (o.ly !== undefined ? Y(o.ly) : st.box.t + 16), o.col || '#e8c766', o.size || 17) : '');
+      case 'pt': return `<g opacity="${op}">${o.halo ? `<circle cx="${f1(X(o.x))}" cy="${f1(Y(o.y))}" r="${(o.r || 6) * 2.6}" fill="${o.col || '#e8c766'}" opacity=".22"/>` : ''}<circle cx="${f1(X(o.x))}" cy="${f1(Y(o.y))}" r="${o.r || 6}" fill="${o.open ? '#050b18' : (o.col || '#e8c766')}" stroke="${o.col || '#e8c766'}" stroke-width="2.4"/>${o.lab ? lab(o.lab, X(o.x) + (o.dx || 0), Y(o.y) + (o.dy === undefined ? -14 : o.dy), o.lcol || o.col || '#e8c766', o.size || 16, o.anchor || 'middle') : ''}</g>`;
+      case 'seg': return `<line x1="${f1(X(o.x1))}" y1="${f1(Y(o.y1))}" x2="${f1(X(o.x2))}" y2="${f1(Y(o.y2))}" stroke="${o.col || '#e8c766'}" stroke-width="${o.w || 2.4}"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''} opacity="${op}"${o.arrow ? ' marker-end="url(#pl-ar)"' : ''} stroke-linecap="round"/>`;
+      case 'txt': return `<g opacity="${op}">${lab(o.s, o.px ? o.x : X(o.x), o.px ? o.y : Y(o.y), o.col || '#f0f4ff', o.size || 18, o.anchor || 'middle', o.wt || 700)}</g>`;
+      case 'band': return `<rect x="${f1(X(o.x0))}" width="${f1(Math.max(0, X(o.x1) - X(o.x0)))}" y="${st.box.t}" height="${st.box.b - st.box.t}" fill="${o.col || '#6c8eff'}" opacity="${op * (o.alpha || .14)}"/>`;
+      case 'hband': return `<rect y="${f1(Y(o.y1))}" height="${f1(Math.max(0, Y(o.y0) - Y(o.y1)))}" x="${st.box.l}" width="${st.box.r - st.box.l}" fill="${o.col || '#6c8eff'}" opacity="${op * (o.alpha || .14)}"/>`;
+      case 'poly': return `<path d="${o.pts.map((p, i) => (i ? 'L' : 'M') + f1(X(p[0])) + ' ' + f1(Y(p[1]))).join('')}${o.close ? 'Z' : ''}" fill="${o.fill || 'none'}" stroke="${o.col || '#e8c766'}" stroke-width="${o.w || 2.4}" opacity="${op}"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''} stroke-linejoin="round"/>`;
+      case 'raw': return o.svg(X, Y);
+    }
+    return '';
+  }
+  function draw() {
+    if (!svg) return;
+    let h = `<defs><filter id="pl-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <marker id="pl-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#e8c766"/></marker></defs>`;
+    h += BG ? BG(X, Y, st) : '<rect width="1000" height="560" fill="#050b18"/>';
+    h += axes();
+    h += `<g>${st.items.filter(o => o.under).map(item).join('')}${st.items.filter(o => !o.under).map(item).join('')}</g>`;
+    if (FG) h += FG(X, Y, st);
+    svg.innerHTML = h;
+  }
+  return {
+    st, X, Y, IX, draw, lab,
+    init(s, o = {}) { svg = s; BG = o.bg || null; FG = o.fg || null; if (o.box) st.box = o.box; draw(); },
+    frame(fr, o = {}) { st.fr = Object.assign({}, fr); st.tick = o.tick || null; if (o.xlab) st.xlab = o.xlab; if (o.ylab) st.ylab = o.ylab; draw(); },
+    async zoom(fr, ms = 700) { const a = Object.assign({}, st.fr); await TS.tween(ms, e => { for (const k of ['x0', 'x1', 'y0', 'y1']) st.fr[k] = a[k] + (fr[k] - a[k]) * e; draw(); }); },
+    add(o) { st.items.push(o); draw(); return o; },
+    rm(o) { st.items = st.items.filter(x => x !== o); draw(); },
+    clear() { st.items = []; draw(); },
+    async fade(o, to = 1, ms = 400) { const a = o.op === undefined ? 1 : o.op; await TS.tween(ms, e => { o.op = a + (to - a) * e; draw(); }); },
+    async anim(o, props, ms = 600) { const a = {}; for (const k in props) a[k] = o[k]; await TS.tween(ms, e => { for (const k in props) o[k] = a[k] + (props[k] - a[k]) * e; draw(); }); },
+    async grow(o, ms = 900) { const b = o.b, a = o.a; await TS.tween(ms, e => { o.b = a + (b - a) * Math.max(.001, e); draw(); }); o.b = b; draw(); }
+  };
+})();
+
+/* ===== Le Courant — Primitives et équations différentielles (Terminale spé, chapitre 15) =====
+   IDÉE : une équation différentielle est un courant marin. En chaque point (x ; y), une petite flèche indique la
+   pente y′ imposée. Une solution est la trace d'un kayak lâché dans le courant : sa trajectoire épouse les flèches.
+   Les primitives d'une fonction forment une flottille : toutes les traces se déduisent l'une de l'autre en montant
+   ou descendant d'une constante k ; la condition initiale choisit le kayak. La méthode d'Euler avance par petits pas. */
+'use strict';
+const { v, frac, num, fq, lin, M, NB, pick, rint, shuffle, nz, sleep, tween } = TS;
+const X = v('x'), Y = v('y');
+const pw = (a, b) => `${a}<sup>${b}</sup>`;
+const ex = s => `e<sup>${s}</sup>`;
+const nb = x => [num(x), String(x), num(x).replace('−', '-')].filter((s, i, a) => a.indexOf(s) === i);
+const dq = (n, d) => { const q = TS.Q(n, d); const o = [TS.ft(n, d), TS.ft(n, d).replace('−', '-')]; if (q.d !== 1 && [2, 4, 5, 8, 10, 20, 25].includes(q.d)) { o.push(String(q.n / q.d).replace('.', ','), String(q.n / q.d)); } return [...new Set(o)]; };
+const withV = p => { p.chk.vals = p.opts.map(o => o.val); return p; };
+/* ---------- scène : champ de flèches et kayaks ---------- */
+const BG = () => `<defs><linearGradient id="co-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a2140"/><stop offset="1" stop-color="#04101f"/></linearGradient></defs><rect width="1000" height="560" fill="url(#co-bg)"/>`;
+const S = { kay: null };
+const SC = {
+  init(svg) { PL.init(svg, { bg: BG }); },
+  reset() { PL.clear(); S.kay = null; TS.cap(''); },
+  field(slope, col = 'rgba(127,216,255,.5)') {   // slope(x, y)
+    return PL.add({ t: 'raw', under: true, svg: (Xf, Yf) => { const fr = PL.st.fr; let h = ''; const nx = 18, ny = 11;
+      for (let i = 0; i <= nx; i++) for (let j = 0; j <= ny; j++) { const x = fr.x0 + (fr.x1 - fr.x0) * (i + .5) / (nx + 1), y = fr.y0 + (fr.y1 - fr.y0) * (j + .5) / (ny + 1), m = slope(x, y);
+        const px = Xf(x), py = Yf(y), dxp = Xf(x + 1) - Xf(x), dyp = Yf(y + m) - Yf(y), L = Math.hypot(dxp, dyp) || 1, ux = dxp / L * 11, uy = dyp / L * 11;
+        h += `<line x1="${(px - ux).toFixed(1)}" y1="${(py - uy).toFixed(1)}" x2="${(px + ux).toFixed(1)}" y2="${(py + uy).toFixed(1)}" stroke="${col}" stroke-width="1.8" stroke-linecap="round"/><circle cx="${(px + ux).toFixed(1)}" cy="${(py + uy).toFixed(1)}" r="1.8" fill="${col}"/>`; }
+      return h; } });
+  },
+  trace(f, a, b, col = '#e8c766', w = 3.4) { return PL.add({ t: 'curve', f, a, b, col, w, glow: true }); },
+  async sail(f, a, b, ms = 1300, col = '#e8c766') {   // le kayak trace la solution
+    const c = PL.add({ t: 'curve', f, a, b: a + 1e-6, col, w: 3.6, glow: true });
+    S.kay = PL.add({ t: 'raw', svg: (Xf, Yf) => { const x = c.b, y = f(x), m = (f(x + 1e-3) - f(x - 1e-3)) / 2e-3, ang = Math.atan2(-(Yf(y + m) - Yf(y)), Xf(x + 1) - Xf(x)) * 180 / Math.PI;
+      return `<g transform="translate(${Xf(x).toFixed(1)} ${Yf(y).toFixed(1)}) rotate(${(-ang).toFixed(1)})"><path d="M-17 0 Q0 -8 17 0 Q0 8 -17 0Z" fill="#ffd27a" stroke="#7a4a10" stroke-width="1.5"/><circle cx="0" cy="0" r="3" fill="#1d3358"/></g>`; } });
+    await tween(ms, e => { c.b = a + (b - a) * Math.max(.001, e); PL.draw(); }, e => e); c.b = b; PL.draw(); return c;
+  }
+};
+const frameFor = (fs, a, b, extra = []) => { let lo = Infinity, hi = -Infinity; for (const f of fs) for (let i = 0; i <= 80; i++) { const y = f(a + (b - a) * i / 80); if (isFinite(y)) { lo = Math.min(lo, y); hi = Math.max(hi, y); } } extra.forEach(y => { lo = Math.min(lo, y); hi = Math.max(hi, y); }); const m = (hi - lo) * .15 + .5; return { x0: a, x1: b, y0: lo - m, y1: hi + m }; };
+/* ---------- primitives usuelles ---------- */
+const USU = [
+  () => { const n = rint(2, 5); return { fh: pw(X, n), f: x => x ** n, fs: `x**${n}`, I: [-1.6, 1.6], good: frac(pw(X, n + 1), n + 1), gs: `x**${n + 1}/${n + 1}`, F: x => x ** (n + 1) / (n + 1), bad: [[`${n}${pw(X, n - 1)}`, `${n}*x**${n - 1}`, 'Ça, c\'est la dérivée : on cherche F telle que F′ = f.'], [pw(X, n + 1), `x**${n + 1}`, `La dérivée de ${pw(X, n + 1)} est ${n + 1}${pw(X, n)} : il faut diviser par ${n + 1}.`]] }; },
+  () => ({ fh: frac(1, X) + ' sur ]0 ; +∞[', f: x => 1 / x, fs: '1/x', I: [.2, 4], good: `ln ${X}`, gs: 'log(x)', bad: [[M + frac(1, pw(X, 2)), '-1/x**2', 'C\'est la dérivée de 1/x, pas une primitive.'], [`ln(${X} + 1)`, 'log(x+1)', 'Sa dérivée est 1/(x + 1).']], F: Math.log }),
+  () => ({ fh: frac(1, '√' + X) + ' sur ]0 ; +∞[', f: x => 1 / Math.sqrt(x), fs: '1/sqrt(x)', I: [.15, 4], good: `2√${X}`, gs: '2*sqrt(x)', F: x => 2 * Math.sqrt(x), bad: [[`√${X}`, 'sqrt(x)', 'La dérivée de √x est 1/(2√x) : il manque le facteur 2.'], [frac(1, '2√' + X), '1/(2*sqrt(x))', 'Une primitive, pas une dérivée : F′ doit redonner 1/√x.']] }),
+  () => ({ fh: ex(X), f: Math.exp, fs: 'exp(x)', I: [-2, 1.6], good: ex(X), gs: 'exp(x)', F: Math.exp, bad: [[`${X}${ex(X)}`, 'x*exp(x)', 'La dérivée de x eˣ est (x + 1)eˣ.'], [ex(X + ' + 1'), 'exp(x+1)', 'Sa dérivée est e^(x + 1) ≠ eˣ.']] }),
+  () => ({ fh: `cos ${X}`, f: Math.cos, fs: 'cos(x)', I: [-3.2, 3.2], good: `sin ${X}`, gs: 'sin(x)', F: Math.sin, bad: [[`${M}sin ${X}`, '-sin(x)', 'La dérivée de −sin est −cos.'], [`cos ${X}`, 'cos(x)', 'La dérivée de cos est −sin.']] }),
+  () => ({ fh: `sin ${X}`, f: Math.sin, fs: 'sin(x)', I: [-3.2, 3.2], good: `${M}cos ${X}`, gs: '-cos(x)', F: x => -Math.cos(x), bad: [[`cos ${X}`, 'cos(x)', 'La dérivée de cos est −sin : il faut −cos.'], [`${M}sin ${X}`, '-sin(x)', 'La dérivée de −sin est −cos.']] })];
+function primAnim(f, F, a, b) { return async () => { for (const k of [-2, -1, 0, 1, 2]) SC.trace(x => F(x) + k, a, b, k === 0 ? '#e8c766' : 'rgba(232,199,102,.32)', k === 0 ? 3.4 : 2); }; }
+function q1(i) {
+  const U = USU[(i + rint(0, 5)) % USU.length]();
+  const F = U.F;
+  const so = shuffle([{ h: U.good, ok: true, val: U.gs }].concat(U.bad.map(b => ({ h: b[0], ok: false, val: b[1], why: b[2] }))));
+  return { prompt: `Lecture inverse du tableau des dérivées : une primitive de f(${X}) = ${U.fh}.`, cap0: '<span class="m">Le courant impose la pente</span> <span class="b">F′ = f</span>',
+    setup: async () => { const fr = frameFor([U.f, F], U.I[0], U.I[1]); PL.frame(fr); SC.field((x, y) => U.f(x)); },
+    parts: [withV({ k: 'choice', ask: 'F(' + X + ') =', opts: so, sol: `F(${X}) = ${U.good} : on vérifie que F′(${X}) = f(${X}).`, chk: { t: 'prim', f: U.fs },
+      onOk: async () => { await SC.sail(F, U.I[0], U.I[1]); await primAnim(U.f, F, U.I[0], U.I[1])(); TS.cap('<span class="k">La flottille F + k suit le même courant</span>'); } })] };
+}
+/* ---------- niveau 2 : toute la famille (condition initiale) ---------- */
+function q2(i) {
+  const a = rint(1, 3), b = nz(-4, 4), x0 = pick([0, 1, -1]), y0 = nz(-5, 6);
+  const Fh = lin([[a, pw(X, 2)], [b, X]]), F = x => a * x * x + b * x, k = y0 - F(x0);
+  return { prompt: `f(${X}) = ${lin([[2 * a, X], [b, '']])}. Les primitives de f sur ℝ sont les fonctions ${X} ↦ ${Fh} + k, k ∈ ℝ. On cherche celle qui vérifie F(${num(x0)}) = ${num(y0)}.`,
+    cap0: '<span class="m">Quel kayak passe par</span> <span class="k">(' + num(x0) + ' ; ' + num(y0) + ')</span> <span class="m">?</span>',
+    setup: async () => { const fr = frameFor([F, x => F(x) + k], -3, 3, [y0]); PL.frame(fr); SC.field((x, y) => 2 * a * x + b); for (const kk of [-6, -3, 0, 3, 6]) SC.trace(x => F(x) + kk, -3, 3, 'rgba(232,199,102,.3)', 2); PL.add({ t: 'pt', x: x0, y: y0, col: '#7fd8ff', r: 7, halo: true, lab: 'A' }); },
+    parts: [{ k: 'fill', ask: 'Condition initiale :', tpl: `F(${num(x0)}) = ${num(y0)} ⇔ ${num(F(x0))} + k = ${num(y0)} ⇔ k = {0}`, blanks: [{ a: nb(k) }], why: `k = ${num(y0)} − ${F(x0) < 0 ? '(' + num(F(x0)) + ')' : num(F(x0))}.`, sol: `F(${X}) = ${lin([[a, pw(X, 2)], [b, X], [k, '']])}.`, chk: { t: 'expr', truth: `${y0}-(${a}*(${x0})**2+(${b})*(${x0}))`, ans: String(k) },
+      onOk: async () => { await SC.sail(x => F(x) + k, -3, 3); TS.cap(`<span class="k">k = ${num(k)}</span>`); } }] };
+}
+/* ---------- niveau 3 : linéarité ---------- */
+function q3(i) {
+  const a = rint(1, 4), b = nz(-4, 4), c = nz(-5, 5);
+  const fh = lin([[3 * a, pw(X, 2)], [2 * b, X], [c, '']]), f = x => 3 * a * x * x + 2 * b * x + c, F = x => a * x ** 3 + b * x * x + c * x;
+  const so = shuffle([{ h: lin([[a, pw(X, 3)], [b, pw(X, 2)], [c, X]]), ok: true, val: `${a}*x**3+(${b})*x**2+(${c})*x` },
+    { h: lin([[6 * a, X], [2 * b, '']]), ok: false, val: `${6 * a}*x+(${2 * b})`, why: 'Ça, c\'est la dérivée de f.' },
+    { h: lin([[3 * a, pw(X, 3)], [2 * b, pw(X, 2)], [c, X]]), ok: false, val: `${3 * a}*x**3+(${2 * b})*x**2+(${c})*x`, why: `La dérivée de ${pw(X, 3)} est 3${pw(X, 2)} : il faut diviser par 3 (et par 2 pour ${X}).` }]);
+  return { prompt: `Une primitive de f(${X}) = ${fh} sur ℝ.`, cap0: '<span class="m">Terme à terme</span>',
+    setup: async () => { const fr = frameFor([F], -2.5, 2.5); PL.frame(fr); SC.field((x, y) => f(x)); },
+    parts: [withV({ k: 'choice', ask: 'F(' + X + ') =', opts: so, sol: 'Linéarité : on prend une primitive de chaque terme.', chk: { t: 'prim', f: `${3 * a}*x**2+(${2 * b})*x+(${c})` }, onOk: async () => { await SC.sail(F, -2.5, 2.5); } })] };
+}
+/* ---------- niveau 4 : formes composées ---------- */
+function comp() {
+  const t = pick(['upn', 'upu', 'uexp', 'upn2']);
+  if (t === 'upn') { const n = rint(2, 4), c = rint(1, 4); return { fh: `2${X}(${lin([[1, pw(X, 2)], [c, '']])})${pw('', n)}`, f: x => 2 * x * (x * x + c) ** n, fs: `2*x*(x**2+${c})**${n}`, form: `${v('u')}′${pw(v('u'), n)} avec ${v('u')}(${X}) = ${pw(X, 2)} + ${c}`,
+      good: frac(`(${pw(X, 2)} + ${c})${pw('', n + 1)}`, n + 1), gs: `(x**2+${c})**${n + 1}/${n + 1}`, F: x => (x * x + c) ** (n + 1) / (n + 1),
+      bad: [[`(${pw(X, 2)} + ${c})${pw('', n + 1)}`, `(x**2+${c})**${n + 1}`, `Il faut diviser par ${n + 1}.`], [frac(`2${X}(${pw(X, 2)} + ${c})${pw('', n + 1)}`, n + 1), `2*x*(x**2+${c})**${n + 1}/${n + 1}`, 'Le facteur u′ = 2x disparaît dans la primitive.']] }; }
+  if (t === 'upu') { const c = rint(1, 6); return { fh: frac(`2${X}`, `${pw(X, 2)} + ${c}`), f: x => 2 * x / (x * x + c), fs: `2*x/(x**2+${c})`, form: `${frac(v('u') + '′', v('u'))} avec ${v('u')}(${X}) = ${pw(X, 2)} + ${c} &gt; 0`,
+      good: `ln(${pw(X, 2)} + ${c})`, gs: `log(x**2+${c})`, F: x => Math.log(x * x + c), bad: [[frac(1, `${pw(X, 2)} + ${c}`), `1/(x**2+${c})`, 'Dérive-la : on ne retrouve pas f.'], [`2${X} ln(${pw(X, 2)} + ${c})`, `2*x*log(x**2+${c})`, 'Forme u′/u : la primitive est ln(u), sans facteur.']] }; }
+  if (t === 'uexp') { const a = pick([2, 3, -2]); const ca = a === -1 ? M : num(a); return { fh: `${ca}${ex(ca + X)}`, f: x => a * Math.exp(a * x), fs: `${a}*exp(${a}*x)`, form: `${v('u')}′${ex(v('u'))} avec ${v('u')}(${X}) = ${a === -1 ? M : num(a)}${X}`,
+      good: ex((a === -1 ? M : num(a)) + X), gs: `exp(${a}*x)`, F: x => Math.exp(a * x), bad: [[`${num(a * a)}${ex((a === -1 ? M : num(a)) + X)}`, `${a * a}*exp(${a}*x)`, 'Ça, c\'est la dérivée.'], [`${num(a)}${X}${ex((a === -1 ? M : num(a)) + X)}`, `${a}*x*exp(${a}*x)`, 'Forme u′eᵘ : la primitive est eᵘ.']] }; }
+  const a = rint(2, 4), b = nz(-3, 3), n = rint(2, 3);
+  return { fh: `(${lin([[a, X], [b, '']])})${pw('', n)}`, f: x => (a * x + b) ** n, fs: `(${a}*x+(${b}))**${n}`, form: `${frac(1, a)} ${v('u')}′${pw(v('u'), n)} avec ${v('u')}(${X}) = ${lin([[a, X], [b, '']])} (on fait apparaître ${v('u')}′ = ${a})`,
+    good: frac(`(${lin([[a, X], [b, '']])})${pw('', n + 1)}`, a * (n + 1)), gs: `(${a}*x+(${b}))**${n + 1}/${a * (n + 1)}`, F: x => (a * x + b) ** (n + 1) / (a * (n + 1)),
+    bad: [[frac(`(${lin([[a, X], [b, '']])})${pw('', n + 1)}`, n + 1), `(${a}*x+(${b}))**${n + 1}/${n + 1}`, `Il manque le facteur u′ = ${a} : on divise aussi par ${a}.`], [`${a}(${lin([[a, X], [b, '']])})${pw('', n + 1)}`, `${a}*(${a}*x+(${b}))**${n + 1}`, 'On divise, on ne multiplie pas.']] };
+}
+function q4(i) {
+  const C = comp();
+  const so = shuffle([{ h: C.good, ok: true, val: C.gs }].concat(C.bad.map(b => ({ h: b[0], ok: false, val: b[1], why: b[2] }))));
+  return { prompt: `Une primitive de f(${X}) = ${C.fh}.`, cap0: '<span class="m">Reconnaître la forme</span>',
+    setup: async () => { const fr = frameFor([C.F], -1.6, 1.6); PL.frame(fr); SC.field((x, y) => C.f(x)); },
+    parts: [{ k: 'choice', ask: 'Forme reconnue :', opts: shuffle([{ h: C.form, ok: true }, { h: 'aucune forme du cours', ok: false, why: 'Cherche u et u′ dans l\'expression.' }]), sol: C.form + '.' },
+      withV({ k: 'choice', ask: 'F(' + X + ') =', opts: so, sol: `F(${X}) = ${C.good}.`, chk: { t: 'prim', f: C.fs }, onOk: async () => { await SC.sail(C.F, -1.6, 1.6); } })] };
+}
+/* ---------- niveau 5 : y′ = ay ---------- */
+function q5(i) {
+  const a = pick([-2, -1, -.5, .5, 1, 2]), y0 = nz(-4, 4);
+  const ah = a === 1 ? '' : a === -1 ? M : num(a);
+  return { prompt: `(E) : ${Y}′ = ${ah}${Y}. On cherche la solution f telle que f(0) = ${num(y0)}.`, cap0: `<span class="m">Courant</span> <span class="b">${Y}′ = ${ah}${Y}</span>`,
+    setup: async () => { PL.frame({ x0: -2.5, x1: 2.5, y0: Math.min(-1, y0 * 2) - 1, y1: Math.max(1, y0 * 2) + 1 }); SC.field((x, y) => a * y); PL.add({ t: 'pt', x: 0, y: y0, col: '#7fd8ff', r: 7, halo: true }); },
+    parts: [{ k: 'choice', ask: 'Solutions de (E) sur ℝ :', opts: shuffle([{ h: `${X} ↦ K${ex(ah + X)}, K ∈ ℝ`, ok: true }, { h: `${X} ↦ ${ex(ah + X)} + K, K ∈ ℝ`, ok: false, why: 'On multiplie par K, on n\'ajoute pas : si y est solution, Ky aussi.' }, { h: `${X} ↦ K${ex(a === 1 ? M + X : X)}, K ∈ ℝ`, ok: false, why: `L'exposant doit être a${X} avec a = ${num(a)}.` }]), sol: `Théorème : solutions ${X} ↦ K${ex(ah + X)}.` },
+      { k: 'fill', ask: 'Condition initiale :', tpl: `f(0) = K${ex(0)} = K = {0}`, blanks: [{ a: nb(y0) }], why: 'e⁰ = 1.', sol: `f(${X}) = ${y0 === 1 ? '' : y0 === -1 ? M : num(y0)}${ex(ah + X)}.`, chk: { t: 'expr', truth: String(y0), ans: String(y0) },
+        onOk: async () => { await SC.sail(x => y0 * Math.exp(a * x), -2.5, 2.5); for (const K of [-2, -1, 1, 2].filter(K => K !== y0)) SC.trace(x => K * Math.exp(a * x), -2.5, 2.5, 'rgba(232,199,102,.28)', 2); TS.cap(a > 0 ? '<span class="m">a &gt; 0 : les traces s\'écartent</span>' : '<span class="m">a &lt; 0 : les traces se resserrent vers 0</span>'); } }] };
+}
+/* ---------- niveau 6 : y′ = ay + b ---------- */
+function q6(i) {
+  if (i === 3) {   // y′ = ay + f, une solution particulière étant donnée
+    const a = pick([-1, 1, 2]), p = nz(-3, 3), ah = a === 1 ? '' : a === -1 ? M : num(a);
+    const yp = lin([[p, X], [Math.round(p / a * 100) / 100 === p / a ? p / a : p, '']]);
+    const q = p / a, ypf = x => p * x + q;   // y′ = a y + f avec f(x) = −a p x − a q + p  ⇒ y_p = p x + q
+    const fh = lin([[-a * p, X], [p - a * q, '']]);
+    return { prompt: `(E) : ${Y}′ = ${ah}${Y} + (${fh}). On vérifie que ${Y}<sub>p</sub>(${X}) = ${lin([[p, X], [q, '']])} est une solution particulière.`, cap0: '<span class="m">Une trace connue, puis toutes les autres</span>',
+      setup: async () => { PL.frame({ x0: -2.5, x1: 2.5, y0: -7, y1: 7 }); SC.field((x, y) => a * y + (-a * p * x + p - a * q)); SC.trace(ypf, -2.5, 2.5, '#7fd8ff'); },
+      parts: [{ k: 'choice', ask: 'Les solutions de (E) sont :', opts: shuffle([{ h: `${X} ↦ ${lin([[1, 'K' + ex(ah + X)], [p, X], [q, '']])}, K ∈ ℝ`, ok: true }, { h: `${X} ↦ K(${lin([[p, X], [q, '']])}), K ∈ ℝ`, ok: false, why: 'On ajoute à y_p les solutions de y′ = ay.' }, { h: `${X} ↦ ${lin([[p, X], [q, ''], [1, 'K']])}, K ∈ ℝ`, ok: false, why: 'Les solutions de y′ = ay sont K e^(ax), pas des constantes.' }]),
+        sol: 'Solutions : K e^(ax) + y_p(x).', onOk: async () => { for (const K of [-2, -1, 1, 2]) await SC.sail(x => K * Math.exp(a * x) + ypf(x), -2.5, 2.5, 500, 'rgba(232,199,102,.7)'); } }] };
+  }
+  const a = pick([-2, -1, 2, 3, -3]), c = nz(-4, 4), b = -a * c; let y0; do y0 = c + nz(-4, 4); while (y0 === c);
+  const ah = a === 1 ? '' : a === -1 ? M : num(a), K = y0 - c;
+  return { prompt: `(E) : ${Y}′ = ${lin([[a, Y], [b, '']])}, avec la condition ${Y}(0) = ${num(y0)}.`, cap0: '<span class="m">Où le courant est-il plat ?</span>',
+    setup: async () => { PL.frame({ x0: -2, x1: 2, y0: Math.min(c, y0) - 5, y1: Math.max(c, y0) + 5 }); SC.field((x, y) => a * y + b); PL.add({ t: 'pt', x: 0, y: y0, col: '#7fd8ff', r: 7, halo: true }); },
+    parts: [
+      { k: 'fill', ask: 'Solution constante :', tpl: `${lin([[a, Y], [b, '']])} = 0 ⇔ ${Y} = −${frac('b', 'a')} = {0}`, blanks: [{ a: nb(c) }], why: `${num(a)}${Y} = ${num(-b)}.`, sol: `La fonction constante ${X} ↦ ${num(c)} est solution : là, les flèches sont horizontales.`, chk: { t: 'expr', truth: `-(${b})/(${a})`, ans: String(c) },
+        onOk: async () => { PL.add({ t: 'hl', y: c, col: '#7fe0c8', w: 3, lab: Y + ' = ' + num(c) }); } },
+      { k: 'fill', ask: `Solutions : ${Y}(${X}) = K${ex(ah + X)}${c < 0 ? ' + ' + num(-c) : ' ' + M + ' ' + num(c)}. Condition initiale :`, tpl: `K = {0}`, blanks: [{ a: nb(K) }], why: `K${c < 0 ? ' + ' + num(-c) : ' − ' + num(c)} = ${num(y0)}.`, sol: `${Y}(${X}) = ${K === 1 ? '' : K === -1 ? M : num(K)}${ex(ah + X)}${c < 0 ? ' + ' + num(-c) : ' ' + M + ' ' + num(c)}.`, chk: { t: 'expr', truth: `${y0}-(${c})`, ans: String(K) },
+        onOk: async () => { await SC.sail(x => K * Math.exp(a * x) + c, -2, 2); TS.cap(a < 0 ? `<span class="m">a &lt; 0 : la trace rejoint la ligne</span> <span class="g">y = ${num(c)}</span>` : `<span class="m">a &gt; 0 : la trace s'éloigne de</span> <span class="g">y = ${num(c)}</span>`); } }] };
+}
+/* ---------- niveau 7 : méthode d'Euler ---------- */
+function q7(i) {
+  const a = pick([1, 2, -1, 3]), b = rint(-2, 3), y0 = pick([1, 2, -1]), h = pick([.1, .5, .2]);
+  const y1 = Math.round((y0 + h * (a * y0 + b)) * 1e6) / 1e6, y2 = Math.round((y1 + h * (a * y1 + b)) * 1e6) / 1e6;
+  const c = -b / a, K = y0 - c, ex_ = x => K * Math.exp(a * x) + c;
+  return { prompt: `Méthode d'Euler pour ${Y}′ = ${lin([[a, Y], [b, '']])} avec ${Y}(0) = ${num(y0)} et un pas h = ${num(h)} : ${v('y')}<sub>k + 1</sub> = ${v('y')}<sub>k</sub> + h × (${lin([[a, v('y') + '<sub>k</sub>'], [b, '']])}).`, cap0: '<span class="m">Le kayak avance par petits pas</span>',
+    setup: async () => { PL.frame(frameFor([ex_], -.1, 2 * h + .3 * h, [y0, y2])); SC.field((x, y) => a * y + b); SC.trace(ex_, -.1, 2.3 * h, 'rgba(232,199,102,.4)', 2); PL.add({ t: 'pt', x: 0, y: y0, col: '#7fd8ff', r: 6, lab: 'A₀' }); },
+    parts: [{ k: 'fill', ask: 'Premier pas :', tpl: `${v('y')}<sub>1</sub> = {0}`, blanks: [{ a: nb(y1) }], why: `${num(y0)} + ${num(h)} × (${num(a)} × ${y0 < 0 ? '(' + num(y0) + ')' : num(y0)} ${b < 0 ? M : '+'} ${Math.abs(b)}).`, sol: `A₁(${num(h)} ; ${num(y1)}).`, chk: { t: 'expr', truth: `${y0}+${h}*(${a}*(${y0})+(${b}))`, ans: String(y1) },
+        onOk: async () => { PL.add({ t: 'seg', x1: 0, y1: y0, x2: h, y2: y1, col: '#7fd8ff', w: 3 }); PL.add({ t: 'pt', x: h, y: y1, col: '#7fd8ff', r: 6, lab: 'A₁' }); } },
+      { k: 'fill', ask: 'Second pas :', tpl: `${v('y')}<sub>2</sub> = {0}`, blanks: [{ a: nb(y2) }], why: `${num(y1)} + ${num(h)} × (${num(a)} × ${y1 < 0 ? '(' + num(y1) + ')' : num(y1)} ${b < 0 ? M : '+'} ${Math.abs(b)}).`, sol: `A₂(${num(2 * h)} ; ${num(y2)}) : la ligne brisée suit la courbe de la solution, d'autant mieux que h est petit.`, chk: { t: 'expr', truth: `${y1}+${h}*(${a}*(${y1})+(${b}))`, ans: String(y2) },
+        onOk: async () => { PL.add({ t: 'seg', x1: h, y1: y1, x2: 2 * h, y2: y2, col: '#7fd8ff', w: 3 }); PL.add({ t: 'pt', x: 2 * h, y: y2, col: '#7fd8ff', r: 6, lab: 'A₂' }); } }] };
+}
+
+/* ===== Le Courant — épreuves finales ===== */
+const qFromU = (U, d) => Object.assign(TS.qcm({ prompt: `Une primitive de f(${X}) = ${U.fh} est :`, good: U.good, bad: U.bad.map(b => b[0]), explain: `On vérifie que F′ = f.`, chk: { t: 'prim', f: U.fs, vals: [U.gs].concat(U.bad.map(b => b[1])) }, tpl: 'usuelle' }), { steps: 1 + d });
+const FQ = {
+1: { q: [d => qFromU(pick(USU)(), d)],
+   t: [d => { const n = rint(2, 5); return Object.assign(TS.trous({ prompt: `Une primitive de ${X} ↦ ${pw(X, n)} est ${X} ↦ ${frac(pw(X, '{0}'), n + 1)}.`, blanks: [[String(n + 1)]], explain: `(${pw(X, n + 1)})′ = ${n + 1}${pw(X, n)}.`, chk: { t: 'fixed' }, tpl: 'xn' }), { steps: 1 + d }); }] },
+2: { q: [d => Object.assign(TS.qcm({ prompt: `F est une primitive de f sur un intervalle I. Les primitives de f sur I sont :`, good: `les fonctions F + k, k ∈ ℝ`, bad: ['la seule fonction F', 'les fonctions kF, k ∈ ℝ', 'les fonctions F + kx, k ∈ ℝ'], explain: 'Deux primitives d\'une même fonction diffèrent d\'une constante.', tpl: 'famille' }), { steps: 1 + d })],
+   t: [d => { const a = rint(1, 3), b = nz(-4, 4), x0 = d === 0 ? 0 : pick([1, -1]), y0 = nz(-5, 6); const k = y0 - (a * x0 * x0 + b * x0);
+      return Object.assign(TS.trous({ prompt: `La primitive de ${X} ↦ ${lin([[2 * a, X], [b, '']])} qui vaut ${num(y0)} en ${num(x0)} est ${X} ↦ ${lin([[a, pw(X, 2)], [b, X]])} + k avec k = {0}.`, blanks: [nb(k)], explain: `${num(a * x0 * x0 + b * x0)} + k = ${num(y0)}.`, chk: { t: 'expr', truth: `${y0}-(${a}*(${x0})**2+(${b})*(${x0}))`, ans: String(k) }, tpl: 'k' }), { steps: 1 + d }); }] },
+3: { q: [d => { const a = rint(1, 4), b = nz(-4, 4), c = nz(-5, 5); return Object.assign(TS.qcm({ prompt: `Une primitive de f(${X}) = ${lin([[3 * a, pw(X, 2)], [2 * b, X], [c, '']])} sur ℝ :`, good: lin([[a, pw(X, 3)], [b, pw(X, 2)], [c, X]]), bad: [lin([[6 * a, X], [2 * b, '']]), lin([[3 * a, pw(X, 3)], [2 * b, pw(X, 2)], [c, X]]), lin([[a, pw(X, 3)], [b, pw(X, 2)], [c, '']])], explain: 'Primitive terme à terme.', chk: { t: 'prim', f: `${3 * a}*x**2+(${2 * b})*x+(${c})`, vals: [`${a}*x**3+(${b})*x**2+(${c})*x`, `${6 * a}*x+(${2 * b})`, `${3 * a}*x**3+(${2 * b})*x**2+(${c})*x`, `${a}*x**3+(${b})*x**2+(${c})`] }, tpl: 'lin' }), { steps: 2 + d }); }],
+   t: [d => { const a = rint(2, 6); return Object.assign(TS.trous({ prompt: `Une primitive de ${X} ↦ ${3 * a}${pw(X, 2)} est ${X} ↦ {0}${pw(X, 3)}.`, blanks: [nb(a)], explain: `(${a}${pw(X, 3)})′ = ${3 * a}${pw(X, 2)}.`, chk: { t: 'expr', truth: `${3 * a}/3`, ans: String(a) }, tpl: 'coef' }), { steps: 1 + d }); }] },
+4: { q: [d => { const C = comp(); return Object.assign(TS.qcm({ prompt: `Une primitive de f(${X}) = ${C.fh} :`, good: C.good, bad: C.bad.map(b => b[0]), explain: C.form + '.', chk: { t: 'prim', f: C.fs, vals: [C.gs].concat(C.bad.map(b => b[1])) }, tpl: 'comp' }), { steps: 2 + d }); }],
+   t: [d => { const a = rint(2, 4), n = rint(2, 3); return Object.assign(TS.trous({ prompt: `Une primitive de ${X} ↦ (${a}${X} + 1)${pw('', n)} est ${X} ↦ ${frac(`(${a}${X} + 1)${pw('', n + 1)}`, '{0}')}.`, blanks: [nb(a * (n + 1))], explain: `On fait apparaître u′ = ${a} : on divise par ${a} × ${n + 1}.`, chk: { t: 'expr', truth: `${a}*${n + 1}`, ans: String(a * (n + 1)) }, tpl: 'upn' }), { steps: 2 + d }); }] },
+5: { q: [d => { const a = pick([-2, -1, 2, 3]), ah = a === -1 ? M : num(a); return Object.assign(TS.qcm({ prompt: `Les solutions sur ℝ de ${Y}′ = ${ah}${Y} sont les fonctions :`, good: `${X} ↦ K${ex(ah + X)}, K ∈ ℝ`, bad: [`${X} ↦ ${ex(ah + X)} + K, K ∈ ℝ`, `${X} ↦ K${ex(X)}, K ∈ ℝ`, `${X} ↦ ${ex(ah + X)} seulement`], explain: 'Théorème du cours : x ↦ K e^(ax).', tpl: 'yay' }), { steps: 1 + d }); }],
+   t: [d => { const a = pick([-2, -1, 2, 3]), y0 = nz(-5, 5), ah = a === -1 ? M : num(a); return Object.assign(TS.trous({ prompt: `La solution de ${Y}′ = ${ah}${Y} telle que ${Y}(0) = ${num(y0)} est ${X} ↦ K${ex(ah + X)} avec K = {0}.`, blanks: [nb(y0)], explain: 'K e⁰ = K.', chk: { t: 'expr', truth: String(y0), ans: String(y0) }, tpl: 'K0' }), { steps: 1 + d }); }] },
+6: { q: [d => { const a = pick([-2, 2, 3, -3]), c = nz(-4, 4), b = -a * c; return Object.assign(TS.qcm({ prompt: `La solution constante de ${Y}′ = ${lin([[a, Y], [b, '']])} est :`, good: `${X} ↦ ${num(c)}`, bad: [`${X} ↦ ${num(-c)}`, `${X} ↦ ${num(b)}`, `${X} ↦ 0`], explain: '−b/a.', chk: { t: 'expr', truth: `-(${b})/(${a})`, vals: [String(c), String(-c), String(b), '0'] }, tpl: 'cst' }), { steps: 1 + d }); }],
+   t: [d => { const a = pick([-2, 2, 3, -3]), c = nz(-4, 4), b = -a * c; let y0; do y0 = c + nz(-4, 4); while (y0 === c); const ah = num(a);
+      return d < 2 ? Object.assign(TS.trous({ prompt: `La solution constante de ${Y}′ = ${lin([[a, Y], [b, '']])} est ${Y} = {0}.`, blanks: [nb(c)], explain: `−b/a = ${num(c)}.`, chk: { t: 'expr', truth: `-(${b})/(${a})`, ans: String(c) }, tpl: 'cst-t' }), { steps: 1 + d })
+        : Object.assign(TS.trous({ prompt: `La solution de ${Y}′ = ${lin([[a, Y], [b, '']])} telle que ${Y}(0) = ${num(y0)} est ${X} ↦ K${ex(ah + X)}${c < 0 ? ' + ' + num(-c) : ' − ' + num(c)} avec K = {0}.`, blanks: [nb(y0 - c)], explain: `K = ${num(y0)} − ${c < 0 ? '(' + num(c) + ')' : num(c)}.`, chk: { t: 'expr', truth: `${y0}-(-(${b})/(${a}))`, ans: String(y0 - c) }, tpl: 'K' }), { steps: 3 }); }] },
+7: { q: [d => Object.assign(TS.qcm({ prompt: `Méthode d'Euler pour ${Y}′ = f(${X}, ${Y}) avec un pas h : on passe de (${v('x')}<sub>k</sub> ; ${v('y')}<sub>k</sub>) à :`, good: `${v('x')}<sub>k + 1</sub> = ${v('x')}<sub>k</sub> + h et ${v('y')}<sub>k + 1</sub> = ${v('y')}<sub>k</sub> + h × ${v('y')}′<sub>k</sub>`, bad: [`${v('y')}<sub>k + 1</sub> = ${v('y')}<sub>k</sub> × h`, `${v('y')}<sub>k + 1</sub> = ${v('y')}<sub>k</sub> + ${v('y')}′<sub>k</sub>`, `${v('y')}<sub>k + 1</sub> = h × ${v('y')}′<sub>k</sub>`], explain: 'Approximation affine : f(x + h) ≈ f(x) + h f′(x).', tpl: 'euler-f' }), { steps: 1 + d })],
+   t: [d => { const a = pick([1, 2, -1]), b = rint(-2, 3), y0 = pick([1, 2]), h = pick([.1, .5]); const y1 = Math.round((y0 + h * (a * y0 + b)) * 1e6) / 1e6;
+      return Object.assign(TS.trous({ prompt: `Euler pour ${Y}′ = ${lin([[a, Y], [b, '']])}, ${Y}(0) = ${y0}, pas h = ${num(h)} : ${v('y')}<sub>1</sub> = {0}`, blanks: [nb(y1)], explain: `${y0} + ${num(h)} × (${num(a)} × ${y0} ${b < 0 ? M : '+'} ${Math.abs(b)}).`, chk: { t: 'expr', truth: `${y0}+${h}*(${a}*${y0}+(${b}))`, ans: String(y1) }, tpl: 'euler' }), { steps: 2 + d }); }] }
+};
+const BANK = [1, 2, 3, 4, 5, 6, 7].map(l => FQ[l]);
+const FINALS = { bronze: () => TS.compose(BANK, 0), argent: () => TS.compose(BANK, 1), or: () => TS.compose(BANK, 2) };
+
+TS.run({ slug: 'le-courant', title: 'Le Courant', chapter: 'Primitives, équations différentielles · chapitre 15', music: 'aventure', scene: SC, finals: FINALS, levels: [
+  { t: 'Lecture inverse', n: 5, gen: q1, rule: `<p>F est une <b>primitive</b> de f sur l'intervalle I si F′ = f sur I : F est solution de l'équation différentielle ${Y}′ = f.</p><p>${pw(X, 'n')} → ${frac(pw(X, 'n + 1'), 'n + 1')} ; ${frac(1, X)} → ln ${X} (sur ]0 ; +∞[) ; ${frac(1, '√' + X)} → 2√${X} ; ${ex(X)} → ${ex(X)} ; cos → sin ; sin → −cos.</p>` },
+  { t: 'Toute la flottille', n: 4, gen: q2, rule: `<p>Deux primitives d'une même fonction sur un intervalle diffèrent d'une constante : si F est une primitive de f, toutes les primitives sont F + k, k ∈ ℝ.</p><p>Une condition F(${v('x')}<sub>0</sub>) = ${v('y')}<sub>0</sub> détermine k.</p>` },
+  { t: 'Terme à terme', n: 4, gen: q3, rule: `<p>Linéarité : si F et G sont des primitives de f et g, alors αF + βG est une primitive de αf + βg.</p>` },
+  { t: 'Formes composées', n: 4, gen: q4, rule: `<p>${v('u')}′${pw(v('u'), 'n')} → ${frac(pw(v('u'), 'n + 1'), 'n + 1')} ; ${frac(v('u') + '′', v('u'))} → ln(${v('u')}) (u &gt; 0) ; ${v('u')}′${ex(v('u'))} → ${ex(v('u'))}. Plus généralement, (v′ ∘ u) × u′ a pour primitive v ∘ u.</p><p>Astuce : faire apparaître u′ par multiplication-division.</p>` },
+  { t: `${Y}′ = a${Y}`, n: 4, gen: q5, rule: `<p>Les solutions sur ℝ de ${Y}′ = a${Y} sont les fonctions ${X} ↦ K${ex('a' + X)}, K ∈ ℝ. Une condition initiale donne une unique solution.</p>` },
+  { t: `${Y}′ = a${Y} + b`, n: 4, gen: q6, rule: `<p>Pour a ≠ 0, la fonction constante ${X} ↦ −${frac('b', 'a')} est une solution particulière ; les solutions sont ${X} ↦ K${ex('a' + X)} − ${frac('b', 'a')}, K ∈ ℝ.</p><p>Si ${Y}<sub>p</sub> est une solution particulière de ${Y}′ = a${Y} + f, les solutions sont ${X} ↦ K${ex('a' + X)} + ${Y}<sub>p</sub>(${X}).</p>` },
+  { t: 'La méthode d\'Euler', n: 3, gen: q7, rule: `<p>Avec un pas h : ${v('x')}<sub>k + 1</sub> = ${v('x')}<sub>k</sub> + h et ${v('y')}<sub>k + 1</sub> = ${v('y')}<sub>k</sub> + h × ${v('y')}′<sub>k</sub>, où ${v('y')}′<sub>k</sub> = a${v('y')}<sub>k</sub> + b pour ${Y}′ = a${Y} + b. Les points forment une ligne brisée proche de la courbe de la solution.</p>` }] });
+
+</script>
+</body>
+</html>
