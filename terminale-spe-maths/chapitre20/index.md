@@ -33,6 +33,11 @@ ds_blancs:
   contenu: Calculs d'intégrales · IPP · Aire · Valeur moyenne
   duree: 4 h
   pdf: terminale-spe-ch20-dsblanc-02.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: terminale-spe-ch20-activites.pdf
+- titre: Activités — Version professeur
+  pdf: terminale-spe-ch20-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1
