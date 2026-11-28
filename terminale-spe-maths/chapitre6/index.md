@@ -24,6 +24,18 @@ dm:
   duree: 1 semaine
   pdf: terminale-spe-ch6-dm-02-sujet.pdf
 dsblancs_published: true
+activites:
+- titre: Activités — Version élève
+  pdf: terminale-spe-ch6-activites.pdf
+- titre: Activités — Version professeur
+  pdf: terminale-spe-ch6-activites-prof.pdf
+ds_blancs:
+- num: 1
+  duree: "55 min"
+  pdf: terminale-spe-ch6-dsblanc-01-sujet.pdf
+- num: 2
+  duree: "55 min"
+  pdf: terminale-spe-ch6-dsblanc-02-sujet.pdf
 ds_published: false
 ds:
 - num: 1

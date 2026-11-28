@@ -33,6 +33,11 @@ ds_blancs:
   contenu: Loi binomiale · Indépendance
   duree: 4 h
   pdf: terminale-spe-ch7-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: terminale-spe-ch7-activites.pdf
+- titre: Activités — Version professeur
+  pdf: terminale-spe-ch7-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1
