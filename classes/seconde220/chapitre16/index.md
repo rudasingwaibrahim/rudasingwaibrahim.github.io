@@ -15,14 +15,6 @@ planches:
   pdf: seconde-ch16-planche-01.pdf
 - num: 2
   pdf: seconde-ch16-planche-02.pdf
-- num: 3
-  pdf: seconde-ch16-planche-03.pdf
-- num: 4
-  pdf: seconde-ch16-planche-04.pdf
-- num: 5
-  pdf: seconde-ch16-planche-05.pdf
-- num: 6
-  pdf: seconde-ch16-planche-06.pdf
 dm:
 - num: 1
   contenu: Probabilités simples · Événement contraire
@@ -32,22 +24,6 @@ dm:
   contenu: Arbre · Tableau · Union et intersection
   duree: "1 semaine"
   pdf: seconde-ch16-dm-02-sujet.pdf
-- num: 3
-  contenu: Exercices · Applications
-  duree: "1 semaine"
-  pdf: seconde-ch16-dm-03-sujet.pdf
-- num: 4
-  contenu: Exercices · Applications
-  duree: "1 semaine"
-  pdf: seconde-ch16-dm-04-sujet.pdf
-- num: 5
-  contenu: Exercices · Applications
-  duree: "1 semaine"
-  pdf: seconde-ch16-dm-05-sujet.pdf
-- num: 6
-  contenu: Exercices · Applications
-  duree: "1 semaine"
-  pdf: seconde-ch16-dm-06-sujet.pdf
 ds_blancs:
 - num: 1
   contenu: Probabilités · Événements · Formules
@@ -57,10 +33,6 @@ ds_blancs:
   contenu: "Loi de probabilité · Réunion et intersection · Arbre"
   duree: "55 min"
   pdf: seconde-ch16-dsblanc-02-sujet.pdf
-- num: 3
-  contenu: Exercices · Synthèse
-  duree: "55 min"
-  pdf: seconde-ch16-dsblanc-03-sujet.pdf
 activites:
 - titre: Activités — Version élève
   pdf: seconde-ch16-activites.pdf
@@ -74,12 +46,6 @@ ds:
   pdf: seconde-ch16-ds-02-sujet.pdf
 - num: 3
   pdf: seconde-ch16-ds-03-sujet.pdf
-- num: 4
-  pdf: seconde-ch16-ds-04-sujet.pdf
-- num: 5
-  pdf: seconde-ch16-ds-05-sujet.pdf
-- num: 6
-  pdf: seconde-ch16-ds-06-sujet.pdf
 python:
 - titre: "Filtrer des données et dresser un tableau croisé"
   fichier: /assets/python/seconde/ch16-filtres-tableau-croise.ipynb
