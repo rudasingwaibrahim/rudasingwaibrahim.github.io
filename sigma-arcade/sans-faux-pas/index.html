@@ -581,6 +581,9 @@ const ax = (a, b, t = X) => (a === 1 ? '' : a === -1 ? M : num(a)) + t + cpl(a, 
 const vecH = (n, c) => `${TS.vec(n)}(${c.map(num).join(' ; ')})`;
 const PI = 'π';
 const bn = (a, b) => `<span class="bn">(<span class="fr bnf"><span>${a}</span><span>${b}</span></span>)</span>`;
+const X0 = sb(X, 0);                                   // x₀ (notation du cours, méthode 1.4)
+const piH = (n, d) => { const q = TS.Q(n, d), a = Math.abs(q.n), c = a === 1 ? PI : a + PI; return (q.n < 0 ? M : '') + (q.d === 1 ? c : frac(c, q.d)); };   // n·π/d
+const piS = (n, d) => `(${n})*pi/(${d})`;            // même valeur pour sympy
 /* ---------- règles (énoncés justes, tirés des erreurs fréquentes des pages de chapitre) ---------- */
 const R = {
   init: "Une récurrence exige l'initialisation : l'hérédité seule ne démontre rien.",
@@ -611,6 +614,8 @@ const R = {
   conv: 'f convexe : courbe au-dessus de ses tangentes et en dessous de ses cordes.',
   f12: 'Le signe de f′ donne les variations ; le signe de f″ donne la convexité.',
   cosq: `cos ${X} = cos a ⇔ ${X} = a + 2kπ ou ${X} = −a + 2kπ (k ∈ ℤ) : deux familles de solutions.`,
+  sinq: `sin ${X} = sin ${X0} ⇔ ${X} = ${X0} + 2kπ ou ${X} = π − ${X0} + 2kπ, k ∈ ℤ (et non −${X0} + 2kπ).`,
+  parite: `Pour conclure que f n'est ni paire ni impaire, on exhibe un contre-exemple : un réel ${X} tel que f(−${X}) ≠ f(${X}) et un réel (éventuellement le même) tel que f(−${X}) ≠ −f(${X}).`,
   lnab: 'ln(ab) = ln a + ln b pour a, b &gt; 0 ; ln(a + b) ne se simplifie pas.',
   lndom: 'On détermine d\'abord le domaine de validité de l\'équation, puis on ne garde que les solutions qui y appartiennent.',
   lnx2: `ln(${pw(X, 2)}) = 2 ln ${X} seulement pour ${X} &gt; 0 ; pour ${X} ≠ 0, ln(${pw(X, 2)}) = 2 ln|${X}|.`,
@@ -843,7 +848,55 @@ const T = {
       { h: `cos ${X} = cos(${c[3]}) ⇔ ${X} = ${c[3]} + 2kπ ou ${X} = −${c[3]} + 2kπ (k ∈ ℤ).`, j: 'deux familles de solutions.' },
       { h: `Dans ]−π ; π] : S = {−${c[3]} ; ${c[3]}}.`, j: 'on garde k = 0 dans chaque famille.' }],
     faults: [{ at: 1, bad: `cos ${X} = cos(${c[3]}) ⇔ ${X} = ${c[3]} + 2kπ (k ∈ ℤ).`, rule: 'cosq', after: { 2: `Dans ]−π ; π] : S = {${c[3]}}.` },
-      alts: [`cos ${X} = cos(${c[3]}) ⇔ ${X} = ${c[3]} + 2kπ ou ${X} = π − ${c[3]} + 2kπ (k ∈ ℤ).`, `cos ${X} = cos(${c[3]}) ⇔ ${X} = ${c[3]} + kπ (k ∈ ℤ).`] }] }; }
+      alts: [`cos ${X} = cos(${c[3]}) ⇔ ${X} = ${c[3]} + 2kπ ou ${X} = π − ${c[3]} + 2kπ (k ∈ ℤ).`, `cos ${X} = cos(${c[3]}) ⇔ ${X} = ${c[3]} + kπ (k ∈ ℤ).`] }] }; },
+() => { // ch17, méthode 1.4 : sin x = sin x₀ ⇔ x = x₀ + 2kπ ou x = π − x₀ + 2kπ (erreur fréquente : −x₀ au lieu de π − x₀)
+  const c = pick([['1/2', frac(1, 2), 1, 6], ['sqrt(2)/2', frac('√2', 2), 1, 4], ['sqrt(3)/2', frac('√3', 2), 1, 3],
+    ['-1/2', M + frac(1, 2), -1, 6], ['-sqrt(2)/2', M + frac('√2', 2), -1, 4], ['-sqrt(3)/2', M + frac('√3', 2), -1, 3]]);
+  const p = c[2], d = c[3], x0 = piH(p, d), mx0 = piH(-p, d);
+  const n2 = d - p, r2 = p > 0 ? n2 : n2 - 2 * d;          // π − x₀ = n2·π/d, ramené dans ]−π ; π]
+  const sol = [p, r2].sort((s, t) => s - t), bads = [-p, p].sort((s, t) => s - t);
+  const Sh = arr => `{${arr.map(k => piH(k, d)).join(' ; ')}}`;
+  const pm = p > 0 ? `π − ${x0}` : `π − (${x0})`, pp = p > 0 ? `π + ${x0}` : `π + (${x0})`;
+  const eqv = fam => `sin ${X} = sin(${x0}) ⇔ ${fam} (k ∈ ℤ).`;
+  return { ch: 17, id: 'sinx0', ctx: `Résoudre dans ]−π ; π] l'équation sin ${X} = ${c[1]}.`,
+    ver: { c: c[0], x0: piS(p, d), sol: sol.map(k => piS(k, d)), bad: bads.map(k => piS(k, d)) },
+    steps: [{ h: `sin(${x0}) = ${c[1]} : ${X0} = ${x0} est une solution.`, j: 'valeur remarquable du cours.' },
+      { h: eqv(`${X} = ${x0} + 2kπ ou ${X} = ${pm} + 2kπ`), j: `méthode 1.4 du cours : sin ${X} = sin ${X0} ⇔ ${X} = ${X0} + 2kπ ou ${X} = π − ${X0} + 2kπ.` },
+      { h: p > 0 ? `${pm} = ${piH(n2, d)} : ${X} = ${x0} + 2kπ ou ${X} = ${piH(n2, d)} + 2kπ.`
+        : `${pm} = ${piH(n2, d)} et ${piH(n2, d)} − 2π = ${piH(r2, d)} : ${X} = ${x0} + 2kπ ou ${X} = ${piH(r2, d)} + 2kπ.`,
+        j: p > 0 ? `π − ${x0} = ${piH(n2, d)}.` : `π + ${piH(1, d)} = ${piH(n2, d)}, puis on retranche 2π (k = −1) pour revenir dans ]−π ; π].` },
+      { h: `Dans ]−π ; π] : S = ${Sh(sol)}.`, j: 'on garde, dans chaque famille, la valeur qui appartient à ]−π ; π].' }],
+    faults: [{ at: 1, bad: eqv(`${X} = ${x0} + 2kπ ou ${X} = ${mx0} + 2kπ`), rule: 'sinq',
+      after: { 2: `Les deux familles sont ${X} = ${x0} + 2kπ et ${X} = ${mx0} + 2kπ.`, 3: `Dans ]−π ; π] : S = ${Sh(bads)}.` },
+      alts: [eqv(`${X} = ${x0} + 2kπ`), eqv(`${X} = ${x0} + 2kπ ou ${X} = ${pp} + 2kπ`)] }],
+    chk: { t: 'sol', eq: `sin(x)-(${c[0]})`, dom: 'Interval.Lopen(-pi,pi)', ans: `FiniteSet(${sol.map(k => piS(k, d)).join(',')})` } }; },
+() => { // ch17, partie 2 (définition 2.2, théorème 2.3) : « ni paire ni impaire » exige des contre-exemples
+  const fam = rint(0, 2), a = nz(-4, 4), b = nz(-4, 4);
+  const tg = (k, m) => [k, Math.abs(k) === 1 ? m : ' ' + m];     // « 3 cos x », « cos x »
+  const cx = 'cos ' + X, sx = 'sin ' + X, P2 = frac(PI, 2);
+  const F = [
+    { f: lin([tg(a, cx), tg(b, sx)]), fmx: lin([tg(a, cx), tg(-b, sx)]), fS: `(${a})*cos(x)+(${b})*sin(x)`, fmxS: `(${a})*cos(x)-(${b})*sin(x)`,
+      j: 'cos(−x) = cos x (cos est paire) et sin(−x) = −sin x (sin est impaire).', eH: P2, eS: 'pi/2', fe: num(b), fme: num(-b), feS: `${b}`, fmeS: `${-b}`,
+      fo: num(-a), fmo: num(-a), mfo: num(a), foS: `${-a}`, fmoS: `${-a}`, mfoS: `${a}` },
+    { f: lin([[1, cx], [b, X]]), fmx: lin([[1, cx], [-b, X]]), fS: `cos(x)+(${b})*x`, fmxS: `cos(x)-(${b})*x`,
+      j: 'cos(−x) = cos x (cos est paire).', eH: PI, eS: 'pi', fe: lin([[-1, ''], [b, PI]]), fme: lin([[-1, ''], [-b, PI]]), feS: `-1+(${b})*pi`, fmeS: `-1-(${b})*pi`,
+      fo: lin([[-1, ''], [b, PI]]), fmo: lin([[-1, ''], [-b, PI]]), mfo: lin([[1, ''], [-b, PI]]), foS: `-1+(${b})*pi`, fmoS: `-1-(${b})*pi`, mfoS: `1-(${b})*pi` },
+    { f: lin([[1, sx], [b, '']]), fmx: lin([[-1, sx], [b, '']]), fS: `sin(x)+(${b})`, fmxS: `-sin(x)+(${b})`,
+      j: 'sin(−x) = −sin x (sin est impaire).', eH: P2, eS: 'pi/2', fe: num(1 + b), fme: num(b - 1), feS: `${1 + b}`, fmeS: `${b - 1}`,
+      fo: num(b), fmo: num(b), mfo: num(-b), foS: `${b}`, fmoS: `${b}`, mfoS: `${-b}` }][fam];
+  const meH = M + F.eH, same = F.eS === 'pi';
+  return { ch: 17, id: 'parite', ctx: `Étudier la parité de la fonction f définie sur ℝ par f(${X}) = ${F.f}.`,
+    ver: { f: F.fS, fmx: F.fmxS, e: F.eS, o: 'pi', fe: F.feS, fme: F.fmeS, fo: F.foS, fmo: F.fmoS, mfo: F.mfoS },
+    steps: [{ h: `f est définie sur ℝ, qui est symétrique par rapport à 0.`, j: 'c\'est la condition préalable de la définition 2.2 du cours.' },
+      { h: `Pour tout réel ${X}, f(−${X}) = ${F.fmx}.`, j: F.j },
+      { h: `Pour ${X} = ${F.eH} : f(${F.eH}) = ${F.fe} et f(${meH}) = ${F.fme}, donc f(${meH}) ≠ f(${F.eH}) : f n'est pas paire.`, j: `un contre-exemple suffit à contredire « pour tout réel ${X}, f(−${X}) = f(${X}) ».` },
+      { h: `Pour ${X} = π${same ? ' (le même réel)' : ''} : f(π) = ${F.fo}, f(−π) = ${F.fmo} et −f(π) = ${F.mfo}, donc f(−π) ≠ −f(π) : f n'est pas impaire.`, j: `un contre-exemple suffit à contredire « pour tout réel ${X}, f(−${X}) = −f(${X}) ».` },
+      { h: 'f n\'est ni paire ni impaire.', j: 'les deux contre-exemples ont été exhibés.' }],
+    faults: [{ at: 2, bad: `f(−${X}) = ${F.fmx} ≠ f(${X}), donc f n'est pas paire.`, rule: 'parite',
+      alts: [`f(−${X}) ≠ f(${X}) pour tout réel ${X}, donc f n'est pas paire.`, `Pour ${X} = ${F.eH} : f(${meH}) ≠ f(${F.eH}), donc f est impaire.`] },
+      { at: 3, bad: `f(−${X}) = ${F.fmx} ≠ −f(${X}), donc f n'est pas impaire.`, rule: 'parite',
+      alts: [`f(−${X}) ≠ f(${X}) pour un réel ${X}, donc f est impaire.`, 'Comme f n\'est pas paire, f est impaire.'] }],
+    chk: { t: 'expr', truth: `(${F.fS}).subs(x,-(${F.eS}))`, ans: F.fmeS } }; }
 ],
 4: [ // Logarithme (ch12, ch13)
 () => { const a = rint(1, 3), s = a + rint(1, 4), c = s * s - a * a;
@@ -1103,7 +1156,7 @@ const NAMES = ['Clara', 'Tom', 'Juliette', 'Kylian', 'Martin', 'Inès', 'Mathis'
 const LV = [
   { t: 'Suites', chs: '1 (récurrence, limites) et 9 (comparaison, convergence monotone, suites géométriques)', rules: ['init', 'hered', 'fi', 'geo', 'mono', 'monolim', 'gend', 'sgeo'] },
   { t: 'Limites et continuité', chs: '2 (limites, asymptotes), 4 (composition, comparaison, croissances comparées) et 8 (continuité, TVI)', rules: ['asy', 'sgn', 'conj', 'poly', 'quot', 'cc', 'comp', 'compo', 'tvi', 'uniq'] },
-  { t: 'Dériver et étudier', chs: '6 (dérivée d\'une composée, variations), 10 (convexité) et 17 (cosinus, sinus)', rules: ['dsqrt', 'dpow', 'dcomp', 'dtrig', 'extr', 'infl', 'conv', 'f12', 'cosq'] },
+  { t: 'Dériver et étudier', chs: '6 (dérivée d\'une composée, variations), 10 (convexité) et 17 (cosinus, sinus : équations, parité, dérivées)', rules: ['dsqrt', 'dpow', 'dcomp', 'dtrig', 'extr', 'infl', 'conv', 'f12', 'cosq', 'sinq', 'parite'] },
   { t: 'Logarithme', chs: '12 (propriétés algébriques, équations, inéquations) et 13 (étude de ln, ln(u), croissances comparées)', rules: ['lnab', 'lndom', 'lnx2', 'lnneg', 'expos', 'dln', 'ccln', 'fi'] },
   { t: 'Primitives et intégrales', chs: '15 (primitives, équations différentielles), 18 et 20 (calcul intégral)', rules: ['prim', 'upn', 'inter', 'ode', 'odec', 'fbfa', 'aire', 'moy', 'ipp', 'prod'] },
   { t: 'Géométrie dans l\'espace', chs: '5 (vecteurs, droites, plans), 11 (produit scalaire) et 14 (représentations paramétriques, équations cartésiennes)', rules: ['copl', 'base', 'sys3', 'nplan', 'dirp', 'eqp', 'par2', 'perp'] },
