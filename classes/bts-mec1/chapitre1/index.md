@@ -31,13 +31,15 @@ dm:
   pdf: bts-mec1-ch1-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
-  contenu: "Format CCF · Devis, indices"
+  contenu: "CCF situation n° 1 · Numération, fractions, puissances"
   duree: "55 min · /10"
   pdf: bts-mec1-ch1-dsblanc-01-sujet.pdf
+  correction: bts-mec1-ch1-dsblanc-01-corrige.pdf
 - num: 2
-  contenu: "Format CCF · Numération, base 60"
+  contenu: "CCF situation n° 1 · Proportions, évolutions, indices"
   duree: "55 min · /10"
   pdf: bts-mec1-ch1-dsblanc-02-sujet.pdf
+  correction: bts-mec1-ch1-dsblanc-02-corrige.pdf
 ds_published: false
 ds:
 - num: 1

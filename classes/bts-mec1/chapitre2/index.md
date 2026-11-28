@@ -31,13 +31,15 @@ dm:
   pdf: bts-mec1-ch2-dm-02-sujet.pdf
 ds_blancs:
 - num: 1
-  contenu: "Format CCF · Fonctions, boucles, conditions"
+  contenu: "CCF situation n° 1 · Types, fonctions, conditions, boucles"
   duree: "55 min · /10"
   pdf: bts-mec1-ch2-dsblanc-01-sujet.pdf
+  correction: bts-mec1-ch2-dsblanc-01-corrige.pdf
 - num: 2
-  contenu: "Format CCF · Bases de données, listes"
+  contenu: "CCF situation n° 1 · Bases de données, listes"
   duree: "55 min · /10"
   pdf: bts-mec1-ch2-dsblanc-02-sujet.pdf
+  correction: bts-mec1-ch2-dsblanc-02-corrige.pdf
 ds_published: false
 ds:
 - num: 1
@@ -56,3 +58,13 @@ erreurs:
 - "En SQL, oublier la condition de jointure ON clé étrangère = clé primaire"
 ---
 {% include cours-cards.html %}
+
+<section class="mec-data" aria-labelledby="t-chantiers">
+<h2 id="t-chantiers">Base de données « chantiers »</h2>
+<p>La base du cours (§ 6.1), à ouvrir avec un utilitaire de base de données (par exemple DB Browser for SQLite), et les mêmes tables au format CSV pour s'entraîner à l'import depuis un tableur.</p>
+<ul>
+  <li><a href="/assets/data/bts-mec1-ch2/chantiers.db" download>chantiers.db</a> — base SQLite : tables <code>fournisseur</code>, <code>materiau</code>, <code>commande</code></li>
+  <li><a href="/assets/data/bts-mec1-ch2/fournisseur.csv" download>fournisseur.csv</a> · <a href="/assets/data/bts-mec1-ch2/materiau.csv" download>materiau.csv</a> · <a href="/assets/data/bts-mec1-ch2/commande.csv" download>commande.csv</a> — les trois tables, une ligne d'en-têtes</li>
+  <li><a href="/assets/data/bts-mec1-ch2/engin.csv" download>engin.csv</a> — liste des engins à importer (planche 2, exercice « Import CSV »)</li>
+</ul>
+</section>
