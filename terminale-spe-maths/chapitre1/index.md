@@ -46,6 +46,12 @@ ds:
   pdf: terminale-spe-ch1-ds-02-sujet.pdf
 - num: 3
   pdf: terminale-spe-ch1-ds-03-sujet.pdf
+python:
+- titre: "Récurrence, conjecture et recherche de seuils"
+  fichier: /assets/python/terminale-spe-maths/ch1-recurrence-seuils.ipynb
+  module: /assets/python/terminale-spe-maths/verif_tspe_ch1.py
+  duree: "35 min"
+  contenu: "Termes d'une suite récurrente · Conjecture d'une formule · Seuil pour une limite infinie · Seuil pour une limite finie · (qⁿ)"
 erreurs:
 - 'Oublier l''initialisation dans un raisonnement par récurrence : l''hérédité seule ne démontre rien'
 - 'Dans l''hérédité, supposer $\mathcal{P}(n)$ vraie pour tout $n$ : on la suppose vraie pour un entier $n$ fixé, et on démontre $\mathcal{P}(n+1)$'

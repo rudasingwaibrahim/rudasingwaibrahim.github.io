@@ -47,6 +47,12 @@ ds:
   pdf: premiere-spe-ch13-ds-02-sujet.pdf
 - num: 3
   pdf: premiere-spe-ch13-ds-03-sujet.pdf
+python:
+- titre: "Construire l'exponentielle par la méthode d'Euler"
+  fichier: /assets/python/premiere-spe-maths/ch13-euler-exponentielle.ipynb
+  module: /assets/python/premiere-spe-maths/verif_1spe_ch13.py
+  duree: "35 min"
+  contenu: "Méthode d'Euler (liste des ordonnées) · Comparaison avec exp · Valeur approchée de e · Précision et rang"
 erreurs:
 - "Écrire $e^{x+y} = e^x + e^y$ : c'est faux, $e^{x+y} = e^x \\times e^y$"
 - "Croire que $(e^x)' = x\\,e^x$ : la fonction exponentielle est sa propre dérivée"

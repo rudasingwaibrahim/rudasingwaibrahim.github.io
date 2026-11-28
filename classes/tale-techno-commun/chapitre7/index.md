@@ -18,6 +18,12 @@ ds:
   pdf: tale-techno/tale-techno-commun-ch7-ds-02-sujet.pdf
 - num: 3
   pdf: tale-techno/tale-techno-commun-ch7-ds-03-sujet.pdf
+python:
+- titre: "Ajustement affine : la méthode des moindres carrés"
+  fichier: /assets/python/tale-techno-commun/ch7-moindres-carres.ipynb
+  module: /assets/python/tale-techno-commun/verif_tle_techno_ch7.py
+  duree: "35 min"
+  contenu: "Nuage de points · Somme des carrés des écarts S(a, b) · Balayage des couples (a ; b) · Point moyen"
 erreurs:
 - "Se tromper sur le point moyen : $G(\\bar x\\,;\\bar y)$, moyennes des $x_i$ et des $y_i$"
 - Oublier de vérifier que la droite de régression passe par le point moyen G

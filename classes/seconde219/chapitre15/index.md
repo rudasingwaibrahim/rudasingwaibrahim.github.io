@@ -44,6 +44,12 @@ ds:
   pdf: seconde-ch15-ds-02-sujet.pdf
 - num: 3
   pdf: seconde-ch15-ds-03-sujet.pdf
+python:
+- titre: "Équation d'une droite passant par deux points"
+  fichier: /assets/python/seconde/ch15-equation-droite.ipynb
+  module: /assets/python/seconde/verif_2nde_ch15.py
+  duree: "30 min"
+  contenu: "Coefficient directeur · Ordonnée à l'origine · Équation réduite ou x = c · Point sur une droite"
 erreurs:
 - "Confondre le coefficient directeur $m$ et l'ordonnée à l'origine $p$ dans $y = mx + p$"
 - Oublier que deux droites non verticales sont parallèles si et seulement si elles ont le même coefficient directeur

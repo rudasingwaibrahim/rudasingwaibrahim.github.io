@@ -46,6 +46,12 @@ ds:
   pdf: terminale-spe-ch7-ds-02-sujet.pdf
 - num: 3
   pdf: terminale-spe-ch7-ds-03-sujet.pdf
+python:
+- titre: "Loi binomiale : simulation, planche de Galton, surréservation"
+  fichier: /assets/python/terminale-spe-maths/ch7-loi-binomiale-galton.ipynb
+  module: /assets/python/terminale-spe-maths/verif_tspe_ch7.py
+  duree: "45 min"
+  contenu: "Épreuve de Bernoulli · Variable binomiale simulée · Planche de Galton · P(X = k), P(X ≤ k) · Surréservation"
 erreurs:
 - 'Utiliser la loi binomiale pour des tirages sans remise : les épreuves ne sont alors pas indépendantes'
 - 'Oublier le coefficient binomial : $P(X=k)=\binom{n}{k}p^k(1-p)^{n-k}$'

@@ -47,6 +47,12 @@ ds:
   pdf: premiere-spe-ch2-ds-02-sujet.pdf
 - num: 3
   pdf: premiere-spe-ch2-ds-03-sujet.pdf
+python:
+- titre: "Pentes des sécantes et nombre dérivé"
+  fichier: /assets/python/premiere-spe-maths/ch2-pentes-secantes.ipynb
+  module: /assets/python/premiere-spe-maths/verif_1spe_ch2.py
+  duree: "30 min"
+  contenu: "Taux de variation · Liste des pentes des sécantes · Liste en compréhension · Conjecture de f′(a)"
 erreurs:
 - "Confondre l'image $f(a)$ et le nombre dérivé $f'(a)$"
 - "Oublier que le coefficient directeur de la tangente en $a$ est $f'(a)$"

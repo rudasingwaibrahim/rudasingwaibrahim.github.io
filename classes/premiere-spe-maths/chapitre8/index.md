@@ -47,6 +47,12 @@ ds:
   pdf: premiere-spe-ch8-ds-02-sujet.pdf
 - num: 3
   pdf: premiere-spe-ch8-ds-03-sujet.pdf
+python:
+- titre: "Approcher π par la méthode d'Archimède"
+  fichier: /assets/python/premiere-spe-maths/ch8-archimede-pi.ipynb
+  module: /assets/python/premiere-spe-maths/verif_1spe_ch8.py
+  duree: "30 min"
+  contenu: "Périmètre du polygone inscrit · Polygone exinscrit · Encadrement de π · Nombre de côtés pour une précision"
 erreurs:
 - "Confondre radians et degrés : $\\pi$ rad correspond à $180^\\circ$, mais $\\pi \\neq 180$"
 - "Se tromper de signe : $\\sin x < 0$ quand le point associé est sous l'axe des abscisses"

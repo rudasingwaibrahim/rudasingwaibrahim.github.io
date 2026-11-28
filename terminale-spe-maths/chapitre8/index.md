@@ -46,6 +46,12 @@ ds:
   pdf: terminale-spe-ch8-ds-02-sujet.pdf
 - num: 3
   pdf: terminale-spe-ch8-ds-03-sujet.pdf
+python:
+- titre: "Dichotomie, méthode de Newton, méthode de la sécante"
+  fichier: /assets/python/terminale-spe-maths/ch8-dichotomie-newton-secante.ipynb
+  module: /assets/python/terminale-spe-maths/verif_tspe_ch8.py
+  duree: "45 min"
+  contenu: "Suite récurrente uₙ₊₁ = f(uₙ) · Dichotomie · Méthode de Newton · Méthode de la sécante · Comparaison"
 erreurs:
 - 'Croire que le TVI donne l''unicité : sans stricte monotonie, l''équation $f(x)=k$ peut avoir plusieurs solutions'
 - Oublier de citer la continuité de $f$ sur $[a;b]$ avant d'appliquer le théorème des valeurs intermédiaires

@@ -46,6 +46,12 @@ ds:
   pdf: tale-techno/tale-techno-commun-ch2-ds-02-sujet.pdf
 - num: 3
   pdf: tale-techno/tale-techno-commun-ch2-ds-03-sujet.pdf
+python:
+- titre: "Construire la courbe de x ↦ aˣ point par point"
+  fichier: /assets/python/tale-techno-commun/ch2-intercaler-points.ipynb
+  module: /assets/python/tale-techno-commun/verif_tle_techno_ch2.py
+  duree: "35 min"
+  contenu: "Moyennes arithmétique et géométrique · Intercaler des points · Courbe de x ↦ 4ˣ · Seuil"
 erreurs:
 - "Confondre $a^{x+y} = a^x \\times a^y$ et $a^{xy}$ : pour un produit de puissances de même base, on additionne les exposants"
 - "Écrire $a^0 = 0$ : pour tout $a > 0$, $a^0 = 1$"

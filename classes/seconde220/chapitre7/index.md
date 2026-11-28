@@ -47,6 +47,12 @@ ds:
   pdf: seconde-ch7-ds-02-sujet.pdf
 - num: 3
   pdf: seconde-ch7-ds-03-sujet.pdf
+python:
+- titre: "Fonctions, images et appartenance à une courbe"
+  fichier: /assets/python/seconde/ch7-fonctions-courbes.ipynb
+  module: /assets/python/seconde/verif_2nde_ch7.py
+  duree: "30 min"
+  contenu: "Image par une fonction · Point sur une courbe · Fonction à plusieurs arguments · Antécédents entiers"
 erreurs:
 - "Confondre image et antécédent : $f(x)$ est l'image de $x$ ; $x$ est un antécédent de $f(x)$"
 - "Oublier qu'un nombre peut avoir plusieurs antécédents, mais un réel n'a qu'une seule image"

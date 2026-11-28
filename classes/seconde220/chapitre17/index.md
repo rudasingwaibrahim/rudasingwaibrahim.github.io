@@ -44,6 +44,12 @@ ds:
   pdf: seconde-ch17-ds-02-sujet.pdf
 - num: 3
   pdf: seconde-ch17-ds-03-sujet.pdf
+python:
+- titre: "Alignement, parallélisme et point d'intersection"
+  fichier: /assets/python/seconde/ch17-alignement-parallelisme.ipynb
+  module: /assets/python/seconde/verif_2nde_ch17.py
+  duree: "35 min"
+  contenu: "Déterminant · Trois points alignés · Droites parallèles · Point d'intersection de deux droites"
 erreurs:
 - "Oublier de vérifier que le point trouvé appartient aux deux droites"
 - "Résoudre $m_1x + p_1 = m_2x + p_2$, puis oublier de calculer l'ordonnée du point d'intersection"

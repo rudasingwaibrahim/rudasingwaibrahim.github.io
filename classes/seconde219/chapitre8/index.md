@@ -47,6 +47,12 @@ ds:
   pdf: seconde-ch8-ds-02-sujet.pdf
 - num: 3
   pdf: seconde-ch8-ds-03-sujet.pdf
+python:
+- titre: "Valeur absolue, distance et intervalles"
+  fichier: /assets/python/seconde/ch8-valeur-absolue-intervalles.ipynb
+  module: /assets/python/seconde/verif_2nde_ch8.py
+  duree: "30 min"
+  contenu: "Valeur absolue · Distance entre deux nombres · Appartenance à un intervalle · |x − a| ≤ r"
 erreurs:
 - "Confondre crochet ouvert et fermé : $5 \\in [2\\,;5]$, mais $5 \\notin [2\\,;5[$"
 - "Oublier que multiplier ou diviser par un nombre négatif change le sens de l'inégalité"

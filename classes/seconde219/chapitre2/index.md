@@ -47,6 +47,12 @@ ds:
   pdf: seconde-ch2-ds-02-sujet.pdf
 - num: 3
   pdf: seconde-ch2-ds-03-sujet.pdf
+python:
+- titre: "Puissances : la première qui dépasse une valeur"
+  fichier: /assets/python/seconde/ch2-premiere-puissance.ipynb
+  module: /assets/python/seconde/verif_2nde_ch2.py
+  duree: "30 min"
+  contenu: "Puissance par une boucle · Première puissance supérieure ou inférieure à une valeur · Placement à 1 %"
 erreurs:
 - "Confondre $a^m \\times a^n = a^{m+n}$ et $(a^m)^n = a^{mn}$"
 - "Écrire $\\sqrt{a + b} = \\sqrt{a} + \\sqrt{b}$ : c'est faux en général ($\\sqrt{9 + 16} = 5 \\neq 7$)"

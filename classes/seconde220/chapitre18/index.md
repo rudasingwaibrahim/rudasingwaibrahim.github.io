@@ -44,6 +44,12 @@ ds:
   pdf: seconde-ch18-ds-02-sujet.pdf
 - num: 3
   pdf: seconde-ch18-ds-03-sujet.pdf
+python:
+- titre: "Simuler des échantillons, observer la loi des grands nombres"
+  fichier: /assets/python/seconde/ch18-simulation-echantillons.ipynb
+  module: /assets/python/seconde/verif_2nde_ch18.py
+  duree: "40 min"
+  contenu: "Simuler un dé · Expérience de Bernoulli · Fréquence dans un échantillon · Écart type des fréquences · Loi des grands nombres"
 erreurs:
 - "Confondre population, échantillon et individu"
 - "Oublier que la fréquence observée sur un échantillon varie d'un échantillon à l'autre (fluctuation d'échantillonnage)"

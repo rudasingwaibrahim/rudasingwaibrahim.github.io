@@ -80,6 +80,12 @@ ds:
   pdf: seconde-ch16-ds-05-sujet.pdf
 - num: 6
   pdf: seconde-ch16-ds-06-sujet.pdf
+python:
+- titre: "Filtrer des données et dresser un tableau croisé"
+  fichier: /assets/python/seconde/ch16-filtres-tableau-croise.ipynb
+  module: /assets/python/seconde/verif_2nde_ch16.py
+  duree: "35 min"
+  contenu: "Filtre avec and, or, not · Tableau croisé d'effectifs · Fréquence conditionnelle et probabilité conditionnelle"
 erreurs:
 - "Confondre issue, événement et univers"
 - "Oublier qu'en équiprobabilité toutes les issues ont la même probabilité"

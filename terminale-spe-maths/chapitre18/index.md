@@ -46,6 +46,12 @@ ds:
   pdf: terminale-spe-ch18-ds-02-sujet.pdf
 - num: 3
   pdf: terminale-spe-ch18-ds-03-sujet.pdf
+python:
+- titre: "Valeurs approchées d'une intégrale"
+  fichier: /assets/python/terminale-spe-maths/ch18-rectangles-trapezes-monte-carlo.ipynb
+  module: /assets/python/terminale-spe-maths/verif_tspe_ch18.py
+  duree: "40 min"
+  contenu: "Rectangles · Milieux · Trapèzes · Comparaison des erreurs · Méthode de Monte-Carlo"
 erreurs:
 - 'Écrire $\displaystyle\int_a^b f(x)\,\mathrm{d}x = F(a) - F(b)$ : c''est $F(b) - F(a)$'
 - 'Confondre intégrale et aire quand $f$ change de signe : l''aire s''obtient en découpant avec la relation de Chasles'

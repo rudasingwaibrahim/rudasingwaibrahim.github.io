@@ -47,6 +47,12 @@ ds:
   pdf: premiere-spe-ch10-ds-02-sujet.pdf
 - num: 3
   pdf: premiere-spe-ch10-ds-03-sujet.pdf
+python:
+- titre: "Sommes de termes et seuils"
+  fichier: /assets/python/premiere-spe-maths/ch10-suites-arithmetiques-geometriques.ipynb
+  module: /assets/python/premiere-spe-maths/verif_1spe_ch10.py
+  duree: "35 min"
+  contenu: "Somme 1 + 2 + … + n · Somme 1 + q + … + qⁿ · Somme de termes géométriques · Seuil · Liste en compréhension"
 erreurs:
 - "Confondre suite arithmétique ($u_{n+1} = u_n + r$) et suite géométrique ($u_{n+1} = q\\,u_n$)"
 - "Se tromper de formule explicite : $u_n = u_0 + nr$ (arithmétique), $u_n = u_0\\,q^n$ (géométrique)"

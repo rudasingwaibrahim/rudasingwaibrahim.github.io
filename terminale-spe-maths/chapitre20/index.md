@@ -46,6 +46,12 @@ ds:
   pdf: terminale-spe-ch20-ds-02.pdf
 - num: 3
   pdf: terminale-spe-ch20-ds-03.pdf
+python:
+- titre: "Calculer ln 2 : l'algorithme de Brouncker"
+  fichier: /assets/python/terminale-spe-maths/ch20-brouncker-ln2.ipynb
+  module: /assets/python/terminale-spe-maths/verif_tspe_ch20.py
+  duree: "30 min"
+  contenu: "Somme de Brouncker · Rectangles sous l'hyperbole · Encadrement de ln 2 · Rang pour une précision"
 erreurs:
 - 'Se tromper de signe dans l''intégration par parties : $\displaystyle\int_a^b u v'' = [uv]_a^b - \int_a^b u'' v$'
 - 'Mal choisir $u$ : dans $\displaystyle\int x\mathrm{e}^x$, on pose $u = x$ (qui se simplifie en dérivant) et $v'' = \mathrm{e}^x$'

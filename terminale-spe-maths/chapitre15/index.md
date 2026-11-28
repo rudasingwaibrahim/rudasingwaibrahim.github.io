@@ -46,6 +46,12 @@ ds:
   pdf: terminale-spe-ch15-ds-02.pdf
 - num: 3
   pdf: terminale-spe-ch15-ds-03.pdf
+python:
+- titre: "Équations différentielles : la méthode d'Euler"
+  fichier: /assets/python/terminale-spe-maths/ch15-methode-euler.ipynb
+  module: /assets/python/terminale-spe-maths/verif_tspe_ch15.py
+  duree: "40 min"
+  contenu: "Euler pour y′ = f · Euler pour y′ = 3y + 5 · Solution exacte · Erreur selon le pas"
 erreurs:
 - 'Oublier la constante : si $F$ est une primitive de $f$ sur $I$, toutes les primitives sont $F + k$ avec $k \in \mathbb{R}$'
 - 'Croire qu''une primitive de $(5x^3-3)^2$ est $\dfrac{(5x^3-3)^3}{3}$ : la forme $u''u^n$ exige le facteur $u''$ (ici $15x^2$)'

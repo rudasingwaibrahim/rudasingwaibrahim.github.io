@@ -46,6 +46,12 @@ ds:
   pdf: terminale-spe-ch12-ds-02-sujet.pdf
 - num: 3
   pdf: terminale-spe-ch12-ds-03-sujet.pdf
+python:
+- titre: "Calculer un logarithme : l'algorithme de Briggs"
+  fichier: /assets/python/terminale-spe-maths/ch12-algorithme-briggs.ipynb
+  module: /assets/python/terminale-spe-maths/verif_tspe_ch12.py
+  duree: "35 min"
+  contenu: "Algorithme de Briggs · ln(x) pour x ≥ 1 par divisions par e · ln(x) pour 0 < x < 1 · Comparaison avec math.log"
 erreurs:
 - 'Écrire $\ln(a+b)=\ln a+\ln b$ : c''est faux, la propriété est $\ln(ab)=\ln a+\ln b$ pour $a,b>0$'
 - 'Oublier le domaine de validité : $\ln(x-1)+\ln(x+1)=\ln 3$ impose $x>1$, donc seule $x=2$ convient'

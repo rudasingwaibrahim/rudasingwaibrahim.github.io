@@ -47,6 +47,12 @@ ds:
   pdf: seconde-ch6-ds-02-sujet.pdf
 - num: 3
   pdf: seconde-ch6-ds-03-sujet.pdf
+python:
+- titre: "Encadrer √2 par balayage"
+  fichier: /assets/python/seconde/ch6-balayage-racine-2.ipynb
+  module: /assets/python/seconde/verif_2nde_ch6.py
+  duree: "35 min"
+  contenu: "Balayage avec un pas donné · Nombre d'étapes · Balayage chiffre par chiffre · Encadrer une autre racine carrée"
 erreurs:
 - Confondre nombre rationnel et nombre irrationnel
 - "Oublier que $\\sqrt{2}$ est irrationnel : $1{,}414$ n'en est qu'une valeur approchée"

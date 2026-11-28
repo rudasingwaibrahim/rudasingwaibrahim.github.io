@@ -46,6 +46,12 @@ ds:
   pdf: terminale-spe-ch3-ds-02-sujet.pdf
 - num: 3
   pdf: terminale-spe-ch3-ds-03-sujet.pdf
+python:
+- titre: "Triangle de Pascal, parties et permutations"
+  fichier: /assets/python/terminale-spe-maths/ch3-pascal-parties-permutations.ipynb
+  module: /assets/python/terminale-spe-maths/verif_tspe_ch3.py
+  duree: "45 min"
+  contenu: "Factorielle · Triangle de Pascal · Parties à 2 éléments · 3-uplets d'éléments distincts · Permutation aléatoire"
 erreurs:
 - 'Confondre $k$-uplets (ordre et répétitions : $n^k$), $k$-uplets d''éléments distincts ($\dfrac{n!}{(n-k)!}$) et combinaisons (sans ordre : $\binom{n}{k}$)'
 - 'Appliquer le principe additif à des ensembles non disjoints : $\#(A\cup B)=\#A+\#B-\#(A\cap B)$'

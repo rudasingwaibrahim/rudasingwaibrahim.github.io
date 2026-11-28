@@ -47,6 +47,12 @@ ds:
   pdf: premiere-spe-ch5-ds-02-sujet.pdf
 - num: 3
   pdf: premiere-spe-ch5-ds-03-sujet.pdf
+python:
+- titre: "La méthode de Monte-Carlo"
+  fichier: /assets/python/premiere-spe-maths/ch5-monte-carlo.ipynb
+  module: /assets/python/premiere-spe-maths/verif_1spe_ch5.py
+  duree: "35 min"
+  contenu: "Point au hasard dans le carré unité · Aire sous la parabole · Estimation de π · Fluctuation des estimations"
 erreurs:
 - "Confondre $P(A \\cap B)$ et $P_A(B)$ : sur un arbre, on multiplie le long d'un chemin pour obtenir $P(A \\cap B)$"
 - "Oublier la définition $P_B(A) = \\dfrac{P(A \\cap B)}{P(B)}$, avec $P(B) \\neq 0$"

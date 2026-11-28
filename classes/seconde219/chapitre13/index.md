@@ -44,6 +44,12 @@ ds:
   pdf: seconde-ch13-ds-02-sujet.pdf
 - num: 3
   pdf: seconde-ch13-ds-03-sujet.pdf
+python:
+- titre: "Moyenne et écart type d'une série"
+  fichier: /assets/python/seconde/ch13-moyenne-ecart-type.ipynb
+  module: /assets/python/seconde/verif_2nde_ch13.py
+  duree: "35 min"
+  contenu: "Accumulateur de somme · Moyenne · Écart type · Compteur · Proportion dans [m − s ; m + s]"
 erreurs:
 - "Confondre moyenne et médiane : la médiane partage la série ordonnée en deux groupes de même effectif"
 - Oublier de pondérer chaque valeur par son effectif dans le calcul de la moyenne

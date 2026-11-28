@@ -46,6 +46,12 @@ ds:
   pdf: terminale-spe-ch9-ds-02-sujet.pdf
 - num: 3
   pdf: terminale-spe-ch9-ds-03-sujet.pdf
+python:
+- titre: "Seuils et valeurs approchées de √2, du nombre d'or et de e"
+  fichier: /assets/python/terminale-spe-maths/ch9-seuils-valeurs-approchees.ipynb
+  module: /assets/python/terminale-spe-maths/verif_tspe_ch9.py
+  duree: "40 min"
+  contenu: "Seuil (suite uₙ₊₁ = 0,85uₙ + 45) · √2 par dichotomie · Nombre d'or · e = 1 + 1/1! + 1/2! + …"
 erreurs:
 - 'Croire qu''une suite croissante converge toujours : il faut aussi qu''elle soit majorée'
 - 'Penser que le théorème de convergence monotone donne la limite : il donne seulement l''existence de la limite'

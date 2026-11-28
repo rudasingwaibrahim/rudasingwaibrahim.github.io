@@ -46,6 +46,12 @@ ds:
   pdf: tale-techno/tale-techno-commun-ch6-ds-02-sujet.pdf
 - num: 3
   pdf: tale-techno/tale-techno-commun-ch6-ds-03-sujet.pdf
+python:
+- titre: "Triangle de Pascal, loi binomiale et espérance"
+  fichier: /assets/python/tale-techno-commun/ch6-pascal-loi-binomiale.ipynb
+  module: /assets/python/tale-techno-commun/verif_tle_techno_ch6.py
+  duree: "45 min"
+  contenu: "Triangle de Pascal · Espérance Σ xᵢpᵢ · Loi binomiale B(n ; p) · Simulation et diagramme en bâtons"
 erreurs:
 - "Confondre espérance et probabilité : $E(X) = np$ est une valeur moyenne, pas une probabilité"
 - Oublier de vérifier que la somme des probabilités vaut 1 avant de calculer E(X)

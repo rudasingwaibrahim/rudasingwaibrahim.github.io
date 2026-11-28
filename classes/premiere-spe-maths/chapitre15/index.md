@@ -47,6 +47,12 @@ ds:
   pdf: premiere-spe-ch15-ds-02-sujet.pdf
 - num: 3
   pdf: premiere-spe-ch15-ds-03-sujet.pdf
+python:
+- titre: "Espérance, variance, écart type et simulation"
+  fichier: /assets/python/premiere-spe-maths/ch15-esperance-variance.ipynb
+  module: /assets/python/premiere-spe-maths/verif_1spe_ch15.py
+  duree: "40 min"
+  contenu: "Espérance · Variance · Écart type · Simulation d'un gain · Moyenne d'un échantillon · Fréquence d'une lettre"
 erreurs:
 - Confondre la variable aléatoire $X$ et ses valeurs $x_i$
 - "Oublier que la somme des probabilités d'une loi vaut 1"

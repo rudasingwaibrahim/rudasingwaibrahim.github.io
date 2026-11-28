@@ -44,6 +44,12 @@ ds:
   pdf: terminale-spe-ch19-ds-01-sujet.pdf
 - num: 2
   pdf: terminale-spe-ch19-ds-02-sujet.pdf
+python:
+- titre: "Inégalité de Bienaymé-Tchebychev et loi des grands nombres"
+  fichier: /assets/python/terminale-spe-maths/ch19-concentration-grands-nombres.ipynb
+  module: /assets/python/terminale-spe-maths/verif_tspe_ch19.py
+  duree: "45 min"
+  contenu: "P(|Sₙ − pn| > √n) et Bienaymé-Tchebychev · Marche aléatoire · Écart type des moyennes · Proportion des écarts · Taille d'échantillon"
 erreurs:
 - 'Inverser le sens : l''inégalité de Bienaymé-Tchebychev majore $P(|X - \mu| \geq \delta)$ par $\dfrac{V(X)}{\delta^2}$'
 - 'Oublier le carré : on divise par $\delta^2$, et la variance $V$ (pas l''écart type $\sigma$) figure au numérateur'

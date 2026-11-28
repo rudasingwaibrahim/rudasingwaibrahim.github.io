@@ -47,6 +47,12 @@ ds:
   pdf: premiere-spe-ch6-ds-02-sujet.pdf
 - num: 3
   pdf: premiere-spe-ch6-ds-03-sujet.pdf
+python:
+- titre: "La méthode de Newton"
+  fichier: /assets/python/premiere-spe-maths/ch6-methode-newton.ipynb
+  module: /assets/python/premiere-spe-maths/verif_1spe_ch6.py
+  duree: "35 min"
+  contenu: "Fonction dérivée · Itérations de Newton · Nombre d'étapes pour une précision · Racine carrée de 2 (Héron)"
 erreurs:
 - Oublier de définir précisément la fonction à optimiser (et son domaine)
 - "Confondre la grandeur à optimiser avec une variable libre : exprimer en fonction d'UNE variable"

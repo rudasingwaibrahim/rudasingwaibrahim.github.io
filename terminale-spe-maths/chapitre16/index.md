@@ -46,6 +46,12 @@ ds:
   pdf: terminale-spe-ch16-ds-02-sujet.pdf
 - num: 3
   pdf: terminale-spe-ch16-ds-03-sujet.pdf
+python:
+- titre: "Sommes de variables aléatoires et échantillons"
+  fichier: /assets/python/terminale-spe-maths/ch16-sommes-variables-aleatoires.ipynb
+  module: /assets/python/terminale-spe-maths/verif_tspe_ch16.py
+  duree: "40 min"
+  contenu: "Binomiale = somme de Bernoulli · Moyenne et variance d'une série · Somme de deux dés · Moyenne d'un échantillon"
 erreurs:
 - 'Utiliser $V(X+Y) = V(X) + V(Y)$ sans indépendance : cette relation est donnée pour des variables indépendantes'
 - 'Écrire $V(aX) = aV(X)$ : on a $V(aX) = a^2V(X)$ et $\sigma(aX) = |a|\sigma(X)$'

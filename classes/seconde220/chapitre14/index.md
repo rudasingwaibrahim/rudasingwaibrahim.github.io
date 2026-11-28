@@ -47,6 +47,12 @@ ds:
 - num: 3
   pdf: seconde-ch14-ds-03-sujet.pdf
   dossier: seconde
+python:
+- titre: "Approcher un maximum, mesurer une courbe"
+  fichier: /assets/python/seconde/ch14-extremum-longueur-courbe.ipynb
+  module: /assets/python/seconde/verif_2nde_ch14.py
+  duree: "40 min"
+  contenu: "Maximum par balayage · Valeur du maximum · Maximum par dichotomie · Longueur approchée d'un quart de cercle"
 erreurs:
 - "Confondre croissante et positive : une fonction peut être croissante et négative"
 - "Mal lire un tableau de variations : les flèches indiquent le sens de variation"
