@@ -49,6 +49,7 @@ ds:
 python:
 - titre: "Multiples, diviseurs et parité"
   fichier: /assets/python/seconde/ch4-multiples-diviseurs.ipynb
+  module: /assets/python/seconde/verif_2nde_ch4.py
   duree: "30 min"
   contenu: "Divisibilité avec % · Plus grand multiple de a inférieur ou égal à b · Diviseurs · Parité"
 erreurs:

@@ -6,7 +6,7 @@
     cours, planches, dm, ds_blancs, ds (champs pdf, correction, num, titre, sub, themes, contenu, duree,
     dossier, fichier, label) ; dossier_pdf ; dm_published, dsblancs_published, ds_published ;
     erreurs ; liens (nom, desc, url, ico, cat) ; jeux (liste de slugs Sigma Arcade, facultatif) ;
-    python (carnets Jupyter ouverts dans Basthon : titre, fichier, duree, contenu ; facultatif) ;
+    python (carnets Jupyter ouverts dans Basthon : titre, fichier, module, duree, contenu ; facultatif) ;
     sections (facultatif, ex. [cours, planches, ds]).
   Règles :
     - un PDF absent du dépôt n'est jamais un lien : carte « En cours de construction » ;
@@ -133,13 +133,16 @@
   </div>
   {%- endif %}
   {%- if page.python and page.python.size > 0 %}
-  {%- comment -%} Carnets Python (front matter python : titre, fichier, duree, contenu) ouverts dans Basthon par ?from=<URL absolue>
-    (https://basthon.fr/documentation/liens/) ; un carnet absent du dépôt n'est jamais un lien. {%- endcomment -%}
+  {%- comment -%} Carnets Python (front matter python : titre, fichier, module, duree, contenu) ouverts dans Basthon par
+    ?from=<URL absolue du carnet>&module=<URL absolue du module de vérification> (https://basthon.fr/documentation/liens/ ;
+    module= est l'usage prévu par https://basthon.fr/documentation/auto-evaluation/, le carnet fait ensuite
+    « from <module> import * »). Un carnet ou un module absent du dépôt n'est jamais un lien. {%- endcomment -%}
   <div class="block">
     <h3 class="block-title">Python <span class="count">dans le navigateur, sans installation</span></h3>
     <ul class="doc-grid">
     {%- for _py in page.python %}
       {%- assign _pyok = false -%}{%- if _sf contains _py.fichier -%}{%- assign _pyok = true -%}{%- endif -%}
+      {%- if _py.module -%}{%- unless _sf contains _py.module -%}{%- assign _pyok = false -%}{%- endunless -%}{%- endif -%}
       <li class="doc doc--py{% unless _pyok %} doc--off{% endunless %}">
         <span class="doc-ico">{% if _pyok %}{% include icon.html n="code" %}{% else %}{% include icon.html n="clock" %}{% endif %}</span>
         <div>
@@ -148,8 +151,11 @@
           {%- if _py.duree %}<span class="doc-meta"><span class="chip chip--gold">{{ _py.duree }}</span></span>{% endif %}
           {%- if _pyok %}
           <span class="doc-actions">
-            <a class="doc-btn" href="https://notebook.basthon.fr/?kernel=python&amp;from={{ site.url }}{{ _py.fichier }}" target="_blank" rel="noopener">{% include icon.html n="open" %}Ouvrir dans Basthon<span class="sr-only"> : {{ _py.titre }} (nouvel onglet)</span></a>
+            <a class="doc-btn" href="https://notebook.basthon.fr/?kernel=python&amp;from={{ site.url }}{{ _py.fichier }}{% if _py.module %}&amp;module={{ site.url }}{{ _py.module }}{% endif %}" target="_blank" rel="noopener">{% include icon.html n="open" %}Ouvrir dans Basthon<span class="sr-only"> : {{ _py.titre }} (nouvel onglet)</span></a>
             <a class="doc-btn doc-btn--alt" href="{{ _py.fichier }}" download>{% include icon.html n="download" %}Télécharger<span class="sr-only"> le carnet {{ _py.titre }} (fichier .ipynb)</span></a>
+            {%- if _py.module %}
+            <a class="doc-btn doc-btn--alt" href="{{ _py.module }}" download>{% include icon.html n="download" %}Vérifications<span class="sr-only"> : fichier des vérifications du carnet {{ _py.titre }} (fichier .py)</span></a>
+            {%- endif %}
           </span>
           {%- else %}
           <span class="doc-state">En cours de construction</span>
@@ -158,7 +164,7 @@
       </li>
     {%- endfor %}
     </ul>
-    <p class="py-help">Le carnet s'ouvre dans Basthon&nbsp;: tu complètes les fonctions, puis les cellules de vérification t'indiquent «&nbsp;✔ juste&nbsp;» ou un conseil. S'il ne s'ouvre pas, télécharge-le, va sur <a href="https://notebook.basthon.fr/" target="_blank" rel="noopener">notebook.basthon.fr</a> et charge-le avec le bouton «&nbsp;Ouvrir&nbsp;».</p>
+    <p class="py-help">Le carnet s'ouvre dans Basthon avec ses vérifications&nbsp;: tu complètes les fonctions, puis chaque cellule de vérification t'indique «&nbsp;✔ Juste&nbsp;» ou un conseil. S'il ne s'ouvre pas, télécharge le carnet et le fichier «&nbsp;Vérifications&nbsp;», va sur <a href="https://notebook.basthon.fr/" target="_blank" rel="noopener">notebook.basthon.fr</a> et ouvre les deux avec le bouton «&nbsp;Ouvrir&nbsp;» (pour le fichier .py, réponds «&nbsp;Installer le module&nbsp;»).</p>
   </div>
   {%- endif %}
   <button class="prog-btn" type="button" data-prog="e" aria-pressed="false"><span class="box" aria-hidden="true"></span>Je me suis entraîné</button>

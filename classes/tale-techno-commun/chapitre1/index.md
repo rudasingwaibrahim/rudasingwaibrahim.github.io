@@ -49,6 +49,7 @@ ds:
 python:
 - titre: "Sommes de termes et symbole Σ"
   fichier: /assets/python/tale-techno-commun/ch1-sommes-suites.ipynb
+  module: /assets/python/tale-techno-commun/verif_tle_techno_ch1.py
   duree: "35 min"
   contenu: "Sommes de carrés, de cubes et d'inverses · Versements réguliers"
 erreurs:

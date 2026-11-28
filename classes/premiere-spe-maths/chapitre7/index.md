@@ -50,6 +50,7 @@ ds:
 python:
 - titre: "Calculer les termes d'une suite"
   fichier: /assets/python/premiere-spe-maths/ch7-generalites-suites.ipynb
+  module: /assets/python/premiere-spe-maths/verif_1spe_ch7.py
   duree: "40 min"
   contenu: "Termes explicites et par récurrence · Liste et somme de termes · Seuil et limite · Fibonacci, Syracuse"
 erreurs:
