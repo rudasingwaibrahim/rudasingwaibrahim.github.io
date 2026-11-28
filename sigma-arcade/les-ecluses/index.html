@@ -558,11 +558,11 @@ const {R,add,sub,mul,div,neg,cmp,eq,val,numH,numS,numT,ri,pick,shuf,E,Var,EX2,la
 const CTX={
  roue:{t:'À la kermesse du lycée, on fait tourner une roue partagée en secteurs colorés. On note X le gain algébrique du joueur, en euros (mise déduite).',
    unit:'€',xl:'Gain x<sub>i</sub> (€)',g:(k,o)=>law(k,Object.assign({lo:-5,hi:12,neg:true,den:20},o)),gain:true},
- barge:{t:'On note X le temps d\'attente, en minutes, d\'un passager de la barge entre Petite-Terre et Grande-Terre.',
+ navette:{t:'On note X le temps d\'attente, en minutes, d\'un passager de la navette fluviale.',
    unit:'min',xl:'Attente x<sub>i</sub> (min)',g:(k,o)=>{const L=law(k,Object.assign({lo:0,hi:6,den:20},o));L.x=L.x.map(x=>mul(x,R(5)));return L}},
- peche:{t:'On note X le nombre de poissons pêchés par Anli lors d\'une sortie en pirogue sur le lagon.',
+ peche:{t:'On note X le nombre de poissons pêchés par Louis lors d\'une sortie en barque sur le lac.',
    unit:'',xl:'Poissons x<sub>i</sub>',g:(k,o)=>law(k,Object.assign({lo:0,hi:6,den:20},o))},
- colis:{t:'On note X le nombre de colis livrés en une heure par Nassim, livreur à scooter.',
+ colis:{t:'On note X le nombre de colis livrés en une heure par Tom, livreur à scooter.',
    unit:'',xl:'Colis x<sub>i</sub>',g:(k,o)=>law(k,Object.assign({lo:3,hi:9,den:20},o))},
  buts:{t:'On note X le nombre de buts marqués par l\'équipe de football du quartier lors d\'un match.',
    unit:'',xl:'Buts x<sub>i</sub>',g:(k,o)=>law(k,Object.assign({lo:0,hi:4,den:20},o))},
@@ -696,7 +696,7 @@ const L2={t:'Les bassins',badge:'Loi de probabilité',
  <p>Chaque probabilité est comprise entre 0 et 1, et leur somme vaut 1&nbsp;: P(X = x<sub>1</sub>) + … + P(X = x<sub>n</sub>) = 1. Dans l'écluse, les largeurs des bassins remplissent tout le canal, de largeur 1.</p>
  <p>P(X ⩽ a) est la somme des P(X = x<sub>i</sub>) pour x<sub>i</sub> ⩽ a, et P(X &gt; a) = 1 − P(X ⩽ a).</p>`,
  qs:[
- ()=>{const c=ctx(['barge','peche','colis','jeu','buts'],4,{test:L=>{const mx=L.p.reduce((a,p)=>cmp(p,a)>0?p:a,R(0));return L.p.filter(p=>eq(p,mx)).length===1&&cmp(L.p[3],mx)!==0}}),L=c.L,j=ri(0,3);
+ ()=>{const c=ctx(['navette','peche','colis','jeu','buts'],4,{test:L=>{const mx=L.p.reduce((a,p)=>cmp(p,a)>0?p:a,R(0));return L.p.filter(p=>eq(p,mx)).length===1&&cmp(L.p[3],mx)!==0}}),L=c.L,j=ri(0,3);
   const mxi=L.p.reduce((b,p,i)=>cmp(p,L.p[b])>0?i:b,0);
   const v=cells(L,{unit:c.unit,plab:(p,i)=>i===j?'?':numS(p),hl:(x,i)=>i===j});
   return{setup:()=>S.view({cells:v,gates:true,scale:sc(L.x),unit:c.unit}),cap0:'Un bassin dont on ne connaît pas la largeur',meta:{law:ser(L)},
@@ -707,7 +707,7 @@ const L2={t:'Les bassins',badge:'Loi de probabilité',
       ...L.x.map((x,i)=>i).filter(i=>i!==mxi&&i!==3).slice(0,1).map(i=>NO(eu(c,L.x[i]),`Compare les probabilités&nbsp;: la plus grande est ${numH(L.p[mxi])}.`,{v:L.x[i]}))],
      {audit:{type:'num',key:'mode'},onOk:async()=>{await closed(L,{unit:c.unit,hl:(x,i)=>i===mxi})}})],
    done:`Hauteur = valeur, largeur = probabilité&nbsp;: la valeur la plus probable est celle du bassin le plus large, pas du plus haut.`}},
- ()=>{const c=ctx(['barge','peche','colis','jeu','roue'],5),L=c.L,j=ri(1,3),a=L.x[j],pl=Pw(L,x=>cmp(x,a)<=0),pg=N.comp(pl);
+ ()=>{const c=ctx(['navette','peche','colis','jeu','roue'],5),L=c.L,j=ri(1,3),a=L.x[j],pl=Pw(L,x=>cmp(x,a)<=0),pg=N.comp(pl);
   return{setup:()=>closed(L,{unit:c.unit}),cap0:'Cinq bassins, une largeur totale de 1',meta:{law:ser(L)},
    prompt:`<p>${c.t} Sa loi est donnée ci-dessous.</p>${tab(L,c)}`,
    parts:[act(`Allumer les bassins de l'événement {X ⩽ ${numH(a)}}`,async()=>{await closed(L,{unit:c.unit,hl:x=>cmp(x,a)<=0,dim:x=>cmp(x,a)>0});cap(`{X ⩽ ${numH(a)}}&nbsp;: ${j+1} bassins allumés, ${numH(a)} compris`)}),
@@ -726,7 +726,7 @@ const L2={t:'Les bassins',badge:'Loi de probabilité',
      `Une face sur six vaut ${frH(1,6)}&nbsp;: ${ord.map(i=>`${sizes[i]} face${sizes[i]>1?'s':''} pour X = ${numH(Vv[i])}`).join(', ')}.`,{hint:'Fractions acceptées, par exemple 1/3.'}),
     act('Vérifier dans l\'écluse',async()=>{S.SND.flow();await go(true);cap(`${ord.map(i=>frH(sizes[i],6)).join(' + ')} = 1`)})],
    done:`Déterminer la loi, c'est donner chaque valeur avec sa probabilité&nbsp;; la somme vaut toujours 1.`}},
- ()=>{const c=ctx(['barge','peche','colis','buts'],3,{den:10}),L=c.L,ps=L.p;
+ ()=>{const c=ctx(['navette','peche','colis','buts'],3,{den:10}),L=c.L,ps=L.p;
   const bad1=[ps[0],ps[1],add(ps[2],R(1,10))],sum1=sum(bad1);
   const q=ri(1,3),bad2=[add(ps[0],R(q,10)),R(-q,10)];/* somme 1 mais une probabilité négative */
   const fix2=[bad2[0],bad2[1],sub(R(1),add(bad2[0],bad2[1]))];
@@ -737,7 +737,7 @@ const L2={t:'Les bassins',badge:'Loi de probabilité',
       NO(T(fix2),`Une probabilité ne peut pas être négative&nbsp;: un bassin n'a pas de largeur −${dec(R(q,10))}, même si la somme vaut bien 1.`,{tag:'neg'})]),{keep:true,audit:{type:'tag',want:'ok'},
       onOk:async()=>{await closed(L,{unit:c.unit});cap(`Toutes les largeurs sont positives et leur somme vaut 1`)}})],
    done:`Une loi de probabilité&nbsp;: des nombres entre 0 et 1, de somme 1.`}},
- ()=>{const c=ctx(['peche','colis','jeu','barge'],4,{test:L=>{const r=add(L.p[1],L.p[2]);return R(r.n*20,r.d).d===1&&((r.n*20/r.d)%3===0)}}),L0=c.L;
+ ()=>{const c=ctx(['peche','colis','jeu','navette'],4,{test:L=>{const r=add(L.p[1],L.p[2]);return R(r.n*20,r.d).d===1&&((r.n*20/r.d)%3===0)}}),L0=c.L;
   const r=add(L0.p[1],L0.p[2]),p1=div(r,R(3)),L={x:L0.x,p:[L0.p[0],p1,mul(R(2),p1),L0.p[3]]};
   return{setup:()=>S.view({cells:cells(L,{unit:c.unit,plab:(p,i)=>i===1?'p':i===2?'2p':numS(p),hl:(x,i)=>i===1||i===2}),gates:true,scale:sc(L.x),unit:c.unit}),cap0:'Deux largeurs inconnues, liées l\'une à l\'autre',meta:{law:ser(L)},
    prompt:`<p>${c.t} On sait que P(X = ${numH(L.x[0])}) = ${numH(L.p[0])}, P(X = ${numH(L.x[3])}) = ${numH(L.p[3])}, et que la valeur ${numH(L.x[2])} est deux fois plus probable que la valeur ${numH(L.x[1])}.</p>${tab(L,c,{hide:{p:[1,2]},qp:'?'})}`,
@@ -754,7 +754,7 @@ const L3={t:'Les vannes',badge:'Espérance',
  <p>Interprétation&nbsp;: sur un grand nombre de répétitions, la moyenne des valeurs obtenues est proche de E(X).</p>`,
  legend:'<span><i style="background:#3d8ae0"></i>bassin&nbsp;: hauteur x<sub>i</sub>, largeur p<sub>i</sub></span><span><i style="background:#e8c766"></i>niveau commun E(X)</span><span><i style="background:#ff6b6b"></i>moyenne non pondérée</span>',
  qs:[
- ()=>{const c=ctx(['barge','peche','colis','buts','jeu'],pick([3,4]),{den:20,test:L=>{const e=E(L);return R(e.n*2,e.d).d===1&&cmp(e,L.x[0])>0}}),L=c.L,e=E(L),step=R(1,2);
+ ()=>{const c=ctx(['navette','peche','colis','buts','jeu'],pick([3,4]),{den:20,test:L=>{const e=E(L);return R(e.n*2,e.d).d===1&&cmp(e,L.x[0])>0}}),L=c.L,e=E(L),step=R(1,2);
   const lo=L.x[0],hi=L.x[L.x.length-1];
   const S0=sc(L.x);let prev=null;
   return{setup:()=>closed(L,{unit:c.unit,scale:S0}),cap0:'Vannes fermées&nbsp;: où l\'eau va-t-elle se stabiliser&nbsp;?',meta:{law:ser(L)},
@@ -766,7 +766,7 @@ const L3={t:'Les vannes',badge:'Espérance',
     ch('Le niveau commun se calcule par&nbsp;:',[OK('x<sub>1</sub>p<sub>1</sub> + x<sub>2</sub>p<sub>2</sub> + … + x<sub>n</sub>p<sub>n</sub>',{tag:'E'}),NO('(x<sub>1</sub> + x<sub>2</sub> + … + x<sub>n</sub>) ÷ n',`Ce serait vrai si tous les bassins avaient la même largeur. Ici, chaque hauteur compte selon sa largeur p<sub>i</sub>.`,{tag:'mean'}),
       NO('p<sub>1</sub> + p<sub>2</sub> + … + p<sub>n</sub>',`Cette somme vaut toujours 1&nbsp;: c'est la largeur totale du canal, pas le niveau.`,{tag:'sum'})],{audit:{type:'tag',want:'E'}})],
    done:`E(X) = ${numH(e)}${c.unit==='€'?NB+'€':c.unit==='min'?NB+'min':''}&nbsp;: le niveau où l'eau se stabilise quand toutes les vannes sont levées.`}},
- ()=>{const c=ctx(['roue','peche','colis','jeu','barge'],3,{test:L=>{const d=abs(sub(meanU(L),E(L)));return cmp(d,R(1,2))>=0&&(L.x[2].n-L.x[0].n)*1>=4}}),L=c.L,e=E(L),mu=meanU(L);
+ ()=>{const c=ctx(['roue','peche','colis','jeu','navette'],3,{test:L=>{const d=abs(sub(meanU(L),E(L)));return cmp(d,R(1,2))>=0&&(L.x[2].n-L.x[0].n)*1>=4}}),L=c.L,e=E(L),mu=meanU(L);
   const mk=[{id:'mu',v:mu,lab:'moyenne : '+(N.short(mu)?numS(mu):'≈ '+dec(N.roundR(mu,2))),col:'#ff6b6b'}];
   return{setup:()=>closed(L,{unit:c.unit,marks:mk}),cap0:`Ligne corail&nbsp;: la moyenne des trois hauteurs, (${L.x.map(numH).join(' + ')}) ÷ 3`,meta:{law:ser(L)},
    prompt:`<p>${c.t} Sa loi est donnée ci-dessous.</p>${tab(L,c)}`,
@@ -793,7 +793,7 @@ const L3={t:'Les vannes',badge:'Espérance',
    parts:[fill('Loi de X&nbsp;:',Lw.x.map((x,i)=>`P(X = ${numH(x)}) = {${i}}`).join('<br>'),Lw.x.map((x,i)=>B(Lw.p[i],'P='+numT(x))),`On compte les issues de chaque bassin et l'on divise par ${I.iss.length}&nbsp;: ${Lw.p.map(numH).join('&nbsp;; ')}.`,{hint:'Fractions acceptées, par exemple 3/8.'}),
     fill(null,`E(X) = {0}`,[B(e,'E')],`E(X) = ${N.sumH(Lw)} = ${numH(e)}.`,{hint:'Valeur exacte&nbsp;: une fraction est acceptée.',onOk:async()=>{await S.view({cells:cells(Lw,{h:()=>e,lab:()=>'',plab:p=>numS(p)}),gates:false,scale:sc(Lw.x),unit:'€',level:{v:e,name:'E(X)',val:numS(e)+' €'}},1300);S.SND.level();cap(`E(X) = ${numH(e)}${NB}€`)}})],
    done:`Loi d'abord, espérance ensuite&nbsp;: E(X) = ${numH(e)}${NB}€.`}},
- ()=>{const c=ctx(['peche','colis','buts','jeu','barge'],3,{den:20,test:L=>L.x[2].n-L.x[1].n>=2}),L0=c.L,j=2,e=E(L0),mult=c.nm==='barge'||c.nm==='jeu'?R(c.nm==='barge'?5:10):R(1);
+ ()=>{const c=ctx(['peche','colis','buts','jeu','navette'],3,{den:20,test:L=>L.x[2].n-L.x[1].n>=2}),L0=c.L,j=2,e=E(L0),mult=c.nm==='navette'||c.nm==='jeu'?R(c.nm==='navette'?5:10):R(1);
   const lo=add(L0.x[1],mult),hi=add(L0.x[2],mul(R(4),mult));
   const S0=sc([L0.x[0],hi,e]);let prev=null;
   const vw=(xj,more)=>{const L={x:[L0.x[0],L0.x[1],xj],p:L0.p};return S.view(Object.assign({cells:cells(L,{unit:c.unit,hl:(x,i)=>i===j,lab:(x,i)=>numS(x)}),gates:true,scale:S0,unit:c.unit,
@@ -894,12 +894,12 @@ const L5={t:'La marée',badge:'Linéarité de l\'espérance',
  qs:[
  ()=>{const c=ctx(['colis'],3,{den:20}),L=c.L,e=E(L),a=R(pick([2,3,4,5])),b=R(pick([8,10,12,15,20])),y=add(mul(a,e),b),S0=linScale(L,a,b);
   return{setup:()=>linView(L,a,b,0,{scale:S0,dur:700}),cap0:`Le niveau commun de X&nbsp;: E(X) = ${numH(e)}`,meta:{law:ser(L),a:numT(a),b:numT(b)},
-   prompt:`<p>${c.t} On a calculé E(X) = ${numH(e)}. Nassim est payé ${numH(b)}${NB}€ de l'heure, plus ${numH(a)}${NB}€ par colis livré&nbsp;: sa paie horaire est Y = ${affH(a,b)}, en euros.</p>`,
+   prompt:`<p>${c.t} On a calculé E(X) = ${numH(e)}. Tom est payé ${numH(b)}${NB}€ de l'heure, plus ${numH(a)}${NB}€ par colis livré&nbsp;: sa paie horaire est Y = ${affH(a,b)}, en euros.</p>`,
    parts:[act(`× ${numH(a)}&nbsp;: chaque colis rapporte ${numH(a)}${NB}€`,async()=>{S.SND.tide();await linView(L,a,b,1,{scale:S0,unit:'€'});cap(`Toutes les hauteurs sont multipliées par ${numH(a)}&nbsp;: le niveau aussi, ${numH(a)} × ${numH(e)} = ${numH(mul(a,e))}`)}),
     act(`+ ${numH(b)}&nbsp;: la marée monte de ${numH(b)}${NB}€`,async()=>{S.SND.tide();await linView(L,a,b,2,{scale:S0,unit:'€'});cap(`Tous les bassins montent de ${numH(b)}&nbsp;: le niveau aussi`)}),
     fill(null,`E(Y) = {0} €`,[B(y,`lin:${numT(a)}:${numT(b)}`)],`E(${affH(a,b)}) = ${numH(a)} × E(X) + ${numH(b)} = ${numH(a)} × ${numH(e)} + ${numH(b)} = ${numH(y)}.`)],
    done:`E(${affH(a,b)}) = ${numH(a)}E(X) + ${numH(b)} = ${EUR(y)}&nbsp;: inutile de recalculer la loi de Y.`}},
- ()=>{const c=ctx(['peche','buts','colis','barge'],3),L=c.L,e=E(L),a=R(pick([2,3,4,5,10])),b=R(pick([-6,-5,-3,-2,1,2,3,4,5,6])),y=add(mul(a,e),b),S0=linScale(L,a,b);
+ ()=>{const c=ctx(['peche','buts','colis','navette'],3),L=c.L,e=E(L),a=R(pick([2,3,4,5,10])),b=R(pick([-6,-5,-3,-2,1,2,3,4,5,6])),y=add(mul(a,e),b),S0=linScale(L,a,b);
   const vs=[y,mul(a,add(e,b)),add(e,b),mul(a,e)];if(!dist(vs)||eq(e,R(1)))return L5.qs[1]();
   return{setup:()=>linView(L,a,b,0,{scale:S0,dur:700}),cap0:`E(X) = ${numH(e)}`,meta:{law:ser(L),a:numT(a),b:numT(b)},
    prompt:`<p>${c.t} On a calculé E(X) = ${numH(e)}. On pose Y = ${affH(a,b)}.</p>`,
@@ -915,7 +915,7 @@ const L5={t:'La marée',badge:'Linéarité de l\'espérance',
    done:`On remonte la transformation à l'envers&nbsp;: retirer b, puis diviser par a.`}},
  ()=>{const L=law(pick([3,4]),{lo:1,hi:4,den:20}),e=E(L),a=R(-1),b=R(4),y=add(mul(a,e),b),S0=linScale(L,a,b);
   return{setup:()=>linView(L,a,b,0,{scale:S0,dur:700}),cap0:`E(X) = ${numH(e)} passagers`,meta:{law:ser(L),a:'-1',b:'4'},
-   prompt:`<p>On note X le nombre de passagers d'un taxi collectif qui quitte la place du marché de Mamoudzou&nbsp;; le taxi a 4 places passagers. On a calculé E(X) = ${numH(e)}. On note Y le nombre de places restées libres&nbsp;: Y = 4 − X.</p>`,
+   prompt:`<p>On note X le nombre de passagers d'un taxi collectif qui quitte la place du marché&nbsp;; le taxi a 4 places passagers. On a calculé E(X) = ${numH(e)}. On note Y le nombre de places restées libres&nbsp;: Y = 4 − X.</p>`,
    parts:[act('× (−1)&nbsp;: retourner les hauteurs',async()=>{S.SND.tide();await linView(L,a,b,1,{scale:S0});cap(`Multiplier par −1 retourne tout sous le niveau 0&nbsp;: E(−X) = −${numH(e)}`)}),
     act('+ 4&nbsp;: la marée monte de 4',async()=>{S.SND.tide();await linView(L,a,b,2,{scale:S0});cap(`E(4 − X) = 4 − ${numH(e)} = ${numH(y)}`)}),
     fill(null,`E(Y) = {0}`,[B(y,'lin:-1:4')],`E(4 − X) = −E(X) + 4 = 4 − ${numH(e)} = ${numH(y)}.`)],
@@ -966,7 +966,7 @@ const L6={t:'La houle',badge:'Variance et écart type',
     ch('Le jeu le plus risqué (aux gains les plus dispersés) est&nbsp;:',[OK(`le jeu ${big}`,{tag:big}),NO(`le jeu ${big==='A'?'B':'A'}`,`Compare les variances&nbsp;: ${numH(vA)} pour A, ${numH(vB)} pour B. La plus grande indique la plus forte dispersion.`,{tag:big==='A'?'B':'A'}),
       NO('aucun&nbsp;: ils ont la même espérance',`Même espérance ne veut pas dire même risque&nbsp;: la variance mesure l'écart au niveau commun.`,{tag:'none'})],{audit:{type:'tag',want:big}})],
    done:`Même niveau commun, houles différentes&nbsp;: le jeu ${big} est plus dispersé, donc plus risqué.`}},
- ()=>{const c=ctx(['barge','peche','colis','buts'],3,{den:10,test:L=>!isSq(Var(L))&&cmp(Var(L),R(0))>0}),L=c.L,v=Var(L),s2=sqrtRound(v,2),un=c.unit||'';
+ ()=>{const c=ctx(['navette','peche','colis','buts'],3,{den:10,test:L=>!isSq(Var(L))&&cmp(Var(L),R(0))>0}),L=c.L,v=Var(L),s2=sqrtRound(v,2),un=c.unit||'';
   const unitN=c.unit==='min'?'minutes':c.nm==='peche'?'poissons':c.nm==='colis'?'colis':c.nm==='buts'?'buts':'unités de X';
   return{setup:()=>closed(L,{unit:c.unit,level:{v:E(L),name:'E(X)',val:numS(E(L))},dur:700}),cap0:'Variance, puis écart type',meta:{law:ser(L)},
    prompt:`<p>${c.t} Sa loi est donnée ci-dessous.</p>${tab(L,c)}`,
@@ -985,7 +985,7 @@ const L6={t:'La houle',badge:'Variance et écart type',
 
 /* ======================= Niveau 7 · L'échelle de marée (échantillons) ======================= */
 const TWO=[
- {t:(x1,x2,p)=>`Lors d'un tir au panier, Kaïs marque ${numH(x2)} points s'il réussit (probabilité ${numH(p)}) et ${numH(x1)} sinon. On note X le nombre de points d'un tir.`,lo:0,hi:0,u:'',a:[2,3],z:true},
+ {t:(x1,x2,p)=>`Lors d'un tir au panier, Axel marque ${numH(x2)} points s'il réussit (probabilité ${numH(p)}) et ${numH(x1)} sinon. On note X le nombre de points d'un tir.`,lo:0,hi:0,u:'',a:[2,3],z:true},
  {t:(x1,x2,p)=>`À un jeu de hasard, on gagne ${numH(x2)}${NB}€ avec la probabilité ${numH(p)}, et sinon on perd ${numH(abs(x1))}${NB}€. On note X le gain algébrique, en euros.`,u:'€',neg:true},
  {t:(x1,x2,p)=>`À un quiz, une bonne réponse rapporte ${numH(x2)} points (probabilité ${numH(p)}), une mauvaise en retire ${numH(abs(x1))}. On note X le nombre de points gagnés sur une question.`,u:'',neg:true}];
 function twoLaw(){const T=pick(TWO),p=pick([R(1,10),R(1,5),R(1,2),R(4,5),R(9,10)]);let x1,x2;
@@ -1116,7 +1116,7 @@ const BRONZE={qcm:[
 trous:[
  {lv:1,f:()=>{const n=pick([2,3]),k=1,c=n===2?2:3,t=n===2?4:8;
    return trous(1,`On lance ${n===2?'deux':'trois'} fois une pièce équilibrée et l'on note X le nombre de faces obtenues. P(X = ${k}) = {0}`,[BL(R(c,t),{extra:[`${c}/${t}`]})],`${c} issues sur ${t} comptent exactement une face&nbsp;: ${frH(c,t)}.`,M({iss:n,key:'nF=1',steps:1}))}},
- {lv:2,f:()=>{const c=ctx(['peche','colis','buts','barge'],3,{den:10}),L=c.L,r=add(L.p[0],L.p[1]);
+ {lv:2,f:()=>{const c=ctx(['peche','colis','buts','navette'],3,{den:10}),L=c.L,r=add(L.p[0],L.p[1]);
    return trous(2,`${c.t}${tb(L,c)}P(X ⩽ ${numH(L.x[1])}) = {0}`,[BL(r)],`On additionne les deux premières probabilités&nbsp;: ${numH(L.p[0])} + ${numH(L.p[1])} = ${numH(r)}.`,M({law:ser(L),key:'P<='+numT(L.x[1]),steps:1}))}},
  {lv:3,f:()=>{const x1=ri(0,3),x2=ri(x1+2,10),p=pick([R(1,10),R(1,5),R(1,2),R(1,4)]),L={x:[R(x1),R(x2)],p:[sub(R(1),p),p]},e=E(L);
    return trous(3,`X prend la valeur ${x1} avec la probabilité ${numH(L.p[0])} et la valeur ${x2} avec la probabilité ${numH(p)}. E(X) = {0}`,[BL(e)],`${x1} × ${numH(L.p[0])} + ${x2} × ${numH(p)} = ${numH(e)}.`,M({law:ser(L),key:'E',steps:1}))}},
@@ -1134,7 +1134,7 @@ const ARGENT={qcm:[
  {lv:1,f:()=>D(()=>{const s=pick([5,6,7,8,9]),c=6-Math.abs(7-s),v=[R(c,36),R(1,11),R(1,36)];
    return qcm(1,`On lance deux dés équilibrés à six faces et l'on note S la somme des numéros. P(S = ${s}) =`,frH(c,36),[frH(1,11),frH(1,36)],
     `${c} couples sur 36 donnent ${s}. Les 11 valeurs de S ne sont pas équiprobables&nbsp;: ${frH(1,11)} est faux.`,M({key:'sum='+s,vals:v,steps:2}))})},
- {lv:2,f:()=>D(()=>{const c=ctx(['peche','colis','barge','jeu'],4),L=c.L,a=L.x[1],v=[Pw(L,x=>cmp(x,a)>0),Pw(L,x=>cmp(x,a)>=0),Pw(L,x=>cmp(x,a)<=0)];
+ {lv:2,f:()=>D(()=>{const c=ctx(['peche','colis','navette','jeu'],4),L=c.L,a=L.x[1],v=[Pw(L,x=>cmp(x,a)>0),Pw(L,x=>cmp(x,a)>=0),Pw(L,x=>cmp(x,a)<=0)];
    return qcm(2,`${c.t}${tb(L,c)}P(X &gt; ${numH(a)}) =`,numH(v[0]),v.slice(1).map(numH),`{X &gt; ${numH(a)}} exclut ${numH(a)}&nbsp;: ${numH(L.p[2])} + ${numH(L.p[3])} = ${numH(v[0])}.`,M({law:ser(L),key:'P>'+numT(a),vals:v,steps:2}))})},
  {lv:3,f:()=>D(()=>{const c=ctx(['roue','grat'],pick([3,4]),{test:L=>E(L).n!==0}),L=c.L,e=E(L),v=[e,meanU(L),sum(L.x.map((x,i)=>mul(abs(x),L.p[i])))];
    return qcm(3,`${c.t}${tb(L,c)}E(X) =`,numH(e),v.slice(1).map(numH),`E(X) = ${N.sumH(L)} = ${numH(e)}. Les valeurs négatives comptent avec leur signe.`,M({law:ser(L),key:'E',vals:v,steps:2}))})},
@@ -1151,9 +1151,9 @@ const ARGENT={qcm:[
 trous:[
  {lv:1,f:()=>{const k=pick([1,2]);
    return trous(1,`On lance trois fois une pièce équilibrée et l'on note X le nombre de faces obtenues. P(X = ${k}) = {0}`,[BL(R(3,8),{extra:['3/8']})],`Trois issues sur huit comptent exactement ${k} face${k>1?'s':''}&nbsp;: ${frH(3,8)}.`,M({iss:3,key:'nF='+k,steps:2}))}},
- {lv:2,f:()=>{const c=ctx(['peche','colis','buts','barge','jeu'],4),L=c.L,j=ri(0,3);
+ {lv:2,f:()=>{const c=ctx(['peche','colis','buts','navette','jeu'],4),L=c.L,j=ri(0,3);
    return trous(2,`${c.t}${tb(L,c,{hide:{p:[j]}})}P(X = ${numH(L.x[j])}) = {0}`,[BL(L.p[j])],`La somme des probabilités vaut 1&nbsp;: 1 − (${L.p.filter((_,i)=>i!==j).map(numH).join(' + ')}) = ${numH(L.p[j])}.`,M({law:ser(L),key:'p:'+j,steps:2}))}},
- {lv:3,f:()=>{const c=ctx(['roue','barge','peche','colis'],3),L=c.L,e=E(L);
+ {lv:3,f:()=>{const c=ctx(['roue','navette','peche','colis'],3),L=c.L,e=E(L);
    return trous(3,`${c.t}${tb(L,c)}E(X) = {0}`,[BL(e)],`E(X) = ${N.sumH(L)} = ${numH(e)}.`,M({law:ser(L),key:'E',steps:2}))}},
  {lv:4,f:()=>{const e=R(-ri(1,9),10),Nn=pick([200,500,1000]);
    return trous(4,`Dans un jeu, le gain algébrique X d'un joueur vérifie E(X) = ${EUR(e)}. Sur ${fmtInt(Nn)} parties, l'organisateur peut espérer gagner environ {0} €.`,[BL(mul(R(-Nn),e))],`Ce que le joueur perd en moyenne, l'organisateur le gagne&nbsp;: ${fmtInt(Nn)} × ${numH(abs(e))} = ${numH(mul(R(-Nn),e))}.`,M({EX:numT(e),N:Nn,key:'org',steps:2}))}},
@@ -1211,7 +1211,7 @@ trous:[
     `Il faut au moins E(Y) = ${a} × ${numH(L.p[1])} + ${b} × ${numH(L.p[2])} = ${numH(e)}.`,M({law:ser(L),key:'E',steps:3}))}},
  {lv:5,f:()=>{const c=ctx(['colis','peche'],3),L=c.L,e=E(L),a=R(pick([2,3,4,5])),b=R(pick([-8,-5,-2,3,6,10])),y=add(mul(a,e),b);
    return trous(5,`${c.t}${tb(L,c)}On pose Y = ${affH(a,b)}. E(X) = {0} et E(Y) = {1}`,[BL(e),BL(y)],`E(X) = ${N.sumH(L)} = ${numH(e)}, puis E(Y) = ${numH(a)} × ${numH(e)} ${b.n>0?'+':'−'} ${numH(abs(b))} = ${numH(y)}.`,M({law:ser(L),keys:['E',`lin:${numT(a)}:${numT(b)}`],steps:3}))}},
- {lv:6,f:()=>{const c=ctx(['barge','peche','colis','buts'],3,{den:10,test:L=>!isSq(Var(L))&&Var(L).n>0}),L=c.L,v=Var(L),s2=sqrtRound(v,2);
+ {lv:6,f:()=>{const c=ctx(['navette','peche','colis','buts'],3,{den:10,test:L=>!isSq(Var(L))&&Var(L).n>0}),L=c.L,v=Var(L),s2=sqrtRound(v,2);
    return trous(6,`${c.t}${tb(L,c)}V(X) = {0} et σ(X) ≈ {1} (arrondi au centième)`,[BL(v),{answers:ans(s2).filter(a=>!/\//.test(a)),size:4}],`E(X) = ${numH(E(L))}, E(X²) = ${numH(EX2(L))}, V(X) = ${numH(EX2(L))} − ${par(E(L))}² = ${numH(v)}, σ(X) = √${numH(v)} ≈ ${numH(s2)}.`,M({law:ser(L),keys:['V','sig2'],steps:4}))}},
  {lv:7,f:()=>{const s=R(pick([1,2,3,5,10])),n=pick([25,100,400]),h=div(mul(R(2),s),R(Math.round(Math.sqrt(n)))),Nn=pick([200,250,400,500]),k=Math.round(Nn*(.93+Math.random()*.05)),pr=R(k,Nn);
    return trous(7,`On simule N = ${Nn} échantillons de taille n = ${n} d'une variable aléatoire d'écart type σ = ${numH(s)}. Alors 2σ/√n = {0}, et si ${k} échantillons vérifient |m − μ| ⩽ 2σ/√n, la proportion de ces cas est {1}`,[BL(h),{answers:ans(pr,[dec(mul(pr,R(100))).replace(/[  ]/g,'')+'%']),size:4}],

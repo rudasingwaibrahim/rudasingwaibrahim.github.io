@@ -7,8 +7,8 @@ const ctx = {}; vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'moteur.js'), 'utf8') + ';this.M = SigmaMoteur;', ctx);
 const M = ctx.M;
 const katex = require(path.join(__dirname, '..', '..', '..', 'assets', 'lib', 'katex', 'katex.min.js'));
-const prenoms = ['Nadia', 'Ali', 'Zaïnaba', 'Anli', 'Fatima', 'Ibrahim', 'Mariama', 'Soilihi', 'Echati', 'Kamal', 'Roukia', 'Moussa'];
-const noms = ['Abdallah', 'Madi', "M'Tsanga", 'Saïd', 'Ahmed', 'Combo', 'Houmadi', 'Ousseni', 'Attoumani', 'Bacar'];
+const prenoms = ['Sophie', 'Paul', 'Anaïs', 'Louis', 'Louise', 'Hugo', 'Margaux', 'Jules', 'Élise', 'Romain', 'Chloé', 'Nathan'];
+const noms = ['Lefèvre', 'Martin', "D'Almeida", 'Bernard', 'Durand', 'Moreau', 'Petit', 'Roux', 'Fontaine', 'Garnier'];
 const out = [], katexErr = [];
 function formules(s) { const p = String(s || '').split('$'); return p.filter((_, i) => i % 2); }
 for (let i = 0; i < N; i++) {

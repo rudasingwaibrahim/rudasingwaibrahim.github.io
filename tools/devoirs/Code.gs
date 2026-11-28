@@ -471,7 +471,7 @@ var SigmaMoteur = (function () {
       melanger: function (t) { t = t.slice(); for (var i = t.length - 1; i > 0; i--) { var j = Math.floor(reel() * (i + 1)); var x = t[i]; t[i] = t[j]; t[j] = x; } return t; }
     };
   }
-  /* Identité normalisée : « Abdou  M'TSANGA » = « abdou m'tsanga » (accents, casse, espaces, tirets). */
+  /* Identité normalisée : « Léa  D'ALMEIDA » = « léa d'almeida » (accents, casse, espaces, tirets). */
   function normIdent(s) {
     return String(s == null ? '' : s).replace(/[’`ʼ]/g, "'").normalize('NFD').replace(/[̀-ͯ]/g, '')
       .toLowerCase().replace(/[^a-z' -]/g, '').replace(/[\s-]+/g, ' ').trim();

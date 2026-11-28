@@ -11,7 +11,7 @@ function get(G, a) { return JSON.parse(G.ctx.doGet({ parameter: { action: a } })
 function installe(opt) { const G = chargerCodeGs(opt); G.ctx.installer(); return G; }
 function reglage(G, col, v) { G.ss.sheets['Réglages']._s.data[7][col] = v; }
 function rendus(G) { return G.ss.sheets['Rendus']._s.data.slice(1).filter(r => r.some(x => x !== '')); }
-const E1 = { nom: 'Abdallah', prenom: 'Zaïnaba', classe: 'Seconde 219' };
+const E1 = { nom: 'Lefèvre', prenom: 'Anaïs', classe: 'Seconde 219' };
 function idem(o, x) { return Object.assign({}, o, x); }
 /* Réponses parfaites à partir du corrigé complet (régénéré côté test, comme le fait le serveur). */
 function parfaites(G, ident, essai) {
@@ -65,7 +65,7 @@ test('sujet : 9 questions, 20 points, aucun élément du corrigé envoyé', () =
   assert.deepStrictEqual(r.sujet.questions.map(q => q.type), ['qcm', 'saisie', 'saisie', 'saisie', 'trous', 'saisie', 'qcm', 'saisie', 'trous']);
 });
 test('sujet déterministe : même élève (casse, accents, espaces) → même sujet', () => {
-  const G = installe(), a = sujet(G, E1), b = sujet(G, { nom: '  ABDALLAH ', prenom: 'zainaba', classe: 'Seconde 219' });
+  const G = installe(), a = sujet(G, E1), b = sujet(G, { nom: '  LEFEVRE ', prenom: 'anais', classe: 'Seconde 219' });
   assert.deepStrictEqual(a.sujet, b.sujet);
 });
 test('sujets différents d\'un élève à l\'autre (voisins de table)', () => {
@@ -94,7 +94,7 @@ test('réponses parfaites → 20/20, ligne écrite dans Rendus', () => {
   const L = rendus(G); assert.strictEqual(L.length, 1);
   const row = L[0];
   assert.ok(row[0] instanceof G.ctx.Date || row[0] instanceof Date); assert.strictEqual(row[1], DEV); assert.strictEqual(row[2], 'Seconde 219');
-  assert.strictEqual(row[3], 'Abdallah'); assert.strictEqual(row[4], 'Zaïnaba'); assert.strictEqual(row[5], 20); assert.strictEqual(row[7], 20);
+  assert.strictEqual(row[3], 'Lefèvre'); assert.strictEqual(row[4], 'Anaïs'); assert.strictEqual(row[5], 20); assert.strictEqual(row[7], 20);
   assert.ok(/^Q1 2\/2 · Q2 2\/2 .* Q9 4\/4$/.test(row[8]), row[8]); assert.strictEqual(row[9], 20.6); assert.strictEqual(row[10], 1);
 });
 test('réponses fausses → 0/20, statuts « faux » ; réponses vides → « vide »', () => {
@@ -133,7 +133,7 @@ test('anti-injection : aucune cellule écrite ne commence par = + - @ sans apost
   rendre(G, E1, 1, { q2: '=IMPORTXML("http://x")', q3: '+1', q4: '-2', q6: '@x', q9: ['=A1', '', '', ''] });
   assert.strictEqual(G.ss.sheets['Rendus']._s.formulaInjection || 0, 0);
   ['=a', '+a', '-a', '@a', '\ta'].forEach(x => assert.strictEqual(G.ctx.cellule(x)[0], "'"));
-  assert.strictEqual(G.ctx.cellule('Abdou'), 'Abdou'); assert.strictEqual(G.ctx.cellule(12), 12);
+  assert.strictEqual(G.ctx.cellule('Dupont'), 'Dupont'); assert.strictEqual(G.ctx.cellule(12), 12);
 });
 
 console.log('Règles');
@@ -144,7 +144,7 @@ test('jeton, devoir, identité, classe, taille, JSON invalide', () => {
   assert.strictEqual(sujet(G, idem(E1, { nom: '=HYPERLINK("x")' })).code, 'IDENTITE');
   assert.strictEqual(sujet(G, idem(E1, { prenom: '' })).code, 'IDENTITE');
   assert.strictEqual(sujet(G, idem(E1, { nom: 'A'.repeat(41) })).code, 'IDENTITE');
-  assert.strictEqual(sujet(G, idem(E1, { nom: "M'Tsanga-Ali" })).ok, true);
+  assert.strictEqual(sujet(G, idem(E1, { nom: "D'Almeida-Roux" })).ok, true);
   assert.strictEqual(sujet(G, idem(E1, { classe: 'Seconde 221' })).code, 'CLASSE');
   assert.strictEqual(post(G, 'x'.repeat(20001)).code, 'TAILLE');
   assert.strictEqual(post(G, '{pas du json').code, 'REQUETE');
@@ -198,12 +198,12 @@ test('réponses trop longues tronquées, clés inconnues ignorées', () => {
 console.log('Courriel récapitulatif');
 function classeRemplie() {
   const G = installe();
-  const el = [['Saïd', 'Nadia', 'Seconde 220'], ['abdou', 'Ali', 'Seconde 220'], ['Madi', 'Ben', 'Seconde 219'], ['Ahmed', 'Zoé', 'Seconde 219'], ['Ahmed', 'Anli', 'Seconde 219']];
+  const el = [['Évrard', 'Lucie', 'Seconde 220'], ['bernard', 'Paul', 'Seconde 220'], ['Martin', 'Ben', 'Seconde 219'], ['Durand', 'Zoé', 'Seconde 219'], ['Durand', 'Alice', 'Seconde 219']];
   el.forEach(([nom, prenom, classe], i) => {
     const id = { nom, prenom, classe }, rep = parfaites(G, id, 1); rep.q7 = (rep.q7 + 1) % 3; if (i % 2) rep.q3 = '0';
     rendre(G, id, 1, rep);
   });
-  const id0 = { nom: 'Madi', prenom: 'Ben', classe: 'Seconde 219' };
+  const id0 = { nom: 'Martin', prenom: 'Ben', classe: 'Seconde 219' };
   rendre(G, id0, 2, fausses(G, id0, 2));
   return G;
 }
@@ -213,15 +213,15 @@ test('tableau trié par classe puis nom, moyennes, question la plus échouée, n
   const m = G.mails[0], h = m.htmlBody;
   assert.strictEqual(m.to, 'prof@example.org'); assert.ok(m.subject.includes('5 rendus'));
   const ordre = [...h.matchAll(/<td [^>]*><b>([A-ZÀ-Ý' -]+)<\/b><\/td><td [^>]*>([^<]+)<\/td>/g)].map(x => x[1] + ' ' + x[2]);
-  assert.deepStrictEqual(ordre, ['AHMED Anli', 'AHMED Zoé', 'MADI Ben', 'ABDOU Ali', 'SAÏD Nadia']);
+  assert.deepStrictEqual(ordre, ['DURAND Alice', 'DURAND Zoé', 'MARTIN Ben', 'BERNARD Paul', 'ÉVRARD Lucie']);
   assert.ok(h.includes('Question la plus échouée : <b>Q7 — Parité d\'une expression</b> (0 % des points obtenus)'), h);
   assert.ok(/moyenne générale : <b>17,2\/20<\/b>/.test(h), h.match(/moyenne[^<]*<b>[^<]*/));
   assert.ok(h.includes('Seconde 219 : 17,3/20 (3)') && h.includes('Seconde 220 : 17/20 (2)'), h);
-  assert.ok(m.body.includes('MADI ; Ben ; 18/20 ; 2 essai(s)'), m.body);
+  assert.ok(m.body.includes('MARTIN ; Ben ; 18/20 ; 2 essai(s)'), m.body);
 });
 test('note retenue = dernière', () => {
   const G = classeRemplie(); G.ss.sheets['Réglages']._s.data[3][1] = 'dernière';
-  G.ctx.envoyerRecapitulatif(DEV, 'x'); assert.ok(G.mails[0].body.includes('MADI ; Ben ; 0/20 ; 2 essai(s)'), G.mails[0].body);
+  G.ctx.envoyerRecapitulatif(DEV, 'x'); assert.ok(G.mails[0].body.includes('MARTIN ; Ben ; 0/20 ; 2 essai(s)'), G.mails[0].body);
 });
 test('noms échappés dans le courriel HTML', () => {
   const G = installe(); rendre(G, { nom: "O'Neil", prenom: 'Anna', classe: 'Seconde 219' }, 1, {});

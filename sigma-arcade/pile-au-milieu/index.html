@@ -742,7 +742,7 @@ LV.push({t:'L\'équilibre',ch:0,rule:RULE_MEAN+`<p>Exemple du cours&nbsp;: 8&nbs
     return l>=3&&l<=19&&Math.max(...x)-Math.min(...x)>=6&&new Set(x).size>=3?shuf(x):null});
   const S0=sum(xs),m=S0/4,p0=m>=11?m-ri(3,5):m+ri(3,5);
   return{meta:{sets:{A:xs}},setup(){scene({xs,ctx:CTX.notes,p:p0})},cap0:'Le plateau penche&nbsp;: le pivot n\'est pas sous le point d\'équilibre',
-   prompt:`Les notes de Naël aux 4 derniers contrôles&nbsp;: ${ser(xs)}. Chaque note est un jeton posé sur le plateau-règle.`,
+   prompt:`Les notes de Clément aux 4 derniers contrôles&nbsp;: ${ser(xs)}. Chaque note est un jeton posé sur le plateau-règle.`,
    parts:[pivotPart('Déplace le pivot jusqu\'à ce que le plateau tienne en équilibre.',{target:m,step:.5,big:1}),
      fill('Calcule la moyenne pour confirmer&nbsp;:',`S = ${xs.join(' + ')} = {0} <br>${XB}&nbsp;= S ÷ 4 = {1}`,
        [B(S0,'Additionne les 4 notes.'),B(m,'Divise la somme par N = 4.',[[S0,'C\'est la somme S&nbsp;: il reste à diviser par N = 4.'],[medQ(xs),'Ça, c\'est la médiane. Ici on veut S ÷ N.']])],{ck:['S:A','mean:A']})],
@@ -879,7 +879,7 @@ LV.push({t:'L\'intrus',ch:1,rule:`<p><b>Valeur extrême.</b> La moyenne utilise 
  ()=>{const r=until(()=>{const x=sorted(Array.from({length:6},()=>5*ri(2,8)));if(new Set(x).size<5)return null;const nv=x[5]+5*ri(4,7);if(nv>80)return null;const y=x.slice(0,5).concat([nv]);const M=meanQ(y),M0=meanQ(x);return nice(M,4)&&nice(M0,4)?{x,y,nv}:null});
   const {x,y,nv}=r;const m0=meanQ(x),M=meanQ(y);const ctx={lo:0,hi:80,gran:5,lab:10};
   return{meta:{sets:{A:x,B:y}},setup(){scene({xs:x,ctx,file:true,sortedFile:true,p:qv(m0)});setTimeout(()=>showMed(x),700)},cap0:`<span class="k">${XB}&nbsp;= ${qfmt(m0)}</span> <span class="m">·</span> <span class="c">Med = ${qfmt(medQ(x))}</span>`,
-   prompt:`Temps de trajet (min) de 6 élèves&nbsp;: ${ser(x)}. On s'aperçoit que le plus long n'est pas ${x[5]} mais <b>${nv} min</b> (barge comprise).`,
+   prompt:`Temps de trajet (min) de 6 élèves&nbsp;: ${ser(x)}. On s'aperçoit que le plus long n'est pas ${x[5]} mais <b>${nv} min</b> (attente du bus comprise).`,
    parts:[choice('Que devient la médiane&nbsp;?',[OK('Elle ne change pas','same'),NO('Elle augmente','Le jeton reste le dernier de la file&nbsp;: les 3e et 4e jetons ne bougent pas.','up'),NO('Elle augmente de '+(nv-x[5])+' ÷ 6','C\'est la moyenne qui augmente ainsi. La coupe ne regarde que les rangs.','frac')],{ck:'medchg:A:B'}),
      act(`Corriger&nbsp;: ${x[5]} → ${nv} min`,async()=>{const t=S.toks.find(u=>u.v===x[5]&&u.slot===6)||S.toks[S.toks.length-1];t.intr=true;SND.whoosh();
        const st=t.v;const o={v:st};await SC.tween(o,'v',nv,900);t.v=nv;SC.animPlat(t,10);SND.thud();await SC.wait(700);await SC.pivotTo(qv(M),1200);await SC.wait(300);SND.bal();
@@ -1150,7 +1150,7 @@ const at={
 /* ======================= OR ======================= */
 const oq={
  missing(){const r=until(()=>{const a=Array.from({length:4},()=>ri(6,17)),m=ri(10,14),l=5*m-sum(a);return l>=0&&l<=20&&l!==m?{a,m,l}:null});const {a,m,l}=r;
-   return QC(1,`Les 4 premières notes de Sami sont ${ser(a)}. Quelle note doit-il obtenir au 5e contrôle pour avoir exactement ${m} de moyenne&nbsp;?`,[String(l),V(l)],numLures(q(l),[[m],[4*m-sum(a)],[meanQ(a)],[q(8*m-sum(a),4)]].filter(([x])=>{const v=typeof x==='number'?x:qv(x);return v>=0&&v<=20})),
+   return QC(1,`Les 4 premières notes de Simon sont ${ser(a)}. Quelle note doit-il obtenir au 5e contrôle pour avoir exactement ${m} de moyenne&nbsp;?`,[String(l),V(l)],numLures(q(l),[[m],[4*m-sum(a)],[meanQ(a)],[q(8*m-sum(a),4)]].filter(([x])=>{const v=typeof x==='number'?x:qv(x);return v>=0&&v<=20})),
    `Il faut un total de 5 × ${m} = ${5*m}. Or ${a.join(' + ')} = ${sum(a)}, donc la 5e note est ${5*m} − ${sum(a)} = ${l}.`,{ck:'missing:5',given:{a,m},steps:3,mx:5*m})},
  merge(){const r=until(()=>{const n1=pick([8,10,12,15,16,20]),n2=pick([5,8,10,12,15]),m1=ri(9,14),m2=ri(9,15);if(m1===m2)return null;const T=n1*m1+n2*m2,N=n1+n2,M=q(T,N);return nice(M,4)&&n1!==n2&&!qeq(M,q(m1+m2,2))?{n1,n2,m1,m2,T,N,M}:null});const {n1,n2,m1,m2,T,N,M}=r;
    return QC(2,`Le groupe A (${n1} élèves) a ${m1} de moyenne&nbsp;; le groupe B (${n2} élèves) a ${m2} de moyenne. La moyenne des ${N} élèves réunis est&nbsp;:`,[Fq(M),V(M)],numLures(M,[[q(m1+m2,2)],[q(T,2)],[q(n1*m2+n2*m1,N)]]),
