@@ -33,6 +33,11 @@ ds_blancs:
   contenu: Vrai/Faux · Cube et plan orthogonal
   duree: 4 h
   pdf: terminale-spe-ch14-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: terminale-spe-ch14-activites.pdf
+- titre: Activités — Version professeur
+  pdf: terminale-spe-ch14-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1
