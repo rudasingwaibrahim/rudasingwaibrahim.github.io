@@ -1,29 +1,28 @@
 ---
-title: BTS MEC — 2e année
+title: BTS MEC — Management économique de la construction — 2e année
 permalink: /classes/bts-mec2/
 classe: bts-mec2
-hero_title: BTS MEC — 2e année
-hero_subtitle: "Mathématiques · Cours, exercices, devoirs et corrigés"
-description: "BTS MEC — 2e année — Cours, exercices et corrigés de mathématiques de M. Rudasingwa, lycée Younoussa Bamana (Mayotte)."
+hero_title: BTS MEC — Management économique de la construction — 2e année
+hero_subtitle: "Management économique de la construction · Mathématiques"
+description: "BTS Management économique de la construction (MEC), 2e année : cours, exercices et devoirs de mathématiques (en construction)."
+programme: "Programme de 2e année = modules de la 2e situation d'évaluation du CCF : probabilités 1, statistique descriptive, équations différentielles (premier ordre), calcul intégral. Documents en construction."
 chapitres:
 - num: 1
-  titre: Rappels probabilités
+  titre: "Probabilités 1"
   url: /classes/bts-mec2/chapitre1/
+  statut: a-venir
 - num: 2
-  titre: Probabilités — lois usuelles
+  titre: "Statistique descriptive"
   url: /classes/bts-mec2/chapitre2/
+  statut: a-venir
 - num: 3
-  titre: Statistique inférentielle
+  titre: "Équations différentielles"
   url: /classes/bts-mec2/chapitre3/
+  statut: a-venir
 - num: 4
-  titre: Configurations géométriques
+  titre: "Calcul intégral"
   url: /classes/bts-mec2/chapitre4/
-- num: 5
-  titre: Calcul vectoriel
-  url: /classes/bts-mec2/chapitre5/
-- num: 6
-  titre: Révisions et préparation BTS
-  url: /classes/bts-mec2/chapitre6/
+  statut: a-venir
 ---
 
 {% include chapter-list.html %}

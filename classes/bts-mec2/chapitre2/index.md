@@ -1,75 +1,19 @@
 ---
-title: "Chapitre 2 — Loi normale & Théorème central limite"
+title: "Chapitre 2 — Statistique descriptive"
 permalink: /classes/bts-mec2/chapitre2/
 hero_title: Chapitre 2
-hero_subtitle: "Loi normale & TLC"
-dossier_pdf: bts-mec2
+hero_subtitle: "Statistique descriptive"
 cours:
 - titre: Cours — Version élève
-  sub: "Espaces de réponse, tableaux à compléter"
+  sub: "Module « Statistique descriptive »"
   pdf: bts-mec2-ch2-cours-eleve.pdf
-  dossier: bts-mec2
 - titre: Cours — Version professeur
-  sub: Corrections complètes incluses
   pdf: bts-mec2-ch2-cours-prof.pdf
-  dossier: bts-mec2
 planches:
 - num: 1
-  themes: Loi normale · Standardisation · Calculs calculatrice
   pdf: bts-mec2-ch2-planche-01.pdf
 - num: 2
-  themes: "TLC · Somme & moyenne empirique · Approximation"
   pdf: bts-mec2-ch2-planche-02.pdf
-dm: []
-ds_blancs:
-- num: 1
-  contenu: CCF Blanc Situation 2 — Loi normale + TLC + tolérance
-  duree: "55 min"
-  pdf: bts-mec2-ch2-dsblanc-01-sujet.pdf
-- num: 2
-  contenu: "CCF Blanc Situation 2 — Loi normale + variance & somme de VA"
-  duree: "55 min"
-  pdf: bts-mec2-ch2-dsblanc-02-sujet.pdf
 ds_published: false
-ds: []
-erreurs:
-- "Oublier de centrer et réduire avant de lire la table : $Z = \\dfrac{X - \\mu}{\\sigma}$"
-- "Confondre l'écart type $\\sigma$ et la variance $\\sigma^2$ dans les énoncés"
-- "Pour la moyenne $\\overline{X}$ d'un échantillon, oublier que son écart type vaut $\\dfrac{\\sigma}{\\sqrt{n}}$ et non $\\sigma$"
-- "Pour une somme $S_n$ de $n$ variables, oublier que son écart type vaut $\\sigma\\sqrt{n}$"
-- Appliquer le théorème central limite sans vérifier que $n \geqslant 30$
-- "Mal retenir les intervalles « un, deux, trois sigmas » : environ 68 %, 95 % et 99,7 % des valeurs"
-- "Confondre $P(X \\leqslant a)$ et $P(X \\geqslant a)$ : penser à la symétrie de la loi normale"
-liens:
-- nom: GeoGebra — Loi normale interactive
-  desc: Visualiser la courbe en cloche et les aires sous la courbe
-  url: "https://www.geogebra.org/m/qmZDh2Bx"
-  ico: 📐
-  cat: calcul
-- nom: GeoGebra Calculatrice Probabilités
-  desc: "Loi normale, Φ(z), quantiles directement en ligne"
-  url: "https://www.geogebra.org/classic#probability"
-  ico: ⚙️
-  cat: calcul
-- nom: GeoGebra — Théorème central limite (TLC)
-  desc: "Simulation : la moyenne empirique tend vers une loi normale"
-  url: "https://www.geogebra.org/m/JNvXFnzM"
-  ico: 📊
-  cat: calcul
-- nom: Khan Academy — Loi normale
-  desc: Cours sur la loi normale et ses propriétés
-  url: "https://fr.khanacademy.org/math/statistics-probability/modeling-distributions-of-data"
-  ico: 📚
-  cat: cours
-- nom: Khan Academy — Théorème central limite
-  desc: "Comprendre le TLC : simulations + démonstrations"
-  url: "https://fr.khanacademy.org/math/statistics-probability/sampling-distributions-library"
-  ico: 📚
-  cat: cours
-- nom: "Bibm@th — Loi normale BTS"
-  desc: Cours BTS synthétique avec exercices corrigés
-  url: "https://www.bibmath.net/ressources/index.php?action=affiche&quoi=bts/analyse/loinormale.html"
-  ico: 📝
-  cat: cours
 ---
 {% include cours-cards.html %}
