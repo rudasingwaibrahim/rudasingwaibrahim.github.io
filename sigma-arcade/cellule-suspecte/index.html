@@ -439,7 +439,7 @@ function perturb(r, c, v) { // leurres de secours (numériques)
 function build(tplIdx, r, wantClean) {
   const tp = TPL[tplIdx];
   for (let tries = 0; tries < 60; tries++) {
-    const S = tp.build(r); S.id = tp.id; S.d = tp.d; S.who = S.who || r.pick(NAMES);
+    const S = tp.build(r); S.id = tp.id; S.d = tp.d; S.who = S.who === null ? null : (S.who || r.pick(NAMES)); // null : feuille sans prénom
     const V0 = evaluate(S);
     // cohérence : aucune valeur non finie dans la feuille juste
     if (Object.values(V0).some(v => typeof v === 'number' && !isFinite(v))) continue;
@@ -1033,6 +1033,70 @@ T(4, 'fiche', 3, r => {
   return S;
 });
 
+/* Comparer des inverses (cours ch. 4, § 2 : décroissante sur chaque intervalle, « Attention ! » f(−1) < f(1) ;
+   § 1.1 : f(−x) = −f(x) ; erreur fréquente : 1/(a + b) ≠ 1/a + 1/b). Aucun prénom : site universel. */
+RULES.R4_sum = { id: 'R4_sum', lv: 4, t: '1/(a + b) n\'est pas égal à 1/a + 1/b : on calcule d\'abord la somme, puis son inverse.' };
+RULES.R4_zero = { id: 'R4_zero', lv: 4, t: 'f′(x) = a − k/x² = 0 ⇔ x² = k/a ; sur ]0 ; +∞[, on garde la solution positive x = √(k/a).' };
+RULES.R4_min = { id: 'R4_min', lv: 4, t: 'Si f′ s\'annule en x<sub>0</sub> en passant de − à +, f est décroissante puis croissante : f admet un minimum en x<sub>0</sub>.' };
+T(4, 'comparer', 1, r => {
+  const POS = [0.25, 0.5, 2, 4, 5, 8, 10], NEG = [-10, -8, -5, -4, -2, -0.5, -0.25];
+  const p2 = r.some(POS, 2).sort((a, b) => a - b), p3 = r.some(NEG, 2).sort((a, b) => a - b), p4 = [r.pick(NEG), r.pick(POS)];
+  const rows = [p2, p3, p4];
+  const S = new Sheet(4, 'comparer', { rows }); S.who = null;
+  S.file = 'comparer-inverses'; S.title = 'Comparer des inverses';
+  S.ctx = 'Sur chaque ligne, u < v. Le tableau donne 1/u, 1/v et la comparaison de 1/u et 1/v, écrite à la main.';
+  S.h('A1', 'u').h('B1', 'v').h('C1', '1/u').h('D1', '1/v').h('E1', 'Comparaison');
+  const GT = '1/u > 1/v', LT = '1/u < 1/v', EQ = '1/u = 1/v', NC = 'on ne peut pas conclure';
+  const sg = x => x < 0 ? 'négatif' : 'positif';
+  rows.forEach(([u, v], i) => {
+    const R = i + 2; S.d('A' + R, u, F.g4).d('B' + R, v, F.g4);
+    S.f('C' + R, '=1/A' + R, F.g4, `1/u = 1 ÷ ${nb(u)}.`, [['=-1/A' + R, 'R4_sign', `u est ${sg(u)} : 1/u est ${sg(u)} aussi (x et 1/x ont le même signe).`]]);
+    S.f('D' + R, '=1/B' + R, F.g4, `1/v = 1 ÷ ${nb(v)}.`, [['=-1/B' + R, 'R4_sign', `v est ${sg(v)} : 1/v est ${sg(v)} aussi (x et 1/x ont le même signe).`]]);
+    const mixed = u < 0 && v > 0;
+    S.m('E' + R, mixed ? LT : GT, null,
+      mixed ? 'u < 0 < v : 1/u est négatif et 1/v est positif, donc 1/u < 1/v. La décroissance ne s\'applique que sur un même intervalle.'
+        : `u et v sont dans ${u > 0 ? ']0 ; +∞[' : ']−∞ ; 0['}, où la fonction inverse est décroissante : elle change l'ordre, donc 1/u > 1/v.`,
+      [mixed ? [GT, 'R4_var', 'La fonction inverse n\'est pas décroissante sur ℝ∖{0} tout entier : u < 0 < v donne 1/u < 0 < 1/v.']
+        : [LT, 'R4_var', `La fonction inverse est décroissante sur ${u > 0 ? ']0 ; +∞[' : ']−∞ ; 0['} : l'ordre s'inverse, 1/u > 1/v.`]],
+      { extra: [EQ, NC] });
+  });
+  const [a, b] = p2;
+  S.l('A5', 'Ligne 2 : 1/(u + v)').f('C5', '=1/(A2+B2)', F.g4, `1/(u + v) = 1 ÷ (${nb(a)} + ${nb(b)}) = 1 ÷ ${nb(a + b)}.`, [['=1/A2+1/B2', 'R4_sum', '1/(u + v) n\'est pas égal à 1/u + 1/v : on calcule d\'abord u + v, puis son inverse.']]);
+  S.l('A6', 'Ligne 2 : 1/u + 1/v').f('C6', '=C2+D2', F.g4, 'On additionne les deux inverses de la ligne 2.', [['=1/(A2+B2)', 'R4_sum', '1/u + 1/v n\'est pas égal à 1/(u + v) : on additionne les deux inverses.']]);
+  S.trap = 'E4';
+  const [m, w] = p4;
+  S.fin('E4', 2, `On donne u = ${nb(m)} et v = ${nb(w)}, de sorte que u < v. Alors :`, { trous: false });
+  S.fin('E2', 1, `On donne u = ${nb(a)} et v = ${nb(b)}, de sorte que 0 < u < v. Alors :`, { trous: false });
+  S.fin('C5', 1, `Pour u = ${nb(a)} et v = ${nb(b)}, 1/(u + v) =`);
+  return S;
+});
+
+/* Étude de f(x) = ax + k/x sur ]0 ; +∞[ (cours ch. 4, § 4, exemple 2 : f′ = a − k/x², signe, minimum). */
+T(4, 'minimum', 3, r => {
+  const [a, k] = r.pick([[1, 4], [1, 9], [1, 16], [2, 8], [2, 18], [3, 12], [4, 1], [4, 9]]);
+  const x0 = Math.sqrt(k / a), f0 = a * x0 + k / x0, fx = `${a === 1 ? '' : a}x + ${k}/x`;
+  const S = new Sheet(4, 'minimum', { a, k }); S.who = null;
+  S.file = 'etude-fonction'; S.title = `Étude de f(x) = ${fx} sur ]0 ; +∞[`;
+  S.ctx = `f(x) = ${fx} sur ]0 ; +∞[, donc f′(x) = ${a} − ${k}/x². La fiche cherche où f′ s'annule, puis les variations et l'extremum de f.`;
+  S.l('A1', 'a').d('B1', a, F.g4).l('A2', 'k').d('B2', k, F.g4);
+  S.l('A3', 'x<sub>0</sub> > 0 tel que f′(x<sub>0</sub>) = 0').f('B3', '=RACINE(B2/B1)', F.g4, 'a − k/x² = 0 ⇔ x² = k/a ; sur ]0 ; +∞[, x<sub>0</sub> = √(k/a).', [
+    ['=RACINE(B1/B2)', 'R4_zero', 'a − k/x² = 0 donne x² = k/a, et non a/k.'],
+    ['=B2/B1', 'R4_zero', 'k/a est la valeur de x<sub>0</sub>² : il reste à prendre la racine carrée.']]);
+  S.l('A4', 'f(x<sub>0</sub>) = a x<sub>0</sub> + k/x<sub>0</sub>').f('B4', '=B1*B3+B2/B3', F.g4, 'On remplace x par x<sub>0</sub> dans f(x) = ax + k/x.', [
+    ['=B1*B3+B2*B3', 'R4_val', 'k/x<sub>0</sub> : on divise k par x<sub>0</sub>, on ne multiplie pas.'],
+    ['=B1-B2/B3^2', 'R4_der', 'a − k/x<sub>0</sub>² est f′(x<sub>0</sub>), qui vaut 0 ; on demande f(x<sub>0</sub>) = a x<sub>0</sub> + k/x<sub>0</sub>.']]);
+  const X = nb(x0), D = `décroissante sur ]0 ; ${X}] puis croissante sur [${X} ; +∞[`;
+  S.l('A5', 'Variations de f').m('B5', D, null, `Pour 0 < x < ${X}, x² < k/a donc f′(x) < 0 ; pour x > ${X}, f′(x) > 0 : f décroît puis croît, avec un minimum en ${X}.`, [
+    [`croissante sur ]0 ; ${X}] puis décroissante sur [${X} ; +∞[`, 'R4_min', `f′(x) est négative avant ${X} et positive après : f décroît puis croît.`],
+    ['décroissante sur ]0 ; +∞[', 'R4_der', `f′(x) = a − k/x² n'est pas toujours négative : le terme a compte, et f′ change de signe en ${X}.`],
+    ['croissante sur ]0 ; +∞[', 'R4_der', `f′(x) = a − k/x² est négative pour 0 < x < ${X} : f n'est pas croissante sur tout ]0 ; +∞[.`]]);
+  S.trap = 'B5';
+  S.fin('B3', 2, `Soit f(x) = ${fx} sur ]0 ; +∞[. La dérivée f′ s'annule en x<sub>0</sub> =`, { steps: 2 });
+  S.fin('B4', 3, `Soit f(x) = ${fx} sur ]0 ; +∞[. Le minimum de f sur ]0 ; +∞[ vaut :`, { steps: 3 });
+  S.fin('B5', 2, `Soit f(x) = ${fx} sur ]0 ; +∞[. Sur ]0 ; +∞[, la fonction f est :`, { trous: false });
+  return S;
+});
+
 /* fractions irréductibles */
 const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; };
 const frac = (n, d) => { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d); n /= g; d /= g; return d === 1 ? nb(n) : nb(n) + '/' + d; };
@@ -1093,7 +1157,7 @@ T(5, 'arbre', 2, r => {
   const ctx = r.pick([['L', 'S', 'le client a réservé en ligne', 'il est satisfait'], ['T', 'H', 'le salarié vient en transport en commun', 'il arrive à l\'heure'], ['K', 'R', 'la sortie se fait en kayak', 'elle est réservée en avance']]);
   const [A, B] = ctx;
   const S = new Sheet(5, 'arbre', { pa, pb, pc, A, B });
-  S.file = 'arbre-pondere'; S.title = 'Arbre pondéré';
+  S.file = 'arbre-pondere'; S.title = 'Arbre pondéré'; S.avoid = ['R5_tot3'];
   S.ctx = `${A} : « ${ctx[2]} » ; ${B} : « ${ctx[3]} ». Hamza a recopié l'arbre dans le tableur.`;
   treeCells(S, A, B, pa, pb, pc);
   S.l('A10', `P(${ov(B)})`).f('B10', '=1-B9', F.d3, `Événement contraire : P(${ov(B)}) = 1 − P(${B}).`, [['=B9', 'R5_node', `C'est P(${B}) ; on veut l'événement contraire.`], ['=1-B7', 'R5_tot', `Il faut partir de P(${B}) tout entier, pas seulement de P(${A} ∩ ${B}).`], ['=1-B3', 'R5_cond', `C'est ${Pc(A, ov(B))}, une probabilité sachant ${A}, pas P(${ov(B)}).`]]);
@@ -1108,7 +1172,7 @@ T(5, 'arbre', 2, r => {
 T(5, 'test', 3, r => {
   const m = r.pick([0.01, 0.02, 0.05, 0.1]), s = r.pick([0.9, 0.95, 0.98, 0.99]), f = r.pick([0.02, 0.03, 0.05, 0.1]);
   const S = new Sheet(5, 'test', { m, s, f });
-  S.file = 'test-depistage'; S.title = 'Test de dépistage';
+  S.file = 'test-depistage'; S.title = 'Test de dépistage'; S.avoid = ['R5_tot3'];
   S.ctx = `M : « la personne est malade » ; T : « le test est positif ». ${nb(m * 100)} % des personnes sont malades ; le test est positif pour ${nb(s * 100)} % des malades et pour ${nb(f * 100)} % des personnes saines.`;
   S.l('A1', 'P(M)').d('B1', m, F.g4);
   S.l('A2', `P(${ov('M')})`).f('B2', '=1-B1', F.g4, 'P(M̄) = 1 − P(M).', [['=B1', 'R5_node', 'Les deux branches issues de la racine ont pour somme 1.']]);
@@ -1146,6 +1210,76 @@ T(5, 'indep', 1, r => {
   S.trap = 'B6';
   S.fin('B6', 1, `On donne P(A) = ${fl(pa)}, P(B) = ${fl(pb)} et P(A ∩ B) = ${fl(pab)}. Que peut-on conclure pour les événements A et B ?`, { trous: false });
   S.fin('B5', 1, `On donne P(A) = ${fl(pa)} et P(A ∩ B) = ${fl(pab)}. P<sub>A</sub>(B) =`);
+  return S;
+});
+
+/* Retour à l'arbre (cours ch. 5, § 1.1 définition, § 1.2 P_A(B̄) = 1 − P_A(B), § 2.3 probabilités totales,
+   § 3.1 indépendance P_A(B) = P(B)). Aucun prénom : site universel. */
+T(5, 'retour', 2, r => {
+  const pa = r.pick([0.2, 0.4, 0.5, 0.6, 0.8]), pb = r.pick([0.2, 0.3, 0.4, 0.6, 0.7, 0.9]);
+  const pc = r.ch(0.3) ? pb : r.pick([0.1, 0.2, 0.3, 0.5, 0.6, 0.8].filter(x => x !== pb));
+  const pab = +(pa * pb).toFixed(6), pnab = +((1 - pa) * pc).toFixed(6);
+  const S = new Sheet(5, 'retour', { pa, pb, pc, pab, pnab }); S.who = null;
+  S.file = 'retour-arbre'; S.title = 'Des intersections aux probabilités conditionnelles';
+  S.ctx = 'On connaît P(A), P(A ∩ B) et P(Ā ∩ B). La feuille calcule les probabilités conditionnelles, P(B), puis teste l\'indépendance de A et B.';
+  S.l('A1', 'P(A)').d('B1', pa, F.g4).l('A2', 'P(A ∩ B)').d('B2', pab, F.g4).l('A3', `P(${ov('A')} ∩ B)`).d('B3', pnab, F.g4);
+  S.l('A4', Pc('A', 'B')).f('B4', '=B2/B1', F.g4, 'P<sub>A</sub>(B) = P(A ∩ B) ÷ P(A) : on restreint l\'univers à A.', [
+    ['=B2*B1', 'R5_cond', 'P<sub>A</sub>(B) = P(A ∩ B) ÷ P(A) : on divise par P(A), on ne multiplie pas.'],
+    ['=B2', 'R5_cond', 'P(A ∩ B) n\'est pas P<sub>A</sub>(B) : il faut encore diviser par P(A).'],
+    ['=B1/B2', 'R5_range', 'Quotient inversé : on obtient un nombre plus grand que 1, ce n\'est pas une probabilité.']]);
+  S.l('A5', Pc('A', ov('B'))).f('B5', '=1-B4', F.g4, `${Pc('A', ov('B'))} = 1 − ${Pc('A', 'B')} : branches issues du même nœud A.`, [
+    ['=1-B2', 'R5_node', `${Pc('A', ov('B'))} = 1 − ${Pc('A', 'B')}, et non 1 − P(A ∩ B).`],
+    ['=1-B1', 'R5_node', `1 − P(A) est P(${ov('A')}) ; ${Pc('A', ov('B'))} est le complément de ${Pc('A', 'B')} sur le nœud A.`]]);
+  S.l('A6', 'P(B)').f('B6', '=B2+B3', F.g4, 'Probabilités totales : P(B) = P(A ∩ B) + P(Ā ∩ B).', [
+    ['=B2*B3', 'R5_tot', 'Les chemins qui mènent à B s\'additionnent : on ne les multiplie pas.'],
+    ['=B2', 'R5_tot', 'Il manque le chemin Ā ∩ B.'],
+    ['=B4+B3', 'R5_tot', `On additionne P(A ∩ B) et P(${ov('A')} ∩ B), et non ${Pc('A', 'B')}.`]]);
+  S.l('A7', Pc('B', 'A')).f('B7', '=B2/B6', F.d3, `${Pc('B', 'A')} = P(A ∩ B) ÷ P(B) : on se restreint à B.`, [
+    ['=B2/B1', 'R5_inv', `C'est ${Pc('A', 'B')} : le « sachant » est inversé.`],
+    ['=B2', 'R5_cond', `P(A ∩ B) n'est pas ${Pc('B', 'A')} : il faut diviser par P(B).`]]);
+  const indep = pb === pc, Y = 'indépendants', NO = 'non indépendants', INC = 'on ne peut pas conclure';
+  S.l('A8', 'A et B sont…').m('B8', indep ? Y : NO, null, indep ? `${Pc('A', 'B')} = P(B) : A et B sont indépendants (et P(A ∩ B) = P(A) × P(B)).` : `${Pc('A', 'B')} ≠ P(B) : A et B ne sont pas indépendants (P(A ∩ B) ≠ P(A) × P(B)).`, [
+    [indep ? NO : Y, 'R5_indep', indep ? `${Pc('A', 'B')} = P(B), c'est-à-dire P(A ∩ B) = P(A) × P(B) : A et B sont indépendants.` : `${Pc('A', 'B')} ≠ P(B), c'est-à-dire P(A ∩ B) ≠ P(A) × P(B) : A et B ne sont pas indépendants.`],
+    [INC, 'R5_indep', 'Les données suffisent : on compare P<sub>A</sub>(B) et P(B), ou P(A ∩ B) et P(A) × P(B).']], { extra: [INC, 'incompatibles'] });
+  S.trap = 'B7';
+  const giv = `P(A) = ${fl(pa)}, P(A ∩ B) = ${fl(pab)} et P(${ov('A')} ∩ B) = ${fl(pnab)}`;
+  S.fin('B4', 1, `On donne P(A) = ${fl(pa)} et P(A ∩ B) = ${fl(pab)}. ${Pc('A', 'B')} =`);
+  S.fin('B6', 2, `On donne ${giv}. P(B) =`, { steps: 2 });
+  S.fin('B7', 3, `On donne ${giv}. ${Pc('B', 'A')} =`, { steps: 3 });
+  return S;
+});
+
+/* Trois machines (cours ch. 5, § 2.4 partition en trois événements, § 2.5 exemple, § 2.6 « vient-il plutôt de… »). */
+RULES.R5_tot3 = { id: 'R5_tot3', lv: 5, t: 'Partition en trois événements : P(B) = P(A<sub>1</sub>) × P<sub>A<sub>1</sub></sub>(B) + P(A<sub>2</sub>) × P<sub>A<sub>2</sub></sub>(B) + P(A<sub>3</sub>) × P<sub>A<sub>3</sub></sub>(B).' };
+T(5, 'machines', 3, r => {
+  const [p1, p2] = r.pick([[0.5, 0.3], [0.4, 0.3], [0.5, 0.2], [0.6, 0.3], [0.4, 0.4], [0.3, 0.5], [0.6, 0.2], [0.3, 0.3]]);
+  const [d1, d2, d3] = r.some([0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08], 3);
+  const S = new Sheet(5, 'machines', { p1, p2, d1, d2, d3 }); S.who = null; S.avoid = ['R5_tot'];
+  const M = i => `M<sub>${i}</sub>`;
+  S.file = 'trois-machines'; S.title = 'Trois machines, une pièce défectueuse';
+  S.ctx = `Une usine produit des pièces avec trois machines ${M(1)}, ${M(2)}, ${M(3)}. D : « la pièce est défectueuse ». Une pièce est choisie au hasard.`;
+  S.l('A1', `P(${M(1)})`).d('B1', p1, F.g4).l('A2', `P(${M(2)})`).d('B2', p2, F.g4);
+  S.l('A3', `P(${M(3)})`).f('B3', '=1-B1-B2', F.g4, `${M(1)}, ${M(2)}, ${M(3)} forment une partition : P(${M(3)}) = 1 − P(${M(1)}) − P(${M(2)}).`, [
+    ['=1-B1', 'R5_node', `Les trois branches issues de la racine ont pour somme 1 : il faut aussi retirer P(${M(2)}).`],
+    ['=B1+B2', 'R5_node', `P(${M(3)}) est ce qui manque pour arriver à 1 : 1 − P(${M(1)}) − P(${M(2)}).`]]);
+  S.l('A4', Pc(M(1), 'D')).d('B4', d1, F.g4).l('A5', Pc(M(2), 'D')).d('B5', d2, F.g4).l('A6', Pc(M(3), 'D')).d('B6', d3, F.g4);
+  [[1, 'B1', 'B4', 'B7'], [2, 'B2', 'B5', 'B8'], [3, 'B3', 'B6', 'B9']].forEach(([i, P, Q, R]) => {
+    S.l('A' + R.slice(1), `P(${M(i)} ∩ D)`).f(R, `=${P}*${Q}`, F.g4, `On multiplie le long du chemin ${M(i)} puis D : P(${M(i)}) × ${Pc(M(i), 'D')}.`, [
+      [`=${P}+${Q}`, 'R5_inter', 'Le long d\'un chemin, on multiplie les probabilités.'],
+      [`=${Q}`, 'R5_inter', `Il faut multiplier ${Pc(M(i), 'D')} par la probabilité de la première branche, P(${M(i)}).`]]);
+  });
+  S.l('A10', 'P(D)').f('B10', '=B7+B8+B9', F.g4, 'Probabilités totales : on additionne les trois chemins qui mènent à D.', [
+    ['=B4+B5+B6', 'R5_tot3', `On a oublié de pondérer par P(${M(1)}), P(${M(2)}) et P(${M(3)}).`],
+    ['=B7+B8', 'R5_tot3', `Il manque le chemin ${M(3)} ∩ D : la partition compte trois événements.`],
+    ['=B7*B8*B9', 'R5_tot3', 'Les chemins qui mènent à D s\'additionnent.']]);
+  S.l('A11', Pc('D', M(1))).f('B11', '=B7/B10', F.d3, `${Pc('D', M(1))} = P(${M(1)} ∩ D) ÷ P(D) : on se restreint aux pièces défectueuses.`, [
+    ['=B7/B1', 'R5_inv', `C'est ${Pc(M(1), 'D')} : le « sachant » est inversé.`],
+    ['=B7', 'R5_cond', `P(${M(1)} ∩ D) n'est pas ${Pc('D', M(1))} : il faut diviser par P(D).`]]);
+  S.trap = 'B10';
+  const giv = `P(${M(1)}) = ${fl(p1)}, P(${M(2)}) = ${fl(p2)}, ${Pc(M(1), 'D')} = ${fl(d1)}, ${Pc(M(2), 'D')} = ${fl(d2)} et ${Pc(M(3), 'D')} = ${fl(d3)}`;
+  S.fin('B3', 1, `Trois machines ${M(1)}, ${M(2)}, ${M(3)} produisent toutes les pièces d'une usine, avec P(${M(1)}) = ${fl(p1)} et P(${M(2)}) = ${fl(p2)}. P(${M(3)}) =`);
+  S.fin('B10', 2, `Trois machines se partagent la production : ${giv}. P(D) =`, { steps: 3 });
+  S.fin('B11', 3, `Trois machines se partagent la production : ${giv}. Une pièce est défectueuse ; la probabilité qu'elle vienne de ${M(1)}, ${Pc('D', M(1))}, vaut :`, { steps: 4 });
   return S;
 });
 
@@ -1397,7 +1531,7 @@ function open(i) {
   G.st = { step: 'loc', tries: 0, first: true, sel: null, msg: null, fixTries: 0, ruleTries: 0, values: Object.assign({}, S.disp), fixed: false };
   $('fname').innerHTML = CS.typo(`${S.title}<small>${S.file}.tab</small>`);
   $('brief').innerHTML = CS.typo(S.ctx);
-  $('who').innerHTML = `Saisie par <b>${S.who}</b>, stagiaire`;
+  $('who').innerHTML = S.who ? `Saisie par <b>${S.who}</b>, stagiaire` : 'Saisie par le stagiaire';
   grid(); tabs(); select(null); panel(); acts();
   const old = $('win').querySelector('.stamp'); if (old) old.remove();
 }
@@ -1528,7 +1662,15 @@ function acts() {
 }
 /* ---------- dossier ---------- */
 const MK = mood => SK && SK.maki ? `<span class="mk">${SK.maki(mood)}</span>` : '<span></span>';
-function fb(kind, title, body) { G.st.msg = { kind, title, body }; }
+function fb(kind, title, body, hint) { G.st.msg = { kind, title, body, enc: { ok: kind === 'ok', hint: hint || 'conseil', html: '' } }; }
+/* encouragements (module commun, via le kit) : une phrase par réponse, sous le message ;
+   le panneau est redessiné souvent : la phrase est tirée une seule fois, puis remise telle quelle */
+function encLine() {
+  const m = G.st.msg, f = m && m.enc && $('panel').querySelector(':scope > .fb'); if (!f) return;
+  if (m.enc.html) { f.insertAdjacentHTML('afterend', m.enc.html); return; }
+  try { if (SK && SK.encourage) SK.encourage(m.enc.ok, m.enc.ok ? { after: f } : { after: f, hint: m.enc.hint }); } catch (e) { }
+  const l = f.nextElementSibling; if (l && l.classList.contains('enc-line')) m.enc.html = l.outerHTML.replace(/ enc-pop\b/, '');
+}
 function panel() {
   const S = G.S, st = G.st, L = CS.LEVELS[G.lv - 1];
   const steps = ['Localiser', 'Corriger', 'Nommer la règle'], idx = { loc: 0, fix: 1, rule: 2, done: 3 }[st.step];
@@ -1549,7 +1691,7 @@ function panel() {
   const ok = G.res.filter(x => x === true).length;
   h += `<p class="score">Feuille ${G.i + 1} sur ${G.sheets.length} · réussies du premier coup : ${ok}</p>`;
   h += `<details class="cours"><summary>Rappels du cours · niveau ${G.lv}</summary><ul>${Object.values(CS.RULES).filter(r => r.lv === G.lv).map(r => `<li>${r.t}</li>`).join('')}</ul></details>`;
-  $('panel').innerHTML = CS.typo(h);
+  $('panel').innerHTML = CS.typo(h); encLine();
   if (st.step === 'fix' || st.step === 'rule') $('panel').querySelectorAll('.opt').forEach(b => b.onclick = () => (st.step === 'fix' ? pickFix : pickRule)(+b.dataset.k, b));
   if (st.step === 'fix' && st.mode === 'saisie') $('tf').onsubmit = e => { e.preventDefault(); typed($('tin').value); };
   const nx = $('nx'); if (nx) nx.onclick = next;
@@ -1570,9 +1712,9 @@ function accuse(ref) {
   else if (S.bad && S.down.includes(ref)) { t = `${ref} a une formule juste…`; b = `<br>…mais elle utilise une cellule fausse : elle hérite de l'erreur. Remonte les flèches jusqu'à la source.`; arrows(precs(ref).map((p, k) => [p, ref, COLV[k % 4]])); }
   else { t = `${ref} est juste.`; b = '<br>' + (S.cells[ref].w || ''); mark(ref, 'okc'); }
   if (st.tries >= 2) {
-    if (!S.bad) { fb('ko', t, b + `<br><b>Cette feuille ne contenait aucune erreur</b> : il fallait la valider. ${S.cells[S.trap].w}`); finish(); return; }
+    if (!S.bad) { fb('ko', t, b + `<br><b>Cette feuille ne contenait aucune erreur</b> : il fallait la valider. ${S.cells[S.trap].w}`, 'correction'); finish(); return; }
     mark(S.bad, 'fault'); select(S.bad);
-    fb('ko', t, b + `<br>La source était <b>${S.bad}</b> : ${S.why}`); toFix(); return;
+    fb('ko', t, b + `<br>La source était <b>${S.bad}</b> : ${S.why}`, 'correction'); toFix(); return;
   }
   fb('ko', t, b); panel(); acts();
 }
@@ -1586,16 +1728,16 @@ function pickFix(k, btn) {
   const S = G.S, st = G.st;
   if (k === S.ans) { btn.classList.add('ok'); sfx.ok(); fb('ok', `Oui : ${S.bad} doit afficher ${S.fix.s}.`, ''); return toRule(); }
   st.fixTries++; st.first = false; sfx.ko();
-  if (st.fixTries >= 2) { fb('ko', `La bonne valeur est ${S.fix.s}.`, '<br>' + (S.cells[S.bad].w || '')); return toRule(); }
-  fb('ko', 'Ce n\'est pas cette valeur.', '<br>Indice : ' + (S.cells[S.bad].w || 'refais le calcul.')); panel();
+  if (st.fixTries >= 2) { fb('ko', `La bonne valeur est ${S.fix.s}.`, '<br>' + (S.cells[S.bad].w || ''), 'correction'); return toRule(); }
+  fb('ko', 'Ce n\'est pas cette valeur.', '<br>Indice : ' + (S.cells[S.bad].w || 'refais le calcul.'), 'indice'); panel();
   $('panel').querySelectorAll('.opt')[k].classList.add('ko'); $('panel').querySelectorAll('.opt')[k].disabled = true;
 }
 function typed(v) {
   const S = G.S, st = G.st, x = parseFloat(String(v).replace(/[\s €%m]/g, '').replace(/[−–]/g, '-').replace(',', '.'));
   if (isFinite(x) && Math.abs(x - S.fix.v) < 1e-9 * Math.max(1, Math.abs(S.fix.v))) { sfx.ok(); fb('ok', `Oui : ${S.bad} doit afficher ${S.fix.s}.`, ''); return toRule(); }
   st.fixTries++; st.first = false; sfx.ko();
-  if (st.fixTries >= 2) { fb('ko', `La bonne valeur est ${S.fix.s}.`, '<br>' + (S.cells[S.bad].w || '')); return toRule(); }
-  fb('ko', isFinite(x) ? 'Ce n\'est pas cette valeur.' : 'Écris un nombre.', '<br>Indice : ' + (S.cells[S.bad].w || '')); panel(); focusPanel('#tin');
+  if (st.fixTries >= 2) { fb('ko', `La bonne valeur est ${S.fix.s}.`, '<br>' + (S.cells[S.bad].w || ''), 'correction'); return toRule(); }
+  fb('ko', isFinite(x) ? 'Ce n\'est pas cette valeur.' : 'Écris un nombre.', '<br>Indice : ' + (S.cells[S.bad].w || ''), 'indice'); if (!isFinite(x)) G.st.msg.enc = null; panel(); focusPanel('#tin');
 }
 function toRule() { G.st.step = 'rule'; panel(); focusPanel('.opt'); }
 /* ---------- étape 3 : la règle ---------- */
@@ -1603,7 +1745,7 @@ function pickRule(k, btn) {
   const S = G.S, st = G.st;
   if (k === S.ruleAns) { btn.classList.add('ok'); sfx.ok(); fb('ok', 'Exactement : c\'est la règle en jeu.', ''); return finish(); }
   st.ruleTries++; st.first = false; sfx.ko();
-  if (st.ruleTries >= 2) { fb('ko', 'Voici la règle en jeu.', '<br>' + CS.RULES[S.rule].t); return finish(); }
+  if (st.ruleTries >= 2) { fb('ko', 'Voici la règle en jeu.', '<br>' + CS.RULES[S.rule].t, 'correction'); return finish(); }
   fb('ko', 'Cette règle est vraie, mais ce n\'est pas elle qui a été oubliée.', '<br>Relis l\'erreur : ' + S.why); panel();
   $('panel').querySelectorAll('.opt')[k].classList.add('ko'); $('panel').querySelectorAll('.opt')[k].disabled = true;
 }

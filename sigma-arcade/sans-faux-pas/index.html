@@ -335,8 +335,9 @@ async function showQ() {
   dots();
   const box = $('#q');
   box.innerHTML = `<p class="prompt">${q.prompt}</p><div id="parts"></div>`;
+  if (GAME.scene.reset) GAME.scene.reset(G.lv);
   TS.badge(q.badge || ''); TS.cap(q.cap0 || '');
-  try { if (q.setup) await q.setup(); } finally { G.busy = false; }
+  try { if (q.setup) await q.setup(); } catch (e) { console.error(e); } finally { G.busy = false; }
   showPart();
 }
 function fb(part, kind, html) {
@@ -617,8 +618,8 @@ const R = {
   prim: 'Les primitives de f sur un intervalle I sont les fonctions F + k, k ∈ ℝ.',
   upn: `Forme ${v('u')}′${pw(v('u'), v('n'))} : la primitive ${frac(pw(v('u'), v('n') + ' + 1'), v('n') + ' + 1')} exige la présence du facteur ${v('u')}′.`,
   inter: `Une primitive se cherche sur un intervalle : ${frac(1, X)} a pour primitive ln ${X} sur ]0 ; +∞[.`,
-  ode: `Pour ${v('y')}′ = a${v('y')} + b (a ≠ 0), la solution constante est −${frac('b', 'a')} et les solutions sont ${X} ↦ C${ex('a' + X)} − ${frac('b', 'a')}.`,
-  odec: 'On écrit la solution générale AVANT d\'utiliser la condition initiale pour trouver C.',
+  ode: `Pour ${v('y')}′ = a${v('y')} + b (a ≠ 0), la solution constante est −${frac('b', 'a')} et les solutions sont ${X} ↦ K${ex('a' + X)} − ${frac('b', 'a')}.`,
+  odec: 'On écrit la solution générale AVANT d\'utiliser la condition initiale pour trouver K.',
   fbfa: `∫<sub>a</sub><sup>b</sup> f(${X}) d${X} = F(b) − F(a).`,
   aire: 'Quand f change de signe, l\'aire se calcule en découpant avec la relation de Chasles (∫ de −f là où f &lt; 0).',
   moy: `Valeur moyenne : μ = ${frac(1, 'b − a')} ∫<sub>a</sub><sup>b</sup> f(${X}) d${X}.`,
@@ -906,11 +907,11 @@ const T = {
   const C = y0 - c, axe = (a === -1 ? M : num(a)) + X;
   return { ch: 15, ctx: `Résoudre ${v('y')}′ = ${lin([[a, v('y')], [b, '']])} avec ${v('y')}(0) = ${num(y0)}.`,
     steps: [{ h: `Solution constante : ${lin([[a, v('y')], [b, '']])} = 0 ⇔ ${v('y')} = ${num(c)}.`, j: `−b/a = ${num(-b)}/${num(a)} = ${num(c)}.` },
-      { h: `Solutions : ${v('y')}(${X}) = C${ex(axe)}${cpl(1, c)}, C ∈ ℝ.`, j: 'solution générale = solutions de y′ = ay, plus la solution constante.' },
-      { h: `${v('y')}(0) = ${num(y0)} ⇔ C${cpl(1, c)} = ${num(y0)} ⇔ C = ${num(C)}.`, j: 'e⁰ = 1.' }],
-    faults: [{ at: 0, bad: `Solution constante : ${v('y')} = ${frac(b < 0 ? M + num(-b) : num(b), a < 0 ? '(' + num(a) + ')' : num(a))} = ${num(-c)}.`, rule: 'ode', after: { 1: `Solutions : ${v('y')}(${X}) = C${ex(axe)}${cpl(1, -c)}, C ∈ ℝ.`, 2: `${v('y')}(0) = ${num(y0)} ⇔ C${cpl(1, -c)} = ${num(y0)} ⇔ C = ${num(y0 + c)}.` },
+      { h: `Solutions : ${v('y')}(${X}) = K${ex(axe)}${cpl(1, c)}, K ∈ ℝ.`, j: 'solution générale = solutions de y′ = ay, plus la solution constante.' },
+      { h: `${v('y')}(0) = ${num(y0)} ⇔ K${cpl(1, c)} = ${num(y0)} ⇔ K = ${num(C)}.`, j: 'e⁰ = 1.' }],
+    faults: [{ at: 0, bad: `Solution constante : ${v('y')} = ${frac(b < 0 ? M + num(-b) : num(b), a < 0 ? '(' + num(a) + ')' : num(a))} = ${num(-c)}.`, rule: 'ode', after: { 1: `Solutions : ${v('y')}(${X}) = K${ex(axe)}${cpl(1, -c)}, K ∈ ℝ.`, 2: `${v('y')}(0) = ${num(y0)} ⇔ K${cpl(1, -c)} = ${num(y0)} ⇔ K = ${num(y0 + c)}.` },
       alts: [`Solution constante : ${v('y')} = ${num(b)}.`, `Solution constante : ${v('y')} = 0.`] },
-      { at: 2, bad: `${v('y')}(0) = ${num(y0)}, donc C = ${num(y0)}.`, rule: 'odec', alts: [`${v('y')}(0) = ${num(y0)} ⇔ C = ${num(y0 + c)}.`, `${v('y')}(0) = ${num(y0)} ⇔ C = ${num(c)}.`] }],
+      { at: 2, bad: `${v('y')}(0) = ${num(y0)}, donc K = ${num(y0)}.`, rule: 'odec', alts: [`${v('y')}(0) = ${num(y0)} ⇔ K = ${num(y0 + c)}.`, `${v('y')}(0) = ${num(y0)} ⇔ K = ${num(c)}.`] }],
     chk: { t: 'expr', truth: `-(${b})/(${a})`, ans: String(c) } }; },
 () => { const a = rint(0, 2), b = a + rint(1, 3), c = nz(-4, 5);
   const F = t => t * t + c * t, I = F(b) - F(a);
@@ -1205,7 +1206,7 @@ const TR = {
   d => { const a = pick([-2, 2, 3, -3, 4]), c = nz(-5, 5), b = -a * c;
     if (d < 2) return Object.assign(TS.trous({ prompt: `La solution constante de ${v('y')}′ = ${lin([[a, v('y')], [b, '']])} est ${v('y')} = {0}.`, blanks: [nb(c)], explain: `${R.ode}`, chk: { t: 'expr', truth: `-(${b})/(${a})`, ans: String(c) }, tpl: 'ode-c' }), { steps: d + 1 });
     let y0; do y0 = c + nz(-5, 5); while (y0 === 2 * c);
-    return Object.assign(TS.trous({ prompt: `La solution de ${v('y')}′ = ${lin([[a, v('y')], [b, '']])} telle que ${v('y')}(0) = ${num(y0)} est ${v('y')}(${X}) = C${ex(num(a) + X)}${cpl(1, c)} avec C = {0}.`, blanks: [nb(y0 - c)], explain: `C + ${c < 0 ? '(' + num(c) + ')' : num(c)} = ${num(y0)}.`, chk: { t: 'expr', truth: `${y0}-(-(${b})/(${a}))`, ans: String(y0 - c) }, tpl: 'ode-C' }), { steps: 3 }); }],
+    return Object.assign(TS.trous({ prompt: `La solution de ${v('y')}′ = ${lin([[a, v('y')], [b, '']])} telle que ${v('y')}(0) = ${num(y0)} est ${v('y')}(${X}) = K${ex(num(a) + X)}${cpl(1, c)} avec K = {0}.`, blanks: [nb(y0 - c)], explain: `K + ${c < 0 ? '(' + num(c) + ')' : num(c)} = ${num(y0)}.`, chk: { t: 'expr', truth: `${y0}-(-(${b})/(${a}))`, ans: String(y0 - c) }, tpl: 'ode-C' }), { steps: 3 }); }],
 6: [d => { let nn, A, dd; do { nn = [nz(-4, 4), nz(-4, 4), nz(-4, 4)]; A = d === 0 ? [rint(0, 2), 0, rint(1, 3)] : [rint(-3, 3), rint(-3, 3), nz(-3, 3)]; dd = -(nn[0] * A[0] + nn[1] * A[1] + nn[2] * A[2]); } while (dd === 0);
     return Object.assign(TS.trous({ prompt: `Le plan de vecteur normal ${vecH('n', nn)} passant par A(${A.map(num).join(' ; ')}) a pour équation ${lin([[nn[0], X], [nn[1], v('y')], [nn[2], v('z')]])} + {0} = 0.`, blanks: [nb(dd)], explain: `On remplace par les coordonnées de A : d = ${num(dd)}.`, chk: { t: 'expr', truth: `-(${nn[0]}*(${A[0]})+${nn[1]}*(${A[1]})+${nn[2]}*(${A[2]}))`, ans: String(dd) }, tpl: 'eqp' }), { steps: d + 1 }); },
   d => { const u = [nz(-4, 4), rint(-4, 4), nz(-4, 4)], w = [rint(-4, 4), nz(-4, 4), nz(-4, 4)]; const p = u[0] * w[0] + u[1] * w[1] + u[2] * w[2];

@@ -51,7 +51,7 @@
      /assets/js/encouragements.js : phrases après chaque réponse, applaudissements,
      bilan de progression. Les panneaux #win / #fb des jeux sont suivis automatiquement,
      sauf pour les jeux de ENC_SKIP (en cours de modification : à retirer ensuite). */
-  var ENC_SKIP = ['cellule-suspecte', 'detective-erreur', 'zero-defaut', 'sans-faux-pas', 'le-sonar', 'aire-libre'];
+  var ENC_SKIP = ['sans-faux-pas', 'le-sonar', 'aire-libre'];
   var encWait = [];
   function enc(cb) {
     if (window.SigmaEncourage) { cb(window.SigmaEncourage); return; }

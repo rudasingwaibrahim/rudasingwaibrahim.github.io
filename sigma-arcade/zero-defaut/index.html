@@ -2404,6 +2404,8 @@ function chText(c) { return (c.length > 1 ? 'Chapitres ' : 'Chapitre ') + c.join
 function dots() { $('dots').innerHTML = S.items.map((_, k) => `<span class="${k < S.res.length ? (S.res[k] ? 'g' : 'r') : k === S.i ? 'c' : ''}"></span>`).join(''); $('qn').textContent = `Fiche ${S.i + 1} sur ${S.items.length}`; }
 function steps() { const order = ['loc', 'fix', 'rule']; const k = order.indexOf(S.phase); $('steps').querySelectorAll('span').forEach((sp, j) => { sp.className = S.phase === 'done' ? 'd' : j < k ? 'd' : j === k ? 'c' : ''; }); }
 function fb(kind, title, html, mood) { const f = $('fb'); f.hidden = false; f.className = 'fb ' + kind; $('fbmk').innerHTML = MAKI(mood || (kind === 'ok' ? 'joie' : kind === 'ko' ? 'pense' : 'neutre')); $('fbt').textContent = title; $('fbp').innerHTML = html; }
+/* encouragements (module commun, via le kit) : une phrase par réponse, sous l'explication */
+function enc(ok, hint) { try { if (window.SigmaKit && SigmaKit.encourage) SigmaKit.encourage(ok, ok ? { after: $('fbp') } : { after: $('fbp'), hint: hint || 'conseil' }); } catch (e) {} }
 function hideFb() { $('fb').hidden = true; }
 function plates() { return [...$('plates').querySelectorAll('.plate')]; }
 function setTag(p, txt) { let st = p.querySelector('.st'); if (!txt) { if (st) st.remove(); return; } if (!st) { st = document.createElement('span'); st.className = 'st'; p.appendChild(st); } st.textContent = txt; }
@@ -2436,23 +2438,23 @@ async function onLocate(k) {
   moveScan(k); plates().forEach((p, j) => p.classList.toggle('sel', j === k)); await sleep(420);
   if (k === I.bad) {
     sfx.ok(); markFound(); lockPlates(true); $('zd').hidden = true;
-    fb('ok', `Défaut trouvé : ligne ${k + 1}.`, I.bad < I.lines.length - 1 ? `Les lignes suivantes en héritent : elles sont contaminées (rayures ambrées), mais leur passage est juste.` : `C'est la dernière ligne : rien n'est contaminé après elle.`);
+    fb('ok', `Défaut trouvé : ligne ${k + 1}.`, I.bad < I.lines.length - 1 ? `Les lignes suivantes en héritent : elles sont contaminées (rayures ambrées), mais leur passage est juste.` : `C'est la dernière ligne : rien n'est contaminé après elle.`); enc(true);
     S.busy = false; startFix(); return;
   }
   S.tries++; S.first = false; sfx.ko();
   const w = I.lines[k].w || 'Ce passage découle bien de la ligne précédente.';
-  if (S.tries < 2) { fb('ko', `Ligne ${k + 1} : conforme.`, `${w} ${I.bad < 0 ? 'Contrôle les autres lignes… ou valide la fiche.' : 'Le défaut est ailleurs.'}`); S.busy = false; return; }
-  if (I.bad < 0) { fb('info', `Ligne ${k + 1} : conforme. Cette fiche n'a aucun défaut.`, I.x, 'neutre'); S.busy = false; await finish(); return; }
+  if (S.tries < 2) { fb('ko', `Ligne ${k + 1} : conforme.`, `${w} ${I.bad < 0 ? 'Contrôle les autres lignes… ou valide la fiche.' : 'Le défaut est ailleurs.'}`); enc(false); S.busy = false; return; }
+  if (I.bad < 0) { fb('info', `Ligne ${k + 1} : conforme. Cette fiche n'a aucun défaut.`, I.x, 'neutre'); S.busy = false; await finish(null, false); return; }
   markFound(); lockPlates(true); $('zd').hidden = true; moveScan(I.bad);
-  fb('info', `Ligne ${k + 1} : conforme. Le défaut était ligne ${I.bad + 1}.`, `${w}`, 'neutre'); S.busy = false; startFix();
+  fb('info', `Ligne ${k + 1} : conforme. Le défaut était ligne ${I.bad + 1}.`, `${w}`, 'neutre'); enc(false, 'correction'); S.busy = false; startFix();
 }
 async function onZero() {
   if (S.busy || S.phase !== 'loc') return; const I = it(); S.busy = true; sfx.tap();
-  if (I.bad < 0) { $('zd').disabled = true; S.busy = false; await finish(); return; }
+  if (I.bad < 0) { $('zd').disabled = true; S.busy = false; await finish(null, true); return; }
   S.tries++; S.first = false; sfx.ko();
-  if (S.tries < 2) { fb('ko', `Il y a bien un défaut.`, `Une des lignes ne découle pas de la précédente. Fais passer le scanner ligne après ligne : chaque passage doit être juste.`); S.busy = false; return; }
+  if (S.tries < 2) { fb('ko', `Il y a bien un défaut.`, `Une des lignes ne découle pas de la précédente. Fais passer le scanner ligne après ligne : chaque passage doit être juste.`); enc(false); S.busy = false; return; }
   markFound(); lockPlates(true); $('zd').hidden = true; moveScan(I.bad);
-  fb('info', `Le défaut était ligne ${I.bad + 1}.`, `Regarde le passage de la ligne ${I.bad} à la ligne ${I.bad + 1}${I.bad === 0 ? ' (depuis l’énoncé)' : ''}.`, 'neutre'); S.busy = false; startFix();
+  fb('info', `Le défaut était ligne ${I.bad + 1}.`, `Regarde le passage de la ligne ${I.bad} à la ligne ${I.bad + 1}${I.bad === 0 ? ' (depuis l’énoncé)' : ''}.`, 'neutre'); enc(false, 'correction'); S.busy = false; startFix();
 }
 function opts(list, onPick, cls) {
   const o = $('opts'); const keys = 'ABCD';
@@ -2473,10 +2475,10 @@ async function onFix(j, btn) {
   if (S.busy || S.phase !== 'fix') return; const I = it(); const good = fixOrder[j] === 0; S.busy = true;
   if (!good) {
     S.tries++; S.first = false; sfx.ko(); btn.classList.add('ko'); btn.disabled = true;
-    if (S.tries < 2) { fb('ko', `Cette pièce est encore défectueuse.`, `Elle ne découle pas de la ligne ${I.bad === 0 ? 'de l’énoncé' : I.bad}. Indice : ${ZD.RULES[I.rule]}.`); S.busy = false; return; }
+    if (S.tries < 2) { fb('ko', `Cette pièce est encore défectueuse.`, `Elle ne découle pas de la ligne ${I.bad === 0 ? 'de l’énoncé' : I.bad}. Indice : ${ZD.RULES[I.rule]}.`); enc(false, 'indice'); S.busy = false; return; }
   }
   $('opts').querySelectorAll('.opt').forEach((b, q) => { b.disabled = true; if (fixOrder[q] === 0) b.classList.add('ok'); });
-  if (good) { sfx.ok(); fb('ok', `Bonne pièce.`, `Le tapis ré-usine la suite de la fiche…`); } else fb('info', `Voici la bonne pièce.`, `${I.fixed[I.bad].m}`, 'neutre');
+  if (good) { sfx.ok(); fb('ok', `Bonne pièce.`, `Le tapis ré-usine la suite de la fiche…`); enc(true); } else { fb('info', `Voici la bonne pièce.`, `${I.fixed[I.bad].m}`, 'neutre'); enc(false, 'correction'); }
   await replace(); S.busy = false; startRule();
 }
 async function replace() {
@@ -2501,13 +2503,13 @@ async function onRule(j, btn) {
   if (S.busy || S.phase !== 'rule') return; const I = it(); const good = ruleOrder[j] === I.rule; S.busy = true;
   if (!good) {
     S.tries++; S.first = false; sfx.ko(); btn.classList.add('ko'); btn.disabled = true;
-    if (S.tries < 2) { fb('ko', `Règle vraie, mais pas en cause ici.`, `Relis le passage fautif : ${I.bad === 0 ? 'de l’énoncé à la ligne 1' : 'de la ligne ' + I.bad + ' à la ligne ' + (I.bad + 1)}. Quelle propriété a été mal appliquée${NB}?`); S.busy = false; return; }
+    if (S.tries < 2) { fb('ko', `Règle vraie, mais pas en cause ici.`, `Relis le passage fautif : ${I.bad === 0 ? 'de l’énoncé à la ligne 1' : 'de la ligne ' + I.bad + ' à la ligne ' + (I.bad + 1)}. Quelle propriété a été mal appliquée${NB}?`); enc(false); S.busy = false; return; }
   }
   $('opts').querySelectorAll('.opt').forEach((b, q) => { b.disabled = true; if (ruleOrder[q] === I.rule) b.classList.add('ok'); });
   if (good) sfx.ok();
-  S.busy = false; await finish(good ? null : `La règle en cause : ${ZD.RULES[I.rule]}.`);
+  S.busy = false; await finish(good ? null : `La règle en cause : ${ZD.RULES[I.rule]}.`, good);
 }
-async function finish(pre) {
+async function finish(pre, verdict) {
   const I = it(); S.busy = true; S.phase = 'done'; steps(); $('zd').hidden = true; lockPlates(true);
   const ps = plates(); $('belt').classList.add('run');
   for (let k = 0; k < ps.length; k++) { moveScan(k, 'ok'); ps[k].classList.remove('sel', 'okline', 'cont', 'def'); ps[k].classList.add('good'); if (!ps[k].querySelector('.st')) setTag(ps[k], 'OK'); sfx.tick(); await sleep(170); }
@@ -2516,6 +2518,7 @@ async function finish(pre) {
   dots(); $('ph').textContent = I.bad < 0 ? 'Fiche conforme : zéro défaut' : 'Fiche corrigée et conforme';
   $('prompt').innerHTML = ''; if (I.bad >= 0) $('opts').querySelectorAll('.opt').forEach(b => b.disabled = true); else $('opts').innerHTML = '';
   fb(S.first ? 'ok' : 'info', S.first ? (I.bad < 0 ? 'Bien vu : aucun défaut.' : 'Contrôle parfait.') : 'Fiche validée.', (pre ? pre + '<br>' : '') + I.x, S.first ? 'bravo' : 'neutre');
+  if (verdict === true) enc(true); else if (verdict === false) enc(false, 'correction');
   const nx = $('next'); nx.textContent = S.i + 1 < S.items.length ? 'Fiche suivante →' : 'Terminer le niveau →'; $('nextw').hidden = false; nx.onclick = next;
   S.busy = false; try { nx.focus({ preventScroll: true }); } catch (e) {}
 }
@@ -2544,7 +2547,7 @@ return { boot, state: () => { const I = it() || {}; return { lv: S.lv, i: S.i, n
 <script src="/sigma-arcade/sigma-music.js"></script>
 <script src="/sigma-arcade/sigma-kit.js"></script>
 <script>
-SigmaKit.init({game:'zero-defaut',title:'Zéro Défaut',levels:7,levelNames:ZD.LEVELS.map(l=>l.name),music:'aventure',finals:ZD.finals});
+SigmaKit.init({game:'zero-defaut',title:'Zéro Défaut',levels:7,levelNames:ZD.LEVELS.map(l=>l.name),music:'aventure',finals:ZD.finals,encourage:false});
 ZDG.boot();
 </script>
 </body>

@@ -1782,6 +1782,8 @@ function lineHTML(c,L,given){
   return lab+`<span class="ex">${fmt(m)}</span>`;
 }
 function say(html){$('say').innerHTML=html}
+/* encouragements (module commun, via le kit) : une phrase par réponse, dans la bulle de l'inspectrice (effacée au prochain say) */
+function encSay(ok,hint){try{if(SK&&SK.encourage)SK.encourage(ok,ok?{into:$('say'),announce:false}:{into:$('say'),hint:hint||'conseil',announce:false})}catch(e){}}
 function dots(){
   if(G.board){$('dots').innerHTML='';return}
   $('dots').innerHTML=Array.from({length:PER},(_,i)=>`<span class="${G.res[i]?'g':i===G.idx?'c':''}"></span>`).join('')+`<em>${G.res.filter(Boolean).length} / ${PER}</em>`;
@@ -1827,22 +1829,22 @@ $('accuse').onclick=()=>{
   if(k===c.err){caught();return}
   G.leads++;G.miss++;G.tries++;b.classList.add('clear');b.querySelector('.tag').innerHTML='✓ vérifiée';sHmm();updAcc();
   if(G.tries>=2){twoMiss(`La ligne ${k+1} est juste. ${justify(c,k)}`);return}
-  say(`<b>Inspectrice Ylang</b>Fausse piste, mais excellente méthode ! La ligne ${k+1} est juste. ${justify(c,k)} Continue l'enquête : au prochain essai manqué, je te montre la solution.`);
+  say(`<b>Inspectrice Ylang</b>Fausse piste, mais excellente méthode ! La ligne ${k+1} est juste. ${justify(c,k)} Continue l'enquête : au prochain essai manqué, je te montre la solution.`);encSay(false);
 };
 /* deuxième essai manqué : on donne la réponse, avec l'explication */
 function twoMiss(why){
   const c=G.cur;G.revealed=true;
-  if(c.err<0){finishInnocent();say(`<b>Inspectrice Ylang</b>${why} Deuxième fausse piste : voici la solution. Cette copie était innocente, aucune ligne n'était fausse.`);return}
+  if(c.err<0){finishInnocent();say(`<b>Inspectrice Ylang</b>${why} Deuxième fausse piste : voici la solution. Cette copie était innocente, aucune ligne n'était fausse.`);encSay(false,'correction');return}
   if(G.phase==='look')caught();
   const good=[...$('choices').querySelectorAll('.choice')].find(x=>c.choices[+x.dataset.i]===c.fix);good.classList.add('good');finishCaught();
-  say(`<b>Inspectrice Ylang</b>${why} Deuxième essai manqué : voici la solution. L'erreur était à la ligne ${c.err+1} ; lis bien l'explication.`);
+  say(`<b>Inspectrice Ylang</b>${why} Deuxième essai manqué : voici la solution. L'erreur était à la ligne ${c.err+1} ; lis bien l'explication.`);encSay(false,'correction');
 }
 $('inno').onclick=()=>{
   const c=G.cur;if(G.phase!=='look')return;
   if(c.err<0){finishInnocent();return}
   G.leads++;G.miss++;G.tries++;sHmm();
   if(G.tries>=2){twoMiss('Cette copie n\'était pas innocente.');return}
-  say(`<b>Inspectrice Ylang</b>Maki fronce le nez… Il y a bien une erreur cachée dans cette copie. Reprends ligne par ligne : ${c.type==='g'?'chaque ligne doit être juste':'chaque ligne doit être égale à celle du dessus'}. Au prochain essai manqué, je te montre la solution.`);
+  say(`<b>Inspectrice Ylang</b>Maki fronce le nez… Il y a bien une erreur cachée dans cette copie. Reprends ligne par ligne : ${c.type==='g'?'chaque ligne doit être juste':'chaque ligne doit être égale à celle du dessus'}. Au prochain essai manqué, je te montre la solution.`);encSay(false);
 };
 $('hintB').onclick=()=>{
   const c=G.cur;if(G.phase!=='look'||G.hint>=3)return;G.hint++;G.hints++;
@@ -1886,7 +1888,7 @@ function caught(){
   b.classList.add('caught','done');b.querySelector('.tag').innerHTML='';
   const ex=b.querySelector('.ex');ex.innerHTML=c.type==='g'?diffHtml(c.lines[k].m,c.fix):diffMark(c.lines[k].m,c.fix);
   sAha();$('acts').hidden=true;
-  say(`<b>Inspectrice Ylang</b>Démasquée ! La loupe grossit l'erreur de la ligne ${k+1}. Maintenant, aide ${c.student} : par quoi faut-il remplacer cette ligne ?`);
+  say(`<b>Inspectrice Ylang</b>Démasquée ! La loupe grossit l'erreur de la ligne ${k+1}. Maintenant, aide ${c.student} : par quoi faut-il remplacer cette ligne ?`);if(!G.revealed)encSay(true);
   const ch=$('choices');ch.hidden=false;
   ch.innerHTML=`<p>La bonne ligne ${k+1} :</p>`+c.choices.map((m,i)=>`<button type="button" class="choice${c.type==='g'?' gch':''}" data-i="${i}">${lineHTML(c,{t:c.lines[k].t,m})}</button>`).join('');
   $('lines').querySelectorAll('.ln').forEach(x=>x.classList.add('done'));
@@ -1897,7 +1899,7 @@ $('choices').addEventListener('click',e=>{const b=e.target.closest('.choice');if
   b.disabled=true;G.miss++;G.ftries=(G.ftries||0)+1;sHmm();
   const t=c.lines[c.err].t,why=`${t==='g'?'cette proposition est fausse elle aussi':t==='eq'?'cette équation n\'a pas la même solution que la ligne au-dessus':t==='chk'?'ce calcul n\'est pas juste non plus':'cette écriture n\'est pas égale à la ligne au-dessus'}`;
   if(G.ftries>=2){twoMiss(`Pas encore : ${why}.`);return}
-  say(`<b>Inspectrice Ylang</b>Pas encore : ${why}. Essaie une autre proposition !`);
+  say(`<b>Inspectrice Ylang</b>Pas encore : ${why}. Essaie une autre proposition !`);encSay(false);
 });
 function finText(c){
   if(c.type==='g')return c.fin;
@@ -1913,7 +1915,7 @@ function finishCaught(){
   $('choices').querySelectorAll('.choice').forEach(x=>{if(!x.classList.contains('good'))x.hidden=true});
   const e=$('expl');e.hidden=false;
   e.innerHTML=`<h3>Erreur démasquée : ${c.ex.name}</h3><p>${c.ex.txt}</p><p><span class="k">Ligne ${k+1} corrigée</span><span class="${c.type==='g'?'gq':'mth'}">${lineHTML(c,{t:c.lines[k].t,m:c.fix})}</span></p><p><span class="k">${c.type==='chk'?'Conclusion juste':c.type==='g'?'À retenir':'Résultat juste'}</span><span class="big ${c.type==='g'?'gq':'mth'}">${finText(c)}</span></p>`;
-  say(G.revealed?`<b>Inspectrice Ylang</b>Voici la réponse : l'erreur, sa correction et l'explication.`:`<b>Inspectrice Ylang</b>Bravo, détective ! Tu as trouvé l'erreur <i>et</i> sa correction. Lis l'explication pour ne plus jamais te faire piéger.`);
+  say(G.revealed?`<b>Inspectrice Ylang</b>Voici la réponse : l'erreur, sa correction et l'explication.`:`<b>Inspectrice Ylang</b>Bravo, détective ! Tu as trouvé l'erreur <i>et</i> sa correction. Lis l'explication pour ne plus jamais te faire piéger.`);if(!G.revealed)encSay(true);
   stamp(false);endCopy();
 }
 function finishInnocent(){
@@ -1921,7 +1923,7 @@ function finishInnocent(){
   $('lines').querySelectorAll('.ln').forEach(x=>{x.classList.add('done');x.classList.remove('sel');x.querySelector('.tag').innerHTML='✓ juste'});
   $('acts').hidden=true;const e=$('expl');e.hidden=false;
   e.innerHTML=`<h3>Copie innocente !</h3><p>${c.type==='g'?'Chaque ligne est juste':'Chaque ligne est égale à celle du dessus'} : ${c.student} n'a fait aucune erreur. Un bon détective sait aussi reconnaître un innocent.</p><p><span class="k">${c.type==='chk'?'Conclusion':c.type==='g'?'À retenir':'Résultat'}</span><span class="big ${c.type==='g'?'gq':'mth'}">${finText(c)}</span></p>`;
-  say(G.revealed?`<b>Inspectrice Ylang</b>Voici la réponse : cette copie était parfaite, aucune erreur.`:`<b>Inspectrice Ylang</b>Bien vu ! Tu ne t'es pas laissé piéger : cette copie était parfaite.`);
+  say(G.revealed?`<b>Inspectrice Ylang</b>Voici la réponse : cette copie était parfaite, aucune erreur.`:`<b>Inspectrice Ylang</b>Bien vu ! Tu ne t'es pas laissé piéger : cette copie était parfaite.`);if(!G.revealed)encSay(true);
   stamp(true);endCopy();
 }
 function endCopy(){
