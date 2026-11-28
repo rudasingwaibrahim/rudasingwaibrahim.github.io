@@ -351,7 +351,7 @@
     }).join('');
     var m = modal('<div class="sk-head">' + maki('pense') + '<div><h2>Épreuves finales</h2><p>' + cfg.title + (F.platine ? ' · Bronze, Argent, Or\u00a0: 10 questions sans aide, 8 bonnes réponses pour la médaille. Platine\u00a0: un défi de raisonnement, ouvert à tous.' : ' · 10 questions sans aide, 8 bonnes réponses pour la médaille.') + '</p></div></div>' +
       '<div class="sk-body"><div class="sk-tis">' + cards + '</div>' +
-      '<details class="sk-prof"><summary>Professeur\u00a0: débloquer les trois épreuves</summary>' +
+      '<details class="sk-prof"><summary>Professeur\u00a0: débloquer les épreuves</summary>' +
       '<form class="sk-prof-f"><input class="sk-in" style="width:9em" placeholder="code" aria-label="Code professeur" autocomplete="off"><button class="sk-btn gh" type="submit">Débloquer</button><span class="sk-prof-m"></span></form></details>' +
       '<div class="sk-row"><button class="sk-btn gh" data-x="1">Fermer</button></div></div>');
     m.el.addEventListener('click', function (e) {
