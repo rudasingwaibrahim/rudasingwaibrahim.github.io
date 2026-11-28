@@ -33,6 +33,11 @@ ds_blancs:
   contenu: Étude complète de fonctions
   duree: 2 h
   pdf: terminale-spe-ch4-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: terminale-spe-ch4-activites.pdf
+- titre: Activités — Version professeur
+  pdf: terminale-spe-ch4-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

@@ -33,6 +33,11 @@ ds_blancs:
   contenu: Parallélisme · Coplanarité · Alignement
   duree: 55 min
   pdf: terminale-spe-ch5-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: terminale-spe-ch5-activites.pdf
+- titre: Activités — Version professeur
+  pdf: terminale-spe-ch5-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1

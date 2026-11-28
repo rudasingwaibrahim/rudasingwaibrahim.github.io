@@ -33,6 +33,11 @@ ds_blancs:
   contenu: 'Problème : oscillations d''un pendule'
   duree: 4 h
   pdf: terminale-spe-ch17-dsblanc-02-sujet.pdf
+activites:
+- titre: Activités — Version élève
+  pdf: terminale-spe-ch17-activites.pdf
+- titre: Activités — Version professeur
+  pdf: terminale-spe-ch17-activites-prof.pdf
 ds_published: false
 ds:
 - num: 1
