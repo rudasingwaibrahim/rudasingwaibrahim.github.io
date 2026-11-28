@@ -1,0 +1,116 @@
+{%- comment -%}
+  _includes/activite-en-ligne.html — page « Faire l'activité en ligne » (/en-ligne/<chapitre>-a<n>/).
+  Front matter de la page : ch (clé du chapitre dans _data/activites_en_ligne.yml, ex. seconde-ch4), n (numéro de l'activité).
+  Blocs possibles (champ blocs de l'activité) :
+    python     : code (programme de départ, facultatif), console (ligne proposée dans la console), lignes (hauteur de l'éditeur), aide ;
+    geogebra   : app (classic | graphing | geometry | 3d), perspective, commandes (préparation, noms anglais), fenetre [xmin,ymin,xmax,ymax], aide ;
+    numworks   : aide (marche à suivre sur l'émulateur officiel NumWorks).
+  Python s'exécute sur l'appareil (Pyodide hébergé dans /assets/pyodide/) ; GeoGebra vient de www.geogebra.org.
+{%- endcomment -%}
+{%- include init.html -%}
+{%- include context.html -%}
+{%- assign _ch = site.data.activites_en_ligne.chapitres[page.ch] -%}
+{%- assign _act = nil -%}
+{%- for a in _ch.activites -%}{%- if a.n == page.n -%}{%- assign _act = a -%}{%- endif -%}{%- endfor -%}
+{%- assign _pdf = page.ch | append: "-activites.pdf" -%}
+{%- assign _chaps = "" | split: "" -%}
+{%- assign _pdfh = nil -%}
+{%- for p in site.pages -%}{%- if p.activites -%}{%- assign _p0 = p.activites[0].pdf | split: "/" | last -%}{%- if _p0 == _pdf -%}{%- assign _chaps = _chaps | push: p -%}
+  {%- unless _pdfh -%}{%- assign _d = p.activites[0].dossier | default: p.dossier_pdf -%}{%- capture _pdfh -%}/assets/pdf/{% if _d and _d != "" %}{{ _d }}/{% endif %}{{ p.activites[0].pdf }}{%- endcapture -%}{%- endunless -%}
+{%- endif -%}{%- endif -%}{%- endfor -%}
+{%- if _act %}
+{%- assign _types = _act.blocs | map: "type" | join: "," -%}
+{%- assign _tout = _act | jsonify -%}
+<div class="ael">
+  <nav class="ael-retour" aria-label="Retour au chapitre">
+    {%- for p in _chaps -%}
+    {%- assign _b = p.url | split: "chapitre" | first -%}{%- assign _nom = nil -%}
+    {%- for g in site.data.classes -%}{%- for c in g.classes -%}{%- if c.url == _b -%}{%- assign _nom = c.nom -%}{%- endif -%}{%- endfor -%}{%- endfor -%}
+    <a class="btn btn--ghost btn--sm" href="{{ p.url }}#comprendre">← {% if _nom %}{{ _nom }} · {% endif %}{{ p.hero_title }}</a>
+    {%- endfor %}
+    {%- if _pdfh and _sf contains _pdfh %}
+    <a class="btn btn--ghost btn--sm" href="{{ _pdfh }}" target="_blank" rel="noopener">Fiche d'activités (PDF)<span class="sr-only"> (nouvel onglet)</span></a>
+    {%- endif %}
+  </nav>
+
+  <section class="ael-consigne" aria-labelledby="ael-c">
+    <h2 id="ael-c">Activité {{ _act.n }} — {{ _act.titre }}</h2>
+    <div class="ael-texte">{{ _act.consigne }}</div>
+    {%- if _act.source %}<p class="ael-src">{{ _act.source }}</p>{% endif %}
+  </section>
+
+  {%- for b in _act.blocs %}
+  {%- assign _id = page.ch | append: "-a" | append: _act.n | append: "-b" | append: forloop.index %}
+  {%- if b.type == "python" %}
+  <section class="ael-bloc ael-py" data-py aria-labelledby="{{ _id }}-t">
+    <h2 class="ael-h" id="{{ _id }}-t"><span class="ael-ico" aria-hidden="true">&gt;_</span>{{ b.titre | default: "Python" }}</h2>
+    {%- if b.aide %}<div class="ael-aide">{{ b.aide }}</div>{% endif %}
+    <p class="py-state py-state--wait" data-py-state role="status" aria-live="polite">Chargement de Python…</p>
+    {%- if b.code %}
+    <label class="ael-lbl" for="{{ _id }}-code">Programme <small>(modifie-le puis clique sur « Exécuter »)</small></label>
+    <textarea class="py-code" id="{{ _id }}-code" data-py-code rows="{{ b.lignes | default: 8 }}" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off">{{ b.code | escape }}</textarea>
+    <div class="ael-btns">
+      <button class="btn btn--gold btn--sm" type="button" data-py-act="run">▶ Exécuter</button>
+      <button class="btn btn--ghost btn--sm py-stop" type="button" data-py-act="stop">■ Arrêter</button>
+      <button class="btn btn--ghost btn--sm" type="button" data-py-act="reset">↺ Code de départ</button>
+    </div>
+    {%- endif %}
+    <p class="ael-lbl" id="{{ _id }}-cons">Console</p>
+    <pre class="py-out" data-py-out aria-labelledby="{{ _id }}-cons" aria-live="polite" tabindex="0"></pre>
+    <form class="py-repl" data-py-repl autocomplete="off">
+      <label for="{{ _id }}-line"><span aria-hidden="true">&gt;&gt;&gt;</span><span class="sr-only">Instruction pour la console Python</span></label>
+      <input id="{{ _id }}-line" data-py-line type="text" value="{{ b.console | escape }}" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="send" inputmode="text">
+      <button class="btn btn--sm" type="submit">Valider</button>
+    </form>
+    <div class="ael-btns ael-btns--fin">
+      <button class="btn btn--ghost btn--sm" type="button" data-py-act="clear">Effacer la console</button>
+      <a class="btn btn--ghost btn--sm" data-basthon href="https://console.basthon.fr/?kernel=python&amp;script={{ b.code | default: b.console | url_encode }}" target="_blank" rel="noopener">Ouvrir dans Basthon<span class="sr-only"> (nouvel onglet)</span></a>
+    </div>
+  </section>
+  {%- elsif b.type == "geogebra" %}
+  <section class="ael-bloc ael-ggb" data-ggb aria-labelledby="{{ _id }}-t">
+    <h2 class="ael-h" id="{{ _id }}-t"><span class="ael-ico" aria-hidden="true">△</span>{{ b.titre | default: "GeoGebra" }}</h2>
+    {%- if b.aide %}<div class="ael-aide">{{ b.aide }}</div>{% endif %}
+    <p class="ggb-state ggb-state--wait" data-ggb-state role="status" aria-live="polite">Chargement de GeoGebra…</p>
+    {%- if b.perspective contains "A" %}
+    <p class="ael-note ael-tel">Sur téléphone, tourne l'écran à l'horizontale pour agrandir la colonne de saisie.</p>
+    {%- endif %}
+    <div class="ggb-host" id="{{ _id }}-ggb" data-ggb-host></div>
+    <div class="ael-btns ael-btns--fin">
+      <button class="btn btn--ghost btn--sm" type="button" data-ggb-act="reset">↺ Figure de départ</button>
+    </div>
+    {%- if b.commandes_aide %}
+    <details class="ael-details">
+      <summary>{{ b.aide_titre | default: "Coup de pouce : les commandes à taper dans « Saisie »" }}</summary>
+      <ol class="ael-cmds">{% for c in b.commandes_aide %}<li><code>{{ c | escape }}</code></li>{% endfor %}</ol>
+      {%- assign _ca = b.commandes_aide | join: " " -%}
+      {%- if b.perspective != "S" and b.perspective != "SG" %}{% if _ca contains "^" or _ca contains "/" %}
+      <p class="ael-note">Après un exposant (<code>^</code>) ou une barre de fraction (<code>/</code>), GeoGebra écrit la suite en haut ou en bas : appuie sur la flèche <kbd>→</kbd> pour revenir sur la ligne.</p>
+      {%- endif %}{% endif %}
+    </details>
+    {%- endif %}
+    <script type="application/json">{{ b | jsonify }}</script>
+  </section>
+  {%- elsif b.type == "numworks" %}
+  <section class="ael-bloc ael-nw" aria-labelledby="{{ _id }}-t">
+    <h2 class="ael-h" id="{{ _id }}-t"><span class="ael-ico" aria-hidden="true">▦</span>{{ b.titre | default: "Calculatrice NumWorks" }}</h2>
+    {%- if b.aide %}<div class="ael-aide">{{ b.aide }}</div>{% endif %}
+    <p><a class="btn btn--gold btn--sm" href="https://www.numworks.com/fr/emulateur/graphique/" target="_blank" rel="noopener">Ouvrir l'émulateur NumWorks<span class="sr-only"> (site de NumWorks, nouvel onglet)</span></a></p>
+    <p class="ael-note">L'émulateur officiel et gratuit s'ouvre sur le site de NumWorks. Il fonctionne comme la calculatrice : mêmes menus, mêmes touches.</p>
+  </section>
+  {%- endif %}
+  {%- endfor %}
+
+  <p class="ael-note ael-vie">Sans compte et sans inscription{% if _types contains "python" %} : Python fonctionne sur ton appareil, rien n'est envoyé au site{% endif %}{% if _types contains "geogebra" %}{% if _types contains "python" %} ; {% else %} : {% endif %}GeoGebra est fourni par geogebra.org{% endif %}. Rédige tes réponses sur ta feuille, comme en classe.</p>
+</div>
+<link rel="stylesheet" href="/assets/css/en-ligne.css?v=1">
+<script src="/assets/js/en-ligne.js?v=1" defer></script>
+{%- if _tout contains "$" %}
+<link rel="stylesheet" href="/assets/lib/katex/katex.min.css">
+<script src="/assets/lib/katex/katex.min.js" defer></script>
+<script src="/assets/lib/katex/contrib/auto-render.min.js" defer></script>
+<script>document.addEventListener('DOMContentLoaded',function(){if(window.renderMathInElement)renderMathInElement(document.querySelector('.ael'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],ignoredTags:['script','noscript','style','textarea','pre','code','input'],throwOnError:false});});</script>
+{%- endif %}
+{%- else %}
+<p class="callout">Cette activité en ligne est en cours de construction.</p>
+{%- endif %}
