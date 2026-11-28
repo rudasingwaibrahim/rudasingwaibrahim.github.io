@@ -1050,5 +1050,147 @@ OP.start();
   new MutationObserver(ms=>ms.forEach(m=>{m.addedNodes.forEach(fix);if(m.type==='characterData')fix(m.target)})).observe(document.body,{childList:true,subtree:true,characterData:true});
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — ombre-a-pic */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* L'Ombre à pic — Première spécialité, chapitre 12 (produit scalaire, partie 2) : produit scalaire en coordonnées,
+   orthogonalité, vecteur normal et équation cartésienne d'une droite, équation de cercle.
+   Démonstration du programme : l'ensemble des points M tels que MA · MB = 0 est le cercle de diamètre [AB]. */
+const vc=s=>`<span class="vec">${s}</span>`,vi=s=>`<span class="vec it">${s}</span>`;
+const u=vi('u'),v=vi('v'),nn=vi('n'),Xv=V('x'),Yv=V('y');
+const cv=(a,b)=>`(${M(a)} ; ${M(b)})`;
+const cart=(a,b,c)=>`${poly([[a,1]],Xv)}${b<0?' − '+(b===-1?'':-b)+Yv:b>0?' + '+(b===1?'':b)+Yv:''}${c?S(c):''} = 0`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>({title:'L\'ensemble des points M tels que MA · MB = 0',
+  html:`<p>I est le milieu de [AB].</p><ol><li>${vc('MA')} · ${vc('MB')} = (${vc('MI')} + ${vc('IA')}) · (${vc('MI')} + ${vc('IB')}), et ${vc('IB')} = {0}.</li>
+<li>Donc ${vc('MA')} · ${vc('MB')} = (${vc('MI')} + ${vc('IA')}) · (${vc('MI')} − ${vc('IA')}) = {1}.</li>
+<li>${vc('MA')} · ${vc('MB')} = 0 ⇔ MI² = IA² ⇔ MI = {2}.</li><li>L'ensemble cherché est le {3} de diamètre [AB].</li></ol>`,
+  blanks:[['−IA (vecteur)',['IA (vecteur)','AB (vecteur)']],['MI² − IA²',['MI² + IA²','(MI − IA)²']],['IA',['AB','2 IA']],['cercle',['segment','carré']]],
+  explain:`C'est la démonstration du programme : on fait apparaître le milieu I par la relation de Chasles ; comme ${vc('IB')} = −${vc('IA')}, on obtient une identité remarquable : MI² − IA². Les points M sont à la distance IA = AB/2 de I.`,
+  chk:[['eq','Matrix([a-x,b-y]).dot(Matrix([-a-x,-b-y]))','(x**2+y**2)-(a**2+b**2)']]})},
+{id:'D2',k:'demo',f:()=>{let a,b,c,d;do{a=nz(-5,5);b=nz(-5,5);c=nz(-5,5);d=nz(-5,5)}while(false);const on=Math.random()<.5;if(on){d=a;c=-b;const k=pick([1,2,-1]);c*=k;d*=k}
+  const ps=a*c+b*d;
+  return{title:`${u}${cv(a,b)} et ${v}${cv(c,d)} sont-ils orthogonaux ?`,
+  html:`<ol><li>Dans un repère orthonormé, ${u} · ${v} = {0}.</li><li>${u} · ${v} = ${M(a)} × ${P(c)} + ${P(b)} × ${P(d)} = {1}.</li><li>Les vecteurs {2} orthogonaux.</li></ol>`,
+  blanks:[["xx′ + yy′",["xy′ − x′y","xx′ − yy′"]],[M(ps),LN(ps,[a*d-b*c,a*c-b*d])],[ps===0?'sont':'ne sont pas',[ps===0?'ne sont pas':'sont','sont peut-être']]],
+  explain:`Deux vecteurs sont orthogonaux si et seulement si leur produit scalaire est nul. Ne pas confondre avec le déterminant ${V('x')}${V('y′')} − ${V('x′')}${V('y')}, qui teste la colinéarité.`,
+  chk:[['eq',`Matrix([${a},${b}]).dot(Matrix([${c},${d}]))`,`${ps}`],['blank',1,`Eq(@,${ps})`]]}}},
+{id:'D3',k:'demo',f:()=>{let a,b,x0,y0;do{a=nz(-5,5);b=nz(-5,5);x0=ri(-4,4);y0=ri(-4,4)}while(false);const c=-(a*x0+b*y0);
+  return{title:`Droite passant par A${cv(x0,y0)} de vecteur normal ${nn}${cv(a,b)}`,
+  html:`<ol><li>M(${Xv} ; ${Yv}) appartient à la droite si et seulement si ${vc('AM')} · ${nn} = {0}.</li>
+<li>${vc('AM')} · ${nn} = ${M(a)}(${Xv}${S(-x0)}) + ${P(b)}(${Yv}${S(-y0)}).</li><li>Une équation de la droite est donc {1}.</li></ol>`,
+  blanks:[['0',['1','AM']],[tx(cart(a,b,c)),[...new Set([tx(cart(a,b,-c||1)),tx(cart(b,a,c)),tx(cart(a,-b,c))])].filter(z=>z!==tx(cart(a,b,c))).slice(0,2)]],
+  explain:`Un vecteur normal est orthogonal à tout vecteur directeur : ${vc('AM')} ⟂ ${nn}. On obtient ${V('a')}${Xv} + ${V('b')}${Yv} + ${V('c')} = 0, où (${V('a')} ; ${V('b')}) sont les coordonnées de ${nn}. Contrôle : A vérifie l'équation.`,
+  chk:[['eq',`${a}*(x-(${x0}))+(${b})*(y-(${y0}))`,`${a}*x+(${b})*y+(${c})`],['eq',`${a}*(${x0})+(${b})*(${y0})+(${c})`,'0']]}}},
+{id:'O1',k:'ordre',f:()=>{const xo=ri(-4,4),yo=ri(-4,4),r=ri(1,5);
+  return{title:`Équation du cercle de centre Ω${cv(xo,yo)} et de rayon ${r}`,
+  steps:[`M(${Xv} ; ${Yv}) appartient au cercle si et seulement si ΩM = ${r}.`,`Cela équivaut à ΩM² = ${r*r}, car les deux longueurs sont positives.`,`Dans un repère orthonormé, ΩM² = (${Xv}${S(-xo)})² + (${Yv}${S(-yo)})².`,`Équation : (${Xv}${S(-xo)})² + (${Yv}${S(-yo)})² = ${r*r}.`],
+  explain:`On traduit « être à la distance ${r} de Ω » avec la formule de la distance, en élevant au carré pour éviter la racine.`,chk:[['eq',`(${xo+r}-(${xo}))**2+(${yo}-(${yo}))**2`,`${r*r}`]]}}},
+{id:'O2',k:'ordre',f:()=>{const a=nz(-4,4),b=nz(-4,4),c=nz(-4,4);
+  return{title:`Centre et rayon du cercle ${N(Xv+'² + '+Yv+'²'+term(2*a,Xv,1,false)+term(2*b,Yv,1,false)+' = '+(c*c+0))}`,
+  steps:[`On regroupe : (${Xv}²${term(2*a,Xv,1,false)}) + (${Yv}²${term(2*b,Yv,1,false)}) = ${c*c}.`,`On complète les carrés : (${Xv}${S(a)})² − ${a*a} + (${Yv}${S(b)})² − ${b*b} = ${c*c}.`,`(${Xv}${S(a)})² + (${Yv}${S(b)})² = ${a*a+b*b+c*c}.`,`C'est le cercle de centre (${M(-a)} ; ${M(-b)}) et de rayon √${a*a+b*b+c*c}.`],
+  explain:`On met l'équation sous la forme (${Xv} − ${V('x')}<sub>Ω</sub>)² + (${Yv} − ${V('y')}<sub>Ω</sub>)² = ${V('r')}² en complétant les carrés, comme pour la forme canonique.`,
+  chk:[['eq',`x**2+y**2+${2*a}*x+${2*b}*y-${c*c}`,`(x+(${a}))**2+(y+(${b}))**2-${a*a+b*b+c*c}`]]}}},
+{id:'F1',k:'faute',f:()=>{let a,b,c,d;do{a=nz(-5,5);b=nz(-5,5);c=nz(-5,5);d=nz(-5,5)}while(a*d-b*c===0||a*c+b*d===0);
+  return{title:`Orthogonalité de ${u}${cv(a,b)} et ${v}${cv(c,d)}`,
+  lines:[`On veut savoir si ${u} et ${v} sont orthogonaux.`,`On calcule ${M(a)} × ${P(d)} − ${P(c)} × ${P(b)} = ${M(a*d-b*c)}.`,`Ce nombre n'est pas nul.`,`Donc ${u} et ${v} ne sont pas orthogonaux.`],wrong:1,
+  why:`La ligne 1 calcule le déterminant, qui teste la colinéarité. Pour l'orthogonalité, il faut le produit scalaire ${V('x')}${V('x′')} + ${V('y')}${V('y′')}.`,
+  bad:[`À la ligne 3, un nombre non nul prouve l'orthogonalité.`,`À la ligne 2, ce nombre est nul.`],
+  explain:`${u} · ${v} = ${M(a)} × ${P(c)} + ${P(b)} × ${P(d)} = ${M(a*c+b*d)} ≠ 0 : la conclusion est juste, mais la justification ne l'était pas.`,
+  chk:[['eq',`Matrix([${a},${b}]).dot(Matrix([${c},${d}]))`,`${a*c+b*d}`]]}}},
+{id:'F2',k:'faute',f:()=>{const a=nz(-5,5),b=nz(-5,5),c=nz(-9,9);
+  return{title:`Un vecteur normal à la droite ${cart(a,b,c)}`,
+  lines:[`La droite a pour équation ${cart(a,b,c)}.`,`Un vecteur directeur est (${M(-b)} ; ${M(a)}).`,`Un vecteur normal est (${M(-b)} ; ${M(a)}).`],wrong:2,
+  why:`Un vecteur normal de ${V('a')}${Xv} + ${V('b')}${Yv} + ${V('c')} = 0 est ${nn}(${V('a')} ; ${V('b')}) = (${M(a)} ; ${M(b)}).`,
+  bad:[`À la ligne 1, un vecteur directeur est (${M(a)} ; ${M(b)}).`,`Une droite n'a pas de vecteur normal.`],
+  explain:`Contrôle : (${M(a)} ; ${M(b)}) · (${M(-b)} ; ${M(a)}) = ${M(-a*b)} + ${P(a*b)} = 0 : le vecteur normal est bien orthogonal au vecteur directeur.`,
+  chk:[['eq',`Matrix([${a},${b}]).dot(Matrix([${-b},${a}]))`,'0'],['ne',`Matrix([${-b},${a}]).dot(Matrix([${-b},${a}]))`,'0']]}}},
+{id:'F3',k:'faute',f:()=>{const xo=nz(-4,4),yo=nz(-4,4),r=ri(2,5);
+  return{title:`Cercle de centre Ω${cv(xo,yo)} et de rayon ${r}`,
+  lines:[`M(${Xv} ; ${Yv}) est sur le cercle ⇔ ΩM = ${r}.`,`⇔ (${Xv}${S(-xo)})² + (${Yv}${S(-yo)})² = ${r}`],wrong:1,
+  why:`(${Xv}${S(-xo)})² + (${Yv}${S(-yo)})² vaut ΩM², donc il faut ${r}² = ${r*r} au second membre.`,
+  bad:[`À la ligne 1, il faut écrire (${Xv}${S(xo)})² + (${Yv}${S(yo)})².`,`Le rayon doit être au carré au premier membre.`],
+  explain:`Équation : (${Xv}${S(-xo)})² + (${Yv}${S(-yo)})² = ${r*r}. Contrôle avec le point (${M(xo+r)} ; ${M(yo)}), qui est sur le cercle : ${r}² = ${r*r}.`,
+  chk:[['ne',`${r}`,`${r*r}`]].concat([['eq',`(${xo+r}-(${xo}))**2`,`${r*r}`]])}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si ${vc('MA')} · ${vc('MB')} = 0 et M ≠ A, M ≠ B, alors le triangle AMB est rectangle en M. »`,
+  choices:[[`Vrai : les vecteurs ${vc('MA')} et ${vc('MB')}, non nuls, sont orthogonaux.`,1],[`Faux : il est rectangle en A.`,0],[`Faux : il est isocèle en M.`,0]],
+  explain:`Produit scalaire nul et vecteurs non nuls : angle droit en M. C'est le lien avec le cercle de diamètre [AB].`,chk:[['eq','Matrix([3,0]).dot(Matrix([0,4]))','0']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« L'équation ${Xv}² + ${Yv}² + 2${Xv} + 5 = 0 est celle d'un cercle. »`,
+  choices:[[`Faux : elle s'écrit (${Xv} + 1)² + ${Yv}² = −4, impossible : aucun point ne la vérifie.`,1],[`Vrai : toute équation de la forme ${Xv}² + ${Yv}² + … = 0 est celle d'un cercle.`,0],[`Vrai : c'est le cercle de centre (−1 ; 0) et de rayon 2.`,0]],
+  explain:`Après avoir complété les carrés, le second membre doit être positif ; ici une somme de carrés égale à −4 n'a pas de solution.`,chk:[['eq','x**2+y**2+2*x+5','(x+1)**2+y**2+4']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`Le vecteur ${nn}(${V('a')} ; ${V('b')}) est orthogonal au vecteur (−${V('b')} ; ${V('a')}) :`,ans:'toujours',explain:`${V('a')} × (−${V('b')}) + ${V('b')} × ${V('a')} = 0.`.replace(/$/,' C\'est pourquoi (−b ; a) est directeur quand (a ; b) est normal.'),chk:[['eq','a*(-b)+b*a','0']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`L'équation ${Xv}² + ${Yv}² + ${V('a')}${Xv} + ${V('b')}${Yv} + ${V('c')} = 0 est celle d'un cercle :`,ans:'parfois',explain:`${Xv}² + ${Yv}² − 1 = 0 est un cercle ; ${Xv}² + ${Yv}² + 1 = 0 n'a aucun point.`,chk:[['eq','x**2+y**2+1','x**2+y**2+1']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`Deux vecteurs non nuls colinéaires sont orthogonaux :`,ans:'jamais',explain:`Si ${v} = ${V('k')}${u} avec ${V('k')} ≠ 0, alors ${u} · ${v} = ${V('k')}${u}² ≠ 0.`,chk:[['eq','Matrix([a,b]).dot(Matrix([k*a,k*b]))','k*(a**2+b**2)']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['u · v = xx′ + yy′ dans un repère orthonormé.','Le vecteur (a ; b) est normal à la droite d\'équation ax + by + c = 0.','MA · MB = 0 si et seulement si M est sur le cercle de diamètre [AB].','u · v = xy′ − x′y.'];
+  const pr=['u(2 ; −3) et v(3 ; 2) : u · v = 6 − 6 = 0, ils sont orthogonaux.','La droite 2x − y + 4 = 0 est perpendiculaire à toute droite dirigée par (2 ; −1).','A(0 ; 0), B(4 ; 0), M(2 ; 2) : MA · MB = 0, donc M est sur le cercle de diamètre [AB].'][w];
+  return{title:'Quelle propriété justifie cette conclusion ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière formule est celle du déterminant, pas du produit scalaire.`,chk:[['eq','Matrix([2,-3]).dot(Matrix([3,2]))','0'],['eq','Matrix([-2,-2]).dot(Matrix([2,-2]))','0']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

@@ -656,5 +656,147 @@ TS.run({ slug: 'le-grand-arbre', title: 'Le Grand Arbre', chapter: 'Combinatoire
   { t: 'Le bon outil', n: 5, gen: q7, rule: `<p>Ordre et répétitions : n<sup>k</sup>. Ordre sans répétition : ${frac('n!', '(n − k)!')}. Sans ordre (parties) : ${bn('n', 'k')}.</p>` }] });
 
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — le-grand-arbre */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Le Grand Arbre — Terminale spécialité, chapitre 3 (combinatoire et dénombrement) : principe multiplicatif,
+   k-uplets (nᵏ), arrangements, permutations (n!), combinaisons C(n, k), symétrie, relation de Pascal.
+   Démonstrations du programme : somme des C(n, k) = 2ⁿ (par dénombrement) ; relation de Pascal (calcul, combinatoire). */
+const n=V('n'),k=V('k');
+const Cb=(a,b)=>`(${a} parmi ${b})`.replace(/^\((.+) parmi (.+)\)$/,(m,x,y)=>`C(${y}, ${x})`);
+const C=(a,b)=>{let r=1;for(let i=1;i<=b;i++)r=r*(a-b+i)/i;return Math.round(r)};
+const fac=m=>m<=1?1:m*fac(m-1);
+const BANK=[
+{id:'D1',k:'demo',f:()=>{const N0=ri(3,6);
+  return{title:`Pourquoi C(${N0}, 0) + C(${N0}, 1) + … + C(${N0}, ${N0}) = 2<sup>${N0}</sup> ?`,
+  html:`<p>On compte les parties d'un ensemble E à ${N0} éléments de deux façons.</p><ol>
+<li>Pour construire une partie, on décide pour chaque élément s'il en fait partie ou non : {0} choix par élément.</li>
+<li>Par le principe multiplicatif, E a donc {1} parties.</li><li>En classant les parties selon leur nombre ${k} d'éléments (de 0 à ${N0}), il y en a C(${N0}, ${k}) de chaque taille.</li>
+<li>Donc la somme des C(${N0}, ${k}) vaut {2}.</li></ol>`,
+  blanks:[['2',['1',String(N0)]],[`2^${N0} = ${2**N0}`,[`${N0}² = ${N0*N0}`,`${N0}! = ${fac(N0)}`]],[String(2**N0),LN(2**N0,[fac(N0),N0*N0])]],
+  explain:`C'est la démonstration par dénombrement du programme : on compte le même ensemble (les parties de E) de deux manières.`,
+  chk:[['eq',`Sum(binomial(${N0},k),(k,0,${N0})).doit()`,`2**${N0}`]]}}},
+{id:'D2',k:'demo',f:()=>{const N0=ri(4,9),K=ri(1,N0-2);
+  return{title:`Relation de Pascal : C(${N0}, ${K}) + C(${N0}, ${K+1}) = C(${N0+1}, ${K+1})`,
+  html:`<p>On choisit ${K+1} éléments parmi ${N0+1}, dont un élément particulier ${V('a')}.</p><ol>
+<li>Les parties qui contiennent ${V('a')} : il reste à choisir {0} éléments parmi ${N0}.</li><li>Les parties qui ne contiennent pas ${V('a')} : on choisit ${K+1} éléments parmi {1}.</li>
+<li>Ces deux familles sont disjointes et recouvrent tout : C(${N0+1}, ${K+1}) = C(${N0}, ${K}) + C(${N0}, ${K+1}) = {2}.</li></ol>`,
+  blanks:[[String(K),LN(K,[K+1])],[String(N0),LN(N0,[N0+1])],[String(C(N0+1,K+1)),LN(C(N0+1,K+1),[C(N0,K)*C(N0,K+1)])]],
+  explain:`Démonstration combinatoire de la relation de Pascal : on sépare selon qu'un élément fixé est choisi ou non.`,
+  chk:[['eq',`binomial(${N0},${K})+binomial(${N0},${K+1})`,`binomial(${N0+1},${K+1})`],['eq',`binomial(${N0+1},${K+1})`,`${C(N0+1,K+1)}`]]}}},
+{id:'D3',k:'demo',f:()=>{const N0=ri(5,9),K=ri(2,3);
+  return{title:`Arrangements ou combinaisons ? (${K} parmi ${N0})`,
+  html:`<ol><li>Choisir un podium (1er, 2e${K===3?', 3e':''}) parmi ${N0} coureurs : l'ordre compte, il y a ${N0}${K===3?' × '+(N0-1)+' × '+(N0-2):' × '+(N0-1)} = {0} possibilités.</li>
+<li>Choisir ${K} délégués parmi ${N0} : l'ordre ne compte pas, chaque groupe a été compté {1} fois dans le podium.</li><li>Il y a donc C(${N0}, ${K}) = {2} groupes.</li></ol>`,
+  blanks:[[String(fac(N0)/fac(N0-K)),LN(fac(N0)/fac(N0-K),[N0**K,C(N0,K)])],[`${K}! = ${fac(K)}`,[`${K}`,`${N0}`]],[String(C(N0,K)),LN(C(N0,K),[fac(N0)/fac(N0-K)])]],
+  explain:`Un arrangement est une liste ordonnée sans répétition ; une combinaison est une partie. C(${n}, ${k}) = (nombre d'arrangements)/${k}!.`,
+  chk:[['eq',`factorial(${N0})/factorial(${N0-K})`,`${fac(N0)/fac(N0-K)}`],['eq',`binomial(${N0},${K})`,`${C(N0,K)}`]]}}},
+{id:'O1',k:'ordre',f:()=>{const N0=ri(6,9),K=ri(2,4);
+  return{title:`Calculer C(${N0}, ${K}) par la formule`,
+  steps:[`C(${n}, ${k}) = ${n}!/(${k}!(${n} − ${k})!).`,`C(${N0}, ${K}) = ${N0}!/(${K}! × ${N0-K}!).`,`On simplifie par ${N0-K}! : C(${N0}, ${K}) = (${Array.from({length:K},(_,i)=>N0-i).join(' × ')})/${K}!.`,`C(${N0}, ${K}) = ${C(N0,K)}.`],
+  explain:`On simplifie avant de calculer pour éviter de grands nombres.`,chk:[['eq',`factorial(${N0})/(factorial(${K})*factorial(${N0-K}))`,`${C(N0,K)}`]]}}},
+{id:'O2',k:'ordre',f:()=>{const N0=ri(4,8),K=ri(2,4);
+  return{title:`Nombre de codes de ${K} chiffres pris parmi ${N0} (répétitions permises)`,
+  steps:[`Un code est un ${K}-uplet d'éléments d'un ensemble à ${N0} éléments.`,`Pour chaque position, il y a ${N0} choix.`,`Les choix sont indépendants : on applique le principe multiplicatif.`,`Il y a ${N0}<sup>${K}</sup> = ${N0**K} codes.`],
+  explain:`Avec répétition et ordre : ${n}<sup>${k}</sup> ; sans répétition et avec ordre : arrangements ; sans ordre : combinaisons.`,chk:[['eq',`${N0}**${K}`,`${N0**K}`]]}}},
+{id:'F1',k:'faute',f:()=>{const N0=ri(6,9);
+  return{title:`Nombre de poignées de main entre ${N0} personnes`,
+  lines:[`Chaque personne serre la main des ${N0-1} autres.`,`Il y a donc ${N0} × ${N0-1} = ${N0*(N0-1)} poignées de main.`],wrong:1,
+  why:`Chaque poignée de main est comptée deux fois (A avec B et B avec A) : c'est une combinaison, C(${N0}, 2) = ${C(N0,2)}.`,
+  bad:[`À la ligne 0, chacun serre ${N0} mains.`,`Il faut calculer ${N0}!.`],
+  explain:`L'ordre ne compte pas dans une poignée de main : ${N0*(N0-1)}/2 = ${C(N0,2)}.`,chk:[['eq',`binomial(${N0},2)`,`${C(N0,2)}`],['ne',`${N0*(N0-1)}`,`${C(N0,2)}`]]}}},
+{id:'F2',k:'faute',f:()=>{const N0=ri(4,7);
+  return{title:`Nombre d'anagrammes d'un mot de ${N0} lettres toutes distinctes`,
+  lines:[`On range ${N0} lettres distinctes dans ${N0} positions.`,`C'est une combinaison de ${N0} éléments parmi ${N0}.`,`Il y a C(${N0}, ${N0}) = 1 anagramme.`],wrong:1,
+  why:`L'ordre des lettres compte : ce sont des permutations, au nombre de ${N0}! = ${fac(N0)}.`,
+  bad:[`À la ligne 0, on doit utiliser ${N0}<sup>${N0}</sup> positions.`,`À la ligne 2, C(${N0}, ${N0}) = ${N0}.`],
+  explain:`Un anagramme est une liste ordonnée de toutes les lettres : ${N0} × ${N0-1} × … × 1 = ${fac(N0)}.`,chk:[['eq',`factorial(${N0})`,`${fac(N0)}`]]}}},
+{id:'F3',k:'faute',f:()=>{const N0=ri(6,10),K=ri(2,3);
+  return{title:`Symétrie des coefficients`,
+  lines:[`On veut C(${N0}, ${N0-K}).`,`D'après la symétrie, C(${N0}, ${N0-K}) = C(${N0-K}, ${N0}).`,`Or ${N0-K} < ${N0}, donc C(${N0-K}, ${N0}) = 0.`],wrong:1,
+  why:`La symétrie s'écrit C(${n}, ${k}) = C(${n}, ${n} − ${k}) : C(${N0}, ${N0-K}) = C(${N0}, ${K}).`,
+  bad:[`À la ligne 2, C(${N0-K}, ${N0}) = 1.`,`Dans l'énoncé, C(${N0}, ${N0-K}) n'existe pas.`],
+  explain:`Choisir les ${N0-K} éléments retenus revient à choisir les ${K} éléments écartés : C(${N0}, ${N0-K}) = C(${N0}, ${K}) = ${C(N0,K)}.`,
+  chk:[['eq',`binomial(${N0},${N0-K})`,`binomial(${N0},${K})`]]}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Pour tout entier ${n} ≥ 1, C(${n}, 1) = ${n}. »`,
+  choices:[[`Vrai : choisir une partie à un élément revient à choisir un élément parmi ${n}.`,1],[`Faux : C(${n}, 1) = 1.`,0],[`Faux : C(${n}, 1) = ${n}!.`,0]],
+  explain:`C(${n}, 1) = ${n}!/(1! (${n} − 1)!) = ${n}.`,chk:[['eq','binomial(n,1)','n']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Il y a autant de façons de choisir 3 élèves parmi 10 que d'en choisir 7 parmi 10. »`,
+  choices:[[`Vrai : choisir les 3 retenus, c'est choisir les 7 écartés ; C(10, 3) = C(10, 7) = 120.`,1],[`Faux : 3 < 7.`,0],[`Faux : C(10, 3) = 3 × 10.`,0]],
+  explain:`Symétrie C(${n}, ${k}) = C(${n}, ${n} − ${k}), démontrée par un argument de complémentaire.`,chk:[['eq','binomial(10,3)','binomial(10,7)'],['eq','binomial(10,3)','120']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`${n} ≥ 1. C(${n}, 0) + … + C(${n}, ${n}) est pair :`,ans:'toujours',explain:`Cette somme vaut 2<sup>${n}</sup>, pair pour ${n} ≥ 1.`,chk:[['tpj','Eq(Mod(2**n,2),0)',['n'],'Ns','toujours']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`0 ≤ ${k} ≤ ${n}. C(${n}, ${k}) > ${n} :`,ans:'parfois',explain:`C(5, 2) = 10 > 5, mais C(5, 1) = 5 et C(5, 0) = 1.`,chk:[['eq','binomial(5,2)','10'],['eq','binomial(5,1)','5']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`0 ≤ ${k} ≤ ${n}. C(${n}, ${k}) n'est pas un entier :`,ans:'jamais',explain:`C(${n}, ${k}) compte des parties : c'est un entier naturel (et non nul).`,chk:[['eq','binomial(7,3)','35']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['Principe multiplicatif (k-uplets) : nᵏ.','Nombre de permutations : n!.','Combinaisons : C(n, k) parties à k éléments.','Arrangements : C(n, k) × k! = n!.'];
+  const pr=['Un code PIN de 4 chiffres : 10⁴ possibilités.','Ranger 5 livres différents sur une étagère : 120 façons.','Choisir 2 représentants dans une classe de 30 : 435 façons.'][w];
+  return{title:'Quel modèle de dénombrement est utilisé ?',tag:'Quel dénombrement ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière égalité est fausse : C(n, k) × k! est le nombre d'arrangements n!/(n − k)!.`,chk:[['eq','factorial(5)','120'],['eq','binomial(30,2)','435']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

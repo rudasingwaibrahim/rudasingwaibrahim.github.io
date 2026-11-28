@@ -2281,5 +2281,162 @@ window.DE={LV,TP,genCopy,genEnquete,verifyCopy,fmt,parseExpr,lineValid,buildFina
   state:()=>G};
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — detective-erreur */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Détective Erreur — Seconde (erreurs fréquentes, tous chapitres du début d'année) : calcul littéral et identités
+   remarquables, équations produit, puissances, racines, inégalités, vecteurs, parité ; « un exemple ne démontre rien ». */
+const Xv=V('x'),a=V('a'),b=V('b');
+const vc=s=>`<span class="vec">${s}</span>`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>({title:'Démontrer que (a + b)² = a² + 2ab + b²',
+  html:`<ol><li>(${a} + ${b})² = (${a} + ${b}) × {0}.</li><li>Par distributivité : (${a} + ${b})(${a} + ${b}) = ${a}² + ${a}${b} + ${b}${a} + ${b}².</li>
+<li>Comme ${b}${a} = ${a}${b}, on obtient : (${a} + ${b})² = {1}.</li><li>En particulier, (${a} + ${b})² et ${a}² + ${b}² diffèrent de {2}.</li></ol>`,
+  blanks:[['(a + b)',['2','(a − b)']],['a² + 2ab + b²',['a² + b²','a² + ab + b²']],['2ab',['ab','0']]],
+  explain:`Élever au carré, c'est multiplier par soi-même ; on développe les quatre produits. Le « double produit » 2${a}${b} est exactement ce qu'on oublie quand on écrit (${a} + ${b})² = ${a}² + ${b}².`,
+  chk:[['eq','(a+b)**2','a**2+2*a*b+b**2'],['blank',1,'Eq(@,(a+b)**2)'],['blank',2,'Eq(@,(a+b)**2-(a**2+b**2))']]})},
+{id:'D2',k:'demo',f:()=>{const r=ri(2,9),k=pick([1,2,3]);const c=k*k,d=r*r;
+  return{title:`Factoriser ${N((c===1?'':c)+Xv+'² − '+d)}`,
+  html:`<ol><li>On reconnaît la forme ${N(a+'² − '+b+'²')} avec ${a} = {0} et ${b} = ${r}.</li><li>D'après l'identité remarquable, ${N(a+'² − '+b+'²')} = {1}.</li>
+<li>Donc ${N((c===1?'':c)+Xv+'² − '+d)} = {2}.</li></ol>`,
+  blanks:[[k===1?'x':k+'x',[k===1?'x²':c+'x',k===1?'2x':k+'x²']],['(a − b)(a + b)',['(a − b)²','(a + b)²']],[`(${k===1?'':k}x − ${r})(${k===1?'':k}x + ${r})`,[`(${k===1?'':k}x − ${r})²`,`(${k===1?'':k}x − ${d})(${k===1?'':k}x + ${d})`]]],
+  explain:`${N((c===1?'':c)+Xv+'²')} = (${k===1?'':k}${Xv})² et ${d} = ${r}² : on applique ${N(a+'² − '+b+'²')} = (${a} − ${b})(${a} + ${b}). Contrôle en développant.`,
+  chk:[['blank',2,`Eq(@,${c}*x**2-${d})`],['blank',0,`Eq((@)**2,${c}*x**2)`]]}}},
+{id:'D3',k:'demo',f:()=>({title:'« Pour tout entier n ≥ 1, 2n + 1 est un carré parfait. »',
+  html:`<ol><li>Pour ${V('n')} = 4 : 2 × 4 + 1 = {0} = 3². L'affirmation est vraie pour ce cas.</li><li>Pour ${V('n')} = 1 : 2 × 1 + 1 = 3, qui n'est pas un carré parfait. C'est un {1}.</li>
+<li>L'affirmation est donc {2} : un exemple ne démontre pas une propriété générale, un contre-exemple suffit à la réfuter.</li></ol>`,
+  blanks:[['9',['8','10']],['contre-exemple',['exemple','théorème']],['fausse',['vraie','vraie pour n impair']]],
+  explain:`Vérifier quelques cas ne prouve rien ; il suffit d'un seul cas où l'affirmation est fausse pour qu'elle soit fausse. Ici ${V('n')} = 1 (ou 2, avec 5).`,
+  chk:[['eq','2*4+1','9'],['F','Eq(floor(sqrt(3))**2,3)']]})},
+{id:'O1',k:'ordre',f:()=>{const k=ri(2,5),r=ri(1,7);
+  return{title:`Factoriser ${N(poly([[k*k,2],[-2*k*r,1],[r*r,0]]))}`,
+  steps:[`On repère deux carrés : ${N((k*k)+Xv+'²')} = (${k}${Xv})² et ${r*r} = ${r}².`,`On vérifie le double produit : 2 × ${k}${Xv} × ${r} = ${2*k*r}${Xv}.`,`On reconnaît ${N(a+'² − 2'+a+b+' + '+b+'²')} = (${a} − ${b})².`,`Donc ${N(poly([[k*k,2],[-2*k*r,1],[r*r,0]]))} = (${k}${Xv} − ${r})².`],
+  explain:`Pour reconnaître une identité remarquable, on identifie ${a} et ${b}, puis on <b>vérifie</b> le double produit avant de conclure.`,
+  chk:[['eq',`${k*k}*x**2-${2*k*r}*x+${r*r}`,`(${k}*x-${r})**2`]]}}},
+{id:'O2',k:'ordre',f:()=>{const p=ri(2,5),q=nz(-6,6),u=nz(-5,5);
+  return{title:`Résoudre ${N('('+lin(p,q)+')('+lin(1,u)+') = 0')}`,
+  steps:[`Un produit est nul si et seulement si l'un au moins de ses facteurs est nul.`,`${N(lin(p,q)+' = 0')} ou ${N(lin(1,u)+' = 0')}.`,`${Xv} = ${F(-q,p)} ou ${Xv} = ${M(-u)}.`,`Les solutions sont ${F(-q,p)} et ${M(-u)}.`],
+  explain:`On ne développe surtout pas : la forme factorisée permet d'appliquer la règle du produit nul.`,
+  chk:[['sol',`Eq((${p}*x+(${q}))*(x+(${u})),0)`,'x',`FiniteSet(Rational(${-q},${p}),${-u})`]]}}},
+{id:'F1',k:'faute',f:()=>{const r=ri(2,9);
+  return{title:`Développer (${Xv} − ${r})²`,
+  lines:[`(${Xv} − ${r})²`,`= (${Xv} − ${r})(${Xv} − ${r})`,`= ${Xv}² − ${r*r}`],wrong:2,
+  why:`Il manque le double produit : (${Xv} − ${r})² = ${Xv}² − ${2*r}${Xv} + ${r*r}.`,
+  bad:[`À la ligne 1, (${Xv} − ${r})² = 2(${Xv} − ${r}).`,`À la ligne 1, il fallait écrire (${Xv} − ${r})(${Xv} + ${r}).`],
+  explain:`Contrôle avec ${Xv} = 0 : (0 − ${r})² = ${r*r}, alors que 0² − ${r*r} = −${r*r}. Le carré d'une différence n'est pas la différence des carrés.`,
+  chk:[['seq',[`(x-${r})**2`,`(x-${r})*(x-${r})`,`x**2-${r*r}`],2],['eq',`(x-${r})**2`,`x**2-${2*r}*x+${r*r}`]]}}},
+{id:'F2',k:'faute',f:()=>{const k=ri(2,6),u=ri(1,9);
+  return{title:`Réduire ${N(lin(k+1,0)+' − ('+lin(1,-u)+')')}`,
+  lines:[`${V('A')} = ${N(lin(k+1,0)+' − ('+lin(1,-u)+')')}`,`${V('A')} = ${N(lin(k+1,0)+' − '+Xv+' − '+u)}`,`${V('A')} = ${N(lin(k,-u))}`],wrong:1,
+  why:`Le signe − devant la parenthèse change le signe de <b>chaque</b> terme : −(${Xv} − ${u}) = −${Xv} + ${u}.`,
+  bad:[`À la ligne 2, ${k+1}${Xv} − ${Xv} = ${k+2}${Xv}.`,`À la ligne 1, on n'a pas le droit d'enlever des parenthèses.`],
+  explain:`${V('A')} = ${k+1}${Xv} − ${Xv} + ${u} = ${N(lin(k,u))}. Contrôle avec ${Xv} = 0 : ${V('A')} = −(−${u}) = ${u}.`,
+  chk:[['seq',[`${k+1}*x-(x-${u})`,`${k+1}*x-x-${u}`,`${k}*x-${u}`],1]]}}},
+{id:'F3',k:'faute',f:()=>{const n=ri(2,4),p=ri(2,4);
+  return{title:`Calculer 2<sup>${n}</sup> × 2<sup>${p}</sup>`,
+  lines:[`2<sup>${n}</sup> × 2<sup>${p}</sup>`,`= 4<sup>${n+p}</sup>`,`= ${4**(n+p)}`],wrong:1,
+  why:`On garde la même base et on ajoute les exposants : 2<sup>${n}</sup> × 2<sup>${p}</sup> = 2<sup>${n+p}</sup>.`,
+  bad:[`À la ligne 2, 4<sup>${n+p}</sup> ne vaut pas ${4**(n+p)}.`,`Il fallait multiplier les exposants : 2<sup>${n*p}</sup>.`],
+  explain:`2<sup>${n}</sup> × 2<sup>${p}</sup> = 2<sup>${n+p}</sup> = ${2**(n+p)}. Contrôle : ${2**n} × ${2**p} = ${2**(n+p)}.`,
+  chk:[['seq',[`2**${n}*2**${p}`,`4**${n+p}`,`${4**(n+p)}`],1]]}}},
+{id:'F4',k:'faute',f:()=>{const a2=ri(2,5),s=nz(-4,4),c=-a2*s;
+  return{title:`Résoudre ${N('−'+a2+Xv+' ≤ '+M(c))}`,
+  lines:[`${N('−'+a2+Xv+' ≤ '+M(c))}`,`${N(Xv+' ≤ '+M(c)+' ÷ (−'+a2+')')}`,`${N(Xv+' ≤ '+M(s))}`],wrong:1,
+  why:`On divise par −${a2}, nombre strictement négatif : le sens de l'inégalité change, ${N(Xv+' ≥ '+M(s))}.`,
+  bad:[`À la ligne 2, ${M(c)} ÷ (−${a2}) vaut ${M(-s)}.`,`À la ligne 1, il fallait ajouter ${a2}.`],
+  explain:`Solutions : [${M(s)} ; +∞[. Contrôle avec ${Xv} = ${s+1} : −${a2} × ${P(s+1)} = ${M(-a2*(s+1))} ≤ ${M(c)}.`,
+  chk:[['seqeq',[`-${a2}*x<=${c}`,`x<=Rational(${c},-${a2})`,`x<=${s}`],'x',1],['T',`-${a2}*(${s+1})<=${c}`]]}}},
+{id:'F5',k:'faute',f:()=>({title:'Une somme de vecteurs',
+  lines:[`${vc('AB')} + ${vc('CA')}`,`= ${vc('AB')} + ${vc('AC')}`,`= ${vc('BC')}`],wrong:1,
+  why:`${vc('CA')} est l'opposé de ${vc('AC')} : on ne peut pas les échanger.`,
+  bad:[`À la ligne 2, ${vc('AB')} + ${vc('AC')} = ${vc('AC')} + ${vc('AB')}.`,`On ne peut pas additionner deux vecteurs.`],
+  explain:`On change l'ordre (l'addition est commutative) : ${vc('CA')} + ${vc('AB')} = ${vc('CB')} par la relation de Chasles.`,
+  chk:(()=>{const P={A:[ri(-5,5),ri(-5,5)],B:[ri(-5,5),ri(-5,5)],C:[ri(-5,5),ri(-5,5)]};while(P.A[0]===P.C[0]&&P.A[1]===P.C[1])P.C=[ri(-5,5),ri(-5,5)];
+    const W=(u,v)=>`Matrix([${P[v][0]-P[u][0]},${P[v][1]-P[u][1]}])`;return[['seq',[`${W('A','B')}+${W('C','A')}`,`${W('A','B')}+${W('A','C')}`,W('B','C')],1],['eq',`${W('A','B')}+${W('C','A')}`,W('C','B')]]})()})},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Pour tous réels ${a} et ${b}, (${a} + ${b})² = ${a}² + ${b}². »`,
+  choices:[[`Faux : pour ${a} = ${b} = 1, (1 + 1)² = 4 alors que 1² + 1² = 2.`,1],[`Vrai : pour ${a} = 0 et ${b} = 5, les deux valent 25.`,0],[`Vrai : le carré se distribue sur la somme.`,0],[`Faux : pour ${a} = 0 et ${b} = 1, (0 + 1)² = 2.`,0]],
+  explain:`(${a} + ${b})² = ${a}² + 2${a}${b} + ${b}² : l'égalité n'est vraie que si ${a}${b} = 0. Un exemple favorable ne prouve rien ; un contre-exemple suffit.`,
+  chk:[['ce','Eq((a+b)**2,a**2+b**2)',['a','b'],['1','1']],['nce','Eq((a+b)**2,a**2+b**2)',['a','b'],['0','5']]]})},
+{id:'V2',k:'vf',f:()=>{const k=ri(2,9);return{title:'Vrai ou faux ?',prompt:`« Pour tout réel ${Xv}, −${Xv} est négatif. »`,
+  choices:[[`Faux : pour ${Xv} = −${k}, −${Xv} = ${k}, qui est positif.`,1],[`Vrai : il y a un signe −.`,0],[`Vrai : pour ${Xv} = ${k}, −${Xv} = −${k}.`,0]],
+  explain:`−${Xv} est l'<b>opposé</b> de ${Xv} : il est négatif si ${Xv} est positif, positif si ${Xv} est négatif.`,chk:[['ce','-x<=0',['x'],[`-${k}`]],['nce','-x<=0',['x'],[`${k}`]]]}}},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`${a} et ${b} sont deux réels. (${a} − ${b})² = (${b} − ${a})² :`,ans:'toujours',
+    explain:`${b} − ${a} = −(${a} − ${b}) et deux nombres opposés ont le même carré.`,chk:[['eq','(a-b)**2','(b-a)**2']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`${a} et ${b} sont deux réels positifs. √(${a} + ${b}) = √${a} + √${b} :`,ans:'parfois',
+    explain:`Vrai si l'un des deux est nul (√(0 + 4) = 0 + 2), faux sinon (√(9 + 16) = 5 ≠ 7).`,chk:[['tpj','Eq(sqrt(a+b),sqrt(a)+sqrt(b))',['a','b'],['0','1','4','9'],'parfois']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`${V('n')} est un entier. 2${V('n')} + 1 est pair :`,ans:'jamais',
+    explain:`2${V('n')} + 1 est de la forme 2 × (entier) + 1 : il est toujours impair.`,chk:[['tpj','Eq(Mod(2*n+1,2),0)',['n'],'Z','jamais']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['(a − b)(a + b) = a² − b²','(a + b)² = a² + 2ab + b²','(a − b)² = a² − 2ab + b²','(a + b)² = a² + b²'];
+  const r=ri(2,9),pr=[`${N('('+Xv+' − '+r+')('+Xv+' + '+r+')')} = ${N(Xv+'² − '+r*r)}`,`${N('('+Xv+' + '+r+')²')} = ${N(poly([[1,2],[2*r,1],[r*r,0]]))}`,`${N('('+Xv+' − '+r+')²')} = ${N(poly([[1,2],[-2*r,1],[r*r,0]]))}`][w];
+  return{title:'Quelle identité remarquable est utilisée ?',prompt:`<div class="sk-eq">${pr}</div>`,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]}. La dernière « identité » est fausse : il manque le double produit.`,
+    chk:[['eq',`(x-${r})*(x+${r})`,`x**2-${r*r}`],['eq',`(x+${r})**2`,`x**2+${2*r}*x+${r*r}`],['eq',`(x-${r})**2`,`x**2-${2*r}*x+${r*r}`]]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

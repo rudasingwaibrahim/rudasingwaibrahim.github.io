@@ -2550,5 +2550,150 @@ return { boot, state: () => { const I = it() || {}; return { lv: S.lv, i: S.i, n
 SigmaKit.init({game:'zero-defaut',title:'Zéro Défaut',levels:7,levelNames:ZD.LEVELS.map(l=>l.name),music:'aventure',finals:ZD.finals,encourage:false});
 ZDG.boot();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — zero-defaut */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Zéro Défaut — Première spécialité (erreurs fréquentes, tous chapitres) : second degré, dérivation, suites,
+   trigonométrie et produit scalaire, géométrie repérée, exponentielle, probabilités et variables aléatoires. */
+const Xv=V('x'),n=V('n');
+const u=k=>`${V('u')}<sub>${k}</sub>`;
+const dev=(a,b,c)=>poly([[a,2],[b,1],[c,0]]);
+const BANK=[
+{id:'D1',k:'demo',f:()=>{const a=pick([1,-1,2]),r1=nz(-4,4);let r2;do{r2=nz(-4,4)}while(r2===r1);const b=-a*(r1+r2),c=a*r1*r2;
+  return{title:`Somme et produit des racines de ${N(dev(a,b,c))}`,
+  html:`<ol><li>Si un trinôme ${V('a')}${Xv}² + ${V('b')}${Xv} + ${V('c')} a deux racines, il s'écrit ${V('a')}(${Xv} − ${Xv}<sub>1</sub>)(${Xv} − ${Xv}<sub>2</sub>).</li>
+<li>En développant et en identifiant : ${Xv}<sub>1</sub> + ${Xv}<sub>2</sub> = {0} et ${Xv}<sub>1</sub>${Xv}<sub>2</sub> = ${V('c')}/${V('a')}.</li>
+<li>Ici la somme des racines vaut {1} et leur produit {2}.</li></ol>`,
+  blanks:[['−b/a',['b/a','−b/(2a)']],[M(r1+r2),LN(r1+r2,[-(r1+r2)])],[M(r1*r2),LN(r1*r2,[-r1*r2])]],
+  explain:`${V('a')}(${Xv} − ${Xv}<sub>1</sub>)(${Xv} − ${Xv}<sub>2</sub>) = ${V('a')}${Xv}² − ${V('a')}(${Xv}<sub>1</sub> + ${Xv}<sub>2</sub>)${Xv} + ${V('a')}${Xv}<sub>1</sub>${Xv}<sub>2</sub>. Ici les racines sont ${M(r1)} et ${M(r2)}.`,
+  chk:[['sol',`Eq(${a}*x**2+(${b})*x+(${c}),0)`,'x',`FiniteSet(${r1},${r2})`],['eq',`-(${b})/(${a})`,`${r1+r2}`],['eq',`(${c})/(${a})`,`${r1*r2}`]]}}},
+{id:'D2',k:'demo',f:()=>{const q=pick([2,3]),u0=ri(1,5),N0=pick([5,6,8]);const S0=u0*(q**(N0+1)-1)/(q-1);
+  return{title:`Somme ${u(0)} + ${u(1)} + … + ${u(N0)} d'une suite géométrique`,
+  html:`<p>${u(0)} = ${u0} et raison ${q}.</p><ol><li>La somme compte {0} termes.</li><li>${u(0)}(1 + ${q} + … + ${q}<sup>${N0}</sup>) = ${u0} × (1 − ${q}<sup>{1}</sup>)/(1 − ${q}).</li><li>La somme vaut {2}.</li></ol>`,
+  blanks:[[String(N0+1),LN(N0+1,[N0])],[String(N0+1),LN(N0+1,[N0])],[String(S0),LN(S0,[u0*(q**N0-1)/(q-1)])]],
+  explain:`De l'indice 0 à l'indice ${N0}, il y a ${N0} + 1 termes : c'est l'erreur la plus fréquente (un terme oublié).`,
+  chk:[['eq',`Sum(${u0}*${q}**k,(k,0,${N0})).doit()`,`${S0}`]]}}},
+{id:'D3',k:'demo',f:()=>{const k=ri(2,5);
+  return{title:`Dériver ${V('f')}(${Xv}) = ${Xv}${'e<sup>'+k+'<i>x</i></sup>'}`,
+  html:`<ol><li>${V('f')} est un produit ${V('u')}${V('v')} avec ${V('u')}(${Xv}) = ${Xv} et ${V('v')}(${Xv}) = e<sup>${k}${Xv}</sup>.</li><li>${V('u')}′(${Xv}) = 1 et ${V('v')}′(${Xv}) = {0}.</li>
+<li>${V('f')}′(${Xv}) = {1}.</li><li>e<sup>${k}${Xv}</sup> > 0 : ${V('f')}′(${Xv}) a le signe de {2}.</li></ol>`,
+  blanks:[[`${k}e^(${k}x)`,[`e^(${k}x)`,`${k}xe^(${k}x − 1)`]],[`(1 + ${k}x)e^(${k}x)`,[`${k}e^(${k}x)`,`(1 + x)e^(${k}x)`]],[`1 + ${k}x`,['x',`${k}x`]]],
+  explain:`(${V('u')}${V('v')})′ = ${V('u')}′${V('v')} + ${V('u')}${V('v')}′ = e<sup>${k}${Xv}</sup> + ${k}${Xv}e<sup>${k}${Xv}</sup>. Deux pièges : oublier le facteur ${k} de (e<sup>${k}${Xv}</sup>)′, et dériver un produit comme un produit de dérivées.`,
+  chk:[['eq',`diff(x*exp(${k}*x),x)`,`(1+${k}*x)*exp(${k}*x)`]]}}},
+{id:'O1',k:'ordre',f:()=>{const a=pick([1,2]),r1=nz(-4,1),r2=r1+ri(2,5);const b=-a*(r1+r2),c=a*r1*r2;
+  return{title:`Résoudre ${N(dev(-a,-b,-c)+' ≥ 0')}`,
+  steps:[`Δ = ${b*b-4*a*c} > 0 : deux racines, ${M(r1)} et ${M(r2)}.`,`Le coefficient de ${Xv}² est ${-a} < 0.`,`Le trinôme est positif entre les racines (signe contraire de ${V('a')}).`,`S = [${M(r1)} ; ${M(r2)}].`],
+  explain:`Erreur fréquente : oublier que le signe à l'extérieur des racines est celui de ${V('a')}, ici négatif.`,
+  chk:[['sol',`${-a}*x**2+(${-b})*x+(${-c})>=0`,'x',`Interval(${r1},${r2})`]]}}},
+{id:'O2',k:'ordre',f:()=>{const pa=pick([[1,4],[2,5]]),pb=pick([[1,2],[3,4]]),pc=pick([[1,5],[1,10]]);const num=pa[0]*pb[0]*pc[1],den=pa[0]*pb[0]*pc[1]+(pa[1]-pa[0])*pc[0]*pb[1];
+  return{title:'Inverser un conditionnement',prompt:`${V('P')}(A) = ${F(...pa)}, ${V('P')}<sub>A</sub>(B) = ${F(...pb)}, ${V('P')}<sub>Ā</sub>(B) = ${F(...pc)}.`,
+  steps:[`${V('P')}(A ∩ B) = ${F(...pa)} × ${F(...pb)} = ${F(pa[0]*pb[0],pa[1]*pb[1])}.`,`${V('P')}(B) = ${V('P')}(A ∩ B) + ${V('P')}(Ā ∩ B) (probabilités totales).`,`${V('P')}(B) = ${F(den,pa[1]*pb[1]*pc[1])}.`,`${V('P')}<sub>B</sub>(A) = ${V('P')}(A ∩ B)/${V('P')}(B) = ${F(num,den)}.`],
+  explain:`${V('P')}<sub>B</sub>(A) ≠ ${V('P')}<sub>A</sub>(B) en général : on passe par l'intersection et la formule des probabilités totales.`,
+  chk:[['eq',`Rational(${pa[0]},${pa[1]})*Rational(${pb[0]},${pb[1]})/(Rational(${pa[0]},${pa[1]})*Rational(${pb[0]},${pb[1]})+(1-Rational(${pa[0]},${pa[1]}))*Rational(${pc[0]},${pc[1]}))`,`Rational(${num},${den})`]]}}},
+{id:'F1',k:'faute',f:()=>{const u0=nz(-9,9),r=nz(-4,5),N0=ri(8,20);
+  return{title:`Terme ${u(N0)} d'une suite arithmétique`,
+  lines:[`${u(1)} = ${M(u0+r)} et la raison est ${M(r)}.`,`${u(n)} = ${u(1)} + ${n}${V('r')}`,`${u(N0)} = ${M(u0+r)} + ${N0} × ${P(r)} = ${M(u0+r+N0*r)}`],wrong:1,
+  why:`En partant de ${u(1)}, on ajoute la raison ${n} − 1 fois : ${u(n)} = ${u(1)} + (${n} − 1)${V('r')}.`,
+  bad:[`À la ligne 2, ${N0} × ${P(r)} est mal calculé.`,`Dans l'énoncé, la raison doit être positive.`],
+  explain:`${u(N0)} = ${M(u0+r)} + ${N0-1} × ${P(r)} = ${M(u0+N0*r)}. Contrôle avec ${n} = 1 : la formule doit redonner ${u(1)}.`,
+  chk:[['ne',`${u0+r}+${N0}*(${r})`,`${u0+r}+(${N0}-1)*(${r})`]]}}},
+{id:'F2',k:'faute',f:()=>{const v=pick([[3,'1/2'],[6,'√3/2'],[4,'√2/2']]);
+  return{title:`Calculer sin(π − π/${v[0]})`,
+  lines:[`π − ${Xv} est associé au symétrique du point de ${Xv} par rapport à l'axe des ordonnées.`,`Donc sin(π − ${Xv}) = −sin ${Xv}.`,`sin(π − π/${v[0]}) = −sin(π/${v[0]})`],wrong:1,
+  why:`La symétrie par rapport à l'axe des ordonnées conserve l'ordonnée : sin(π − ${Xv}) = sin ${Xv} (c'est le cosinus qui change de signe).`,
+  bad:[`À la ligne 0, il s'agit de la symétrie par rapport à O.`,`À la ligne 2, sin(π/${v[0]}) est négatif.`],
+  explain:`sin(π − π/${v[0]}) = sin(π/${v[0]}) = ${v[1]}, tandis que cos(π − π/${v[0]}) = −cos(π/${v[0]}).`,chk:[['eq',`sin(pi-pi/${v[0]})`,`sin(pi/${v[0]})`],['ne',`sin(pi-pi/${v[0]})`,`-sin(pi/${v[0]})`]]}}},
+{id:'F3',k:'faute',f:()=>{const a=ri(2,5);
+  return{title:`Résoudre e<sup>${a}<i>x</i></sup> = 0`,
+  lines:[`e<sup>${a}${Xv}</sup> = 0`,`${a}${Xv} = 0`,`${Xv} = 0`],wrong:1,
+  why:`e<sup>0</sup> = 1, pas 0 : une exponentielle est toujours strictement positive, l'équation n'a aucune solution.`,
+  bad:[`À la ligne 2, il fallait diviser par ${a} : ${Xv} = 1/${a}.`,`Dans l'énoncé, il fallait écrire e<sup>${Xv}</sup> = ${a}.`],
+  explain:`Contrôle : e<sup>${a} × 0</sup> = e<sup>0</sup> = 1 ≠ 0.`,chk:[['sol',`Eq(exp(${a}*x),0)`,'x','EmptySet'],['eq','exp(0)','1']]}}},
+{id:'F4',k:'faute',f:()=>{const a=ri(2,4),v=ri(1,5),b=nz(-5,5);
+  return{title:`Variance de ${V('Y')} = ${a}${V('X')}${S(b)}`,
+  lines:[`${V('V')}(${V('X')}) = ${v}.`,`${V('V')}(${V('Y')}) = ${a}² × ${V('V')}(${V('X')})${S(b)}`,`${V('V')}(${V('Y')}) = ${a*a*v+b}`],wrong:1,
+  why:`Ajouter une constante ne change pas la dispersion : ${V('V')}(${V('a')}${V('X')} + ${V('b')}) = ${V('a')}²${V('V')}(${V('X')}).`,
+  bad:[`À la ligne 1, il fallait multiplier par ${a} et non par ${a}².`,`Dans l'énoncé, ${v} ne peut pas être une variance.`],
+  explain:`${V('V')}(${V('Y')}) = ${a}² × ${v} = ${a*a*v} : la constante ${M(b)} décale toutes les valeurs sans changer leurs écarts à l'espérance.`,chk:[['ne',`${a*a*v}+(${b})`,`${a*a*v}`]]}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si ${V('f')}′(${V('a')}) = 0, alors ${V('f')} admet un extremum local en ${V('a')}. »`,
+  choices:[[`Faux : ${Xv} ↦ ${Xv}³ a une dérivée nulle en 0 sans extremum en 0.`,1],[`Vrai : ${Xv} ↦ ${Xv}² a une dérivée nulle en 0 et un minimum en 0.`,0],[`Vrai : la tangente est horizontale.`,0]],
+  explain:`Il faut que la dérivée s'annule <b>en changeant de signe</b>. Un exemple favorable ne prouve rien.`,chk:[['eq','diff(x**3,x).subs(x,0)','0']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Pour deux vecteurs ${V('u')} et ${V('v')}, ‖${V('u')} + ${V('v')}‖ = ‖${V('u')}‖ + ‖${V('v')}‖. »`,
+  choices:[[`Faux : pour ${V('u')}(1 ; 0) et ${V('v')}(0 ; 1), ‖${V('u')} + ${V('v')}‖ = √2 alors que ‖${V('u')}‖ + ‖${V('v')}‖ = 2.`,1],[`Vrai : pour ${V('u')} = ${V('v')}, les deux valent 2‖${V('u')}‖.`,0],[`Vrai : la norme est additive.`,0]],
+  explain:`‖${V('u')} + ${V('v')}‖² = ‖${V('u')}‖² + 2${V('u')} · ${V('v')} + ‖${V('v')}‖² : il y a égalité seulement si ${V('u')} et ${V('v')} sont colinéaires de même sens.`,chk:[['eq','sqrt(1**2+1**2)','sqrt(2)'],['ne','sqrt(2)','2']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`Un trinôme ${V('a')}${Xv}² + ${V('b')}${Xv} + ${V('c')} avec ${V('a')}${V('c')} < 0 a deux racines :`,ans:'toujours',explain:`${'Δ'} = ${V('b')}² − 4${V('a')}${V('c')} > 0 car −4${V('a')}${V('c')} > 0.`,chk:[['tpj','b**2-4*a*c>0',['a','b','c'],'Zs','toujours','a*c<0']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`A et B sont deux événements de probabilités non nulles. ${V('P')}<sub>A</sub>(B) = ${V('P')}<sub>B</sub>(A) :`,ans:'parfois',explain:`Vrai si ${V('P')}(A) = ${V('P')}(B), faux en général (inversion du conditionnement).`,chk:[['ne','Rational(1,6)/Rational(1,6)','Rational(1,6)/Rational(1,2)']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`${Xv} est un réel. e<sup>${Xv}</sup> ≤ 0 :`,ans:'jamais',explain:`L'exponentielle est strictement positive sur ℝ.`,chk:[['tpj','exp(x)<=0',['x'],'R','jamais']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['(uv)′ = u′v + uv′','Le trinôme est du signe de a à l\'extérieur de ses racines.','uₙ = u₀ + nr pour une suite arithmétique.','(uv)′ = u′v′'];
+  const pr=['f(x) = (2x + 1)eˣ : f′(x) = 2eˣ + (2x + 1)eˣ.','−x² + 5x − 6 = −(x − 2)(x − 3) est négatif pour x > 3.','u₀ = 7, r = −2 : u₁₀ = −13.'][w];
+  return{title:'Quelle propriété justifie ce calcul ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]}. La dernière formule est fausse.`,chk:[['eq','diff((2*x+1)*exp(x),x)','2*exp(x)+(2*x+1)*exp(x)'],['eq','-(x-2)*(x-3)','-x**2+5*x-6'],['eq','7+10*(-2)','-13']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

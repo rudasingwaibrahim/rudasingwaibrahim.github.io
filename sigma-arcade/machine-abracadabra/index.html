@@ -1398,5 +1398,141 @@ if(window.SigmaKit)SigmaKit.init({game:'machine-abracadabra',title:'La Machine A
 renderLv();play();
 }
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — machine-abracadabra */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* La Machine Abracadabra — remise à niveau (cycle 4 / début de Seconde) : programmes de calcul, traduction par une
+   expression littérale, conjecturer puis démontrer (un exemple ne suffit pas), « tour de magie » (résultat
+   indépendant du nombre choisi), programme inverse (résoudre une équation). */
+const Xv=V('x');
+const BANK=[
+{id:'D1',k:'demo',f:()=>{const a=ri(2,9),k=ri(2,5);
+  return{title:'Le tour de magie : le résultat ne dépend pas du nombre choisi',
+  html:`<p>Programme : choisir un nombre ; ajouter ${a} ; multiplier par ${k} ; soustraire ${k} fois le nombre de départ.</p><ol>
+<li>On note ${Xv} le nombre choisi : après les deux premières étapes, on a {0}.</li><li>On soustrait ${k}${Xv} : ${k}(${Xv} + ${a}) − ${k}${Xv} = ${k}${Xv} + ${k*a} − ${k}${Xv} = {1}.</li>
+<li>Le résultat est ${k*a} pour {2} nombre choisi.</li></ol>`,
+  blanks:[[`${k}(x + ${a})`,[`${k}x + ${a}`,`x + ${a*k}`]],[String(k*a),LN(k*a,[k+a,a])],['tout',['un seul','aucun']]],
+  explain:`Essayer quelques nombres permet de conjecturer ; le calcul littéral avec ${Xv} démontre que c'est vrai pour <b>tous</b> les nombres.`,
+  chk:[['eq',`${k}*(x+${a})-${k}*x`,`${k*a}`]]}}},
+{id:'D2',k:'demo',f:()=>{const a=ri(1,6),b=ri(1,6);
+  return{title:'Deux programmes donnent-ils toujours le même résultat ?',
+  html:`<p>Programme A : choisir ${Xv}, ajouter ${a}, élever au carré. Programme B : choisir ${Xv}, élever au carré, ajouter ${a*a}.</p><ol>
+<li>A donne (${Xv} + ${a})² = {0}, et B donne ${Xv}² + ${a*a}.</li><li>La différence A − B vaut {1}.</li>
+<li>Elle n'est nulle que pour ${Xv} = 0 : les deux programmes {2} le même résultat pour tout nombre.</li></ol>`,
+  blanks:[[`x² + ${2*a}x + ${a*a}`,[`x² + ${a*a}`,`x² + ${a}x + ${a*a}`]],[`${2*a}x`,['0',String(2*a)]],['ne donnent pas',['donnent','donnent toujours']]],
+  explain:`(${Xv} + ${a})² ≠ ${Xv}² + ${a}² en général : il manque le double produit 2 × ${Xv} × ${a}. Avec ${Xv} = 0, les deux programmes donnent ${a*a}, mais ce n'est qu'un cas particulier.`,
+  chk:[['eq',`(x+${a})**2-(x**2+${a*a})`,`${2*a}*x`]]}}},
+{id:'D3',k:'demo',f:()=>{const a=ri(2,6),k=ri(2,5),r=ri(10,60);
+  return{title:'Remonter un programme de calcul',
+  html:`<p>Programme : choisir ${Xv}, multiplier par ${k}, ajouter ${a}. On a obtenu ${r*k+a}.</p><ol>
+<li>On traduit : ${k}${Xv} + ${a} = ${r*k+a}.</li><li>On fait les opérations inverses dans l'ordre {0} : on soustrait ${a}, puis on divise par ${k}.</li><li>Le nombre de départ était {1}.</li></ol>`,
+  blanks:[['inverse',['du programme','alphabétique']],[String(r),LN(r,[r*k+a-a*k,(r*k+a)/k].filter(Number.isInteger))]],
+  explain:`Retrouver le nombre de départ, c'est résoudre l'équation ${k}${Xv} + ${a} = ${r*k+a} ; on « défait » les étapes en commençant par la dernière.`,
+  chk:[['sol',`Eq(${k}*x+${a},${r*k+a})`,'x',`FiniteSet(${r})`]]}}},
+{id:'O1',k:'ordre',f:()=>{const a=ri(2,9),b=ri(2,5);
+  return{title:'Traduire un programme de calcul',prompt:`Choisir un nombre ; lui retrancher ${a} ; multiplier par ${b} ; ajouter le nombre de départ.`,
+  steps:[`On note ${Xv} le nombre de départ.`,`Après la soustraction : ${Xv} − ${a}.`,`Après la multiplication : ${b}(${Xv} − ${a}).`,`Résultat : ${b}(${Xv} − ${a}) + ${Xv} = ${b+1}${Xv} − ${a*b}.`],
+  explain:`On suit l'ordre des étapes ; les parenthèses traduisent « multiplier tout le résultat précédent ».`,chk:[['eq',`${b}*(x-${a})+x`,`${b+1}*x-${a*b}`]]}}},
+{id:'O2',k:'ordre',f:()=>{const a=ri(1,5);
+  return{title:'Conjecturer puis démontrer',prompt:`Programme : choisir un entier ; le multiplier par l'entier suivant ; ajouter l'entier suivant.`,
+  steps:[`On teste : 3 donne 3 × 4 + 4 = 16 = 4² ; 5 donne 5 × 6 + 6 = 36 = 6².`,`On conjecture que le résultat est le carré de l'entier suivant.`,`On note ${V('n')} l'entier : ${V('n')}(${V('n')} + 1) + ${V('n')} + 1 = (${V('n')} + 1)(${V('n')} + 1).`,`Donc le résultat est (${V('n')} + 1)² pour tout entier ${V('n')} : la conjecture est démontrée.`],
+  explain:`Les essais servent à conjecturer ; seul le calcul littéral démontre.`,chk:[['eq','n*(n+1)+n+1','(n+1)**2'],['eq','3*4+4','16'],['eq','5*6+6','36']]}}},
+{id:'F1',k:'faute',f:()=>{const k=ri(2,5),a=ri(2,9);
+  return{title:'Une traduction sans parenthèses',
+  lines:[`Programme : choisir ${Xv} ; ajouter ${a} ; multiplier par ${k}.`,`Expression : ${Xv} + ${a} × ${k}.`,`= ${Xv} + ${a*k}`],wrong:1,
+  why:`On multiplie <b>tout</b> le résultat ${Xv} + ${a} par ${k} : il faut des parenthèses, ${k}(${Xv} + ${a}).`,
+  bad:[`À la ligne 2, ${a} × ${k} ne vaut pas ${a*k}.`,`Dans l'énoncé, on ne peut pas ajouter avant de multiplier.`],
+  explain:`Contrôle avec ${Xv} = 1 : le programme donne (1 + ${a}) × ${k} = ${(1+a)*k}, l'expression écrite donne ${1+a*k}.`,chk:[['ne',`x+${a}*${k}`,`${k}*(x+${a})`]]}}},
+{id:'F2',k:'faute',f:()=>({title:'Un exemple qui « prouve » ?',
+  lines:[`Programme : choisir un nombre, le multiplier par lui-même, retrancher le double du nombre.`,`Avec 2 : 2 × 2 − 2 × 2 = 0.`,`Donc ce programme donne toujours 0.`],wrong:2,
+  why:`Un seul essai ne prouve rien. Avec 3 : 9 − 6 = 3 ≠ 0. En effet ${Xv}² − 2${Xv} = ${Xv}(${Xv} − 2) ne vaut 0 que pour ${Xv} = 0 ou ${Xv} = 2.`,
+  bad:[`À la ligne 1, 2 × 2 − 2 × 2 = 4.`,`Le programme est mal écrit.`],explain:`Pour affirmer « toujours », il faut un calcul avec une lettre ; pour réfuter, un contre-exemple suffit.`,
+  chk:[['eq','3*3-2*3','3'],['eq','x**2-2*x','x*(x-2)']]})},
+{id:'F3',k:'faute',f:()=>{const a=ri(2,6),k=ri(2,5),r=ri(5,20);
+  return{title:'Remonter un programme',
+  lines:[`Programme : ×${k}, puis +${a}. Résultat : ${r*k+a}.`,`On divise d'abord par ${k} : ${fx((r*k+a)/k)}.`,`Puis on soustrait ${a} : ${fx((r*k+a)/k-a)}.`],wrong:1,
+  why:`Pour remonter, on défait d'abord la <b>dernière</b> étape : on soustrait ${a}, puis on divise par ${k}.`,
+  bad:[`À la ligne 2, il fallait ajouter ${a}.`,`On ne peut pas remonter un programme de calcul.`],explain:`(${r*k+a} − ${a}) ÷ ${k} = ${r}. Contrôle : ${r} × ${k} + ${a} = ${r*k+a}.`,
+  chk:[['ne',`Rational(${r*k+a},${k})-${a}`,`${r}`]]}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si un programme de calcul donne le même résultat pour 1, 2 et 3, il donne ce résultat pour tout nombre. »`,
+  choices:[[`Faux : (${Xv} − 1)(${Xv} − 2)(${Xv} − 3) + 5 vaut 5 pour 1, 2 et 3, mais 11 pour 4.`,1],[`Vrai : trois essais suffisent.`,0],[`Vrai : 5 × 1 = 5.`,0]],
+  explain:`Aucun nombre fini d'essais ne remplace une démonstration.`,chk:[['eq','(4-1)*(4-2)*(4-3)+5','11'],['eq','(2-1)*(2-2)*(2-3)+5','5']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Le programme “choisir ${Xv}, ajouter 3, multiplier par 2, soustraire 6” rend le double du nombre choisi. »`,
+  choices:[[`Vrai : 2(${Xv} + 3) − 6 = 2${Xv} + 6 − 6 = 2${Xv}.`,1],[`Faux : il rend ${Xv}.`,0],[`Faux : il rend 2${Xv} + 3.`,0]],
+  explain:`Le calcul littéral démontre le résultat pour tous les nombres.`,chk:[['eq','2*(x+3)-6','2*x']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`Le programme « choisir ${Xv}, ajouter 5, soustraire ${Xv} » donne 5 :`,ans:'toujours',explain:`${Xv} + 5 − ${Xv} = 5 pour tout ${Xv} : ajouter puis retrancher le même nombre ne change rien.`,chk:[['eq','x+5-x','5']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`Le programme « choisir ${Xv}, l'élever au carré » donne un résultat plus grand que ${Xv} :`,ans:'parfois',explain:`3² = 9 > 3, mais 0,5² = 0,25 < 0,5 et 1² = 1.`,chk:[['tpj','x**2>x',['x'],'R','parfois']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`Le programme « choisir ${Xv}, multiplier par 0, ajouter 1 » donne 0 :`,ans:'jamais',explain:`${Xv} × 0 + 1 = 0 + 1 = 1 pour tout ${Xv} : le résultat n'est jamais 0.`,chk:[['eq','x*0+1','1']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['Distributivité : k(a + b) = ka + kb.','Un contre-exemple suffit à réfuter une affirmation générale.','Le calcul littéral démontre un résultat pour tous les nombres.','Trois exemples suffisent à démontrer une affirmation.'];
+  const pr=['3(x + 4) − 12 = 3x.','Avec 3, le programme ne donne pas 0 : il ne donne donc pas « toujours 0 ».','(x + 1)² − x² = 2x + 1, donc le résultat est toujours impair quand x est entier.'][w];
+  return{title:'Quelle règle de raisonnement est utilisée ?',tag:'Quel raisonnement ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière phrase est fausse.`,chk:[['eq','3*(x+4)-12','3*x'],['eq','(x+1)**2-x**2','2*x+1']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

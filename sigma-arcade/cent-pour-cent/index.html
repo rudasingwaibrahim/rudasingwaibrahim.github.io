@@ -1048,5 +1048,153 @@ CPC.start();
     .observe(document.body,{childList:true,subtree:true,characterData:true});
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — cent-pour-cent */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Cent pour cent — Seconde, chapitre 11 (information chiffrée) : proportion, proportion de proportion,
+   évolution, coefficient multiplicateur, évolutions successives, évolution réciproque, taux d'évolution. */
+const pc=t=>`${fx(t)} %`;
+const R=(n)=>`Rational('${n}')`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>{const t=pick([10,20,25,40,50]);const c1=1+t/100,c2=1-t/100,c=c1*c2,glob=Math.round((c-1)*10000)/100;
+  return{title:`Une hausse de ${t} % suivie d'une baisse de ${t} %`,
+  html:`<ol><li>Augmenter de ${t} %, c'est multiplier par {0}.</li><li>Diminuer de ${t} %, c'est multiplier par {1}.</li>
+<li>Les deux évolutions successives reviennent à multiplier par ${fx(c1)} × ${fx(c2)} = {2}.</li>
+<li>C'est une {3} de ${fx(-glob)} % : on ne revient pas à la valeur de départ.</li></ol>`,
+  blanks:[[fx(c1),[fx(t/100),fx(1+t)]],[fx(c2),[M(-t/100),M(1-t)]],[fx(c),[ '1',fx(c1+c2)]],['baisse',['hausse','stabilité']]],
+  explain:`Coefficients multiplicateurs : 1 + ${t}/100 = ${fx(c1)} et 1 − ${t}/100 = ${fx(c2)}. Pour des évolutions successives, on <b>multiplie</b> les coefficients : ${fx(c)} < 1, soit une baisse de ${fx(-glob)} %. Les pourcentages ne s'additionnent pas.`,
+  chk:[['eq',`(1+Rational(${t},100))*(1-Rational(${t},100))`,`1-Rational(${t*t},10000)`],['blank',2,`Eq(@,(1+Rational(${t},100))*(1-Rational(${t},100)))`],['blank',0,`Eq(@,1+Rational(${t},100))`],['blank',1,`Eq(@,1-Rational(${t},100))`]]}}},
+{id:'D2',k:'demo',f:()=>{const p1=pick([40,50,60,75,80]),p2=pick([10,20,25,30,50]);const r=p1*p2/100;
+  return{title:'Une proportion de proportion',
+  html:`<p>Dans un lycée, ${p1} % des élèves sont demi-pensionnaires et, parmi eux, ${p2} % mangent végétarien.</p><ol>
+<li>La proportion cherchée est ${p2} % de ${p1} %, c'est-à-dire le {0} des deux proportions.</li><li>${fx(p2/100)} × ${fx(p1/100)} = {1}.</li>
+<li>Donc {2} % des élèves du lycée sont demi-pensionnaires et mangent végétarien.</li></ol>`,
+  blanks:[['produit',['somme','quotient']],[fx(r/100),[...new Set([fx((p1+p2)/100),fx(p2/p1),fx(p1/100),fx(p2/100)])].filter(x=>x!==fx(r/100)).slice(0,2)],[fx(r),LN(r,[p1+p2,p1-p2])]],
+  explain:`Si A est une sous-population de B, elle-même incluse dans E : ${V('p')}<sub>A/E</sub> = ${V('p')}<sub>A/B</sub> × ${V('p')}<sub>B/E</sub>. On multiplie, on n'additionne pas.`,
+  chk:[['eq',`Rational(${p2},100)*Rational(${p1},100)`,`Rational(${r},100)`],['blank',2,`Eq(@,${r})`]]}}},
+{id:'D3',k:'demo',f:()=>{const t=pick([25,60,100,150]),c=1+t/100,r=Math.round((1/c-1)*10000)/100;
+  return{title:`L'évolution réciproque d'une hausse de ${t} %`,
+  html:`<ol><li>Une hausse de ${t} % multiplie par ${fx(c)}.</li><li>Pour revenir à la valeur de départ, on doit multiplier par {0}.</li>
+<li>1/${fx(c)} = {1}, ce qui correspond à une baisse de {2} %.</li></ol>`,
+  blanks:[[`1/${fx(c)}`,[`−${fx(c)}`,`1 − ${fx(c)}`]],[fx(1/c),[fx(2-c),fx(c-1)].filter(x=>x!==fx(1/c))],[fx(-r),LN(-r,[t])]],
+  explain:`Le coefficient réciproque est l'inverse : 1/${fx(c)} = ${fx(1/c)}, soit ${fx(1/c)} − 1 = ${fx(r/100)}, une baisse de ${fx(-r)} %, et non de ${t} %.`,
+  chk:[['eq',`1/(1+Rational(${t},100))`,R(fx(1/c).replace(',','.'))],['blank',2,`Eq(@,-100*(1/(1+Rational(${t},100))-1))`]]}}},
+{id:'O1',k:'ordre',f:()=>{const v0=ri(4,20)*10,t=pick([5,10,15,20]),u=pick([10,20,25]);const v=v0*(1+t/100)*(1-u/100);
+  return{title:'Deux évolutions successives',prompt:`Un prix de ${v0} € augmente de ${t} %, puis baisse de ${u} %.`,
+  steps:[`Coefficient de la hausse : ${fx(1+t/100)}.`,`Coefficient de la baisse : ${fx(1-u/100)}.`,`Coefficient global : ${fx(1+t/100)} × ${fx(1-u/100)} = ${fx((1+t/100)*(1-u/100))}.`,`Prix final : ${v0} × ${fx((1+t/100)*(1-u/100))} = ${fx(v)} €.`],
+  explain:`Chaque évolution a son coefficient multiplicateur ; pour des évolutions successives, on multiplie les coefficients, puis on applique le coefficient global.`,
+  chk:[['eq',`${v0}*(1+Rational(${t},100))*(1-Rational(${u},100))`,R(fx(v).replace(',','.'))]]}}},
+{id:'O2',k:'ordre',f:()=>{const a=ri(5,20)*10,b=a+pick([1,2,3,5])*a/10;const t=Math.round((b-a)/a*10000)/100;
+  return{title:'Calculer un taux d\'évolution',prompt:`Une quantité passe de ${a} à ${fx(b)}.`,
+  steps:[`On calcule la variation absolue : ${fx(b)} − ${a} = ${fx(b-a)}.`,`On la divise par la valeur de départ : ${fx(b-a)}/${a} = ${fx((b-a)/a)}.`,`On l'écrit en pourcentage : ${fx((b-a)/a)} = ${pc(t)}.`,`Le taux d'évolution est +${pc(t)} : c'est une hausse.`],
+  explain:`Taux d'évolution = (valeur d'arrivée − valeur de départ)/valeur de départ. On divise toujours par la valeur de <b>départ</b>.`,
+  chk:[['eq',`(${b}-${a})/${a}`,`Rational(${t},100)`]]}}},
+{id:'F1',k:'faute',f:()=>{const t=pick([10,20,30]),u=pick([5,10,15]);
+  return{title:'Évolution globale',
+  lines:[`Un loyer augmente de ${t} % une année, puis de ${u} % l'année suivante.`,`Les deux hausses s'additionnent : ${t} % + ${u} % = ${t+u} %.`,`Le loyer a augmenté de ${t+u} % en deux ans.`],wrong:1,
+  why:`On multiplie les coefficients multiplicateurs : ${fx(1+t/100)} × ${fx(1+u/100)} = ${fx((1+t/100)*(1+u/100))}.`,
+  bad:[`À la ligne 1, une hausse de ${t} % multiplie par ${t}.`,`À la ligne 2, il faut soustraire les pourcentages.`],
+  explain:`La seconde hausse porte sur le loyer déjà augmenté : hausse globale de ${fx(Math.round(((1+t/100)*(1+u/100)-1)*10000)/100)} %, un peu plus que ${t+u} %.`,
+  chk:[['ne',`(1+Rational(${t},100))*(1+Rational(${u},100))`,`1+Rational(${t+u},100)`]]}}},
+{id:'F2',k:'faute',f:()=>{const a=ri(4,9)*10,b=a+ri(1,4)*10;const t=Math.round((b-a)/a*10000)/100,tw=Math.round((b-a)/b*10000)/100;
+  return{title:'Taux d\'évolution',
+  lines:[`Une valeur passe de ${a} à ${b}.`,`Variation absolue : ${b} − ${a} = ${b-a}.`,`Taux d'évolution : ${b-a}/${b} ≈ ${pc(tw)}.`],wrong:2,
+  why:`On divise par la valeur de <b>départ</b> ${a}, pas par la valeur d'arrivée.`,
+  bad:[`À la ligne 2, la variation absolue est ${a} − ${b}.`,`À la ligne 1, une valeur ne peut pas évoluer.`],
+  explain:`Taux d'évolution = (valeur d'arrivée − valeur de départ)/valeur de départ = ${b-a}/${a} ≈ ${pc(t)}. En divisant par ${b}, on obtiendrait le taux de la baisse qui ramène de ${b} à ${a} (au signe près).`,
+  chk:[['ne',`Rational(${b-a},${b})`,`Rational(${b-a},${a})`]]}}},
+{id:'F3',k:'faute',f:()=>{const p=ri(3,9)*10,v=pick([20,40,60,80]);const y=v/(1-p/100);   // prix soldé v après une baisse de p %
+  return{title:'Retrouver un prix avant réduction',prompt:`Après une réduction de ${p} %, un article coûte ${v} €.`,
+  lines:[`On note ${V('x')} le prix avant réduction.`,`${V('x')} × ${fx(1-p/100)} = ${v}.`,`Pour retrouver ${V('x')}, on augmente ${v} € de ${p} % : ${V('x')} = ${v} × ${fx(1+p/100)} = ${fx(v*(1+p/100))} €.`],wrong:2,
+  why:`L'évolution réciproque d'une baisse de ${p} % n'est pas une hausse de ${p} % : il faut diviser par ${fx(1-p/100)}.`,
+  bad:[`À la ligne 1, une baisse de ${p} % multiplie par ${fx(p/100)}.`,`À la ligne 1, on ne peut pas utiliser de lettre.`],
+  explain:(()=>{const ex=Math.abs(y*100-Math.round(y*100))<1e-9,e=ex?'=':'≈';return`${V('x')} = ${v}/${fx(1-p/100)} ${e} ${fx(Math.round(y*100)/100)} €. Contrôle : ${fx(Math.round(y*100)/100)} × ${fx(1-p/100)} ${e} ${v}.`})(),
+  chk:[['ne',`${v}/(1-Rational(${p},100))`,`${v}*(1+Rational(${p},100))`]]}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Une baisse de 50 % suivie d'une hausse de 50 % ramène à la valeur de départ. »`,
+  choices:[[`Faux : 100 devient 50, puis 75 ; le coefficient global est 0,5 × 1,5 = 0,75.`,1],[`Vrai : −50 % + 50 % = 0 %.`,0],[`Vrai : 100 devient 50 puis 100.`,0],[`Faux : on arrive à 125.`,0]],
+  explain:`La hausse de 50 % porte sur la valeur déjà diminuée : 50 × 1,5 = 75. Les pourcentages d'évolutions successives ne s'additionnent pas.`,
+  chk:[['eq','100*Rational(1,2)*Rational(3,2)','75']]})},
+{id:'V2',k:'vf',f:()=>{const t=pick([10,20,30]);return{title:'Vrai ou faux ?',prompt:`« Augmenter un prix de ${t} %, c'est le multiplier par ${fx(1+t/100)}. »`,
+  choices:[[`Vrai : ${V('x')} + ${fx(t/100)}${V('x')} = (1 + ${fx(t/100)})${V('x')} = ${fx(1+t/100)}${V('x')}.`,1],[`Faux : c'est le multiplier par ${fx(t/100)}.`,0],[`Faux : c'est lui ajouter ${t}.`,0]],
+  explain:`Ajouter ${t} % de ${V('x')}, c'est ajouter ${fx(t/100)}${V('x')} : on factorise par ${V('x')}. Le coefficient multiplicateur est 1 + ${V('t')}/100.`,
+  chk:[['eq',`x+Rational(${t},100)*x`,`(1+Rational(${t},100))*x`]]}}},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`${V('t')} est un nombre strictement compris entre 0 et 100. Une hausse de ${V('t')} % suivie d'une baisse de ${V('t')} % donne une baisse :`,ans:'toujours',
+    explain:`(1 + ${V('t')}/100)(1 − ${V('t')}/100) = 1 − (${V('t')}/100)² < 1.`,chk:[['tpj','(1+x/100)*(1-x/100)<1',['x'],['1','10','50','99','37/2'],'toujours'],['eq','(1+x/100)*(1-x/100)','1-(x/100)**2']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`Une proportion de proportion est inférieure ou égale à chacune des deux proportions :`,ans:'toujours',
+    explain:`Les proportions sont entre 0 et 1 : ${V('p')} × ${V('q')} ≤ ${V('p')} et ${V('p')} × ${V('q')} ≤ ${V('q')}.`,chk:[['tpj','And(a*b<=a,a*b<=b)',['a','b'],'unit','toujours']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`Une baisse de ${V('t')} % (avec ${V('t')} > 0) suivie d'une hausse de ${V('t')} % ramène à la valeur de départ :`,ans:'jamais',
+    explain:`Le coefficient global est (1 − ${V('t')}/100)(1 + ${V('t')}/100) = 1 − (${V('t')}/100)², différent de 1 dès que ${V('t')} ≠ 0.`,chk:[['tpj','Eq((1-x/100)*(1+x/100),1)',['x'],['1','10','50','100','37/2'],'jamais']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['Pour des évolutions successives, on multiplie les coefficients multiplicateurs.','Une proportion de proportion est le produit des proportions.','Le coefficient de l\'évolution réciproque est l\'inverse du coefficient.','Les pourcentages d\'évolutions successives s\'additionnent.'];
+  const pr=['Un prix augmente de 10 % puis de 20 % : il est multiplié par 1,1 × 1,2 = 1,32.','30 % des élèves sont internes et la moitié d\'entre eux ont 16 ans : 0,3 × 0,5 = 0,15, soit 15 % des élèves.','Après une hausse de 25 %, pour revenir au prix initial, on multiplie par 1/1,25 = 0,8.'][w];
+  return{title:'Quelle propriété justifie ce calcul ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière phrase est fausse : +10 % puis +20 % donnent +32 %, pas +30 %.`,
+    chk:[['eq','Rational(11,10)*Rational(12,10)','Rational(132,100)'],['eq','Rational(3,10)*Rational(1,2)','Rational(15,100)'],['eq','1/Rational(125,100)','Rational(8,10)']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

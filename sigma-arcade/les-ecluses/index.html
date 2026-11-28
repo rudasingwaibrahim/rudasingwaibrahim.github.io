@@ -1241,5 +1241,150 @@ EC.start();
   new MutationObserver(ms=>ms.forEach(m=>{m.addedNodes.forEach(fix);if(m.type==='characterData')fix(m.target)})).observe(document.body,{childList:true,subtree:true,characterData:true});
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — les-ecluses */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Les Écluses — Première spécialité, chapitre 15 (variables aléatoires) : loi de probabilité, espérance, variance,
+   écart type, E(aX + b) = aE(X) + b, V(aX + b) = a²V(X), interprétation de l'espérance (jeu équitable). */
+const X_=V('X');
+const E_=s=>`${V('E')}(${s})`,V_=s=>`${V('V')}(${s})`;
+const law=()=>{const xs=sh([-2,-1,0,1,2,3,4,5]).slice(0,3).sort((a,b)=>a-b);const ps=pick([[1,1,2],[1,2,1],[2,1,1],[1,3,1],[3,1,1]]);const t=ps[0]+ps[1]+ps[2];return{xs,ps,t}};
+const BANK=[
+{id:'D1',k:'demo',f:()=>({title:'Démontrer que E(aX + b) = aE(X) + b',
+  html:`<p>${X_} prend les valeurs ${V('x')}<sub>1</sub>, …, ${V('x')}<sub>n</sub> avec les probabilités ${V('p')}<sub>1</sub>, …, ${V('p')}<sub>n</sub>.</p><ol>
+<li>${V('a')}${X_} + ${V('b')} prend les valeurs ${V('a')}${V('x')}<sub>i</sub> + ${V('b')} avec {0} probabilités.</li>
+<li>${E_(V('a')+X_+' + '+V('b'))} = ${V('p')}<sub>1</sub>(${V('a')}${V('x')}<sub>1</sub> + ${V('b')}) + … + ${V('p')}<sub>n</sub>(${V('a')}${V('x')}<sub>n</sub> + ${V('b')}) = ${V('a')}(${V('p')}<sub>1</sub>${V('x')}<sub>1</sub> + … + ${V('p')}<sub>n</sub>${V('x')}<sub>n</sub>) + ${V('b')}({1}).</li>
+<li>Or ${V('p')}<sub>1</sub> + … + ${V('p')}<sub>n</sub> = {2}, donc ${E_(V('a')+X_+' + '+V('b'))} = {3}.</li></ol>`,
+  blanks:[['les mêmes',['des','les inverses des']],['p₁ + … + pₙ',['x₁ + … + xₙ','n']],['1',['n','0']],['aE(X) + b',['aE(X)','a²E(X) + b']]],
+  explain:`On développe et on factorise ; la somme des probabilités d'une loi vaut 1. C'est la démonstration du cours.`,
+  chk:[['eq','p*(a*x+b)+q*(a*y+b)+(1-p-q)*(a*z+b)','a*(p*x+q*y+(1-p-q)*z)+b']]})},
+{id:'D2',k:'demo',f:()=>{const {xs,ps,t}=law();const E=(xs[0]*ps[0]+xs[1]*ps[1]+xs[2]*ps[2]);   // E = E/t
+  const Vn=t*(xs[0]**2*ps[0]+xs[1]**2*ps[1]+xs[2]**2*ps[2])-E*E;   // V = Vn/t²
+  return{title:'Espérance et variance',
+  html:`<p>${X_} prend les valeurs ${xs.map(M).join(', ')} avec les probabilités ${ps.map(p=>F(p,t)).join(', ')}.</p><ol>
+<li>${E_(X_)} = ${xs.map((x,i)=>F(ps[i],t)+' × '+P(x)).join(' + ')} = {0}.</li><li>${E_(X_+'²')} = {1}.</li>
+<li>${V_(X_)} = ${E_(X_+'²')} − ${E_(X_)}² = {2}.</li></ol>`,
+  blanks:[[F(E,t),LF(E,t,[[xs[0]+xs[1]+xs[2],3]])],[F(xs[0]**2*ps[0]+xs[1]**2*ps[1]+xs[2]**2*ps[2],t),LF(xs[0]**2*ps[0]+xs[1]**2*ps[1]+xs[2]**2*ps[2],t,[[E*E,t*t]])],[F(Vn,t*t),LF(Vn,t*t,[[Vn+2*E*E,t*t]])]],
+  explain:`L'espérance est la moyenne des valeurs pondérée par les probabilités. La formule de König-Huygens ${V_(X_)} = ${E_(X_+'²')} − ${E_(X_)}² évite de calculer les écarts.`,
+  chk:[['eq',`(${xs[0]}*${ps[0]}+${xs[1]}*${ps[1]}+${xs[2]}*${ps[2]})/Integer(${t})`,`Rational(${E},${t})`],['blank',2,`Eq(@,(${xs[0]**2}*${ps[0]}+${xs[1]**2}*${ps[1]}+${xs[2]**2}*${ps[2]})/Integer(${t})-Rational(${E},${t})**2)`],['blank',0,`Eq(@,Rational(${E},${t}))`]]}}},
+{id:'D3',k:'demo',f:()=>{const m=ri(5,9),c=ri(2,6);const p=pick([[1,4],[1,5],[1,10]]);
+  // jeu : mise c euros, gain brut G avec proba p ; G choisi pour que le jeu soit équitable
+  const G=c*p[1]/p[0];
+  return{title:'Un jeu équitable',
+  html:`<p>On mise ${c} € ; on gagne ${G} € (mise comprise) avec la probabilité ${F(...p)}, rien sinon. ${X_} est le gain algébrique.</p><ol>
+<li>${X_} prend les valeurs ${G-c} et {0}.</li><li>${E_(X_)} = ${F(...p)} × ${G-c} + ${F(p[1]-p[0],p[1])} × ${P(-c)} = {1}.</li><li>Le jeu est donc {2}.</li></ol>`,
+  blanks:[[M(-c),LN(-c,[0,c])],['0',[F(G-c,p[1]),String(-c)]],['équitable',['favorable au joueur','défavorable au joueur']]],
+  explain:`Un jeu est équitable lorsque l'espérance du gain algébrique est nulle : en moyenne, sur un grand nombre de parties, on ne gagne ni ne perd.`,
+  chk:[['eq',`Rational(${p[0]},${p[1]})*${G-c}+Rational(${p[1]-p[0]},${p[1]})*(${-c})`,'0']]}}},
+{id:'O1',k:'ordre',f:()=>{const a=ri(2,5),b=nz(-9,9),e=nz(-4,4),v=ri(1,6);
+  return{title:`Espérance et variance de ${V('Y')} = ${a}${X_}${S(b)}`,prompt:`${E_(X_)} = ${M(e)} et ${V_(X_)} = ${v}.`,
+  steps:[`${E_(V('Y'))} = ${a}${E_(X_)}${S(b)} = ${M(a*e+b)}.`,`Ajouter ${M(b)} décale les valeurs sans changer leur dispersion.`,`Multiplier par ${a} multiplie les écarts par ${a} et donc la variance par ${a}².`,`${V_(V('Y'))} = ${a*a} × ${v} = ${a*a*v}.`],
+  explain:`${E_(V('a')+X_+' + '+V('b'))} = ${V('a')}${E_(X_)} + ${V('b')} et ${V_(V('a')+X_+' + '+V('b'))} = ${V('a')}²${V_(X_)}.`,
+  chk:[['eq',`${a}*(${e})+(${b})`,`${a*e+b}`],['eq',`${a}**2*${v}`,`${a*a*v}`]]}}},
+{id:'O2',k:'ordre',f:()=>{const {xs,ps,t}=law();const E=xs[0]*ps[0]+xs[1]*ps[1]+xs[2]*ps[2];
+  return{title:'Calculer une espérance',prompt:`${X_} prend les valeurs ${xs.map(M).join(', ')} avec les probabilités ${ps.map(p=>F(p,t)).join(', ')}.`,
+  steps:[`On vérifie que la somme des probabilités vaut 1.`,`On multiplie chaque valeur par sa probabilité.`,`On additionne ces produits : ${xs.map((x,i)=>F(ps[i],t)+' × '+P(x)).join(' + ')}.`,`${E_(X_)} = ${F(E,t)}.`],
+  explain:`L'espérance se calcule comme une moyenne pondérée par les probabilités.`,chk:[['eq',`(${xs[0]}*${ps[0]}+${xs[1]}*${ps[1]}+${xs[2]}*${ps[2]})/Integer(${t})`,`Rational(${E},${t})`],['eq',`Rational(${ps[0]+ps[1]+ps[2]},${t})`,'1']]}}},
+{id:'F1',k:'faute',f:()=>{const a=ri(2,5),v=ri(1,6);
+  return{title:`Variance de ${V('Y')} = ${a}${X_} + 3`,
+  lines:[`${V_(X_)} = ${v}.`,`${V_(V('Y'))} = ${a}${V_(X_)} + 3`,`${V_(V('Y'))} = ${a*v+3}`],wrong:1,
+  why:`${V_(V('a')+X_+' + '+V('b'))} = ${V('a')}²${V_(X_)} : l'ajout de ${V('b')} ne change pas la variance, et le coefficient est au carré.`,
+  bad:[`À la ligne 2, le calcul de la ligne 1 est faux.`,`Dans l'énoncé, une variance ne peut pas valoir ${v}.`],
+  explain:`${V_(V('Y'))} = ${a}² × ${v} = ${a*a*v}. Une variance est la moyenne des carrés des écarts : multiplier les valeurs par ${a} multiplie les écarts par ${a}, leurs carrés par ${a}².`,
+  chk:[['ne',`${a}*${v}+3`,`${a*a*v}`]]}}},
+{id:'F2',k:'faute',f:()=>{const ps=pick([[1,2,3],[2,3,4],[1,3,5]]);const t=10;
+  return{title:'Une loi de probabilité ?',
+  lines:[`${X_} prend trois valeurs, avec les probabilités ${ps.map(p=>fx(p/t)).join(' ; ')}.`,`Chaque probabilité est comprise entre 0 et 1.`,`C'est donc une loi de probabilité.`],wrong:2,
+  why:`Il faut aussi que la somme des probabilités vaille 1 : ici elle vaut ${fx((ps[0]+ps[1]+ps[2])/t)}.`,
+  bad:[`À la ligne 1, ${fx(ps[2]/t)} est supérieur à 1.`,`Une variable aléatoire ne peut pas prendre trois valeurs.`],
+  explain:`Une loi de probabilité associe à chaque valeur une probabilité entre 0 et 1, et ces probabilités ont pour somme 1.`,
+  chk:[['ne',`Rational(${ps[0]+ps[1]+ps[2]},${t})`,'1']]}}},
+{id:'F3',k:'faute',f:()=>{let L,E,naive;do{L=law();E=L.xs[0]*L.ps[0]+L.xs[1]*L.ps[1]+L.xs[2]*L.ps[2];naive=L.xs[0]+L.xs[1]+L.xs[2]}while(naive*L.t===3*E);const {xs,ps,t}=L;
+  return{title:'Calcul d\'une espérance',
+  lines:[`${X_} prend les valeurs ${xs.map(M).join(', ')} avec les probabilités ${ps.map(p=>F(p,t)).join(', ')}.`,`${E_(X_)} est la moyenne des valeurs : (${M(xs[0])}${S(xs[1])}${S(xs[2])})/3.`,`${E_(X_)} = ${F(naive,3)}`],wrong:1,
+  why:`Les valeurs n'ont pas toutes la même probabilité : l'espérance est la moyenne pondérée par les probabilités.`,
+  bad:[`À la ligne 2, la somme des valeurs est fausse.`,`Dans l'énoncé, la somme des probabilités ne vaut pas 1.`],
+  explain:`${E_(X_)} = ${xs.map((x,i)=>F(ps[i],t)+' × '+P(x)).join(' + ')} = ${F(E,t)}.`,
+  chk:[['ne',`Rational(${naive},3)`,`Rational(${E},${t})`]].concat([['eq',`Rational(${ps[0]+ps[1]+ps[2]},${t})`,'1']])}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« L'espérance d'une variable aléatoire est l'une des valeurs qu'elle peut prendre. »`,
+  choices:[[`Faux : un lancer de dé équilibré a pour espérance 3,5, qui n'est pas une valeur possible.`,1],[`Vrai : si ${X_} vaut toujours 5, son espérance est 5.`,0],[`Vrai : c'est la valeur la plus probable.`,0]],
+  explain:`L'espérance est une moyenne théorique, pas forcément une valeur prise ; ce n'est pas non plus la valeur la plus probable.`,chk:[['eq','(1+2+3+4+5+6)/Integer(6)','Rational(7,2)']]})},
+{id:'V2',k:'vf',f:()=>{const b=nz(-9,9);return{title:'Vrai ou faux ?',prompt:`« Pour tout réel ${V('b')}, ${V_(X_+' + '+V('b'))} = ${V_(X_)}. »`,
+  choices:[[`Vrai : ajouter ${V('b')} décale toutes les valeurs et l'espérance de ${V('b')} : les écarts à l'espérance ne changent pas.`,1],[`Faux : ${V_(X_+' + '+V('b'))} = ${V_(X_)} + ${V('b')}.`,0],[`Faux : ${V_(X_+' + '+V('b'))} = ${V_(X_)} + ${V('b')}².`,0]],
+  explain:`${V_(V('a')+X_+' + '+V('b'))} = ${V('a')}²${V_(X_)} ; avec ${V('a')} = 1, la variance est inchangée.`,chk:[['eq',`Rational(1,2)*((0+${b})-(1+${b}))**2+Rational(1,2)*((2+${b})-(1+${b}))**2`,'Rational(1,2)*(0-1)**2+Rational(1,2)*(2-1)**2']]}}},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`Une variance est positive ou nulle :`,ans:'toujours',explain:`C'est une moyenne (pondérée) de carrés.`,chk:[['tpj','p*(x-m)**2+(1-p)*(y-m)**2>=0',['p','x','y','m'].slice(0,1).concat([]),'unit','toujours'].map((c,i)=>i===1?'p*(1-2)**2+(1-p)*(3-2)**2>=0':c)]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`L'espérance d'une variable aléatoire est positive :`,ans:'parfois',explain:`Un jeu défavorable a une espérance de gain négative ; un jeu favorable, positive.`,chk:[['eq','Rational(1,2)*(-3)+Rational(1,2)*1','-1']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`${X_} prend au moins deux valeurs distinctes avec des probabilités non nulles. ${V_(X_)} = 0 :`,ans:'jamais',explain:`Une variance nulle signifie que tous les écarts à l'espérance sont nuls : ${X_} serait constante.`,chk:[['ne','Rational(1,2)*(0-1)**2+Rational(1,2)*(2-1)**2','0']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['E(aX + b) = aE(X) + b','V(aX + b) = a²V(X)','La somme des probabilités d\'une loi vaut 1.','V(aX + b) = aV(X) + b'];
+  const pr=['E(X) = 4, donc E(3X − 2) = 10.','V(X) = 2, donc V(3X − 2) = 18.','P(X = 1) = 0,2 et P(X = 2) = 0,5 : si X ne prend que les valeurs 1, 2 et 3, alors P(X = 3) = 0,3.'][w];
+  return{title:'Quelle propriété justifie ce calcul ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière formule est fausse.`,chk:[['eq','3*4-2','10'],['eq','3**2*2','18'],['eq','1-Rational(2,10)-Rational(5,10)','Rational(3,10)']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

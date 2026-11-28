@@ -1074,5 +1074,153 @@ MO.start();
     .observe(document.body,{childList:true,subtree:true,characterData:true});
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — le-monorail */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Le Monorail — Première spécialité, chapitre 10 (suites arithmétiques et géométriques).
+   Démonstrations du programme : terme général d'une suite arithmétique, d'une suite géométrique ;
+   1 + 2 + … + n = n(n + 1)/2 ; 1 + q + … + qⁿ = (1 − qⁿ⁺¹)/(1 − q) (q ≠ 1). */
+const n=V('n'),q=V('q'),r=V('r');
+const u=k=>`${V('u')}<sub>${k}</sub>`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>{const N0=pick([10,20,50,100]);
+  return{title:`Calculer 1 + 2 + … + ${N0}`,
+  html:`<ol><li>On note ${V('S')} = 1 + 2 + … + ${N0}, et on écrit aussi ${V('S')} = ${N0} + ${N0-1} + … + 1.</li>
+<li>En additionnant terme à terme : 2${V('S')} = (1 + ${N0}) + (2 + ${N0-1}) + … + (${N0} + 1), soit ${N0} termes égaux à {0}.</li>
+<li>Donc 2${V('S')} = {1} et ${V('S')} = {2}.</li><li>En général, 1 + 2 + … + ${n} = {3}.</li></ol>`,
+  blanks:[[String(N0+1),LN(N0+1,[N0])],[String(N0*(N0+1)),LN(N0*(N0+1),[N0*N0,(N0+1)*(N0+1)])],[String(N0*(N0+1)/2),LN(N0*(N0+1)/2,[N0*N0/2,N0*(N0+1)])],['n(n + 1)/2',['n(n − 1)/2','n²/2']]],
+  explain:`C'est la démonstration du programme (attribuée à Gauss) : chaque paire de termes « symétriques » a pour somme ${N0} + 1.`,
+  chk:[['eq',`Sum(k,(k,1,${N0})).doit()`,`${N0*(N0+1)/2}`],['eq','Sum(k,(k,1,n)).doit()','n*(n+1)/2']]}}},
+{id:'D2',k:'demo',f:()=>{const Q=pick([2,3,-2]),N0=pick([4,5,6]);const sum=(1-Q**(N0+1))/(1-Q);
+  return{title:`Calculer 1${S(Q)} + ${P(Q)}² + … + ${P(Q)}<sup>${N0}</sup>`,
+  html:`<p>${q} ≠ 1. On note ${V('S')} = 1 + ${q} + ${q}² + … + ${q}<sup>${n}</sup>.</p><ol><li>${q}${V('S')} = ${q} + ${q}² + … + ${q}<sup>${n}</sup> + {0}.</li>
+<li>En soustrayant : ${V('S')} − ${q}${V('S')} = {1}, car presque tous les termes se simplifient.</li><li>Donc ${V('S')}(1 − ${q}) = 1 − ${q}<sup>${n}+1</sup> et, comme ${q} ≠ 1, ${V('S')} = (1 − ${q}<sup>${n}+1</sup>)/(1 − ${q}).</li>
+<li>Pour ${q} = ${M(Q)} et ${n} = ${N0} : ${V('S')} = {2}.</li></ol>`,
+  blanks:[['qⁿ⁺¹',['qⁿ','1']],['1 − qⁿ⁺¹',['1 − qⁿ','q − qⁿ']],[M(sum),LN(sum,[(1-Q**N0)/(1-Q),Q**(N0+1)-1])]],
+  explain:`C'est la démonstration du programme : on multiplie la somme par ${q} pour « décaler » les termes, puis on soustrait. On divise par 1 − ${q}, non nul car ${q} ≠ 1.`,
+  chk:[['eq',`Sum((${Q})**k,(k,0,${N0})).doit()`,`${sum}`],['eq','(1-q)*Sum(q**k,(k,0,5)).doit()','1-q**6'],['blank',2,`Eq(@,${sum})`]]}}},
+{id:'D3',k:'demo',f:()=>{const u0=nz(-9,9),R0=nz(-5,5),N0=ri(10,40);
+  return{title:`Terme général d'une suite arithmétique (${u(0)} = ${M(u0)}, ${r} = ${M(R0)})`,
+  html:`<ol><li>Pour passer d'un terme au suivant, on ajoute ${M(R0)} : ${u(n+'+1')} = {0}.</li><li>Pour aller de ${u(0)} à ${u(n)}, on ajoute ${n} fois la raison : ${u(n)} = {1}.</li>
+<li>Donc ${u(N0)} = ${M(u0)} + ${N0} × ${P(R0)} = {2}.</li></ol>`,
+  blanks:[[`uₙ + ${M(R0)}`.replace('+ −','− '),[`uₙ × ${M(R0)}`,`u₀${S(R0)}`]],[`u₀ + n × r`,['u₀ × rⁿ','u₀ + (n + 1) × r']],[M(u0+N0*R0),LN(u0+N0*R0,[u0+(N0-1)*R0,u0*R0**1+N0])]],
+  explain:`Suite arithmétique : on ajoute ${r} à chaque étape ; de l'indice 0 à l'indice ${n}, il y a ${n} étapes, d'où ${u(n)} = ${u(0)} + ${n}${r}.`,
+  chk:[['eq',`${u0}+${N0}*(${R0})`,`${u0+N0*R0}`],['blank',2,`Eq(@,${u0}+${N0}*(${R0}))`]]}}},
+{id:'O1',k:'ordre',f:()=>{const v0=pick([100,200,500,1000]),Q=pick([[11,10],[9,10],[6,5]]);const N0=pick([3,4]);
+  return{title:'Terme général d\'une suite géométrique',prompt:`${u(0)} = ${v0} et, pour tout ${n}, ${u(n+'+1')} = ${fx(Q[0]/Q[1])} × ${u(n)}.`,
+  steps:[`On passe d'un terme au suivant en multipliant par ${fx(Q[0]/Q[1])} : la suite est géométrique de raison ${fx(Q[0]/Q[1])}.`,`De ${u(0)} à ${u(n)}, on multiplie ${n} fois par la raison.`,`Donc ${u(n)} = ${v0} × ${fx(Q[0]/Q[1])}<sup>${n}</sup>.`,`${u(N0)} = ${v0} × ${fx(Q[0]/Q[1])}<sup>${N0}</sup> = ${fx(Math.round(v0*(Q[0]/Q[1])**N0*10000)/10000)}.`],
+  explain:`Démonstration du programme : ${u(n)} = ${u(0)} × ${q}<sup>${n}</sup>, car on applique ${n} fois la multiplication par ${q}.`,
+  chk:[['eq',`${v0}*Rational(${Q[0]},${Q[1]})**${N0}`,`Rational('${Math.round(v0*(Q[0]/Q[1])**N0*10000)/10000}')`]]}}},
+{id:'O2',k:'ordre',f:()=>{const u0=ri(1,9),R0=ri(2,5),N0=ri(10,20);const last=u0+N0*R0,S=(N0+1)*(u0+last)/2;
+  return{title:`Somme ${u(0)} + ${u(1)} + … + ${u(N0)} d'une suite arithmétique`,prompt:`${u(0)} = ${u0}, raison ${R0}.`,
+  steps:[`${u(N0)} = ${u0} + ${N0} × ${R0} = ${last}.`,`La somme compte ${N0+1} termes (de l'indice 0 à l'indice ${N0}).`,`Somme = nombre de termes × (premier terme + dernier terme)/2.`,`Somme = ${N0+1} × (${u0} + ${last})/2 = ${S}.`],
+  explain:`On se ramène à 1 + 2 + … + ${N0} : la somme vaut (${N0}+1)${u(0)} + ${R0}(1 + 2 + … + ${N0}) = ${S}.`,
+  chk:[['eq',`Sum(${u0}+${R0}*k,(k,0,${N0})).doit()`,`${S}`]]}}},
+{id:'F1',k:'faute',f:()=>{const u0=nz(-9,9),R0=nz(-4,5);const N0=ri(5,15);
+  return{title:`${u(N0)} pour une suite arithmétique`,
+  lines:[`${u(0)} = ${M(u0)} et la raison est ${M(R0)}.`,`${u(N0)} = ${u(0)} + (${N0} + 1) × ${P(R0)}`,`${u(N0)} = ${M(u0+(N0+1)*R0)}`],wrong:1,
+  why:`De l'indice 0 à l'indice ${N0}, on ajoute la raison ${N0} fois, pas ${N0+1} : ${u(N0)} = ${u(0)} + ${N0}${r}.`,
+  bad:[`À la ligne 2, le calcul de la ligne 1 est faux.`,`Il fallait multiplier ${u(0)} par la raison.`],
+  explain:`${u(N0)} = ${M(u0)} + ${N0} × ${P(R0)} = ${M(u0+N0*R0)}. Contrôle sur un petit indice : ${u(1)} = ${u(0)} + ${r}.`,
+  chk:[['ne',`${u0}+(${N0}+1)*(${R0})`,`${u0}+${N0}*(${R0})`]]}}},
+{id:'F2',k:'faute',f:()=>{const Q=pick([2,3]),N0=pick([4,5]);
+  return{title:`1 + ${Q} + … + ${Q}<sup>${N0}</sup>`,
+  lines:[`On applique 1 + ${q} + … + ${q}<sup>${n}</sup> = (1 − ${q}<sup>${n}+1</sup>)/(1 − ${q}).`,`Ici ${q} = ${Q} et ${n} = ${N0} : (1 − ${Q}<sup>${N0}</sup>)/(1 − ${Q})`,`= ${(1-Q**N0)/(1-Q)}`],wrong:1,
+  why:`L'exposant est ${n} + 1 = ${N0+1} : (1 − ${Q}<sup>${N0+1}</sup>)/(1 − ${Q}).`,
+  bad:[`La formule ne s'applique que pour ${q} < 1.`,`À la ligne 2, (1 − ${Q}<sup>${N0}</sup>)/(1 − ${Q}) ne vaut pas ${(1-Q**N0)/(1-Q)}.`],
+  explain:`La somme compte ${N0+1} termes : ${(1-Q**(N0+1))/(1-Q)}. Contrôle : ${Array.from({length:N0+1},(_,i)=>Q**i).join(' + ')} = ${(1-Q**(N0+1))/(1-Q)}.`,
+  chk:[['ne',`${(1-Q**N0)/(1-Q)}`,`Sum(${Q}**k,(k,0,${N0})).doit()`],['eq',`${(1-Q**(N0+1))/(1-Q)}`,`Sum(${Q}**k,(k,0,${N0})).doit()`]]}}},
+{id:'F3',k:'faute',f:()=>{const a=ri(2,9),b=a+ri(1,4),c=b+ri(1,4);
+  return{title:'Arithmétique ?',
+  lines:[`${u(0)} = ${a}, ${u(1)} = ${b}, ${u(2)} = ${c}.`,`${u(1)} − ${u(0)} = ${b-a} : la différence est constante.`,`Donc la suite est arithmétique de raison ${b-a}.`],wrong:1,
+  why:`On n'a calculé qu'une seule différence ; ${u(2)} − ${u(1)} = ${c-b}${c-b===b-a?', et de toute façon trois termes ne suffisent pas à prouver que la différence est constante pour tout n':''}.`,
+  bad:[`À la ligne 0, une suite ne commence pas à l'indice 0.`,`À la ligne 2, la raison est ${c-a}.`],
+  explain:`Pour prouver qu'une suite est arithmétique, il faut montrer que ${u(n+'+1')} − ${u(n)} est la même constante <b>pour tout</b> ${n} ; quelques termes ne suffisent jamais.`,
+  chk:[]}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Une suite dont les trois premiers termes sont 2, 4, 8 est géométrique. »`,
+  choices:[[`Faux : la suite définie par ${u(n)} = ${n}² + ${n} + 2 commence par 2, 4, 8, puis ${u(3)} = 14, alors que 14 ≠ 2 × 8.`,1],[`Vrai : 4 = 2 × 2 et 8 = 4 × 2.`,0],[`Vrai : toute suite qui commence par 2, 4, 8 est la suite de terme général 2<sup>${n}+1</sup>.`,0]],
+  explain:`Quelques termes ne déterminent pas une suite. Pour une suite géométrique, il faut ${u(n+'+1')} = ${q}${u(n)} pour <b>tout</b> ${n}.`,
+  chk:[['eq','0**2+0+2','2'],['eq','1**2+1+2','4'],['eq','2**2+2+2','8'],['eq','3**2+3+2','14'],['ne','14','2*8']]})},
+{id:'V2',k:'vf',f:()=>{const R0=nz(-4,4);return{title:'Vrai ou faux ?',prompt:`« Si (${u(n)}) est arithmétique de raison ${M(R0)}, alors ${u(10)} − ${u(4)} = ${6*R0}. »`,
+  choices:[[`Vrai : ${u(10)} − ${u(4)} = (${u(0)} + 10${r}) − (${u(0)} + 4${r}) = 6${r} = ${M(6*R0)}.`,1],[`Faux : ${u(10)} − ${u(4)} = ${M(R0)}.`,0],[`Faux : il faut connaître ${u(0)}.`,0]],
+  explain:`${u(n)} − ${u(V('p'))} = (${n} − ${V('p')})${r} pour une suite arithmétique : le premier terme disparaît.`,chk:[['eq',`(a+10*(${R0}))-(a+4*(${R0}))`,`${6*R0}`]]}}},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`${n} est un entier naturel. 1 + 2 + … + ${n} = ${n}(${n} + 1)/2 :`,ans:'toujours',
+    explain:`C'est la formule démontrée dans le cours : en écrivant la somme dans les deux sens, on obtient ${n} paires de somme ${n} + 1.`,chk:[['tpj','Eq(Sum(k,(k,1,n)).doit(),n*(n+1)/2)',['n'],'N','toujours']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`Une suite géométrique de raison ${q} > 0 est croissante :`,ans:'parfois',
+    explain:`Avec ${u(0)} > 0 : croissante si ${q} > 1, décroissante si 0 < ${q} < 1. Avec ${u(0)} < 0, c'est l'inverse.`,chk:[['T','3*2**2>3*2**1'],['T','3*Rational(1,2)**2<3*Rational(1,2)']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`(${u(n)}) est arithmétique de raison ${r} ≠ 0. Deux termes distincts ${u(n)} et ${u(V('p'))} (${n} ≠ ${V('p')}) sont égaux :`,ans:'jamais',
+    explain:`Pour une suite arithmétique, ${u(n)} − ${u(V('p'))} = (${n} − ${V('p')})${r}, produit de deux nombres non nuls : il n'est jamais nul, les termes sont tous distincts.`,chk:[['tpj','Ne((n-p)*3,0)',['n','p'],'Z','toujours','Ne(n,p)']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['Terme général d\'une suite arithmétique : uₙ = u₀ + nr.','Terme général d\'une suite géométrique : uₙ = u₀ × qⁿ.','1 + q + … + qⁿ = (1 − qⁿ⁺¹)/(1 − q) pour q ≠ 1.','uₙ = u₀ + (n + 1)r.'];
+  const pr=['u₀ = 5 et r = 3 : u₂₀ = 5 + 20 × 3 = 65.','u₀ = 100 et q = 1,1 : u₃ = 100 × 1,1³ = 133,1.','1 + 2 + 4 + … + 2⁹ = (1 − 2¹⁰)/(1 − 2) = 1 023.'][w];
+  return{title:'Quelle propriété justifie ce calcul ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière formule est fausse (une raison de trop).`,
+    chk:[['eq','5+20*3','65'],['eq','100*Rational(11,10)**3','Rational(1331,10)'],['eq','Sum(2**k,(k,0,9)).doit()','1023']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

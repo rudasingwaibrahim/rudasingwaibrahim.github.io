@@ -746,5 +746,137 @@ TS.run({ slug: 'aire-libre', title: 'Aire libre', chapter: 'Calcul intégral · 
   { t: 'Par parties', n: 3, gen: q7, rule: `<p>${I('a', 'b', 'u(' + X + ')v′(' + X + ')')} = [u(${X})v(${X})]<sub>a</sub><sup>b</sup> − ${I('a', 'b', 'u′(' + X + ')v(' + X + ')')}, pour u, v dérivables à dérivées continues.</p><p>On choisit pour u un facteur qui se simplifie en dérivant (polynôme, ln) et pour v′ un facteur dont on connaît une primitive.</p>` }] });
 
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — aire-libre */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Aire libre — Terminale spécialité, chapitres 18 et 20 (calcul intégral) : intégrale et aire, ∫ₐᵇ f = F(b) − F(a),
+   linéarité, positivité, relation de Chasles, valeur moyenne, intégration par parties.
+   Démonstration du programme : pour f positive croissante, x ↦ ∫ₐˣ f(t) dt est une primitive de f ; ∫ₐᵇ f = F(b) − F(a). */
+const Xv=V('x'),t=V('t'),f=V('f'),F_=V('F');
+const I=(a,b,e)=>`∫<sub>${a}</sub><sup>${b}</sup> ${e}`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>({title:`Pourquoi ${V('A')}(${Xv}) = ${I(V('a'),Xv,f+'('+t+') d'+t)} est une primitive de ${f}`,
+  html:`<p>${f} est positive, continue et croissante sur [${V('a')} ; ${V('b')}] ; ${V('h')} > 0.</p><ol>
+<li>${V('A')}(${Xv} + ${V('h')}) − ${V('A')}(${Xv}) est l'aire sous la courbe entre ${Xv} et ${Xv} + ${V('h')} : elle est comprise entre ${V('h')}${f}(${Xv}) et {0}.</li>
+<li>En divisant par ${V('h')} > 0 : ${f}(${Xv}) ≤ (${V('A')}(${Xv} + ${V('h')}) − ${V('A')}(${Xv}))/${V('h')} ≤ ${f}(${Xv} + ${V('h')}).</li>
+<li>${f} étant continue, ${f}(${Xv} + ${V('h')}) → ${f}(${Xv}) ; par le théorème {1}, le taux tend vers ${f}(${Xv}).</li><li>Donc ${V('A')}′(${Xv}) = {2}.</li></ol>`,
+  blanks:[['h f(x + h)',['f(x + h)','h + f(x)']],['des gendarmes',['de comparaison','de Pythagore']],['f(x)',['F(x)','0']]],
+  explain:`C'est la démonstration du programme (cas ${V('h')} > 0 ; le cas ${V('h')} < 0 est analogue) : on encadre l'aire d'une bande fine par deux rectangles.`,
+  chk:[['eq','diff(integrate(t**2,(t,0,x)),x)','x**2']]})},
+{id:'D2',k:'demo',f:()=>{const a=ri(0,2),b=a+ri(1,3),k=ri(1,3);
+  return{title:`Calculer ${I(a,b,'('+poly([[2*k,1],[1,0]])+') d'+Xv)}`,
+  html:`<ol><li>Une primitive de ${Xv} ↦ ${2*k}${Xv} + 1 est ${F_}(${Xv}) = {0}.</li><li>${I(a,b,'('+2*k+Xv+' + 1) d'+Xv)} = ${F_}(${b}) − ${F_}(${a}) = {1}.</li>
+<li>La fonction étant positive sur [${a} ; ${b}], ce nombre est l'{2} sous la courbe, en unités d'aire.</li></ol>`,
+  blanks:[[`${k===1?'':k}x² + x`,[`${2*k}`,`${2*k}x² + x`]],[String(k*(b*b-a*a)+(b-a)),LN(k*(b*b-a*a)+(b-a),[k*(b*b+a*a)+(b+a),k*b*b+b])],['aire',['longueur','pente']]],
+  explain:`${I(V('a'),V('b'),f)} = ${F_}(${V('b')}) − ${F_}(${V('a')}) pour toute primitive ${F_} de ${f}. Ici ${F_}(${b}) = ${k*b*b+b} et ${F_}(${a}) = ${k*a*a+a}.`,
+  chk:[['eq',`integrate(${2*k}*x+1,(x,${a},${b}))`,`${k*(b*b-a*a)+(b-a)}`]]}}},
+{id:'D3',k:'demo',f:()=>({title:`Calculer ${I(0,1,Xv+'e<sup>'+Xv+'</sup> d'+Xv)} par parties`,
+  html:`<ol><li>On pose ${V('u')}(${Xv}) = ${Xv} et ${V('v')}′(${Xv}) = e<sup>${Xv}</sup> : ${V('u')}′(${Xv}) = {0} et ${V('v')}(${Xv}) = e<sup>${Xv}</sup>.</li>
+<li>${I(0,1,V('u')+V('v')+'′')} = [${V('u')}${V('v')}]<sub>0</sub><sup>1</sup> − {1}.</li><li>= (1 × e − 0) − [e<sup>${Xv}</sup>]<sub>0</sub><sup>1</sup> = e − (e − 1) = {2}.</li></ol>`,
+  blanks:[['1',['x','eˣ']],["∫₀¹ u′v",["∫₀¹ uv′","∫₀¹ u′v′"]],['1',['e','0']]],
+  explain:`Formule d'intégration par parties : ${I(V('a'),V('b'),V('u')+V('v')+'′')} = [${V('u')}${V('v')}]<sub>${V('a')}</sub><sup>${V('b')}</sup> − ${I(V('a'),V('b'),V('u')+'′'+V('v'))}. On choisit ${V('u')} = ${Xv} pour qu'il « disparaisse » en dérivant.`,
+  chk:[['eq','integrate(x*exp(x),(x,0,1))','1']]})},
+{id:'O1',k:'ordre',f:()=>{const b=ri(2,4);
+  return{title:`Valeur moyenne de ${Xv} ↦ ${Xv}² sur [0 ; ${b}]`,
+  steps:[`La valeur moyenne est μ = 1/(${b} − 0) × ${I(0,b,Xv+'² d'+Xv)}.`,`Une primitive de ${Xv}² est ${Xv}³/3.`,`${I(0,b,Xv+'² d'+Xv)} = ${b}³/3 = ${F(b**3,3)}.`,`μ = ${F(b**3,3*b)}.`],
+  explain:`μ = 1/(${V('b')} − ${V('a')}) ${I(V('a'),V('b'),f)} : c'est la hauteur du rectangle de même aire.`,chk:[['eq',`integrate(x**2,(x,0,${b}))/${b}`,`Rational(${b**3},${3*b})`]]}}},
+{id:'O2',k:'ordre',f:()=>({title:`Calculer ${I(-1,2,'|'+Xv+'| d'+Xv)}`,
+  steps:[`On utilise la relation de Chasles : ${I(-1,2,'|'+Xv+'|')} = ${I(-1,0,'(−'+Xv+')')} + ${I(0,2,Xv)}.`,`${I(-1,0,'(−'+Xv+') d'+Xv)} = [−${Xv}²/2]<sub>−1</sub><sup>0</sup> = 1/2.`,`${I(0,2,Xv+' d'+Xv)} = [${Xv}²/2]<sub>0</sub><sup>2</sup> = 2.`,`L'intégrale vaut 5/2 (aire de deux triangles).`],
+  explain:`On découpe l'intervalle là où l'expression de la fonction change.`,chk:[['eq','integrate(Abs(x),(x,-1,2))','Rational(5,2)']]})},
+{id:'F1',k:'faute',f:()=>({title:`Calculer ${I(0,'π','sin '+Xv+' d'+Xv)}`,
+  lines:[`Une primitive de sin est cos.`,`${I(0,'π','sin '+Xv)} = cos π − cos 0 = −2.`],wrong:0+1,
+  why:`Une primitive de sin est <b>−cos</b> : ${I(0,'π','sin '+Xv)} = −cos π + cos 0 = 2. D'ailleurs sin ≥ 0 sur [0 ; π], l'intégrale doit être positive.`,
+  bad:[`À la ligne 1, cos π = 1.`,`Une intégrale est toujours nulle sur un intervalle de longueur π.`],explain:`La positivité de l'intégrale permet de détecter l'erreur de signe.`,
+  chk:[['eq','integrate(sin(x),(x,0,pi))','2']]})},
+{id:'F2',k:'faute',f:()=>({title:'Aire entre la courbe et l\'axe',
+  lines:[`On veut l'aire du domaine compris entre la courbe de ${Xv} ↦ ${Xv}² − 1 et l'axe des abscisses sur [0 ; 1].`,`Cette aire vaut ${I(0,1,'('+Xv+'² − 1) d'+Xv)}.`,`= [${Xv}³/3 − ${Xv}]<sub>0</sub><sup>1</sup> = −2/3.`],wrong:1,
+  why:`Sur [0 ; 1], ${Xv}² − 1 ≤ 0 : l'intégrale est négative et l'aire vaut son opposé, 2/3.`,
+  bad:[`À la ligne 2, [${Xv}³/3 − ${Xv}]<sub>0</sub><sup>1</sup> = 2/3.`,`Une aire se calcule toujours avec une dérivée.`],explain:`Aire = ${I(0,1,'(1 − '+Xv+'²) d'+Xv)} = 2/3 unité d'aire.`,
+  chk:[['eq','integrate(x**2-1,(x,0,1))','-Rational(2,3)']]})},
+{id:'F3',k:'faute',f:()=>({title:'Intégrale d\'un produit',
+  lines:[`On veut ${I(0,1,Xv+' × '+Xv+' d'+Xv)}.`,`${I(0,1,Xv+' × '+Xv)} = ${I(0,1,Xv)} × ${I(0,1,Xv)}`,`= 1/2 × 1/2 = 1/4`],wrong:1,
+  why:`L'intégrale d'un produit n'est pas le produit des intégrales : ${I(0,1,Xv+'² d'+Xv)} = 1/3.`,
+  bad:[`À la ligne 2, 1/2 × 1/2 = 1.`,`On ne peut pas intégrer ${Xv}².`],explain:`La linéarité concerne les sommes et les produits par une constante, pas les produits de fonctions (pour ceux-ci, on peut penser à l'intégration par parties).`,
+  chk:[['eq','integrate(x*x,(x,0,1))','Rational(1,3)'],['ne','Rational(1,3)','Rational(1,4)']]})},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si ${I(V('a'),V('b'),f)} ≥ 0, alors ${f} ≥ 0 sur [${V('a')} ; ${V('b')}]. »`,
+  choices:[[`Faux : ${I(-1,2,Xv+' d'+Xv)} = 3/2 ≥ 0, mais ${Xv} < 0 sur [−1 ; 0[.`,1],[`Vrai : c'est la positivité de l'intégrale.`,0],[`Vrai : ${I(0,1,Xv+'² d'+Xv)} ≥ 0 et ${Xv}² ≥ 0.`,0]],
+  explain:`La positivité dit l'inverse : si ${f} ≥ 0 sur [${V('a')} ; ${V('b')}] (avec ${V('a')} ≤ ${V('b')}), alors l'intégrale est positive. La réciproque est fausse.`,chk:[['eq','integrate(x,(x,-1,2))','Rational(3,2)']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« ${I(V('a'),V('b'),f)} + ${I(V('b'),V('c'),f)} = ${I(V('a'),V('c'),f)}. »`,
+  choices:[[`Vrai : c'est la relation de Chasles, F(${V('b')}) − F(${V('a')}) + F(${V('c')}) − F(${V('b')}) = F(${V('c')}) − F(${V('a')}).`,1],[`Faux : il faut ${V('a')} < ${V('b')} < ${V('c')}.`,0],[`Faux : on ne peut pas additionner deux intégrales.`,0]],
+  explain:`Avec une primitive, la relation de Chasles est immédiate et vaut quel que soit l'ordre de ${V('a')}, ${V('b')}, ${V('c')}.`,chk:[['eq','integrate(x**2,(x,0,1))+integrate(x**2,(x,1,3))','integrate(x**2,(x,0,3))']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`${f} est continue et positive sur [${V('a')} ; ${V('b')}] (${V('a')} < ${V('b')}). ${I(V('a'),V('b'),f)} ≥ 0 :`,ans:'toujours',explain:`Positivité de l'intégrale : c'est une aire.`,chk:[['T','integrate(exp(x),(x,0,1))>=0']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`${I(0,V('a'),'sin '+Xv+' d'+Xv)} = 0 :`,ans:'parfois',explain:`Vrai pour ${V('a')} = 0 ou ${V('a')} = 2π, faux pour ${V('a')} = π (l'intégrale vaut 2).`,chk:[['eq','integrate(sin(x),(x,0,2*pi))','0'],['eq','integrate(sin(x),(x,0,pi))','2']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`${I(0,1,'e<sup>'+Xv+'</sup> d'+Xv)} est négative :`,ans:'jamais',explain:`e<sup>${Xv}</sup> > 0 : l'intégrale vaut e − 1 > 0.`,chk:[['eq','integrate(exp(x),(x,0,1))','E-1']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['∫ₐᵇ f = F(b) − F(a) où F est une primitive de f.','Relation de Chasles.','Intégration par parties.','∫ₐᵇ fg = ∫ₐᵇ f × ∫ₐᵇ g'];
+  const pr=['∫₀² 3x² dx = 2³ − 0³ = 8.','∫₀³ f = ∫₀¹ f + ∫₁³ f.','∫₀¹ x eˣ dx = [x eˣ]₀¹ − ∫₀¹ eˣ dx.'][w];
+  return{title:'Quelle propriété justifie ce calcul ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière égalité est fausse.`,chk:[['eq','integrate(3*x**2,(x,0,2))','8']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

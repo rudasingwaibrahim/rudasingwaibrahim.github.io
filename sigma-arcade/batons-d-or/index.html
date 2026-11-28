@@ -962,5 +962,145 @@ BO.start();
     .observe(document.body,{childList:true,subtree:true,characterData:true});
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — batons-d-or */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Bâtons d'Or — Terminale technologique, chapitre 6 (variables aléatoires et loi binomiale) : épreuve et schéma de
+   Bernoulli, loi binomiale B(n, p), nombre de chemins de l'arbre, P(X = k), espérance np, gains et espérance. */
+const X_=V('X'),n=V('n'),p=V('p'),k=V('k');
+const C=(a,b)=>{let r=1;for(let i=1;i<=b;i++)r=r*(a-b+i)/i;return Math.round(r)};
+const BANK=[
+{id:'D1',k:'demo',f:()=>{const pp=pick([[1,2],[1,3],[1,4],[2,5]]);
+  return{title:`${X_} suit B(3 ; ${F(...pp)}) : calculer ${V('P')}(${X_} = 2)`,
+  html:`<ol><li>On répète 3 fois, de façon {0}, une épreuve à deux issues (succès de probabilité ${F(...pp)}).</li>
+<li>Dans l'arbre, le nombre de chemins comportant exactement 2 succès est {1} (SSE, SES, ESS).</li>
+<li>Chacun a pour probabilité (${F(...pp)})² × ${F(pp[1]-pp[0],pp[1])}.</li><li>${V('P')}(${X_} = 2) = {2}.</li></ol>`,
+  blanks:[['indépendante',['identique et liée','alternée']],['3',['2','6']],[F(3*pp[0]*pp[0]*(pp[1]-pp[0]),pp[1]**3),LF(3*pp[0]*pp[0]*(pp[1]-pp[0]),pp[1]**3,[[pp[0]*pp[0]*(pp[1]-pp[0]),pp[1]**3],[2*pp[0]*pp[0]*(pp[1]-pp[0]),pp[1]**3]])]],
+  explain:`${V('P')}(${X_} = ${k}) = (nombre de chemins à ${k} succès) × ${p}<sup>${k}</sup>(1 − ${p})<sup>${n}−${k}</sup>. Ici 3 chemins de même probabilité.`,
+  chk:[['eq',`binomial(3,2)*Rational(${pp[0]},${pp[1]})**2*(1-Rational(${pp[0]},${pp[1]}))`,`Rational(${3*pp[0]*pp[0]*(pp[1]-pp[0])},${pp[1]**3})`]]}}},
+{id:'D2',k:'demo',f:()=>{const N0=pick([20,50,100,200]),pp=pick([[1,4],[1,5],[3,10],[2,5]]);
+  return{title:`Espérance de ${X_} qui suit B(${N0} ; ${F(...pp)})`,
+  html:`<ol><li>Pour une loi binomiale, ${V('E')}(${X_}) = {0}.</li><li>Ici ${V('E')}(${X_}) = ${N0} × ${F(...pp)} = {1}.</li>
+<li>Sur un grand nombre de répétitions de ces ${N0} épreuves, le nombre moyen de succès est proche de ${V('E')}(${X_}) : c'est une valeur {2}.</li></ol>`,
+  blanks:[['np',['n + p','p/n']],[fx(N0*pp[0]/pp[1]),[fx(N0*pp[0]/pp[1]+1),fx(pp[0]/pp[1])]],['moyenne',['toujours obtenue','maximale']]],
+  explain:`${V('E')}(${X_}) = ${n}${p} : en moyenne, une proportion ${p} des ${n} épreuves est un succès. Ce n'est pas un résultat garanti à chaque série.`,
+  chk:[['eq',`${N0}*Rational(${pp[0]},${pp[1]})`,`Rational('${N0*pp[0]/pp[1]}')`]]}}},
+{id:'D3',k:'demo',f:()=>{const N0=ri(3,5),pp=pick([[1,2],[1,3],[1,10]]);
+  return{title:`Probabilité d'au moins un succès sur ${N0} épreuves`,
+  html:`<p>${X_} suit B(${N0} ; ${F(...pp)}).</p><ol><li>L'événement contraire de « au moins un succès » est {0}.</li>
+<li>${V('P')}(${X_} = 0) = (${F(pp[1]-pp[0],pp[1])})<sup>${N0}</sup>.</li><li>${V('P')}(${X_} ≥ 1) = 1 − ${V('P')}(${X_} = 0) = {1}.</li></ol>`,
+  blanks:[['« aucun succès »',['« exactement un succès »','« que des succès »']],[F(pp[1]**N0-(pp[1]-pp[0])**N0,pp[1]**N0),LF(pp[1]**N0-(pp[1]-pp[0])**N0,pp[1]**N0,[[(pp[1]-pp[0])**N0,pp[1]**N0],[N0*pp[0],pp[1]]])]],
+  explain:`« Au moins un » se calcule presque toujours par l'événement contraire : un seul chemin de l'arbre ne comporte aucun succès.`,
+  chk:[['eq',`1-(1-Rational(${pp[0]},${pp[1]}))**${N0}`,`Rational(${pp[1]**N0-(pp[1]-pp[0])**N0},${pp[1]**N0})`]]}}},
+{id:'O1',k:'ordre',f:()=>{const N0=pick([10,15,20]),pp=pick([[1,10],[1,5]]);
+  return{title:'Reconnaître une loi binomiale',prompt:`Un test est réussi avec la probabilité ${F(...pp)}. On le fait passer à ${N0} personnes, indépendamment. ${X_} compte les réussites.`,
+  steps:[`Chaque passage est une épreuve de Bernoulli : succès « réussi », de probabilité ${F(...pp)}.`,`Les ${N0} épreuves sont identiques et indépendantes : c'est un schéma de Bernoulli.`,`${X_} compte le nombre de succès.`,`Donc ${X_} suit la loi binomiale B(${N0} ; ${F(...pp)}).`],
+  explain:`Trois conditions : épreuves à deux issues, identiques et indépendantes, variable qui compte les succès.`,chk:[]}}},
+{id:'O2',k:'ordre',f:()=>{const m=ri(2,5),g=pick([10,20]),pp=pick([[1,4],[1,5]]);const e=g*pp[0]/pp[1]-m;
+  return{title:'Un jeu est-il favorable ?',prompt:`On mise ${m} € ; on gagne ${g} € (mise non rendue) avec la probabilité ${F(...pp)}. ${V('G')} est le gain algébrique.`,
+  steps:[`${V('G')} prend les valeurs ${g-m} et ${M(-m)}.`,`${V('P')}(${V('G')} = ${g-m}) = ${F(...pp)} et ${V('P')}(${V('G')} = ${M(-m)}) = ${F(pp[1]-pp[0],pp[1])}.`,`${V('E')}(${V('G')}) = ${F(...pp)} × ${g-m} + ${F(pp[1]-pp[0],pp[1])} × ${P(-m)} = ${fx(e).replace('-','−')}.`,`${e>0?'L\'espérance est positive : le jeu est favorable au joueur.':e<0?'L\'espérance est négative : le jeu est défavorable au joueur.':'L\'espérance est nulle : le jeu est équitable.'}`],
+  explain:`On définit le gain algébrique (gain moins mise), on donne sa loi, on calcule l'espérance et on interprète son signe.`,
+  chk:[['eq',`Rational(${pp[0]},${pp[1]})*${g-m}+Rational(${pp[1]-pp[0]},${pp[1]})*(${-m})`,`Rational('${e}')`]]}}},
+{id:'F1',k:'faute',f:()=>{const pp=pick([[1,2],[1,3]]);
+  return{title:`${X_} suit B(3 ; ${F(...pp)}) : ${V('P')}(${X_} = 1)`,
+  lines:[`On cherche la probabilité d'obtenir exactement un succès en 3 épreuves.`,`Un seul chemin de l'arbre comporte un succès : « S E E ».`,`${V('P')}(${X_} = 1) = ${F(...pp)} × (${F(pp[1]-pp[0],pp[1])})²`,`${V('P')}(${X_} = 1) = ${F(pp[0]*(pp[1]-pp[0])**2,pp[1]**3)}`],wrong:1,
+  why:`Il y a 3 chemins à un succès (SEE, ESE, EES), tous de même probabilité : il faut multiplier par 3.`,
+  bad:[`À la ligne 3, le calcul de la ligne 2 est faux.`,`À la ligne 2, il fallait écrire ${V('P')}(${X_} = 1) = ${F(...pp)}.`],
+  explain:`${V('P')}(${X_} = 1) = 3 × ${F(...pp)} × (${F(pp[1]-pp[0],pp[1])})² = ${F(3*pp[0]*(pp[1]-pp[0])**2,pp[1]**3)}.`,
+  chk:[['ne',`Rational(${pp[0]},${pp[1]})*(1-Rational(${pp[0]},${pp[1]}))**2`,`binomial(3,1)*Rational(${pp[0]},${pp[1]})*(1-Rational(${pp[0]},${pp[1]}))**2`]]}}},
+{id:'F2',k:'faute',f:()=>({title:'Une loi binomiale ?',
+  lines:[`On tire successivement, sans remise, 3 boules d'une urne de 5 boules dont 2 rouges.`,`À chaque tirage, la probabilité de tirer une rouge est 2/5.`,`Le nombre de rouges suit donc B(3 ; 2/5).`],wrong:1,
+  why:`Sans remise, la composition de l'urne change : les tirages ne sont ni identiques ni indépendants (après une rouge, il reste 1 rouge sur 4).`,
+  bad:[`À la ligne 2, on ne peut jamais utiliser une loi binomiale avec des boules.`,`Dans l'énoncé, il faut tirer 5 boules.`],
+  explain:`Avec remise, ce serait bien B(3 ; 2/5). Sans remise, ${V('P')}(rouge au 2e tirage sachant rouge au 1er) = 1/4 ≠ 2/5.`,
+  chk:[['ne','Rational(1,4)','Rational(2,5)']]})},
+{id:'F3',k:'faute',f:()=>{const N0=pick([10,20]),pp=pick([[1,2],[1,4]]);
+  return{title:`Interpréter E(${X_}) pour B(${N0} ; ${F(...pp)})`,
+  lines:[`${V('E')}(${X_}) = ${N0} × ${F(...pp)} = ${N0*pp[0]/pp[1]}.`,`Donc on obtiendra exactement ${N0*pp[0]/pp[1]} succès.`],wrong:1,
+  why:`L'espérance est une moyenne théorique : sur une série de ${N0} épreuves, le nombre de succès varie ; ${V('P')}(${X_} = ${N0*pp[0]/pp[1]}) < 1.`,
+  bad:[`À la ligne 0, ${V('E')}(${X_}) = ${N0} + ${F(...pp)}.`,`Une espérance est toujours un entier.`],
+  explain:`En répétant un grand nombre de fois les ${N0} épreuves, la moyenne des nombres de succès sera proche de ${N0*pp[0]/pp[1]}.`,
+  chk:[['T',`binomial(${N0},${N0*pp[0]/pp[1]})*Rational(${pp[0]},${pp[1]})**${N0*pp[0]/pp[1]}*(1-Rational(${pp[0]},${pp[1]}))**${N0-N0*pp[0]/pp[1]}<1`]]}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si ${X_} suit B(${n} ; ${p}), alors ${V('P')}(${X_} = 0) = (1 − ${p})<sup>${n}</sup>. »`,
+  choices:[[`Vrai : un seul chemin ne comporte que des échecs, de probabilité (1 − ${p}) × … × (1 − ${p}).`,1],[`Faux : ${V('P')}(${X_} = 0) = 0.`,0],[`Faux : ${V('P')}(${X_} = 0) = 1 − ${p}<sup>${n}</sup>.`,0]],
+  explain:`Les épreuves étant indépendantes, on multiplie les probabilités des ${n} échecs.`,chk:[['eq','binomial(5,0)*Rational(1,3)**0*Rational(2,3)**5','Rational(2,3)**5']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si ${X_} suit B(10 ; 0,5), alors ${V('P')}(${X_} = 5) = 0,5. »`,
+  choices:[[`Faux : ${V('P')}(${X_} = 5) = 252 × 0,5<sup>10</sup> ≈ 0,246.`,1],[`Vrai : la moitié des épreuves sont des succès.`,0],[`Vrai : ${V('E')}(${X_}) = 5.`,0]],
+  explain:`L'espérance 5 ne donne pas ${V('P')}(${X_} = 5) : le nombre de chemins à 5 succès est 252 et chacun a pour probabilité 0,5<sup>10</sup>.`,
+  chk:[['eq','binomial(10,5)','252'],['T','Abs(binomial(10,5)*Rational(1,2)**10-Rational(246,1000))<Rational(1,1000)']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`${X_} suit B(${n} ; ${p}). La somme ${V('P')}(${X_} = 0) + … + ${V('P')}(${X_} = ${n}) vaut 1 :`,ans:'toujours',explain:`Ce sont les probabilités de toutes les valeurs possibles de ${X_}.`,chk:[['eq','Sum(binomial(4,j)*Rational(1,3)**j*Rational(2,3)**(4-j),(j,0,4)).doit()','1'].map(x=>x.replace(/j/g,'k'))]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`${X_} suit B(${n} ; ${p}). ${V('E')}(${X_}) est un entier :`,ans:'parfois',explain:`B(10 ; 0,5) : 5 ; B(10 ; 0,25) : 2,5.`,chk:[['eq','10*Rational(1,4)','Rational(5,2)']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`${X_} suit B(${n} ; ${p}) avec 0 < ${p} < 1. ${V('P')}(${X_} = ${n} + 1) > 0 :`,ans:'jamais',explain:`${X_} compte les succès parmi ${n} épreuves : il ne peut pas dépasser ${n}.`,chk:[]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['E(X) = np pour X de loi B(n ; p).','P(X = 0) = (1 − p)ⁿ','P(X ≥ 1) = 1 − P(X = 0)','P(X = k) = pᵏ'];
+  const pr=['X suit B(40 ; 0,25) : en moyenne 10 succès.','X suit B(5 ; 0,1) : P(X = 0) = 0,9⁵.','X suit B(5 ; 0,1) : P(au moins un succès) = 1 − 0,9⁵.'][w];
+  return{title:'Quelle propriété justifie ce calcul ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]}. La dernière formule oublie les échecs et le nombre de chemins.`,chk:[['eq','40*Rational(1,4)','10']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

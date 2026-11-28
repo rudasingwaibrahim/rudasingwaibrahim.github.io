@@ -1239,5 +1239,131 @@ TS.run({
 });
 
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — sans-faux-pas */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Sans faux pas — Terminale spécialité (erreurs fréquentes, tous chapitres) : récurrence, limites, dérivée d'une
+   composée, logarithme, primitives et intégrales, dénombrement, loi binomiale (espérance et variance). */
+const Xv=V('x'),n=V('n'),ex=s=>`e<sup>${s}</sup>`;
+const u=k=>`${V('u')}<sub>${k}</sub>`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>({title:`Démontrer par récurrence que 2<sup>${n}</sup> ≥ ${n} + 1 pour tout entier ${n} ≥ 0`,
+  html:`<ol><li>Initialisation : pour ${n} = 0, 2<sup>0</sup> = 1 et 0 + 1 = 1 : la propriété est {0}.</li>
+<li>Hérédité : on suppose 2<sup>${V('k')}</sup> ≥ ${V('k')} + 1 pour un entier ${V('k')} ≥ 0. Alors 2<sup>${V('k')}+1</sup> = 2 × 2<sup>${V('k')}</sup> ≥ {1}.</li>
+<li>Or 2${V('k')} + 2 ≥ ${V('k')} + 2, donc 2<sup>${V('k')}+1</sup> ≥ ({2}) + 1.</li><li>Par le principe de récurrence, la propriété est vraie pour tout ${n} ≥ 0.</li></ol>`,
+  blanks:[['vraie',['fausse','inutile']],['2k + 2',['k + 2','2k + 1']],['k + 1',['k','2k']]],
+  explain:`Les deux étapes sont indispensables : l'initialisation et l'hérédité (« si c'est vrai au rang ${V('k')}, c'est vrai au rang ${V('k')} + 1 »).`,
+  chk:[['tpj','2**n>=n+1',['n'],'N','toujours'],['tpj','2*k+2>=k+2',['k'],'N','toujours']]})},
+{id:'D2',k:'demo',f:()=>{const a=ri(2,5);
+  return{title:`Dériver ${Xv} ↦ ln(${Xv}² + ${a})`,
+  html:`<ol><li>C'est ln ∘ ${V('u')} avec ${V('u')}(${Xv}) = ${Xv}² + ${a} > 0 ; ${V('u')}′(${Xv}) = {0}.</li><li>(ln ∘ ${V('u')})′ = {1}.</li><li>La dérivée est ${Xv} ↦ {2}.</li></ol>`,
+  blanks:[['2x',['x²','2x + ' + a]],['u′/u',['1/u','u′ ln u']],[`2x/(x² + ${a})`,[`1/(x² + ${a})`,`2x ln(x² + ${a})`]]],
+  explain:`Erreur fréquente : oublier le facteur ${V('u')}′ (dérivée de la fonction « intérieure »).`,chk:[['eq',`diff(log(x**2+${a}),x)`,`2*x/(x**2+${a})`]]}}},
+{id:'D3',k:'demo',f:()=>{const N0=pick([10,20,50]),pp=pick([[1,2],[1,5],[3,10]]);const E=N0*pp[0]/pp[1],Vr=E*(pp[1]-pp[0])/pp[1];
+  return{title:`Espérance et variance de B(${N0} ; ${F(...pp)})`,
+  html:`<ol><li>${V('X')} est la somme de ${N0} variables de Bernoulli indépendantes de paramètre ${F(...pp)}.</li><li>Par linéarité, ${V('E')}(${V('X')}) = ${N0} × ${F(...pp)} = {0}.</li>
+<li>Par indépendance, les variances s'ajoutent : ${V('V')}(${V('X')}) = ${N0} × ${F(...pp)} × (1 − ${F(...pp)}) = {1}.</li></ol>`,
+  blanks:[[fx(E),[fx(E+1),fx(N0+pp[0]/pp[1])]],[fx(Vr),[fx(E),fx(Vr*N0)].filter(z=>z!==fx(Vr))]],
+  explain:`C'est la démonstration du programme : ${V('E')} = ${V('n')}${V('p')} et ${V('V')} = ${V('n')}${V('p')}(1 − ${V('p')}), en décomposant ${V('X')} en somme de variables de Bernoulli.`,
+  chk:[['eq',`${N0}*Rational(${pp[0]},${pp[1]})`,`Rational('${E}')`],['eq',`${N0}*Rational(${pp[0]},${pp[1]})*(1-Rational(${pp[0]},${pp[1]}))`,`Rational('${Vr}')`]]}}},
+{id:'O1',k:'ordre',f:()=>({title:`Limite de ${Xv}e<sup>−${Xv}</sup> + 1 en +∞`,
+  steps:[`On écrit ${Xv}e<sup>−${Xv}</sup> = ${Xv}/e<sup>${Xv}</sup> (forme « ∞/∞ »).`,`Par croissances comparées, e<sup>${Xv}</sup>/${Xv} → +∞, donc ${Xv}/e<sup>${Xv}</sup> → 0.`,`Par somme, ${Xv}e<sup>−${Xv}</sup> + 1 → 1.`,`La droite ${V('y')} = 1 est asymptote à la courbe en +∞.`],
+  explain:`Identifier la forme indéterminée, la lever par un théorème du cours, conclure et interpréter.`,chk:[['eq','limit(x*exp(-x)+1,x,oo)','1']]})},
+{id:'O2',k:'ordre',f:()=>({title:'Probabilité d\'obtenir au moins un 6 en 4 lancers',
+  steps:[`On note ${V('X')} le nombre de 6 : ${V('X')} suit B(4 ; 1/6).`,`L'événement contraire de « au moins un 6 » est « aucun 6 ».`,`${V('P')}(${V('X')} = 0) = (5/6)<sup>4</sup>.`,`${V('P')}(${V('X')} ≥ 1) = 1 − (5/6)<sup>4</sup> ≈ 0,518.`],
+  explain:`On identifie la loi, puis on passe par l'événement contraire.`,chk:[['T','Abs(1-Rational(5,6)**4-Rational(518,1000))<Rational(1,1000)']]})},
+{id:'F1',k:'faute',f:()=>({title:'Une récurrence sans initialisation',
+  lines:[`On veut démontrer par récurrence que 3<sup>${n}</sup> est pair pour tout entier ${n} ≥ 0.`,`Hérédité : si 3<sup>${V('k')}</sup> est pair, alors 3<sup>${V('k')}+1</sup> = 3 × 3<sup>${V('k')}</sup> est pair.`,`Donc 3<sup>${n}</sup> est pair pour tout ${n}.`],wrong:2,
+  why:`L'initialisation manque et elle est fausse : 3<sup>0</sup> = 1 est impair. Une hérédité seule ne prouve rien.`,
+  bad:[`À la ligne 1, 3 × (pair) est impair.`,`Une récurrence n'a pas besoin d'initialisation.`],explain:`En réalité 3<sup>${n}</sup> est toujours impair (et 3<sup>${n}</sup> + 1 toujours pair).`,chk:[['tpj','Eq(Mod(3**n,2),1)',['n'],'N','toujours']]})},
+{id:'F2',k:'faute',f:()=>{const a=ri(2,4);
+  return{title:`Dériver ${Xv} ↦ ${ex(a+Xv+'²')}`,
+  lines:[`(${ex(V('u'))})′ = ${V('u')}′${ex(V('u'))}.`,`Ici ${V('u')}(${Xv}) = ${a}${Xv}², ${V('u')}′(${Xv}) = ${a}${Xv}.`,`La dérivée est ${a}${Xv}${ex(a+Xv+'²')}.`],wrong:1,
+  why:`La dérivée de ${a}${Xv}² est ${2*a}${Xv} (on a oublié de multiplier par l'exposant 2) : ${V('u')}′(${Xv}) = ${2*a}${Xv}.`,bad:[`À la ligne 0, (e<sup>u</sup>)′ = e<sup>u</sup>.`,`À la ligne 2, il faut écrire ${ex(a+Xv+'² − 1')}.`],
+  explain:`La dérivée est ${2*a}${Xv}${ex(a+Xv+'²')}. Contrôle par le calcul formel ou par un taux de variation numérique.`,chk:[['eq',`diff(exp(${a}*x**2),x)`,`${2*a}*x*exp(${a}*x**2)`]]}}},
+{id:'F3',k:'faute',f:()=>({title:'Somme de deux variables',
+  lines:[`${V('X')} et ${V('Y')} ont pour variances 4 et 9.`,`${V('V')}(${V('X')} + ${V('Y')}) = 4 + 9 = 13, que ${V('X')} et ${V('Y')} soient indépendantes ou non.`],wrong:1,
+  why:`L'additivité des variances suppose ${V('X')} et ${V('Y')} indépendantes. Par exemple si ${V('Y')} = −${V('X')}, ${V('V')}(${V('X')} + ${V('Y')}) = 0.`,
+  bad:[`À la ligne 1, 4 + 9 = 12.`,`La variance d'une somme est le produit des variances.`],explain:`L'espérance, elle, est toujours additive ; la variance seulement sous indépendance.`,chk:[['eq','4+9','13']]})},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Une suite croissante tend vers +∞. »`,
+  choices:[[`Faux : ${u(n)} = 1 − 1/(${n} + 1) est croissante et tend vers 1.`,1],[`Vrai : ${u(n)} = ${n} est croissante et tend vers +∞.`,0],[`Vrai : elle augmente toujours.`,0]],
+  explain:`Une suite croissante <b>non majorée</b> tend vers +∞ (théorème du cours) ; majorée, elle converge.`,chk:[['eq','limit(1-1/(n+1),n,oo)','1']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« C(${n}, ${V('k')}) = C(${n}, ${n} − ${V('k')}) pour 0 ≤ ${V('k')} ≤ ${n}. »`,
+  choices:[[`Vrai : choisir les ${V('k')} éléments retenus revient à choisir les ${n} − ${V('k')} éléments écartés.`,1],[`Faux : C(10, 3) = 120 et C(10, 7) = 210.`,0],[`Faux : il faudrait ${V('k')} = ${n}/2.`,0]],
+  explain:`C(10, 3) = C(10, 7) = 120.`.replace(/$/,' La symétrie se démontre par un argument de complémentaire.'),chk:[['eq','binomial(10,3)','binomial(10,7)']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`Une suite croissante et majorée converge :`,ans:'toujours',explain:`Théorème de la limite monotone.`.replace(/$/,' Sa limite est inférieure ou égale à tout majorant.'),chk:[]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`${V('f')} est dérivable et ${V('f')}′ s'annule en ${V('a')} : ${V('f')} admet un extremum local en ${V('a')} :`,ans:'parfois',explain:`${Xv}² en 0 oui, ${Xv}³ en 0 non.`.replace(/$/,' Il faut un changement de signe de la dérivée.'),chk:[['eq','diff(x**3,x).subs(x,0)','0']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`${Xv} > 0. ln ${Xv} > ${Xv} :`,ans:'jamais',explain:`ln ${Xv} ≤ ${Xv} − 1 < ${Xv} (convexité, tangente en 1).`,chk:[['tpj','log(x)>x',['x'],'pos','jamais']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['Principe de récurrence.','(ln u)′ = u′/u','E(X) = np et V(X) = np(1 − p) pour la loi B(n ; p).','(ln u)′ = 1/u'];
+  const pr=['P(0) est vraie et P(k) ⇒ P(k + 1) : P(n) est vraie pour tout n.','f(x) = ln(3x + 1) : f′(x) = 3/(3x + 1).','X suit B(100 ; 0,2) : E(X) = 20 et V(X) = 16.'][w];
+  return{title:'Quelle propriété justifie cette conclusion ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]}. La dernière formule oublie le facteur u′.`,chk:[['eq','diff(log(3*x+1),x)','3/(3*x+1)'],['eq','100*Rational(2,10)*Rational(8,10)','16']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

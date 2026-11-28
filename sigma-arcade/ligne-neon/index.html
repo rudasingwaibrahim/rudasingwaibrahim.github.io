@@ -1129,5 +1129,185 @@ LN_G.start();
 })();
 </script>
 
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — ligne-neon */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* La Ligne Néon — Seconde, chapitres 6 et 8 (ensembles de nombres ; intervalles et valeur absolue).
+   Démonstrations du programme : 1/3 n'est pas décimal ; √2 est irrationnel (raisonnement par l'absurde).
+   Intervalles, intersection, réunion ; |x − a| = distance ; |x − a| ≤ r ⇔ x ∈ [a − r ; a + r] ; somme d'inégalités. */
+const Xv=V('x');
+const I=(a,b,ca,cb)=>N(`${ca?'[':']'}${a===-Infinity?'−∞':M(a)} ; ${b===Infinity?'+∞':M(b)}${cb?']':'['}`);
+const IY=(a,b,ca,cb)=>`Interval(${a===-Infinity?'-oo':a},${b===Infinity?'oo':b},${ca?'False':'True'},${cb?'False':'True'})`;
+const ab=s=>`|${s}|`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>({title:'Démontrer que 1/3 n\'est pas un nombre décimal',
+  html:`<ol><li>Supposons que 1/3 soit décimal : il existe un entier ${V('a')} et un entier naturel ${V('n')} tels que 1/3 = ${V('a')}/10<sup>${V('n')}</sup>.</li>
+<li>En multipliant par 3 × 10<sup>${V('n')}</sup>, on obtient 10<sup>${V('n')}</sup> = {0}.</li>
+<li>Donc 10<sup>${V('n')}</sup> serait un multiple de 3. Or la somme des chiffres de 10<sup>${V('n')}</sup> est {1}, qui n'est pas un multiple de 3.</li>
+<li>C'est une contradiction : 1/3 {2} décimal.</li></ol>`,
+  blanks:[['3a',['a/3','a + 3']],['1',['3','10']],["n'est pas",['est','est peut-être']]],
+  explain:`C'est un raisonnement par l'absurde : on suppose le contraire de ce qu'on veut montrer et on aboutit à une impossibilité. 10<sup>${V('n')}</sup> s'écrit avec un 1 suivi de zéros : la somme de ses chiffres vaut 1, donc 10<sup>${V('n')}</sup> n'est pas divisible par 3.`,
+  chk:[['tpj','Ne(Mod(10**n,3),0)',['n'],'N','toujours'],['eq','3*(a/10**n)*10**n','3*a']]})},
+{id:'D2',k:'demo',f:()=>({title:'Démontrer que √2 est irrationnel',
+  html:`<ol><li>Supposons que √2 = ${V('a')}/${V('b')}, fraction irréductible (${V('a')} et ${V('b')} entiers, ${V('b')} ≠ 0).</li>
+<li>En élevant au carré : 2 = ${V('a')}²/${V('b')}², donc ${N(V('a')+'²')} = {0}.</li>
+<li>${N(V('a')+'²')} est pair, donc ${V('a')} est {1} : ${V('a')} = 2${V('k')} avec ${V('k')} entier.</li>
+<li>Alors 4${V('k')}² = 2${V('b')}², soit ${N(V('b')+'²')} = {2} : ${V('b')} est pair aussi.</li>
+<li>${V('a')} et ${V('b')} sont pairs : la fraction n'est pas {3}. C'est une contradiction, donc √2 est irrationnel.</li></ol>`,
+  blanks:[['2b²',['b²/2','4b²']],['pair',['impair','nul']],['2k²',['4k²','k²']],['irréductible',['positive','décimale']]],
+  explain:`On utilise la propriété « si ${V('a')}² est pair, alors ${V('a')} est pair » (chapitre sur les entiers). Si ${V('a')} et ${V('b')} sont tous deux pairs, on peut simplifier la fraction par 2 : elle n'était donc pas irréductible.`,
+  chk:[['eq','(2*k)**2','4*k**2'],['eq','4*k**2/2','2*k**2']]})},
+{id:'D3',k:'demo',f:()=>{const a=nz(-5,5),r=ri(1,4);
+  return{title:`Résoudre ${N(ab(Xv+(a<0?' + '+(-a):' − '+a))+' ≤ '+r)}`,
+  html:`<ol><li>${N(ab(Xv+(a<0?' + '+(-a):' − '+a)))} = ${N(ab(Xv+' − '+P(a)))} est la distance entre ${Xv} et {0}.</li>
+<li>L'inéquation signifie : cette distance est inférieure ou égale à {1}.</li>
+<li>Les solutions sont les réels de l'intervalle [{2} ; {3}], centré en ${M(a)}.</li></ol>`,
+  blanks:[[M(a),LN(a,[-a])],[String(r),LN(r,[2*r])],[M(a-r),LN(a-r,[-a-r,a-2*r])],[M(a+r),LN(a+r,[-a+r,a+2*r])]],
+  explain:`${N('|'+Xv+' − '+V('a')+'|')} est la distance entre ${Xv} et ${V('a')} : ${N('|'+Xv+' − '+V('a')+'| ≤ '+V('r'))} équivaut à ${Xv} ∈ [${V('a')} − ${V('r')} ; ${V('a')} + ${V('r')}]. Ici ${V('a')} = ${M(a)} : attention au signe, ${N(Xv+(a<0?' + '+(-a):' − '+a))} = ${N(Xv+' − '+P(a))}.`,
+  chk:[['sol',`Abs(x-(${a}))<=${r}`,'x',`Interval(${a-r},${a+r})`],['blank',2,`Eq(@,${a}-${r})`],['blank',3,`Eq(@,${a}+${r})`]]}}},
+{id:'D4',k:'demo',f:()=>{let a,b,c,d;do{a=ri(-6,2);b=a+ri(3,6);c=ri(a+1,b-1);d=b+ri(1,4)}while(c>=b);
+  return{title:`Intersection et réunion de ${I(a,b,1,1)} et ${I(c,d,0,1)}`,
+  html:`<ol><li>Un réel est dans l'intersection s'il appartient {0} intervalles.</li>
+<li>${I(a,b,1,1)} ∩ ${I(c,d,0,1)} = ]{1} ; {2}].</li><li>${I(a,b,1,1)} ∪ ${I(c,d,0,1)} = [${M(a)} ; {3}].</li></ol>`,
+  blanks:[['aux deux',["à l'un ou l'autre des",'à aucun des']],[M(c),LN(c,[a])],[M(b),LN(b,[d])],[M(d),LN(d,[b])]],
+  explain:`Intersection (∩) : dans les deux intervalles à la fois, c'est-à-dire ${N(M(c)+' < '+Xv+' ≤ '+M(b))}. Réunion (∪) : dans l'un <b>ou</b> l'autre ; comme les intervalles se chevauchent, on obtient [${M(a)} ; ${M(d)}].`,
+  chk:[['eq',`Intersection(${IY(a,b,1,1)},${IY(c,d,0,1)})`,`${IY(c,b,0,1)}`],['eq',`Union(${IY(a,b,1,1)},${IY(c,d,0,1)})`,`${IY(a,d,1,1)}`]]}}},
+{id:'O1',k:'ordre',f:()=>({title:'Démontrer que √2 est irrationnel',
+  steps:[`Supposons √2 = ${V('a')}/${V('b')}, avec ${V('a')}/${V('b')} irréductible.`,`Alors ${N(V('a')+'² = 2'+V('b')+'²')} : ${N(V('a')+'²')} est pair, donc ${V('a')} est pair, ${V('a')} = 2${V('k')}.`,
+    `Alors ${N('4'+V('k')+'² = 2'+V('b')+'²')}, soit ${N(V('b')+'² = 2'+V('k')+'²')} : ${V('b')} est pair.`,`${V('a')} et ${V('b')} sont pairs : la fraction n'est pas irréductible, contradiction.`,`Donc √2 n'est pas rationnel : il est irrationnel.`],
+  explain:`Le raisonnement par l'absurde : hypothèse contraire, déductions, contradiction, conclusion.`,
+  chk:[['eq','(2*k)**2','4*k**2']]})},
+{id:'O2',k:'ordre',f:()=>{const v=pick([[18,2,4,'3/2','1,5'],[50,2,4,'5/2','2,5'],[27,3,6,'3/2','1,5'],[8,2,8,'1/2','0,5']]);const [n,m,dd,fr,dc]=v;
+  return{title:`Dans quel plus petit ensemble est le nombre (√${n} × √${m}) / ${dd} ?`,
+  steps:[`√${n} × √${m} = √${n*m} = ${Math.sqrt(n*m)}.`,`Donc (√${n} × √${m}) / ${dd} = ${Math.sqrt(n*m)}/${dd} = ${fr}.`,`${fr} = ${dc} : ce nombre a un nombre fini de décimales.`,`Ce n'est pas un entier : le plus petit ensemble qui le contient est 𝔻.`],
+  explain:`On simplifie d'abord l'écriture : un nombre écrit avec des racines carrées n'est pas forcément irrationnel. Ici on obtient ${dc}, décimal non entier : il appartient à 𝔻 (donc aussi à ℚ et ℝ), pas à ℤ.`,
+  chk:[['eq',`sqrt(${n})*sqrt(${m})/${dd}`,`${dc.replace(',','.')}`]]}}},
+{id:'O3',k:'ordre',f:()=>{const a=nz(-4,6),r=ri(1,5);
+  return{title:`Résoudre ${N(ab(Xv+' − '+P(a))+' > '+r)}`,
+  steps:[`${N(ab(Xv+' − '+P(a)))} est la distance entre ${Xv} et ${M(a)}.`,`On cherche les réels dont la distance à ${M(a)} est strictement supérieure à ${r}.`,
+    `Ce sont les réels ${N(Xv+' < '+M(a-r))} ou ${N(Xv+' > '+M(a+r))}.`,`S = ${I(-Infinity,a-r,0,0)} ∪ ${I(a+r,Infinity,0,0)}.`],
+  explain:`On interprète la valeur absolue comme une distance, on place ${M(a)} et les points à distance ${r} (${M(a-r)} et ${M(a+r)}), puis on garde l'extérieur.`,
+  chk:[['sol',`Abs(x-(${a}))>${r}`,'x',`Union(Interval.open(-oo,${a-r}),Interval.open(${a+r},oo))`]]}}},
+{id:'F1',k:'faute',f:()=>{const a=ri(-6,0),b=ri(2,8);
+  return{title:'Traduire une inégalité par un intervalle',
+  lines:[`${N(M(a)+' < '+Xv+' ≤ '+M(b))}`,`${Xv} est compris entre ${M(a)} et ${M(b)}, ${M(a)} exclu et ${M(b)} inclus.`,`Donc ${Xv} ∈ ${I(a,b,1,1)}.`],wrong:2,
+  why:`${M(a)} est exclu : le crochet doit être tourné vers l'extérieur, ${Xv} ∈ ${I(a,b,0,1)}.`,
+  bad:[`À la ligne 1, ${M(b)} devrait être exclu.`,`À la ligne 2, il fallait écrire ${I(b,a,1,1)}.`],
+  explain:`Crochet fermé = extrémité incluse ; crochet ouvert = extrémité exclue. ${N(M(a)+' < '+Xv+' ≤ '+M(b))} ⇔ ${Xv} ∈ ${I(a,b,0,1)}.`,
+  chk:[['ne',IY(a,b,1,1),IY(a,b,0,1)],['sol',`And(x>${a},x<=${b})`,'x',IY(a,b,0,1)]]}}},
+{id:'F2',k:'faute',f:()=>{const a=ri(1,6),r=ri(1,3);
+  return{title:`Résoudre ${N(ab(Xv+' + '+a)+' ≤ '+r)}`,
+  lines:[`${N(ab(Xv+' + '+a)+' ≤ '+r)}`,`La distance entre ${Xv} et ${a} est inférieure ou égale à ${r}.`,`S = ${I(a-r,a+r,1,1)}`],wrong:1,
+  why:`${N(Xv+' + '+a)} = ${N(Xv+' − ('+M(-a)+')')} : c'est la distance entre ${Xv} et ${M(-a)}, pas entre ${Xv} et ${a}.`,
+  bad:[`À la ligne 2, les crochets doivent être ouverts.`,`À la ligne 1, une valeur absolue ne peut pas être inférieure à ${r}.`],
+  explain:`${N(ab(Xv+' + '+a))} = ${N(ab(Xv+' − ('+M(-a)+')'))} : distance à ${M(-a)}. Donc S = ${I(-a-r,-a+r,1,1)}. Contrôle : ${Xv} = ${M(-a)} donne |0| = 0 ≤ ${r}.`,
+  chk:[['sol',`Abs(x+${a})<=${r}`,'x',IY(-a-r,-a+r,1,1)],['ne',IY(-a-r,-a+r,1,1),IY(a-r,a+r,1,1)]]}}},
+{id:'F3',k:'faute',f:()=>{const u=pick([2,3,5,6,7]);
+  return{title:'Rationnel ou irrationnel ?',
+  lines:[`On étudie le nombre ${V('A')} = √${u*u*2} − ${u}√2.`,`√${u*u*2} = √(${u*u} × 2) = ${u}√2.`,`Donc ${V('A')} = ${u}√2 − ${u}√2 = 0.`,`${V('A')} s'écrit avec √2, donc ${V('A')} est irrationnel.`],wrong:3,
+  why:`L'écriture de départ ne suffit pas : on a montré que ${V('A')} = 0, qui est un entier (donc rationnel).`,
+  bad:[`À la ligne 1, √${u*u*2} = ${u*u}√2.`,`À la ligne 2, ${u}√2 − ${u}√2 = √2.`],
+  explain:`Pour classer un nombre, on simplifie d'abord. Ici ${V('A')} = 0 ∈ ℕ. Retenir : une écriture avec une racine carrée peut cacher un nombre rationnel.`,
+  chk:[['eq',`sqrt(${u*u*2})-${u}*sqrt(2)`,'0'],['eq',`sqrt(${u*u*2})`,`${u}*sqrt(2)`]]}}},
+{id:'F4',k:'faute',f:()=>{const a=ri(1,9),b=ri(1,9),c=ri(1,9),d=ri(1,9);
+  return{title:'Somme et différence d\'inégalités',
+  lines:[`On sait que ${N(Xv+' < '+a)} et ${N(V('y')+' < '+b)}.`,`En ajoutant membre à membre : ${N(Xv+' + '+V('y')+' < '+(a+b))}.`,`En soustrayant membre à membre : ${N(Xv+' − '+V('y')+' < '+M(a-b))}.`],wrong:2,
+  why:`On peut <b>ajouter</b> membre à membre deux inégalités de même sens, mais on ne peut pas les soustraire membre à membre.`,
+  bad:[`À la ligne 2, il fallait écrire ${N(Xv+' + '+V('y')+' < '+(a*b))}.`,`À la ligne 1, il faut savoir que ${Xv} et ${V('y')} sont positifs pour ajouter.`],
+  explain:`Propriété du cours : si ${N(V('a')+' < '+V('b'))} et ${N(V('c')+' < '+V('d'))}, alors ${N(V('a')+' + '+V('c')+' < '+V('b')+' + '+V('d'))}. Pour une différence, il n'y a pas de règle de ce type. Contre-exemple : ${Xv} = 0 < ${a}, ${V('y')} = ${M(-c-a)} < ${b}, et ${Xv} − ${V('y')} = ${c+a}, qui n'est pas < ${M(a-b)}.`,
+  chk:[['tpj',`x+y<${a+b}`,['x','y'],'Z','toujours',`And(x<${a},y<${b})`],['ce',`x-y<${a-b}`,['x','y'],['0',`${-c-a}`]],['T',`${-c-a}<${b}`]]}}},
+{id:'V1',k:'vf',f:()=>{const u=pick([2,3,5,7]);
+  return{title:'Vrai ou faux ?',prompt:`« La somme de deux nombres irrationnels est toujours un nombre irrationnel. »`,
+  choices:[[`Faux : √${u} et −√${u} sont irrationnels, et leur somme vaut 0, qui est rationnel.`,1],
+    [`Vrai : √${u} + √${u} = 2√${u} est irrationnel.`,0],[`Faux : √${u} + √${u} = √${2*u}.`,0],[`Vrai : un nombre irrationnel ne peut pas « disparaître » dans une somme.`,0]],
+  explain:`Un exemple favorable (√${u} + √${u}) ne prouve pas une propriété générale. Le contre-exemple √${u} + (−√${u}) = 0 suffit à montrer qu'elle est fausse. Attention : √${u} + √${u} = 2√${u}, pas √${2*u}.`,
+  chk:[['eq',`sqrt(${u})+(-sqrt(${u}))`,'0'],['ne',`sqrt(${u})+sqrt(${u})`,`sqrt(${2*u})`]]}}},
+{id:'V2',k:'vf',f:()=>{const a=ri(2,8);
+  return{title:'Vrai ou faux ?',prompt:`« Pour tout réel ${Xv}, ${N(ab(Xv)+' = '+Xv)}. »`,
+  choices:[[`Faux : |−${a}| = ${a} et ${a} ≠ −${a}.`,1],[`Vrai : |${a}| = ${a}.`,0],[`Vrai : la valeur absolue ne change pas un nombre.`,0],[`Faux : |0| n'existe pas.`,0]],
+  explain:`|${Xv}| est la distance entre ${Xv} et 0 : |${Xv}| = ${Xv} si ${Xv} ≥ 0, et |${Xv}| = −${Xv} si ${Xv} < 0. L'affirmation est donc fausse : un seul contre-exemple suffit.`,
+  chk:[['ce','Eq(Abs(x),x)',['x'],[`-${a}`]],['nce','Eq(Abs(x),x)',['x'],[`${a}`]],['eq','Abs(0)','0']]}}},
+{id:'P1',k:'tpj',f:()=>{const v=pick([0,1,2]);
+  if(v===0){const a=ri(-3,2),b=a+ri(3,5),c=a+ri(1,2),d=b+ri(1,3);return{title:'Toujours, parfois ou jamais ?',prompt:`${Xv} appartient à ${I(a,b,0,0)} ∩ ${I(c,d,1,1)}. On a ${N(Xv+' ≥ '+M(c))} :`,ans:'toujours',
+    explain:`Un réel de l'intersection appartient aux deux intervalles, en particulier à ${I(c,d,1,1)} : il vérifie ${N(Xv+' ≥ '+M(c))}.`,
+    chk:[['tpj',`x>=${c}`,['x'],[`${a}`,`${a+0.5}`,`${c}`,`${c+0.5}`,`${b-0.5}`,`${b}`,`${d}`].map(String),'toujours',`And(x>${a},x<${b},x>=${c},x<=${d})`]]}}
+  if(v===1)return{title:'Toujours, parfois ou jamais ?',prompt:`${Xv} est un réel. ${N(ab(Xv)+' = '+Xv)} :`,ans:'parfois',
+    explain:`Vrai si ${Xv} ≥ 0 (par exemple |3| = 3), faux si ${Xv} < 0 (|−3| = 3 ≠ −3).`,chk:[['tpj','Eq(Abs(x),x)',['x'],'R','parfois']]};
+  const a=ri(1,9);return{title:'Toujours, parfois ou jamais ?',prompt:`${Xv} est un réel. ${N(ab(Xv+' − '+a)+' < 0')} :`,ans:'jamais',
+    explain:`Une valeur absolue est une distance : elle est toujours positive ou nulle. ${N(ab(Xv+' − '+a)+' < 0')} n'a aucune solution.`,chk:[['tpj',`Abs(x-${a})<0`,['x'],'R','jamais'],['sol',`Abs(x-${a})<0`,'x','EmptySet']]}}},
+{id:'R1',k:'prop',f:()=>{const v=pick([0,1,2,3]);const E=['ℕ','ℤ','𝔻','ℚ','ℝ'];
+  const nums=[[`√${pick([16,25,36,49])}`,0,'C\'est un entier positif.'],[`−${pick([12,30,45])}/${pick([3])}`,1,'C\'est un entier négatif.'],
+    [`${pick([3,7,9])}/${pick([4,5,8,20])}`,2,'Son écriture décimale est finie.'],[`${pick([1,2,4,5])}/${pick([3,7,9])}`,3,'C\'est une fraction dont l\'écriture décimale ne s\'arrête pas.']];
+  const [t,k,why]=nums[v];
+  return{tag:'Quel ensemble ?',title:'Le plus petit ensemble',consigne:'Choisir le plus petit ensemble de nombres qui contient ce nombre.',prompt:`<div class="sk-eq">${t}</div>`,
+    ok:E[k],bad:E.filter((_,j)=>j!==k).slice(0,3),
+    explain:`${why} ℕ ⊂ ℤ ⊂ 𝔻 ⊂ ℚ ⊂ ℝ : le nombre appartient à ${E[k]} et à tous les ensembles qui le contiennent, mais le plus petit est ${E[k]}.`,
+    chk:[['T',[`Eq(sqrt(${t.slice(1)}),floor(sqrt(${t.slice(1)})))`,`Eq(${t.replace('−','-')},floor(${t.replace('−','-')}))`,`And(Eq(Mod((${t})*10**4,1),0),Ne(Mod(${t},1),0))`,`Ne(Mod((${t})*10**12,1),0)`][k]]]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

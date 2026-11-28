@@ -1155,5 +1155,149 @@ TDS.start();
     .observe(document.body,{childList:true,subtree:true,characterData:true});
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — tours-de-suite */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Tours de suite — Terminale technologique, chapitre 1 (suites arithmétiques et géométriques) : reconnaître une suite,
+   terme de rang n, somme de termes consécutifs (Σ, Python), évolutions en pourcentage, croissance linéaire ou exponentielle. */
+const n=V('n');
+const u=k=>`${V('u')}<sub>${k}</sub>`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>{const u0=pick([200,500,1000,1200]),t=pick([2,3,4,5]);const q=1+t/100;
+  return{title:`Une évolution de +${t} % par an`,
+  html:`<p>Une quantité vaut ${u0} en l'année 0 et augmente de ${t} % chaque année. On note ${u(n)} sa valeur l'année ${n}.</p><ol>
+<li>Augmenter de ${t} %, c'est multiplier par {0} : ${u(n+'+1')} = ${fx(q)} × ${u(n)}.</li><li>La suite est donc {1} de raison ${fx(q)}.</li>
+<li>Pour tout ${n}, ${u(n)} = {2}.</li></ol>`,
+  blanks:[[fx(q),[fx(t/100),String(t)]],['géométrique',['arithmétique','constante']],[`${u0} × ${fx(q)}^n`,[`${u0} + ${fx(q)}n`,`${u0} × ${fx(q)} × n`]]],
+  explain:`Une évolution à taux constant donne une suite géométrique (coefficient multiplicateur 1 + ${t}/100). On passe de ${u(0)} à ${u(n)} en multipliant ${n} fois par ${fx(q)}.`,
+  chk:[['eq',`1+Rational(${t},100)`,`Rational('${q}')`]]}}},
+{id:'D2',k:'demo',f:()=>{const u0=ri(2,9),r=ri(2,6),N0=ri(9,19);const S0=(N0+1)*(2*u0+N0*r)/2;
+  return{title:`Somme des termes d'une suite arithmétique`,
+  html:`<p>${u(0)} = ${u0}, raison ${r}. On calcule ${V('S')} = ${u(0)} + ${u(1)} + … + ${u(N0)}.</p><ol><li>Le nombre de termes est {0}.</li>
+<li>${u(N0)} = ${u0} + ${N0} × ${r} = {1}.</li><li>${V('S')} = nombre de termes × (premier + dernier)/2 = {2}.</li></ol>`,
+  blanks:[[String(N0+1),LN(N0+1,[N0])],[String(u0+N0*r),LN(u0+N0*r,[u0+(N0+1)*r])],[String(S0),LN(S0,[N0*(2*u0+N0*r)/2].filter(Number.isInteger))]],
+  explain:`De l'indice 0 à l'indice ${N0} il y a ${N0} + 1 termes. La somme d'une suite arithmétique est le nombre de termes multiplié par la moyenne du premier et du dernier.`,
+  chk:[['eq',`Sum(${u0}+${r}*k,(k,0,${N0})).doit()`,`${S0}`]]}}},
+{id:'D3',k:'demo',f:()=>{const a=pick([100,200]),r=pick([20,30,50]),t=pick([10,20]);
+  // u_n = a + r n ; v_n = a × (1+t/100)^n
+  let N0=0;while(a+r*N0>=a*(1+t/100)**N0-1e-9)N0++;
+  return{title:'Croissance linéaire ou exponentielle ?',
+  html:`<p>${u(n)} = ${a} + ${r}${n} et ${V('v')}<sub>${n}</sub> = ${a} × ${fx(1+t/100)}<sup>${n}</sup>.</p><ol>
+<li>(${u(n)}) augmente chaque année de la même {0} : croissance linéaire.</li><li>(${V('v')}<sub>${n}</sub>) augmente chaque année du même {1} : croissance exponentielle.</li>
+<li>Au début ${u(n)} ≥ ${V("v")}<sub>${n}</sub>, mais à partir du rang {2}, ${V('v')}<sub>${n}</sub> dépasse ${u(n)} et l'écart ne cesse de grandir.</li></ol>`,
+  blanks:[['quantité',['pourcentage','raison géométrique']],['pourcentage',['nombre','écart']],[String(N0),LN(N0,[N0-1,N0+2])]],
+  explain:`Une croissance exponentielle (géométrique de raison > 1) finit toujours par dépasser une croissance linéaire. Ici ${u(N0)} = ${a+r*N0} et ${V('v')}<sub>${N0}</sub> ≈ ${fx(Math.round(a*(1+t/100)**N0*100)/100)}.`,
+  chk:[['T',`${a}+${r}*${N0}<${a}*Rational(${100+t},100)**${N0}`],['T',`${a}+${r}*${N0-1}>=${a}*Rational(${100+t},100)**${N0-1}`]]}}},
+{id:'O1',k:'ordre',f:()=>{const a=ri(2,6),b=a*pick([2,3]),c=b*(b/a);
+  return{title:`La suite ${a} ; ${b} ; ${c} ; … est-elle géométrique ?`,
+  steps:[`On calcule les quotients de termes consécutifs : ${b}/${a} = ${b/a} et ${c}/${b} = ${c/b}.`,`Ils sont égaux sur ces termes : on conjecture une suite géométrique de raison ${b/a}.`,`Pour le prouver, il faut que ${u(n+'+1')} = ${b/a} × ${u(n)} pour tout ${n}, ce qui doit venir de la définition de la suite.`,`Sans cette définition, trois termes ne suffisent pas à conclure.`],
+  explain:`Calculer quelques quotients permet de conjecturer ; la preuve demande une relation valable pour tout ${n}.`,
+  chk:[['eq',`Rational(${b},${a})`,`Rational(${c},${b})`]]}}},
+{id:'O2',k:'ordre',f:()=>{const u0=pick([1000,2000,5000]),q=pick([[9,10],[4,5]]);const N0=ri(3,5);
+  return{title:`Calculer ${u(N0)} pour une baisse de ${100-q[0]*100/q[1]} % par an`,prompt:`${u(0)} = ${u0}.`,
+  steps:[`Une baisse de ${100-q[0]*100/q[1]} % correspond au coefficient ${fx(q[0]/q[1])}.`,`La suite est géométrique : ${u(n)} = ${u0} × ${fx(q[0]/q[1])}<sup>${n}</sup>.`,`On remplace ${n} par ${N0}.`,`${u(N0)} = ${u0} × ${fx(q[0]/q[1])}<sup>${N0}</sup> = ${fx(Math.round(u0*(q[0]/q[1])**N0*10000)/10000)}.`],
+  explain:`Une baisse de ${V('t')} % donne le coefficient 1 − ${V('t')}/100, inférieur à 1 : la suite est décroissante.`,
+  chk:[['eq',`${u0}*Rational(${q[0]},${q[1]})**${N0}`,`Rational('${Math.round(u0*(q[0]/q[1])**N0*10000)/10000}')`]]}}},
+{id:'F1',k:'faute',f:()=>{const t=pick([3,5,10]),N0=ri(4,8),u0=pick([100,1000]);
+  return{title:`${N0} hausses successives de ${t} %`,
+  lines:[`Une quantité de ${u0} augmente de ${t} % par an pendant ${N0} ans.`,`Au total, elle augmente de ${N0} × ${t} % = ${N0*t} %.`,`Elle vaut alors ${u0} × ${fx(1+N0*t/100)} = ${fx(u0*(1+N0*t/100))}.`],wrong:1,
+  why:`Les pourcentages successifs ne s'additionnent pas : on multiplie ${N0} fois par ${fx(1+t/100)}.`,
+  bad:[`À la ligne 2, ${u0} × ${fx(1+N0*t/100)} est mal calculé.`,`Dans l'énoncé, une quantité ne peut pas augmenter de ${t} % par an.`],
+  explain:`Valeur finale : ${u0} × ${fx(1+t/100)}<sup>${N0}</sup> ≈ ${fx(Math.round(u0*(1+t/100)**N0*100)/100)}, un peu plus que ${fx(u0*(1+N0*t/100))}.`,
+  chk:[['ne',`${u0}*Rational(${100+t},100)**${N0}`,`${u0}*(1+Rational(${N0*t},100))`]]}}},
+{id:'F2',k:'faute',f:()=>{const u1=ri(2,9),r=ri(2,5),N0=ri(8,15);
+  return{title:`Terme ${u(N0)} d'une suite arithmétique de premier terme ${u(1)}`,
+  lines:[`${u(1)} = ${u1}, raison ${r}.`,`${u(n)} = ${u(1)} + ${n} × ${r}.`,`${u(N0)} = ${u1} + ${N0} × ${r} = ${u1+N0*r}.`],wrong:1,
+  why:`Si le premier terme est ${u(1)}, alors ${u(n)} = ${u(1)} + (${n} − 1) × ${V('r')}.`,
+  bad:[`À la ligne 2, ${N0} × ${r} est mal calculé.`,`Dans l'énoncé, une suite commence toujours à ${u(0)}.`],
+  explain:`${u(N0)} = ${u1} + ${N0-1} × ${r} = ${u1+(N0-1)*r}. Contrôle : pour ${n} = 1, la formule doit redonner ${u(1)}.`,
+  chk:[['ne',`${u1}+${N0}*${r}`,`${u1}+(${N0}-1)*${r}`]]}}},
+{id:'F3',k:'faute',f:()=>{const N0=ri(5,9);
+  return{title:'Un programme Python de somme',
+  lines:[`On veut calculer ${V('S')} = 1 + 2 + … + ${N0}.`,`<code>S = 0</code> puis <code>for k in range(${N0}): S = S + k</code>`,`Le programme affiche ${N0*(N0+1)/2}.`],wrong:1,
+  why:`<code>range(${N0})</code> parcourt 0, 1, …, ${N0-1} : il manque ${N0}. Il faut <code>range(1, ${N0+1})</code>.`,
+  bad:[`À la ligne 2, le résultat est ${N0*N0}.`,`Il faut initialiser <code>S = 1</code>.`],
+  explain:`Le programme écrit calcule 0 + 1 + … + ${N0-1} = ${N0*(N0-1)/2}, et non ${N0*(N0+1)/2}.`,
+  chk:[['eq',`Sum(k,(k,0,${N0-1})).doit()`,`${N0*(N0-1)/2}`],['ne',`${N0*(N0-1)/2}`,`${N0*(N0+1)/2}`]]}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Une suite dont les termes augmentent chaque année de 100 est géométrique. »`,
+  choices:[[`Faux : une augmentation d'une quantité constante donne une suite arithmétique (raison 100).`,1],[`Vrai : elle augmente régulièrement.`,0],[`Vrai : 100, 200, 300… est une suite géométrique de raison 2.`,0]],
+  explain:`Arithmétique : on ajoute toujours le même nombre. Géométrique : on multiplie toujours par le même nombre. 200/100 = 2 mais 300/200 = 1,5.`,chk:[['ne','Rational(200,100)','Rational(300,200)']]})},
+{id:'V2',k:'vf',f:()=>{const q=pick([[1,2],[9,10]]);return{title:'Vrai ou faux ?',prompt:`« Une suite géométrique de premier terme 100 et de raison ${fx(q[0]/q[1])} est décroissante. »`,
+  choices:[[`Vrai : chaque terme est obtenu en multipliant le précédent, positif, par un nombre compris entre 0 et 1.`,1],[`Faux : une suite géométrique est toujours croissante.`,0],[`Faux : elle devient négative.`,0]],
+  explain:`Pour ${u(0)} > 0 et 0 < ${V('q')} < 1, ${u(n+'+1')} = ${V('q')}${u(n)} < ${u(n)}.`,chk:[['T',`100*Rational(${q[0]},${q[1]})<100`]]}}},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`Une suite géométrique de premier terme positif et de raison 1,05 finit par dépasser 1 000 000 :`,ans:'toujours',explain:`Une suite géométrique de raison strictement supérieure à 1 et de premier terme positif dépasse n'importe quel nombre.`,chk:[['T','Rational(105,100)**300>10**6']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`Une suite qui est arithmétique est aussi géométrique :`,ans:'parfois',explain:`C'est le cas d'une suite constante non nulle (raison 0 et raison 1), pas de 1 ; 2 ; 3 ; …`,chk:[['ne','Rational(2,1)','Rational(3,2)']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`Une suite arithmétique de raison 3 est décroissante :`,ans:'jamais',explain:`${u(n+'+1')} − ${u(n)} = 3 > 0 : la suite est strictement croissante.`,chk:[['T','3>0']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['Une évolution de t % par an donne une suite géométrique de raison 1 + t/100.','Une augmentation constante donne une suite arithmétique.','La somme d\'une suite arithmétique vaut nombre de termes × (premier + dernier)/2.','Des hausses successives de t % s\'additionnent.'];
+  const pr=['Une population de 5 000 augmente de 2 % par an : uₙ = 5 000 × 1,02ⁿ.','Un loyer augmente de 15 € chaque année : uₙ = 600 + 15n.','u₀ = 3, r = 2 : u₀ + … + u₁₀ = 11 × (3 + 23)/2 = 143.'][w];
+  return{title:'Quelle propriété justifie ce calcul ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière phrase est fausse : on multiplie les coefficients.`,chk:[['eq','Sum(3+2*k,(k,0,10)).doit()','143']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

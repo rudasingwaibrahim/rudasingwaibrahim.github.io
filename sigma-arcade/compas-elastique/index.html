@@ -1194,5 +1194,148 @@ CE.start();
   new MutationObserver(ms=>ms.forEach(m=>{m.addedNodes.forEach(fix);if(m.type==='characterData')fix(m.target)})).observe(document.body,{childList:true,subtree:true,characterData:true});
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — compas-elastique */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Le Compas élastique — Première spécialité, chapitre 9 (produit scalaire, partie 1) : définition avec le cosinus,
+   projection orthogonale, norme et formules de polarisation, théorème d'Al-Kashi.
+   Démonstration du programme : formule d'Al-Kashi (avec le produit scalaire). */
+const vc=s=>`<span class="vec">${s}</span>`,vi=s=>`<span class="vec it">${s}</span>`;
+const u=vi('u'),v=vi('v');
+const nr=s=>`‖${s}‖`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>({title:'Démontrer le théorème d\'Al-Kashi',
+  html:`<p>Dans un triangle ABC, on note ${V('a')} = BC, ${V('b')} = AC, ${V('c')} = AB et Â l'angle en A.</p><ol>
+<li>D'après la relation de Chasles, ${vc('BC')} = {0}.</li><li>${V('a')}² = ${vc('BC')}² = (${vc('AC')} − ${vc('AB')})² = AC² − 2 ${vc('AC')} · ${vc('AB')} + AB².</li>
+<li>Or ${vc('AB')} · ${vc('AC')} = {1}.</li><li>Donc ${V('a')}² = {2}.</li></ol>`,
+  blanks:[['AC − AB (vecteurs)',['AB − AC (vecteurs)','AB + AC (vecteurs)']],['bc × cos Â',['bc × sin Â','b + c']],['b² + c² − 2bc cos Â',['b² + c² + 2bc cos Â','b² + c²']]],
+  explain:`C'est la démonstration du programme : on écrit ${vc('BC')} = ${vc('BA')} + ${vc('AC')} = ${vc('AC')} − ${vc('AB')}, on développe le carré scalaire, puis on utilise la définition ${vc('AB')} · ${vc('AC')} = AB × AC × cos Â. Si Â est droit, on retrouve Pythagore.`,
+  chk:[['eq','(b*cos(t)-c)**2+(b*sin(t))**2','b**2+c**2-2*b*c*cos(t)']]})},
+{id:'D2',k:'demo',f:()=>{const nu=ri(2,6),nv=ri(2,6),s=ri(Math.abs(nu-nv)+1,nu+nv-1);const ps=(s*s-nu*nu-nv*nv)/2;
+  return{title:`Produit scalaire à partir des normes`,
+  html:`<p>${nr(u)} = ${nu}, ${nr(v)} = ${nv} et ${nr(u+' + '+v)} = ${s}.</p><ol><li>${nr(u+' + '+v)}² = ${nr(u)}² + {0} + ${nr(v)}².</li>
+<li>Donc ${u} · ${v} = (${nr(u+' + '+v)}² − ${nr(u)}² − ${nr(v)}²)/2.</li><li>${u} · ${v} = (${s*s} − ${nu*nu} − ${nv*nv})/2 = {1}.</li></ol>`,
+  blanks:[['2 u·v',['u·v','2‖u‖‖v‖']],[M(ps),LN(ps,[s*s-nu*nu-nv*nv,s*s-nu*nu+nv*nv])]],
+  explain:`On développe le carré scalaire comme une identité remarquable : (${u} + ${v})² = ${u}² + 2${u} · ${v} + ${v}². C'est une formule de polarisation.`,
+  chk:[['eq',`(${s}**2-${nu}**2-${nv}**2)/2`,`Rational('${ps}')`]]}}},
+{id:'D3',k:'demo',f:()=>{const a=ri(2,6),b=ri(2,6);const ang=pick([[3,'1/2',a*b/2],[4,'√2/2',null],[2,'0',0],[1,'−1',-a*b]]);
+  const ttl=ang[0]===1?'π':`π/${ang[0]}`;
+  return{title:`Calculer ${u} · ${v}`,
+  html:`<p>${nr(u)} = ${a}, ${nr(v)} = ${b} et l'angle entre ${u} et ${v} mesure ${ttl}.</p><ol><li>${u} · ${v} = {0}.</li><li>cos(${ttl}) = {1}.</li><li>${u} · ${v} = {2}.</li></ol>`,
+  blanks:[['‖u‖ × ‖v‖ × cos θ',['‖u‖ + ‖v‖','‖u‖ × ‖v‖ × sin θ']],[ang[1],['√3/2','1'].filter(z=>z!==ang[1]).concat(ang[1]==='1/2'?[]:['1/2']).slice(0,2)],
+    [ang[2]===null?`${fx(a*b/2)}√2`:M(ang[2]),ang[2]===null?[M(a*b),`${a*b}√2`]:LN(ang[2],[a*b,a+b,-ang[2]])]],
+  explain:`Définition : ${u} · ${v} = ${nr(u)} × ${nr(v)} × cos θ. ${ang[0]===2?'Des vecteurs orthogonaux ont un produit scalaire nul.':ang[0]===1?'Des vecteurs de sens contraires ont un produit scalaire négatif.':''}`,
+  chk:[['eq',`${a}*${b}*cos(pi/${ang[0]})`,ang[2]===null?`${a*b}*sqrt(2)/2`:`${ang[2]}`]]}}},
+{id:'O1',k:'ordre',f:()=>{const b=ri(3,8),c=ri(3,8);const a2=b*b+c*c-b*c;   // Â = π/3
+  return{title:`Calculer BC avec AB = ${c}, AC = ${b} et Â = π/3`,
+  steps:[`D'après Al-Kashi : BC² = AB² + AC² − 2 × AB × AC × cos Â.`,`BC² = ${c}² + ${b}² − 2 × ${c} × ${b} × cos(π/3).`,`cos(π/3) = 1/2, donc BC² = ${c*c} + ${b*b} − ${b*c} = ${a2}.`,`BC = √${a2}${Number.isInteger(Math.sqrt(a2))?' = '+Math.sqrt(a2):''}.`],
+  explain:`Al-Kashi généralise Pythagore : on connaît deux côtés et l'angle compris, on en déduit le troisième côté.`,
+  chk:[['eq',`${c}**2+${b}**2-2*${c}*${b}*cos(pi/3)`,`${a2}`]]}}},
+{id:'O2',k:'ordre',f:()=>{const t=pick([[5,7,8],[3,5,7],[7,13,15],[5,8,7]]);const [bb,cc,aa]=t;const cosA=(bb*bb+cc*cc-aa*aa)/(2*bb*cc);
+  return{title:`Calculer cos Â dans un triangle de côtés BC = ${aa}, AC = ${bb}, AB = ${cc}`,
+  steps:[`Al-Kashi : BC² = AB² + AC² − 2 AB × AC cos Â.`,`Donc cos Â = (AB² + AC² − BC²)/(2 AB × AC).`,`cos Â = (${cc*cc} + ${bb*bb} − ${aa*aa})/${2*bb*cc}.`,`cos Â = ${F(bb*bb+cc*cc-aa*aa,2*bb*cc)}.`],
+  explain:`On isole cos Â dans la formule d'Al-Kashi. ${cosA===0.5?'Ici Â = π/3.':cosA===-0.5?'Ici Â = 2π/3.':''}`,
+  chk:[['eq',`Rational(${cc*cc}+${bb*bb}-${aa*aa},${2*bb*cc})`,`Rational(${bb*bb+cc*cc-aa*aa},${2*bb*cc})`]]}}},
+{id:'F1',k:'faute',f:()=>{const b=ri(3,8),c=ri(3,8);
+  return{title:`Al-Kashi avec Â = π/3`,
+  lines:[`AB = ${c}, AC = ${b}, Â = π/3.`,`BC² = AB² + AC² + 2 × AB × AC × cos Â`,`BC² = ${c*c} + ${b*b} + ${b*c} = ${b*b+c*c+b*c}`],wrong:1,
+  why:`La formule est BC² = AB² + AC² <b>−</b> 2 AB × AC cos Â.`,
+  bad:[`À la ligne 2, cos(π/3) = √3/2.`,`Dans l'énoncé, l'angle doit être droit pour appliquer la formule.`],
+  explain:`BC² = ${c*c} + ${b*b} − ${b*c} = ${b*b+c*c-b*c}. Contrôle : si Â augmente, BC augmente ; avec le signe +, ce serait l'inverse.`,
+  chk:[['ne',`${c*c}+${b*b}+2*${b}*${c}*cos(pi/3)`,`${c*c}+${b*b}-2*${b}*${c}*cos(pi/3)`]]}}},
+{id:'F2',k:'faute',f:()=>{const a=ri(2,6),b=ri(2,6);
+  return{title:`Produit scalaire de vecteurs orthogonaux`,
+  lines:[`${nr(u)} = ${a}, ${nr(v)} = ${b}, et ${u} ⟂ ${v}.`,`L'angle vaut π/2 et sin(π/2) = 1.`,`Donc ${u} · ${v} = ${a} × ${b} × 1 = ${a*b}.`],wrong:2,
+  why:`Le produit scalaire utilise le <b>cosinus</b> : ${u} · ${v} = ${a} × ${b} × cos(π/2) = 0.`,
+  bad:[`À la ligne 1, sin(π/2) = 0.`,`Dans l'énoncé, des vecteurs orthogonaux ont une norme nulle.`],
+  explain:`Deux vecteurs non nuls sont orthogonaux si et seulement si leur produit scalaire est nul.`,
+  chk:[['eq',`${a}*${b}*cos(pi/2)`,'0']]}}},
+{id:'F3',k:'faute',f:()=>{const ab=ri(3,8),ah=ri(1,4);
+  return{title:'Produit scalaire et projection',
+  lines:[`H est le projeté orthogonal de C sur la droite (AB) ; AB = ${ab}, AH = ${ah}.`,`H et B sont de part et d'autre de A.`,`${vc('AB')} · ${vc('AC')} = AB × AH = ${ab*ah}.`],wrong:2,
+  why:`${vc('AB')} · ${vc('AC')} = ${vc('AB')} · ${vc('AH')} ; comme ${vc('AH')} et ${vc('AB')} sont de sens contraires, il vaut −AB × AH.`,
+  bad:[`À la ligne 0, on doit projeter B sur (AC).`,`À la ligne 1, H est forcément entre A et B.`],
+  explain:`${vc('AB')} · ${vc('AC')} = −${ab} × ${ah} = −${ab*ah} : l'angle BAC est obtus.`,
+  chk:[['eq',`Matrix([${ab},0]).dot(Matrix([-${ah},5]))`,`-${ab*ah}`]]}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si ${u} · ${v} = 0, alors ${u} = ${vc('0')} ou ${v} = ${vc('0')}. »`,
+  choices:[[`Faux : ${u}(1 ; 0) et ${v}(0 ; 1) sont non nuls et ${u} · ${v} = 0.`,1],[`Vrai : c'est la règle du produit nul.`,0],[`Vrai : ${u}(0 ; 0) et ${v}(1 ; 1) vérifient ${u} · ${v} = 0.`,0]],
+  explain:`Le produit scalaire est nul aussi pour deux vecteurs non nuls orthogonaux : la « règle du produit nul » ne s'applique pas.`,chk:[['eq','Matrix([1,0]).dot(Matrix([0,1]))','0']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Pour tout vecteur ${u}, ${u} · ${u} = ${nr(u)}². »`,
+  choices:[[`Vrai : l'angle entre ${u} et lui-même est nul et cos 0 = 1.`,1],[`Faux : ${u} · ${u} = 2${nr(u)}.`,0],[`Faux : ${u} · ${u} = 0.`,0]],
+  explain:`C'est le carré scalaire : ${u}² = ${nr(u)}², utilisé dans la démonstration d'Al-Kashi.`,chk:[['eq','Matrix([3,4]).dot(Matrix([3,4]))','5**2']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`|${u} · ${v}| ≤ ${nr(u)} × ${nr(v)} :`,ans:'toujours',explain:`|cos θ| ≤ 1, donc |${nr(u)}${nr(v)} cos θ| ≤ ${nr(u)}${nr(v)}.`,chk:[['tpj','Abs(cos(x))<=1',['x'],'R','toujours']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`${u} et ${v} sont non nuls. ${u} · ${v} > 0 :`,ans:'parfois',explain:`Positif si l'angle est aigu, nul s'il est droit, négatif s'il est obtus.`,chk:[['T','cos(pi/3)>0'],['T','cos(2*pi/3)<0']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`${u} et ${v} sont non nuls et orthogonaux. ${u} · ${v} = ${nr(u)} × ${nr(v)} :`,ans:'jamais',explain:`${u} · ${v} = 0, alors que ${nr(u)} × ${nr(v)} > 0.`,chk:[['eq','cos(pi/2)','0']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['Le théorème d\'Al-Kashi.','La formule u · v = ‖u‖ × ‖v‖ × cos θ.','La formule de polarisation u · v = (‖u + v‖² − ‖u‖² − ‖v‖²)/2.','u · v = 0 implique u = 0 ou v = 0.'];
+  const pr=['AB = 3, AC = 4, Â = π/3 : BC² = 9 + 16 − 12 = 13.','‖u‖ = 2, ‖v‖ = 5, angle π/3 : u · v = 5.','‖u‖ = 3, ‖v‖ = 4, ‖u + v‖ = 6 : u · v = 5,5.'][w];
+  return{title:'Quelle propriété justifie ce calcul ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière affirmation est fausse (vecteurs orthogonaux).`,chk:[['eq','9+16-2*3*4*cos(pi/3)','13'],['eq','2*5*cos(pi/3)','5'],['eq','(36-9-16)/Integer(2)','Rational(11,2)']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

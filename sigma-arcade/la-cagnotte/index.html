@@ -1009,5 +1009,140 @@ CG.start();
     .observe(document.body,{childList:true,subtree:true,characterData:true});
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — la-cagnotte */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* La Cagnotte — Terminale technologique, chapitre 4 (fonction inverse) : définition et courbe, dérivée −1/x²,
+   sens de variation, comportement aux bornes et asymptotes, fonctions x ↦ ax + b + c/x (coût moyen minimal). */
+const Xv=V('x'),f=V('f'),fp=`${V('f')}′`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>({title:'Variations de la fonction inverse',
+  html:`<ol><li>La fonction inverse est définie sur ℝ privé de {0}.</li><li>Sa dérivée est ${Xv} ↦ {1}.</li>
+<li>Pour tout ${Xv} ≠ 0, ${Xv}² > 0, donc la dérivée est {2}.</li><li>La fonction inverse est donc décroissante sur ]−∞ ; 0[ et sur ]0 ; +∞[, mais elle n'est {3} sur ℝ privé de 0.</li></ol>`,
+  blanks:[['0',['1','−1']],['−1/x²',['1/x²','−1/x']],['strictement négative',['positive','nulle']],['pas décroissante',['pas définie','pas négative']]],
+  explain:`Attention : −1 < 1 mais 1/(−1) = −1 < 1/1 = 1. La fonction est décroissante sur chacun des deux intervalles séparément, pas sur leur réunion.`,
+  chk:[['eq','diff(1/x,x)','-1/x**2'],['T','1/(-1)<1/1']]})},
+{id:'D2',k:'demo',f:()=>{const [a,c]=pick([[1,4],[1,9],[1,16],[1,25],[4,16],[4,36],[2,8],[2,18],[3,12],[3,27]]);const r=Math.sqrt(c/a);
+  return{title:`Minimum de ${f}(${Xv}) = ${a===1?'':a}${Xv} + ${c}/${Xv} sur ]0 ; +∞[`,
+  html:`<ol><li>${fp}(${Xv}) = {0} = (${a===1?'':a}${Xv}² − ${c})/${Xv}².</li><li>Sur ]0 ; +∞[, ${fp}(${Xv}) s'annule en ${Xv} = {1}, en passant du négatif au positif.</li>
+<li>Le minimum de ${f} sur ]0 ; +∞[ est donc ${f}(${r}) = {2}.</li></ol>`,
+  blanks:[[`${a} − ${c}/x²`,[`${a} + ${c}/x²`,`${a} − ${c}/x`]],[String(r),LN(r,[c,c/2].filter(Number.isInteger))],[String(2*a*r),LN(2*a*r,[a*r,a*r+c])]],
+  explain:`On réduit au même dénominateur pour étudier le signe : ${a===1?'':a}${Xv}² − ${c} ≥ 0 pour ${Xv} ≥ ${r}. ${f}(${r}) = ${a*r} + ${c/r} = ${2*a*r}.`,
+  chk:[['eq',`diff(${a}*x+${c}/x,x)`,`(${a}*x**2-${c})/x**2`],['eq',`${a}*${r}+${c}/${r}`,`${2*a*r}`]]}}},
+{id:'D3',k:'demo',f:()=>{const k=ri(2,9);
+  return{title:`Comportement de ${f}(${Xv}) = ${k}/${Xv} aux bornes de ]0 ; +∞[`,
+  html:`<ol><li>Quand ${Xv} devient très grand, ${k}/${Xv} se rapproche de {0} : l'axe des abscisses est asymptote à la courbe en +∞.</li>
+<li>Quand ${Xv} se rapproche de 0 en restant positif, ${k}/${Xv} devient {1}.</li><li>La droite d'équation {2} est donc asymptote à la courbe.</li></ol>`,
+  blanks:[['0',['1',String(k)]],['aussi grand que l\'on veut',['proche de 0','négatif']],['x = 0',['y = 0','y = x']]],
+  explain:`Par exemple ${k}/1000 = ${fx(k/1000)} et ${k}/0,001 = ${k*1000}. Asymptote horizontale ${V('y')} = 0 en +∞, asymptote verticale ${Xv} = 0.`,
+  chk:[['eq',`limit(${k}/x,x,oo)`,'0'],['T',`Eq(limit(${k}/x,x,0),oo)`]]}}},
+{id:'O1',k:'ordre',f:()=>{const [F0,v]=pick([[100,1],[200,2],[400,4],[400,1],[200,8],[300,3]]);const r=Math.sqrt(F0/v);
+  return{title:'Le coût moyen minimal',prompt:`Le coût de production de ${Xv} centaines d'objets est C(${Xv}) = ${v===1?'':v}${Xv}² + ${F0}. Le coût moyen est C(${Xv})/${Xv}.`,
+  steps:[`Coût moyen : C<sub>M</sub>(${Xv}) = ${v===1?'':v}${Xv} + ${F0}/${Xv}.`,`C<sub>M</sub>′(${Xv}) = ${v} − ${F0}/${Xv}² = (${v===1?'':v}${Xv}² − ${F0})/${Xv}².`,`Sur ]0 ; +∞[, la dérivée s'annule en ${r} en passant du négatif au positif.`,`Le coût moyen est minimal pour ${r} centaines d'objets : il vaut ${2*v*r}.`],
+  explain:`On divise le coût total par la quantité, on dérive (dérivée de 1/${Xv} : −1/${Xv}²), on étudie le signe, on conclut.`,
+  chk:[['eq',`diff(${v}*x+${F0}/x,x)`,`(${v}*x**2-${F0})/x**2`],['eq',`${v}*${r}+${F0}/${r}`,`${2*v*r}`]]}}},
+{id:'O2',k:'ordre',f:()=>{const k=ri(2,8);
+  return{title:`Résoudre ${N(k+'/'+Xv+' = 2')} sur ]0 ; +∞[`,
+  steps:[`Pour ${Xv} ≠ 0, on multiplie les deux membres par ${Xv}.`,`On obtient ${k} = 2${Xv}.`,`Donc ${Xv} = ${fx(k/2)}.`,`${fx(k/2)} appartient bien à ]0 ; +∞[ : c'est la solution.`],
+  explain:`Une équation avec ${Xv} au dénominateur : on écarte la valeur interdite, on multiplie, on résout, on vérifie.`,
+  chk:[['sol',`Eq(${k}/x,2)`,'x',`FiniteSet(Rational(${k},2))`]]}}},
+{id:'F1',k:'faute',f:()=>({title:'Comparer deux inverses',
+  lines:[`−2 < 3.`,`La fonction inverse est décroissante.`,`Donc 1/(−2) > 1/3.`],wrong:1,
+  why:`La fonction inverse est décroissante sur ]−∞ ; 0[ et sur ]0 ; +∞[ séparément, pas sur ℝ privé de 0 : −2 et 3 ne sont pas dans le même intervalle.`,
+  bad:[`À la ligne 0, −2 > 3.`,`À la ligne 2, 1/(−2) = 2.`],
+  explain:`1/(−2) = −0,5 < 1/3 : la conclusion est fausse. Un nombre négatif a un inverse négatif, plus petit que l'inverse d'un positif.`,
+  chk:[['T','1/(-2)<Rational(1,3)']]})},
+{id:'F2',k:'faute',f:()=>{const k=ri(2,9);
+  return{title:`Dériver ${f}(${Xv}) = ${k}/${Xv}`,
+  lines:[`${f}(${Xv}) = ${k} × 1/${Xv}`,`${fp}(${Xv}) = ${k} × 1/${Xv}²`],wrong:1,
+  why:`La dérivée de ${Xv} ↦ 1/${Xv} est ${Xv} ↦ <b>−</b>1/${Xv}² : ${fp}(${Xv}) = −${k}/${Xv}².`,
+  bad:[`À la ligne 0, ${k}/${Xv} = ${k} × ${Xv}.`,`La dérivée de ${k}/${Xv} est 0, car ${k} est une constante.`],
+  explain:`Contrôle : ${f} est décroissante sur ]0 ; +∞[ (${k}/1 > ${k}/2), donc sa dérivée doit être négative.`,
+  chk:[['eq',`diff(${k}/x,x)`,`-${k}/x**2`]]}}},
+{id:'F3',k:'faute',f:()=>({title:'Une asymptote',
+  lines:[`${f}(${Xv}) = 1/${Xv} + 2 sur ]0 ; +∞[.`,`Quand ${Xv} devient très grand, 1/${Xv} se rapproche de 0.`,`Donc ${f}(${Xv}) se rapproche de 0 : l'axe des abscisses est asymptote.`],wrong:2,
+  why:`${f}(${Xv}) = 1/${Xv} + 2 se rapproche de 0 + 2 = 2 : l'asymptote est la droite d'équation ${V('y')} = 2.`,
+  bad:[`À la ligne 1, 1/${Xv} devient très grand.`,`Dans l'énoncé, ${f} n'est pas définie sur ]0 ; +∞[.`],
+  explain:`Contrôle : ${f}(1000) = 2,001 et ${f}(10 000) = 2,0001 : les valeurs se rapprochent de 2, pas de 0.`,chk:[['eq','limit(1/x+2,x,oo)','2']]})},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« La fonction inverse est décroissante sur ℝ privé de 0. »`,
+  choices:[[`Faux : −1 < 1 et pourtant 1/(−1) = −1 < 1/1 = 1.`,1],[`Vrai : sa dérivée −1/${Xv}² est négative.`,0],[`Vrai : 1 < 2 et 1/1 > 1/2.`,0]],
+  explain:`Une dérivée négative sur chaque intervalle donne la décroissance sur chaque intervalle, pas sur la réunion de deux intervalles disjoints.`,chk:[['T','1/(-1)<1/1']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Pour tout ${Xv} > 0, ${Xv} + 1/${Xv} ≥ 2. »`,
+  choices:[[`Vrai : ${Xv} + 1/${Xv} − 2 = (${Xv} − 1)²/${Xv} ≥ 0 pour ${Xv} > 0.`,1],[`Faux : pour ${Xv} = 0,5, ${Xv} + 1/${Xv} = 1.`,0],[`Faux : pour ${Xv} = 1, ${Xv} + 1/${Xv} = 1.`,0]],
+  explain:`On étudie le signe de la différence : (${Xv} − 1)² ≥ 0 et ${Xv} > 0. Égalité pour ${Xv} = 1. Et 0,5 + 2 = 2,5, 1 + 1 = 2.`,chk:[['eq','x+1/x-2','(x-1)**2/x'],['eq','Rational(1,2)+2','Rational(5,2)']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`${Xv} ≠ 0. 1/${Xv} est du signe de ${Xv} :`,ans:'toujours',explain:`${Xv} × 1/${Xv} = 1 > 0 : ${Xv} et 1/${Xv} ont le même signe.`,chk:[['tpj','x*(1/x)>0',['x'],'Rs','toujours']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`${Xv} > 0. 1/${Xv} < ${Xv} :`,ans:'parfois',explain:`Vrai pour ${Xv} = 2, faux pour ${Xv} = 0,5.`,chk:[['tpj','1/x<x',['x'],'pos','parfois']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`L'équation 1/${Xv} = 0 a une solution :`,ans:'jamais',explain:`Un quotient de numérateur 1 n'est jamais nul.`,chk:[['sol','Eq(1/x,0)','x','EmptySet']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['La dérivée de x ↦ 1/x est x ↦ −1/x².','La fonction inverse est décroissante sur ]0 ; +∞[.','Quand x devient très grand, 1/x se rapproche de 0.','La fonction inverse est décroissante sur ℝ privé de 0.'];
+  const pr=['f(x) = 5/x a pour dérivée −5/x².','2 < 3 donc 1/2 > 1/3.','La courbe de x ↦ 3 + 1/x admet la droite y = 3 comme asymptote en +∞.'][w];
+  return{title:'Quelle propriété justifie cette conclusion ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière phrase est fausse (ex. −1 et 1).`,chk:[['eq','diff(5/x,x)','-5/x**2'],['eq','limit(3+1/x,x,oo)','3']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

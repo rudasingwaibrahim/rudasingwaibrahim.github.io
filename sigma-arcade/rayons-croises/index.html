@@ -1104,5 +1104,161 @@ RC.start();
     .observe(document.body,{childList:true,subtree:true,characterData:true});
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — rayons-croises */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Rayons Croisés — Seconde, chapitres 15 et 17 (droites du plan ; droites sécantes, point d'intersection).
+   Démonstrations du programme : forme générale ax + by + c = 0 d'une équation de droite (par le déterminant) ;
+   critère de parallélisme m = m′ (déterminant des vecteurs directeurs). */
+const Xv=V('x'),Yv=V('y');
+const vc=s=>`<span class="vec">${s}</span>`,vi=s=>`<span class="vec it">${s}</span>`;
+const eqr=(m,p)=>`${Yv} = ${lin(m,p)}`;
+const cart=(a,b,c)=>poly([[a,1],[b,0]].filter(()=>true),Xv).replace(/^/,'')&&`${poly([[a,1]],Xv)}${b<0?' − '+(b===-1?'':-b)+Yv:b>0?' + '+(b===1?'':b)+Yv:''}${c?S(c):''} = 0`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>{let xa,ya,ux,uy;do{xa=ri(-4,4);ya=ri(-4,4);ux=nz(-4,4);uy=nz(-4,4)}while(gcd(ux,uy)!==1);
+  // det(AM,u) = (x−xa)uy − ux(y−ya) = uy x − ux y + (ux ya − uy xa)
+  const a=uy,b=-ux,c=ux*ya-uy*xa;
+  return{title:`Équation de la droite passant par A(${M(xa)} ; ${M(ya)}) de vecteur directeur ${vi('u')}(${M(ux)} ; ${M(uy)})`,
+  html:`<ol><li>Un point M(${Xv} ; ${Yv}) appartient à la droite si et seulement si les vecteurs ${vc('AM')} et ${vi('u')} sont {0}.</li>
+<li>Cela équivaut à det(${vc('AM')}, ${vi('u')}) = 0, avec ${vc('AM')}(${N(Xv+S(-xa))} ; ${N(Yv+S(-ya))}).</li>
+<li>det(${vc('AM')}, ${vi('u')}) = (${N(Xv+S(-xa))}) × ${P(uy)} − ${P(ux)} × (${N(Yv+S(-ya))}) = {1}.</li>
+<li>Une équation de la droite est donc ${cart(a,b,c).replace(' = 0','')} = 0 : elle est de la forme ${N(V('a')+Xv+' + '+V('b')+Yv+' + '+V('c')+' = 0')}, avec ${V('c')} = {2}.</li></ol>`,
+  blanks:[['colinéaires',['orthogonaux','de même norme']],[cart(a,b,c).replace(' = 0',''),[cart(a,-b,c).replace(' = 0',''),cart(a,b,-c||1).replace(' = 0','')]],[M(c),LN(c,[-c])]],
+  explain:`C'est la démonstration du programme : M ∈ d ⇔ ${vc('AM')} et ${vi('u')} colinéaires ⇔ det = 0, et en développant on obtient toujours une équation ${N(V('a')+Xv+' + '+V('b')+Yv+' + '+V('c')+' = 0')}. Contrôle : A vérifie l'équation, ${a} × ${P(xa)}${b<0?' − ':' + '}${Math.abs(b)} × ${P(ya)}${S(c)} = 0.`,
+  chk:[['eq',`(x-(${xa}))*(${uy})-(${ux})*(y-(${ya}))`,`${a}*x+(${b})*y+(${c})`],['eq',`${a}*(${xa})+(${b})*(${ya})+(${c})`,'0'],['blank',1,`Eq(@,(x-(${xa}))*(${uy})-(${ux})*(y-(${ya})))`]]}}},
+{id:'D2',k:'demo',f:()=>({title:'Deux droites y = mx + p et y = m′x + p′ sont parallèles si et seulement si m = m′',
+  html:`<ol><li>Un vecteur directeur de la première droite est ${vi('u')}(1 ; ${V('m')}), un vecteur directeur de la seconde est ${vi('v')}(1 ; {0}).</li>
+<li>Les droites sont parallèles si et seulement si ${vi('u')} et ${vi('v')} sont colinéaires, c'est-à-dire det(${vi('u')}, ${vi('v')}) = {1}.</li>
+<li>Or det(${vi('u')}, ${vi('v')}) = 1 × ${V('m′')} − 1 × ${V('m')} = {2}.</li><li>Donc les droites sont parallèles si et seulement si {3}.</li></ol>`,
+  blanks:[['m′',['p′','1']],['0',['1','m']],['m′ − m',['m − m′ + 1','m × m′']],['m = m′',['p = p′','m × m′ = −1']]],
+  explain:`La droite d'équation ${Yv} = ${V('m')}${Xv} + ${V('p')} a pour vecteur directeur (1 ; ${V('m')}). Le déterminant des deux vecteurs directeurs vaut ${V('m′')} − ${V('m')} : il est nul exactement quand les coefficients directeurs sont égaux. Les ordonnées à l'origine ne jouent aucun rôle (elles disent seulement si les droites sont confondues).`,
+  chk:[['eq','1*b-1*a','b-a']]})},
+{id:'D3',k:'demo',f:()=>{let m,p,m2,p2,x0;do{m=nz(-4,4);m2=nz(-4,4);x0=nz(-4,4);p=nz(-6,6)}while(m===m2);p2=m*x0+p-m2*x0;const y0=m*x0+p;
+  return{title:`Point d'intersection de ${V('d')} : ${eqr(m,p)} et ${V('d′')} : ${eqr(m2,p2)}`,
+  html:`<ol><li>Les coefficients directeurs ${M(m)} et ${M(m2)} sont {0} : les droites sont sécantes.</li><li>L'abscisse du point d'intersection vérifie ${N(lin(m,p)+' = '+lin(m2,p2))}, d'où ${Xv} = {1}.</li>
+<li>On remplace dans l'équation de ${V('d')} : ${Yv} = ${m} × ${P(x0)}${S(p)} = {2}.</li><li>Le point d'intersection est I(${M(x0)} ; ${M(y0)}).</li></ol>`,
+  blanks:[['différents',['égaux','opposés']],[M(x0),LN(x0,[-x0])],[M(y0),LN(y0,[m2*x0-p2||y0+3,-y0])]],
+  explain:`I appartient aux deux droites : ses coordonnées vérifient les deux équations. Contrôle dans ${V('d′')} : ${m2} × ${P(x0)}${S(p2)} = ${M(m2*x0+p2)}.`,
+  chk:[['sol',`Eq(${m}*x+(${p}),${m2}*x+(${p2}))`,'x',`FiniteSet(${x0})`],['eq',`${m2}*(${x0})+(${p2})`,`${y0}`],['blank',2,`Eq(@,${y0})`]]}}},
+{id:'O1',k:'ordre',f:()=>{let xa,ya,xb,yb,m;do{xa=ri(-4,3);xb=xa+ri(1,3);m=nz(-3,3);ya=ri(-5,5);yb=ya+m*(xb-xa)}while(Math.abs(yb)>12);const p=ya-m*xa;
+  return{title:`Équation réduite de la droite (AB)`,prompt:`A(${M(xa)} ; ${M(ya)}) et B(${M(xb)} ; ${M(yb)})`,
+  steps:[`${V('x')}<sub>A</sub> ≠ ${V('x')}<sub>B</sub> : la droite a une équation de la forme ${Yv} = ${V('m')}${Xv} + ${V('p')}.`,`${V('m')} = (${M(yb)} − ${P(ya)}) / (${M(xb)} − ${P(xa)}) = ${M(m)}.`,
+    `A appartient à la droite : ${M(ya)} = ${m} × ${P(xa)} + ${V('p')}, donc ${V('p')} = ${M(p)}.`,`(AB) : ${eqr(m,p)}.`,`Contrôle avec B : ${m} × ${P(xb)}${S(p)} = ${M(yb)}.`],
+  explain:`Coefficient directeur m = Δ${Yv}/Δ${Xv}, puis ordonnée à l'origine avec un point, puis vérification avec l'autre point.`,
+  chk:[['eq',`(${yb}-(${ya}))/(${xb}-(${xa}))`,`${m}`],['eq',`${m}*(${xb})+(${p})`,`${yb}`],['eq',`${m}*(${xa})+(${p})`,`${ya}`]]}}},
+{id:'O2',k:'ordre',f:()=>{let m,p,m2,p2,x0;do{m=nz(-4,4);m2=nz(-4,4);x0=nz(-4,4);p=nz(-6,6)}while(m===m2);p2=m*x0+p-m2*x0;
+  return{title:`Les droites ${eqr(m,p)} et ${eqr(m2,p2)} se coupent-elles ?`,
+  steps:[`Les coefficients directeurs sont ${M(m)} et ${M(m2)}.`,`Ils sont différents, donc les droites sont sécantes.`,`On résout ${N(lin(m,p)+' = '+lin(m2,p2))} : ${Xv} = ${M(x0)}.`,`On calcule ${Yv} = ${M(m*x0+p)} : le point commun est (${M(x0)} ; ${M(m*x0+p)}).`],
+  explain:`On décide d'abord de la position relative (pentes), puis on calcule le point d'intersection.`,
+  chk:[['sol',`Eq(${m}*x+(${p}),${m2}*x+(${p2}))`,'x',`FiniteSet(${x0})`]]}}},
+{id:'F1',k:'faute',f:()=>{let xa,ya,xb,yb;do{xa=ri(-5,5);ya=ri(-5,5);xb=ri(-5,5);yb=ri(-5,5)}while(xa===xb||ya===yb||Math.abs(yb-ya)===Math.abs(xb-xa));
+  return{title:`Coefficient directeur de (AB)`,
+  lines:[`A(${M(xa)} ; ${M(ya)}) et B(${M(xb)} ; ${M(yb)})`,`${V('m')} = (${M(xb)} − ${P(xa)}) / (${M(yb)} − ${P(ya)})`,`${V('m')} = ${F(xb-xa,yb-ya)}`],wrong:1,
+  why:`Le coefficient directeur est Δ${Yv}/Δ${Xv} : la différence des ordonnées au numérateur.`,
+  bad:[`À la ligne 2, il fallait additionner les coordonnées.`,`À la ligne 1, le calcul est impossible car les abscisses sont différentes.`],
+  explain:`${V('m')} = Δ${Yv}/Δ${Xv} = (${M(yb)} − ${P(ya)}) / (${M(xb)} − ${P(xa)}) = ${F(yb-ya,xb-xa)}. Le quotient inverse, ${F(xb-xa,yb-ya)}, n'a pas de sens ici.`,
+  chk:[['ne',`Rational(${xb-xa},${yb-ya})`,`Rational(${yb-ya},${xb-xa})`]]}}},
+{id:'F2',k:'faute',f:()=>{const m=nz(-4,4),p=nz(-6,6);let q;do{q=nz(-6,6)}while(q===p);
+  return{title:`Position de ${eqr(m,p)} et ${eqr(m,q)}`,
+  lines:[`${V('d')} : ${eqr(m,p)} et ${V('d′')} : ${eqr(m,q)}`,`Les ordonnées à l'origine ${M(p)} et ${M(q)} sont différentes.`,`Donc les droites sont sécantes.`],wrong:2,
+  why:`Les coefficients directeurs sont égaux (${M(m)}) : les droites sont parallèles. Des ordonnées à l'origine différentes montrent seulement qu'elles ne sont pas confondues.`,
+  bad:[`À la ligne 1, ${M(p)} = ${M(q)}.`,`À la ligne 1, une droite n'a pas d'ordonnée à l'origine.`],
+  explain:`L'équation ${N(lin(m,p)+' = '+lin(m,q))} se ramène à ${p} = ${q}, qui est fausse : aucun point commun, les droites sont parallèles et distinctes.`,
+  chk:[['sol',`Eq(${m}*x+(${p}),${m}*x+(${q}))`,'x','EmptySet']]}}},
+{id:'F3',k:'faute',f:()=>{let a,b,c;do{a=nz(-5,5);b=nz(-5,5);c=nz(-9,9)}while(Math.abs(a)===Math.abs(b));
+  return{title:`Un vecteur directeur de la droite ${cart(a,b,c)}`,
+  lines:[`${V('d')} : ${cart(a,b,c)}`,`Elle est de la forme ${N(V('a')+Xv+' + '+V('b')+Yv+' + '+V('c')+' = 0')} avec ${V('a')} = ${M(a)} et ${V('b')} = ${M(b)}.`,`Un vecteur directeur est ${vi('u')}(${M(a)} ; ${M(b)}).`],wrong:2,
+  why:`Un vecteur directeur de ${N(V('a')+Xv+' + '+V('b')+Yv+' + '+V('c')+' = 0')} est (−${V('b')} ; ${V('a')}), ici (${M(-b)} ; ${M(a)}).`,
+  bad:[`À la ligne 1, ${V('a')} = ${M(b)} et ${V('b')} = ${M(a)}.`,`À la ligne 2, il fallait prendre (${M(a)} ; ${M(c)}).`],
+  explain:`Contrôle par le déterminant : si A est sur ${V('d')}, A + ${vi('u')} doit l'être aussi, ce qui demande ${V('a')} × ${V('u')}<sub>x</sub> + ${V('b')} × ${V('u')}<sub>y</sub> = 0. Avec (${M(-b)} ; ${M(a)}) : ${a} × ${P(-b)} + ${P(b)} × ${P(a)} = 0. Avec (${M(a)} ; ${M(b)}) : ${a*a+b*b} ≠ 0.`,
+  chk:[['eq',`${a}*(${-b})+(${b})*(${a})`,'0'],['ne',`${a}*(${a})+(${b})*(${b})`,'0']]}}},
+{id:'V1',k:'vf',f:()=>{const k=nz(-5,5);
+  return{title:'Vrai ou faux ?',prompt:`« Toute droite du plan a une équation réduite de la forme ${Yv} = ${V('m')}${Xv} + ${V('p')}. »`,
+  choices:[[`Faux : la droite d'équation ${Xv} = ${M(k)}, parallèle à l'axe des ordonnées, n'en a pas.`,1],[`Vrai : la droite ${Yv} = 2${Xv} + 1 en est un exemple.`,0],[`Vrai : il suffit de prendre ${V('m')} = 0.`,0],[`Faux : la droite ${Yv} = 3 n'en a pas.`,0]],
+  explain:`Les droites parallèles à l'axe des ordonnées ont une équation ${Xv} = ${V('k')}. La droite ${Yv} = 3 a bien une équation réduite (${V('m')} = 0, ${V('p')} = 3).`,chk:[]}}},
+{id:'V2',k:'vf',f:()=>{const m=nz(-4,4),p=nz(-6,6),k=nz(-5,5);
+  return{title:'Vrai ou faux ?',prompt:`« Les droites ${eqr(m,p)} et ${Xv} = ${M(k)} sont sécantes. »`,
+  choices:[[`Vrai : elles ont un seul point commun, (${M(k)} ; ${M(m*k+p)}).`,1],[`Faux : elles sont parallèles.`,0],[`Faux : on ne peut pas comparer deux droites d'équations de formes différentes.`,0]],
+  explain:`Une droite ${Yv} = ${V('m')}${Xv} + ${V('p')} et une droite ${Xv} = ${V('k')} sont toujours sécantes : le point d'abscisse ${M(k)} de la première est le seul point commun.`,
+  chk:[['eq',`${m}*(${k})+(${p})`,`${m*k+p}`]]}}},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`Deux droites d'équations ${Yv} = ${V('m')}${Xv} + ${V('p')} et ${Yv} = ${V('m′')}${Xv} + ${V('p′')}, avec ${V('m')} ≠ ${V('m′')}, sont sécantes :`,ans:'toujours',
+    explain:`Des vecteurs directeurs (1 ; ${V('m')}) et (1 ; ${V('m′')}) ont pour déterminant ${V('m′')} − ${V('m')} ≠ 0 : ils ne sont pas colinéaires, les droites sont sécantes.`,chk:[['tpj','Ne(b-a,0)',['a','b'],'Z','toujours','Ne(a,b)']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`Une droite d'équation ${N(V('a')+Xv+' + '+V('b')+Yv+' + '+V('c')+' = 0')} passe par l'origine du repère :`,ans:'parfois',
+    explain:`O(0 ; 0) vérifie l'équation si et seulement si ${V('c')} = 0 : par exemple ${Xv} + ${Yv} = 0 passe par O, ${Xv} + ${Yv} − 1 = 0 non.`,chk:[['eq','1*0+1*0','0'],['ne','1*0+1*0-1','0']]};
+  const m=nz(-4,4);return{title:'Toujours, parfois ou jamais ?',prompt:`${V('p')} est un réel. Les droites ${Yv} = ${lin(m,0)} + ${V('p')} et ${Yv} = ${lin(m,0)} + ${V('p')} + 1 ont un point commun :`,ans:'jamais',
+    explain:`Même coefficient directeur ${M(m)} : elles sont parallèles, et distinctes car leurs ordonnées à l'origine diffèrent de 1.`,chk:[['sol',`Eq(${m}*x+p,${m}*x+p+1)`,'x','EmptySet']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const R=['Deux droites de même coefficient directeur sont parallèles.','Un point appartient à une droite si et seulement si ses coordonnées vérifient une équation de cette droite.','M appartient à la droite (AB) si et seulement si les vecteurs AM et AB sont colinéaires.','Deux droites d\'ordonnées à l\'origine différentes sont sécantes.'];
+  const m=nz(-3,3),p=nz(-5,5),x0=nz(-3,3);
+  const pr=[`${V('d')} : ${eqr(m,p)} et ${V('d′')} : ${eqr(m,p+1)}, donc ${V('d')} ∥ ${V('d′')}.`,`${m} × ${P(x0)}${S(p)} = ${M(m*x0+p)}, donc le point (${M(x0)} ; ${M(m*x0+p)}) est sur la droite ${eqr(m,p)}.`,`det(${vc('AM')}, ${vc('AB')}) = 0, donc M ∈ (AB).`][w];
+  return{title:'Quelle propriété justifie cette conclusion ?',prompt:pr,ok:R[w],bad:R.filter((_,j)=>j!==w),
+    explain:`${R[w]} La dernière affirmation est fausse : ${eqr(1,0)} et ${eqr(1,1)} ont des ordonnées à l'origine différentes et sont parallèles.`,chk:[['eq',`${m}*(${x0})+(${p})`,`${m*x0+p}`]]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

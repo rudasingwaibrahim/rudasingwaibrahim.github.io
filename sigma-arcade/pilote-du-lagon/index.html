@@ -889,5 +889,176 @@ PL.start();
     .observe(document.body,{childList:true,subtree:true,characterData:true});
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — pilote-du-lagon */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Le Pilote du Lac — Seconde, chapitre 5 (vecteurs, 2/2) : coordonnées, colinéarité, déterminant, alignement,
+   parallélisme, milieu, distance. Démonstration du programme : caractérisations de la colinéarité de deux vecteurs
+   non nuls (nullité du déterminant ; proportionnalité des coordonnées). */
+const vc=s=>`<span class="vec">${s}</span>`,vi=s=>`<span class="vec it">${s}</span>`;
+const u=vi('u'),v=vi('v');
+const cv=(x,y)=>`(${M(x)} ; ${M(y)})`;
+const pt=(n,x,y)=>`${n}(${M(x)} ; ${M(y)})`;
+const det=(x,y,a,b)=>x*b-a*y;
+const BANK=[
+{id:'D1',k:'demo',f:()=>({title:`Si ${u} = ${V('k')}${v}, alors det(${u}, ${v}) = 0`,
+  html:`<p>Soient ${u}(${V('x')} ; ${V('y')}) et ${v}(${V('x′')} ; ${V('y′')}) deux vecteurs tels que ${u} = ${V('k')}${v}, avec ${V('k')} réel.</p><ol>
+<li>Les coordonnées de ${V('k')}${v} sont (${V('kx′')} ; ${V('ky′')}), donc ${V('x')} = {0} et ${V('y')} = ${V('ky′')}.</li>
+<li>det(${u}, ${v}) = {1}.</li><li>En remplaçant : det(${u}, ${v}) = ${V('kx′')} × ${V('y′')} − ${V('x′')} × ${V('ky′')} = {2}.</li>
+<li>Donc si ${u} et ${v} sont colinéaires, leur déterminant est {3}.</li></ol>`,
+  blanks:[['kx′',['x′ + k','x′/k']],['xy′ − x′y',['xx′ − yy′','xy′ + x′y']],['0',['2kx′y′','k']],['nul',['positif','égal à k']]],
+  explain:`det(${u}, ${v}) = ${V('x')}${V('y′')} − ${V('x′')}${V('y')}. Avec ${V('x')} = ${V('k')}${V('x′')} et ${V('y')} = ${V('k')}${V('y′')}, les deux produits valent ${V('k')}${V('x′')}${V('y′')} : leur différence est nulle. C'est un sens de la démonstration du programme.`,
+  chk:[['eq','(k*a)*b-a*(k*b)','0']]})},
+{id:'D2',k:'demo',f:()=>{let xa,ya,ux,uy,t,on,xc,yc;do{xa=ri(-4,4);ya=ri(-4,4);ux=nz(-3,3);uy=nz(-3,3);t=pick([2,3,-1,-2]);on=Math.random()<.5;xc=xa+t*ux;yc=ya+t*uy+(on?0:pick([-1,1]))}while(false);
+  const xb=xa+ux,yb=ya+uy,ax=xc-xa,ay=yc-ya,d=det(ux,uy,ax,ay);
+  return{title:`Les points ${pt('A',xa,ya)}, ${pt('B',xb,yb)} et ${pt('C',xc,yc)} sont-ils alignés ?`,
+  html:`<ol><li>${vc('AB')}(${M(ux)} ; ${M(uy)}) et ${vc('AC')}({0} ; ${M(ay)}).</li>
+<li>det(${vc('AB')}, ${vc('AC')}) = ${M(ux)} × ${P(ay)} − ${P(ax)} × ${P(uy)} = {1}.</li>
+<li>Le déterminant est {2}, donc les vecteurs ${vc('AB')} et ${vc('AC')} {3} colinéaires et les points A, B, C {4} alignés.</li></ol>`,
+  blanks:[[M(ax),LN(ax,[xa-xc,xc+xa])],[M(d),LN(d,[ux*ay+ax*uy])],[on?'nul':'non nul',[on?'non nul':'nul','positif']],[on?'sont':'ne sont pas',[on?'ne sont pas':'sont','sont peut-être']],[on?'sont':'ne sont pas',[on?'ne sont pas':'sont','sont peut-être']]],
+  explain:`Coordonnées d'un vecteur : ${vc('AC')}(${V('x')}<sub>C</sub> − ${V('x')}<sub>A</sub> ; ${V('y')}<sub>C</sub> − ${V('y')}<sub>A</sub>). A, B, C sont alignés si et seulement si det(${vc('AB')}, ${vc('AC')}) = 0. Ici det = ${M(d)}.`,
+  chk:[['eq',`(${ux})*(${ay})-(${ax})*(${uy})`,`${d}`],[on?'eq':'ne',`${d}`,'0'],['blank',1,`Eq(@,${d})`]]}}},
+{id:'D3',k:'demo',f:()=>{const xa=ri(-5,3),ya=ri(-5,3),p=ri(1,4),q=ri(-3,3),r=ri(-2,3),s=ri(1,4);   // AB=(p;q), AD=(r;s)
+  const xb=xa+p,yb=ya+q,xd=xa+r,yd=ya+s,xc=xb+r,yc=yb+s;const fr=n=>n%2===0?M(n/2):fx(n/2).replace('-','−');
+  return{title:`ABCD avec ${pt('A',xa,ya)}, ${pt('B',xb,yb)}, ${pt('C',xc,yc)}, ${pt('D',xd,yd)} est-il un parallélogramme ?`,
+  html:`<ol><li>ABCD est un parallélogramme si et seulement si ses diagonales {0}.</li>
+<li>Milieu de [AC] : (${fr(xa+xc)} ; {1}).</li><li>Milieu de [BD] : ({2} ; ${fr(yb+yd)}).</li><li>Les deux milieux sont égaux : ABCD est un {3}.</li></ol>`,
+  blanks:[['ont le même milieu',['ont la même longueur','sont perpendiculaires']],[fr(ya+yc),[fr(ya+yc-2),fr(ya+yc+2)]],[fr(xb+xd),[fr(xb+xd-2),fr(xb+xd+2)]],['parallélogramme',['rectangle','losange']]],
+  explain:`Milieu de [AC] : ((${V('x')}<sub>A</sub> + ${V('x')}<sub>C</sub>)/2 ; (${V('y')}<sub>A</sub> + ${V('y')}<sub>C</sub>)/2). On ne peut pas conclure « rectangle » ou « losange » sans autre information.`,
+  chk:[['eq',`(${xa}+${xc})/2`,`(${xb}+${xd})/2`],['eq',`(${ya}+${yc})/2`,`(${yb}+${yd})/2`],['blank',1,`Eq(@,(${ya}+${yc})/Integer(2))`],['blank',2,`Eq(@,(${xb}+${xd})/Integer(2))`]]}}},
+{id:'O1',k:'ordre',f:()=>({title:`Si det(${u}, ${v}) = 0 et ${v} non nul, alors ${u} et ${v} sont colinéaires`,
+  steps:[`On suppose ${N(V('x')+V('y′')+' − '+V('x′')+V('y')+' = 0')} et, par exemple, ${V('x′')} ≠ 0.`,`On pose ${V('k')} = ${V('x')}/${V('x′')}, de sorte que ${V('x')} = ${V('k')}${V('x′')}.`,
+    `L'égalité ${N(V('x′')+V('y')+' = '+V('x')+V('y′'))} devient ${N(V('x′')+V('y')+' = '+V('k')+V('x′')+V('y′'))}.`,`On divise par ${V('x′')} ≠ 0 : ${V('y')} = ${V('k')}${V('y′')}.`,`Donc ${u} = ${V('k')}${v} : les vecteurs sont colinéaires.`],
+  explain:`C'est l'autre sens de la démonstration du programme : on fabrique le coefficient ${V('k')} à partir d'une coordonnée non nulle de ${v}.`,
+  chk:[['eq','(k*a)*b-a*(k*b)','0']]})},
+{id:'O2',k:'ordre',f:()=>{let xa,ya,xb,yb,xc,yc,ux,uy;do{xa=ri(-5,5);ya=ri(-5,5);xb=ri(-5,5);yb=ri(-5,5);xc=ri(-5,5);yc=ri(-5,5);ux=xb-xa;uy=yb-ya}while(ux===0||uy===0||(xc===xa&&yc===ya));const k=pick([2,3,-2]);
+  const xd=xc+k*ux,yd=yc+k*uy;
+  return{title:`Les droites (AB) et (CD) sont-elles parallèles ?`,prompt:`${pt('A',xa,ya)}, ${pt('B',xb,yb)}, ${pt('C',xc,yc)}, ${pt('D',xd,yd)}`,
+  steps:[`On calcule ${vc('AB')}${cv(ux,uy)}.`,`On calcule ${vc('CD')}${cv(xd-xc,yd-yc)}.`,`det(${vc('AB')}, ${vc('CD')}) = ${M(ux)} × ${P(yd-yc)} − ${P(xd-xc)} × ${P(uy)} = 0.`,`Les vecteurs sont colinéaires, donc (AB) et (CD) sont parallèles.`],
+  explain:`(AB) ∥ (CD) ⇔ ${vc('AB')} et ${vc('CD')} colinéaires ⇔ det(${vc('AB')}, ${vc('CD')}) = 0. Ici ${vc('CD')} = ${k} ${vc('AB')}.`,
+  chk:[['eq',`(${ux})*(${yd-yc})-(${xd-xc})*(${uy})`,'0']]}}},
+{id:'O3',k:'ordre',f:()=>{const [p,q,h]=pick([[3,4,5],[6,8,10],[5,12,13],[8,6,10],[4,3,5]]);const xa=ri(-4,4),ya=ri(-4,4),sx=pick([1,-1]),sy=pick([1,-1]);const xb=xa+sx*p,yb=ya+sy*q;
+  return{title:`Calculer la distance AB`,prompt:`${pt('A',xa,ya)} et ${pt('B',xb,yb)} dans un repère orthonormé.`,
+  steps:[`${N(V('x')+'<sub>B</sub> − '+V('x')+'<sub>A</sub>')} = ${M(xb-xa)} et ${N(V('y')+'<sub>B</sub> − '+V('y')+'<sub>A</sub>')} = ${M(yb-ya)}.`,`AB² = (${M(xb-xa)})² + (${M(yb-ya)})² = ${p*p} + ${q*q}.`,`AB² = ${h*h}.`,`AB = √${h*h} = ${h}.`],
+  explain:`Dans un repère orthonormé, AB = √((${V('x')}<sub>B</sub> − ${V('x')}<sub>A</sub>)² + (${V('y')}<sub>B</sub> − ${V('y')}<sub>A</sub>)²). On ne prend la racine carrée qu'à la fin, de la somme entière.`,
+  chk:[['eq',`sqrt((${xb-xa})**2+(${yb-ya})**2)`,`${h}`]]}}},
+{id:'F1',k:'faute',f:()=>{let a,b,c,d;do{a=nz(-5,5);b=nz(-5,5);c=nz(-5,5);d=nz(-5,5)}while(a*d-c*b===0||a*d+c*b===a*d-c*b);
+  return{title:`det(${u}, ${v}) pour ${u}${cv(a,b)} et ${v}${cv(c,d)}`,
+  lines:[`det(${u}, ${v}) = ${V('x')}${V('y′')} − ${V('x′')}${V('y')}`,`det(${u}, ${v}) = ${M(a)} × ${P(d)} + ${P(c)} × ${P(b)}`,`det(${u}, ${v}) = ${M(a*d+c*b)}`],wrong:1,
+  why:`Le déterminant est une <b>différence</b> : ${M(a)} × ${P(d)} − ${P(c)} × ${P(b)}.`,
+  bad:[`À la ligne 1, det(${u}, ${v}) = ${V('x')}${V('x′')} − ${V('y')}${V('y′')}.`,`À la ligne 2, ${M(a)} × ${P(d)} + ${P(c)} × ${P(b)} ne vaut pas ${M(a*d+c*b)}.`],
+  explain:`det(${u}, ${v}) = ${M(a)} × ${P(d)} − ${P(c)} × ${P(b)} = ${M(a*d)} − ${P(c*b)} = ${M(a*d-c*b)} ≠ 0 : ${u} et ${v} ne sont pas colinéaires.`,
+  chk:[['seq',[`(${a})*(${d})-(${c})*(${b})`,`(${a})*(${d})+(${c})*(${b})`,`${a*d+c*b}`],1]]}}},
+{id:'F2',k:'faute',f:()=>{let xa,ya,xb,yb;do{xa=ri(-5,5);ya=ri(-5,5);xb=ri(-5,5);yb=ri(-5,5)}while(xa===xb||ya===yb);
+  return{title:`Coordonnées du vecteur ${vc('AB')}`,
+  lines:[`${pt('A',xa,ya)} et ${pt('B',xb,yb)}`,`${vc('AB')}(${M(xa)} − ${P(xb)} ; ${M(ya)} − ${P(yb)})`,`${vc('AB')}${cv(xa-xb,ya-yb)}`],wrong:1,
+  why:`On soustrait les coordonnées de l'origine à celles de l'extrémité : ${vc('AB')}(${V('x')}<sub>B</sub> − ${V('x')}<sub>A</sub> ; ${V('y')}<sub>B</sub> − ${V('y')}<sub>A</sub>).`,
+  bad:[`À la ligne 2, ${M(xa)} − ${P(xb)} ne vaut pas ${M(xa-xb)}.`,`Il fallait ajouter les coordonnées : ${vc('AB')}${cv(xa+xb,ya+yb)}.`],
+  explain:`${vc('AB')}${cv(xb-xa,yb-ya)}. Les coordonnées obtenues, ${cv(xa-xb,ya-yb)}, sont celles de ${vc('BA')} = −${vc('AB')}.`,
+  chk:[['ne',`${xa-xb}`,`${xb-xa}`]]}}},
+{id:'F3',k:'faute',f:()=>{const [p,q,h]=pick([[3,4,5],[6,8,10],[5,12,13]]);
+  return{title:`La norme du vecteur ${u}${cv(p,-q)}`,
+  lines:[`‖${u}‖ = √(${p}² + (−${q})²)`,`‖${u}‖ = √${p}² + √(−${q})²`,`‖${u}‖ = ${p} + ${q} = ${p+q}`],wrong:1,
+  why:`La racine carrée d'une somme n'est pas la somme des racines : on calcule d'abord ${p}² + (−${q})² = ${h*h}.`,
+  bad:[`À la ligne 1, (−${q})² = −${q*q}.`,`À la ligne 2, √(−${q})² vaut −${q}.`],
+  explain:`‖${u}‖ = √(${p*p} + ${q*q}) = √${h*h} = ${h}, et non ${p+q}.`,
+  chk:[['seq',[`sqrt(${p}**2+(-${q})**2)`,`sqrt(${p}**2)+sqrt((-${q})**2)`,`${p}+${q}`],1],['eq',`sqrt(${p}**2+(-${q})**2)`,`${h}`]]}}},
+{id:'F4',k:'faute',f:()=>{let xa,ya,xb,yb;do{xa=ri(-6,6);ya=ri(-6,6);xb=ri(-6,6);yb=ri(-6,6)}while((xa+xb)%2||(ya+yb)%2||xa===xb||xb-xa===xa+xb);
+  return{title:`Le milieu I de [AB]`,
+  lines:[`${pt('A',xa,ya)} et ${pt('B',xb,yb)}`,`${V('x')}<sub>I</sub> = (${M(xb)} − ${P(xa)})/2 = ${M((xb-xa)/2)}`,`${V('y')}<sub>I</sub> = (${M(ya)} + ${P(yb)})/2 = ${M((ya+yb)/2)}`],wrong:1,
+  why:`L'abscisse du milieu est la <b>moyenne</b> des abscisses : (${V('x')}<sub>A</sub> + ${V('x')}<sub>B</sub>)/2.`,
+  bad:[`À la ligne 2, on ne divise pas par 2.`,`À la ligne 2, (${M(ya)} + ${P(yb)})/2 ne vaut pas ${M((ya+yb)/2)}.`],
+  explain:`${V('x')}<sub>I</sub> = (${M(xa)} + ${P(xb)})/2 = ${M((xa+xb)/2)} : I(${M((xa+xb)/2)} ; ${M((ya+yb)/2)}).`,
+  chk:[['ne',`(${xb}-(${xa}))/2`,`(${xa}+${xb})/2`],['eq',`(${ya}+${yb})/2`,`${(ya+yb)/2}`]]}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si det(${vc('AB')}, ${vc('CD')}) = 0, alors les droites (AB) et (CD) sont confondues. »`,
+  choices:[[`Faux : avec A(0 ; 0), B(1 ; 0), C(0 ; 1), D(1 ; 1), le déterminant est nul mais les droites sont parallèles et distinctes.`,1],
+    [`Vrai : avec A(0 ; 0), B(1 ; 0), C(2 ; 0), D(3 ; 0), le déterminant est nul et les droites sont confondues.`,0],
+    [`Vrai : un déterminant nul signifie que les points sont alignés.`,0],[`Faux : un déterminant nul signifie que les droites sont sécantes.`,0]],
+  explain:`det(${vc('AB')}, ${vc('CD')}) = 0 signifie que les vecteurs sont colinéaires, donc que les droites sont <b>parallèles</b> : elles peuvent être distinctes ou confondues. Un exemple favorable ne démontre pas une affirmation générale.`,
+  chk:[['eq','1*0-1*0','0'],['T','Ne(1,0)']]})},
+{id:'V2',k:'vf',f:()=>{const a=nz(-4,4),b=nz(-4,4),k=pick([2,3,-2,-3]),on=Math.random()<.5,c=k*a,d=k*b+(on?0:pick([-1,1]));
+  return{title:'Vrai ou faux ?',prompt:`« Les vecteurs ${u}${cv(a,b)} et ${v}${cv(c,d)} sont colinéaires. »`,
+  choices:on?[[`Vrai : det(${u}, ${v}) = ${M(a)} × ${P(d)} − ${P(c)} × ${P(b)} = 0.`,1],[`Faux : leurs coordonnées ne sont pas égales.`,0],[`Faux : det(${u}, ${v}) = ${M(a*d+c*b)}.`,0]]
+    :[[`Faux : det(${u}, ${v}) = ${M(a)} × ${P(d)} − ${P(c)} × ${P(b)} = ${M(a*d-c*b)} ≠ 0.`,1],[`Vrai : ${M(c)} = ${k} × ${P(a)}, donc ${v} = ${k}${u}.`,0],[`Vrai : deux vecteurs sont toujours colinéaires.`,0]],
+  explain:`${u} et ${v} sont colinéaires ⇔ det(${u}, ${v}) = 0. ${on?'Ici '+v+' = '+k+u+'.':'La proportionnalité doit valoir pour les deux coordonnées : '+M(c)+' = '+k+' × '+P(a)+' mais '+M(d)+' ≠ '+k+' × '+P(b)+'.'}`,
+  chk:[[on?'eq':'ne',`(${a})*(${d})-(${c})*(${b})`,'0']].concat(on?[['ne',`${a*d+c*b}`,'0']]:[])}}},
+{id:'P1',k:'tpj',f:()=>{const v1=pick([0,1,2]);
+  if(v1===0)return{title:'Toujours, parfois ou jamais ?',prompt:`${u} est un vecteur. Le vecteur nul et ${u} sont colinéaires :`,ans:'toujours',
+    explain:`${vc('0')} = 0 × ${u} : le vecteur nul est colinéaire à tout vecteur (et det(${vc('0')}, ${u}) = 0 × ${V('y')} − ${V('x')} × 0 = 0).`,chk:[['tpj','Eq(0*y-x*0,0)',['x','y'],'Z','toujours']]};
+  if(v1===1)return{title:'Toujours, parfois ou jamais ?',prompt:`${V('a')} et ${V('b')} sont deux réels. Les vecteurs ${u}(${V('a')} ; ${V('b')}) et ${v}(${V('b')} ; ${V('a')}) sont colinéaires :`,ans:'parfois',
+    explain:`det(${u}, ${v}) = ${V('a')}² − ${V('b')}², nul si et seulement si ${V('a')} = ${V('b')} ou ${V('a')} = −${V('b')}. Par exemple (1 ; 1) et (1 ; 1) oui, (1 ; 2) et (2 ; 1) non.`,chk:[['tpj','Eq(a*a-b*b,0)',['a','b'],'Z','parfois']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`${V('k')} est un réel. Les vecteurs ${u}(1 ; ${V('k')}) et ${v}(1 ; ${V('k')} + 1) sont colinéaires :`,ans:'jamais',
+    explain:`det(${u}, ${v}) = 1 × (${V('k')} + 1) − 1 × ${V('k')} = 1 ≠ 0, quel que soit ${V('k')}.`,chk:[['eq','1*(k+1)-1*k','1']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const R=['A, B et C sont alignés si et seulement si det(AB, AC) = 0.','ABCD est un parallélogramme si et seulement si les vecteurs AB et DC sont égaux.','(AB) et (CD) sont parallèles si et seulement si det(AB, CD) = 0.','Deux vecteurs de même norme sont égaux.'];
+  const pr=['det(AB, AC) = 0, donc les points A, B et C sont alignés.','Les vecteurs AB et DC ont les mêmes coordonnées, donc ABCD est un parallélogramme.','det(AB, CD) = 0, donc les droites (AB) et (CD) sont parallèles.'][w];
+  return{title:'Quelle propriété justifie cette conclusion ?',prompt:pr,ok:R[w],bad:R.filter((_,j)=>j!==w),
+    explain:`${R[w]} La phrase « deux vecteurs de même norme sont égaux » est fausse : il faut aussi la même direction et le même sens.`,chk:[]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

@@ -1006,5 +1006,156 @@ FP_start();
     .observe(document.body,{childList:true,subtree:true,characterData:true});
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — fresque-des-possibles */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* La Fresque des Possibles — Seconde, chapitre 16 (probabilités) : univers, événements, loi de probabilité,
+   équiprobabilité P(A) = Card(A)/Card(Ω), contraire, intersection et réunion (par les issues), probabilités
+   conditionnelles et arbres pondérés. */
+const PA=(e)=>`${V('P')}(${e})`;
+const Ab=`<span style="text-decoration:overline">A</span>`;
+const lst=a=>a.join(', ');
+const FS=a=>`FiniteSet(${a.join(',')})`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>{const n=pick([6,8,10,12]),A=sh(Array.from({length:n},(_,i)=>i+1)).slice(0,ri(2,n-2)).sort((x,y)=>x-y),k=A.length;
+  return{title:`Pourquoi ${PA(Ab)} = 1 − ${PA('A')} ?`,
+  html:`<p>On lance un dé équilibré à ${n} faces, numérotées de 1 à ${n}. A est l'événement « obtenir ${lst(A)} ».</p><ol>
+<li>Chaque issue de Ω est dans A ou dans ${Ab}, et jamais dans les deux. Donc ${PA('A')} + ${PA(Ab)} = ${PA('Ω')} = {0}.</li>
+<li>Ici ${PA('A')} = {1}/${n}, car les issues sont {2}.</li><li>Donc ${PA(Ab)} = 1 − ${k}/${n} = {3}.</li></ol>`,
+  blanks:[['1',['0','2']],[String(k),LN(k,[n-k])],['équiprobables',['incompatibles','contraires']],[F(n-k,n),LF(n-k,n,[[k,n],[n-k,2*n]])]],
+  explain:`La probabilité de Ω est 1 et ${PA('A')} + ${PA(Ab)} est la somme des probabilités de toutes les issues. Avec l'équiprobabilité, ${PA('A')} = Card(A)/Card(Ω) = ${k}/${n}, donc ${PA(Ab)} = ${F(n-k,n)}.`,
+  chk:[['eq',`1-Rational(${k},${n})`,`Rational(${n-k},${n})`],['blank',3,`Eq(@,Rational(${n-k},${n}))`]]}}},
+{id:'D2',k:'demo',f:()=>{const pa=pick([[3,10],[2,5],[1,4],[3,5],[7,10]]),pb=pick([[1,2],[3,4],[2,5],[9,10]]);const pab=[pa[0]*pb[0],pa[1]*pb[1]];
+  return{title:`Probabilité d'un chemin dans un arbre`,
+  html:`<p>${PA('A')} = ${F(...pa)} et ${V('P')}<sub>A</sub>(B) = ${F(...pb)}.</p><ol>
+<li>Le chemin « A puis B » correspond à l'événement {0}.</li><li>Sa probabilité est le {1} des probabilités des branches du chemin.</li>
+<li>${PA('A ∩ B')} = ${F(...pa)} × ${F(...pb)} = {2}.</li><li>La branche « A puis B̄ » a pour probabilité ${V('P')}<sub>A</sub>(B̄) = {3}.</li></ol>`,
+  blanks:[['A ∩ B',['A ∪ B','B sachant A']],['produit',['somme','quotient']],[F(...pab),LF(pab[0],pab[1],[[pa[0]*pb[1]+pb[0]*pa[1],pa[1]*pb[1]],[pa[0]+pb[0],pa[1]+pb[1]]])],[F(pb[1]-pb[0],pb[1]),LF(pb[1]-pb[0],pb[1],[[pb[0],pb[1]],[pa[1]-pa[0],pa[1]]])]],
+  explain:`${PA('A ∩ B')} = ${PA('A')} × ${V('P')}<sub>A</sub>(B). Les branches issues d'un même nœud ont des probabilités de somme 1 : ${V('P')}<sub>A</sub>(B̄) = 1 − ${F(...pb)}.`,
+  chk:[['eq',`Rational(${pa[0]},${pa[1]})*Rational(${pb[0]},${pb[1]})`,`Rational(${pab[0]},${pab[1]})`],['blank',2,`Eq(@,Rational(${pab[0]},${pab[1]}))`],['blank',3,`Eq(@,1-Rational(${pb[0]},${pb[1]}))`]]}}},
+{id:'D3',k:'demo',f:()=>{const a=ri(20,40),b=ri(10,30),c=ri(15,35),d=ri(10,30),T=a+b+c+d;   // tableau : A∩B=a, A∩B̄=b, Ā∩B=c, Ā∩B̄=d
+  return{title:'Probabilité conditionnelle et tableau d\'effectifs',
+  html:`<p>Dans un groupe de ${T} personnes, ${a+b} pratiquent un sport (A) ; parmi elles, ${a} jouent aussi d'un instrument (B). On choisit une personne au hasard.</p><ol>
+<li>${PA('A')} = {0}/${T}.</li><li>${V('P')}<sub>A</sub>(B) est la proportion de personnes jouant d'un instrument {1}.</li><li>${V('P')}<sub>A</sub>(B) = ${a}/{2}.</li></ol>`,
+  blanks:[[String(a+b),LN(a+b,[a,T-a-b])],['parmi celles qui pratiquent un sport',['dans tout le groupe','parmi celles qui ne pratiquent pas de sport']],[String(a+b),LN(a+b,[T,a+c])]],
+  explain:`Dans un tirage au hasard, ${V('P')}<sub>A</sub>(B) = Card(A ∩ B)/Card(A) : on se restreint à la sous-population A. Ici ${V('P')}<sub>A</sub>(B) = ${a}/${a+b} = ${F(a,a+b)}, à ne pas confondre avec ${PA('A ∩ B')} = ${a}/${T}.`,
+  chk:[['eq',`Rational(${a},${T})/Rational(${a+b},${T})`,`Rational(${a},${a+b})`]]}}},
+{id:'O1',k:'ordre',f:()=>{const A=[2,4,6],B=[1,2,3],U=[1,2,3,4,6];
+  return{title:'Calculer P(A ∪ B) en listant les issues',prompt:`On lance un dé équilibré à six faces. A : « obtenir un nombre pair » ; B : « obtenir un nombre inférieur ou égal à 3 ».`,
+  steps:[`Les issues sont équiprobables : chacune a pour probabilité 1/6.`,`A est formé des issues 2, 4, 6 et B des issues 1, 2, 3.`,`A ∪ B est formé des issues 1, 2, 3, 4, 6 (l'issue 2 n'est comptée qu'une fois).`,`${PA('A ∪ B')} = 5/6.`],
+  explain:`A ∪ B contient les issues qui sont dans A <b>ou</b> dans B. Additionner ${PA('A')} + ${PA('B')} = 1 compterait deux fois l'issue 2.`,
+  chk:[['eq',`Union(${FS(A)},${FS(B)})`,FS(U)],['eq','Rational(5,6)',`Rational(${U.length},6)`]]}}},
+{id:'O2',k:'ordre',f:()=>{const pa=pick([[1,3],[2,5],[1,4]]),pb=pick([[1,2],[3,4]]),pc=pick([[1,5],[2,3],[1,10]]);
+  const p=[pa[0]*pb[0]*pc[1]+(pa[1]-pa[0])*pc[0]*pb[1],pa[1]*pb[1]*pc[1]];
+  return{title:'Calculer P(B) avec un arbre',prompt:`${PA('A')} = ${F(...pa)}, ${V('P')}<sub>A</sub>(B) = ${F(...pb)}, ${V('P')}<sub>${Ab}</sub>(B) = ${F(...pc)}.`,
+  steps:[`On construit l'arbre : A et ${Ab} au premier niveau, B et B̄ au second.`,`${PA(Ab)} = 1 − ${F(...pa)} = ${F(pa[1]-pa[0],pa[1])}.`,`${PA('A ∩ B')} = ${F(...pa)} × ${F(...pb)} = ${F(pa[0]*pb[0],pa[1]*pb[1])} et ${PA(Ab+' ∩ B')} = ${F(pa[1]-pa[0],pa[1])} × ${F(...pc)} = ${F((pa[1]-pa[0])*pc[0],pa[1]*pc[1])}.`,`B est réalisé par deux chemins : ${PA('B')} = ${F(pa[0]*pb[0],pa[1]*pb[1])} + ${F((pa[1]-pa[0])*pc[0],pa[1]*pc[1])} = ${F(...p)}.`],
+  explain:`On additionne les probabilités des chemins qui mènent à B, chacune calculée comme un produit le long du chemin.`,
+  chk:[['eq',`Rational(${pa[0]},${pa[1]})*Rational(${pb[0]},${pb[1]})+(1-Rational(${pa[0]},${pa[1]}))*Rational(${pc[0]},${pc[1]})`,`Rational(${p[0]},${p[1]})`]]}}},
+{id:'F1',k:'faute',f:()=>{const p=pick([[3,10],[2,5],[1,8],[7,20]]);
+  return{title:'La probabilité de l\'événement contraire',
+  lines:[`${PA('A')} = ${F(...p)}.`,`${PA(Ab)} = 1/${PA('A')}`,`${PA(Ab)} = ${F(p[1],p[0])}`],wrong:1,
+  why:`${PA(Ab)} = 1 − ${PA('A')} : on soustrait, on ne prend pas l'inverse. D'ailleurs ${F(p[1],p[0])} > 1 ne peut pas être une probabilité.`,
+  bad:[`À la ligne 2, 1/${F(...p)} vaut ${F(p[0],p[1])}.`,`À la ligne 1, une probabilité ne peut pas être une fraction.`],
+  explain:`${PA(Ab)} = 1 − ${F(...p)} = ${F(p[1]-p[0],p[1])}. Une probabilité est toujours comprise entre 0 et 1.`,
+  chk:[['T',`Rational(${p[1]},${p[0]})>1`],['eq',`1-Rational(${p[0]},${p[1]})`,`Rational(${p[1]-p[0]},${p[1]})`]]}}},
+{id:'F2',k:'faute',f:()=>{const n=pick([8,10,12]);const A=[2,4,6,8].filter(x=>x<=n),B=[1,2,3,4];const U=[...new Set(A.concat(B))].sort((x,y)=>x-y);
+  return{title:`Un dé à ${n} faces : P(A ∪ B)`,prompt:`A : « obtenir un nombre pair inférieur ou égal à 8 » ; B : « obtenir un nombre inférieur ou égal à 4 ».`,
+  lines:[`A est formé des issues ${lst(A)} et B des issues ${lst(B)}.`,`${PA('A')} = ${A.length}/${n} et ${PA('B')} = ${B.length}/${n}.`,`${PA('A ∪ B')} = ${PA('A')} + ${PA('B')} = ${A.length+B.length}/${n}.`],wrong:2,
+  why:`A et B ont des issues communes (2 et 4) : en additionnant, on les compte deux fois.`,
+  bad:[`À la ligne 2, ${PA('A')} = ${A.length}/8.`,`À la ligne 1, B contient aussi l'issue 5.`],
+  explain:`A ∪ B est formé des issues ${lst(U)} : ${PA('A ∪ B')} = ${U.length}/${n} = ${F(U.length,n)}.`,
+  chk:[['eq',`Union(${FS(A)},${FS(B)})`,FS(U)],['ne',`Rational(${A.length+B.length},${n})`,`Rational(${U.length},${n})`]]}}},
+{id:'F3',k:'faute',f:()=>{const ill=ri(2,6),pos=ri(70,95),fp=ri(5,15),N=1000,m=ill*10,tp=Math.round(m*pos/100),fpos=Math.round((N-m)*fp/100);
+  return{title:'Un test de dépistage',prompt:`Sur ${N} personnes, ${m} sont malades. Le test est positif pour ${tp} malades et pour ${fpos} personnes non malades.`,
+  lines:[`Parmi les malades, la proportion de tests positifs est ${tp}/${m}.`,`Donc, si le test d'une personne est positif, la probabilité qu'elle soit malade est ${tp}/${m}.`,`Elle vaut environ ${fx(Math.round(tp/m*100)/100)}.`],wrong:1,
+  why:`On a confondu ${V('P')}<sub>M</sub>(T) (positif sachant malade) et ${V('P')}<sub>T</sub>(M) (malade sachant positif).`,
+  bad:[`À la ligne 1, il fallait diviser par ${N}.`,`À la ligne 3, ${tp}/${m} est supérieur à 1.`],
+  explain:`${V('P')}<sub>T</sub>(M) = Card(T ∩ M)/Card(T) = ${tp}/${tp+fpos} ≈ ${fx(Math.round(tp/(tp+fpos)*100)/100)}, bien plus petit : c'est l'inversion des conditionnements.`,
+  chk:[['ne',`Rational(${tp},${m})`,`Rational(${tp},${tp+fpos})`],['T',`Rational(${tp},${tp+fpos})<Rational(${tp},${m})`]]}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si ${PA('A')} = 0,5 et ${PA('B')} = 0,5, alors A et B sont des événements contraires. »`,
+  choices:[[`Faux : avec un dé à six faces, A = « obtenir 1, 2 ou 3 » et B = « obtenir 2, 4 ou 6 » ont chacun pour probabilité 0,5, mais l'issue 2 est dans les deux.`,1],
+    [`Vrai : A = « pile » et B = « face » ont chacun pour probabilité 0,5 et sont contraires.`,0],[`Vrai : ${PA('A')} + ${PA('B')} = 1.`,0]],
+  explain:`B est le contraire de A si B est formé exactement des issues qui ne sont pas dans A. Avoir des probabilités de somme 1 ne suffit pas. Un exemple favorable ne prouve pas une affirmation générale.`,
+  chk:[['eq','Rational(3,6)','Rational(1,2)'],['eq','Intersection(FiniteSet(1,2,3),FiniteSet(2,4,6))','FiniteSet(2)']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Dans un arbre pondéré, la somme des probabilités des branches issues d'un même nœud vaut 1. »`,
+  choices:[[`Vrai : ces branches correspondent à des événements qui se partagent toutes les possibilités, sans se recouper.`,1],[`Faux : c'est la somme de toutes les branches de l'arbre qui vaut 1.`,0],[`Faux : on multiplie les probabilités des branches.`,0]],
+  explain:`Par exemple ${V('P')}<sub>A</sub>(B) + ${V('P')}<sub>A</sub>(B̄) = 1. On multiplie le long d'un <b>chemin</b>, on additionne les branches d'un même <b>nœud</b> pour obtenir 1.`,chk:[['eq','Rational(1,3)+Rational(2,3)','1']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`A et B sont deux événements. ${PA('A ∩ B')} ≤ ${PA('A')} :`,ans:'toujours',
+    explain:`Les issues de A ∩ B sont toutes dans A : la somme de leurs probabilités est au plus ${PA('A')}.`,chk:[['T','Rational(1,6)<=Rational(3,6)']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`A et B sont deux événements. ${PA('A ∪ B')} = ${PA('A')} + ${PA('B')} :`,ans:'parfois',
+    explain:`Vrai si A et B n'ont aucune issue commune (dé : « 1 » et « 2 »), faux sinon (dé : « pair » et « 2 » : 1/2 ≠ 1/2 + 1/6).`,chk:[['ne','Rational(1,2)','Rational(1,2)+Rational(1,6)'],['eq','Rational(2,6)','Rational(1,6)+Rational(1,6)']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`A est un événement. ${PA('A')} + ${PA(Ab)} = 2 :`,ans:'jamais',
+    explain:`${PA('A')} + ${PA(Ab)} = 1 pour tout événement A.`,chk:[['ne','1','2']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const R=[`${PA(Ab)} = 1 − ${PA('A')}`,`${PA('A ∩ B')} = ${PA('A')} × ${V('P')}<sub>A</sub>(B)`,`${PA('A')} = Card(A)/Card(Ω) en cas d'équiprobabilité`,`${PA('A ∪ B')} = ${PA('A')} + ${PA('B')} dans tous les cas`];
+  const pr=[`${PA('A')} = 0,35, donc la probabilité que A ne soit pas réalisé est 0,65.`,`${PA('A')} = 0,4 et ${V('P')}<sub>A</sub>(B) = 0,5, donc ${PA('A ∩ B')} = 0,2.`,`On tire une carte au hasard dans un jeu de 32 cartes contenant 8 cœurs : la probabilité de tirer un cœur est 8/32.`][w];
+  return{title:'Quelle propriété justifie ce calcul ?',prompt:pr,ok:R[w],bad:R.filter((_,j)=>j!==w),explain:`${R[w]}. La dernière formule est fausse quand A et B ont des issues communes.`,chk:[['eq','1-Rational(35,100)','Rational(65,100)'],['eq','Rational(4,10)*Rational(5,10)','Rational(2,10)']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

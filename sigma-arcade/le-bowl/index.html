@@ -1013,5 +1013,153 @@ LB.start();
 })();
 </script>
 
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — le-bowl */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Le Bowl — Première spécialité, chapitre 1 (second degré, partie 1) : forme développée, forme canonique
+   a(x − α)² + β (compléter le carré), α = −b/(2a), β = f(α), sommet, axe de symétrie, variations et extremum. */
+const Xv=V('x'),f=V('f');
+const can=(a,al,be)=>`${a===1?'':a===-1?'−':a}(${Xv}${S(-al)})²${be?S(be):''}`;
+const dev=(a,b,c)=>poly([[a,2],[b,1],[c,0]]);
+const BANK=[
+{id:'D1',k:'demo',f:()=>{const h=nz(-5,5);let c;do{c=nz(-9,9)}while(c===h*h);const b=2*h,be=c-h*h;const sg=v=>v<0?'− '+(-v):'+ '+v;
+  return{title:`Forme canonique de ${N(dev(1,b,c))}`,
+  html:`<ol><li>On reconnaît le début du carré : ${N('('+Xv+S(h)+')²')} = ${N(dev(1,b,h*h))}.</li><li>Donc ${N(dev(1,b,0))} = ${N('('+Xv+S(h)+')²')} − {0}.</li>
+<li>${N(dev(1,b,c))} = ${N('('+Xv+S(h)+')²')} − ${h*h}${S(c)} = ${N('('+Xv+S(h)+')²')} {1}.</li><li>Le sommet de la parabole est donc S({2} ; ${M(be)}).</li></ol>`,
+  blanks:[[String(h*h),LN(h*h,[2*h*h,Math.abs(b)])],[sg(be),[...new Set([sg(-be),sg(c+h*h),sg(be+1)])].filter(x=>x!==sg(be)).slice(0,2)],[M(-h),LN(-h,[h])]],
+  explain:`On « complète le carré » : ${N(Xv+'² + 2'+V('h')+Xv)} = (${Xv} + ${V('h')})² − ${V('h')}². Ici ${V('h')} = ${M(h)}. La forme ${V('a')}(${Xv} − α)² + β donne directement le sommet (α ; β) = (${M(-h)} ; ${M(be)}).`,
+  chk:[['eq',`x**2+${b}*x+(${c})`,`(x+(${h}))**2+(${be})`],['blank',2,`Eq(@,${-h})`]]}}},
+{id:'D2',k:'demo',f:()=>{const a=pick([2,-2,3,-3,1,-1]),al=nz(-4,4),be=nz(-9,9);const b=-2*a*al,c=a*al*al+be;
+  return{title:`Sommet de la parabole d'équation ${V('y')} = ${dev(a,b,c)}`,
+  html:`<ol><li>Pour ${f}(${Xv}) = ${V('a')}${Xv}² + ${V('b')}${Xv} + ${V('c')}, l'abscisse du sommet est α = {0}.</li><li>Ici α = −(${M(b)})/(2 × ${P(a)}) = {1}.</li>
+<li>β = ${f}(α) = {2}.</li><li>Donc ${f}(${Xv}) = ${can(a,al,be)} et la parabole a pour axe de symétrie la droite d'équation ${Xv} = ${M(al)}.</li></ol>`,
+  blanks:[['−b/(2a)',['b/(2a)','−b/a']],[M(al),LN(al,[-al,2*al])],[M(be),LN(be,[c,a*al*al-be])]],
+  explain:`α = −${V('b')}/(2${V('a')}) et β = ${f}(α). Contrôle en développant : ${can(a,al,be)} = ${dev(a,b,c)}.`,
+  chk:[['eq',`-(${b})/(2*${a})`,`${al}`],['eq',`${a}*(${al})**2+(${b})*(${al})+(${c})`,`${be}`],['eq',`${a}*(x-(${al}))**2+(${be})`,`${a}*x**2+(${b})*x+(${c})`],['blank',2,`Eq(@,${be})`]]}}},
+{id:'D3',k:'demo',f:()=>({title:'Pourquoi f admet un minimum lorsque a > 0',
+  html:`<p>${f}(${Xv}) = ${V('a')}(${Xv} − α)² + β, avec ${V('a')} > 0.</p><ol><li>Pour tout réel ${Xv}, (${Xv} − α)² est {0}.</li><li>Comme ${V('a')} > 0, ${V('a')}(${Xv} − α)² ≥ {1}.</li>
+<li>Donc ${f}(${Xv}) ≥ β pour tout réel ${Xv}, et ${f}(α) = {2}.</li><li>β est le {3} de ${f}, atteint en α.</li></ol>`,
+  blanks:[['positif ou nul',['strictement positif','négatif']],['0',['β','a']],['β',['0','α']],['minimum',['maximum','zéro']]],
+  explain:`Un carré est positif ou nul et nul seulement pour ${Xv} = α. Multiplier par ${V('a')} > 0 conserve le sens : ${f}(${Xv}) − β = ${V('a')}(${Xv} − α)² ≥ 0. Le minimum est donc atteint en α. Si ${V('a')} < 0, on obtient de même un maximum.`,
+  chk:[['tpj','2*(x-1)**2+3>=3',['x'],'R','toujours']]})},
+{id:'O1',k:'ordre',f:()=>{const a=pick([2,3,-2]),h=nz(-4,4),c=nz(-9,9);const b=2*a*h,be=c-a*h*h;
+  return{title:`Mettre ${N(dev(a,b,c))} sous forme canonique`,
+  steps:[`${N(dev(a,b,c))} = ${a}(${N(dev(1,2*h,0))})${S(c)} (on factorise ${a} dans les termes en ${Xv})`,`= ${a}[(${Xv}${S(h)})² − ${h*h}]${S(c)} (on complète le carré)`,`= ${a}(${Xv}${S(h)})² ${a*h*h>=0?'−':'+'} ${Math.abs(a*h*h)}${S(c)} (on développe le crochet)`,`= ${can(a,-h,be)}`],
+  explain:`Factoriser ${V('a')}, compléter le carré, puis distribuer ${V('a')} sur le terme constant : on obtient ${V('a')}(${Xv} − α)² + β avec α = ${M(-h)} et β = ${M(be)}.`,
+  chk:[['chain',[`${a}*x**2+(${b})*x+(${c})`,`${a}*(x**2+${2*h}*x)+(${c})`,`${a}*((x+(${h}))**2-${h*h})+(${c})`,`${a}*(x+(${h}))**2-(${a*h*h})+(${c})`,`${a}*(x+(${h}))**2+(${be})`]]]}}},
+{id:'O2',k:'ordre',f:()=>{const al=nz(-3,3),be=nz(-6,6),a=nz(-3,3),x0=al+pick([2,-2,3]);const y0=a*(x0-al)**2+be;
+  return{title:'Retrouver une fonction du second degré',prompt:`La parabole a pour sommet S(${M(al)} ; ${M(be)}) et passe par A(${M(x0)} ; ${M(y0)}).`,
+  steps:[`${f}(${Xv}) = ${V('a')}(${Xv}${S(-al)})²${S(be)}, car le sommet est (${M(al)} ; ${M(be)}).`,`A est sur la parabole : ${V('a')}(${M(x0)}${S(-al)})²${S(be)} = ${M(y0)}.`,`Donc ${(x0-al)**2}${V('a')} = ${M(y0-be)}, d'où ${V('a')} = ${M(a)}.`,`${f}(${Xv}) = ${can(a,al,be)}.`],
+  explain:`La forme canonique se lit sur le sommet ; un point supplémentaire donne ${V('a')}.`,
+  chk:[['sol',`Eq(a*(${x0}-(${al}))**2+(${be}),${y0})`,'a',`FiniteSet(${a})`]]}}},
+{id:'F1',k:'faute',f:()=>{let a,b,c;do{a=pick([1,2,-1,3]);b=nz(-8,8);c=nz(-6,6)}while(b%(2*a)!==0);const al=-b/(2*a);
+  return{title:`Sommet de ${V('y')} = ${dev(a,b,c)}`,
+  lines:[`α = ${V('b')}/(2${V('a')})`,`α = ${M(b)}/${2*a} = ${M(-al)}`,`β = ${f}(${M(-al)}) = ${M(a*al*al-b*al+c)}`],wrong:1,
+  why:`L'abscisse du sommet est α = <b>−</b>${V('b')}/(2${V('a')}) : on a oublié le signe −.`,
+  bad:[`À la ligne 2, il fallait calculer ${f}(0).`,`À la ligne 1, ${M(b)}/${2*a} ne vaut pas ${M(-al)}.`],
+  explain:`α = −(${M(b)})/${2*a} = ${M(al)} et β = ${f}(${M(al)}) = ${M(a*al*al+b*al+c)}.`,
+  chk:[['ne',`${b}/(2*${a})`,`-(${b})/(2*${a})`],['eq',`${a}*(${al})**2+(${b})*(${al})+(${c})`,`${a*al*al+b*al+c}`]]}}},
+{id:'F2',k:'faute',f:()=>{const h=nz(-5,5),c=nz(-9,9);
+  return{title:`Forme canonique de ${N(dev(1,2*h,c))}`,
+  lines:[`${N(dev(1,2*h,c))}`,`= ${N('('+Xv+S(h)+')²')} + ${h*h}${S(c)}`,`= ${N('('+Xv+S(h)+')²')}${S(h*h+c)}`],wrong:1,
+  why:`(${Xv}${S(h)})² = ${N(dev(1,2*h,h*h))} contient déjà ${h*h} : il faut le <b>soustraire</b>, ${N(dev(1,2*h,0))} = (${Xv}${S(h)})² − ${h*h}.`,
+  bad:[`À la ligne 2, ${h*h}${S(c)} ne vaut pas ${M(h*h+c)}.`,`À la ligne 1, il fallait écrire (${Xv}${S(2*h)})².`],
+  explain:`${N(dev(1,2*h,c))} = (${Xv}${S(h)})²${S(c-h*h)}. Contrôle avec ${Xv} = 0 : ${M(c)} = ${h*h}${S(c-h*h)}.`,
+  chk:[['seq',[`x**2+${2*h}*x+(${c})`,`(x+(${h}))**2+${h*h}+(${c})`,`(x+(${h}))**2+(${h*h+c})`],1]]}}},
+{id:'F3',k:'faute',f:()=>{const a=-ri(1,4),al=nz(-4,4),be=nz(-6,6);
+  return{title:`Extremum de ${f}(${Xv}) = ${can(a,al,be)}`,
+  lines:[`${f}(${Xv}) = ${can(a,al,be)}`,`(${Xv}${S(-al)})² ≥ 0 pour tout ${Xv}.`,`Donc ${f}(${Xv}) ≥ ${M(be)} : ${M(be)} est le minimum de ${f}.`],wrong:2,
+  why:`${V('a')} = ${a} < 0 : multiplier par un négatif change le sens, ${a}(${Xv}${S(-al)})² ≤ 0, donc ${f}(${Xv}) ≤ ${M(be)}.`,
+  bad:[`À la ligne 1, un carré peut être négatif.`,`À la ligne 2, ${M(be)} n'est atteint pour aucun ${Xv}.`],
+  explain:`Avec ${V('a')} < 0, ${M(be)} est le <b>maximum</b> de ${f}, atteint en ${M(al)} : la parabole est tournée vers le bas.`,
+  chk:[['tpj',`${a}*(x-(${al}))**2+(${be})<=${be}`,['x'],'R','toujours']]}}},
+{id:'V1',k:'vf',f:()=>{const a=ri(1,3);return{title:'Vrai ou faux ?',prompt:`« Si ${V('a')} > 0, la fonction ${f} : ${Xv} ↦ ${V('a')}${Xv}² + ${V('b')}${Xv} + ${V('c')} est croissante sur ℝ. »`,
+  choices:[[`Faux : ${f}(${Xv}) = ${a===1?'':a}${Xv}² est décroissante sur ]−∞ ; 0].`,1],[`Vrai : le coefficient ${V('a')} est positif.`,0],[`Vrai : ${f}(${Xv}) = ${a===1?'':a}${Xv}² vérifie ${f}(1) < ${f}(2).`,0]],
+  explain:`Pour ${V('a')} > 0, ${f} est décroissante sur ]−∞ ; α] puis croissante sur [α ; +∞[. Comparer deux valeurs ne suffit pas à établir un sens de variation.`,
+  chk:[['T',`${a}*(-2)**2>${a}*(-1)**2`]]}}},
+{id:'V2',k:'vf',f:()=>{const a=pick([1,2,3]),al=nz(-3,3),be=nz(-5,5);const b=-2*a*al,c=a*al*al+be,on=Math.random()<.5,sb=on?be:be+pick([-1,1]);
+  return{title:'Vrai ou faux ?',prompt:`« La parabole d'équation ${V('y')} = ${dev(a,b,c)} a pour sommet (${M(al)} ; ${M(sb)}). »`,
+  choices:on?[[`Vrai : α = −(${M(b)})/${2*a} = ${M(al)} et ${f}(${M(al)}) = ${M(be)}.`,1],[`Faux : α = ${M(-al)}.`,0],[`Faux : le sommet est (0 ; ${M(c)}).`,0]]
+    :[[`Faux : α = ${M(al)} mais ${f}(${M(al)}) = ${M(be)} ≠ ${M(sb)}.`,1],[`Vrai : α = −(${M(b)})/${2*a} = ${M(al)}.`,0],[`Faux : le sommet est (0 ; ${M(c)}).`,0]],
+  explain:`α = −${V('b')}/(2${V('a')}) et β = ${f}(α). Ici ${dev(a,b,c)} = ${can(a,al,be)} : sommet (${M(al)} ; ${M(be)}).`,
+  chk:[['eq',`${a}*(${al})**2+(${b})*(${al})+(${c})`,`${be}`],[on?'eq':'ne',`${sb}`,`${be}`]]}}},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`${f}(${Xv}) = ${V('a')}(${Xv} − α)² + β avec ${V('a')} < 0. Pour tout réel ${Xv}, ${f}(${Xv}) ≤ β :`,ans:'toujours',
+    explain:`${V('a')}(${Xv} − α)² est le produit d'un négatif et d'un carré positif : il est négatif ou nul.`,chk:[['tpj','-2*(x-1)**2+3<=3',['x'],'R','toujours']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`Une parabole d'équation ${V('y')} = ${V('a')}${Xv}² + ${V('b')}${Xv} + ${V('c')} (${V('a')} ≠ 0) coupe l'axe des abscisses :`,ans:'parfois',
+    explain:`${V('y')} = ${Xv}² − 1 le coupe (en −1 et 1), ${V('y')} = ${Xv}² + 1 ne le coupe pas.`,chk:[['sol','Eq(x**2-1,0)','x','FiniteSet(-1,1)'],['sol','Eq(x**2+1,0)','x','EmptySet']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`${f}(${Xv}) = ${V('a')}(${Xv} − α)² + β avec ${V('a')} > 0 et β > 0. L'équation ${f}(${Xv}) = 0 a une solution :`,ans:'jamais',
+    explain:`Pour tout ${Xv}, ${f}(${Xv}) ≥ β > 0 : ${f} ne s'annule jamais.`,chk:[['sol','Eq(2*(x-1)**2+3,0)','x','EmptySet'],['tpj','2*(x-1)**2+3>0',['x'],'R','toujours']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['L\'abscisse du sommet est α = −b/(2a).','La parabole est symétrique par rapport à la droite d\'équation x = α.','Si a > 0, f admet un minimum égal à β, atteint en α.','Si a > 0, f est croissante sur ℝ.'];
+  const pr=['f(x) = 2x² − 12x + 1 : le sommet a pour abscisse 3.','f(1) = f(5), donc l\'axe de symétrie de la parabole est la droite d\'équation x = 3.','f(x) = 3(x − 2)² + 7 : pour tout réel x, f(x) ≥ 7.'][w];
+  return{title:'Quelle propriété justifie cette conclusion ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière phrase est fausse : f décroît sur ]−∞ ; α].`,
+    chk:[['eq','-(-12)/(2*2)','3'],['eq','(1+5)/2','3']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

@@ -1274,5 +1274,144 @@ DL.start();
     .observe(document.body,{childList:true,subtree:true,characterData:true});
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — le-delta */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Le Delta — Terminale technologique, chapitre 5 (probabilités conditionnelles) : P_A(B), arbres, partitions,
+   formule des probabilités totales (deux ou trois événements), indépendance.
+   Démonstrations du programme : la propriété d'indépendance est symétrique ; formule des probabilités totales. */
+const Pr=e=>`${V('P')}(${e})`,Pc=(a,b)=>`${V('P')}<sub>${a}</sub>(${b})`;
+const R=(p,q)=>`Rational(${p},${q})`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>({title:'L\'indépendance est symétrique',
+  html:`<p>A et B ont des probabilités non nulles, et ${Pc('A','B')} = ${Pr('B')}.</p><ol><li>Par définition, ${Pc('A','B')} = {0}.</li>
+<li>Donc ${Pr('A ∩ B')} = ${Pr('A')} × ${Pc('A','B')} = {1}.</li><li>Alors ${Pc('B','A')} = ${Pr('A ∩ B')}/${Pr('B')} = {2}.</li>
+<li>Ainsi « ${Pc('A','B')} = ${Pr('B')} » entraîne « ${Pc('B','A')} = ${Pr('A')} » : la propriété est symétrique.</li></ol>`,
+  blanks:[['P(A ∩ B)/P(A)',['P(A ∩ B)/P(B)','P(A) × P(B)']],['P(A) × P(B)',['P(A) + P(B)','P(B)']],['P(A)',['P(B)','1']]],
+  explain:`C'est la démonstration du programme : on passe par ${Pr('A ∩ B')} = ${Pr('A')} × ${Pr('B')}, expression symétrique en A et B.`,
+  chk:[['eq','(a*b)/b','a']]})},
+{id:'D2',k:'demo',f:()=>{const p=pick([[1,5,2,5,2,5],[1,4,1,4,1,2],[1,10,3,10,3,5]]);const c=pick([[1,10],[1,5],[3,10]]),d=pick([[1,2],[2,5]]),e=pick([[1,4],[3,4]]);
+  const [a1,b1,a2,b2,a3,b3]=p;const num=`${R(a1,b1)}*${R(...c)}+${R(a2,b2)}*${R(...d)}+${R(a3,b3)}*${R(...e)}`;
+  const val=a1*c[0]*b2*d[1]*b3*e[1]+a2*d[0]*b1*c[1]*b3*e[1]+a3*e[0]*b1*c[1]*b2*d[1],den=b1*c[1]*b2*d[1]*b3*e[1];
+  return{title:'Probabilités totales avec trois événements',
+  html:`<p>A<sub>1</sub>, A<sub>2</sub>, A<sub>3</sub> forment une partition : ${Pr('A<sub>1</sub>')} = ${F(a1,b1)}, ${Pr('A<sub>2</sub>')} = ${F(a2,b2)}, ${Pr('A<sub>3</sub>')} = ${F(a3,b3)} ; ${Pc('A<sub>1</sub>','B')} = ${F(...c)}, ${Pc('A<sub>2</sub>','B')} = ${F(...d)}, ${Pc('A<sub>3</sub>','B')} = ${F(...e)}.</p><ol>
+<li>Les événements A<sub>1</sub> ∩ B, A<sub>2</sub> ∩ B, A<sub>3</sub> ∩ B sont {0} et leur réunion est B.</li><li>${Pr('B')} = {1}.</li><li>${Pr('B')} = {2}.</li></ol>`,
+  blanks:[['deux à deux incompatibles',['indépendants','égaux']],['P(A₁)P_A₁(B) + P(A₂)P_A₂(B) + P(A₃)P_A₃(B)',['P_A₁(B) + P_A₂(B) + P_A₃(B)','P(A₁) + P(A₂) + P(A₃)']],[F(val,den),LF(val,den,[[c[0]*d[1]*e[1]+d[0]*c[1]*e[1]+e[0]*c[1]*d[1],c[1]*d[1]*e[1]]])]],
+  explain:`C'est la formule des probabilités totales (démonstration du programme) : on découpe B selon la partition et on additionne les probabilités des chemins de l'arbre qui mènent à B.`,
+  chk:[['eq',num,R(val,den)],['eq',`${R(a1,b1)}+${R(a2,b2)}+${R(a3,b3)}`,'1']]}}},
+{id:'D3',k:'demo',f:()=>{const T=pick([200,400,500]),a=ri(2,8)*10,b=ri(2,8)*10;   // tableau : A (a+b), A∩B a
+  return{title:'Probabilité conditionnelle et tableau',
+  html:`<p>Sur ${T} personnes, ${a+b} ont un abonnement (A) ; parmi elles, ${a} viennent en train (B). On choisit une personne au hasard.</p><ol>
+<li>${Pc('A','B')} se calcule dans la sous-population {0}.</li><li>${Pc('A','B')} = {1}/${a+b}.</li><li>${Pr('A ∩ B')} = ${a}/{2}.</li></ol>`,
+  blanks:[['des abonnés',['entière','de ceux qui viennent en train']],[String(a),LN(a,[b,a+b])],[String(T),LN(T,[a+b])]],
+  explain:`${Pc('A','B')} = Card(A ∩ B)/Card(A) = ${F(a,a+b)}, alors que ${Pr('A ∩ B')} = Card(A ∩ B)/Card(Ω) = ${F(a,T)}.`,
+  chk:[['eq',`Rational(${a},${T})/Rational(${a+b},${T})`,`Rational(${a},${a+b})`]]}}},
+{id:'O1',k:'ordre',f:()=>{const pa=pick([[3,10],[2,5],[1,4]]),pb=pick([[1,2],[4,5]]),pc=pick([[1,10],[1,5]]);
+  const tot=[pa[0]*pb[0]*pc[1]+(pa[1]-pa[0])*pc[0]*pb[1],pa[1]*pb[1]*pc[1]];
+  return{title:`Calculer ${Pr('B')} avec un arbre`,prompt:`${Pr('A')} = ${F(...pa)}, ${Pc('A','B')} = ${F(...pb)}, ${Pc('Ā','B')} = ${F(...pc)}.`,
+  steps:[`On complète l'arbre : ${Pr('Ā')} = ${F(pa[1]-pa[0],pa[1])}.`,`${Pr('A ∩ B')} = ${F(...pa)} × ${F(...pb)} = ${F(pa[0]*pb[0],pa[1]*pb[1])}.`,`${Pr('Ā ∩ B')} = ${F(pa[1]-pa[0],pa[1])} × ${F(...pc)} = ${F((pa[1]-pa[0])*pc[0],pa[1]*pc[1])}.`,`${Pr('B')} = ${F(...tot)}.`],
+  explain:`Formule des probabilités totales avec la partition {A ; Ā}.`,chk:[['eq',`${R(...pa)}*${R(...pb)}+(1-${R(...pa)})*${R(...pc)}`,R(...tot)]]}}},
+{id:'O2',k:'ordre',f:()=>{const pa=pick([[1,2],[2,5]]),pb=pick([[1,4],[3,5]]);
+  return{title:'Vérifier une indépendance',prompt:`${Pr('A')} = ${F(...pa)}, ${Pr('B')} = ${F(...pb)}, ${Pr('A ∩ B')} = ${F(pa[0]*pb[0],pa[1]*pb[1])}.`,
+  steps:[`On calcule ${Pr('A')} × ${Pr('B')} = ${F(pa[0]*pb[0],pa[1]*pb[1])}.`,`On compare avec ${Pr('A ∩ B')} : les deux sont égaux.`,`Donc A et B sont indépendants.`,`En conséquence ${Pc('A','B')} = ${Pr('B')} = ${F(...pb)}.`],
+  explain:`Définition : A et B indépendants ⇔ ${Pr('A ∩ B')} = ${Pr('A')} × ${Pr('B')}.`,chk:[['eq',`${R(...pa)}*${R(...pb)}`,R(pa[0]*pb[0],pa[1]*pb[1])]]}}},
+{id:'F1',k:'faute',f:()=>{const pa=pick([[2,5],[3,10]]),pb=pick([[1,2],[3,4]]);const pab=[pa[0]*pb[0],pa[1]*pb[1]];
+  return{title:`Calculer ${Pc('A','B')}`,
+  lines:[`${Pr('A')} = ${F(...pa)} et ${Pr('A ∩ B')} = ${F(...pab)}.`,`${Pc('A','B')} = ${Pr('A ∩ B')} − ${Pr('A')}`,`${Pc('A','B')} = ${F(pab[0]*pa[1]-pa[0]*pab[1],pab[1]*pa[1])}`],wrong:1,
+  why:`${Pc('A','B')} = ${Pr('A ∩ B')} ÷ ${Pr('A')}.`,bad:[`À la ligne 2, la soustraction est fausse.`,`Dans l'énoncé, ${Pr('A ∩ B')} doit être supérieur à ${Pr('A')}.`],
+  explain:`${Pc('A','B')} = ${F(...pab)} ÷ ${F(...pa)} = ${F(...pb)}. Une différence de probabilités négative n'a d'ailleurs aucun sens ici.`,
+  chk:[['eq',`${R(...pab)}/${R(...pa)}`,R(...pb)]]}}},
+{id:'F2',k:'faute',f:()=>{const pa=pick([[1,3],[1,4]]),pb=pick([[1,2],[2,3]]),pc=pick([[1,5],[1,6]]);
+  return{title:`${Pr('B')} avec un arbre`,
+  lines:[`${Pr('A')} = ${F(...pa)}, ${Pc('A','B')} = ${F(...pb)}, ${Pc('Ā','B')} = ${F(...pc)}.`,`${Pr('B')} = ${Pr('A')} × ${Pc('A','B')} + ${Pr('A')} × ${Pc('Ā','B')}`],wrong:1,
+  why:`Le second chemin passe par Ā : il faut ${Pr('Ā')} × ${Pc('Ā','B')}, avec ${Pr('Ā')} = ${F(pa[1]-pa[0],pa[1])}.`,
+  bad:[`Il faut additionner ${Pc('A','B')} et ${Pc('Ā','B')}.`,`Dans l'énoncé, ${Pc('A','B')} + ${Pc('Ā','B')} doit valoir 1.`],
+  explain:`${Pr('B')} = ${F(...pa)} × ${F(...pb)} + ${F(pa[1]-pa[0],pa[1])} × ${F(...pc)} = ${F(pa[0]*pb[0]*pc[1]+(pa[1]-pa[0])*pc[0]*pb[1],pa[1]*pb[1]*pc[1])}.`,
+  chk:[['ne',`${R(...pa)}*${R(...pb)}+${R(...pa)}*${R(...pc)}`,`${R(...pa)}*${R(...pb)}+(1-${R(...pa)})*${R(...pc)}`]]}}},
+{id:'F3',k:'faute',f:()=>({title:'Indépendance et incompatibilité',
+  lines:[`A et B sont indépendants, avec ${Pr('A')} = 0,4 et ${Pr('B')} = 0,5.`,`Indépendants signifie qu'ils ne peuvent pas se produire en même temps.`,`Donc ${Pr('A ∩ B')} = 0.`],wrong:1,
+  why:`Ça, c'est « incompatibles ». Indépendants signifie ${Pr('A ∩ B')} = ${Pr('A')} × ${Pr('B')}.`,
+  bad:[`À la ligne 2, ${Pr('A ∩ B')} = 0,9.`,`Dans l'énoncé, ${Pr('A')} + ${Pr('B')} doit valoir 1.`],
+  explain:`Ici ${Pr('A ∩ B')} = 0,4 × 0,5 = 0,2.`,chk:[['eq','Rational(4,10)*Rational(5,10)','Rational(2,10)']]})},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« ${Pc('A','B')} = ${Pc('B','A')} pour tous événements A et B de probabilités non nulles. »`,
+  choices:[[`Faux : dé équilibré, A = « 6 », B = « pair » : ${Pc('A','B')} = 1 et ${Pc('B','A')} = 1/3.`,1],[`Vrai : les deux valent ${Pr('A ∩ B')}.`,0],[`Vrai : l'indépendance est symétrique.`,0]],
+  explain:`C'est l'indépendance (quand elle a lieu) qui est symétrique, pas l'égalité ${Pc('A','B')} = ${Pc('B','A')}.`,chk:[['eq','Rational(1,6)/Rational(1,6)','1'],['eq','Rational(1,6)/Rational(1,2)','Rational(1,3)']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Dans un arbre pondéré, la probabilité d'un chemin est le produit des probabilités de ses branches. »`,
+  choices:[[`Vrai : par exemple ${Pr('A ∩ B')} = ${Pr('A')} × ${Pc('A','B')}.`,1],[`Faux : c'est la somme.`,0],[`Faux : c'est la probabilité de la dernière branche.`,0]],
+  explain:`On multiplie le long d'un chemin ; on additionne les probabilités de plusieurs chemins (probabilités totales).`,chk:[['eq','Rational(1,2)*Rational(1,3)','Rational(1,6)']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`${Pr('A')} ≠ 0. ${Pc('A','B')} + ${Pc('A','B̄')} = 1 :`,ans:'toujours',explain:`Les branches issues du nœud A ont des probabilités de somme 1.`,chk:[['eq','x/(x+y)+y/(x+y)','1']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`${Pc('A','B')} = ${Pr('B')} :`,ans:'parfois',explain:`Exactement quand A et B sont indépendants.`,chk:[['ne','Rational(1,3)','Rational(1,6)']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`${Pr('A')} > 0. ${Pc('A','B')} > 1 :`,ans:'jamais',explain:`Une probabilité conditionnelle est une probabilité : elle est comprise entre 0 et 1, car A ∩ B est inclus dans A.`,chk:[['T','Rational(1,6)/Rational(1,2)<=1']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['P(A ∩ B) = P(A) × P_A(B)','La formule des probabilités totales.','A et B indépendants ⇔ P(A ∩ B) = P(A) × P(B).','P_A(B) = P_B(A).'];
+  const pr=['P(A) = 0,3 et P_A(B) = 0,6 : P(A ∩ B) = 0,18.','P(B) = 0,3 × 0,6 + 0,7 × 0,2 = 0,32.','P(A) = 0,5, P(B) = 0,2, P(A ∩ B) = 0,1 : A et B sont indépendants.'][w];
+  return{title:'Quelle propriété justifie cette conclusion ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]}. La dernière égalité est fausse en général.`,chk:[['eq','Rational(3,10)*Rational(6,10)','Rational(18,100)'],['eq','Rational(3,10)*Rational(6,10)+Rational(7,10)*Rational(2,10)','Rational(32,100)']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

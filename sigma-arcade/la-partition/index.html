@@ -1090,5 +1090,148 @@ SigmaKit.init({game:'la-partition',title:'La Partition',levels:7,
   music:'aventure',finals:{bronze:LP_FIN.bronze,argent:LP_FIN.argent,or:LP_FIN.or}});
 LPK.goLevel(0);
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — la-partition */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* La Partition — Première spécialité, chapitre 4 (dérivation, partie 2) : dérivées usuelles, opérations
+   (somme, produit, quotient), lien entre signe de la dérivée et variations, extremums.
+   Démonstrations du programme : dérivée de la fonction carré, de la fonction inverse ; dérivée d'un produit. */
+const Xv=V('x'),f=V('f'),fp=`${V('f')}′`,u=V('u'),v=V('v'),up=`${V('u')}′`,vp=`${V('v')}′`,h=V('h');
+const BANK=[
+{id:'D1',k:'demo',f:()=>({title:'Dérivée d\'un produit : (uv)′ = u′v + uv′',
+  html:`<p>${u} et ${v} sont dérivables en ${V('a')} ; pour ${h} ≠ 0 :</p><ol>
+<li>${u}(${V('a')} + ${h})${v}(${V('a')} + ${h}) − ${u}(${V('a')})${v}(${V('a')}) = [${u}(${V('a')} + ${h}) − ${u}(${V('a')})]${v}(${V('a')} + ${h}) + ${u}(${V('a')})[{0}].</li>
+<li>On divise par ${h} : le taux de ${u}${v} est le taux de ${u} multiplié par ${v}(${V('a')} + ${h}), plus ${u}(${V('a')}) multiplié par le taux de {1}.</li>
+<li>Quand ${h} tend vers 0, ${v}(${V('a')} + ${h}) tend vers ${v}(${V('a')}), et le taux de ${u}${v} tend vers {2}.</li></ol>`,
+  blanks:[['v(a + h) − v(a)',['v(a + h) + v(a)','u(a + h) − u(a)']],['v',['u','uv']],["u′(a)v(a) + u(a)v′(a)",["u′(a)v′(a)","u′(a)v(a) − u(a)v′(a)"]]],
+  explain:`L'astuce consiste à ajouter et retrancher ${u}(${V('a')})${v}(${V('a')} + ${h}). C'est la démonstration du programme ; elle montre que (${u}${v})′ n'est <b>pas</b> ${up}${vp}.`,
+  chk:[['eq','U1*V1-U0*V0','(U1-U0)*V1+U0*(V1-V0)'.replace(/U1/g,'a').replace(/U0/g,'b').replace(/V1/g,'c').replace(/V0/g,'k')].map(s=>s.replace(/U1/g,'a').replace(/U0/g,'b').replace(/V1/g,'c').replace(/V0/g,'k'))]})},
+{id:'D2',k:'demo',f:()=>{const p=ri(1,3),q=nz(-4,4),r=nz(-5,5);   // f(x) = (px + q)(x² + r)
+  return{title:`Dériver ${f}(${Xv}) = (${lin(p,q)})(${Xv}²${S(r)})`,
+  html:`<ol><li>${f} = ${u}${v} avec ${u}(${Xv}) = ${lin(p,q)} et ${v}(${Xv}) = ${Xv}²${S(r)}.</li><li>${up}(${Xv}) = {0} et ${vp}(${Xv}) = {1}.</li>
+<li>${fp}(${Xv}) = ${up}${v} + ${u}${vp} = ${p}(${Xv}²${S(r)}) + (${lin(p,q)}) × 2${Xv} = {2}.</li></ol>`,
+  blanks:[[String(p),LN(p,[p+q,0])],['2x',['x²','2']],[tx(poly([[3*p,2],[2*q,1],[p*r,0]])),[tx(poly([[2*p,2],[0,1],[0,0]])),tx(poly([[3*p,2],[2*q,1],[-p*r,0]]))].filter(x=>x!==tx(poly([[3*p,2],[2*q,1],[p*r,0]])))]],
+  explain:`On identifie ${u} et ${v}, on dérive chacun, puis on applique (${u}${v})′ = ${up}${v} + ${u}${vp} et on développe. Le produit des dérivées ${up}${vp} = ${2*p}${Xv} serait faux.`,
+  chk:[['eq',`diff((${p}*x+(${q}))*(x**2+(${r})),x)`,`${3*p}*x**2+${2*q}*x+(${p*r})`],['blank',2,`Eq(@,diff((${p}*x+(${q}))*(x**2+(${r})),x))`]]}}},
+{id:'D3',k:'demo',f:()=>{const a=ri(1,4);   // f(x) = x³ − 3a²x
+  return{title:`Variations de ${f}(${Xv}) = ${Xv}³ − ${3*a*a}${Xv}`,
+  html:`<ol><li>${fp}(${Xv}) = {0} = 3(${Xv} − ${a})(${Xv} + ${a}).</li><li>${fp}(${Xv}) est négatif {1} et positif ailleurs.</li>
+<li>Donc ${f} est {2} sur [−${a} ; ${a}] et croissante sur ]−∞ ; −${a}] et sur [${a} ; +∞[.</li><li>${f} admet un maximum local en −${a}, égal à {3}.</li></ol>`,
+  blanks:[[`3x² − ${3*a*a}`,[`3x² − ${3*a*a}x`,`x² − ${3*a*a}`]],[`entre −${a} et ${a}`,[`à l'extérieur de −${a} et ${a}`,'partout']],['décroissante',['croissante','constante']],[String(2*a**3),LN(2*a**3,[-2*a**3,a**3])]],
+  explain:`Le signe de la dérivée donne les variations : ${fp} < 0 sur ]−${a} ; ${a}[, donc ${f} décroît ; ${fp} s'annule en changeant de signe en −${a} (de + à −) : maximum local ${f}(−${a}) = ${2*a**3}.`,
+  chk:[['eq',`diff(x**3-${3*a*a}*x,x)`,`3*(x-${a})*(x+${a})`],['eq',`(-${a})**3-${3*a*a}*(-${a})`,`${2*a**3}`]]}}},
+{id:'O1',k:'ordre',f:()=>{const a=ri(1,3),b=a+ri(1,3);   // f(x) = x³/3 − (a+b)/2 x² + ab x
+  return{title:`Étudier les variations de ${f}(${Xv}) = 2${Xv}³ − ${3*(a+b)}${Xv}² + ${6*a*b}${Xv}`,
+  steps:[`${fp}(${Xv}) = 6${Xv}² − ${6*(a+b)}${Xv} + ${6*a*b}.`,`${fp}(${Xv}) = 6(${Xv} − ${a})(${Xv} − ${b}).`,`${fp}(${Xv}) < 0 sur ]${a} ; ${b}[ et ${fp}(${Xv}) > 0 sur ]−∞ ; ${a}[ ∪ ]${b} ; +∞[.`,`${f} est croissante sur ]−∞ ; ${a}], décroissante sur [${a} ; ${b}], croissante sur [${b} ; +∞[.`],
+  explain:`Dériver, factoriser la dérivée, étudier son signe (trinôme du signe de 6 à l'extérieur des racines), en déduire les variations.`,
+  chk:[['eq',`diff(2*x**3-${3*(a+b)}*x**2+${6*a*b}*x,x)`,`6*(x-${a})*(x-${b})`]]}}},
+{id:'O2',k:'ordre',f:()=>{const c=nz(-4,4);let d;do{d=nz(-4,4)}while(d===-c);   // f(x) = (x + c)/(x − d)? keep (x+c)/(x+d)
+  return{title:`Dériver ${f}(${Xv}) = (${Xv}${S(c)})/(${Xv}${S(d)}) sur un intervalle où ${Xv} ≠ ${M(-d)}`,
+  steps:[`${f} = ${u}/${v} avec ${u}(${Xv}) = ${Xv}${S(c)} et ${v}(${Xv}) = ${Xv}${S(d)}.`,`${up}(${Xv}) = 1 et ${vp}(${Xv}) = 1.`,`${fp} = (${up}${v} − ${u}${vp})/${v}² = ((${Xv}${S(d)}) − (${Xv}${S(c)}))/(${Xv}${S(d)})².`,`${fp}(${Xv}) = ${M(d-c)}/(${Xv}${S(d)})².`],
+  explain:`Formule du quotient : (${u}/${v})′ = (${up}${v} − ${u}${vp})/${v}², valable là où ${v} ne s'annule pas.`,
+  chk:[['eq',`diff((x+(${c}))/(x+(${d})),x)`,`(${d-c})/(x+(${d}))**2`]]}}},
+{id:'F1',k:'faute',f:()=>{const q=nz(-5,5);
+  return{title:`Dériver ${f}(${Xv}) = ${Xv}²(${Xv}${S(q)})`,
+  lines:[`${u}(${Xv}) = ${Xv}², ${v}(${Xv}) = ${Xv}${S(q)}`,`${up}(${Xv}) = 2${Xv}, ${vp}(${Xv}) = 1`,`${fp}(${Xv}) = ${up}(${Xv}) × ${vp}(${Xv}) = 2${Xv}`],wrong:2,
+  why:`La dérivée d'un produit n'est pas le produit des dérivées : (${u}${v})′ = ${up}${v} + ${u}${vp}.`,
+  bad:[`À la ligne 1, la dérivée de ${Xv}² est ${Xv}.`,`À la ligne 1, la dérivée de ${Xv}${S(q)} est ${M(q)}.`],
+  explain:`${fp}(${Xv}) = 2${Xv}(${Xv}${S(q)}) + ${Xv}² = ${tx(poly([[3,2],[2*q,1]]))}. Contrôle en développant : ${f}(${Xv}) = ${poly([[1,3],[q,2]])}, de dérivée ${poly([[3,2],[2*q,1]])}.`,
+  chk:[['ne',`diff(x**2*(x+(${q})),x)`,'2*x'],['eq',`diff(x**2*(x+(${q})),x)`,`3*x**2+${2*q}*x`]]}}},
+{id:'F2',k:'faute',f:()=>{const a=ri(1,4);
+  return{title:`Variations de ${f}(${Xv}) = ${Xv}² − ${2*a}${Xv}`,
+  lines:[`${fp}(${Xv}) = 2${Xv} − ${2*a}`,`${fp}(${Xv}) > 0 pour ${Xv} > ${a}.`,`Donc ${f} est décroissante sur [${a} ; +∞[.`],wrong:2,
+  why:`Une dérivée strictement positive sur un intervalle donne une fonction strictement <b>croissante</b> sur cet intervalle.`,
+  bad:[`À la ligne 0, la dérivée de ${Xv}² est 2.`,`À la ligne 1, ${fp}(${Xv}) > 0 pour ${Xv} < ${a}.`],
+  explain:`${f} est décroissante sur ]−∞ ; ${a}] (${fp} ≤ 0) et croissante sur [${a} ; +∞[ (${fp} ≥ 0) : minimum ${f}(${a}) = ${-a*a}.`,
+  chk:[['eq',`diff(x**2-${2*a}*x,x)`,`2*x-${2*a}`],['sol',`2*x-${2*a}>0`,'x',`Interval.open(${a},oo)`]]}}},
+{id:'F3',k:'faute',f:()=>({title:'Un extremum ?',
+  lines:[`${f}(${Xv}) = ${Xv}³ et ${fp}(${Xv}) = 3${Xv}².`,`${fp}(0) = 0.`,`Donc ${f} admet un extremum local en 0.`],wrong:2,
+  why:`${fp}(0) = 0 ne suffit pas : il faut que ${fp} <b>change de signe</b> en 0. Ici 3${Xv}² ≥ 0 des deux côtés : ${f} est croissante sur ℝ.`,
+  bad:[`À la ligne 0, la dérivée de ${Xv}³ est 3${Xv}.`,`À la ligne 1, ${fp}(0) = 3.`],
+  explain:`Pour tout ${Xv} < 0, ${f}(${Xv}) < 0 = ${f}(0) et pour tout ${Xv} > 0, ${f}(${Xv}) > 0 : 0 n'est ni un maximum ni un minimum local.`,
+  chk:[['eq','diff(x**3,x)','3*x**2'],['tpj','3*x**2>=0',['x'],'R','toujours']]})},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si ${fp}(${V('a')}) = 0, alors ${f} admet un extremum local en ${V('a')}. »`,
+  choices:[[`Faux : ${Xv} ↦ ${Xv}³ a une dérivée nulle en 0, mais elle est croissante sur ℝ.`,1],[`Vrai : ${Xv} ↦ ${Xv}² a une dérivée nulle en 0 et un minimum en 0.`,0],[`Vrai : la tangente est horizontale, donc c'est un sommet.`,0]],
+  explain:`La réciproque est fausse : une dérivée nulle <b>qui change de signe</b> donne un extremum local. Un exemple favorable ne prouve pas une affirmation générale.`,chk:[['eq','diff(x**3,x).subs(x,0)','0']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Pour tout ${Xv} ≠ 0, la dérivée de ${Xv} ↦ 1/${Xv} est ${Xv} ↦ −1/${Xv}². »`,
+  choices:[[`Vrai : le taux de variation (1/(${Xv} + ${h}) − 1/${Xv})/${h} = −1/(${Xv}(${Xv} + ${h})) tend vers −1/${Xv}².`,1],[`Faux : la dérivée est 1/${Xv}².`,0],[`Faux : la fonction inverse n'est pas dérivable.`,0]],
+  explain:`C'est l'une des démonstrations du programme ; le signe − traduit que la fonction inverse est décroissante sur chacun de ses intervalles.`,chk:[['eq','diff(1/x,x)','-1/x**2'],['eq','(1/(x+h)-1/x)/h','-1/(x*(x+h))']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`${f} est dérivable sur un intervalle ${V('I')} et ${fp}(${Xv}) > 0 pour tout ${Xv} de ${V('I')}. ${f} est strictement croissante sur ${V('I')} :`,ans:'toujours',
+    explain:`C'est le théorème du cours reliant le signe de la dérivée au sens de variation.`,chk:[['tpj','x**3+x<y**3+y',['x','y'],'Q','toujours','x<y']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`${f} est une fonction dont la dérivée est ${Xv} ↦ 2${Xv}. ${f}(${Xv}) = ${Xv}² :`,ans:'parfois',
+    explain:`${Xv}² convient, mais ${Xv}² + 5 aussi : deux fonctions de même dérivée sur un intervalle diffèrent d'une constante.`,chk:[['eq','diff(x**2+5,x)','2*x']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`${V('a')} est un réel. La dérivée de ${Xv} ↦ ${Xv}³ en ${V('a')} est strictement négative :`,ans:'jamais',
+    explain:`Elle vaut 3${V('a')}², positif ou nul.`,chk:[['tpj','3*a**2<0',['a'],'R','jamais']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['(uv)′ = u′v + uv′','Si f′ < 0 sur un intervalle, f est décroissante sur cet intervalle.','Si f′ s\'annule en changeant de signe en a, f admet un extremum local en a.','(uv)′ = u′v′'];
+  const pr=['f(x) = x²(x + 1) : f′(x) = 2x(x + 1) + x².','f′(x) = −3(x² + 1) : f est décroissante sur ℝ.','f′(x) = 2(x − 1), négatif puis positif : f admet un minimum en 1.'][w];
+  return{title:'Quelle propriété justifie cette conclusion ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière formule est fausse.`,chk:[['eq','diff(x**2*(x+1),x)','2*x*(x+1)+x**2']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

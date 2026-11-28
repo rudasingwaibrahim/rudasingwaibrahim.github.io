@@ -757,5 +757,197 @@ if(window.SigmaKit)SigmaKit.init({game:'balance-equations',title:'La Balance Mag
   music:'epique',finals:{bronze,argent:buildFinal,or}});
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — balance-equations */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* La Balance Magique — Seconde, chapitre 10 (équations et inéquations du premier degré).
+   Notions : opérations qui conservent les solutions (ajouter un même nombre, multiplier par un même nombre NON NUL),
+   ax + b = cx + d, isoler une variable, modéliser, inéquation (diviser par un négatif change le sens). */
+const X=V('x');
+const eq=(l,r)=>`${N(l)} = ${N(r)}`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>{let a,c,b,d,s;do{c=ri(1,5);a=c+ri(1,4);s=nz(-6,9);b=nz(-9,9);d=(a-c)*s+b}while(d===0||b===d);
+  const k=a-c;
+  return{title:`Résoudre ${eq(lin(a,b),lin(c,d))}`,
+  html:`<ol><li>On soustrait ${N(lin(c,0))} aux deux membres : ${eq(lin(k,b),M(d))}.</li>
+<li>On ${b>0?'soustrait':'ajoute'} ${M(Math.abs(b))} aux deux membres : ${N(lin(k,0))} = {0}.</li>
+<li>On divise les deux membres par ${k}, qui est un nombre {1} : ${X} = {2}.</li>
+<li>Ces opérations {3} l'ensemble des solutions : l'équation a une seule solution, ${M(s)}.</li></ol>`,
+  blanks:[[M(d-b),LN(d-b,[d+b,b-d])],['non nul',['entier','positif ou nul']],[M(s),LN(s,[(d-b)-k,k*(d-b)])],['ne changent pas',['changent','doublent']]],
+  explain:`On ne change pas les solutions d'une équation en ajoutant (ou soustrayant) un même nombre aux deux membres, ni en les divisant par un même nombre <b>non nul</b>. Vérification : ${a} × ${P(s)}${S(b)} = ${M(a*s+b)} et ${c} × ${P(s)}${S(d)} = ${M(c*s+d)}.`,
+  chk:[['blank',0,`Eq(${k}*${s}, @)`],['eq',`${a}*${s}+(${b})`,`${c}*${s}+(${d})`],['sol',`Eq(${a}*x+(${b}),${c}*x+(${d}))`,'x',`FiniteSet(${s})`],
+    ['blank',2,`Eq(@,${s})`],['T',`Eq(${d-b},${k}*${s})`]]}}},
+{id:'D2',k:'demo',f:()=>{const b=pick([2,3,4,5]),q=ri(1,4),a=b*q*pick([1,-1]),r=ri(2,6),c=b*r;   // a x + b y = c
+  return{title:`Isoler ${V('y')} dans ${N(poly([[a,1]],X)+' + '+b+V('y'))} = ${c}`,
+  html:`<p>On veut exprimer ${V('y')} en fonction de ${X}.</p><ol><li>On soustrait {0} aux deux membres : ${N(b+V('y'))} = ${N(c+(a>0?' − ':' + ')+Math.abs(a)+X)}.</li>
+<li>Comme ${b} est {1}, on divise les deux membres par ${b}.</li><li>On obtient : ${V('y')} = {2}.</li></ol>`,
+  blanks:[[poly([[a,1]],X),[poly([[-a,1]],X),String(c)]],['non nul',['positif','un entier pair']],[poly([[r,0],[-a/b,1]],X),[poly([[c,0],[-a,1]],X),poly([[r,0],[a/b,1]],X)]]],
+  explain:`Isoler ${V('y')}, c'est résoudre l'équation d'inconnue ${V('y')} : on soustrait ${N(poly([[a,1]],X))}, puis on divise par ${b}, possible car ${b} ≠ 0. On trouve ${V('y')} = ${N(poly([[r,0],[-a/b,1]],X))}. On ne divise jamais par 0.`,
+  chk:[['blank',0,`Eq(${a}*x+${b}*y-(@), ${b}*y)`],['blank',2,`Eq(${b}*(@)+${a}*x, ${c})`]]}}},
+{id:'D3',k:'demo',f:()=>{const k=ri(2,6),u=ri(1,6);let v;do{v=ri(1,15)}while(v===k*u);const none=Math.random()<.5,w=none?v:k*u;
+  return{title:none?`Une équation sans solution`:`Une équation dont tous les nombres sont solutions`,
+  html:`<p>On résout ${eq(k+'('+X+' + '+u+')',lin(k,w))}.</p><ol><li>On développe le membre de gauche : ${N(lin(k,0))} + {0} = ${N(lin(k,w))}.</li>
+<li>On soustrait ${N(lin(k,0))} aux deux membres : ${k*u} = ${w}.</li><li>Cette égalité est {1}, quel que soit ${X}.</li><li>Donc l'équation a {2}.</li></ol>`,
+  blanks:[[String(k*u),LN(k*u,[u,k+u])],[none?'fausse':'vraie',[none?'vraie':'fausse','vraie pour x = 0 seulement']],
+    [none?'aucune solution':'une infinité de solutions : tous les réels',[none?'une infinité de solutions : tous les réels':'aucune solution','une seule solution, 0']]],
+  explain:none?`Après simplification, il reste ${k*u} = ${w}, égalité toujours fausse : aucun nombre ne vérifie l'équation, S = ∅.`:`Après simplification, il reste ${w} = ${w}, égalité toujours vraie : tout réel est solution, S = ℝ.`,
+  chk:[['eq',`${k}*(x+${u})`,`${k}*x+${k*u}`],['sol',`Eq(${k}*(x+${u}),${k}*x+${w})`,'x',none?'EmptySet':'Reals']]}}},
+{id:'O1',k:'ordre',f:()=>{let a,c,b,d,s;do{c=ri(1,4);a=c+ri(2,4);s=nz(-5,8);b=nz(-9,9);d=(a-c)*s+b}while(d===0||b===d||b===0);const k=a-c;
+  return{title:`Résoudre ${eq(lin(a,b),lin(c,d))}`,
+  steps:[eq(lin(a,b),lin(c,d)),`${eq(lin(k,b),M(d))} (on soustrait ${N(lin(c,0))} aux deux membres)`,`${eq(lin(k,0),M(d-b))} (on ${b>0?'soustrait':'ajoute'} ${Math.abs(b)} aux deux membres)`,
+    `${X} = ${M(s)} (on divise les deux membres par ${k}, non nul)`,`L'unique solution est ${M(s)}.`],
+  explain:`On regroupe les termes en ${X} dans un membre, les nombres dans l'autre, puis on divise par le coefficient de ${X}, qui n'est pas nul.`,
+  chk:[['sol',`Eq(${a}*x+(${b}),${c}*x+(${d}))`,'x',`FiniteSet(${s})`],['sol',`Eq(${k}*x+(${b}),${d})`,'x',`FiniteSet(${s})`],['sol',`Eq(${k}*x,${d-b})`,'x',`FiniteSet(${s})`]]}}},
+{id:'O2',k:'ordre',f:()=>{const m=ri(2,5),n=m-ri(1,m-1),s=ri(3,15),p=ri(1,9),q=(m-n)*s+p;
+  const T=['','','le double','le triple','le quadruple','le quintuple'];
+  return{title:'Mettre un problème en équation',
+  prompt:`« ${T[m][0].toUpperCase()+T[m].slice(1)} d'un nombre, augmenté de ${p}, est égal à ${n===1?'ce nombre':T[n]+' de ce nombre'} augmenté de ${q}. Quel est ce nombre ? »`,
+  steps:[`On appelle ${X} le nombre cherché.`,`On traduit l'énoncé : ${eq(lin(m,p),lin(n,q))}.`,`On résout : ${eq(lin(m-n,0),M(q-p))}, donc ${X} = ${s}.`,
+    `On vérifie : ${m} × ${s} + ${p} = ${m*s+p} et ${n===1?s:n+' × '+s} + ${q} = ${n*s+q}.`,`Conclusion : le nombre cherché est ${s}.`],
+  explain:`Choisir l'inconnue, traduire l'énoncé par une équation, la résoudre, vérifier dans l'énoncé, puis conclure par une phrase.`,
+  chk:[['sol',`Eq(${m}*x+${p},${n}*x+${q})`,'x',`FiniteSet(${s})`],['eq',`${m}*${s}+${p}`,`${n}*${s}+${q}`]]}}},
+{id:'O3',k:'ordre',f:()=>{const a=ri(2,6),s=nz(-6,6),b=nz(-9,9),c=-a*s+b;  // −a x + b > c  ⇔ x < s
+  return{title:`Résoudre l'inéquation ${N(lin(-a,b)+' > '+M(c))}`,
+  steps:[`${N(lin(-a,b)+' > '+M(c))}`,`${N(lin(-a,0)+' > '+M(c-b))} (on ${b>0?'soustrait':'ajoute'} ${Math.abs(b)} aux deux membres)`,
+    `On divise les deux membres par ${M(-a)}, qui est strictement négatif : on change le sens de l'inégalité.`,`${N(X+' < '+M(s))}`,`L'ensemble des solutions est ${N(']−∞ ; '+M(s)+'[')}.`],
+  explain:`Ajouter un même nombre aux deux membres ne change pas le sens ; diviser par un nombre strictement négatif le change. Ici ${M(c-b)} ÷ ${P(-a)} = ${M(s)}.`,
+  chk:[['sol',`${-a}*x+(${b})>${c}`,'x',`Interval.open(-oo,${s})`],['sol',`${-a}*x>${c-b}`,'x',`Interval.open(-oo,${s})`]]}}},
+{id:'F1',k:'faute',f:()=>{let a,b,c;do{a=ri(2,7);b=ri(1,9);c=a*ri(2,6)+b}while((c-b)-a===(c-b)/a);const r=(c-b)/a;
+  return{title:'Diviser ou soustraire ?',
+  lines:[eq(lin(a,b),String(c)),eq(lin(a,0),String(c-b)),`${X} = ${c-b} − ${a}`,`${X} = ${c-b-a}`],wrong:2,
+  why:`On passe de ${N(a+X)} à ${X} en <b>divisant</b> par ${a}, pas en soustrayant ${a} : il fallait ${X} = ${c-b} ÷ ${a} = ${r}.`,
+  bad:[`À la ligne 1, il fallait ajouter ${b} aux deux membres : ${N(a+X)} = ${c+b}.`,`À la ligne 3, ${c-b} − ${a} vaut ${c-b+a}.`],
+  explain:`${N(a+X)} signifie ${a} × ${X} : pour isoler ${X}, on divise les deux membres par ${a}, qui n'est pas nul. Solution : ${r}.`,
+  chk:[['seqeq',[`Eq(${a}*x+${b},${c})`,`Eq(${a}*x,${c-b})`,`Eq(x,${c-b}-${a})`,`Eq(x,${c-b-a})`],'x',2]]}}},
+{id:'F2',k:'faute',f:()=>{let a,b,c,d;do{c=ri(1,4);a=c+ri(2,4);b=ri(1,9);d=b+(a-c)*ri(1,5)}while(false);const s=(d-b)/(a-c);
+  return{title:'Changer de membre',
+  lines:[eq(lin(a,b),lin(c,d)),eq(lin(a-c,b),String(d)),eq(lin(a-c,0),String(d+b)),`${X} = ${F(d+b,a-c)}`],wrong:2,
+  why:`Pour faire disparaître + ${b} du membre de gauche, on soustrait ${b} aux <b>deux</b> membres : ${N(lin(a-c,0))} = ${d} − ${b} = ${d-b}.`,
+  bad:[`À la ligne 1, il fallait ajouter ${N(lin(c,0))} aux deux membres.`,`À la ligne 3, il fallait multiplier par ${a-c}.`],
+  explain:`On ne « fait pas passer » un terme : on effectue la même opération sur les deux membres. La solution est ${F(d-b,a-c)}.`,
+  chk:[['seqeq',[`Eq(${a}*x+${b},${c}*x+${d})`,`Eq(${a-c}*x+${b},${d})`,`Eq(${a-c}*x,${d+b})`,`Eq(x,Rational(${d+b},${a-c}))`],'x',2]]}}},
+{id:'F3',k:'faute',f:()=>{const a=ri(2,6),b=ri(1,9),s=nz(-5,5),c=b-a*s;   // b − a x < c ⇔ x > s
+  return{title:'Diviser par un nombre négatif',
+  lines:[N(lin(-a,b)+' < '+M(c)),N(lin(-a,0)+' < '+M(c-b)),N(X+' < '+M(s)),`S = ${N(']−∞ ; '+M(s)+'[')}`],wrong:2,
+  why:`On a divisé les deux membres par ${M(-a)}, nombre strictement négatif : il fallait changer le sens, ${N(X+' > '+M(s))}.`,
+  bad:[`À la ligne 1, il fallait ajouter ${b} aux deux membres.`,`À la ligne 2, ${M(c-b)} ÷ ${P(-a)} ne vaut pas ${M(s)}.`],
+  explain:`Diviser (ou multiplier) les deux membres d'une inégalité par un nombre strictement négatif change son sens. Solutions : S = ${N(']'+M(s)+' ; +∞[')}. Contrôle : ${X} = ${s+1} convient car ${b} − ${a} × ${P(s+1)} = ${M(b-a*(s+1))} < ${M(c)}.`,
+  chk:[['seqeq',[`${-a}*x+${b}<${c}`,`${-a}*x<${c-b}`,`x<${s}`],'x',2],['T',`${b}-${a}*(${s+1})<${c}`]]}}},
+{id:'F4',k:'faute',f:()=>{const k=ri(2,5),u=ri(1,6),c=ri(1,5);let s;do{s=nz(-6,6)}while(false);const d=(c+k)*s-k*u;  // c x − k(x − u)... use: c x = d + k(... )
+  // équation : (c+k)x − k(x − u) = d'  avec solution s
+  const A=c+k,R=A*s-k*(s-u);void d;
+  return{title:'Un signe − devant une parenthèse',
+  lines:[eq(`${lin(A,0)} − ${k}(${X} − ${u})`,M(R)),eq(`${lin(A,0)} − ${lin(k,0)} − ${k*u}`,M(R)),eq(lin(A-k,-k*u),M(R)),`${X} = ${F(R+k*u,A-k)}`],wrong:1,
+  why:`−${k}(${X} − ${u}) = −${N(lin(k,0))} + ${k*u} : le signe − devant la parenthèse change aussi le signe de − ${u}.`,
+  bad:[`À la ligne 2, ${A}${X} − ${k}${X} vaut ${A+k}${X}.`,`À la ligne 3, il fallait diviser par ${k*u}.`],
+  explain:`Par distributivité, −${k}(${X} − ${u}) = −${k}${X} + ${k*u}. L'équation devient ${eq(lin(A-k,k*u),M(R))}, d'où ${X} = ${M(s)}.`,
+  chk:[['seqeq',[`Eq(${A}*x-${k}*(x-${u}),${R})`,`Eq(${A}*x-${k}*x-${k*u},${R})`,`Eq(${A-k}*x-${k*u},${R})`],'x',1],['sol',`Eq(${A}*x-${k}*(x-${u}),${R})`,'x',`FiniteSet(${s})`]]}}},
+{id:'V1',k:'vf',f:()=>{const s=ri(1,9);
+  return{title:'Multiplier les deux membres',prompt:`« Si on multiplie les deux membres d'une équation par un même nombre, on obtient une équation qui a exactement les mêmes solutions. »`,
+  choices:[[`Faux : ${X} = ${s} a une seule solution, mais 0 × ${X} = 0 × ${s} est vraie pour tout réel ${X}.`,1],
+    [`Vrai : c'est une règle du cours, valable pour tout nombre.`,0],
+    [`Faux : multiplier par −1 change les solutions de ${X} = ${s}.`,0],
+    [`Vrai : par exemple, en multipliant ${X} = ${s} par 2, on obtient 2${X} = ${2*s}, qui a la même solution.`,0]],
+  explain:`La règle exige un nombre <b>non nul</b>. Avec 0, toute équation devient 0 = 0 : les solutions changent. Un exemple qui marche ne prouve pas une affirmation générale ; un seul contre-exemple suffit à la réfuter. Multiplier par −1 ne change rien : −${X} = −${s} a encore ${s} pour seule solution.`,
+  chk:[['sol',`Eq(x,${s})`,'x',`FiniteSet(${s})`],['sol',`Eq(0*x,0*${s})`,'x','Reals'],['sol',`Eq(-x,-${s})`,'x',`FiniteSet(${s})`]]}}},
+{id:'V2',k:'vf',f:()=>{const a=ri(2,6),b=nz(-9,9),s=nz(-5,5),c=a*s+b;let w;do{w=nz(-5,5)}while(w===s);
+  return{title:'Une affirmation sur une inéquation',prompt:`« Tout nombre ${X} solution de ${N(lin(a,b)+' ≥ '+M(c))} vérifie ${N(X+' ≥ '+M(s))}. »`,
+  choices:[[`Vrai : ${N(lin(a,b)+' ≥ '+M(c))} équivaut à ${N(lin(a,0)+' ≥ '+M(c-b))}, puis à ${N(X+' ≥ '+M(s))} en divisant par ${a} > 0.`,1],
+    [`Faux : en divisant par ${a}, on doit changer le sens de l'inégalité.`,0],
+    [`Faux : ${X} = ${s} n'est pas solution, car l'inégalité n'est pas stricte.`,0],
+    [`Vrai, mais seulement pour les nombres entiers.`,0]],
+  explain:`On soustrait ${M(b)} aux deux membres (le sens ne change pas), puis on divise par ${a}, nombre strictement positif (le sens ne change pas). Les solutions sont les réels de ${N('['+M(s)+' ; +∞[')}. ${s} lui-même est solution : ${a} × ${P(s)}${S(b)} = ${M(c)}.`,
+  chk:[['sol',`${a}*x+(${b})>=${c}`,'x',`Interval(${s},oo)`],['eq',`${a}*${s}+(${b})`,`${c}`]]}}},
+{id:'P1',k:'tpj',f:()=>{const v=pick([0,1,2]);
+  if(v===0){return{title:'Le nombre de solutions',prompt:`${V('a')} et ${V('b')} sont deux réels, avec ${V('a')} ≠ 0. L'équation ${N(V('a')+X+' + '+V('b')+' = 0')} a exactement une solution :`,ans:'toujours',
+    explain:`Comme ${V('a')} ≠ 0, on peut diviser par ${V('a')} : ${N(V('a')+X+' + '+V('b')+' = 0')} équivaut à ${X} = −${V('b')}/${V('a')}, unique solution.`,
+    chk:[['sol','Eq(3*x+5,0)','x','FiniteSet(Rational(-5,3))'],['sol','Eq(-2*x+0,0)','x','FiniteSet(0)'],['tpj','Eq(a*(-b/a)+b,0)',['a','b'],'Zs','toujours']]}}
+  if(v===1){const s=ri(2,9);return{title:'Le nombre de solutions',prompt:`${V('k')} est un réel. L'équation ${N(V('k')+X+' = '+s+V('k'))} a pour unique solution ${s} :`,ans:'parfois',
+    explain:`Si ${V('k')} ≠ 0, on divise par ${V('k')} : ${X} = ${s}, unique solution. Si ${V('k')} = 0, l'équation devient 0 = 0 : tout réel est solution. Donc « parfois ».`,
+    chk:[['sol',`Eq(2*x,2*${s})`,'x',`FiniteSet(${s})`],['sol',`Eq(0*x,0)`,'x','Reals']]}}
+  const u=ri(1,9);let w;do{w=ri(1,9)}while(w===u);
+  return{title:'Le nombre de solutions',prompt:`${V('a')} est un réel. L'équation ${N(V('a')+X+' + '+u+' = '+V('a')+X+' + '+w)} a au moins une solution :`,ans:'jamais',
+    explain:`En soustrayant ${N(V('a')+X)} aux deux membres, on obtient ${u} = ${w}, égalité fausse quel que soit ${X} : l'équation n'a aucune solution, quelle que soit la valeur de ${V('a')}.`,
+    chk:[['sol',`Eq(3*x+${u},3*x+${w})`,'x','EmptySet'],['sol',`Eq(0*x+${u},0*x+${w})`,'x','EmptySet'],['sol',`Eq(-2*x+${u},-2*x+${w})`,'x','EmptySet']]}}},
+{id:'P2',k:'tpj',f:()=>{const m=ri(2,5);
+  return{title:'Multiplier une inégalité',prompt:`${V('a')} et ${V('b')} sont deux réels tels que ${N(V('a')+' < '+V('b'))}. On a ${N('−'+m+V('a')+' < −'+m+V('b'))} :`,ans:'jamais',
+  explain:`Multiplier les deux membres de ${N(V('a')+' < '+V('b'))} par −${m}, nombre strictement négatif, change le sens : on a toujours ${N('−'+m+V('a')+' > −'+m+V('b'))}. Par exemple 1 < 2 donne −${m} > −${2*m}.`,
+  chk:[['tpj',`-${m}*a<-${m}*b`,['a','b'],'Q','jamais','a<b']]}}},
+{id:'R1',k:'prop',f:()=>{const v=pick([0,1,2,3]);let pr,ok;
+  const Pa='On ajoute (ou on soustrait) un même nombre aux deux membres.',Pm='On multiplie (ou on divise) les deux membres par un même nombre non nul.',
+    Pn='On divise les deux membres par un même nombre strictement négatif, ce qui change le sens.',Pd='On développe à l\'aide de la distributivité.',Pf='On fait passer un terme dans l\'autre membre sans changer son signe.';
+  let chk;
+  if(v===0){const a=ri(2,7),b=ri(2,9),c=ri(10,30);pr=`${eq(lin(a,b),String(c))} devient ${eq(lin(a,0),String(c-b))}`;ok=Pa;chk=[['sol',`Eq(${a}*x+${b},${c})`,'x',`FiniteSet(Rational(${c-b},${a}))`],['sol',`Eq(${a}*x,${c-b})`,'x',`FiniteSet(Rational(${c-b},${a}))`]]}
+  else if(v===1){const a=ri(2,9),c=ri(2,9);pr=`${N(X+'/'+a)} = ${c} devient ${X} = ${a*c}`;ok=Pm;chk=[['sol',`Eq(x/${a},${c})`,'x',`FiniteSet(${a*c})`]]}
+  else if(v===2){const a=ri(2,6),s=nz(-6,6);pr=`${N(lin(-a,0)+' < '+M(-a*s))} devient ${N(X+' > '+M(s))}`;ok=Pn;chk=[['sol',`${-a}*x<${-a*s}`,'x',`Interval.open(${s},oo)`]]}
+  else{const k=ri(2,6),u=ri(1,9),r=ri(1,30);pr=`${eq(k+'('+X+' + '+u+')',String(r))} devient ${eq(lin(k,k*u),String(r))}`;ok=Pd;chk=[['eq',`${k}*(x+${u})`,`${k}*x+${k*u}`]]}
+  return{title:'Quelle règle justifie le passage ?',prompt:`<div class="sk-eq">${pr}</div>`,ok,bad:sh([Pa,Pm,Pn,Pd].filter(t=>t!==ok&&!(v===2&&t===Pm))).slice(0,2).concat([Pf]),
+    explain:`${ok} Les autres phrases ne décrivent pas cette transformation, et « faire passer un terme sans changer son signe » n'est jamais une règle valable.`,chk}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

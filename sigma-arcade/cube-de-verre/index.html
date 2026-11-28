@@ -650,5 +650,141 @@ TS.run({ slug: 'cube-de-verre', title: 'Le Cube de verre', chapter: 'Géométrie
   { t: 'Deux lasers', n: 3, gen: q7, rule: `<p>Pour deux droites paramétrées, on utilise deux paramètres différents (${T} et ${v('s')}) et on résout le système de trois équations : une solution (sécantes), aucune solution avec des directions non colinéaires (non coplanaires), directions colinéaires (parallèles ou confondues).</p>` }] });
 
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — cube-de-verre */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Le Cube de verre — Terminale spécialité, chapitre 5 (vecteurs, droites et plans de l'espace) : combinaisons
+   linéaires, colinéarité, coplanarité, base et coordonnées, représentation paramétrique d'une droite,
+   positions relatives de droites et de plans. */
+const vc=s=>`<span class="vec">${s}</span>`,vi=s=>`<span class="vec it">${s}</span>`;
+const u=vi('u'),v=vi('v'),w=vi('w'),t=V('t');
+const c3=(a,b,c)=>`(${M(a)} ; ${M(b)} ; ${M(c)})`;
+const at=(a,b)=>a===0?term(b,t,1,true):M(a)+term(b,t,1,false);
+const Mx=(a,b,c)=>`Matrix([${a},${b},${c}])`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>{let a,b,c,k;do{a=nz(-4,4);b=nz(-4,4);c=nz(-4,4);k=pick([2,3,-2])}while(false);const on=Math.random()<.5;const d=k*a,e=k*b,g=k*c+(on?0:pick([-1,1]));
+  return{title:`${u}${c3(a,b,c)} et ${v}${c3(d,e,g)} sont-ils colinéaires ?`,
+  html:`<ol><li>${u} et ${v} sont colinéaires s'il existe un réel ${V('k')} tel que ${v} = {0}.</li><li>La première coordonnée impose ${V('k')} = ${M(d)}/${P(a)} = {1}.</li>
+<li>On teste les autres coordonnées : ${M(k)} × ${P(b)} = ${M(k*b)} et ${M(k)} × ${P(c)} = ${M(k*c)}. Donc ${u} et ${v} {2} colinéaires.</li></ol>`,
+  blanks:[['k u (vecteur)',['u + k (vecteur)','k (nombre)']],[M(k),LN(k,[-k])],[on?'sont':'ne sont pas',[on?'ne sont pas':'sont','sont peut-être']]],
+  explain:`Dans l'espace, la proportionnalité doit être vérifiée sur les <b>trois</b> coordonnées ; le déterminant 2 × 2 du plan ne suffit plus.`,
+  chk:[[on?'eq':'ne',`${k}*${Mx(a,b,c)}`,Mx(d,e,g)]]}}},
+{id:'D2',k:'demo',f:()=>{const a=nz(-3,3),b=nz(-3,3);const U=[1,0,2],Vv=[0,1,-1];const W=[a*U[0]+b*Vv[0],a*U[1]+b*Vv[1],a*U[2]+b*Vv[2]];
+  return{title:`${u}${c3(...U)}, ${v}${c3(...Vv)} et ${w}${c3(...W)} sont-ils coplanaires ?`,
+  html:`<ol><li>${u} et ${v} ne sont pas colinéaires. ${w} est coplanaire avec eux s'il existe des réels ${V('a')}, ${V('b')} tels que ${w} = {0}.</li>
+<li>Les deux premières coordonnées donnent ${V('a')} = {1} et ${V('b')} = ${M(b)}.</li><li>On vérifie la troisième : 2${V('a')} − ${V('b')} = ${M(2*a-b)} = ${M(W[2])}. Les trois vecteurs sont {2}.</li></ol>`,
+  blanks:[['a u + b v',['a u × b v','u + v']],[M(a),LN(a,[b,-a])],['coplanaires',['colinéaires','orthogonaux']]],
+  explain:`Trois vecteurs sont coplanaires si l'un est combinaison linéaire des deux autres (non colinéaires). On résout avec deux coordonnées et on vérifie avec la troisième.`,
+  chk:[['eq',`${a}*${Mx(...U)}+(${b})*${Mx(...Vv)}`,Mx(...W)]]}}},
+{id:'D3',k:'demo',f:()=>{const A=[ri(-3,3),ri(-3,3),ri(-3,3)],U=[nz(-3,3),nz(-3,3),nz(-3,3)],tt=nz(-3,3);const Pp=A.map((x,i)=>x+tt*U[i]);
+  return{title:`Le point P${c3(...Pp)} appartient-il à la droite (A, ${u}) ?`,
+  html:`<p>A${c3(...A)}, ${u}${c3(...U)}.</p><ol><li>Une représentation paramétrique de la droite est : ${V('x')} = ${at(A[0],U[0])}, ${V('y')} = ${at(A[1],U[1])}, ${V('z')} = ${at(A[2],U[2])}, ${t} ∈ {0}.</li>
+<li>La première équation donne ${t} = {1}.</li><li>Les deux autres sont alors vérifiées : P {2} à la droite.</li></ol>`,
+  blanks:[['ℝ',['[0 ; 1]','ℕ']],[M(tt),LN(tt,[-tt])],['appartient',["n'appartient pas",'est le milieu de la droite']]],
+  explain:`M ∈ (A, ${u}) ⇔ ${vc('AM')} = ${t}${u} pour un réel ${t} : la même valeur de ${t} doit convenir pour les trois coordonnées.`,
+  chk:[['eq',`${Mx(...A)}+(${tt})*${Mx(...U)}`,Mx(...Pp)]]}}},
+{id:'O1',k:'ordre',f:()=>({title:'Montrer que (AG) coupe le plan (BDE) dans le cube ABCDEFGH',
+  steps:[`On se place dans le repère (A ; ${vc('AB')}, ${vc('AD')}, ${vc('AE')}) : G(1 ; 1 ; 1), B(1 ; 0 ; 0), D(0 ; 1 ; 0), E(0 ; 0 ; 1).`,`Le point I(1/3 ; 1/3 ; 1/3) vérifie ${vc('AI')} = (1/3)${vc('AG')} : il est sur (AG).`,`${vc('BI')} = −(2/3)${vc('AB')} + (1/3)${vc('AD')} + (1/3)${vc('AE')} = (1/3)${vc('BD')} + (1/3)${vc('BE')} : I est dans le plan (BDE).`,`(AG) et (BDE) se coupent en I, centre de gravité du triangle BDE.`],
+  explain:`On choisit un repère adapté, on exprime les vecteurs par leurs coordonnées, puis on vérifie colinéarité et coplanarité.`,
+  chk:[['eq',`Matrix([Rational(1,3)-1,Rational(1,3),Rational(1,3)])`,`Rational(1,3)*(Matrix([0,1,0])-Matrix([1,0,0]))+Rational(1,3)*(Matrix([0,0,1])-Matrix([1,0,0]))`]]})},
+{id:'O2',k:'ordre',f:()=>{const A=[ri(-3,3),ri(-3,3),ri(-3,3)],B=[ri(-3,3),ri(-3,3),ri(-3,3)];if(A.every((x,i)=>x===B[i]))B[0]++;const U=B.map((x,i)=>x-A[i]);
+  return{title:`Représentation paramétrique de la droite (AB)`,prompt:`A${c3(...A)}, B${c3(...B)}.`,
+  steps:[`(AB) passe par A et a pour vecteur directeur ${vc('AB')}.`,`${vc('AB')}${c3(...U)}.`,`M(${V('x')} ; ${V('y')} ; ${V('z')}) ∈ (AB) ⇔ ${vc('AM')} = ${t}${vc('AB')}, ${t} ∈ ℝ.`,`${V('x')} = ${at(A[0],U[0])}, ${V('y')} = ${at(A[1],U[1])}, ${V('z')} = ${at(A[2],U[2])}.`],
+  explain:`Un point et un vecteur directeur suffisent ; la représentation n'est pas unique (on peut changer de point ou de vecteur directeur).`,chk:[['eq',`${Mx(...A)}+1*${Mx(...U)}`,Mx(...B)]]}}},
+{id:'F1',k:'faute',f:()=>{const a=nz(-3,3),b=nz(-3,3),k=pick([2,3]);
+  return{title:`Colinéarité de ${u}${c3(a,b,1)} et ${v}${c3(k*a,k*b,k+1)}`,
+  lines:[`Avec les deux premières coordonnées : ${M(a)} × ${P(k*b)} − ${P(k*a)} × ${P(b)} = 0.`,`Donc ${u} et ${v} sont colinéaires.`],wrong:1,
+  why:`Dans l'espace, il faut aussi la troisième coordonnée : ${k} × 1 = ${k} ≠ ${k+1}.`,
+  bad:[`À la ligne 0, le calcul vaut ${2*k*a*b}.`,`Deux vecteurs de l'espace ne sont jamais colinéaires.`],explain:`${v} = ${k}${u} est faux à cause de la troisième coordonnée : les vecteurs ne sont pas colinéaires.`,
+  chk:[['ne',`${k}*${Mx(a,b,1)}`,Mx(k*a,k*b,k+1)]]}}},
+{id:'F2',k:'faute',f:()=>({title:'Droites de l\'espace',
+  lines:[`Deux droites (d) et (d′) de l'espace n'ont aucun point commun.`,`Donc elles sont parallèles.`],wrong:1,
+  why:`Dans l'espace, deux droites sans point commun peuvent être <b>non coplanaires</b> : par exemple (AB) et (EH) dans un cube.`,
+  bad:[`À la ligne 0, deux droites ont toujours un point commun.`,`Elles sont forcément sécantes.`],explain:`Parallèles = coplanaires sans point commun (ou confondues). Sans point commun, elles sont parallèles ou non coplanaires.`,chk:[]})},
+{id:'F3',k:'faute',f:()=>{const A=[1,0,2],U=[2,1,-1];
+  return{title:'Un point sur une droite ?',
+  lines:[`(d) : ${V('x')} = 1 + 2${t}, ${V('y')} = ${t}, ${V('z')} = 2 − ${t}. On teste P(5 ; 2 ; 1).`,`${V('x')} = 5 donne ${t} = 2 ; ${V('y')} = 2 donne ${t} = 2.`,`Donc P ∈ (d).`],wrong:2,
+  why:`Il faut vérifier les <b>trois</b> équations avec la même valeur ${t} = 2 : ${V('z')} = 2 − 2 = 0 ≠ 1.`,
+  bad:[`À la ligne 1, ${V('x')} = 5 donne ${t} = 3.`,`Dans l'énoncé, (d) n'est pas une droite.`],explain:`P n'appartient pas à (d) : une seule valeur de ${t} doit vérifier simultanément les trois équations.`,chk:[['ne',`${Mx(...A)}+2*${Mx(...U)}`,Mx(5,2,1)]]}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Trois vecteurs de l'espace sont toujours coplanaires. »`,
+  choices:[[`Faux : (1 ; 0 ; 0), (0 ; 1 ; 0), (0 ; 0 ; 1) ne le sont pas, ils forment une base.`,1],[`Vrai : (1 ; 0 ; 0), (0 ; 1 ; 0), (1 ; 1 ; 0) sont coplanaires.`,0],[`Vrai : on peut toujours les dessiner sur une feuille.`,0]],
+  explain:`Un exemple favorable ne prouve rien. Trois vecteurs non coplanaires forment une base de l'espace.`,chk:[['eq','Matrix([1,1,0])','Matrix([1,0,0])+Matrix([0,1,0])']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si une droite (d) est parallèle à une droite contenue dans un plan 𝒫, alors (d) est parallèle à 𝒫. »`,
+  choices:[[`Vrai : c'est un critère de parallélisme d'une droite et d'un plan (éventuellement (d) ⊂ 𝒫).`,1],[`Faux : (d) coupe forcément 𝒫.`,0],[`Faux : il faut deux droites de 𝒫.`,0]],
+  explain:`Un vecteur directeur de (d) est alors un vecteur du plan 𝒫.`,chk:[]})},
+{id:'P1',k:'tpj',f:()=>{const ww=pick([0,1,2]);
+  if(ww===0)return{title:'Toujours, parfois ou jamais ?',prompt:`Deux vecteurs ${u} et ${v} sont coplanaires :`,ans:'toujours',explain:`Deux vecteurs ont toujours des représentants dans un même plan (avec une origine commune).`,chk:[]};
+  if(ww===1)return{title:'Toujours, parfois ou jamais ?',prompt:`Deux plans distincts de l'espace ont une droite en commun :`,ans:'parfois',explain:`Deux plans sécants se coupent selon une droite ; deux plans parallèles distincts n'ont aucun point commun.`,chk:[]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`Une droite et un plan de l'espace ont exactement deux points communs :`,ans:'jamais',explain:`S'ils ont deux points communs, la droite est contenue dans le plan (une infinité de points) ; sinon 0 ou 1 point.`,chk:[]}}},
+{id:'R1',k:'prop',f:()=>{const ww=pick([0,1,2]);
+  const Rr=['u et v colinéaires ⇔ v = k u pour un réel k (ou u nul).','w coplanaire avec u et v non colinéaires ⇔ w = a u + b v.','M ∈ (A, u) ⇔ AM = t u, t ∈ ℝ.','Deux droites sans point commun sont parallèles.'];
+  const pr=['v(−4 ; 2 ; 6) = −2 u avec u(2 ; −1 ; −3).','w(1 ; 1 ; 1) = u(1 ; 0 ; 2) + v(0 ; 1 ; −1).','P(3 ; 1 ; 1) = A(1 ; 0 ; 2) + 1 × u(2 ; 1 ; −1).'][ww];
+  return{title:'Quelle propriété justifie cette conclusion ?',prompt:pr,ok:Rr[ww],bad:Rr.filter((_,j)=>j!==ww),explain:`${Rr[ww]} La dernière affirmation est fausse dans l'espace.`,chk:[['eq','-2*Matrix([2,-1,-3])','Matrix([-4,2,6])'],['eq','Matrix([1,0,2])+Matrix([0,1,-1])','Matrix([1,1,1])'],['eq','Matrix([1,0,2])+Matrix([2,1,-1])','Matrix([3,1,1])']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

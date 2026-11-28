@@ -714,5 +714,134 @@ TS.run({ slug: 'le-miroir', title: 'Le Miroir', chapter: 'Fonction ln · chapitr
   { t: 'Courbe et tangente', n: 2, gen: q7, rule: `<p>Pour la position d'une courbe et d'une droite, on étudie le signe de la différence d(${X}), au besoin à l'aide de ses variations.</p><p>Exemple : ln ${X} ⩽ ${X} − 1 pour tout ${X} &gt; 0.</p>` }] });
 
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — le-miroir */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Le Miroir — Terminale spécialité, chapitres 12 et 13 (fonction logarithme népérien) : réciproque de exp,
+   ln(ab) = ln a + ln b, ln(aⁿ), équations et inéquations, dérivée, limites et croissances comparées.
+   Démonstrations du programme : dérivée de ln (dérivabilité admise) ; limite en 0 de x ln x. */
+const Xv=V('x'),ex=s=>`e<sup>${s}</sup>`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>({title:'Calculer la dérivée de ln (dérivabilité admise)',
+  html:`<p>Pour tout ${Xv} > 0, ${ex('ln '+Xv)} = ${Xv}.</p><ol><li>On dérive les deux membres ; la dérivée de ${Xv} ↦ ${ex(V('u')+'('+Xv+')')} est ${V('u')}′(${Xv})${ex(V('u')+'('+Xv+')')}.</li>
+<li>On obtient ln′(${Xv}) × {0} = 1.</li><li>Or ${ex('ln '+Xv)} = ${Xv} ≠ 0, donc ln′(${Xv}) = {1}.</li></ol>`,
+  blanks:[['e^(ln x)',['ln x','eˣ']],['1/x',['x','ln x']]],
+  explain:`C'est la démonstration du programme : on dérive l'égalité ${ex('ln '+Xv)} = ${Xv} (dérivée d'une composée exp∘ln) et on simplifie par ${ex('ln '+Xv)} = ${Xv}.`,
+  chk:[['eq','diff(log(x),x)','1/x'],['eq','exp(log(x))','x']]})},
+{id:'D2',k:'demo',f:()=>({title:`Limite de ${Xv} ln ${Xv} quand ${Xv} → 0⁺`,
+  html:`<ol><li>On pose ${Xv} = ${ex(V('X'))}, c'est-à-dire ${V('X')} = ln ${Xv}. Quand ${Xv} → 0⁺, ${V('X')} → {0}.</li>
+<li>${Xv} ln ${Xv} = ${ex(V('X'))} × ${V('X')} = {1}.</li><li>Par croissances comparées, ${V('X')}${ex(V('X'))} → {2} quand ${V('X')} → −∞.</li><li>Donc ${Xv} ln ${Xv} → 0.</li></ol>`,
+  blanks:[['−∞',['+∞','0']],['X eˣ',['X + eˣ','eˣ/X']],['0',['−∞','1']]],
+  explain:`C'est la démonstration du programme : un changement de variable ramène à une croissance comparée connue pour l'exponentielle.`,
+  chk:[['eq','limit(x*log(x),x,0)','0'],['eq','limit(x*exp(x),x,-oo)','0']]})},
+{id:'D3',k:'demo',f:()=>{let a,n;do{a=pick([2,3,5]);n=ri(2,5)}while(a===n);
+  return{title:`Résoudre ${ex(Xv)} = ${a**n}`,
+  html:`<ol><li>Pour ${V('b')} > 0, ${ex(Xv)} = ${V('b')} ⇔ ${Xv} = {0}.</li><li>Donc ${Xv} = ln(${a**n}) = ln(${a}<sup>${n}</sup>) = {1}.</li><li>Valeur approchée : ${Xv} ≈ {2}.</li></ol>`,
+  blanks:[['ln b',['eᵇ','b/e']],[`${n} ln ${a}`,[`ln ${a*n}`,`${n} + ln ${a}`]],[fx(Math.round(n*Math.log(a)*1000)/1000),[fx(Math.round(Math.log(a*n)*1000)/1000),fx(Math.round((n+Math.log(a))*1000)/1000)]]],
+  explain:`ln est la fonction réciproque de exp ; ln(${V('a')}<sup>${V('n')}</sup>) = ${V('n')} ln ${V('a')}.`,
+  chk:[['sol',`Eq(exp(x),${a**n})`,'x',`FiniteSet(log(${a**n}))`],['T',`Abs(log(${a**n})-${n}*log(${a}))<10**(-12)`],['T',`Abs(${n}*log(${a})-Rational('${Math.round(n*Math.log(a)*1000)/1000}'))<Rational(1,1000)`]]}}},
+{id:'O1',k:'ordre',f:()=>{const a=ri(2,5),b=ri(1,9);
+  return{title:`Résoudre ln(${a}${Xv} − ${b}) ≤ 0`,
+  steps:[`Domaine : ${a}${Xv} − ${b} > 0, soit ${Xv} > ${F(b,a)}.`,`ln est strictement croissante et ln 1 = 0 : ln(${a}${Xv} − ${b}) ≤ 0 ⇔ ${a}${Xv} − ${b} ≤ 1.`,`${Xv} ≤ ${F(b+1,a)}.`,`S = ]${F(b,a)} ; ${F(b+1,a)}].`],
+  explain:`On commence toujours par le domaine de définition, puis on utilise la stricte croissance de ln.`,
+  chk:[['sol',`And(${a}*x-${b}>0,${a}*x-${b}<=1)`,'x',`Interval(Rational(${b},${a}),Rational(${b+1},${a}),True,False)`]]}}},
+{id:'O2',k:'ordre',f:()=>({title:`Limite de (ln ${Xv})/${Xv} en +∞`,
+  steps:[`On pose ${Xv} = ${ex(V('X'))} : quand ${Xv} → +∞, ${V('X')} = ln ${Xv} → +∞.`,`(ln ${Xv})/${Xv} = ${V('X')}/${ex(V('X'))}.`,`Par croissances comparées, ${V('X')}/${ex(V('X'))} → 0.`,`Donc (ln ${Xv})/${Xv} → 0 en +∞.`],
+  explain:`Le logarithme croît moins vite que toute puissance de ${Xv}.`,chk:[['eq','limit(log(x)/x,x,oo)','0']]})},
+{id:'F1',k:'faute',f:()=>{const a=pick([2,3]),b=pick([5,7]);
+  return{title:`ln(${a} + ${b})`,
+  lines:[`ln(${a} + ${b})`,`= ln ${a} + ln ${b}`],wrong:1,
+  why:`ln transforme un <b>produit</b> en somme : ln ${a} + ln ${b} = ln ${a*b}, pas ln ${a+b}.`,
+  bad:[`Il fallait écrire ln ${a} × ln ${b}.`,`ln(${a} + ${b}) n'existe pas.`],explain:`ln(${a+b}) ≈ ${fx(Math.round(Math.log(a+b)*1000)/1000)} et ln ${a} + ln ${b} ≈ ${fx(Math.round(Math.log(a*b)*1000)/1000)}.`,
+  chk:[['ne',`log(${a}+${b})`,`log(${a})+log(${b})`]]}}},
+{id:'F2',k:'faute',f:()=>({title:`Résoudre ln(${Xv}²) = 2 ln ${Xv} sur ℝ*`,
+  lines:[`ln(${Xv}²) = 2 ln ${Xv} pour tout réel ${Xv} ≠ 0.`,`Donc l'équation est vérifiée par tout ${Xv} ≠ 0.`],wrong:1,
+  why:`ln ${Xv} n'est défini que pour ${Xv} > 0 ; pour ${Xv} < 0, ln(${Xv}²) = 2 ln|${Xv}|, et 2 ln ${Xv} n'existe pas.`,
+  bad:[`Il faut ${Xv}² < 0.`,`ln(${Xv}²) = (ln ${Xv})².`],explain:`La propriété ln(${V('a')}<sup>${V('n')}</sup>) = ${V('n')} ln ${V('a')} suppose ${V('a')} > 0. L'ensemble des solutions est ]0 ; +∞[.`,
+  chk:[['eq','log((-2)**2)','2*log(2)']]})},
+{id:'F3',k:'faute',f:()=>({title:`Signe de ln ${Xv}`,
+  lines:[`ln est strictement croissante sur ]0 ; +∞[.`,`ln ${Xv} est donc positif pour tout ${Xv} > 0.`],wrong:1,
+  why:`Croissante ne veut pas dire positive : ln ${Xv} < 0 pour 0 < ${Xv} < 1, car ln 1 = 0.`,
+  bad:[`À la ligne 0, ln est décroissante.`,`ln n'est définie que pour ${Xv} > 1.`],explain:`Exemple : ln 0,5 ≈ −0,69 < 0. Le signe de ln ${Xv} se lit en comparant ${Xv} à 1.`,chk:[['T','log(Rational(1,2))<0']]})},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Pour tous ${V('a')}, ${V('b')} > 0, ln(${V('a')}/${V('b')}) = ln ${V('a')} − ln ${V('b')}. »`,
+  choices:[[`Vrai : ln ${V('a')} = ln(${V('a')}/${V('b')} × ${V('b')}) = ln(${V('a')}/${V('b')}) + ln ${V('b')}.`,1],[`Faux : ln(${V('a')}/${V('b')}) = ln ${V('a')}/ln ${V('b')}.`,0],[`Faux : c'est vrai seulement si ${V('a')} > ${V('b')}.`,0]],
+  explain:`Conséquence de la relation fonctionnelle ln(${V('a')}${V('b')}) = ln ${V('a')} + ln ${V('b')}.`,chk:[['eq','log(Rational(6,1)/2)','log(6)-log(2)']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« ln(${ex(Xv)}) = ${Xv} pour tout réel ${Xv}, et ${ex('ln '+Xv)} = ${Xv} pour tout réel ${Xv}. »`,
+  choices:[[`Faux : la seconde égalité n'a de sens que pour ${Xv} > 0.`,1],[`Vrai : ln et exp sont réciproques.`,0],[`Faux : la première égalité est fausse pour ${Xv} < 0.`,0]],
+  explain:`ln(${ex(Xv)}) = ${Xv} pour tout ${Xv} ∈ ℝ ; ${ex('ln '+Xv)} = ${Xv} seulement pour ${Xv} ∈ ]0 ; +∞[.`,chk:[['eq','log(exp(-3))','-3']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`${Xv} > 0. ln ${Xv} ≤ ${Xv} − 1 :`,ans:'toujours',explain:`ln est concave et ${V('y')} = ${Xv} − 1 est sa tangente en 1.`,chk:[['tpj','log(x)<=x-1',['x'],'pos','toujours']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`${Xv} > 0. ln ${Xv} > 0 :`,ans:'parfois',explain:`Vrai si ${Xv} > 1, faux si 0 < ${Xv} ≤ 1.`,chk:[['tpj','log(x)>0',['x'],'pos','parfois']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`ln(−1) existe :`,ans:'jamais',explain:`ln est définie sur ]0 ; +∞[ seulement : ${ex(Xv)} > 0 ne vaut jamais −1.`,chk:[['sol','Eq(exp(x),-1)','x','EmptySet']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['ln(ab) = ln a + ln b','ln(aⁿ) = n ln a','ln est strictement croissante sur ]0 ; +∞[.','ln(a + b) = ln a + ln b'];
+  const pr=['ln 6 = ln 2 + ln 3.','ln 8 = 3 ln 2.','ln x < ln 5 ⇔ 0 < x < 5.'][w];
+  return{title:'Quelle propriété justifie ce calcul ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]}. La dernière égalité est fausse.`,chk:[['eq','log(6)','log(2)+log(3)'],['eq','log(8)','3*log(2)']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

@@ -1322,5 +1322,148 @@ SigmaKit.init({game:'atelier-optimum',title:'L\'Atelier Optimum',levels:7,
   music:'aventure',finals:{bronze:AO_FIN.bronze,argent:AO_FIN.argent,or:AO_FIN.or}});
 AOK.goLevel(0);
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — atelier-optimum */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* L'Atelier Optimum — Première spécialité, chapitre 6 (dérivation, partie 3) : variations et signe de la dérivée,
+   extremums, problèmes d'optimisation, inégalités et position relative de deux courbes par l'étude d'une différence. */
+const Xv=V('x'),f=V('f'),fp=`${V('f')}′`,g=V('g'),gp=`${V('g')}′`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>({title:'Démontrer que x³ ≥ 3x − 2 pour tout x ≥ 0',
+  html:`<p>On pose ${g}(${Xv}) = ${Xv}³ − 3${Xv} + 2 sur [0 ; +∞[.</p><ol><li>${gp}(${Xv}) = {0} = 3(${Xv} − 1)(${Xv} + 1).</li>
+<li>Sur [0 ; +∞[, ${Xv} + 1 > 0 : ${gp}(${Xv}) est du signe de ${Xv} − 1, donc ${g} est décroissante sur [0 ; 1] et {1} sur [1 ; +∞[.</li>
+<li>${g} admet donc un minimum en 1, égal à ${g}(1) = {2}.</li><li>Ainsi ${g}(${Xv}) ≥ 0 pour tout ${Xv} ≥ 0, c'est-à-dire ${Xv}³ ≥ 3${Xv} − 2.</li></ol>`,
+  blanks:[['3x² − 3',['3x² − 3x','x² − 3']],['croissante',['décroissante','constante']],['0',['2','−2']]],
+  explain:`Pour comparer deux expressions, on étudie le signe de leur différence ; ici grâce aux variations de ${g} : son minimum vaut 0, donc ${g} ≥ 0.`,
+  chk:[['eq','diff(x**3-3*x+2,x)','3*(x-1)*(x+1)'],['eq','1**3-3*1+2','0'],['tpj','x**3-3*x+2>=0',['x'],'pos','toujours']]})},
+{id:'D2',k:'demo',f:()=>{const k=ri(2,5),L=6*k;
+  return{title:`La boîte de volume maximal (carton carré de côté ${L} cm)`,
+  html:`<p>On découpe un carré de côté ${Xv} à chaque coin, puis on plie : V(${Xv}) = ${Xv}(${L} − 2${Xv})², pour ${Xv} ∈ ]0 ; {0}[.</p><ol>
+<li>V′(${Xv}) = (${L} − 2${Xv})² − 4${Xv}(${L} − 2${Xv}) = (${L} − 2${Xv})({1}).</li><li>Sur l'intervalle d'étude, ${L} − 2${Xv} > 0 : V′ est du signe de ${L} − 6${Xv}.</li>
+<li>V est croissante puis décroissante : le volume est maximal pour ${Xv} = {2} cm.</li></ol>`,
+  blanks:[[String(L/2),LN(L/2,[L,L/3])],[`${L} − 6x`,[`${L} − 2x`,`${L} + 6x`]],[String(k),LN(k,[L/2,2*k])]],
+  explain:`Les côtés du fond mesurent ${L} − 2${Xv}, qui doit être positif : ${Xv} < ${L/2}. La dérivée (formule du produit) se factorise par ${L} − 2${Xv} ; elle s'annule en changeant de signe en ${Xv} = ${k} : V(${k}) = ${k*(L-2*k)**2} cm³.`,
+  chk:[['eq',`diff(x*(${L}-2*x)**2,x)`,`(${L}-2*x)*(${L}-6*x)`],['eq',`${k}*(${L}-2*${k})**2`,`${k*(L-2*k)**2}`]]}}},
+{id:'D3',k:'demo',f:()=>{const b=2*ri(10,40),c=ri(50,300);const x0=b/2;
+  return{title:'Le bénéfice maximal',
+  html:`<p>Le bénéfice, en euros, pour ${Xv} objets vendus (${Xv} ∈ [0 ; ${b}]) est B(${Xv}) = −${Xv}² + ${b}${Xv} − ${c}.</p><ol>
+<li>B′(${Xv}) = {0}.</li><li>B′(${Xv}) > 0 pour ${Xv} < ${x0} et B′(${Xv}) < 0 pour ${Xv} > ${x0}.</li><li>Le bénéfice est maximal pour ${Xv} = ${x0} et vaut {1} €.</li></ol>`,
+  blanks:[[`−2x + ${b}`,[`−2x + ${b} − ${c}`,`−x + ${b}`]],[String(x0*x0-c),LN(x0*x0-c,[x0*x0,b*x0-c])]],
+  explain:`B′ s'annule en ${x0} en passant du positif au négatif : B atteint son maximum B(${x0}) = −${x0*x0} + ${b*x0} − ${c} = ${x0*x0-c} €.`,
+  chk:[['eq',`diff(-x**2+${b}*x-${c},x)`,`-2*x+${b}`],['eq',`-(${x0})**2+${b}*${x0}-${c}`,`${x0*x0-c}`],['blank',1,`Eq(@,${x0*x0-c})`]]}}},
+{id:'O1',k:'ordre',f:()=>{const P=2*ri(5,20);
+  return{title:`Rectangle de périmètre ${P} cm d'aire maximale`,
+  steps:[`On note ${Xv} la largeur : la longueur vaut ${P/2} − ${Xv}, avec ${Xv} ∈ [0 ; ${P/2}].`,`L'aire est A(${Xv}) = ${Xv}(${P/2} − ${Xv}) = −${Xv}² + ${P/2}${Xv}.`,`A′(${Xv}) = −2${Xv} + ${P/2}, qui s'annule en ${fx(P/4)} en passant du positif au négatif.`,`L'aire est maximale pour ${Xv} = ${fx(P/4)} : le rectangle est un carré.`],
+  explain:`Optimiser : choisir la variable et son intervalle, exprimer la quantité, dériver, étudier le signe, conclure dans le contexte.`,
+  chk:[['eq',`diff(x*(${P/2}-x),x)`,`-2*x+${P/2}`],['sol',`Eq(-2*x+${P/2},0)`,'x',`FiniteSet(Rational(${P},4))`]]}}},
+{id:'O2',k:'ordre',f:()=>{const a=nz(-3,3);
+  return{title:`Position des courbes de ${f}(${Xv}) = ${Xv}² et ${g}(${Xv}) = ${lin(2*a,-a*a)}`,
+  steps:[`On étudie le signe de ${V('d')}(${Xv}) = ${f}(${Xv}) − ${g}(${Xv}).`,`${V('d')}(${Xv}) = ${poly([[1,2],[-2*a,1],[a*a,0]])} = (${Xv}${S(-a)})².`,`Un carré est positif ou nul : ${V('d')}(${Xv}) ≥ 0, nul seulement en ${M(a)}.`,`La parabole est au-dessus de la droite, qu'elle touche au point d'abscisse ${M(a)} (c'est la tangente en ${M(a)}).`],
+  explain:`Position relative de deux courbes = signe de la différence des fonctions.`,
+  chk:[['eq',`x**2-(${2*a}*x-(${a*a}))`,`(x-(${a}))**2`]]}}},
+{id:'F1',k:'faute',f:()=>{const a=ri(1,3),m=a*2+ri(1,3);
+  return{title:`Extremum de ${f}(${Xv}) = ${Xv}² − ${2*a}${Xv} sur [0 ; ${m}]`,
+  lines:[`${fp}(${Xv}) = 2${Xv} − ${2*a}, qui s'annule en ${a}.`,`${fp} est négative sur [0 ; ${a}] et positive sur [${a} ; ${m}].`,`Donc ${f}(${a}) = ${-a*a} est le maximum de ${f} sur [0 ; ${m}].`],wrong:2,
+  why:`${f} décroît puis croît : ${f}(${a}) = ${-a*a} est le <b>minimum</b>. Le maximum est atteint à une borne, ici ${f}(${m}) = ${m*m-2*a*m}.`,
+  bad:[`À la ligne 0, ${fp}(${Xv}) = 2${Xv}.`,`À la ligne 1, ${fp} est positive sur [0 ; ${a}].`],
+  explain:`Une dérivée « négative puis positive » donne un minimum. Sur un intervalle fermé, il faut aussi regarder les bornes : ${f}(0) = 0 et ${f}(${m}) = ${m*m-2*a*m}.`,
+  chk:[['eq',`diff(x**2-${2*a}*x,x)`,`2*x-${2*a}`],['T',`${m*m-2*a*m}>0`],['T',`${-a*a}<0`]]}}},
+{id:'F2',k:'faute',f:()=>{const L=6*ri(2,5);
+  return{title:'L\'intervalle d\'étude de la boîte',
+  lines:[`Carton carré de côté ${L} : on découpe un carré de côté ${Xv} à chaque coin.`,`Le fond est un carré de côté ${L} − 2${Xv}.`,`On étudie donc V(${Xv}) = ${Xv}(${L} − 2${Xv})² sur [0 ; ${L}].`],wrong:2,
+  why:`Il faut ${L} − 2${Xv} ≥ 0, c'est-à-dire ${Xv} ≤ ${L/2} : l'intervalle d'étude est [0 ; ${L/2}].`,
+  bad:[`À la ligne 1, le côté du fond est ${L} − ${Xv}.`,`À la ligne 0, on ne peut pas découper un carré à chaque coin.`],
+  explain:`Pour ${Xv} > ${L/2}, la longueur ${L} − 2${Xv} serait négative : la boîte n'existe pas. Un problème d'optimisation commence par le bon intervalle.`,
+  chk:[['sol',`${L}-2*x>=0`,'x',`Interval(-oo,${L/2})`]]}}},
+{id:'F3',k:'faute',f:()=>{const c=ri(2,6);
+  return{title:`Position de ${V('y')} = ${Xv}² + ${c} et ${V('y')} = 2${Xv}`,
+  lines:[`On étudie ${V('d')}(${Xv}) = ${Xv}² + ${c} − 2${Xv} = (${Xv} − 1)² + ${c-1}.`,`${V('d')}(${Xv}) ≥ ${c-1} > 0.`,`Donc la droite est au-dessus de la parabole.`],wrong:2,
+  why:`${V('d')} = (parabole) − (droite) ≥ 0 : c'est la <b>parabole</b> qui est au-dessus de la droite.`,
+  bad:[`À la ligne 0, ${Xv}² − 2${Xv} = (${Xv} − 1)².`,`À la ligne 1, un carré peut être négatif.`],
+  explain:`Si ${f}(${Xv}) − ${g}(${Xv}) ≥ 0, la courbe de ${f} est au-dessus de celle de ${g}. Ici la parabole est strictement au-dessus de la droite.`,
+  chk:[['eq',`x**2+${c}-2*x`,`(x-1)**2+${c-1}`]]}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si ${f} est dérivable sur [0 ; 1], elle atteint son maximum en un réel où ${fp} s'annule. »`,
+  choices:[[`Faux : ${f}(${Xv}) = ${Xv} atteint son maximum en 1, et ${fp}(${Xv}) = 1 ne s'annule jamais.`,1],[`Vrai : ${f}(${Xv}) = ${Xv}(1 − ${Xv}) atteint son maximum en 0,5 où ${fp} s'annule.`,0],[`Vrai : c'est le théorème du cours.`,0]],
+  explain:`Sur un intervalle fermé, un extremum peut être atteint à une borne. Le cours dit : en un extremum local <b>intérieur</b> à l'intervalle, ${fp} s'annule.`,chk:[['eq','diff(x,x)','1'],['eq','diff(x*(1-x),x).subs(x,Rational(1,2))','0']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si ${f}(${Xv}) − ${g}(${Xv}) ≥ 0 pour tout ${Xv} de ${V('I')}, la courbe de ${f} est au-dessus de celle de ${g} sur ${V('I')}. »`,
+  choices:[[`Vrai : pour chaque ${Xv}, le point de 𝒞${f} a une ordonnée supérieure ou égale à celle du point de 𝒞${g}.`,1],[`Faux : il faut aussi ${f}′ ≥ ${g}′.`,0],[`Faux : c'est la courbe de ${g} qui est au-dessus.`,0]],
+  explain:`C'est la définition de la position relative : on compare les ordonnées ${f}(${Xv}) et ${g}(${Xv}) à abscisse égale.`,chk:[]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`Parmi les rectangles de périmètre fixé, le carré a la plus grande aire :`,ans:'toujours',
+    explain:`Pour un périmètre 2${V('p')}, l'aire ${Xv}(${V('p')} − ${Xv}) est maximale en ${Xv} = ${V('p')}/2 : largeur = longueur.`,chk:[['eq','diff(x*(p-x),x).subs(x,p/2)','0'],['eq','diff(x*(p-x),x)','p-2*x']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`Une fonction dérivable sur ℝ dont la dérivée s'annule en un point admet un extremum local en ce point :`,ans:'parfois',
+    explain:`Oui pour ${Xv}² en 0 (la dérivée change de signe), non pour ${Xv}³ en 0.`,chk:[['eq','diff(x**3,x).subs(x,0)','0'],['eq','diff(x**2,x).subs(x,0)','0']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`Pour ${Xv} ≥ 0, on a ${N(Xv+'³ − 3'+Xv+' + 2 < 0')} :`,ans:'jamais',
+    explain:`Le minimum de ${Xv}³ − 3${Xv} + 2 sur [0 ; +∞[ vaut 0, atteint en 1.`,chk:[['tpj','x**3-3*x+2<0',['x'],'pos','jamais']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['Si f′ s\'annule en changeant de signe en a, f admet un extremum local en a.','La position de deux courbes se lit sur le signe de la différence f − g.','Une fonction qui admet un minimum m vérifie f(x) ≥ m pour tout x.','Un maximum est toujours atteint là où f′ s\'annule.'];
+  const pr=['B′(x) = −2x + 40 change de signe en 20 : le bénéfice est maximal pour 20 objets.','x² − (2x − 1) = (x − 1)² ≥ 0 : la parabole est au-dessus de la droite.','g a pour minimum 0 sur [0 ; +∞[ : donc g(x) ≥ 0 pour tout x ≥ 0.'][w];
+  return{title:'Quelle propriété justifie cette conclusion ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière phrase est fausse : un maximum peut être atteint à une borne de l'intervalle.`,chk:[['eq','x**2-(2*x-1)','(x-1)**2']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

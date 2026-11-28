@@ -1261,5 +1261,151 @@ LT.start();
   new MutationObserver(ms=>ms.forEach(m=>{m.addedNodes.forEach(fix);if(m.type==='characterData')fix(m.target)})).observe(document.body,{childList:true,subtree:true,characterData:true});
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — la-traceuse */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* La Traceuse — Première spécialité, chapitre 14 (géométrie repérée) : équation cartésienne, vecteur directeur et
+   vecteur normal, droites perpendiculaires, projeté orthogonal d'un point sur une droite, équations de cercle
+   (centre et rayon, cercle de diamètre [AB]). */
+const vc=s=>`<span class="vec">${s}</span>`,vi=s=>`<span class="vec it">${s}</span>`;
+const nn=vi('n'),Xv=V('x'),Yv=V('y');
+const cv=(a,b)=>`(${M(a)} ; ${M(b)})`;
+const cart=(a,b,c)=>`${poly([[a,1]],Xv)}${b<0?' − '+(b===-1?'':-b)+Yv:b>0?' + '+(b===1?'':b)+Yv:''}${c?S(c):''} = 0`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>{let a,b,x0,y0,t;do{a=nz(-3,3);b=nz(-3,3);x0=ri(-3,3);y0=ri(-3,3);t=nz(-2,2)}while(false);
+  // droite d : passe par A(x0,y0), normal (a,b). Point M = A + t(a,b) ; projeté de M sur d = A.
+  const c=-(a*x0+b*y0),mx=x0+t*a,my=y0+t*b;
+  return{title:`Projeté orthogonal de M${cv(mx,my)} sur la droite ${V('d')} : ${cart(a,b,c)}`,
+  html:`<ol><li>Un vecteur normal à ${V('d')} est ${nn}{0}.</li><li>Le projeté H de M est le point de ${V('d')} tel que ${vc('MH')} est {1} à ${nn}.</li>
+<li>On vérifie que A${cv(x0,y0)} convient : A ∈ ${V('d')} car ${a} × ${P(x0)}${S(b)} × ${P(y0)}${c?S(c):''} = 0, et ${vc('MA')}${cv(x0-mx,y0-my)} = {2} × ${nn}.</li>
+<li>Donc H = A et la distance de M à ${V('d')} est MA = {3}.</li></ol>`,
+  blanks:[[tx(cv(a,b)),[[-b,a],[b,a],[a,-b],[-a,b],[a+1,b]].filter(([p,q])=>p*b-q*a!==0).map(([p,q])=>tx(cv(p,q))).filter((z,i,ar)=>ar.indexOf(z)===i).slice(0,2)],['colinéaire',['orthogonal','égal']],[M(-t),LN(-t,[t])],[`√${t*t*(a*a+b*b)}`,[`${t*t*(a*a+b*b)}`,`√${a*a+b*b+1}`,`√${(Math.abs(t)+1)**2*(a*a+b*b)}`].filter((z,i,ar)=>z!==`√${t*t*(a*a+b*b)}`&&ar.indexOf(z)===i).slice(0,2)]],
+  explain:`Le projeté orthogonal H de M sur ${V('d')} est le point de ${V('d')} tel que (MH) ⟂ ${V('d')}, c'est-à-dire ${vc('MH')} colinéaire à un vecteur normal. C'est le point de ${V('d')} le plus proche de M.`,
+  chk:[['eq',`${a}*(${x0})+(${b})*(${y0})+(${c})`,'0'],['eq',`Matrix([${x0-mx},${y0-my}])`,`(${-t})*Matrix([${a},${b}])`],['eq',`sqrt((${x0-mx})**2+(${y0-my})**2)`,`sqrt(${t*t*(a*a+b*b)})`]]}}},
+{id:'D2',k:'demo',f:()=>{const xa=ri(-5,1),ya=ri(-4,4),xb=xa+2*ri(1,4),yb=ya+2*nz(-3,3);const xi=(xa+xb)/2,yi=(ya+yb)/2,r2=((xb-xa)**2+(yb-ya)**2)/4;
+  return{title:`Cercle de diamètre [AB] avec A${cv(xa,ya)} et B${cv(xb,yb)}`,
+  html:`<ol><li>Son centre est le {0} de [AB] : I${cv(xi,yi)}.</li><li>Son rayon est AB/2, et (AB/2)² = {1}.</li>
+<li>Une équation est (${Xv}${S(-xi)})² + (${Yv}${S(-yi)})² = ${r2}.</li><li>On peut aussi le caractériser par : M est sur le cercle si et seulement si ${vc('MA')} · ${vc('MB')} = {2}.</li></ol>`,
+  blanks:[['milieu',['symétrique','projeté']],[String(r2),LN(r2,[4*r2,2*r2])],['0',['1','AB']]],
+  explain:`AB² = ${(xb-xa)**2} + ${(yb-ya)**2} = ${4*r2}, donc (AB/2)² = ${r2}. Les deux caractérisations décrivent le même cercle (démonstration du chapitre sur le produit scalaire).`,
+  chk:[['eq',`((${xb}-(${xa}))**2+(${yb}-(${ya}))**2)/4`,`${r2}`],['eq',`(${xa}-(${xi}))**2+(${ya}-(${yi}))**2`,`${r2}`]]}}},
+{id:'D3',k:'demo',f:()=>{const a=nz(-4,4),b=nz(-4,4),x0=ri(-4,4),y0=ri(-4,4);const c2=-(-b*x0+a*y0);
+  return{title:`Perpendiculaire à ${V('d')} passant par A${cv(x0,y0)}`,
+  html:`<p>${V('d')} : ${cart(a,b,0)}.</p><ol><li>${nn}${cv(a,b)} est normal à ${V('d')}, donc il est {0} de toute perpendiculaire à ${V('d')}.</li>
+<li>Une perpendiculaire a donc un vecteur normal (${M(-b)} ; ${M(a)}) et une équation ${poly([[-b,1]],Xv)}${a<0?' − '+(a===-1?'':-a)+Yv:' + '+(a===1?'':a)+Yv} + ${V('c')} = 0.</li>
+<li>A est sur la droite : ${M(-b)} × ${P(x0)}${S(a)} × ${P(y0)} + ${V('c')} = 0, d'où ${V('c')} = {1}.</li></ol>`,
+  blanks:[['un vecteur directeur',['un vecteur normal','orthogonal à tout vecteur directeur']],[M(c2),LN(c2,[-c2])]],
+  explain:`Deux droites sont perpendiculaires si et seulement si un vecteur normal de l'une est directeur de l'autre (ou si leurs vecteurs normaux sont orthogonaux).`,
+  chk:[['eq',`(${-b})*(${x0})+(${a})*(${y0})+(${c2})`,'0'],['eq',`Matrix([${a},${b}]).dot(Matrix([${-b},${a}]))`,'0']]}}},
+{id:'O1',k:'ordre',f:()=>{const r=pick([5,10,13]);const pts={5:[3,4],10:[6,8],13:[5,12]}[r];
+  return{title:`Intersection du cercle ${N(Xv+'² + '+Yv+'² = '+r*r)} avec la droite ${Yv} = ${pts[1]}`,
+  steps:[`Un point commun vérifie les deux équations.`,`On remplace : ${Xv}² + ${pts[1]}² = ${r*r}.`,`${Xv}² = ${r*r-pts[1]**2}, donc ${Xv} = ${pts[0]} ou ${Xv} = −${pts[0]}.`,`Les points communs sont (${pts[0]} ; ${pts[1]}) et (−${pts[0]} ; ${pts[1]}).`],
+  explain:`On résout le système formé par les deux équations, en substituant ${Yv}.`,chk:[['sol',`Eq(x**2+${pts[1]}**2,${r*r})`,'x',`FiniteSet(${-pts[0]},${pts[0]})`]]}}},
+{id:'O2',k:'ordre',f:()=>{const a=nz(-4,4),b=nz(-4,4),x0=ri(-4,4),y0=ri(-4,4);const c=-(a*x0+b*y0);
+  return{title:`Équation de la droite passant par A${cv(x0,y0)} de vecteur normal ${nn}${cv(a,b)}`,
+  steps:[`M(${Xv} ; ${Yv}) appartient à la droite si et seulement si ${vc('AM')} · ${nn} = 0.`,`${vc('AM')}(${Xv}${S(-x0)} ; ${Yv}${S(-y0)}).`,`${a}(${Xv}${S(-x0)})${S(b)}(${Yv}${S(-y0)}) = 0.`,`${cart(a,b,c)}`],
+  explain:`Vecteur normal ⇒ produit scalaire nul avec ${vc('AM')} ; on développe pour obtenir ${V('a')}${Xv} + ${V('b')}${Yv} + ${V('c')} = 0.`,
+  chk:[['eq',`${a}*(x-(${x0}))+(${b})*(y-(${y0}))`,`${a}*x+(${b})*y+(${c})`]]}}},
+{id:'F1',k:'faute',f:()=>{const xa=ri(-5,1),ya=ri(-4,4),xb=xa+2*ri(1,4),yb=ya+2*nz(-3,3);const xi=(xa+xb)/2,yi=(ya+yb)/2,ab2=(xb-xa)**2+(yb-ya)**2;
+  return{title:`Cercle de diamètre [AB], A${cv(xa,ya)}, B${cv(xb,yb)}`,
+  lines:[`Centre : I${cv(xi,yi)}, milieu de [AB].`,`AB² = ${ab2}.`,`Équation : (${Xv}${S(-xi)})² + (${Yv}${S(-yi)})² = ${ab2}.`],wrong:2,
+  why:`Le rayon est AB/2, donc le second membre est (AB/2)² = AB²/4 = ${ab2/4}.`,
+  bad:[`À la ligne 0, le centre est A.`,`À la ligne 1, AB² = ${Math.abs(xb-xa)+Math.abs(yb-ya)}.`],
+  explain:`Avec ${ab2} au second membre, on obtiendrait le cercle de centre I et de rayon AB, deux fois trop grand. Contrôle : A doit vérifier l'équation, (${M(xa)}${S(-xi)})² + (${M(ya)}${S(-yi)})² = ${ab2/4}.`,
+  chk:[['eq',`(${xa}-(${xi}))**2+(${ya}-(${yi}))**2`,`${ab2/4}`],['ne',`${ab2}`,`${ab2/4}`]]}}},
+{id:'F2',k:'faute',f:()=>{const xo=nz(-4,4),yo=nz(-4,4),r=ri(2,6);
+  return{title:`Centre du cercle (${Xv}${S(-xo)})² + (${Yv}${S(-yo)})² = ${r*r}`,
+  lines:[`L'équation est de la forme (${Xv} − ${V('a')})² + (${Yv} − ${V('b')})² = ${V('r')}².`,`On lit ${V('a')} = ${M(-xo)} et ${V('b')} = ${M(-yo)}.`,`Le centre est (${M(-xo)} ; ${M(-yo)}) et le rayon ${r}.`],wrong:1,
+  why:`${Xv}${S(-xo)} = ${Xv} − ${P(xo)} : on lit ${V('a')} = ${M(xo)} et ${V('b')} = ${M(yo)}.`,
+  bad:[`À la ligne 2, le rayon est ${r*r}.`,`À la ligne 0, une équation de cercle s'écrit ${V('a')}${Xv} + ${V('b')}${Yv} + ${V('c')} = 0.`],
+  explain:`Centre (${M(xo)} ; ${M(yo)}), rayon √${r*r} = ${r}. Contrôle : le centre annule les deux parenthèses.`,
+  chk:[['eq',`(${xo}-(${xo}))**2+(${yo}-(${yo}))**2`,'0']]}}},
+{id:'F3',k:'faute',f:()=>{const a=nz(-4,4),b=nz(-4,4),c=nz(-6,6);
+  return{title:`Perpendiculaire à ${cart(a,b,c)}`,
+  lines:[`${V('d')} : ${cart(a,b,c)} a pour vecteur normal (${M(a)} ; ${M(b)}).`,`Une perpendiculaire à ${V('d')} a le même vecteur normal (${M(a)} ; ${M(b)}).`,`Elle a donc une équation ${cart(a,b,0).replace(' = 0','')} + ${V('c′')} = 0.`],wrong:1,
+  why:`Des droites qui ont le même vecteur normal sont <b>parallèles</b>. Une perpendiculaire a pour vecteur normal un vecteur directeur de ${V('d')}, par exemple (${M(-b)} ; ${M(a)}).`,
+  bad:[`À la ligne 0, le vecteur normal est (${M(-b)} ; ${M(a)}).`,`À la ligne 2, il manque un terme constant.`],
+  explain:`Une perpendiculaire à ${V('d')} a une équation de la forme ${poly([[-b,1]],Xv)}${a<0?' − '+(a===-1?'':-a)+Yv:' + '+(a===1?'':a)+Yv} + ${V('c′')} = 0.`,
+  chk:[['eq',`Matrix([${a},${b}]).dot(Matrix([${-b},${a}]))`,'0']]}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Le projeté orthogonal H d'un point M sur une droite ${V('d')} est le point de ${V('d')} le plus proche de M. »`,
+  choices:[[`Vrai : pour tout point N de ${V('d')}, MN² = MH² + HN² ≥ MH² (Pythagore dans MHN rectangle en H).`,1],[`Faux : c'est le point de ${V('d')} le plus éloigné de M.`,0],[`Faux : H peut être n'importe quel point de ${V('d')}.`,0]],
+  explain:`Le triangle MHN est rectangle en H : MN ≥ MH, avec égalité seulement si N = H. MH est la distance de M à ${V('d')}.`,chk:[['tpj','m**2+h**2>=m**2',['m','h'],'R','toujours']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Les droites ${N('2'+Xv+' + 3'+Yv+' − 1 = 0')} et ${N('3'+Xv+' − 2'+Yv+' + 4 = 0')} sont perpendiculaires. »`,
+  choices:[[`Vrai : leurs vecteurs normaux (2 ; 3) et (3 ; −2) ont un produit scalaire 6 − 6 = 0.`,1],[`Faux : leurs vecteurs normaux ne sont pas colinéaires.`,0],[`Faux : 2 × 3 + 3 × (−2) ≠ 0.`,0]],
+  explain:`Deux droites sont perpendiculaires si et seulement si leurs vecteurs normaux sont orthogonaux.`,chk:[['eq','Matrix([2,3]).dot(Matrix([3,-2]))','0']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`(${V('a')} ; ${V('b')}) ≠ (0 ; 0). Le vecteur (${V('a')} ; ${V('b')}) est normal à la droite ${V('a')}${Xv} + ${V('b')}${Yv} + ${V('c')} = 0 :`,ans:'toujours',explain:`Un vecteur directeur est (−${V('b')} ; ${V('a')}) et (${V('a')} ; ${V('b')}) · (−${V('b')} ; ${V('a')}) = 0.`,chk:[['eq','a*(-b)+b*a','0']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`Une droite et un cercle ont deux points communs :`,ans:'parfois',explain:`Zéro, un (tangente) ou deux points selon la distance du centre à la droite comparée au rayon.`,chk:[['sol','Eq(x**2+0**2,1)','x','FiniteSet(-1,1)'],['sol','Eq(x**2+2**2,1)','x','EmptySet']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`Deux droites de même vecteur normal sont perpendiculaires :`,ans:'jamais',explain:`Même vecteur normal ⇒ même direction : elles sont parallèles (ou confondues).`,chk:[['ne','Matrix([1,2]).dot(Matrix([1,2]))','0']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['Un vecteur normal à ax + by + c = 0 est (a ; b).','Le cercle de diamètre [AB] a pour centre le milieu de [AB] et pour rayon AB/2.','Le projeté orthogonal H de M sur d est le point de d le plus proche de M.','Deux droites de même vecteur normal sont perpendiculaires.'];
+  const pr=['La droite 3x − y + 2 = 0 est orthogonale au vecteur (3 ; −1).','A(0 ; 0), B(6 ; 8) : le cercle de diamètre [AB] a pour centre (3 ; 4) et pour rayon 5.','La distance du point M à la droite d est la longueur MH.'][w];
+  return{title:'Quelle propriété justifie cette conclusion ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière phrase est fausse : même vecteur normal signifie droites parallèles.`,chk:[['eq','sqrt(6**2+8**2)/2','5']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

@@ -682,5 +682,144 @@ SigmaKit.init({game:'carrefour-des-parcours',title:'Le Carrefour des parcours',l
   levelNames:['Le tableau des salaires','Le risque de chômage','Actifs et inactifs','Le coût d\'opportunité','Le point de rentabilité','Trois façons d\'être rentable','Corrélation ou causalité ?'],
   music:'aventure',finals:{bronze:()=>(window.CP_last=CP_FIN.bronze()),argent:()=>(window.CP_last=CP_FIN.argent()),or:()=>(window.CP_last=CP_FIN.or())}});
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — carrefour-des-parcours */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Le Carrefour des parcours — SES, Seconde (diplôme, emploi et salaire) : salaire médian, taux de chômage,
+   population active (emploi + chômeurs) et inactifs, points de pourcentage et rapport de taux, coût d'opportunité,
+   point de rentabilité (calcul simplifié), corrélation et causalité. */
+const eur=n=>`${String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ')} €`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>{const E=ri(40,90)*10,C=ri(4,12)*10,I=ri(20,60)*10;const t=Math.round(C/(E+C)*1000)/10;
+  return{title:'Calculer un taux de chômage',
+  html:`<p>Dans une population, ${E} personnes ont un emploi, ${C} sont au chômage et ${I} sont inactives.</p><ol>
+<li>La population active regroupe les personnes {0} et les chômeurs : ${E} + ${C} = ${E+C}.</li><li>Les ${I} inactifs {1} dans la population active.</li>
+<li>Taux de chômage = ${C} ÷ {2} × 100 ${AP(C/(E+C)*100,1)} {3} %.</li></ol>`,
+  blanks:[['en emploi',['inactives','retraitées']],["n'entrent pas",['entrent','comptent double']],[String(E+C),LN(E+C,[E+C+I,E])],[fx(t),[fx(Math.round(C/(E+C+I)*1000)/10),fx(Math.round(C/E*1000)/10)].filter(x=>x!==fx(t))]],
+  explain:`Taux de chômage = chômeurs ÷ population active × 100 ; la population active = personnes en emploi + chômeurs. Les inactifs (ni en emploi, ni en recherche d'emploi) ne comptent pas : ${C} ÷ ${E+C} × 100 ${AP(C/(E+C)*100,1)} ${fx(t)} %.`,
+  chk:[['T',`Abs(${C}/${E+C}*100-Rational('${t}'))<=Rational(1,20)`]]}}},
+{id:'D2',k:'demo',f:()=>{const a=pick([4,5,8]),k=pick([2,3]),b=a*k,c=a+pick([1,2,3]);
+  return{title:'Points de pourcentage ou pourcentage ?',
+  html:`<p>Le taux de chômage est de ${b} % pour un premier groupe et de ${a} % pour un second.</p><ol>
+<li>L'écart entre les deux taux est de ${b} − ${a} = {0} points de pourcentage.</li><li>Le rapport ${b} ÷ ${a} = {1} : c'est le nombre de fois où le taux du premier groupe est plus élevé.</li>
+<li>Si le taux du second groupe passe de ${a} % à ${c} %, il augmente de {2} points, soit une hausse de {3} %.</li></ol>`,
+  blanks:[[String(b-a),LN(b-a,[b+a])],[String(k),LN(k,[b-a])],[String(c-a),LN(c-a,[c])],[fx((c-a)/a*100),[String(c-a),fx(c/a*100)].filter(x=>x!==fx((c-a)/a*100))]],
+  explain:`La différence de deux taux s'exprime en <b>points</b> ; leur rapport en « fois plus ». Passer de ${a} % à ${c} %, c'est +${c-a} points, mais une hausse de ${c-a} ÷ ${a} × 100 = ${fx((c-a)/a*100)} % du taux lui-même.`,
+  chk:[['eq',`${b}/${a}`,`${k}`],['blank',3,`Eq(@,(${c}-${a})*100/Rational(${a}))`]]}}},
+{id:'D3',k:'demo',f:()=>{const m=pick([12,24,36]),s=pick([1300,1370,1400]),g=pick([300,400,500,600]);const C=m*s,T=Math.ceil(C/g);
+  return{title:'Le point de rentabilité des études (calcul simplifié)',
+  html:`<p>Poursuivre ${m} mois d'études, c'est renoncer pendant ce temps à un salaire de ${eur(s)} par mois. Ensuite, le diplôme rapporte ${eur(g)} de plus par mois (salaires constants, ni frais ni impôts).</p><ol>
+<li>Le coût d'opportunité est le salaire {0} : ${m} × ${s} = {1} €.</li><li>Il faut ${C} ÷ ${g} ≈ ${fx(Math.round(C/g*10)/10)} mois de gains supplémentaires pour le rattraper.</li>
+<li>Les études deviennent rentables au bout de {2} mois de travail après le diplôme.</li></ol>`,
+  blanks:[['auquel on renonce',['que l\'on gagnera','des enseignants']],[String(C),LN(C,[s+m,C+g])],[String(T),LN(T,[Math.floor(C/g)===T?T-1:Math.floor(C/g),m])]],
+  explain:`Coût d'opportunité : la valeur de ce à quoi on renonce (ici ${m} mois de salaire, ${eur(C)}). Les gains supplémentaires cumulés dépassent ce coût à partir de ${T} mois, car ${T} × ${g} = ${T*g} ≥ ${C}.`,
+  chk:[['eq',`${m}*${s}`,`${C}`],['T',`And(${T}*${g}>=${C},${T-1}*${g}<${C})`]]}}},
+{id:'O1',k:'ordre',f:()=>({title:'De la corrélation à la causalité',
+  steps:[`On constate que plus le diplôme est élevé, plus le taux de chômage est faible : c'est une corrélation négative.`,`Une corrélation ne suffit pas à affirmer une causalité : on cherche un mécanisme.`,`Mécanisme : le diplôme atteste un capital humain (compétences) recherché par les employeurs.`,`Conclusion prudente : le diplôme protège du chômage, sans le garantir.`],
+  explain:`Constater, s'interroger, expliquer par un mécanisme, puis conclure avec nuance : c'est la démarche des sciences économiques et sociales.`,chk:[]})},
+{id:'O2',k:'ordre',f:()=>{const E=ri(50,90)*10,C=ri(4,12)*10;const t=Math.round(C/(E+C)*1000)/10;
+  return{title:'Calculer un taux de chômage',prompt:`${E} personnes en emploi, ${C} chômeurs.`,
+  steps:[`On identifie les chômeurs : ${C}.`,`On calcule la population active : ${E} + ${C} = ${E+C}.`,`On divise : ${C} ÷ ${E+C} ≈ ${fx(Math.round(C/(E+C)*10000)/10000)}.`,`On multiplie par 100 : le taux de chômage est ${AP(C/(E+C)*100,1)==='='?'de':'d\'environ'} ${fx(t)} %.`],
+  explain:`Le taux de chômage se lit « sur 100 actifs », pas « sur 100 habitants ».`,chk:[['T',`Abs(${C}/${E+C}*100-Rational('${t}'))<=Rational(1,20)`]]}}},
+{id:'F1',k:'faute',f:()=>{const E=ri(40,80)*10,C=ri(4,10)*10,I=ri(30,60)*10;
+  return{title:'Un taux de chômage mal calculé',
+  lines:[`${E} personnes en emploi, ${C} chômeurs, ${I} inactifs.`,`Population totale : ${E+C+I}.`,`Taux de chômage : ${C} ÷ ${E+C+I} × 100 ≈ ${fx(Math.round(C/(E+C+I)*1000)/10)} %.`],wrong:2,
+  why:`On divise par la population <b>active</b> (${E+C}), pas par la population totale : les inactifs ne comptent pas.`,
+  bad:[`À la ligne 1, la population totale est ${E+C}.`,`À la ligne 2, il fallait multiplier par 1 000.`],
+  explain:`Taux de chômage = chômeurs ÷ population active × 100 = ${C} ÷ ${E+C} × 100 ≈ ${fx(Math.round(C/(E+C)*1000)/10)} %. Il se lit « sur 100 actifs ».`,chk:[['ne',`${C}/${E+C+I}`,`${C}/${E+C}`]]}}},
+{id:'F2',k:'faute',f:()=>{const a=pick([5,8,10]),d=pick([1,2]),b=a+d;
+  return{title:'Interpréter une variation de taux',
+  lines:[`Le taux de chômage passe de ${a} % à ${b} %.`,`L'écart est de ${b} − ${a} = ${d}.`,`Le taux de chômage a donc augmenté de ${d} %.`],wrong:2,
+  why:`Une différence de deux taux s'exprime en <b>points</b> de pourcentage : +${d} points. En pourcentage, le taux augmente de ${fx(d/a*100)} %.`,
+  bad:[`À la ligne 1, l'écart est de ${a+b}.`,`À la ligne 2, un taux ne peut pas augmenter.`],
+  explain:`+${d} points de pourcentage, soit une hausse de ${d} ÷ ${a} × 100 = ${fx(d/a*100)} % du taux lui-même.`,chk:[['eq',`${d}/Rational(${a})*100`,`${d*100}/Rational(${a})`]]}}},
+{id:'F3',k:'faute',f:()=>({title:'Diplôme et emploi',
+  lines:[`Les diplômés du supérieur ont un taux de chômage plus faible que les non-diplômés.`,`Il y a donc une corrélation entre diplôme et accès à l'emploi.`,`Donc tout diplômé du supérieur trouve un emploi.`],wrong:2,
+  why:`Une corrélation porte sur des groupes et des fréquences : le diplôme protège du chômage, il ne le supprime pas. Des diplômés sont au chômage.`,
+  bad:[`À la ligne 1, il n'y a aucune corrélation.`,`L'énoncé est faux : les non-diplômés ont un taux de chômage plus faible.`],
+  explain:`Passer d'une tendance statistique à une certitude individuelle est une erreur de raisonnement : il faudrait que le taux de chômage des diplômés soit nul.`,chk:[]})},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Une personne inactive est une personne au chômage. »`,
+  choices:[[`Faux : un chômeur cherche activement un emploi et est disponible ; un inactif n'a pas d'emploi et n'en cherche pas (élève, retraité…).`,1],[`Vrai : dans les deux cas, la personne n'a pas d'emploi.`,0],[`Vrai : les inactifs font partie de la population active.`,0]],
+  explain:`Population active = personnes en emploi + chômeurs. Les inactifs sont en dehors : ils n'entrent pas dans le calcul du taux de chômage.`,chk:[]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si le taux de chômage baisse, le nombre de chômeurs baisse forcément. »`,
+  choices:[[`Faux : 100 chômeurs pour 1 000 actifs (10 %), puis 105 chômeurs pour 1 200 actifs (8,75 %) : le taux baisse alors que le nombre de chômeurs augmente.`,1],[`Vrai : le taux est proportionnel au nombre de chômeurs.`,0],[`Vrai : 100 chômeurs pour 1 000 actifs, puis 90 pour 1 000 : le taux baisse.`,0]],
+  explain:`Le taux dépend aussi de la population active. Un exemple favorable ne prouve rien ; un contre-exemple suffit à réfuter l'affirmation.`,chk:[['eq','Rational(105,1200)*100','Rational(875,100)'],['eq','Rational(100,1000)*100','10']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`Un taux de chômage est inférieur ou égal à 100 % :`,ans:'toujours',
+    explain:`Les chômeurs font partie de la population active : leur nombre ne peut pas la dépasser.`,chk:[['tpj','a/(b+a)<=1',['a','b'],'Ns','toujours']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`Le salaire médian d'un groupe est égal à son salaire moyen :`,ans:'parfois',
+    explain:`La médiane partage les salariés en deux moitiés ; la moyenne est tirée vers le haut par les très hauts salaires. Elles coïncident rarement, mais c'est possible.`,chk:[['stat',[1500,1800,2100],'median',1800],['stat',[1500,1800,2100],'mean',1800],['stat',[1500,1800,6000],'mean',3100]]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`Une personne qui a un emploi rémunéré et déclaré est comptée parmi les chômeurs :`,ans:'jamais',
+    explain:`Un chômeur est sans emploi, en recherche active et disponible : une personne en emploi n'est jamais chômeuse.`,chk:[]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['Le coût d\'opportunité : ce à quoi on renonce en faisant un choix.','Le taux de chômage se calcule sur la population active.','Une corrélation ne prouve pas à elle seule une causalité.','Un diplôme garantit un emploi.'];
+  const pr=['Un étudiant qui poursuit ses études renonce au salaire qu\'il aurait pu toucher.','Les élèves et les retraités ne sont pas pris en compte dans le taux de chômage.','Plus le diplôme est élevé, plus le salaire médian est élevé : il faut encore expliquer par quel mécanisme.'][w];
+  return{title:'Quelle notion éclaire cette phrase ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière phrase est fausse : le diplôme protège du chômage, sans le garantir.`,chk:[]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

@@ -1051,5 +1051,143 @@ RZ.start();
     .observe(document.body,{childList:true,subtree:true,characterData:true});
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — regle-a-zeros */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* La Règle à zéros — Terminale technologique, chapitre 3 (logarithme décimal) : log(10ⁿ) = n, 10ˣ = b ⇔ x = log b
+   (b > 0), log(ab) = log a + log b, log(a/b), log(aⁿ) = n log a, équations et inéquations, échelle logarithmique,
+   taux d'évolution moyen. */
+const Xv=V('x'),lg=s=>`log(${s})`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>({title:'Pourquoi log(ab) = log(a) + log(b) ?',
+  html:`<p>${V('a')} et ${V('b')} sont strictement positifs.</p><ol><li>Par définition, ${V('a')} = 10<sup>log(${V('a')})</sup> et ${V('b')} = {0}.</li>
+<li>Donc ${V('a')}${V('b')} = 10<sup>log(${V('a')})</sup> × 10<sup>log(${V('b')})</sup> = 10<sup>{1}</sup>.</li>
+<li>Or ${V('a')}${V('b')} = 10<sup>log(${V('a')}${V('b')})</sup>, et 10<sup>${V('x')}</sup> = 10<sup>${V('y')}</sup> ⇔ ${V('x')} = ${V('y')} : donc log(${V('a')}${V('b')}) = {2}.</li></ol>`,
+  blanks:[['10^log(b)',['log(10b)','b^10']],['log(a) + log(b)',['log(a) × log(b)','log(a + b)']],['log(a) + log(b)',['log(a) × log(b)','log(a + b)']]],
+  explain:`Le logarithme décimal est l'exposant de 10 : il transforme les produits en sommes, comme 10<sup>${V('x')}</sup> × 10<sup>${V('y')}</sup> = 10<sup>${V('x')} + ${V('y')}</sup>.`,
+  chk:[['eq','log(10**(log(a,10)+log(b,10)),10)','log(a*b,10)'].map(x=>x)].slice(0,0).concat([['eq','log10(100*1000)','log10(100)+log10(1000)']])})},
+{id:'D2',k:'demo',f:()=>{const n=ri(2,6),m=ri(1,5);
+  return{title:`Calculer log(${'1'+'0'.repeat(n)}) − log(0,${'0'.repeat(m-1)}1)`,
+  html:`<ol><li>${'1'+'0'.repeat(n)} = 10<sup>{0}</sup>, donc ${lg('1'+'0'.repeat(n))} = ${n}.</li><li>0,${'0'.repeat(m-1)}1 = 10<sup>{1}</sup>.</li>
+<li>Donc la différence vaut ${n} − (${M(-m)}) = {2}.</li></ol>`,
+  blanks:[[String(n),LN(n,[n+1])],[M(-m),LN(-m,[m,-(m+1)])],[String(n+m),LN(n+m,[n-m])]],
+  explain:`log(10<sup>${V('n')}</sup>) = ${V('n')} : le logarithme décimal « compte les zéros », négativement pour les nombres inférieurs à 1.`,
+  chk:[['eq',`log10(10**${n})-log10(10**(-${m}))`,`${n+m}`]]}}},
+{id:'D3',k:'demo',f:()=>{let b,n;do{b=pick([2,3,5,7]);n=ri(2,5)}while(b===n||(b===2&&n===2));
+  return{title:`Résoudre 10<sup>${Xv}</sup> = ${b}<sup>${n}</sup>`,
+  html:`<ol><li>Pour ${V('b')} > 0, 10<sup>${Xv}</sup> = ${V('b')} ⇔ ${Xv} = {0}.</li><li>Donc ${Xv} = log(${b}<sup>${n}</sup>) = {1}.</li><li>Une valeur approchée est ${Xv} ≈ {2}.</li></ol>`,
+  blanks:[['log(b)',['10^b','b/10']],[`${n} log(${b})`,[`log(${n*b})`,`${n} + log(${b})`]],[fx(Math.round(n*Math.log10(b)*1000)/1000),[fx(Math.round(Math.log10(n*b)*1000)/1000),fx(Math.round((n+Math.log10(b))*1000)/1000)]]],
+  explain:`log(${V('a')}<sup>${V('n')}</sup>) = ${V('n')} log(${V('a')}) : log(${b}<sup>${n}</sup>) = ${n} × log(${b}) ≈ ${fx(Math.round(n*Math.log10(b)*1000)/1000)}.`,
+  chk:[['eq',`log10(${b}**${n})`,`${n}*log10(${b})`],['T',`Abs(${n}*log10(${b})-Rational('${Math.round(n*Math.log10(b)*1000)/1000}'))<Rational(1,1000)`]]}}},
+{id:'O1',k:'ordre',f:()=>{const q=pick([[11,10],[12,10],[105,100]]),s=pick([2,3]);
+  return{title:`Au bout de combien d'années une quantité est-elle multipliée par ${s} avec une hausse de ${(q[0]-q[1])*100/q[1]} % par an ?`,
+  steps:[`On cherche ${V('n')} tel que ${fx(q[0]/q[1])}<sup>${V('n')}</sup> ≥ ${s}.`,`La fonction log est croissante : cela équivaut à ${V('n')} × log(${fx(q[0]/q[1])}) ≥ log(${s}).`,`log(${fx(q[0]/q[1])}) > 0, donc ${V('n')} ≥ log(${s})/log(${fx(q[0]/q[1])}) ≈ ${fx(Math.round(Math.log10(s)/Math.log10(q[0]/q[1])*100)/100)}.`,`Il faut ${Math.ceil(Math.log10(s)/Math.log10(q[0]/q[1]))} ans.`],
+  explain:`On « fait descendre » l'exposant avec log(${V('a')}<sup>${V('n')}</sup>) = ${V('n')} log(${V('a')}), en vérifiant le signe de log(${fx(q[0]/q[1])}) avant de diviser.`,
+  chk:[['T',`Rational(${q[0]},${q[1]})**${Math.ceil(Math.log10(s)/Math.log10(q[0]/q[1]))}>=${s}`],['T',`Rational(${q[0]},${q[1]})**${Math.ceil(Math.log10(s)/Math.log10(q[0]/q[1]))-1}<${s}`]]}}},
+{id:'O2',k:'ordre',f:()=>{const a=pick([2,5]),b=pick([4,20]);
+  return{title:`Exprimer log(${a*b}) à l'aide de log(${a}) et log(${b})`,
+  steps:[`${a*b} = ${a} × ${b}.`,`log(${a*b}) = log(${a} × ${b}).`,`log(${a} × ${b}) = log(${a}) + log(${b}) (relation fonctionnelle).`,`Donc log(${a*b}) = log(${a}) + log(${b}).`],
+  explain:`On décompose le nombre en produit, puis on applique log(${V('a')}${V('b')}) = log(${V('a')}) + log(${V('b')}).`,chk:[['eq',`log10(${a*b})`,`log10(${a})+log10(${b})`]]}}},
+{id:'F1',k:'faute',f:()=>{const a=pick([2,3,4]),b=pick([5,6,7]);
+  return{title:`Calculer log(${a} + ${b})`,
+  lines:[`log(${a} + ${b})`,`= log(${a}) + log(${b})`,`= log(${a*b})`],wrong:1,
+  why:`Le logarithme transforme un <b>produit</b> en somme : log(${a} + ${b}) = log(${a+b}), qui n'est pas log(${a}) + log(${b}).`,
+  bad:[`À la ligne 2, log(${a}) + log(${b}) ne vaut pas log(${a*b}).`,`On ne peut pas calculer le logarithme d'une somme.`],
+  explain:`log(${a} + ${b}) = log(${a+b}) ≈ ${fx(Math.round(Math.log10(a+b)*1000)/1000)}, alors que log(${a}) + log(${b}) = log(${a*b}) ≈ ${fx(Math.round(Math.log10(a*b)*1000)/1000)}.`,
+  chk:[['seq',[`log10(${a}+${b})`,`log10(${a})+log10(${b})`,`log10(${a*b})`],1]]}}},
+{id:'F2',k:'faute',f:()=>{const n=ri(2,5),a=pick([2,3,5]);
+  return{title:`Calculer log(${a}<sup>${n}</sup>)`,
+  lines:[`log(${a}<sup>${n}</sup>)`,`= (log ${a})<sup>${n}</sup>`],wrong:1,
+  why:`log(${V('a')}<sup>${V('n')}</sup>) = ${V('n')} × log(${V('a')}) : l'exposant devient un facteur.`,
+  bad:[`Il fallait écrire log(${a}) + ${n}.`,`Le logarithme d'une puissance n'existe pas.`],
+  explain:`log(${a}<sup>${n}</sup>) = log(${a} × … × ${a}) = log(${a}) + … + log(${a}) = ${n} log(${a}) ≈ ${fx(Math.round(n*Math.log10(a)*1000)/1000)}.`,
+  chk:[['ne',`log10(${a})**${n}`,`${n}*log10(${a})`]]}}},
+{id:'F3',k:'faute',f:()=>{const q=pick([[1,2],[4,5],[9,10]]),s=pick([[1,10],[1,4]]);
+  return{title:`Résoudre ${fx(q[0]/q[1])}<sup>${V('n')}</sup> ≤ ${fx(s[0]/s[1])}`,
+  lines:[`${V('n')} log(${fx(q[0]/q[1])}) ≤ log(${fx(s[0]/s[1])})`,`${V('n')} ≤ log(${fx(s[0]/s[1])})/log(${fx(q[0]/q[1])})`],wrong:1,
+  why:`log(${fx(q[0]/q[1])}) < 0 car ${fx(q[0]/q[1])} < 1 : diviser par un nombre négatif change le sens de l'inégalité.`,
+  bad:[`À la ligne 0, il fallait écrire log(${V('n')}) × ${fx(q[0]/q[1])}.`,`À la ligne 1, il fallait multiplier au lieu de diviser.`],
+  explain:`En divisant par log(${fx(q[0]/q[1])}) < 0, on obtient ${V('n')} ≥ log(${fx(s[0]/s[1])})/log(${fx(q[0]/q[1])}) ≈ ${fx(Math.round(Math.log10(s[0]/s[1])/Math.log10(q[0]/q[1])*100)/100)} : une quantité qui diminue finit par passer sous le seuil.`,
+  chk:[['T',`log10(Rational(${q[0]},${q[1]}))<0`]]}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Pour tous réels strictement positifs ${V('a')} et ${V('b')}, log(${V('a')} + ${V('b')}) = log(${V('a')}) × log(${V('b')}). »`,
+  choices:[[`Faux : log(10 + 10) = log(20) ≈ 1,3 alors que log(10) × log(10) = 1.`,1],[`Vrai : c'est la relation fonctionnelle.`,0],[`Faux : log(${V('a')} + ${V('b')}) = log(${V('a')}) + log(${V('b')}).`,0]],
+  explain:`La relation fonctionnelle porte sur le produit : log(${V('a')}${V('b')}) = log(${V('a')}) + log(${V('b')}). Il n'y a pas de formule pour log(${V('a')} + ${V('b')}).`,chk:[['ne','log10(20)','log10(10)*log10(10)']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Sur une échelle logarithmique, des graduations régulièrement espacées correspondent à des valeurs multipliées par un même nombre. »`,
+  choices:[[`Vrai : 1, 10, 100, 1 000 ont pour logarithmes 0, 1, 2, 3, régulièrement espacés.`,1],[`Faux : les valeurs augmentent d'une même quantité.`,0],[`Faux : une échelle logarithmique n'est pas graduée.`,0]],
+  explain:`Le logarithme transforme les produits en sommes : multiplier par 10 revient à avancer d'une unité sur l'échelle.`,chk:[['eq','log10(1000)-log10(100)','log10(100)-log10(10)']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`${V('a')} > 0. 10<sup>log(${V('a')})</sup> = ${V('a')} :`,ans:'toujours',explain:`log(${V('a')}) est par définition l'exposant à donner à 10 pour obtenir ${V('a')}.`,chk:[['tpj','Eq(10**log10(a),a)',['a'],'pos','toujours']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`${V('a')} > 0. log(${V('a')}) > 0 :`,ans:'parfois',explain:`log(${V('a')}) > 0 si ${V('a')} > 1, log(${V('a')}) < 0 si 0 < ${V('a')} < 1.`,chk:[['tpj','log10(a)>0',['a'],'pos','parfois']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`${Xv} est un réel. 10<sup>${Xv}</sup> = −1 :`,ans:'jamais',explain:`10<sup>${Xv}</sup> > 0 pour tout réel ${Xv} : un nombre négatif n'a pas de logarithme.`,chk:[['tpj','10**x>0',['x'],'R','toujours']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['log(ab) = log(a) + log(b)','log(aⁿ) = n log(a)','10ˣ = b ⇔ x = log(b) (b > 0)','log(a + b) = log(a) + log(b)'];
+  const pr=['log(200) = log(2) + 2.','log(8) = 3 log(2).','10ˣ = 7 ⇔ x = log(7).'][w];
+  return{title:'Quelle propriété justifie ce calcul ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]}. La dernière égalité est fausse.`,chk:[['eq','log10(200)','log10(2)+2'],['eq','log10(8)','3*log10(2)']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

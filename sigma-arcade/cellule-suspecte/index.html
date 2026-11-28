@@ -1786,5 +1786,143 @@ start(CHF || 1);
 })();
 
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — cellule-suspecte */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Cellule suspecte — Terminale technologique (erreurs fréquentes, tous chapitres) : suites, fonctions qˣ,
+   logarithme décimal, fonction inverse, probabilités conditionnelles, loi binomiale, statistiques à deux variables. */
+const Xv=V('x'),n=V('n');
+const u=k=>`${V('u')}<sub>${k}</sub>`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>{const t=pick([10,20,25]);const c=(1+t/100)*(1-t/100);
+  return{title:`+${t} % puis −${t} % : retour au départ ?`,
+  html:`<ol><li>Une hausse de ${t} % multiplie par {0} ; une baisse de ${t} % multiplie par ${fx(1-t/100)}.</li><li>Le coefficient global est ${fx(1+t/100)} × ${fx(1-t/100)} = {1}.</li>
+<li>C'est une baisse de {2} % : on ne revient pas au départ.</li></ol>`,
+  blanks:[[fx(1+t/100),[fx(t/100),String(t)]],[fx(c),['1',fx(1+t/100+1-t/100)]],[fx(Math.round((1-c)*10000)/100),['0',String(t)]]],
+  explain:`Les évolutions successives se composent par produit des coefficients multiplicateurs, jamais par addition des pourcentages.`,
+  chk:[['eq',`Rational(${100+t},100)*Rational(${100-t},100)`,`1-Rational(${t*t},10000)`]]}}},
+{id:'D2',k:'demo',f:()=>{const b=pick([2,3,5]),N0=ri(2,4);
+  return{title:`Résoudre ${b}<sup>${Xv}</sup> = ${b**N0} avec le logarithme`,
+  html:`<ol><li>Les deux membres sont strictement positifs ; on prend le logarithme décimal : log(${b}<sup>${Xv}</sup>) = log(${b**N0}).</li><li>D'après la propriété log(${V('a')}<sup>${Xv}</sup>) = {0}, on obtient ${Xv} log(${b}) = log(${b**N0}).</li>
+<li>Comme log(${b}) ≠ 0, ${Xv} = log(${b**N0})/log(${b}) = {1}.</li></ol>`,
+  blanks:[['x log(a)',['log(a) + x','a log(x)']],[String(N0),LN(N0,[b**N0/b])]],
+  explain:`On « descend » l'exposant avec le logarithme. Contrôle : ${b}<sup>${N0}</sup> = ${b**N0}.`,chk:[['eq',`log10(${b**N0})/log10(${b})`,`${N0}`]]}}},
+{id:'D3',k:'demo',f:()=>{const pp=pick([[1,3],[1,5],[1,4]]);
+  return{title:`B(4 ; ${F(...pp)}) : probabilité d'au moins un succès`,
+  html:`<ol><li>« Au moins un succès » a pour événement contraire {0}.</li><li>${V('P')}(${V('X')} = 0) = {1}.</li><li>${V('P')}(${V('X')} ≥ 1) = {2}.</li></ol>`,
+  blanks:[['« aucun succès »',['« un seul succès »','« 4 succès »']],[`(${F(pp[1]-pp[0],pp[1])})⁴`,[`(${F(...pp)})⁴`,`1 − (${F(...pp)})⁴`]],[F(pp[1]**4-(pp[1]-pp[0])**4,pp[1]**4),LF(pp[1]**4-(pp[1]-pp[0])**4,pp[1]**4,[[4*pp[0],pp[1]],[(pp[1]-pp[0])**4,pp[1]**4]])]],
+  explain:`Un seul chemin ne comporte aucun succès ; on prend le complément à 1.`,chk:[['eq',`1-(1-Rational(${pp[0]},${pp[1]}))**4`,`Rational(${pp[1]**4-(pp[1]-pp[0])**4},${pp[1]**4})`]]}}},
+{id:'O1',k:'ordre',f:()=>{const u0=pick([1000,2000]),q=pick([[9,10],[4,5]]);let N0=0;while(u0*(q[0]/q[1])**N0>=u0/2-1e-9)N0++;
+  return{title:`Quand ${u(n)} = ${u0} × ${fx(q[0]/q[1])}<sup>${n}</sup> passe-t-il sous ${u0/2} ?`,
+  steps:[`On cherche le plus petit ${n} tel que ${fx(q[0]/q[1])}<sup>${n}</sup> < 0,5.`,`On prend le logarithme (fonction croissante) : ${n} log(${fx(q[0]/q[1])}) < log(0,5).`,`log(${fx(q[0]/q[1])}) < 0 : en divisant, on change le sens, ${n} > log(0,5)/log(${fx(q[0]/q[1])}) ≈ ${fx(Math.round(Math.log10(0.5)/Math.log10(q[0]/q[1])*100)/100)}.`,`Le plus petit entier convenable est ${N0}.`],
+  explain:`Erreur fréquente : oublier de changer le sens en divisant par un logarithme négatif.`,
+  chk:[['T',`${u0}*Rational(${q[0]},${q[1]})**${N0}<${u0/2}`],['T',`${u0}*Rational(${q[0]},${q[1]})**${N0-1}>=${u0/2}`]]}}},
+{id:'O2',k:'ordre',f:()=>({title:'Dériver et étudier x ↦ 2x + 8/x sur ]0 ; +∞[',
+  steps:[`${V('f')}′(${Xv}) = 2 − 8/${Xv}², car la dérivée de 1/${Xv} est −1/${Xv}².`,`${V('f')}′(${Xv}) = (2${Xv}² − 8)/${Xv}² = 2(${Xv} − 2)(${Xv} + 2)/${Xv}².`,`Sur ]0 ; +∞[, ${V('f')}′ est négative sur ]0 ; 2[ et positive sur ]2 ; +∞[.`,`${V('f')} admet un minimum en 2, égal à ${V('f')}(2) = 8.`],
+  explain:`Dérivée, mise au même dénominateur, factorisation, signe sur l'intervalle d'étude, conclusion.`,chk:[['eq','diff(2*x+8/x,x)','2*(x-2)*(x+2)/x**2'],['eq','2*2+8/2','8']]})},
+{id:'F1',k:'faute',f:()=>{const u0=ri(2,9),r=ri(2,5);
+  return{title:`Nature de la suite ${u(n)} = ${u0} + ${r}${n}`,
+  lines:[`${u(n+'+1')} = ${u0} + ${r}(${n} + 1) = ${u(n)} + ${r}.`,`On ajoute ${r} à chaque étape.`,`La suite est donc géométrique de raison ${r}.`],wrong:2,
+  why:`Ajouter un nombre constant caractérise une suite <b>arithmétique</b> (de raison ${r}). Géométrique : on multiplie par un nombre constant.`,
+  bad:[`À la ligne 0, ${u(n+'+1')} = ${u(n)} × ${r}.`,`À la ligne 1, on ajoute ${r}${n}.`],
+  explain:`Contrôle : ${u(0)} = ${u0}, ${u(1)} = ${u0+r}, ${u(2)} = ${u0+2*r} : différences constantes ${r}, quotients non constants.`,
+  chk:[['eq',`${u0}+${r}*(n+1)-(${u0}+${r}*n)`,`${r}`],['ne',`Rational(${u0+r},${u0})`,`Rational(${u0+2*r},${u0+r})`]]}}},
+{id:'F2',k:'faute',f:()=>{const a=pick([2,3,4]),b=pick([5,6,7]);
+  return{title:`log(${a}) + log(${b})`,
+  lines:[`log(${a}) + log(${b})`,`= log(${a} + ${b})`,`= log(${a+b})`],wrong:1,
+  why:`log(${V('a')}) + log(${V('b')}) = log(${V('a')}${V('b')}) : log(${a}) + log(${b}) = log(${a*b}).`,
+  bad:[`À la ligne 2, ${a} + ${b} ne vaut pas ${a+b}.`,`On ne peut pas additionner deux logarithmes.`],
+  explain:`Contrôle : log(${a}) + log(${b}) ≈ ${fx(Math.round(Math.log10(a*b)*1000)/1000)} et log(${a+b}) ≈ ${fx(Math.round(Math.log10(a+b)*1000)/1000)}.`,
+  chk:[['seq',[`log10(${a})+log10(${b})`,`log10(${a}+${b})`,`log10(${a+b})`],1]]}}},
+{id:'F3',k:'faute',f:()=>({title:'Inversion du conditionnement',
+  lines:[`Parmi les clients qui ont acheté un parapluie, 80 % ont aussi acheté des bottes.`,`Donc 80 % des clients qui ont acheté des bottes ont aussi acheté un parapluie.`],wrong:1,
+  why:`On a confondu ${V('P')}<sub>P</sub>(B) et ${V('P')}<sub>B</sub>(P) : ils sont différents en général (ils ne sont égaux que si les deux groupes ont la même taille).`,
+  bad:[`À la ligne 0, 80 % doit s'écrire 0,8.`,`Ces deux pourcentages sont toujours égaux.`],
+  explain:`Exemple : 100 acheteurs de parapluie dont 80 de bottes, et 400 acheteurs de bottes : seuls 80/400 = 20 % d'entre eux ont acheté un parapluie.`,
+  chk:[['eq','Rational(80,400)','Rational(20,100)']]})},
+{id:'F4',k:'faute',f:()=>({title:'Comparer deux inverses',
+  lines:[`−4 < 2.`,`La fonction inverse est décroissante, donc 1/(−4) > 1/2.`],wrong:1,
+  why:`La fonction inverse est décroissante sur ]−∞ ; 0[ et sur ]0 ; +∞[ séparément : on ne peut pas comparer ainsi un négatif et un positif.`,
+  bad:[`À la ligne 0, −4 > 2.`,`1/(−4) n'existe pas.`],explain:`1/(−4) = −0,25 < 1/2 = 0,5.`.replace(/$/,' Un nombre négatif a un inverse négatif.'),chk:[['T','1/(-4)<Rational(1,2)']]})},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si ${V('X')} suit B(10 ; 0,3), alors on obtient 3 succès à chaque série de 10 épreuves. »`,
+  choices:[[`Faux : ${V('E')}(${V('X')}) = 3 est une moyenne ; ${V('P')}(${V('X')} = 3) ≈ 0,27 seulement.`,1],[`Vrai : 10 × 0,3 = 3.`,0],[`Vrai : la loi binomiale est fixe.`,0]],
+  explain:`L'espérance décrit la moyenne sur un grand nombre de séries, pas le résultat d'une série.`,chk:[['T','Abs(binomial(10,3)*Rational(3,10)**3*Rational(7,10)**7-Rational(27,100))<Rational(1,100)']]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Pour ${Xv} > 0, log(${Xv}<sup>3</sup>) = 3 log(${Xv}). »`,
+  choices:[[`Vrai : log(${Xv} × ${Xv} × ${Xv}) = log(${Xv}) + log(${Xv}) + log(${Xv}).`,1],[`Faux : log(${Xv}<sup>3</sup>) = (log ${Xv})<sup>3</sup>.`,0],[`Faux : log(${Xv}<sup>3</sup>) = log(3${Xv}).`,0]],
+  explain:`log(${V('a')}<sup>${V('n')}</sup>) = ${V('n')} log(${V('a')}) pour ${V('a')} > 0.`,chk:[['eq','log10(5**3)','3*log10(5)']]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`${V('q')} > 1. La suite géométrique de premier terme 1 et de raison ${V('q')} est croissante :`,ans:'toujours',explain:`${u(n+'+1')} = ${V('q')}${u(n)} > ${u(n)} car ${u(n)} > 0 et ${V('q')} > 1.`,chk:[['T','2*3**2>3**2']]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`Une hausse de ${V('t')} % suivie d'une baisse de ${V('u')} % ramène à la valeur initiale :`,ans:'parfois',explain:`Il faut (1 + ${V('t')}/100)(1 − ${V('u')}/100) = 1 : par exemple +25 % puis −20 %, mais pas +20 % puis −20 %.`,chk:[['eq','Rational(125,100)*Rational(80,100)','1'],['ne','Rational(120,100)*Rational(80,100)','1']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`${Xv} est un réel. 10<sup>${Xv}</sup> < 0 :`,ans:'jamais',explain:`Une puissance de 10 est toujours strictement positive.`,chk:[['tpj','10**x<0',['x'],'R','jamais']]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['Des évolutions successives se composent par produit des coefficients multiplicateurs.','log(aⁿ) = n log(a)','P(A ∩ B) = P(A) × P_A(B)','Des pourcentages d\'évolution successifs s\'additionnent.'];
+  const pr=['+10 % puis +10 % : coefficient 1,1 × 1,1 = 1,21.','2ˣ = 100 ⇔ x log 2 = 2.','P(A) = 0,5 et P_A(B) = 0,4 : P(A ∩ B) = 0,2.'][w];
+  return{title:'Quelle propriété justifie ce calcul ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière affirmation est fausse.`,chk:[['eq','Rational(11,10)**2','Rational(121,100)'],['eq','log10(100)','2']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

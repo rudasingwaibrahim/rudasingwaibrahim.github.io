@@ -1058,5 +1058,141 @@ LP.start();
 })();
 </script>
 
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — le-pivot */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Le Pivot — Terminale technologique, chapitre 7 (statistiques à deux variables) : nuage de points, point moyen,
+   ajustement affine (droite des moindres carrés à la calculatrice, passant par le point moyen), prévisions
+   (interpolation, extrapolation prudente), changement de variable (z = log y), corrélation et causalité. */
+const Xv=V('x'),Yv=V('y');
+const BANK=[
+{id:'D1',k:'demo',f:()=>{const xs=[1,2,3,4,5],a=ri(2,5),b=ri(1,9);const ys=xs.map(x=>a*x+b+pick([-1,0,1]));const yb=ys.reduce((s,v)=>s+v,0)/5;
+  return{title:'Le point moyen d\'un nuage',
+  html:`<p>${Xv} : ${xs.join(' ; ')} — ${Yv} : ${ys.join(' ; ')}.</p><ol><li>Le point moyen G a pour abscisse la {0} des ${Xv}<sub>i</sub>, soit ${V('x̄')} = 3.</li>
+<li>Son ordonnée est ${V('ȳ')} = {1}.</li><li>La droite des moindres carrés passe toujours par {2}.</li></ol>`,
+  blanks:[['moyenne',['médiane','somme']],[fx(yb),[fx(yb*5),fx((Math.min(...ys)+Math.max(...ys))/2)].filter(z=>z!==fx(yb)).concat([fx(yb+1)]).slice(0,2)],['le point moyen G',["l'origine du repère",'le premier point du nuage']]],
+  explain:`G(${V('x̄')} ; ${V('ȳ')}) : moyenne des abscisses et moyenne des ordonnées. Contrôle d'une équation d'ajustement : elle doit être vérifiée par G.`,
+  chk:[['stat',ys,'mean',`Rational('${yb}')`],['stat',xs,'mean',3]]}}},
+{id:'D2',k:'demo',f:()=>{const a=pick([2,3,4,5]),b=ri(1,20);const x0=ri(6,9);
+  return{title:'Utiliser un ajustement affine',
+  html:`<p>La calculatrice donne l'ajustement ${Yv} = ${a}${Xv} + ${b} pour des valeurs de ${Xv} entre 1 et 10.</p><ol>
+<li>Pour ${Xv} = ${x0}, on estime ${Yv} ≈ {0}.</li><li>Cette estimation est une {1}, car ${x0} est dans le domaine des données.</li>
+<li>Pour ${Xv} = 50, l'estimation ${Yv} ≈ ${a*50+b} est une extrapolation : elle n'est fiable que si {2}.</li></ol>`,
+  blanks:[[String(a*x0+b),LN(a*x0+b,[a+x0+b,a*x0])],['interpolation',['extrapolation','certitude']],["la tendance reste la même au-delà des données",['le coefficient directeur est positif','50 est un entier']]],
+  explain:`On remplace ${Xv} dans l'équation. Plus on s'éloigne des données (extrapolation), plus l'hypothèse « la tendance continue » est fragile.`,
+  chk:[['eq',`${a}*${x0}+${b}`,`${a*x0+b}`]]}}},
+{id:'D3',k:'demo',f:()=>{const k=ri(1,3),c=pick([1,2,3]);
+  return{title:'Un changement de variable z = log y',
+  html:`<p>Le nuage (${Xv} ; ${Yv}) a une allure exponentielle : ${Yv} semble multiplié par un même nombre quand ${Xv} augmente de 1. On pose ${V('z')} = log(${Yv}).</p><ol>
+<li>Si ${Yv} = ${V('b')} × ${V('q')}<sup>${Xv}</sup>, alors ${V('z')} = log(${V('b')}) + {0}.</li><li>${V('z')} est donc une fonction {1} de ${Xv} : le nuage (${Xv} ; ${V('z')}) est presque aligné.</li>
+<li>Si l'ajustement donne ${V('z')} = 0,${c}${Xv} + ${k}, alors ${Yv} = 10<sup>${V('z')}</sup> = {2}.</li></ol>`,
+  blanks:[['x log(q)',['log(x) × q','log(x + q)']],['affine',['exponentielle','constante']],[`10^(0,${c}x + ${k})`,[`0,${c}x + ${k}`,`log(0,${c}x + ${k})`]]],
+  explain:`Le logarithme transforme un produit en somme et une puissance en produit : log(${V('b')}${V('q')}<sup>${Xv}</sup>) = log(${V('b')}) + ${Xv} log(${V('q')}).`,
+  chk:[['eq','log10(b*q**x)','log10(b)+x*log10(q)'].map(x=>x)].slice(0,0).concat([['eq','log10(5*3**2)','log10(5)+2*log10(3)']])}}},
+{id:'O1',k:'ordre',f:()=>({title:'Construire et utiliser un ajustement affine',
+  steps:[`On représente le nuage de points pour juger de sa forme.`,`Le nuage est allongé selon une direction : un ajustement affine est pertinent.`,`On obtient à la calculatrice l'équation de la droite des moindres carrés et on vérifie qu'elle passe par le point moyen.`,`On l'utilise pour faire une estimation, en restant prudent hors du domaine des données.`],
+  explain:`Regarder, décider, calculer, contrôler, exploiter : la démarche statistique.`,chk:[]})},
+{id:'O2',k:'ordre',f:()=>{const a=pick([2,3]),b=ri(5,15),s=ri(40,80);const x0=Math.ceil((s-b)/a);
+  return{title:`À partir de quelle valeur de ${Xv} l'ajustement prévoit-il ${Yv} ≥ ${s} ?`,prompt:`Ajustement : ${Yv} = ${a}${Xv} + ${b}.`,
+  steps:[`On résout ${N(a+Xv+' + '+b+' ≥ '+s)}.`,`${N(a+Xv+' ≥ '+(s-b))}.`,`${N(Xv+' ≥ '+fx((s-b)/a))}.`,`La plus petite valeur entière est ${x0}.`],
+  explain:`On traduit la question par une inéquation à partir de l'ajustement, puis on interprète dans le contexte.`,chk:[['sol',`${a}*x+${b}>=${s}`,'x',`Interval(Rational(${s-b},${a}),oo)`],['T',`${a}*${x0}+${b}>=${s}`],['T',`${a}*${x0-1}+${b}<${s}`]]}}},
+{id:'F1',k:'faute',f:()=>{const xs=[2,4,6,8];let ys;do{ys=[ri(5,9),ri(10,14),ri(15,19),ri(20,24)]}while((ys[0]+ys[3])*2===ys[0]+ys[1]+ys[2]+ys[3]);const xb=5,yb=(ys[0]+ys[1]+ys[2]+ys[3])/4;
+  return{title:'Le point moyen',
+  lines:[`${Xv} : ${xs.join(' ; ')} — ${Yv} : ${ys.join(' ; ')}`,`${V('x̄')} = (2 + 4 + 6 + 8)/4 = ${xb}`,`${V('ȳ')} = (${ys[0]} + ${ys[3]})/2 = ${fx((ys[0]+ys[3])/2)}`],wrong:2,
+  why:`${V('ȳ')} est la moyenne des quatre valeurs de ${Yv}, pas la moyenne du minimum et du maximum : ${V('ȳ')} = ${fx(yb)}.`,
+  bad:[`À la ligne 1, ${V('x̄')} = 20.`,`Le point moyen est le premier point du nuage.`],
+  explain:`G(${xb} ; ${fx(yb)}). Une droite d'ajustement par les moindres carrés passe par G.`,
+  chk:[['stat',ys,'mean',`Rational('${yb}')`],['ne',`Rational('${yb}')`,`Rational(${ys[0]+ys[3]},2)`]]}}},
+{id:'F2',k:'faute',f:()=>({title:'Corrélation et causalité',
+  lines:[`Dans plusieurs villes, on relève le nombre de glaces vendues et le nombre de coups de soleil.`,`Le nuage est très allongé : l'ajustement affine est excellent.`,`Donc manger des glaces provoque des coups de soleil.`],wrong:2,
+  why:`Un bon ajustement montre une corrélation, pas une causalité : ici les deux grandeurs dépendent d'un même facteur, l'ensoleillement.`,
+  bad:[`À la ligne 1, un nuage allongé empêche tout ajustement.`,`Dans l'énoncé, on ne peut pas relever deux variables à la fois.`],
+  explain:`Pour parler de cause, il faut un mécanisme ; une troisième variable (le temps ensoleillé) explique ici la liaison.`,chk:[]})},
+{id:'F3',k:'faute',f:()=>{const a=pick([2,3]),b=ri(5,15);
+  return{title:'Une prévision lointaine',
+  lines:[`Sur les années 1 à 8, l'ajustement ${Yv} = ${a}${Xv} + ${b} décrit bien les données.`,`Pour l'année 9, on prévoit ${Yv} ≈ ${a*9+b}.`,`Pour l'année 200, on prévoit avec la même fiabilité ${Yv} ≈ ${a*200+b}.`],wrong:2,
+  why:`L'année 200 est très loin du domaine des données : rien ne garantit que la tendance se maintienne, l'extrapolation est hasardeuse.`,
+  bad:[`À la ligne 1, ${a} × 9 + ${b} ne vaut pas ${a*9+b}.`,`À la ligne 0, un ajustement ne décrit jamais des données.`],
+  explain:`L'interpolation (dans le domaine) et une extrapolation proche sont raisonnables ; une extrapolation lointaine ne l'est pas.`,chk:[['eq',`${a}*9+${b}`,`${a*9+b}`]]}}},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« La droite des moindres carrés passe par le point moyen G(${V('x̄')} ; ${V('ȳ')}) du nuage. »`,
+  choices:[[`Vrai : c'est une propriété de la droite des moindres carrés, utile pour contrôler son équation.`,1],[`Faux : elle passe par l'origine.`,0],[`Faux : elle passe par le premier et le dernier point.`,0]],
+  explain:`Si ${Yv} = ${V('a')}${Xv} + ${V('b')} est la droite des moindres carrés, alors ${V('ȳ')} = ${V('a')}${V('x̄')} + ${V('b')}.`,chk:[]})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si le nuage de points est presque aligné, alors l'une des variables est la cause de l'autre. »`,
+  choices:[[`Faux : une corrélation forte n'implique pas une causalité ; un troisième facteur peut agir sur les deux.`,1],[`Vrai : l'alignement prouve le lien de cause.`,0],[`Vrai : c'est la variable ${Yv} qui cause ${Xv}.`,0]],
+  explain:`Corrélation ≠ causalité : il faut un mécanisme explicatif.`,chk:[]})},
+{id:'P1',k:'tpj',f:()=>{const w=pick([0,1,2]);
+  if(w===0)return{title:'Toujours, parfois ou jamais ?',prompt:`Le point moyen d'un nuage a une abscisse comprise entre la plus petite et la plus grande abscisse :`,ans:'toujours',explain:`Une moyenne est comprise entre le minimum et le maximum des valeurs.`,chk:[['stat',[1,5,9],'mean',5]]};
+  if(w===1)return{title:'Toujours, parfois ou jamais ?',prompt:`Le point moyen G est l'un des points du nuage :`,ans:'parfois',explain:`Pour (1 ; 2), (3 ; 4), (5 ; 6), G = (3 ; 4) est un point du nuage ; pour (1 ; 1), (2 ; 4), G = (1,5 ; 2,5) ne l'est pas.`,chk:[['stat',[1,2],'mean','3/2']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`Une extrapolation très lointaine est aussi fiable qu'une interpolation :`,ans:'jamais',explain:`Hors du domaine des données, on suppose que la tendance continue, ce qui n'est pas garanti.`,chk:[]}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const Rr=['La droite des moindres carrés passe par le point moyen.','Le logarithme transforme une relation exponentielle en relation affine.','Une corrélation ne prouve pas une causalité.','Une extrapolation lointaine est toujours fiable.'];
+  const pr=['L\'ajustement y = 2x + 3 et le point moyen G(4 ; 11) : l\'équation est cohérente.','On pose z = log y pour ajuster un nuage d\'allure exponentielle.','Les ventes de parapluies et de bottes sont très corrélées, sans que l\'une cause l\'autre.'][w];
+  return{title:'Quelle propriété justifie cette remarque ?',prompt:pr,ok:Rr[w],bad:Rr.filter((_,j)=>j!==w),explain:`${Rr[w]} La dernière affirmation est fausse.`,chk:[['eq','2*4+3','11']]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>

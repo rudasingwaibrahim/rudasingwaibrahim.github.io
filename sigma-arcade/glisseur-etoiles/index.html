@@ -1097,5 +1097,150 @@ if(window.SigmaKit)SigmaKit.init({game:'glisseur-etoiles',title:'Le Glisseur d\'
 renderNav();
 })();
 </script>
+<!-- PLATINE:debut -->
+<script>
+/* Sigma Arcade · épreuve Platine (après l’Or, ouverte à tous) : raisonnement et démonstration — glisseur-etoiles */
+(function(){'use strict';
+if(!window.SigmaKit||!SigmaKit.addFinal)return;
+{const st=document.createElement('style');st.textContent='.sk-pq .m,.sk-pt .m,.sk-fb .m{white-space:nowrap}';document.head.appendChild(st)}
+/* ===== Sigma Arcade · épreuve Platine (raisonnement et démonstration) — bibliothèque commune =====
+   Inséré par /home/claude/conf/out/platine/src/build.py entre les marqueurs PLATINE ; ne pas éditer dans le jeu. */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M=n=>n<0?'−'+fx(-n):fx(n);                       // nombre : −3 ; 2,5
+const P=n=>n<0?'('+M(n)+')':M(n);                      // après un signe : (−3)
+const fx=n=>{const s=String(Math.round(n*1e9)/1e9);return s.replace('.',',')};
+const AP=(v,d)=>Math.abs(v*10**d-Math.round(v*10**d))<1e-9?'=':'≈';   // « = » si la valeur arrondie est exacte
+const V=s=>`<i>${s}</i>`;
+const N=s=>`<span class="m">${s}</span>`;              // écriture insécable
+const S=n=>n<0?' − '+fx(-n):' + '+fx(n);                // terme suivant : « + 3 » ou « − 3 »
+// fraction réduite p/q (q ≠ 0) en texte : 3/4, −2/5, 2
+function F(p,q){if(q<0){p=-p;q=-q}const g=gcd(p,q)||1;p/=g;q/=g;return q===1?M(p):(p<0?'−':'')+Math.abs(p)+'/'+q}
+// monôme c·x^k dans une somme ; premier terme sans « + »
+function term(c,x,k,first){if(c===0)return'';const a=Math.abs(c),neg=c<0;
+  const body=k===0?fx(a):(a===1?'':fx(a))+x+(k===1?'':k===2?'²':k===3?'³':'^'+k);
+  return first?(neg?'−':'')+body:(neg?' − ':' + ')+body}
+// polynôme à partir de [[c,k],…] (dans l'ordre d'écriture), variable en italique
+function poly(cs,x){x=x||V('x');let s='',f=true;for(const [c,k] of cs){if(c===0)continue;s+=term(c,x,k,f);f=false}return s||'0'}
+const lin=(a,b,x)=>poly([[a,1],[b,0]],x);              // ax + b
+// sympy : nombre en écriture Python
+const Y=n=>'('+n+')';
+// leurres fractionnaires : fractions distinctes de p/q (au moins 2), complétées par (p ± 1)/q
+function LF(p,q,c){const ok=F(p,q),o=[];for(const [a,b] of c.concat([[p+1,q],[p-1,q],[p+2,q],[p,q+1]]))if(b!==0&&F(a,b)!==ok&&!o.includes(F(a,b)))o.push(F(a,b));return o.slice(0,Math.max(2,c.length))}
+// leurres numériques : valeurs distinctes de v (au moins k), complétées par v ± 1, v ± 2…
+function LN(v,c,k,ex){k=k||2;ex=ex||[];const o=[];for(const z of c.concat([v+1,v-1,v+2,v-2,v+3,v-3,v+4]))if(z!==v&&!o.includes(z)&&!ex.includes(z)&&Number.isFinite(z))o.push(z);return o.slice(0,Math.max(k,c.filter(z=>z!==v).length)).map(M)}
+const tx=s=>String(s).replace(/<[^>]+>/g,'');                 // texte brut (listes déroulantes)
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- constructeurs de questions (format du kit) ---------- */
+const QK={
+  demo:o=>({type:'demo',tag:'Démonstration à compléter',title:o.title,consigne:o.consigne||'Compléter la démonstration : choisir la bonne réponse dans chaque case.',
+    prompt:o.html,blanks:o.blanks.map(b=>({ok:tx(b[0]),bad:b[1].map(tx)})),explain:o.explain,chk:o.chk||[]}),
+  ordre:o=>({type:'ordre',tag:'Étapes à remettre dans l’ordre',title:o.title,consigne:o.consigne||'Remettre les étapes du raisonnement dans l’ordre.',
+    prompt:o.prompt||'',steps:o.steps,explain:o.explain,chk:o.chk||[]}),
+  faute:o=>({type:'faute',tag:'Trouver l’étape fausse',title:o.title,consigne:o.consigne||'Ce raisonnement contient une seule étape fausse. Trouver la ligne fausse, puis expliquer pourquoi.',
+    prompt:o.prompt||'',lines:o.lines,wrong:o.wrong,reasons:[o.why].concat(o.bad),explain:o.explain,chk:o.chk||[]}),
+  vf:o=>{const c=sh(o.choices.map(x=>({t:x[0],ok:!!x[1]})));
+    return{type:'qcm',tag:'Vrai ou faux ?',title:o.title,consigne:o.consigne||'Choisir la réponse correctement justifiée.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}},
+  tpj:o=>({type:'qcm',fixed:true,tag:'Toujours, parfois ou jamais ?',title:o.title,consigne:o.consigne||'Choisir la bonne réponse.',prompt:o.prompt,
+    choices:['Toujours','Parfois','Jamais'],answer:['toujours','parfois','jamais'].indexOf(o.ans),explain:o.explain,chk:o.chk||[]}),
+  prop:o=>{const c=sh([{t:o.ok,ok:1}].concat(o.bad.map(t=>({t,ok:0}))));
+    return{type:'qcm',tag:o.tag||'Quelle propriété justifie l’étape ?',title:o.title,consigne:o.consigne||'Choisir la propriété qui justifie ce passage.',prompt:o.prompt,
+      choices:c.map(x=>x.t),answer:c.findIndex(x=>x.ok),explain:o.explain,chk:o.chk||[]}}
+};
+/* ---------- tirage d'une épreuve : 10 questions, un gabarit au plus une fois ---------- */
+const PATTERN=['demo','qcm','faute','ordre','qcm','demo','faute','qcm','ordre','qcm'];
+function platine(){
+  const bag={};for(const k of ['demo','qcm','faute','ordre'])bag[k]=sh(BANK.filter(g=>g.k===k||(k==='qcm'&&['vf','tpj','prop'].includes(g.k))));
+  return PATTERN.map(k=>{const g=bag[k].pop();const q=QK[g.k](g.f());q.id=g.id;return q});
+}
+
+/* Le Glisseur d'étoiles — Seconde, chapitre 3 (vecteurs, 1/2) : translation, vecteurs égaux, parallélogramme
+   (AB = DC ⇔ ABCD parallélogramme), vecteur nul, opposé, milieu, somme et relation de Chasles, soustraction. */
+const vc=s=>`<span class="vec">${s}</span>`;
+const Z=vc('0');
+// vérification par coordonnées : points aléatoires A, B, C, D (Matrix)
+const pts=()=>{const P={};for(const k of 'ABCDEM')P[k]=[ri(-6,6),ri(-6,6)];return P};
+const W=(P,a,b)=>`Matrix([${P[b][0]-P[a][0]},${P[b][1]-P[a][1]}])`;
+const BANK=[
+{id:'D1',k:'demo',f:()=>({title:'Dans un parallélogramme ABCD, AB + AD = AC',
+  html:`<p>ABCD est un parallélogramme.</p><ol><li>D'après la propriété du parallélogramme, ${vc('AD')} = {0}.</li>
+<li>Donc ${vc('AB')} + ${vc('AD')} = ${vc('AB')} + ${vc('BC')}.</li><li>D'après la relation de {1}, ${vc('AB')} + ${vc('BC')} = {2}.</li>
+<li>Conclusion : ${vc('AB')} + ${vc('AD')} = ${vc('AC')}, c'est la règle du {3}.</li></ol>`,
+  blanks:[['vecteur BC',['vecteur CB','vecteur DC']],['Chasles',['Pythagore','Thalès']],['vecteur AC',['vecteur CA','vecteur BD']],['parallélogramme',['triangle','milieu']]],
+  explain:`ABCD parallélogramme ⇔ ${vc('AB')} = ${vc('DC')}, et aussi ${vc('AD')} = ${vc('BC')}. On remplace ${vc('AD')} par ${vc('BC')} pour mettre les vecteurs « bout à bout », puis on applique Chasles.`,
+  chk:(()=>{const P=pts();P.C=[P.B[0]+P.D[0]-P.A[0],P.B[1]+P.D[1]-P.A[1]];return[['eq',W(P,'A','D'),W(P,'B','C')],['eq',`${W(P,'A','B')}+${W(P,'A','D')}`,W(P,'A','C')]]})()})},
+{id:'D2',k:'demo',f:()=>({title:'Simplifier AB − AC',
+  html:`<ol><li>Soustraire un vecteur, c'est ajouter son {0} : ${vc('AB')} − ${vc('AC')} = ${vc('AB')} + {1}.</li>
+<li>On change l'ordre des termes : ${vc('AB')} + ${vc('CA')} = ${vc('CA')} + ${vc('AB')}.</li><li>D'après la relation de Chasles, ${vc('CA')} + ${vc('AB')} = {2}.</li></ol>`,
+  blanks:[['opposé',['double','inverse']],['vecteur CA',['vecteur AC','vecteur BC']],['vecteur CB',['vecteur BC','vecteur AB']]],
+  explain:`${vc('u')} − ${vc('v')} = ${vc('u')} + (−${vc('v')}) et −${vc('AC')} = ${vc('CA')}. Puis ${vc('CA')} + ${vc('AB')} = ${vc('CB')} : la lettre « du milieu » A se simplifie. Attention, le résultat est ${vc('CB')}, pas ${vc('BC')}.`,
+  chk:(()=>{const P=pts();while(P.B[0]===P.C[0]&&P.B[1]===P.C[1])P.C=[ri(-6,6),ri(-6,6)];return[['eq',`${W(P,'A','B')}-${W(P,'A','C')}`,W(P,'C','B')],['ne',`${W(P,'A','B')}-${W(P,'A','C')}`,W(P,'B','C')]]})()})},
+{id:'D3',k:'demo',f:()=>({title:'Milieu et vecteurs',
+  html:`<ol><li>B est le milieu de [AC] si et seulement si ${vc('AB')} = {0}.</li><li>Dans ce cas, ${vc('BA')} + ${vc('BC')} = −${vc('AB')} + ${vc('AB')} = {1}.</li>
+<li>De plus, ${vc('AC')} = ${vc('AB')} + ${vc('BC')} = ${vc('AB')} + ${vc('AB')} : le vecteur ${vc('AC')} a la même direction et le même sens que ${vc('AB')}, et une norme {2}.</li></ol>`,
+  blanks:[['vecteur BC',['vecteur CB','vecteur AC']],['vecteur nul',['vecteur AC','vecteur 2AB']],['deux fois plus grande',['égale','deux fois plus petite']]],
+  explain:`B milieu de [AC] ⇔ ${vc('AB')} = ${vc('BC')}. Les vecteurs ${vc('BA')} et ${vc('BC')} sont alors opposés : leur somme est ${Z}. Et AC = 2AB.`,
+  chk:(()=>{const P=pts();P.C=[2*P.B[0]-P.A[0],2*P.B[1]-P.A[1]];return[['eq',W(P,'A','B'),W(P,'B','C')],['eq',`${W(P,'B','A')}+${W(P,'B','C')}`,'Matrix([0,0])'],['eq',W(P,'A','C'),`2*${W(P,'A','B')}`]]})()})},
+{id:'O1',k:'ordre',f:()=>{const L=sh(['A','B','C','D','E','F']).slice(0,4);const [a,b,c,d]=L;
+  return{title:`Simplifier ${vc(a+b)} + ${vc(c+d)} + ${vc(b+c)}`,
+  steps:[`${vc(a+b)} + ${vc(c+d)} + ${vc(b+c)}`,`= ${vc(a+b)} + ${vc(b+c)} + ${vc(c+d)} (on change l'ordre des termes)`,`= ${vc(a+c)} + ${vc(c+d)} (relation de Chasles)`,`= ${vc(a+d)} (relation de Chasles)`],
+  explain:`On range les vecteurs « bout à bout » (l'extrémité de l'un est l'origine du suivant), puis on applique la relation de Chasles deux fois.`,
+  chk:(()=>{const P={};for(const k of L)P[k]=[ri(-6,6),ri(-6,6)];return[['chain',[`${W(P,a,b)}+${W(P,c,d)}+${W(P,b,c)}`,`${W(P,a,c)}+${W(P,c,d)}`,W(P,a,d)]]]})()}}},
+{id:'O2',k:'ordre',f:()=>({title:'E est l\'image de A par la translation de vecteur BC : quelle figure ?',
+  steps:[`E est l'image de A par la translation de vecteur ${vc('BC')}, donc ${vc('AE')} = ${vc('BC')}.`,`On réécrit l'égalité : ${vc('BC')} = ${vc('AE')}.`,`D'après la propriété du parallélogramme (${vc('XY')} = ${vc('WZ')} ⇔ XYZW parallélogramme), BCEA est un parallélogramme.`,`Ses diagonales [BE] et [CA] ont donc le même milieu.`],
+  explain:`La propriété ${vc('AB')} = ${vc('DC')} ⇔ ABCD parallélogramme demande de bien lire l'ordre des lettres : ${vc('BC')} = ${vc('AE')} donne B, C, E, A.`,
+  chk:(()=>{const P=pts();P.E=[P.A[0]+P.C[0]-P.B[0],P.A[1]+P.C[1]-P.B[1]];return[['eq',W(P,'A','E'),W(P,'B','C')],['eq',`Matrix([${P.B[0]+P.E[0]},${P.B[1]+P.E[1]}])`,`Matrix([${P.C[0]+P.A[0]},${P.C[1]+P.A[1]}])`]]})()})},
+{id:'F1',k:'faute',f:()=>({title:'Une somme de vecteurs',
+  lines:[`${vc('u')} = ${vc('AB')} + ${vc('CB')} + ${vc('CA')}`,`${vc('u')} = ${vc('AC')} + ${vc('CA')}`,`${vc('u')} = ${Z}`],wrong:1,
+  why:`${vc('AB')} + ${vc('CB')} n'est pas ${vc('AC')} : la relation de Chasles s'applique à ${vc('AB')} + ${vc('BC')}, et ${vc('CB')} = −${vc('BC')}.`,
+  bad:[`À la ligne 2, ${vc('AC')} + ${vc('CA')} = 2${vc('AC')}.`,`À la ligne 1, on ne peut pas additionner trois vecteurs.`],
+  explain:`On réordonne : ${vc('u')} = ${vc('CA')} + ${vc('AB')} + ${vc('CB')} = ${vc('CB')} + ${vc('CB')} : ${vc('u')} n'est pas nul en général.`,
+  chk:(()=>{const P=pts();while(P.B[0]===P.C[0]&&P.B[1]===P.C[1])P.C=[ri(-6,6),ri(-6,6)];return[['seq',[`${W(P,'A','B')}+${W(P,'C','B')}+${W(P,'C','A')}`,`${W(P,'A','C')}+${W(P,'C','A')}`,'Matrix([0,0])'],1],['eq',`${W(P,'A','B')}+${W(P,'C','B')}+${W(P,'C','A')}`,`2*${W(P,'C','B')}`]]})()})},
+{id:'F2',k:'faute',f:()=>({title:'Reconnaître un parallélogramme',
+  lines:[`On sait que ${vc('AB')} = ${vc('DC')}.`,`Donc les droites (AB) et (DC) sont parallèles et AB = DC.`,`Donc ABDC est un parallélogramme.`],wrong:2,
+  why:`${vc('AB')} = ${vc('DC')} caractérise le parallélogramme ABCD (dans cet ordre), pas ABDC.`,
+  bad:[`À la ligne 2, deux vecteurs égaux ne sont jamais parallèles.`,`À la ligne 1, il faudrait ${vc('AB')} = ${vc('CD')}.`],
+  explain:`L'ordre des sommets compte : ${vc('AB')} = ${vc('DC')} ⇔ ABCD est un parallélogramme (éventuellement aplati). Dans ABDC, les « côtés » [BD] et [CA] seraient en fait les diagonales.`,
+  chk:(()=>{const P=pts();P.C=[P.B[0]+P.D[0]-P.A[0],P.B[1]+P.D[1]-P.A[1]];return[['eq',W(P,'A','B'),W(P,'D','C')],['eq',`Matrix([${P.A[0]+P.C[0]},${P.A[1]+P.C[1]}])`,`Matrix([${P.B[0]+P.D[0]},${P.B[1]+P.D[1]}])`]]})()})},
+{id:'F3',k:'faute',f:()=>({title:'Une différence de vecteurs',
+  lines:[`${vc('w')} = ${vc('MA')} − ${vc('MB')}`,`${vc('w')} = ${vc('MA')} + ${vc('BM')}`,`${vc('w')} = ${vc('BM')} + ${vc('MA')}`,`${vc('w')} = ${vc('AB')}`],wrong:3,
+  why:`D'après la relation de Chasles, ${vc('BM')} + ${vc('MA')} = ${vc('BA')}, et non ${vc('AB')}.`,
+  bad:[`À la ligne 1, −${vc('MB')} = ${vc('MB')}.`,`À la ligne 2, on n'a pas le droit de changer l'ordre d'une somme de vecteurs.`],
+  explain:`${vc('MA')} − ${vc('MB')} = ${vc('BM')} + ${vc('MA')} = ${vc('BA')}. L'addition des vecteurs est commutative : changer l'ordre est permis.`,
+  chk:(()=>{const P=pts();while(P.A[0]===P.B[0]&&P.A[1]===P.B[1])P.B=[ri(-6,6),ri(-6,6)];return[['seq',[`${W(P,'M','A')}-${W(P,'M','B')}`,`${W(P,'M','A')}+${W(P,'B','M')}`,`${W(P,'B','M')}+${W(P,'M','A')}`,W(P,'A','B')],3]]})()})},
+{id:'V1',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Si AB = CD (longueurs), alors ${vc('AB')} = ${vc('CD')}. »`,
+  choices:[[`Faux : si B est le milieu de [AC], AB = BA mais ${vc('AB')} ≠ ${vc('BA')}, car ils sont de sens contraires.`,1],
+    [`Vrai : deux vecteurs de même longueur sont égaux.`,0],[`Vrai : dans un carré ABCD, AB = DC et ${vc('AB')} = ${vc('DC')}.`,0],[`Faux : deux vecteurs ne sont jamais égaux.`,0]],
+  explain:`Deux vecteurs sont égaux s'ils ont même direction, même sens et même norme. L'égalité des longueurs ne suffit pas. Un exemple favorable (le carré) ne prouve pas l'affirmation.`,
+  chk:(()=>{const P=pts();while(P.A[0]===P.B[0]&&P.A[1]===P.B[1])P.B=[ri(-6,6),ri(-6,6)];return[['ne',W(P,'A','B'),W(P,'B','A')],['eq',`sqrt(${(P.B[0]-P.A[0])**2+(P.B[1]-P.A[1])**2})`,`sqrt(${(P.A[0]-P.B[0])**2+(P.A[1]-P.B[1])**2})`]]})()})},
+{id:'V2',k:'vf',f:()=>({title:'Vrai ou faux ?',prompt:`« Pour tous points A et B, ${vc('AB')} + ${vc('BA')} = ${Z}. »`,
+  choices:[[`Vrai : d'après la relation de Chasles, ${vc('AB')} + ${vc('BA')} = ${vc('AA')} = ${Z}.`,1],[`Faux : ${vc('AB')} + ${vc('BA')} = 2${vc('AB')}.`,0],[`Faux : c'est vrai seulement si A = B.`,0]],
+  explain:`${vc('BA')} est l'opposé de ${vc('AB')} : aller de A à B puis revenir de B à A, c'est ne pas bouger.`,
+  chk:(()=>{const P=pts();return[['eq',`${W(P,'A','B')}+${W(P,'B','A')}`,'Matrix([0,0])']]})()})},
+{id:'P1',k:'tpj',f:()=>{const v=pick([0,1,2]);
+  if(v===0)return{title:'Toujours, parfois ou jamais ?',prompt:`A, B, C sont trois points du plan. ${vc('AB')} + ${vc('BC')} = ${vc('AC')} :`,ans:'toujours',
+    explain:`C'est la relation de Chasles, vraie pour tous points A, B, C.`,chk:(()=>{const P=pts();return[['eq',`${W(P,'A','B')}+${W(P,'B','C')}`,W(P,'A','C')]]})()};
+  if(v===1)return{title:'Toujours, parfois ou jamais ?',prompt:`A, B, C, D sont quatre points. Si ${vc('AB')} = ${vc('DC')}, alors ABCD est un parallélogramme non aplati :`,ans:'parfois',
+    explain:`${vc('AB')} = ${vc('DC')} ⇔ ABCD est un parallélogramme, <b>éventuellement aplati</b> (les quatre points peuvent être alignés).`,
+    chk:[['eq','Matrix([1,0])-Matrix([0,0])','Matrix([3,0])-Matrix([2,0])']]};
+  return{title:'Toujours, parfois ou jamais ?',prompt:`A et B sont deux points distincts. ${vc('AB')} = ${vc('BA')} :`,ans:'jamais',
+    explain:`${vc('BA')} = −${vc('AB')} : ils ont la même direction et la même norme, mais des sens contraires. Ils ne sont égaux que si A = B.`,chk:(()=>{const P=pts();while(P.A[0]===P.B[0]&&P.A[1]===P.B[1])P.B=[ri(-6,6),ri(-6,6)];return[['ne',W(P,'A','B'),W(P,'B','A')]]})()}}},
+{id:'R1',k:'prop',f:()=>{const w=pick([0,1,2]);
+  const R=['La relation de Chasles.','La caractérisation du parallélogramme par des vecteurs égaux.','La caractérisation vectorielle du milieu.','Deux vecteurs de même longueur sont égaux.'];
+  const pr=[`${vc('MN')} + ${vc('NP')} = ${vc('MP')}`,`${vc('RS')} = ${vc('UT')}, donc RSTU est un parallélogramme.`,`${vc('KL')} = ${vc('LM')}, donc L est le milieu de [KM].`][w];
+  return{title:'Quelle propriété justifie ce passage ?',prompt:`<div class="sk-eq">${pr}</div>`,ok:R[w],bad:R.filter((_,j)=>j!==w),
+    explain:`${R[w]} La dernière phrase est fausse : il faut aussi même direction et même sens.`,chk:[]}}}
+];
+
+SigmaKit.addFinal('platine',platine,{n:PATTERN.length});
+window.__platine={bank:BANK,draw:platine};
+})();
+</script>
+<!-- PLATINE:fin -->
 </body>
 </html>
