@@ -14,7 +14,7 @@ planches:
   pdf: premiere-spe-ch4-planche-01.pdf
 - num: 2
   pdf: premiere-spe-ch4-planche-02.pdf
-dm_published: false
+dm_published: true
 dm:
 - num: 1
   contenu: Coût marginal et bénéfice maximal · Rectangle d'aire maximale

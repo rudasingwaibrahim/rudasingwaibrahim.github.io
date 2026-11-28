@@ -14,7 +14,7 @@ planches:
   pdf: premiere-spe-ch11-planche-01.pdf
 - num: 2
   pdf: premiere-spe-ch11-planche-02.pdf
-dm_published: false
+dm_published: true
 dm:
 - num: 1
   contenu: Valeurs remarquables de π/3 et 2π/3

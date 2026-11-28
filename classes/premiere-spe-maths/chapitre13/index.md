@@ -14,7 +14,7 @@ planches:
   pdf: premiere-spe-ch13-planche-01.pdf
 - num: 2
   pdf: premiere-spe-ch13-planche-02.pdf
-dm_published: false
+dm_published: true
 dm:
 - num: 1
   contenu: "Définition · Propriétés algébriques · Somme de puissances de e"

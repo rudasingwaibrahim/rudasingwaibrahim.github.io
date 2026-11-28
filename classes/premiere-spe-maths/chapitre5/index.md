@@ -14,7 +14,7 @@ planches:
   pdf: premiere-spe-ch5-planche-01.pdf
 - num: 2
   pdf: premiere-spe-ch5-planche-02.pdf
-dm_published: false
+dm_published: true
 dm:
 - num: 1
   contenu: Arbre à trois branches · Probabilités totales · Test de dépistage

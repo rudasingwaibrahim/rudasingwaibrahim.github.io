@@ -14,7 +14,7 @@ planches:
   pdf: premiere-spe-ch8-planche-01.pdf
 - num: 2
   pdf: premiere-spe-ch8-planche-02.pdf
-dm_published: false
+dm_published: true
 dm:
 - num: 1
   contenu: Radian · Enroulement · Longueurs d'arc

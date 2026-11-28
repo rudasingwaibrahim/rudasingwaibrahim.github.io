@@ -13,7 +13,7 @@ planches:
   pdf: terminale-spe-ch19-planche-01.pdf
 - num: 2
   pdf: terminale-spe-ch19-planche-02.pdf
-dm_published: false
+dm_published: true
 dm:
 - num: 1
   contenu: Inégalité de Bienaymé-Tchebychev en situation
